@@ -1,12 +1,15 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Route, Switch } from "wouter";
+
 // Auth
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { queryClient } from "./lib/queryClient";
 import { SimpleTimerProvider } from "./contexts/SimpleTimerContext";
+
 // UI Components
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
 // Pages
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
@@ -15,11 +18,13 @@ import TicketDetails from "./pages/TicketDetails";
 // CustomersTable removed - unified with Clientes.tsx
 import Beneficiaries from "./pages/Beneficiaries";
 // Locations import moved below to avoid duplication
+
 import Analytics from "./pages/Analytics";
 import AutomationRules from "./pages/AutomationRules";
 import Compliance from "./pages/Compliance";
 import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
+
 import WorkSchedules from "./pages/WorkSchedules";
 import TimecardReports from './pages/TimecardReports';
 import CertificateManager from './pages/CertificateManager';
@@ -32,6 +37,7 @@ import SaasAdminPerformance from "./pages/SaasAdminPerformance";
 import SaasAdminBilling from "./pages/SaasAdminBilling";
 import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
 import SaasAdminIntegrations from "./pages/SaasAdminIntegrations";
+
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
 // Removed TenantAdminSLAs - replaced with new SLA module
 import TenantAdminIntegrations from "./pages/TenantAdminIntegrations";
@@ -48,6 +54,7 @@ import Companies from "./pages/Companies";
 import TechnicalSkills from "./pages/TechnicalSkills";
 import TicketTemplates from "./pages/TicketTemplates";
 import SlaManagement from "./pages/SlaManagement";
+
 // Removed: ExternalContactsManagement - functionality eliminated
 // Removed: Projects and ProjectActions - module completely eliminated
 // Removed: OmniBridge import
@@ -56,6 +63,7 @@ import Timecard from "./pages/Timecard";
 import TimecardAutonomous from "./pages/TimecardAutonomous";
 import { EmploymentRouteGuard } from "./components/routing/EmploymentRouteGuard";
 import AbsenceManagement from "./pages/AbsenceManagement";
+
 import LocationsNew from "./pages/LocationsNew";
 import HolidayCalendar from "./pages/HolidayCalendar";
 import AgendaManager from "./pages/AgendaManager";
@@ -63,6 +71,7 @@ import UserProfile from "./pages/UserProfile";
 import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
 import CorporateExpenseManagement from "./pages/CorporateExpenseManagement";
+
 import ItemCatalog from "./pages/ItemCatalog";
 import GdprCompliancePage from "./pages/GdprCompliancePage";
 import TicketMaterials from "./pages/TicketMaterials";
@@ -72,10 +81,12 @@ import { StockManagement } from "./pages/StockManagement";
 import LPU from "./pages/LPU";
 import { SupplierManagement } from "./pages/SupplierManagement";
 import { CustomerItemMappings } from "./pages/CustomerItemMappings";
+
 import AssetManagement from "./pages/AssetManagement";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import CLTCompliance from "./pages/CLTCompliance";
 import TimecardApprovalSettings from "./pages/TimecardApprovalSettings";
+
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';
 import DragDropDemo from './pages/DragDropDemo';
 import ProductivityReports from './pages/ProductivityReports';
@@ -84,22 +95,31 @@ import NotificationsPage from './pages/NotificationsPage';
 import Reports from './pages/Reports';
 import Dashboards from './pages/Dashboards';
 import DashboardView from "./pages/DashboardView";
+
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
+
 // OmniBridge Module - New Import
 import OmniBridge from "./pages/OmniBridge";
+
 // Knowledge Base Module
 import KnowledgeBase from "./pages/KnowledgeBase";
+
 // Components
 import { AppShell } from "./components/layout/AppShell";
+
 // Assuming TicketAdvancedConfiguration is in the same directory
 import TicketAdvancedConfiguration from "./pages/TicketAdvancedConfiguration";
+
 // Assuming ReportEdit is in the same directory
 import ReportEdit from "./pages/ReportEdit";
 // Assuming ReportCreate is in the same directory
 import ReportCreate from "./pages/ReportCreate";
+
+
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
+
   // Show loading state
   if (isLoading) {
     return (
@@ -111,6 +131,7 @@ function AppRouter() {
       </div>
     );
   }
+
   // Show auth page if not authenticated
   if (!isAuthenticated) {
     return (
@@ -120,6 +141,7 @@ function AppRouter() {
       </Switch>
     );
   }
+
   // Show main app if authenticated
   return (
     <AppShell>
@@ -134,6 +156,7 @@ function AppRouter() {
         <Route path="/technical-skills" component={TechnicalSkills} />
         {/* Removed: external-contacts route - functionality eliminated */}
         <Route path="/locations" component={LocationsNew} />
+
         <Route path="/analytics" component={Analytics} />
         <Route path="/notifications" component={NotificationsPage} />
         <Route path="/compliance" component={Compliance} />
@@ -151,6 +174,7 @@ function AppRouter() {
         <Route path="/activity-planner" component={ActivityPlanner} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
+
         {/* <Route path="/global-geolocation" component={GlobalGeolocation} /> */}
         <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
@@ -197,6 +221,7 @@ function AppRouter() {
         <Route path="/contracts" component={ContractManagement} />
         <Route path="/expense-management" component={CorporateExpenseManagement} />
         <Route path="/corporate-expenses" component={CorporateExpenseManagement} />
+
         <Route path="/item-catalog" component={ItemCatalog} />
         <Route path="/tickets/:id/materials" component={TicketMaterials} />
         <Route path="/stock-management" component={StockManagement} />
@@ -204,9 +229,11 @@ function AppRouter() {
         <Route path="/customer-item-mappings" component={CustomerItemMappings} />
         <Route path="/lpu" component={LPU} />
         <Route path="/lpu-management" component={LPU} />
+
         <Route path="/asset-management" component={AssetManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
         <Route path="/gdpr-compliance" component={GdprCompliancePage} />
+
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
         <Route path="/drag-drop-demo" component={DragDropDemo} />
         <Route path="/productivity-reports" component={ProductivityReports} />
@@ -218,6 +245,7 @@ function AppRouter() {
         <Route path="/dashboards" component={Dashboards} />
         <Route path="/dashboard/:id" component={DashboardView} />
         <Route path="/dashboard/:id/edit" component={DashboardView} />
+
         <Route path="/companies" component={Companies} />
         
         {/* Knowledge Base Route */}
@@ -228,6 +256,7 @@ function AppRouter() {
     </AppShell>
   );
 }
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -242,4 +271,5 @@ function App() {
     </QueryClientProvider>
   );
 }
+
 export default App;

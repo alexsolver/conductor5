@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   CheckCircle, 
   XCircle, 
   AlertTriangle, 
@@ -32,6 +31,7 @@ import {
   Activity,
   GitBranch
 } from "lucide-react";
+
 interface FileIssue {
   type: 'warning' | 'error';
   line?: number;
@@ -39,6 +39,7 @@ interface FileIssue {
   problemFound: string;
   correctionPrompt: string;
 }
+
 interface ModuleFile {
   path: string;
   type: 'frontend' | 'backend' | 'shared' | 'config';
@@ -49,6 +50,7 @@ interface ModuleFile {
   checksum: string;
   issues?: FileIssue[];
 }
+
 interface ModuleInfo {
   name: string;
   description: string;
@@ -62,6 +64,7 @@ interface ModuleInfo {
   healthScore: number;
   status: 'healthy' | 'warning' | 'error';
 }
+
 interface IntegrityCheck {
   id: string;
   timestamp: string;
@@ -80,8 +83,8 @@ interface IntegrityCheck {
     warnings: number;
   };
 }
+
 const moduleIcons = {
-  // Localization temporarily disabled
   auth: Shield,
   customers: Users,
   tickets: Ticket,
@@ -90,31 +93,37 @@ const moduleIcons = {
   database: Database,
   shared: GitBranch
 };
+
 export default function ModuleIntegrityControl() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [isRunningCheck, setIsRunningCheck] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Fetch module information
   const { data: modulesData, isLoading: modulesLoading } = useQuery({
     queryKey: ["/api/integrity/modules"],
     retry: 3,
   });
+
   // Fetch integrity checks history
   const { data: checksData, isLoading: checksLoading } = useQuery({
     queryKey: ["/api/integrity/checks"],
     retry: 3,
   });
+
   // Fetch real-time monitoring data
   const { data: monitoringData } = useQuery({
     queryKey: ["/api/integrity/monitoring"],
     refetchInterval: 5000, // Update every 5 seconds
     retry: 3,
   });
+
   const modules: ModuleInfo[] = modulesData?.modules || [];
   const checks: IntegrityCheck[] = checksData?.checks || [];
   const monitoring = monitoringData || {};
+
   // Run integrity check mutation
   const runIntegrityCheckMutation = useMutation({
     mutationFn: async (type: 'full' | 'quick' | 'module') => {
@@ -130,12 +139,13 @@ export default function ModuleIntegrityControl() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro na Verificação",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+
   // Create backup mutation
   const createBackupMutation = useMutation({
     mutationFn: async () => {
@@ -149,6 +159,7 @@ export default function ModuleIntegrityControl() {
       });
     },
   });
+
   const toggleModuleExpansion = (moduleName: string) => {
     const newExpanded = new Set(expandedModules);
     if (newExpanded.has(moduleName)) {
@@ -158,6 +169,7 @@ export default function ModuleIntegrityControl() {
     }
     setExpandedModules(newExpanded);
   };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy': return 'text-green-600 dark:text-green-400';
@@ -166,6 +178,7 @@ export default function ModuleIntegrityControl() {
       default: return 'text-gray-600 dark:text-gray-400';
     }
   };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'healthy': return <CheckCircle className="h-4 w-4" />;
@@ -174,29 +187,31 @@ export default function ModuleIntegrityControl() {
       default: return <AlertTriangle className="h-4 w-4" />;
     }
   };
+
   if (modulesLoading || checksLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p>Carregando Sistema de Controle de Integridade...</p>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="p-4"
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="p-4"
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="p-4"
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Controle de Integridade de Módulos
           </h1>
-          <p className="p-4"
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Sistema avançado de prevenção de regressões e controle de qualidade
           </p>
         </div>
-        <div className="p-4"
+        <div className="flex space-x-2">
           <Button
             onClick={() => createBackupMutation.mutate()}
             disabled={createBackupMutation.isPending}
@@ -222,57 +237,61 @@ export default function ModuleIntegrityControl() {
           </Button>
         </div>
       </div>
+
       {/* Status Overview */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Módulos Saudáveis</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Módulos Saudáveis</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold text-green-600">
               {modules.filter(m => m.status === 'healthy').length}
             </div>
-            <p className="p-4"
+            <p className="text-xs text-green-600">
               de {modules.length} módulos
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Avisos</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avisos</CardTitle>
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold text-yellow-600">
               {modules.filter(m => m.status === 'warning').length}
             </div>
-            <p className="p-4"
+            <p className="text-xs text-yellow-600">
               requerem atenção
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Erros Críticos</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Erros Críticos</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold text-red-600">
               {modules.filter(m => m.status === 'error').length}
             </div>
-            <p className="p-4"
+            <p className="text-xs text-red-600">
               correção urgente
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Integridade Geral</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Integridade Geral</CardTitle>
             <Activity className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold text-blue-600">
               {Math.round(modules.reduce((acc, m) => acc + m.healthScore, 0) / modules.length)}%
             </div>
             <Progress 
@@ -282,49 +301,52 @@ export default function ModuleIntegrityControl() {
           </CardContent>
         </Card>
       </div>
-      <Tabs defaultValue="modules" className="p-4"
-        <TabsList className="p-4"
+
+      <Tabs defaultValue="modules" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="modules">Módulos</TabsTrigger>
           <TabsTrigger value="checks">Verificações</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoramento</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
+
         {/* Modules Tab */}
-        <TabsContent value="modules" className="p-4"
-          <div className="p-4"
+        <TabsContent value="modules" className="space-y-4">
+          <div className="grid gap-4">
             {modules.map((module) => {
               const ModuleIcon = moduleIcons[module.name as keyof typeof moduleIcons] || FileCode;
               const isExpanded = expandedModules.has(module.name);
+
               return (
-                <Card key={module.name} className="p-4"
+                <Card key={module.name} className="overflow-hidden">
                   <Collapsible>
                     <CollapsibleTrigger asChild>
                       <CardHeader 
                         className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         onClick={() => toggleModuleExpansion(module.name)}
                       >
-                        <div className="p-4"
-                          <div className="p-4"
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
                             <ModuleIcon className="h-8 w-8 text-blue-600" />
                             <div>
-                              <CardTitle className="p-4"
+                              <CardTitle className="flex items-center space-x-2">
                                 <span>{module.name}</span>
                                 <Badge 
                                   variant={module.status === 'healthy' ? 'default' : 
                                           module.status === 'warning' ? 'secondary' : 'destructive'}
-                                  className="p-4"
+                                  className={`${getStatusColor(module.status)}`}
                                 >
                                   {getStatusIcon(module.status)}
-                                  <span className="text-lg">"{module.status}</span>
+                                  <span className="ml-1">{module.status}</span>
                                 </Badge>
                               </CardTitle>
                               <CardDescription>{module.description}</CardDescription>
                             </div>
                           </div>
-                          <div className="p-4"
-                            <div className="p-4"
-                              <div className="text-lg">"{module.healthScore}%</div>
-                              <div className="text-lg">"Integridade</div>
+                          <div className="flex items-center space-x-4">
+                            <div className="text-right">
+                              <div className="text-lg font-bold">{module.healthScore}%</div>
+                              <div className="text-sm text-gray-500">Integridade</div>
                             </div>
                             {isExpanded ? 
                               <ChevronDown className="h-4 w-4" /> : 
@@ -334,66 +356,68 @@ export default function ModuleIntegrityControl() {
                         </div>
                       </CardHeader>
                     </CollapsibleTrigger>
+
                     <CollapsibleContent>
-                      <CardContent className="p-4"
+                      <CardContent className="pt-0">
                         <Separator className="mb-4" />
                         
                         {/* Module Statistics */}
-                        <div className="p-4"
-                          <div className="p-4"
-                            <div className="text-lg">"{module.files.length}</div>
-                            <div className="text-lg">"Arquivos</div>
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">{module.files.length}</div>
+                            <div className="text-sm text-gray-500">Arquivos</div>
                           </div>
-                          <div className="p-4"
-                            <div className="p-4"
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">
                               {module.tests.unit + module.tests.integration + module.tests.e2e}
                             </div>
-                            <div className="text-lg">"Testes</div>
+                            <div className="text-sm text-gray-500">Testes</div>
                           </div>
-                          <div className="p-4"
-                            <div className="p-4"
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-purple-600">
                               {module.files.reduce((acc, f) => acc + f.dependencies.length, 0)}
                             </div>
-                            <div className="text-lg">"Dependências</div>
+                            <div className="text-sm text-gray-500">Dependências</div>
                           </div>
                         </div>
+
                         {/* Files List */}
-                        <div className="p-4"
-                          <h4 className="text-lg">"Arquivos do Módulo</h4>
-                          <ScrollArea className="p-4"
+                        <div className="space-y-2">
+                          <h4 className="font-semibold">Arquivos do Módulo</h4>
+                          <ScrollArea className="h-64">
                             {module.files.map((file, index) => (
-                              <div key={index} className="p-4"
-                                <div className="p-4"
-                                  <div className="p-4"
+                              <div key={index} className="p-3 border rounded mb-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
                                     <FileCode className="h-4 w-4" />
-                                    <span className="text-lg">"{file.path}</span>
-                                    <Badge variant="outline" className="p-4"
+                                    <span className="text-sm font-mono">{file.path}</span>
+                                    <Badge variant="outline" className="text-xs">
                                       {file.type}
                                     </Badge>
                                   </div>
-                                  <div className="p-4"
+                                  <div className="flex items-center space-x-2">
                                     {getStatusIcon(file.integrity)}
-                                    <span className="p-4"
+                                    <span className="text-xs text-gray-500">
                                       {new Date(file.lastModified).toLocaleDateString()}
                                     </span>
                                   </div>
                                 </div>
                                 
                                 {file.issues && file.issues.length > 0 && (
-                                  <div className="p-4"
+                                  <div className="mt-3 space-y-2">
                                     {file.issues.map((issue, issueIndex) => (
                                       <div key={issueIndex} className={cn(
                                         "p-3 rounded-lg border-l-4",
                                         issue.type === 'error' ? "bg-red-50 border-red-400 dark:bg-red-900/20" : "bg-yellow-50 border-yellow-400 dark:bg-yellow-900/20"
                                       )}>
-                                        <div className="p-4"
-                                          <div className="p-4"
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex-1">
                                             <h5 className={cn(
                                               "text-sm font-medium",
                                               issue.type === 'error' ? "text-red-800 dark:text-red-200" : "text-yellow-800 dark:text-yellow-200"
                                             )}>
                                               {issue.description}
-                                              {issue.line && <span className="text-lg">"(linha {issue.line})</span>}
+                                              {issue.line && <span className="ml-1 text-xs">(linha {issue.line})</span>}
                                             </h5>
                                             <p className={cn(
                                               "text-xs mt-1",
@@ -401,11 +425,11 @@ export default function ModuleIntegrityControl() {
                                             )}>
                                               <strong>Problema:</strong> {issue.problemFound}
                                             </p>
-                                            <div className="p-4"
-                                              <p className="p-4"
+                                            <div className="mt-2">
+                                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                                                 <strong>Prompt para correção:</strong>
                                               </p>
-                                              <div className="p-4"
+                                              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap max-h-20 overflow-y-auto">
                                                 {issue.correctionPrompt}
                                               </div>
                                               <Button
@@ -427,7 +451,8 @@ export default function ModuleIntegrityControl() {
                             ))}
                           </ScrollArea>
                         </div>
-                        <div className="p-4"
+
+                        <div className="flex justify-end space-x-2 mt-4">
                           <Button
                             variant="outline"
                             size="sm"
@@ -449,8 +474,9 @@ export default function ModuleIntegrityControl() {
             })}
           </div>
         </TabsContent>
+
         {/* Checks Tab */}
-        <TabsContent value="checks" className="p-4"
+        <TabsContent value="checks" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Histórico de Verificações</CardTitle>
@@ -459,19 +485,19 @@ export default function ModuleIntegrityControl() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="p-4"
+              <ScrollArea className="h-96">
                 {checks.length === 0 ? (
-                  <div className="p-4"
+                  <div className="text-center py-8 text-gray-500">
                     Nenhuma verificação encontrada. Execute uma verificação para começar.
                   </div>
                 ) : (
-                  <div className="p-4"
+                  <div className="space-y-4">
                     {checks.map((check) => (
-                      <Card key={check.id} className="p-4"
-                        <CardHeader className="p-4"
-                          <div className="p-4"
+                      <Card key={check.id} className="border-l-4 border-l-blue-500">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
                             <div>
-                              <CardTitle className="p-4"
+                              <CardTitle className="text-lg">
                                 Verificação {check.type}
                               </CardTitle>
                               <CardDescription>
@@ -487,35 +513,35 @@ export default function ModuleIntegrityControl() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <div className="p-4"
-                            <div className="p-4"
-                              <div className="text-lg">"{check.summary.totalTests}</div>
-                              <div className="text-lg">"Total</div>
+                          <div className="grid grid-cols-4 gap-4 mb-4">
+                            <div className="text-center">
+                              <div className="text-lg font-bold">{check.summary.totalTests}</div>
+                              <div className="text-sm text-gray-500">Total</div>
                             </div>
-                            <div className="p-4"
-                              <div className="text-lg">"{check.summary.passedTests}</div>
-                              <div className="text-lg">"Passou</div>
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-green-600">{check.summary.passedTests}</div>
+                              <div className="text-sm text-gray-500">Passou</div>
                             </div>
-                            <div className="p-4"
-                              <div className="text-lg">"{check.summary.failedTests}</div>
-                              <div className="text-lg">"Falhou</div>
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-red-600">{check.summary.failedTests}</div>
+                              <div className="text-sm text-gray-500">Falhou</div>
                             </div>
-                            <div className="p-4"
-                              <div className="text-lg">"{check.summary.warnings}</div>
-                              <div className="text-lg">"Avisos</div>
+                            <div className="text-center">
+                              <div className="text-lg font-bold text-yellow-600">{check.summary.warnings}</div>
+                              <div className="text-sm text-gray-500">Avisos</div>
                             </div>
                           </div>
                           
                           {check.modules.length > 0 && (
-                            <div className="p-4"
-                              <h5 className="text-lg">"Resultados por Módulo</h5>
+                            <div className="space-y-2">
+                              <h5 className="font-semibold text-sm">Resultados por Módulo</h5>
                               {check.modules.map((module, index) => (
-                                <div key={index} className="p-4"
+                                <div key={index} className="flex items-center justify-between text-sm">
                                   <span>{module.name}</span>
-                                  <div className="p-4"
-                                    <span className="text-lg">"✓ {module.passed}</span>
-                                    <span className="text-lg">"✗ {module.failed}</span>
-                                    <span className="text-lg">"⚠ {module.warnings}</span>
+                                  <div className="flex space-x-2">
+                                    <span className="text-green-600">✓ {module.passed}</span>
+                                    <span className="text-red-600">✗ {module.failed}</span>
+                                    <span className="text-yellow-600">⚠ {module.warnings}</span>
                                   </div>
                                 </div>
                               ))}
@@ -530,9 +556,10 @@ export default function ModuleIntegrityControl() {
             </CardContent>
           </Card>
         </TabsContent>
+
         {/* Monitoring Tab */}
-        <TabsContent value="monitoring" className="p-4"
-          <div className="p-4"
+        <TabsContent value="monitoring" className="space-y-4">
+          <div className="grid gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>Monitoramento em Tempo Real</CardTitle>
@@ -541,7 +568,7 @@ export default function ModuleIntegrityControl() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="space-y-4">
                   <Alert>
                     <Activity className="h-4 w-4" />
                     <AlertTitle>Sistema Ativo</AlertTitle>
@@ -550,16 +577,16 @@ export default function ModuleIntegrityControl() {
                     </AlertDescription>
                   </Alert>
                   
-                  <div className="p-4"
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-lg">"Performance dos Módulos</h4>
-                      <div className="p-4"
+                      <h4 className="font-semibold mb-2">Performance dos Módulos</h4>
+                      <div className="space-y-2">
                         {modules.map((module) => (
-                          <div key={module.name} className="p-4"
-                            <span className="text-lg">"{module.name}</span>
-                            <div className="p-4"
+                          <div key={module.name} className="flex items-center justify-between">
+                            <span className="text-sm">{module.name}</span>
+                            <div className="flex items-center space-x-2">
                               <Progress value={module.healthScore} className="w-20" />
-                              <span className="text-lg">"{module.healthScore}%</span>
+                              <span className="text-xs">{module.healthScore}%</span>
                             </div>
                           </div>
                         ))}
@@ -567,9 +594,9 @@ export default function ModuleIntegrityControl() {
                     </div>
                     
                     <div>
-                      <h4 className="text-lg">"Alertas Recentes</h4>
-                      <div className="p-4"
-                        <div className="p-4"
+                      <h4 className="font-semibold mb-2">Alertas Recentes</h4>
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-500">
                           Nenhum alerta crítico nas últimas 24 horas
                         </div>
                       </div>
@@ -580,8 +607,9 @@ export default function ModuleIntegrityControl() {
             </Card>
           </div>
         </TabsContent>
+
         {/* Settings Tab */}
-        <TabsContent value="settings" className="p-4"
+        <TabsContent value="settings" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Configurações do Sistema</CardTitle>
@@ -590,7 +618,7 @@ export default function ModuleIntegrityControl() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="space-y-4">
                 <Alert>
                   <Shield className="h-4 w-4" />
                   <AlertTitle>Proteção Ativa</AlertTitle>
@@ -599,41 +627,41 @@ export default function ModuleIntegrityControl() {
                   </AlertDescription>
                 </Alert>
                 
-                <div className="p-4"
+                <div className="grid gap-4">
                   <div>
-                    <h4 className="text-lg">"Verificações Automáticas</h4>
-                    <p className="p-4"
+                    <h4 className="font-semibold">Verificações Automáticas</h4>
+                    <p className="text-sm text-gray-500 mb-2">
                       Configure quando e como as verificações devem ser executadas
                     </p>
-                    <div className="p-4"
-                      <label className="p-4"
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked />
-                        <span className="text-lg">"Verificação antes de cada commit</span>
+                        <span className="text-sm">Verificação antes de cada commit</span>
                       </label>
-                      <label className="p-4"
+                      <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked />
-                        <span className="text-lg">"Verificação diária automática</span>
+                        <span className="text-sm">Verificação diária automática</span>
                       </label>
-                      <label className="p-4"
+                      <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked />
-                        <span className="text-lg">"Alertas em tempo real</span>
+                        <span className="text-sm">Alertas em tempo real</span>
                       </label>
                     </div>
                   </div>
                   
                   <div>
-                    <h4 className="text-lg">"Backup Automático</h4>
-                    <p className="p-4"
+                    <h4 className="font-semibold">Backup Automático</h4>
+                    <p className="text-sm text-gray-500 mb-2">
                       Configurações de backup para proteção de dados
                     </p>
-                    <div className="p-4"
-                      <label className="p-4"
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked />
-                        <span className="text-lg">"Backup antes de modificações críticas</span>
+                        <span className="text-sm">Backup antes de modificações críticas</span>
                       </label>
-                      <label className="p-4"
+                      <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked />
-                        <span className="text-lg">"Backup diário automático</span>
+                        <span className="text-sm">Backup diário automático</span>
                       </label>
                     </div>
                   </div>

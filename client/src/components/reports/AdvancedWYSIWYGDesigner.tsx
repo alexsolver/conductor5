@@ -1,6 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Layout, Type, Image, BarChart3, PieChart, LineChart, Table,
   Palette, Settings, Eye, Save, Undo, Redo, Grid, AlignLeft,
   AlignCenter, AlignRight, Bold, Italic, Underline, Plus,
@@ -20,10 +20,10 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 // Zendesk-style design components
 const DESIGN_COMPONENTS = [
   {
-  // Localization temporarily disabled
     id: 'text',
     name: 'Text',
     icon: Type,
@@ -88,7 +88,7 @@ const DESIGN_COMPONENTS = [
     category: 'data',
     description: 'Add KPI metric',
     defaultProps: {
-      title: '[TRANSLATION_NEEDED]',
+      title: 'Total Tickets',
       value: '1,234',
       trend: '+12%',
       trendDirection: 'up',
@@ -139,6 +139,7 @@ const DESIGN_COMPONENTS = [
     }
   }
 ];
+
 // Zendesk-style color palette
 const COLOR_PALETTE = [
   '#000000', '#4A4A4A', '#9B9B9B', '#FFFFFF',
@@ -148,6 +149,7 @@ const COLOR_PALETTE = [
   '#D32F2F', '#E53935', '#F44336', '#EF5350',
   '#7B1FA2', '#8E24AA', '#9C27B0', '#BA68C8'
 ];
+
 // Font options
 const FONT_FAMILIES = [
   { value: 'Arial', label: 'Arial' },
@@ -157,12 +159,14 @@ const FONT_FAMILIES = [
   { value: 'Georgia', label: 'Georgia' },
   { value: 'Verdana', label: 'Verdana' }
 ];
+
 interface WYSIWYGDesignerProps {
   onDesignChange?: (design: any) => void;
   initialDesign?: any;
   data?: any;
   onSave: (report: { name?: string; description?: string; design?: any }) => void;
 }
+
 export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign, data, onSave }: WYSIWYGDesignerProps) {
   const defaultDesign = {
     components: [],
@@ -181,13 +185,16 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
   };
   
   const [design, setDesign] = useState(initialDesign || defaultDesign);
+
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [activeTab, setActiveTab] = useState('components');
   const [draggedComponent, setDraggedComponent] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+
   const canvasRef = useRef(null);
+
   useEffect(() => {
     if (initialDesign) {
       setDesign({
@@ -198,26 +205,32 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       });
     }
   }, [initialDesign]);
+
   useEffect(() => {
     onDesignChange?.(design);
   }, [design, onDesignChange]);
+
   const addComponent = (componentType, position = null) => {
     const componentTemplate = DESIGN_COMPONENTS.find(c => c.id === componentType);
     if (!componentTemplate) return;
+
     const newComponent = {
-      id: "
+      id: `${componentType}_${Date.now()}`,
       type: componentType,
       position: position || { x: 50, y: 50 },
       size: { width: 200, height: 100 },
       props: { ...componentTemplate.defaultProps },
       zIndex: design?.components?.length || 0
     };
+
     setDesign(prev => ({
       ...prev,
       components: [...(prev.components || []), newComponent]
     }));
+
     setSelectedComponent(newComponent.id);
   };
+
   const updateComponent = (componentId, updates) => {
     setDesign(prev => ({
       ...prev,
@@ -226,6 +239,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       )
     }));
   };
+
   const deleteComponent = (componentId) => {
     setDesign(prev => ({
       ...prev,
@@ -236,38 +250,47 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       setSelectedComponent(null);
     }
   };
+
   const duplicateComponent = (componentId) => {
     const component = design?.components?.find(c => c.id === componentId);
     if (!component) return;
+
     const newComponent = {
       ...component,
-      id: "
+      id: `${component.type}_${Date.now()}`,
       position: {
         x: component.position.x + 20,
         y: component.position.y + 20
       }
     };
+
     setDesign(prev => ({
       ...prev,
       components: [...(prev.components || []), newComponent]
     }));
   };
+
   const handleDragStart = (e, componentType) => {
     setDraggedComponent(componentType);
     e.dataTransfer.effectAllowed = 'copy';
   };
+
   const handleDrop = (e) => {
     e.preventDefault();
     if (!draggedComponent) return;
+
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
     addComponent(draggedComponent, { x, y });
     setDraggedComponent(null);
   };
+
   const handleDragOver = (e) => {
     e.preventDefault();
   };
+
   const handleSave = () => {
     onSave({
       name: design.settings.title,
@@ -275,30 +298,34 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       design: design
     });
   };
+
   const selectedComponentData = design?.components?.find(c => c.id === selectedComponent);
+
   return (
     <TooltipProvider>
-      <div className="h-screen flex bg-gray-50>
+      <div className="h-screen flex bg-gray-50">
         {/* Left Sidebar - Component Library */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col>
-          <div className="p-4 border-b>
-            <h3 className="text-lg">"Design Studio</h3>
-            <p className="text-lg">"Drag components to build your report</p>
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          <div className="p-4 border-b">
+            <h3 className="text-lg font-semibold text-gray-900">Design Studio</h3>
+            <p className="text-sm text-gray-600">Drag components to build your report</p>
           </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1>
-            <TabsList className="grid w-full grid-cols-3 mx-4 mt-4>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+            <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
               <TabsTrigger value="components">Components</TabsTrigger>
               <TabsTrigger value="styles">Styles</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
             </TabsList>
-            <TabsContent value="components" className="flex-1 p-4 space-y-4>
+
+            <TabsContent value="components" className="flex-1 p-4 space-y-4">
               {/* Component Categories */}
               {['content', 'data', 'media', 'layout'].map((category) => (
                 <div key={category}>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2 capitalize>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2 capitalize">
                     {category}
                   </h4>
-                  <div className="grid grid-cols-2 gap-2>
+                  <div className="grid grid-cols-2 gap-2">
                     {DESIGN_COMPONENTS
                       .filter(comp => comp.category === category)
                       .map((component) => {
@@ -312,12 +339,12 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                                 className="p-3 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 hover:bg-blue-50 transition-colors"
                               >
                                 <Icon className="h-5 w-5 text-gray-600 mx-auto mb-1" />
-                                <p className="text-xs text-center text-gray-700>
+                                <p className="text-xs text-center text-gray-700">
                                   {component.name}
                                 </p>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent side="right>
+                            <TooltipContent side="right">
                               <p>{component.description}</p>
                             </TooltipContent>
                           </Tooltip>
@@ -327,20 +354,22 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                 </div>
               ))}
             </TabsContent>
-            <TabsContent value="styles" className="flex-1 p-4>
+
+            <TabsContent value="styles" className="flex-1 p-4">
               {selectedComponentData ? (
                 <ComponentStyleEditor 
                   component={selectedComponentData}
                   onUpdate={(updates) => updateComponent(selectedComponent, updates)}
                 />
               ) : (
-                <div className="text-center py-8>
+                <div className="text-center py-8">
                   <Palette className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-lg">"Select a component to edit styles</p>
+                  <p className="text-sm text-gray-600">Select a component to edit styles</p>
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="data" className="flex-1 p-4>
+
+            <TabsContent value="data" className="flex-1 p-4">
               {selectedComponentData && ['chart', 'table', 'kpi'].includes(selectedComponentData.type) ? (
                 <ComponentDataEditor 
                   component={selectedComponentData}
@@ -348,20 +377,21 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                   availableData={data}
                 />
               ) : (
-                <div className="text-center py-8>
+                <div className="text-center py-8">
                   <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-lg">"Select a data component to configure</p>
+                  <p className="text-sm text-gray-600">Select a data component to configure</p>
                 </div>
               )}
             </TabsContent>
           </Tabs>
         </div>
+
         {/* Main Canvas Area */}
-        <div className="flex-1 flex flex-col>
+        <div className="flex-1 flex flex-col">
           {/* Toolbar */}
-          <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between>
-            <div className="flex items-center space-x-4>
-              <div className="flex items-center space-x-2>
+          <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -392,42 +422,44 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               
               <Separator orientation="vertical" className="h-6" />
               
-              <div className="flex items-center space-x-2>
+              <div className="flex items-center space-x-2">
                 <Button
                   variant={previewMode ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPreviewMode(!previewMode)}
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  {previewMode ? '[TRANSLATION_NEEDED]' : 'Preview'}
+                  {previewMode ? 'Edit' : 'Preview'}
                 </Button>
               </div>
             </div>
-            <div className="flex items-center space-x-2>
-              <Button variant="outline" size="sm>
+
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
-              <Button variant="outline" size="sm>
+              <Button variant="outline" size="sm">
                 <Share className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button size="sm>
+              <Button size="sm">
                 <Save className="h-4 w-4 mr-2" />
                 Save
               </Button>
             </div>
           </div>
+
           {/* Canvas */}
-          <div className="flex-1 overflow-auto bg-gray-100 p-8>
+          <div className="flex-1 overflow-auto bg-gray-100 p-8">
             <div
               ref={canvasRef}
               className="mx-auto bg-white shadow-lg relative"
               style={{
-                width: "px`,
-                height: "px`,
+                width: `${design?.layout?.width || 800}px`,
+                height: `${design?.layout?.height || 600}px`,
                 backgroundColor: design?.layout?.backgroundColor || '#ffffff',
-                padding: "px`
+                padding: `${design?.layout?.padding || 20}px`
               }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -442,6 +474,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                   }}
                 />
               )}
+
               {/* Render Components */}
               {design?.components?.map((component) => (
                 <DesignComponent
@@ -455,15 +488,16 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                   onDuplicate={() => duplicateComponent(component.id)}
                 />
               ))}
+
               {/* Empty state */}
               {(!design?.components || design.components.length === 0) && !previewMode && (
-                <div className="absolute inset-0 flex items-center justify-center>
-                  <div className="text-center>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
                     <Layout className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
                       Start Building Your Report
                     </h3>
-                    <p className="text-gray-600 mb-4>
+                    <p className="text-gray-600 mb-4">
                       Drag components from the sidebar to get started
                     </p>
                     <Button onClick={() => addComponent('text')}>
@@ -476,12 +510,13 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
             </div>
           </div>
         </div>
+
         {/* Right Sidebar - Properties */}
         {selectedComponentData && !previewMode && (
-          <div className="w-80 bg-white border-l border-gray-200 p-4>
-            <div className="flex items-center justify-between mb-4>
-              <h3 className="text-lg">"Properties</h3>
-              <div className="flex items-center space-x-2>
+          <div className="w-80 bg-white border-l border-gray-200 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Properties</h3>
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -498,6 +533,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                 </Button>
               </div>
             </div>
+
             <ComponentProperties
               component={selectedComponentData}
               onUpdate={(updates) => updateComponent(selectedComponent, updates)}
@@ -508,15 +544,18 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
     </TooltipProvider>
   );
 }
+
 // Component Renderer
 function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, onDelete, onDuplicate }) {
   const [isDragging, setIsDragging] = useState(false);
+
   const handleMouseDown = (e) => {
     if (isPreview) return;
     e.stopPropagation();
     
     const startX = e.clientX - component.position.x;
     const startY = e.clientY - component.position.y;
+
     const handleMouseMove = (e) => {
       setIsDragging(true);
       onUpdate({
@@ -526,14 +565,17 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
         }
       });
     };
+
     const handleMouseUp = () => {
       setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
+
   const renderComponentContent = () => {
     switch (component.type) {
       case 'text':
@@ -541,7 +583,7 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
         return (
           <div
             style={{
-              fontSize: "px`,
+              fontSize: `${component.props.fontSize}px`,
               fontWeight: component.props.fontWeight,
               color: component.props.color,
               textAlign: component.props.align,
@@ -551,28 +593,31 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             {component.props.content}
           </div>
         );
+
       case 'chart':
         return (
-          <div className="w-full h-full border border-gray-300 rounded flex items-center justify-center bg-gray-50>
-            <div className="text-center>
+          <div className="w-full h-full border border-gray-300 rounded flex items-center justify-center bg-gray-50">
+            <div className="text-center">
               <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600>
+              <p className="text-sm text-gray-600">
                 {component.props.chartType} Chart
               </p>
             </div>
           </div>
         );
+
       case 'table':
         return (
-          <div className="w-full h-full border border-gray-300 rounded>
-            <div className="bg-gray-50 p-2 border-b>
+          <div className="w-full h-full border border-gray-300 rounded">
+            <div className="bg-gray-50 p-2 border-b">
               <Table className="h-4 w-4 text-gray-600" />
             </div>
-            <div className="p-2>
-              <p className="text-lg">"Data Table</p>
+            <div className="p-2">
+              <p className="text-sm text-gray-600">Data Table</p>
             </div>
           </div>
         );
+
       case 'kpi':
         return (
           <div 
@@ -582,55 +627,60 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
               color: component.props.textColor
             }}
           >
-            <div className="text-lg">"{component.props.value}</div>
-            <div className="text-lg">"{component.props.title}</div>
+            <div className="text-2xl font-bold">{component.props.value}</div>
+            <div className="text-sm">{component.props.title}</div>
             {component.props.trend && (
-              <div className="text-lg">"{component.props.trend}</div>
+              <div className="text-xs mt-1">{component.props.trend}</div>
             )}
           </div>
         );
+
       case 'image':
         return (
           <img
             src={component.props.src}
             alt={component.props.alt}
             className="w-full h-full object-cover"
-            style={{ borderRadius: "px` }}
+            style={{ borderRadius: `${component.props.borderRadius}px` }}
           />
         );
+
       case 'divider':
         return (
           <div
             style={{
               width: '100%',
-              height: "px`,
+              height: `${component.props.thickness}px`,
               backgroundColor: component.props.color,
-              margin: "px 0`
+              margin: `${component.props.margin}px 0`
             }}
           />
         );
+
       case 'container':
         return (
           <div
             className="w-full h-full"
             style={{
               backgroundColor: component.props.backgroundColor,
-              border: "
-              borderRadius: "px`,
-              padding: "px`,
+              border: `${component.props.borderWidth}px solid ${component.props.borderColor}`,
+              borderRadius: `${component.props.borderRadius}px`,
+              padding: `${component.props.padding}px`,
               boxShadow: component.props.shadow ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
             }}
           >
-            <p className="text-lg">"Container</p>
+            <p className="text-sm text-gray-600">Container</p>
           </div>
         );
+
       default:
         return <div>Unknown component</div>;
     }
   };
+
   return (
     <div
-      className="absolute cursor-pointer ${isSelected && !isPreview ? 'ring-2 ring-blue-500' : ''} ""
+      className={`absolute cursor-pointer ${isSelected && !isPreview ? 'ring-2 ring-blue-500' : ''} ${isDragging ? 'opacity-75' : ''}`}
       style={{
         left: component.position.x,
         top: component.position.y,
@@ -656,13 +706,14 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
     </div>
   );
 }
+
 // Component Style Editor
 function ComponentStyleEditor({ component, onUpdate }) {
   return (
-    <div className="space-y-4>
+    <div className="space-y-4">
       <div>
-        <Label className="text-lg">"Position</Label>
-        <div className="grid grid-cols-2 gap-2 mt-1>
+        <Label className="text-sm font-medium">Position</Label>
+        <div className="grid grid-cols-2 gap-2 mt-1">
           <Input
             type="number"
             placeholder="X"
@@ -681,9 +732,10 @@ function ComponentStyleEditor({ component, onUpdate }) {
           />
         </div>
       </div>
+
       <div>
-        <Label className="text-lg">"Size</Label>
-        <div className="grid grid-cols-2 gap-2 mt-1>
+        <Label className="text-sm font-medium">Size</Label>
+        <div className="grid grid-cols-2 gap-2 mt-1">
           <Input
             type="number"
             placeholder="Width"
@@ -702,10 +754,11 @@ function ComponentStyleEditor({ component, onUpdate }) {
           />
         </div>
       </div>
+
       {(component.type === 'text' || component.type === 'heading') && (
         <>
           <div>
-            <Label className="text-lg">"Font Size</Label>
+            <Label className="text-sm font-medium">Font Size</Label>
             <Slider
               value={[component.props.fontSize]}
               onValueChange={([value]) => onUpdate({
@@ -716,11 +769,12 @@ function ComponentStyleEditor({ component, onUpdate }) {
               step={1}
               className="mt-2"
             />
-            <span className="text-lg">"{component.props.fontSize}px</span>
+            <span className="text-xs text-gray-500">{component.props.fontSize}px</span>
           </div>
+
           <div>
-            <Label className="text-lg">"Color</Label>
-            <div className="grid grid-cols-6 gap-1 mt-2>
+            <Label className="text-sm font-medium">Color</Label>
+            <div className="grid grid-cols-6 gap-1 mt-2">
               {COLOR_PALETTE.map((color) => (
                 <button
                   key={color}
@@ -733,15 +787,16 @@ function ComponentStyleEditor({ component, onUpdate }) {
               ))}
             </div>
           </div>
+
           <div>
-            <Label className="text-lg">"Font Weight</Label>
+            <Label className="text-sm font-medium">Font Weight</Label>
             <Select
               value={component.props.fontWeight}
               onValueChange={(value) => onUpdate({
                 props: { ...component.props, fontWeight: value }
               })}
             >
-              <SelectTrigger className="mt-1>
+              <SelectTrigger className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -756,19 +811,20 @@ function ComponentStyleEditor({ component, onUpdate }) {
     </div>
   );
 }
+
 // Component Data Editor
 function ComponentDataEditor({ component, onUpdate, availableData }) {
   return (
-    <div className="space-y-4>
+    <div className="space-y-4">
       <div>
-        <Label className="text-lg">"Data Source</Label>
+        <Label className="text-sm font-medium">Data Source</Label>
         <Select
           value={component.props.dataSource}
           onValueChange={(value) => onUpdate({
             props: { ...component.props, dataSource: value }
           })}
         >
-          <SelectTrigger className="mt-1>
+          <SelectTrigger className="mt-1">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -778,16 +834,17 @@ function ComponentDataEditor({ component, onUpdate, availableData }) {
           </SelectContent>
         </Select>
       </div>
+
       {component.type === 'chart' && (
         <div>
-          <Label className="text-lg">"Chart Type</Label>
+          <Label className="text-sm font-medium">Chart Type</Label>
           <Select
             value={component.props.chartType}
             onValueChange={(value) => onUpdate({
               props: { ...component.props, chartType: value }
             })}
           >
-            <SelectTrigger className="mt-1>
+            <SelectTrigger className="mt-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -802,17 +859,19 @@ function ComponentDataEditor({ component, onUpdate, availableData }) {
     </div>
   );
 }
+
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }) {
   return (
-    <div className="space-y-4>
+    <div className="space-y-4">
       <div>
-        <Label className="text-lg">"Component Type</Label>
-        <Badge variant="outline" className="text-lg">"{component.type}</Badge>
+        <Label className="text-sm font-medium">Component Type</Label>
+        <Badge variant="outline" className="mt-1">{component.type}</Badge>
       </div>
+
       {(component.type === 'text' || component.type === 'heading') && (
         <div>
-          <Label className="text-lg">"Content</Label>
+          <Label className="text-sm font-medium">Content</Label>
           <Input
             value={component.props.content}
             onChange={(e) => onUpdate({
@@ -822,10 +881,11 @@ function ComponentProperties({ component, onUpdate }) {
           />
         </div>
       )}
+
       {component.type === 'kpi' && (
         <>
           <div>
-            <Label className="text-lg">"Title</Label>
+            <Label className="text-sm font-medium">Title</Label>
             <Input
               value={component.props.title}
               onChange={(e) => onUpdate({
@@ -835,7 +895,7 @@ function ComponentProperties({ component, onUpdate }) {
             />
           </div>
           <div>
-            <Label className="text-lg">"Value</Label>
+            <Label className="text-sm font-medium">Value</Label>
             <Input
               value={component.props.value}
               onChange={(e) => onUpdate({

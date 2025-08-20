@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-// import useLocalization from '@/hooks/useLocalization';
   Building2,
   Phone,
   Mail,
@@ -33,6 +32,7 @@ import {
   AlertCircle,
   CheckCircle
 } from "lucide-react";
+
 interface Supplier {
   id: string;
   name: string;
@@ -59,6 +59,7 @@ interface Supplier {
   createdAt: string;
   updatedAt: string;
 }
+
 interface SupplierStats {
   totalSuppliers: number;
   activeSuppliers: number;
@@ -67,22 +68,25 @@ interface SupplierStats {
   totalValue: number;
   averageRating: number;
 }
+
 export function SupplierManagement() {
-  // Localization temporarily disabled
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Fetch suppliers data
   const { data: suppliersResponse, isLoading: isLoadingSuppliers } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
     enabled: true
   });
   const suppliers: Supplier[] = (suppliersResponse as any)?.data || [];
+
   // Fetch supplier statistics
   const { data: statsResponse } = useQuery({
     queryKey: ["/api/materials-services/suppliers/stats"],
@@ -96,6 +100,7 @@ export function SupplierManagement() {
     totalValue: 0,
     averageRating: 0
   };
+
   // Create supplier mutation
   const createSupplierMutation = useMutation({
     mutationFn: async (data: Partial<Supplier>) => {
@@ -109,16 +114,17 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao criar fornecedor",
         variant: "destructive"
       });
     }
   });
+
   // Update supplier mutation
   const updateSupplierMutation = useMutation({
     mutationFn: async ({ id, ...data }: Partial<Supplier> & { id: string }) => {
-      const response = await apiRequest('PUT', "
+      const response = await apiRequest('PUT', `/api/materials-services/suppliers/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -129,16 +135,17 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao atualizar fornecedor",
         variant: "destructive"
       });
     }
   });
+
   // Delete supplier mutation
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', "
+      const response = await apiRequest('DELETE', `/api/materials-services/suppliers/${id}`);
       return response.json();
     },
     onSuccess: () => {
@@ -147,12 +154,13 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao remover fornecedor",
         variant: "destructive"
       });
     }
   });
+
   // Filter suppliers
   const filteredSuppliers = suppliers.filter((supplier: Supplier) => {
     const matchesSearch = supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -162,6 +170,7 @@ export function SupplierManagement() {
     
     return matchesSearch && matchesStatus;
   });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -170,6 +179,7 @@ export function SupplierManagement() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'active': return 'Ativo';
@@ -178,14 +188,16 @@ export function SupplierManagement() {
       default: return 'Indefinido';
     }
   };
+
   const renderStarRating = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className="h-4 w-4 ""
+        className={`h-4 w-4 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
       />
     ));
   };
+
   const handleCreateSupplier = (formData: FormData) => {
     const supplierData = {
       name: formData.get('name') as string,
@@ -210,10 +222,13 @@ export function SupplierManagement() {
       isPreferred: false,
       rating: 5
     };
+
     createSupplierMutation.mutate(supplierData);
   };
+
   const handleEditSupplier = (formData: FormData) => {
     if (!selectedSupplier) return;
+
     const supplierData = {
       id: selectedSupplier.id,
       name: formData.get('name') as string,
@@ -237,22 +252,25 @@ export function SupplierManagement() {
       status: formData.get('status') as 'active' | 'inactive' | 'blocked',
       isPreferred: formData.get('isPreferred') === 'true'
     };
+
     updateSupplierMutation.mutate(supplierData);
   };
+
   if (isLoadingSuppliers) {
     return (
-      <div className="p-4"
-        <div className="text-lg">"Carregando fornecedores...</div>
+      <div className="container mx-auto p-6">
+        <div className="text-center">Carregando fornecedores...</div>
       </div>
     );
   }
+
   return (
-    <div className="p-4"
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="p-4"
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg">"Gestão de Fornecedores</h1>
-          <p className="p-4"
+          <h1 className="text-3xl font-bold">Gestão de Fornecedores</h1>
+          <p className="text-muted-foreground">
             Gerencie fornecedores, contratos e relacionamentos comerciais
           </p>
         </div>
@@ -261,66 +279,71 @@ export function SupplierManagement() {
           Novo Fornecedor
         </Button>
       </div>
+
       {/* Statistics Cards */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Total de Fornecedores</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Fornecedores</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{supplierStats.totalSuppliers}</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{supplierStats.totalSuppliers}</div>
+            <p className="text-xs text-muted-foreground">
               {supplierStats.activeSuppliers} ativos
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Fornecedores Preferenciais</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Fornecedores Preferenciais</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{supplierStats.preferredSuppliers}</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{supplierStats.preferredSuppliers}</div>
+            <p className="text-xs text-muted-foreground">
               Classificação especial
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Total de Pedidos</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{supplierStats.totalOrders}</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{supplierStats.totalOrders}</div>
+            <p className="text-xs text-muted-foreground">
               Este ano
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Avaliação Média</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold">
               {supplierStats.averageRating ? supplierStats.averageRating.toFixed(1) : '0.0'}/5
             </div>
-            <div className="p-4"
+            <div className="flex mt-1">
               {renderStarRating(Math.round(supplierStats.averageRating || 0))}
             </div>
           </CardContent>
         </Card>
       </div>
+
       {/* Filters and Search */}
-      <div className="p-4"
-        <div className="p-4"
-          <div className="p-4"
+      <div className="flex gap-4 items-center">
+        <div className="flex-1">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder='[TRANSLATION_NEEDED]'
+              placeholder="Buscar fornecedores..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -328,7 +351,7 @@ export function SupplierManagement() {
           </div>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="p-4"
+          <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -339,6 +362,7 @@ export function SupplierManagement() {
           </SelectContent>
         </Select>
       </div>
+
       {/* Suppliers Table */}
       <Card>
         <CardHeader>
@@ -348,39 +372,40 @@ export function SupplierManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-4"
+          <div className="space-y-4">
             {filteredSuppliers.map((supplier) => (
               <div
                 key={supplier.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
-                <div className="p-4"
-                  <div className="p-4"
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Building2 className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <div className="p-4"
-                      <h3 className="text-lg">"{supplier.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">{supplier.name}</h3>
                       {supplier.isPreferred && (
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       )}
                     </div>
-                    <p className="text-lg">"{supplier.code} • {supplier.documentNumber}</p>
-                    <div className="p-4"
-                      <span className="p-4"
+                    <p className="text-sm text-gray-600">{supplier.code} • {supplier.documentNumber}</p>
+                    <div className="flex items-center gap-4 mt-1">
+                      <span className="text-sm text-gray-500 flex items-center gap-1">
                         <Mail className="h-3 w-3" />
                         {supplier.email}
                       </span>
-                      <span className="p-4"
+                      <span className="text-sm text-gray-500 flex items-center gap-1">
                         <Phone className="h-3 w-3" />
                         {supplier.phone}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
+
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="flex items-center gap-1">
                       {renderStarRating(supplier.rating)}
                     </div>
                     <Badge className={getStatusColor(supplier.status)}>
@@ -388,7 +413,7 @@ export function SupplierManagement() {
                     </Badge>
                   </div>
                   
-                  <div className="p-4"
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -424,17 +449,19 @@ export function SupplierManagement() {
                 </div>
               </div>
             ))}
+
             {filteredSuppliers.length === 0 && (
-              <div className="p-4"
+              <div className="text-center py-8 text-gray-500">
                 Nenhum fornecedor encontrado
               </div>
             )}
           </div>
         </CardContent>
       </Card>
+
       {/* Create Supplier Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Novo Fornecedor</DialogTitle>
             <DialogDescription>
@@ -446,83 +473,86 @@ export function SupplierManagement() {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             handleCreateSupplier(formData);
-          }} className="p-4"
-            <div className="p-4"
-              <div className="p-4"
+          }} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="name">Nome da Empresa *</Label>
                 <Input id="name" name="name" required />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="code">Código do Fornecedor *</Label>
                 <Input id="code" name="code" placeholder="FOR001" required />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="tradeName">Nome Fantasia *</Label>
                 <Input id="tradeName" name="tradeName" required />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="documentNumber">CNPJ</Label>
                 <Input id="documentNumber" name="documentNumber" placeholder="00.000.000/0000-00" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
                 <Input id="email" name="email" type="email" required />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="phone">Telefone</Label>
                 <Input id="phone" name="phone" placeholder="(11) 9999-9999" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="address">Endereço</Label>
                 <Input id="address" name="address" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="city">Cidade</Label>
                 <Input id="city" name="city" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="state">Estado</Label>
                 <Input id="state" name="state" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="postalCode">CEP</Label>
                 <Input id="postalCode" name="postalCode" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="contactPerson">Pessoa de Contato</Label>
                 <Input id="contactPerson" name="contactPerson" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="contactEmail">Email do Contato</Label>
                 <Input id="contactEmail" name="contactEmail" type="email" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="paymentTerms">Condições de Pagamento</Label>
                 <Input id="paymentTerms" name="paymentTerms" placeholder="30 dias" />
               </div>
-              <div className="p-4"
+              <div className="space-y-2">
                 <Label htmlFor="deliveryTerms">Prazo de Entrega</Label>
                 <Input id="deliveryTerms" name="deliveryTerms" placeholder="5 dias úteis" />
               </div>
             </div>
-            <div className="p-4"
+
+            <div className="space-y-2">
               <Label htmlFor="notes">Observações</Label>
               <Textarea id="notes" name="notes" rows={3} />
             </div>
-            <div className="p-4"
+
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={createSupplierMutation.isPending}>
-                {createSupplierMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
+                {createSupplierMutation.isPending ? 'Criando...' : 'Criar Fornecedor'}
               </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
+
       {/* Edit Supplier Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Fornecedor</DialogTitle>
             <DialogDescription>
@@ -535,33 +565,33 @@ export function SupplierManagement() {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               handleEditSupplier(formData);
-            }} className="p-4"
-              <div className="p-4"
-                <div className="p-4"
+            }} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="edit-name">Nome da Empresa *</Label>
                   <Input id="edit-name" name="name" defaultValue={selectedSupplier.name} required />
                 </div>
-                <div className="p-4"
+                <div className="space-y-2">
                   <Label htmlFor="edit-code">Código do Fornecedor *</Label>
                   <Input id="edit-code" name="code" defaultValue={selectedSupplier.code} required />
                 </div>
-                <div className="p-4"
+                <div className="space-y-2">
                   <Label htmlFor="edit-tradeName">Nome Fantasia *</Label>
                   <Input id="edit-tradeName" name="tradeName" defaultValue={selectedSupplier.tradeName} required />
                 </div>
-                <div className="p-4"
+                <div className="space-y-2">
                   <Label htmlFor="edit-documentNumber">CNPJ</Label>
                   <Input id="edit-documentNumber" name="documentNumber" defaultValue={selectedSupplier.documentNumber} />
                 </div>
-                <div className="p-4"
+                <div className="space-y-2">
                   <Label htmlFor="edit-email">Email *</Label>
                   <Input id="edit-email" name="email" type="email" defaultValue={selectedSupplier.email} required />
                 </div>
-                <div className="p-4"
+                <div className="space-y-2">
                   <Label htmlFor="edit-phone">Telefone</Label>
                   <Input id="edit-phone" name="phone" defaultValue={selectedSupplier.phone} />
                 </div>
-                <div className="p-4"
+                <div className="space-y-2">
                   <Label htmlFor="edit-status">Status</Label>
                   <Select name="status" defaultValue={selectedSupplier.status}>
                     <SelectTrigger>
@@ -574,9 +604,9 @@ export function SupplierManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="p-4"
+                <div className="space-y-2">
                   <Label htmlFor="edit-isPreferred">Fornecedor Preferencial</Label>
-                  <Select name="isPreferred" defaultValue={selectedSupplier?.isPreferred?.toString() || "false>
+                  <Select name="isPreferred" defaultValue={selectedSupplier?.isPreferred?.toString() || "false"}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -587,7 +617,8 @@ export function SupplierManagement() {
                   </Select>
                 </div>
               </div>
-              <div className="p-4"
+
+              <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                   Cancelar
                 </Button>

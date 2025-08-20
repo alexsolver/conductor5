@@ -1,13 +1,16 @@
 // ✅ 1QA.MD COMPLIANCE: TICKET DESCRIPTION EDITOR - Clean Architecture
 // ModernRichTextEditor sem findDOMNode
+
 import React from 'react';
 import { ModernRichTextEditor } from './knowledge-base/ModernRichTextEditor';
+
 interface TicketDescriptionEditorProps {
   content: string;
   onChange: (content: string) => void;
   placeholder?: string;
   readOnly?: boolean;
 }
+
 export function TicketDescriptionEditor({
   content,
   onChange,
@@ -22,8 +25,9 @@ export function TicketDescriptionEditor({
       />
     );
   }
+
   return (
-    <div className="ticket-description-editor>
+    <div className="ticket-description-editor">
       <ModernRichTextEditor
         value={content}
         onChange={onChange}

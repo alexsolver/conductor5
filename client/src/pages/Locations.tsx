@@ -16,10 +16,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-// import useLocalization from '@/hooks/useLocalization';
+
 // Location form schema
 const locationFormSchema = z.object({
-  // Localization temporarily disabled
   name: z.string().min(1, "Nome é obrigatório").max(200),
   description: z.string().optional(),
   locationType: z.enum(['point', 'segment', 'area', 'region', 'route']),
@@ -30,7 +29,9 @@ const locationFormSchema = z.object({
   }),
   status: z.enum(['active', 'inactive', 'maintenance', 'restricted']).default('active')
 });
+
 type LocationFormData = z.infer<typeof locationFormSchema>;
+
 export default function Locations() {
   // Update token on page load
   const updateTokenForLocationsPage = () => {
@@ -43,6 +44,7 @@ export default function Locations() {
   
   // Update token immediately
   updateTokenForLocationsPage();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTypeFilter, setLocationTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -55,6 +57,7 @@ export default function Locations() {
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Fetch locations data with Sprint 2 filters
   const { data: locationsData, isLoading } = useQuery({
     queryKey: ["/api/locations", { 
@@ -72,11 +75,12 @@ export default function Locations() {
       if (favoritesFilter) params.append('favorites', 'true');
       if (tagFilter) params.append('tag', tagFilter);
       
-      const url = "
+      const url = `/api/locations${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await apiRequest("GET", url);
       return response.json();
     }
   });
+
   // Fetch location statistics
   const { data: statsData } = useQuery({
     queryKey: ["/api/locations/stats"],
@@ -85,6 +89,7 @@ export default function Locations() {
       return response.json();
     }
   });
+
   // Create location form
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationFormSchema),
@@ -97,6 +102,7 @@ export default function Locations() {
       status: "active"
     }
   });
+
   // Create location mutation
   const createLocationMutation = useMutation({
     mutationFn: (data: LocationFormData) => apiRequest("POST", "/api/locations", data),
@@ -106,48 +112,52 @@ export default function Locations() {
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Local criado com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao criar local",
         variant: "destructive",
       });
     }
   });
+
   // Delete location mutation
   const deleteLocationMutation = useMutation({
-    mutationFn: (locationId: string) => apiRequest("DELETE", "
+    mutationFn: (locationId: string) => apiRequest("DELETE", `/api/locations/${locationId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
       toast({
-        title: '[TRANSLATION_NEEDED]', 
+        title: "Sucesso", 
         description: "Local excluído com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao excluir local",
         variant: "destructive",
       });
     }
   });
+
   const handleCreateLocation = (data: LocationFormData) => {
     createLocationMutation.mutate(data);
   };
+
   const handleDeleteLocation = (locationId: string) => {
     if (window.confirm("Tem certeza que deseja excluir este local?")) {
       deleteLocationMutation.mutate(locationId);
     }
   };
+
   // Sprint 2 - Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('POST', "/favorite`),
+    mutationFn: (id: string) => apiRequest('POST', `/api/locations/${id}/favorite`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       toast({
@@ -157,19 +167,21 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao favoritar",
         description: error?.message || "Não foi possível alterar favorito.",
         variant: "destructive",
       });
     },
   });
+
   const handleToggleFavorite = (locationId: string) => {
     toggleFavoriteMutation.mutate(locationId);
   };
+
   // Sprint 2 - File attachments
   const addAttachmentMutation = useMutation({
     mutationFn: ({ id, filename, filepath, filesize }: { id: string; filename: string; filepath: string; filesize: number }) => 
-      apiRequest('POST', "/attachments`, { filename, filepath, filesize }),
+      apiRequest('POST', `/api/locations/${id}/attachments`, { filename, filepath, filesize }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       toast({
@@ -179,24 +191,27 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao anexar arquivo",
         description: error?.message || "Não foi possível anexar o arquivo.",
         variant: "destructive",
       });
     },
   });
+
   const handleFileUpload = (locationId: string, file: File) => {
     // Simulate file upload - in real implementation would upload to storage service
     const filename = file.name;
-    const filepath = "
+    const filepath = `/uploads/locations/${locationId}/${filename}`;
     const filesize = file.size;
     
     addAttachmentMutation.mutate({ id: locationId, filename, filepath, filesize });
   };
+
   const handleManageLocation = (location: any) => {
     setSelectedLocation(location);
     setIsManageDialogOpen(true);
   };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "active": return "default";
@@ -206,6 +221,7 @@ export default function Locations() {
       default: return "default";
     }
   };
+
   const getLocationTypeIcon = (type: string) => {
     switch (type) {
       case "point": return <MapPin className="h-4 w-4" />;
@@ -214,21 +230,23 @@ export default function Locations() {
       default: return <MapPin className="h-4 w-4" />;
     }
   };
+
   // Process API responses - data should already be parsed by queryClient
   const locations = locationsData?.data?.locations || [];
   const stats = statsData?.data || {};
+
   return (
-    <div className="p-4"
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="p-4"
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-lg">"Módulo de Locais</h1>
-          <p className="text-lg">"Sistema geoespacial completo para gestão de localizações</p>
+          <h1 className="text-2xl font-bold text-gray-900">Módulo de Locais</h1>
+          <p className="text-gray-600">Sistema geoespacial completo para gestão de localizações</p>
         </div>
-        <div className="p-4"
+        <div className="flex gap-2">
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline>
+              <Button variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
                 Importar KML/GeoJSON
               </Button>
@@ -237,12 +255,13 @@ export default function Locations() {
           
           <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline>
+              <Button variant="outline">
                 <Clock className="h-4 w-4 mr-2" />
                 Configurar Horários
               </Button>
             </DialogTrigger>
           </Dialog>
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -253,9 +272,10 @@ export default function Locations() {
           </Dialog>
         </div>
       </div>
+
       {/* Create Location Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Criar Novo Local</DialogTitle>
               <DialogDescription>
@@ -263,7 +283,7 @@ export default function Locations() {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleCreateLocation)} className="p-4"
+              <form onSubmit={form.handleSubmit(handleCreateLocation)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -291,7 +311,8 @@ export default function Locations() {
                     </FormItem>
                   )}
                 />
-                <div className="p-4"
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="locationType"
@@ -316,6 +337,7 @@ export default function Locations() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="status"
@@ -340,7 +362,8 @@ export default function Locations() {
                     )}
                   />
                 </div>
-                <div className="p-4"
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="coordinates.lat"
@@ -360,6 +383,7 @@ export default function Locations() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="coordinates.lng"
@@ -380,34 +404,36 @@ export default function Locations() {
                     )}
                   />
                 </div>
-                <div className="p-4"
+
+                <div className="flex justify-end space-x-2 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createLocationMutation.isPending}>
-                    {createLocationMutation.isPending ? "Criando..." : '[TRANSLATION_NEEDED]'}
+                    {createLocationMutation.isPending ? "Criando..." : "Criar Local"}
                   </Button>
                 </div>
               </form>
             </Form>
           </DialogContent>
         </Dialog>
+
         {/* Sprint 2 - Location Management Dialog */}
         <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
-          <DialogContent className="p-4"
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Gerenciar Local: {selectedLocation?.name}</DialogTitle>
             </DialogHeader>
-            <div className="p-4"
+            <div className="space-y-6">
               {/* Tags Management */}
               <div>
-                <h3 className="p-4"
+                <h3 className="font-medium mb-2 flex items-center gap-2">
                   <Tag className="h-4 w-4" />
                   Tags
                 </h3>
-                <div className="p-4"
+                <div className="flex flex-wrap gap-2 mb-2">
                   {selectedLocation?.tags?.map((tag: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="p-4"
+                    <Badge key={index} variant="secondary" className="gap-1">
                       {tag}
                       <button
                         onClick={() => {/* Remove tag */}}
@@ -416,32 +442,33 @@ export default function Locations() {
                         ×
                       </button>
                     </Badge>
-                  )) || <p className="text-lg">"Nenhuma tag adicionada</p>}
+                  )) || <p className="text-sm text-muted-foreground">Nenhuma tag adicionada</p>}
                 </div>
-                <div className="p-4"
+                <div className="flex gap-2">
                   <Input placeholder="Nova tag..." className="flex-1" />
                   <Button size="sm">Adicionar</Button>
                 </div>
               </div>
+
               {/* Attachments Management */}
               <div>
-                <h3 className="p-4"
+                <h3 className="font-medium mb-2 flex items-center gap-2">
                   <Upload className="h-4 w-4" />
                   Anexos
                 </h3>
-                <div className="p-4"
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                   <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="p-4"
+                  <p className="text-sm text-gray-600">
                     Arraste arquivos aqui ou clique para selecionar
                   </p>
                   <input type="file" multiple className="hidden" />
                 </div>
                 {selectedLocation?.attachments && selectedLocation.attachments.length > 0 && (
-                  <div className="p-4"
+                  <div className="mt-2 space-y-1">
                     {selectedLocation.attachments.map((attachment: any, index: number) => (
-                      <div key={index} className="p-4"
-                        <span className="text-lg">"{attachment.filename}</span>
-                        <Button variant="ghost" size="sm>
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="text-sm">{attachment.filename}</span>
+                        <Button variant="ghost" size="sm">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -449,17 +476,18 @@ export default function Locations() {
                   </div>
                 )}
               </div>
+
               {/* Hierarchy Management */}
               <div>
-                <h3 className="p-4"
+                <h3 className="font-medium mb-2 flex items-center gap-2">
                   <TreePine className="h-4 w-4" />
                   Hierarquia
                 </h3>
-                <div className="p-4"
+                <div className="space-y-2">
                   <div>
-                    <label className="text-lg">"Local pai:</label>
-                    <Select value={selectedLocation?.parent_location_id || "none>
-                      <SelectTrigger className="p-4"
+                    <label className="text-sm text-gray-600">Local pai:</label>
+                    <Select value={selectedLocation?.parent_location_id || "none"}>
+                      <SelectTrigger className="w-full mt-1">
                         <SelectValue placeholder="Selecionar local pai" />
                       </SelectTrigger>
                       <SelectContent>
@@ -470,10 +498,10 @@ export default function Locations() {
                   </div>
                   {selectedLocation?.children && selectedLocation.children.length > 0 && (
                     <div>
-                      <label className="text-lg">"Locais filhos:</label>
-                      <div className="p-4"
+                      <label className="text-sm text-gray-600">Locais filhos:</label>
+                      <div className="mt-1 space-y-1">
                         {selectedLocation.children.map((child: any, index: number) => (
-                          <div key={index} className="p-4"
+                          <div key={index} className="text-sm p-2 bg-gray-50 rounded">
                             {child.name}
                           </div>
                         ))}
@@ -483,7 +511,7 @@ export default function Locations() {
                 </div>
               </div>
             </div>
-            <div className="p-4"
+            <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsManageDialogOpen(false)}>
                 Fechar
               </Button>
@@ -491,22 +519,23 @@ export default function Locations() {
             </div>
           </DialogContent>
         </Dialog>
+
       {/* Import KML/GeoJSON Dialog */}
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Importar Dados Geoespaciais</DialogTitle>
             <DialogDescription>
               Carregue arquivos KML ou GeoJSON para criar múltiplos locais automaticamente
             </DialogDescription>
           </DialogHeader>
-          <div className="p-4"
-            <div className="p-4"
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="p-4"
+              <p className="text-sm text-gray-600 mb-2">
                 Arraste arquivos aqui ou clique para selecionar
               </p>
-              <p className="p-4"
+              <p className="text-xs text-gray-500 mb-4">
                 Formatos aceitos: .kml, .geojson, .json
               </p>
               <input 
@@ -522,25 +551,25 @@ export default function Locations() {
               </Button>
             </div>
             
-            <div className="p-4"
-              <h4 className="text-lg">"Opções de Importação</h4>
-              <div className="p-4"
-                <label className="p-4"
+            <div className="space-y-2">
+              <h4 className="font-medium">Opções de Importação</h4>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
                   <input type="checkbox" defaultChecked />
-                  <span className="text-lg">"Preservar coordenadas originais</span>
+                  <span className="text-sm">Preservar coordenadas originais</span>
                 </label>
-                <label className="p-4"
+                <label className="flex items-center space-x-2">
                   <input type="checkbox" defaultChecked />
-                  <span className="text-lg">"Criar hierarquia automática</span>
+                  <span className="text-sm">Criar hierarquia automática</span>
                 </label>
-                <label className="p-4"
+                <label className="flex items-center space-x-2">
                   <input type="checkbox" />
-                  <span className="text-lg">"Sobrescrever locais existentes</span>
+                  <span className="text-sm">Sobrescrever locais existentes</span>
                 </label>
               </div>
             </div>
           </div>
-          <div className="p-4"
+          <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
               Cancelar
             </Button>
@@ -551,20 +580,21 @@ export default function Locations() {
           </div>
         </DialogContent>
       </Dialog>
+
       {/* Schedule Configuration Dialog */}
       <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Configuração de Horários de Funcionamento</DialogTitle>
             <DialogDescription>
               Configure horários padrão para todos os locais ou específicos por tipo
             </DialogDescription>
           </DialogHeader>
-          <div className="p-4"
+          <div className="space-y-4">
             <div>
-              <label className="text-lg">"Aplicar configuração para:</label>
-              <Select defaultValue="all>
-                <SelectTrigger className="p-4"
+              <label className="text-sm font-medium">Aplicar configuração para:</label>
+              <Select defaultValue="all">
+                <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -575,36 +605,38 @@ export default function Locations() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="p-4"
-              <h4 className="text-lg">"Horários da Semana</h4>
+
+            <div className="space-y-3">
+              <h4 className="font-medium">Horários da Semana</h4>
               {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((day, index) => (
-                <div key={day} className="p-4"
-                  <div className="text-lg">"{day}</div>
+                <div key={day} className="flex items-center gap-3">
+                  <div className="w-16 text-sm">{day}</div>
                   <input type="checkbox" defaultChecked={index < 5} />
                   <Input placeholder="08:00" className="w-20 h-8" />
-                  <span className="text-lg">"às</span>
+                  <span className="text-sm text-gray-500">às</span>
                   <Input placeholder="17:00" className="w-20 h-8" />
                   <Input placeholder="12:00-13:00" className="w-24 h-8" title="Intervalo (opcional)" />
                 </div>
               ))}
             </div>
-            <div className="p-4"
-              <h4 className="text-lg">"Configurações Especiais</h4>
-              <label className="p-4"
+
+            <div className="space-y-2">
+              <h4 className="font-medium">Configurações Especiais</h4>
+              <label className="flex items-center space-x-2">
                 <input type="checkbox" />
-                <span className="text-lg">"Horário de verão automático</span>
+                <span className="text-sm">Horário de verão automático</span>
               </label>
-              <label className="p-4"
+              <label className="flex items-center space-x-2">
                 <input type="checkbox" />
-                <span className="text-lg">"Fechar automaticamente em feriados</span>
+                <span className="text-sm">Fechar automaticamente em feriados</span>
               </label>
-              <label className="p-4"
+              <label className="flex items-center space-x-2">
                 <input type="checkbox" />
-                <span className="text-lg">"Notificar mudanças de horário</span>
+                <span className="text-sm">Notificar mudanças de horário</span>
               </label>
             </div>
           </div>
-          <div className="p-4"
+          <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
               Cancelar
             </Button>
@@ -615,68 +647,73 @@ export default function Locations() {
           </div>
         </DialogContent>
       </Dialog>
+
       {/* Statistics Cards */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Total de Locais</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Locais</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{stats.total_locations || 0}</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{stats.total_locations || 0}</div>
+            <p className="text-xs text-muted-foreground">
               {stats.active_locations || 0} ativos
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Pontos</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pontos</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{stats.point_locations || 0}</div>
-            <p className="text-lg">"Localizações pontuais</p>
+            <div className="text-2xl font-bold">{stats.point_locations || 0}</div>
+            <p className="text-xs text-muted-foreground">Localizações pontuais</p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Áreas</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Áreas</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{stats.area_locations || 0}</div>
-            <p className="text-lg">"Regiões mapeadas</p>
+            <div className="text-2xl font-bold">{stats.area_locations || 0}</div>
+            <p className="text-xs text-muted-foreground">Regiões mapeadas</p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Rotas</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rotas</CardTitle>
             <Route className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{stats.route_locations || 0}</div>
-            <p className="text-lg">"Rotas planejadas</p>
+            <div className="text-2xl font-bold">{stats.route_locations || 0}</div>
+            <p className="text-xs text-muted-foreground">Rotas planejadas</p>
           </CardContent>
         </Card>
       </div>
+
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="p-4"
+          <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
             Filtros e Busca
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="p-4"
+          <div className="space-y-4">
             {/* Basic Filters */}
-            <div className="p-4"
-              <div className="p-4"
-                <div className="p-4"
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder='[TRANSLATION_NEEDED]'
+                    placeholder="Buscar locais..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -684,7 +721,7 @@ export default function Locations() {
                 </div>
               </div>
               <Select value={locationTypeFilter} onValueChange={setLocationTypeFilter}>
-                <SelectTrigger className="p-4"
+                <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Tipo de local" />
                 </SelectTrigger>
                 <SelectContent>
@@ -697,7 +734,7 @@ export default function Locations() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="p-4"
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -709,23 +746,24 @@ export default function Locations() {
                 </SelectContent>
               </Select>
             </div>
+
             {/* Sprint 2 - Advanced Filters */}
-            <div className="p-4"
-              <div className="p-4"
+            <div className="flex flex-wrap gap-4 p-3 bg-gray-50 rounded-md">
+              <div className="text-sm font-medium text-gray-600 flex items-center">
                 Filtros Avançados:
               </div>
               <Button
-                variant={favoritesFilter ? "default" : "outline"
+                variant={favoritesFilter ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFavoritesFilter(!favoritesFilter)}
               >
-                <Star className="h-4 w-4 mr-2 "" />
+                <Star className={`h-4 w-4 mr-2 ${favoritesFilter ? 'fill-current' : ''}`} />
                 {favoritesFilter ? 'Apenas Favoritos' : 'Mostrar Favoritos'}
               </Button>
-              <div className="p-4"
+              <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder='[TRANSLATION_NEEDED]'
+                  placeholder="Filtrar por tag..."
                   value={tagFilter}
                   onChange={(e) => setTagFilter(e.target.value)}
                   className="w-48 h-8"
@@ -750,6 +788,7 @@ export default function Locations() {
           </div>
         </CardContent>
       </Card>
+
       {/* Locations Table */}
       <Card>
         <CardHeader>
@@ -757,20 +796,20 @@ export default function Locations() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="p-4"
-              <div className="p-4"
-                <div className="text-lg">"</div>
-                <p className="text-lg">"Carregando locais...</p>
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Carregando locais...</p>
               </div>
             </div>
           ) : locations.length === 0 ? (
-            <div className="p-4"
+            <div className="text-center py-8">
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg">"Nenhum local encontrado</h3>
-              <p className="p-4"
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum local encontrado</h3>
+              <p className="text-muted-foreground mb-4">
                 {searchTerm || locationTypeFilter || statusFilter
-                  ? '[TRANSLATION_NEEDED]'
-                  : "Comece criando seu primeiro local no sistema."
+                  ? "Nenhum local corresponde aos filtros aplicados."
+                  : "Comece criando seu primeiro local no sistema."}
               </p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -786,35 +825,35 @@ export default function Locations() {
                   <TableHead>Status</TableHead>
                   <TableHead>Coordenadas</TableHead>
                   <TableHead>Criado em</TableHead>
-                  <TableHead className="text-lg">"Ações</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {locations.map((location: any) => (
                   <TableRow key={location.id}>
                     <TableCell>
-                      <div className="p-4"
+                      <div className="flex items-center gap-2">
                         {location.is_favorite && (
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         )}
                         {getLocationTypeIcon(location.location_type)}
                         <div>
-                          <div className="text-lg">"{location.name}</div>
+                          <div className="font-medium">{location.name}</div>
                           {location.description && (
-                            <div className="p-4"
+                            <div className="text-sm text-muted-foreground truncate max-w-[200px]">
                               {location.description}
                             </div>
                           )}
                           {/* Sprint 2 - Display tags */}
                           {location.tags && location.tags.length > 0 && (
-                            <div className="p-4"
+                            <div className="flex gap-1 mt-1">
                               {location.tags.slice(0, 2).map((tag: string, index: number) => (
-                                <Badge key={index} variant="secondary" className="p-4"
+                                <Badge key={index} variant="secondary" className="text-xs">
                                   {tag}
                                 </Badge>
                               ))}
                               {location.tags.length > 2 && (
-                                <Badge variant="outline" className="p-4"
+                                <Badge variant="outline" className="text-xs">
                                   +{location.tags.length - 2}
                                 </Badge>
                               )}
@@ -824,7 +863,7 @@ export default function Locations() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline>
+                      <Badge variant="outline">
                         {location.location_type === 'point' && 'Ponto'}
                         {location.location_type === 'segment' && 'Segmento'}
                         {location.location_type === 'area' && 'Área'}
@@ -841,24 +880,24 @@ export default function Locations() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="p-4"
+                      <div className="text-sm font-mono">
                         {location.coordinates?.lat?.toFixed(6)}, {location.coordinates?.lng?.toFixed(6)}
                       </div>
                     </TableCell>
                     <TableCell>
                       {new Date(location.created_at).toLocaleDateString('pt-BR')}
                     </TableCell>
-                    <TableCell className="p-4"
-                      <div className="p-4"
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => handleToggleFavorite(location.id)}
-                          className={location.is_favorite ? "text-yellow-500 hover:text-yellow-600" : "text-gray-500 hover:text-yellow-500"
+                          className={location.is_favorite ? "text-yellow-500 hover:text-yellow-600" : "text-gray-500 hover:text-yellow-500"}
                           disabled={toggleFavoriteMutation.isPending}
-                          title={location.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
+                          title={location.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                         >
-                          <Star className="h-4 w-4 "" />
+                          <Star className={`h-4 w-4 ${location.is_favorite ? 'fill-current' : ''}`} />
                         </Button>
                         <Button 
                           variant="ghost" 
@@ -868,7 +907,7 @@ export default function Locations() {
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" title='[TRANSLATION_NEEDED]'>
+                        <Button variant="ghost" size="sm" title="Editar local">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 

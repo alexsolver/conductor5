@@ -12,8 +12,9 @@ import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip } from "lucide-react";
 import { useLocation } from "wouter";
-// import useLocalization from "@/hooks/useLocalization";
+import { useLocalization } from "@/hooks/useLocalization";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
+
 interface Ticket {
   id: string;
   number: string;
@@ -40,6 +41,7 @@ interface Ticket {
   caller_last_name?: string;
   caller_email?: string;
 }
+
 interface Attachment {
   id: string;
   fileName: string;
@@ -49,6 +51,7 @@ interface Attachment {
   createdAt: string;
   uploadedByName: string;
 }
+
 interface Communication {
   id: string;
   type: string;
@@ -57,6 +60,7 @@ interface Communication {
   createdAt: string;
   authorName: string;
 }
+
 interface Note {
   id: string;
   content: string;
@@ -64,6 +68,7 @@ interface Note {
   createdAt: string;
   authorName: string;
 }
+
 interface HistoryEntry {
   id: string;
   actionType: string;
@@ -74,6 +79,7 @@ interface HistoryEntry {
   createdAt: string;
   performedByName: string;
 }
+
 export default function TicketDetail() {
   const { id } = useParams();
   const [, navigate] = useLocation();
@@ -82,9 +88,10 @@ export default function TicketDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { getFieldLabel } = useFieldColors();
+
   // Fetch ticket details
   const { data: ticket, isLoading: isTicketLoading, error: ticketError } = useQuery<Ticket>({
-    queryKey: ["
+    queryKey: [`/api/tickets/${id}`],
     enabled: !!id,
     retry: (failureCount, error: any) => {
       // Se for erro 401 (não autorizado), não tenta novamente
@@ -105,33 +112,38 @@ export default function TicketDetail() {
       return data?.data || data;
     },
   });
+
   // Fetch attachments
   const { data: attachments, isLoading: isAttachmentsLoading } = useQuery<Attachment[]>({
-    queryKey: ["/attachments`],
+    queryKey: [`/api/tickets/${id}/attachments`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
+
   // Fetch communications
   const { data: communications, isLoading: isCommunicationsLoading } = useQuery<Communication[]>({
-    queryKey: ["/communications`],
+    queryKey: [`/api/tickets/${id}/communications`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
+
   // Fetch notes
   const { data: notes, isLoading: isNotesLoading } = useQuery<Note[]>({
-    queryKey: ["/notes`],
+    queryKey: [`/api/tickets/${id}/notes`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
+
   // Fetch history
   const { data: history, isLoading: isHistoryLoading } = useQuery<HistoryEntry[]>({
-    queryKey: ["/history`],
+    queryKey: [`/api/tickets/${id}/history`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
+
   // 🎯 [1QA-COMPLIANCE] Fetch company details for proper display
   const { data: company, error: companyError } = useQuery({
-    queryKey: ["
+    queryKey: [`/api/companies/${ticket?.companyId}`],
     enabled: !!ticket?.companyId,
     select: (data: any) => {
       console.log('🏢 [COMPANY-QUERY] Raw response:', data);
@@ -139,6 +151,7 @@ export default function TicketDetail() {
     },
     retry: false,
   });
+
   // 🎯 [1QA-COMPLIANCE] Debug company loading
   useEffect(() => {
     console.log('🎫 [TICKET-DEBUG] Current ticket data:', {
@@ -158,18 +171,21 @@ export default function TicketDetail() {
       console.log('✅ [COMPANY-DEBUG] Company loaded:', company);
     }
   }, [ticket, ticket?.companyId, company, companyError]);
+
   // 🎯 [1QA-COMPLIANCE] Fetch user details for assigned user display  
   const { data: assignedUser } = useQuery({
-    queryKey: ["
+    queryKey: [`/api/users/${ticket?.assignedToId}`],
     enabled: !!ticket?.assignedToId,
     select: (data: any) => data?.data || data,
   });
+
   // 🎯 [1QA-COMPLIANCE] Fetch location details for proper display
   const { data: location } = useQuery({
-    queryKey: ["
+    queryKey: [`/api/locations/${ticket?.locationId}`],
     enabled: !!ticket?.locationId,
     select: (data: any) => data?.data || data,
   });
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -177,8 +193,9 @@ export default function TicketDetail() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
   const handleDownloadAttachment = (attachmentId: string, originalName: string) => {
-    const downloadUrl = "/download`;
+    const downloadUrl = `/api/tickets/${id}/attachments/${attachmentId}/download`;
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = originalName;
@@ -187,33 +204,36 @@ export default function TicketDetail() {
     link.click();
     document.body.removeChild(link);
   };
+
   const handleUploadComplete = () => {
     // Refresh attachments after upload
-    queryClient.invalidateQueries({ queryKey: ["/attachments`] });
-    queryClient.invalidateQueries({ queryKey: ["
+    queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}/attachments`] });
+    queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}`] });
     toast({
-      title: '[TRANSLATION_NEEDED]',
+      title: 'Upload successful',
       description: 'Files uploaded successfully.',
     });
   };
+
   if (isTicketLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"</div>
-          <div className="text-lg">"</div>
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded-md w-1/3 mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded-md"></div>
         </div>
       </div>
     );
   }
+
   if (ticketError) {
     console.log('❌ [TICKET-DETAIL] Error loading ticket:', ticketError);
     if (ticketError.message?.includes('401')) {
       return (
-        <div className="p-4"
-          <div className="p-4"
-            <h1 className="text-lg">"Sessão expirada</h1>
-            <p className="text-lg">"Faça login novamente para continuar</p>
+        <div className="container mx-auto p-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Sessão expirada</h1>
+            <p className="text-gray-600 mb-4">Faça login novamente para continuar</p>
             <Button onClick={() => console.log('Auth redirect blocked per 1qa.md')}>
               Login será tratado automaticamente
             </Button>
@@ -222,33 +242,35 @@ export default function TicketDetail() {
       );
     }
   }
+
   if (!ticket) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <h1 className="text-lg">"'[TRANSLATION_NEEDED]'</h1>
+      <div className="container mx-auto p-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('tickets.messages.not_found')}</h1>
           <Button onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            '[TRANSLATION_NEEDED]'
+            {t('tickets.actions.back_to_tickets')}
           </Button>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="p-4"
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="p-4"
-        <div className="p-4"
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            '[TRANSLATION_NEEDED]'
+            {t('common.back')}
           </Button>
           <div>
-            <h1 className="p-4"
+            <h1 className="text-2xl font-bold text-gray-900">
               #{ticket.number} - {ticket.subject}
             </h1>
-            <div className="p-4"
+            <div className="flex items-center space-x-2 mt-2">
               <DynamicBadge 
                 fieldName="status" 
                 value={ticket.status}
@@ -280,50 +302,53 @@ export default function TicketDetail() {
           </div>
         </div>
       </div>
+
       {/* Main Content */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Main Content */}
-        <div className="p-4"
+        <div className="lg:col-span-2 space-y-6">
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle className="p-4"
+              <CardTitle className="flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
-                '[TRANSLATION_NEEDED]'
+                {t('tickets.description')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
-                <p className="p-4"
+              <div className="prose max-w-none">
+                <p className="text-gray-700 whitespace-pre-wrap">
                   {ticket.description || t('tickets.messages.no_description')}
                 </p>
               </div>
             </CardContent>
           </Card>
+
           {/* Tabs for detailed content */}
-          <Tabs defaultValue="attachments" className="p-4"
-            <TabsList className="p-4"
-              <TabsTrigger value="attachments" className="p-4"
+          <Tabs defaultValue="attachments" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="attachments" className="flex items-center">
                 <Paperclip className="h-4 w-4 mr-2" />
-                '[TRANSLATION_NEEDED]' ({attachments?.length || 0})
+                {t('tickets.attachments')} ({attachments?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="communications" className="p-4"
+              <TabsTrigger value="communications" className="flex items-center">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                '[TRANSLATION_NEEDED]' ({communications?.length || 0})
+                {t('tickets.communication')} ({communications?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="notes>
-                '[TRANSLATION_NEEDED]' ({notes?.length || 0})
+              <TabsTrigger value="notes">
+                {t('tickets.notes')} ({notes?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="history" className="p-4"
+              <TabsTrigger value="history" className="flex items-center">
                 <History className="h-4 w-4 mr-2" />
-                '[TRANSLATION_NEEDED]'
+                {t('tickets.history')}
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="attachments" className="p-4"
+
+            <TabsContent value="attachments" className="space-y-4">
               {/* Upload Component */}
               <Card>
                 <CardHeader>
-                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
+                  <CardTitle>{t('tickets.upload_attachments')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <TicketAttachmentUpload 
@@ -332,28 +357,29 @@ export default function TicketDetail() {
                   />
                 </CardContent>
               </Card>
+
               {/* Existing Attachments */}
               <Card>
                 <CardHeader>
-                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
+                  <CardTitle>{t('tickets.existing_attachments')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isAttachmentsLoading ? (
-                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-center py-4">{t('common.loading_attachments')}</div>
                   ) : attachments && attachments.length > 0 ? (
-                    <div className="p-4"
+                    <div className="space-y-3">
                       {attachments.map((attachment) => (
                         <div 
                           key={attachment.id}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
                         >
-                          <div className="p-4"
+                          <div className="flex items-center space-x-3">
                             <Paperclip className="h-5 w-5 text-gray-400" />
                             <div>
-                              <p className="p-4"
+                              <p className="font-medium text-gray-900">
                                 {attachment.originalName}
                               </p>
-                              <p className="p-4"
+                              <p className="text-sm text-gray-500">
                                 {formatFileSize(attachment.fileSize)} • 
                                 {t('tickets.uploaded_by', { name: attachment.uploadedByName })} • 
                                 {formatDate(attachment.createdAt)}
@@ -365,111 +391,114 @@ export default function TicketDetail() {
                             size="sm"
                             onClick={() => handleDownloadAttachment(attachment.id, attachment.originalName)}
                           >
-                            '[TRANSLATION_NEEDED]'
+                            {t('common.download')}
                           </Button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4"
-                      '[TRANSLATION_NEEDED]'
+                    <div className="text-center py-8 text-gray-500">
+                      {t('tickets.messages.no_attachments')}
                     </div>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
-            <TabsContent value="communications>
+
+            <TabsContent value="communications">
               <Card>
                 <CardHeader>
-                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
+                  <CardTitle>{t('tickets.communication')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isCommunicationsLoading ? (
-                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-center py-4">{t('common.loading_communications')}</div>
                   ) : communications && communications.length > 0 ? (
-                    <div className="p-4"
+                    <div className="space-y-4">
                       {communications.map((comm) => (
-                        <div key={comm.id} className="p-4"
-                          <div className="p-4"
+                        <div key={comm.id} className="border-l-4 border-blue-400 pl-4 py-2">
+                          <div className="flex justify-between items-start mb-2">
                             <Badge variant={comm.direction === 'inbound' ? 'default' : 'secondary'}>
                               {comm.type} - {comm.direction}
                             </Badge>
-                            <span className="p-4"
+                            <span className="text-sm text-gray-500">
                               {formatDate(comm.createdAt)}
                             </span>
                           </div>
-                          <p className="text-lg">"{comm.content}</p>
-                          <p className="text-lg">"'[TRANSLATION_NEEDED]': {comm.authorName}</p>
+                          <p className="text-gray-700">{comm.content}</p>
+                          <p className="text-sm text-gray-500 mt-1">{t('common.by')}: {comm.authorName}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4"
-                      '[TRANSLATION_NEEDED]'
+                    <div className="text-center py-8 text-gray-500">
+                      {t('tickets.messages.no_communications')}
                     </div>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
-            <TabsContent value="notes>
+
+            <TabsContent value="notes">
               <Card>
                 <CardHeader>
-                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
+                  <CardTitle>{t('tickets.notes')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isNotesLoading ? (
-                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-center py-4">{t('common.loading_notes')}</div>
                   ) : notes && notes.length > 0 ? (
-                    <div className="p-4"
+                    <div className="space-y-4">
                       {notes.map((note) => (
-                        <div key={note.id} className="p-4"
-                          <div className="p-4"
+                        <div key={note.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
                             <Badge variant={note.isInternal ? 'destructive' : 'default'}>
                               {note.isInternal ? t('tickets.note_internal') : t('tickets.note_public')}
                             </Badge>
-                            <span className="p-4"
+                            <span className="text-sm text-gray-500">
                               {formatDate(note.createdAt)}
                             </span>
                           </div>
-                          <p className="text-lg">"{note.content}</p>
-                          <p className="text-lg">"'[TRANSLATION_NEEDED]': {note.authorName}</p>
+                          <p className="text-gray-700 whitespace-pre-wrap">{note.content}</p>
+                          <p className="text-sm text-gray-500 mt-2">{t('common.by')}: {note.authorName}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4"
-                      '[TRANSLATION_NEEDED]'
+                    <div className="text-center py-8 text-gray-500">
+                      {t('tickets.messages.no_notes')}
                     </div>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
-            <TabsContent value="history>
+
+            <TabsContent value="history">
               <Card>
                 <CardHeader>
-                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
+                  <CardTitle>{t('tickets.change_history')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isHistoryLoading ? (
-                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-center py-4">{t('common.loading_history')}</div>
                   ) : history && history.length > 0 ? (
-                    <div className="p-4"
+                    <div className="space-y-3">
                       {history.map((entry) => (
-                        <div key={entry.id} className="p-4"
-                          <div className="p-4"
+                        <div key={entry.id} className="border-l-2 border-gray-200 pl-4 py-2">
+                          <div className="flex justify-between items-start">
                             <div>
-                              <p className="text-lg">"{entry.description}</p>
+                              <p className="font-medium text-gray-900">{entry.description}</p>
                               {entry.fieldName && (
-                                <p className="p-4"
-                                  '[TRANSLATION_NEEDED]': {entry.fieldName}
+                                <p className="text-sm text-gray-600">
+                                  {t('tickets.field')}: {entry.fieldName}
                                   {entry.oldValue && entry.newValue && (
                                     <span> • {entry.oldValue} → {entry.newValue}</span>
                                   )}
                                 </p>
                               )}
-                              <p className="text-lg">"'[TRANSLATION_NEEDED]': {entry.performedByName}</p>
+                              <p className="text-sm text-gray-500">{t('common.by')}: {entry.performedByName}</p>
                             </div>
-                            <span className="p-4"
+                            <span className="text-sm text-gray-500">
                               {formatDate(entry.createdAt)}
                             </span>
                           </div>
@@ -477,8 +506,8 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4"
-                      '[TRANSLATION_NEEDED]'
+                    <div className="text-center py-8 text-gray-500">
+                      {t('tickets.messages.no_history')}
                     </div>
                   )}
                 </CardContent>
@@ -486,50 +515,54 @@ export default function TicketDetail() {
             </TabsContent>
           </Tabs>
         </div>
+
         {/* Right Column - Sidebar Info */}
-        <div className="p-4"
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Informações do Ticket</CardTitle>
             </CardHeader>
-            <CardContent className="p-4"
-              <div className="p-4"
+            <CardContent className="space-y-4">
+              <div className="flex items-center text-sm">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-lg">"Criado:</span>
-                <span className="text-lg">"{formatDate(ticket.createdAt)}</span>
+                <span className="text-gray-500">Criado:</span>
+                <span className="ml-2 font-medium">{formatDate(ticket.createdAt)}</span>
               </div>
               
-              <div className="p-4"
+              <div className="flex items-center text-sm">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-lg">"Atualizado:</span>
-                <span className="text-lg">"{formatDate(ticket.updatedAt)}</span>
+                <span className="text-gray-500">Atualizado:</span>
+                <span className="ml-2 font-medium">{formatDate(ticket.updatedAt)}</span>
               </div>
+
               {ticket.assignedToId && (
-                <div className="p-4"
+                <div className="flex items-center text-sm">
                   <User className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-lg">"Responsável:</span>
-                  <span className="p-4"
+                  <span className="text-gray-500">Responsável:</span>
+                  <span className="ml-2 font-medium">
                     {assignedUser?.firstName && assignedUser?.lastName 
-                      ? "
+                      ? `${assignedUser.firstName} ${assignedUser.lastName}`
                       : assignedUser?.email || ticket.assignedToId
                     }
                   </span>
                 </div>
               )}
+
               {ticket.companyId && (
-                <div className="p-4"
+                <div className="flex items-center text-sm">
                   <Building className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-lg">"Empresa:</span>
-                  <span className="p-4"
+                  <span className="text-gray-500">Empresa:</span>
+                  <span className="ml-2 font-medium">
                     {(ticket as any)?.company_name || (ticket as any)?.company_display_name || company?.name || ticket.companyId}
                   </span>
                 </div>
               )}
+
               {ticket.locationId && (
-                <div className="p-4"
+                <div className="flex items-center text-sm">
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-lg">"Local:</span>
-                  <span className="p-4"
+                  <span className="text-gray-500">Local:</span>
+                  <span className="ml-2 font-medium">
                     {location?.name || location?.address || ticket.locationId}
                   </span>
                 </div>

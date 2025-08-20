@@ -15,7 +15,7 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Clock, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface Schedule {
   id?: string;
   title: string;
@@ -31,6 +31,7 @@ interface Schedule {
   internalNotes?: string;
   clientNotes?: string;
 }
+
 interface ActivityType {
   id: string;
   name: string;
@@ -38,17 +39,20 @@ interface ActivityType {
   category: string;
   duration: number;
 }
+
 interface Agent {
   id: string;
   name: string;
   email: string;
 }
+
 interface Customer {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
 }
+
 interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -61,8 +65,8 @@ interface ScheduleModalProps {
   defaultTime?: string;
   defaultAgentId?: string;
 }
+
 const scheduleSchema = z.object({
-  // Localization temporarily disabled
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   agentId: z.string().min(1, 'Agente é obrigatório'),
@@ -77,7 +81,9 @@ const scheduleSchema = z.object({
   internalNotes: z.string().optional(),
   clientNotes: z.string().optional(),
 });
+
 type ScheduleFormData = z.infer<typeof scheduleSchema>;
+
 const ScheduleModal: React.FC<ScheduleModalProps> = ({
   isOpen,
   onClose,
@@ -95,19 +101,22 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
     queryKey: ['/api/user-management/users'],
     enabled: isOpen,
   });
+
   // Combinar agentes passados como props com usuários do módulo de gestão de equipe
   const allAgents = React.useMemo(() => {
     const teamAgents = teamMembersData && teamMembersData.users && Array.isArray(teamMembersData.users) 
       ? teamMembersData.users.map((member: any) => ({
         id: member.id,
-        name: member.name || "
+        name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
         email: member.email
       })) : [];
+
     // Combinar e remover duplicatas
     const combinedAgents = [...(agents || []), ...teamAgents];
     const uniqueAgents = combinedAgents.filter((agent, index, self) => 
       index === self.findIndex(a => a.id === agent.id)
     );
+
     return uniqueAgents;
   }, [agents, teamMembersData]);
   const form = useForm<ScheduleFormData>({
@@ -142,6 +151,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
       clientNotes: '',
     },
   });
+
   const onSubmit = (data: ScheduleFormData) => {
     const startDateTime = new Date(data.date);
     const [hours, minutes] = data.startTime.split(':').map(Number);
@@ -149,6 +159,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
     
     const endDateTime = new Date(startDateTime);
     endDateTime.setMinutes(endDateTime.getMinutes() + data.duration);
+
     const scheduleData: Schedule = {
       ...schedule,
       title: data.title,
@@ -164,29 +175,34 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
       internalNotes: data.internalNotes,
       clientNotes: data.clientNotes,
     };
+
     onSave(scheduleData);
     onClose();
   };
+
   const selectedActivityType = activityTypes?.find?.(type => type.id === form.watch('activityTypeId'));
+
   // Update duration when activity type changes
   React.useEffect(() => {
     if (selectedActivityType && !schedule) {
       form.setValue('duration', selectedActivityType.duration);
     }
   }, [selectedActivityType, form, schedule]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center>
+          <DialogTitle className="flex items-center">
             <CalendarIcon className="h-5 w-5 mr-2" />
-            {schedule ? '[TRANSLATION_NEEDED]' : 'Novo Agendamento'}
+            {schedule ? 'Editar Agendamento' : 'Novo Agendamento'}
           </DialogTitle>
         </DialogHeader>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Título e Descrição */}
-            <div className="grid grid-cols-1 gap-4>
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -200,6 +216,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="description"
@@ -218,8 +235,9 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 )}
               />
             </div>
+
             {/* Agente e Cliente */}
-            <div className="grid grid-cols-2 gap-4>
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="agentId"
@@ -229,7 +247,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione um agente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -244,6 +262,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="customerId"
@@ -253,7 +272,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione um cliente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -270,6 +289,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 )}
               />
             </div>
+
             {/* Tipo de Atividade */}
             <FormField
               control={form.control}
@@ -280,13 +300,13 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                        <SelectValue placeholder="Selecione o tipo de atividade" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {activityTypes?.map((type) => (
                         <SelectItem key={type.id} value={type.id}>
-                          <div className="flex items-center>
+                          <div className="flex items-center">
                             <div 
                               className="w-3 h-3 rounded-full mr-2"
                               style={{ backgroundColor: type.color }}
@@ -301,8 +321,9 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 </FormItem>
               )}
             />
+
             {/* Data e Horário */}
-            <div className="grid grid-cols-3 gap-4>
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="date"
@@ -328,7 +349,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start>
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -344,6 +365,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="startTime"
@@ -357,6 +379,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="duration"
@@ -377,8 +400,9 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 )}
               />
             </div>
+
             {/* Status e Prioridade */}
-            <div className="grid grid-cols-2 gap-4>
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="status"
@@ -402,6 +426,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="priority"
@@ -426,6 +451,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 )}
               />
             </div>
+
             {/* Endereço */}
             <FormField
               control={form.control}
@@ -440,8 +466,9 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 </FormItem>
               )}
             />
+
             {/* Notas */}
-            <div className="grid grid-cols-2 gap-4>
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="internalNotes"
@@ -450,7 +477,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <FormLabel>Notas Internas</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder='[TRANSLATION_NEEDED]'
+                        placeholder="Informações para uso interno da equipe..."
                         rows={3}
                         {...field} 
                       />
@@ -459,6 +486,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="clientNotes"
@@ -467,7 +495,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <FormLabel>Notas do Cliente</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder='[TRANSLATION_NEEDED]'
+                        placeholder="Informações específicas do cliente..."
                         rows={3}
                         {...field} 
                       />
@@ -477,15 +505,16 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 )}
               />
             </div>
+
             {/* Botões */}
-            <div className="flex justify-end space-x-2 pt-4>
+            <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>
-              <Button type="submit>
+              <Button type="submit">
                 <Save className="h-4 w-4 mr-2" />
-                {schedule ? 'Atualizar' : '[TRANSLATION_NEEDED]'} Agendamento
+                {schedule ? 'Atualizar' : 'Criar'} Agendamento
               </Button>
             </div>
           </form>
@@ -494,4 +523,5 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
     </Dialog>
   );
 };
+
 export default ScheduleModal;

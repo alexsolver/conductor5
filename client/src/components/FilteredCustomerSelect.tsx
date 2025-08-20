@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 import { useCompanyCustomers } from '@/hooks/useCompanyCustomers';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface FilteredCustomerSelectProps {
   value?: string;
   onChange: (value: string) => void;
@@ -12,9 +12,8 @@ interface FilteredCustomerSelectProps {
   disabled?: boolean;
   className?: string;
 }
-export function FilteredCustomerSelect({
-  // Localization temporarily disabled
- 
+
+export function FilteredCustomerSelect({ 
   value, 
   onChange, 
   selectedCompanyId,
@@ -30,13 +29,17 @@ export function FilteredCustomerSelect({
       return response.json();
     },
   });
+
   // Buscar clientes da empresa se uma empresa foi selecionada
   const { data: companyCustomersData, isLoading: isLoadingCompanyCustomers } = useCompanyCustomers(
     selectedCompanyId && selectedCompanyId !== 'unspecified' ? selectedCompanyId : ''
   );
+
   const isLoading = isLoadingCustomers || (selectedCompanyId && selectedCompanyId !== 'unspecified' && isLoadingCompanyCustomers);
+
   // Determinar quais clientes mostrar baseado EXCLUSIVAMENTE na empresa
   let customersToShow = [];
+
   if (selectedCompanyId && selectedCompanyId !== 'unspecified') {
     // Empresa selecionada - mostrar APENAS clientes desta empresa
     if (isLoadingCompanyCustomers) {
@@ -61,15 +64,17 @@ export function FilteredCustomerSelect({
       customersCount: customersToShow.length
     });
   }
+
   if (isLoading) {
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+          <SelectValue placeholder="Carregando clientes..." />
         </SelectTrigger>
       </Select>
     );
   }
+
   console.log('[FilteredCustomerSelect] Render:', { 
     value, 
     disabled, 
@@ -80,6 +85,7 @@ export function FilteredCustomerSelect({
       return foundCustomer ? (foundCustomer.fullName || foundCustomer.name || foundCustomer.email) : 'NOT FOUND';
     })()
   });
+
   return (
     <Select 
       value={value || '__none__'} 
@@ -103,16 +109,17 @@ export function FilteredCustomerSelect({
             <SelectItem value="unspecified">Não especificado</SelectItem>
             {customersToShow.map((customer: any) => {
               const customerName = customer.fullName || customer.name || 
-                                  "
+                                  `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
                                   customer.email || 'Cliente sem nome';
               // Ensure customer.id is not empty or undefined
-              const customerId = customer.id || "
+              const customerId = customer.id || `customer_${Math.random().toString(36).substr(2, 9)}`;
+
               return (
                 <SelectItem key={customerId} value={customerId}>
-                  <div className="flex flex-col>
+                  <div className="flex flex-col">
                     <span>{customerName}</span>
-                    <span className="text-sm text-gray-500>
-                      {customer.email} {customer.cpf && "
+                    <span className="text-sm text-gray-500">
+                      {customer.email} {customer.cpf && `• CPF: ${customer.cpf}`}
                     </span>
                   </div>
                 </SelectItem>

@@ -5,7 +5,7 @@ import { MapPin, Navigation, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -17,6 +17,7 @@ L.Icon.Default.mergeOptions({
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
+
 interface LeafletMapProps {
   initialLat: number;
   initialLng: number;
@@ -30,14 +31,14 @@ interface LeafletMapProps {
   };
   onLocationSelect: (lat: number, lng: number) => void;
 }
+
 interface SearchResult {
   display_name: string;
   lat: string;
   lon: string;
 }
-export function LeafletMap({
-  // Localization temporarily disabled
- initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
+
+export function LeafletMap({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -45,6 +46,7 @@ export function LeafletMap({
   const [isSearching, setIsSearching] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Force re-render key
   const { toast } = useToast();
+
   // Clean up function
   const cleanupMap = useCallback(() => {
     try {
@@ -61,14 +63,19 @@ export function LeafletMap({
       console.warn('Cleanup error:', error);
     }
   }, []);
+
   // Initialize map
   useEffect(() => {
     if (!mapRef.current) return;
+
     // Clean up any existing map
     cleanupMap();
+
     let mounted = true;
+
     const initMap = () => {
       if (!mapRef.current || !mounted) return;
+
       try {
         // Create map instance
         const map = L.map(mapRef.current, {
@@ -79,12 +86,14 @@ export function LeafletMap({
           zoomAnimation: false,
           markerZoomAnimation: false
         }).setView([initialLat, initialLng], 13);
+
         // Add tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
           minZoom: 3
         }).addTo(map);
+
         // Add click handler
         map.on('click', (e) => {
           if (!mounted) return;
@@ -92,9 +101,12 @@ export function LeafletMap({
           updateMarker(lat, lng);
           onLocationSelect(lat, lng);
         });
+
         mapInstanceRef.current = map;
+
         // Add initial marker
         updateMarker(initialLat, initialLng);
+
         // Force map to resize
         setTimeout(() => {
           if (mapInstanceRef.current && mounted) {
@@ -105,14 +117,17 @@ export function LeafletMap({
         console.error('Map initialization error:', error);
       }
     };
+
     // Initialize with delay
     const timeoutId = setTimeout(initMap, 200);
+
     return () => {
       mounted = false;
       clearTimeout(timeoutId);
       cleanupMap();
     };
   }, [mapKey, initialLat, initialLng, cleanupMap]);
+
   // Initialize search query with address data
   useEffect(() => {
     if (addressData) {
@@ -129,26 +144,31 @@ export function LeafletMap({
       }
     }
   }, [addressData]);
+
   const updateMarker = useCallback((lat: number, lng: number) => {
     if (!mapInstanceRef.current) return;
+
     try {
       // Remove existing marker
       if (markerRef.current) {
         mapInstanceRef.current.removeLayer(markerRef.current);
         markerRef.current = null;
       }
+
       // Add new marker
       const marker = L.marker([lat, lng], {
         riseOnHover: true
       })
         .addTo(mapInstanceRef.current)
-        .bindPopup("
+        .bindPopup(`<b>Localização Selecionada</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`)
         .openPopup();
+
       markerRef.current = marker;
     } catch (error) {
       console.error('Marker update error:', error);
     }
   }, []);
+
   const searchLocation = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -158,6 +178,7 @@ export function LeafletMap({
       });
       return;
     }
+
     setIsSearching(true);
     try {
       // Try local cities first
@@ -175,15 +196,16 @@ export function LeafletMap({
         
         toast({
           title: "Local encontrado",
-          description: " - Coordenadas da cidade`
+          description: `${localResult.name} - Coordenadas da cidade`
         });
         return;
       }
+
       // Try external API
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const searchUrl = "&limit=5&countrycodes=br&addressdetails=1`;
+      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=br&addressdetails=1`;
       
       const response = await fetch(searchUrl, {
         signal: controller.signal,
@@ -197,8 +219,9 @@ export function LeafletMap({
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error("
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
       const results: SearchResult[] = await response.json();
       
       if (results.length > 0) {
@@ -223,23 +246,24 @@ export function LeafletMap({
         });
       } else {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Nenhum resultado",
           description: "Não foi possível encontrar o endereço. Tente ser mais específico.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.warn('[TRANSLATION_NEEDED]', error);
+      console.warn('Search error:', error);
       
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "Erro na busca",
+        description: "Erro ao conectar com o serviço de busca. Tente novamente ou clique no mapa.",
         variant: "destructive"
       });
     } finally {
       setIsSearching(false);
     }
   };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
@@ -249,6 +273,7 @@ export function LeafletMap({
       });
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
@@ -263,13 +288,13 @@ export function LeafletMap({
         
         toast({
           title: "Localização atual",
-          description: "
+          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
         });
       },
       (error) => {
         console.error('Geolocation error:', error.message || error);
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Erro na geolocalização",
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
@@ -281,6 +306,7 @@ export function LeafletMap({
       }
     );
   };
+
   // Local city database
   const searchLocalCities = (query: string) => {
     const cities = [
@@ -300,6 +326,7 @@ export function LeafletMap({
       { name: 'Santos, SP', lat: -23.9618, lng: -46.3322, keywords: ['santos'] },
       { name: 'São Bernardo do Campo, SP', lat: -23.6914, lng: -46.5646, keywords: ['sao bernardo', 'bernardo'] }
     ];
+
     const queryLower = query.toLowerCase();
     
     for (const city of cities) {
@@ -310,17 +337,19 @@ export function LeafletMap({
     
     return null;
   };
+
   // Force reset if we get errors
   const resetMap = () => {
     setMapKey(prev => prev + 1);
   };
+
   return (
-    <div className="w-full space-y-4>
+    <div className="w-full space-y-4">
       {/* Search Controls */}
-      <div className="flex gap-2>
-        <div className="flex-1>
+      <div className="flex gap-2">
+        <div className="flex-1">
           <Input
-            placeholder='[TRANSLATION_NEEDED]'
+            placeholder="Digite um endereço para buscar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchLocation()}
@@ -351,8 +380,9 @@ export function LeafletMap({
           ↻
         </Button>
       </div>
+
       {/* Map Container */}
-      <div className="relative border rounded-lg overflow-hidden>
+      <div className="relative border rounded-lg overflow-hidden">
         <div
           key={mapKey}
           ref={mapRef}
@@ -361,8 +391,8 @@ export function LeafletMap({
         />
         
         {/* Instructions overlay */}
-        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000]>
-          <p className="text-sm text-gray-700 flex items-center font-medium>
+        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000]">
+          <p className="text-sm text-gray-700 flex items-center font-medium">
             <MapPin className="h-4 w-4 mr-2 text-red-500" />
             Clique no mapa para selecionar uma localização
           </p>

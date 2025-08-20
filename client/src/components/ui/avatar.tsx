@@ -1,4 +1,5 @@
 import React from 'react';
+
 interface AvatarProps {
   src?: string;
   alt?: string;
@@ -7,6 +8,7 @@ interface AvatarProps {
   className?: string;
   children?: React.ReactNode;
 }
+
 // Main Avatar component
 const Avatar: React.FC<AvatarProps> = ({ 
   src, 
@@ -21,12 +23,14 @@ const Avatar: React.FC<AvatarProps> = ({
     md: 'w-8 h-8 text-sm',
     lg: 'w-10 h-10 text-base'
   };
+
   return (
-    <div className="text-lg">"
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden ${className}`}>
       {children}
     </div>
   );
 };
+
 // Avatar Image component
 const AvatarImage: React.FC<{ src?: string; alt?: string; className?: string }> = ({ 
   src, 
@@ -38,12 +42,13 @@ const AvatarImage: React.FC<{ src?: string; alt?: string; className?: string }> 
       <img
         src={src}
         alt={alt}
-        className="w-full h-full object-cover ""
+        className={`w-full h-full object-cover ${className}`}
       />
     );
   }
   return null;
 };
+
 // Avatar Fallback component
 const AvatarFallback: React.FC<{ name?: string; className?: string; children?: React.ReactNode }> = ({ 
   name = '', 
@@ -58,6 +63,7 @@ const AvatarFallback: React.FC<{ name?: string; className?: string; children?: R
       .toUpperCase()
       .slice(0, 2);
   };
+
   const getBackgroundColor = (name: string) => {
     const colors = [
       'bg-blue-500',
@@ -77,14 +83,16 @@ const AvatarFallback: React.FC<{ name?: string; className?: string; children?: R
     
     return colors[Math.abs(hash) % colors.length];
   };
+
   return (
     <div
-      className="w-full h-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ""
+      className={`w-full h-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ${className}`}
     >
       {children || getInitials(name)}
     </div>
   );
 };
+
 // Simple Avatar component for our use case
 const SimpleAvatar: React.FC<AvatarProps> = ({ 
   src, 
@@ -98,6 +106,7 @@ const SimpleAvatar: React.FC<AvatarProps> = ({
     md: 'w-8 h-8 text-sm',
     lg: 'w-10 h-10 text-base'
   };
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -106,6 +115,7 @@ const SimpleAvatar: React.FC<AvatarProps> = ({
       .toUpperCase()
       .slice(0, 2);
   };
+
   const getBackgroundColor = (name: string) => {
     const colors = [
       'bg-blue-500',
@@ -125,22 +135,25 @@ const SimpleAvatar: React.FC<AvatarProps> = ({
     
     return colors[Math.abs(hash) % colors.length];
   };
+
   if (src) {
     return (
       <img
         src={src}
         alt={alt || name}
-        className="${sizeClasses[size]} rounded-full object-cover ""
+        className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
       />
     );
   }
+
   return (
     <div
-      className="${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ""
+      className={`${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ${className}`}
     >
       {getInitials(name)}
     </div>
   );
 };
+
 export { Avatar, AvatarImage, AvatarFallback };
 export default SimpleAvatar;

@@ -16,7 +16,6 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   Users, 
   TrendingUp, 
   Ticket, 
@@ -31,9 +30,9 @@ import {
   Save,
   Loader2
 } from "lucide-react";
+
 // Schema para configurações de branding
 const brandingSchema = z.object({
-  // Localization temporarily disabled
   companyName: z.string().min(1, "Nome da empresa é obrigatório"),
   logoUrl: z.string().url().optional().or(z.literal("")),
   primaryColor: z.string().min(1, "Cor primária é obrigatória"),
@@ -46,25 +45,32 @@ const brandingSchema = z.object({
   timezone: z.string().min(1, "Fuso horário é obrigatório"),
   language: z.string().min(1, "Idioma é obrigatório"),
 });
+
 type BrandingFormData = z.infer<typeof brandingSchema>;
+
 export default function TenantAdminGeral() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("dashboard");
+
   // Queries para dados do dashboard
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/analytics"],
   });
+
   const { data: teamStats, isLoading: teamStatsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/team/stats"],
   });
+
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
   });
+
   // Query para configurações de branding
   const { data: brandingData, isLoading: brandingLoading } = useQuery({
     queryKey: ["/api/tenant-admin/branding"],
   });
+
   // Form para branding
   const form = useForm<BrandingFormData>({
     resolver: zodResolver(brandingSchema),
@@ -82,6 +88,7 @@ export default function TenantAdminGeral() {
       language: "pt-BR",
     },
   });
+
   // Atualizar valores do formulário quando os dados chegarem
   React.useEffect(() => {
     if (brandingData?.settings) {
@@ -101,6 +108,7 @@ export default function TenantAdminGeral() {
       });
     }
   }, [brandingData, form]);
+
   // Mutation para salvar branding
   const updateBrandingMutation = useMutation({
     mutationFn: (data: BrandingFormData) => {
@@ -144,33 +152,35 @@ export default function TenantAdminGeral() {
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Configurações salvas",
         description: "As configurações de branding foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/branding"] });
     },
     onError: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Ocorreu um erro ao salvar as configurações.",
         variant: "destructive",
       });
     },
   });
+
   const onSubmit = (data: BrandingFormData) => {
     updateBrandingMutation.mutate(data);
   };
+
   // Cards de estatísticas do dashboard
   const StatCard = ({ title, value, icon: Icon, trend }: any) => (
     <Card>
-      <CardContent className="p-4"
-        <div className="p-4"
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-lg">"{title}</p>
-            <p className="text-lg">"{value}</p>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold">{value}</p>
             {trend && (
-              <p className="p-4"
-                <span className="text-lg">"+{trend}%</span> vs mês anterior
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">+{trend}%</span> vs mês anterior
               </p>
             )}
           </div>
@@ -179,41 +189,45 @@ export default function TenantAdminGeral() {
       </CardContent>
     </Card>
   );
+
   if (analyticsLoading || teamStatsLoading || usersLoading || brandingLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
+      <div className="p-4">
+        <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </div>
     );
   }
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-lg">"Geral</h1>
-          <p className="p-4"
+          <h1 className="text-3xl font-bold tracking-tight">Geral</h1>
+          <p className="text-muted-foreground">
             Dashboard e configurações gerais do workspace
           </p>
         </div>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="branding">Branding & Personalização</TabsTrigger>
         </TabsList>
-        <TabsContent value="dashboard" className="p-4"
+
+        <TabsContent value="dashboard" className="space-y-6">
           {/* Estatísticas principais */}
-          <div className="p-4"
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title='[TRANSLATION_NEEDED]'
+              title="Total de Clientes"
               value={(analytics as any)?.totalCustomers || 0}
               icon={Users}
               trend={12}
             />
             <StatCard
-              title='[TRANSLATION_NEEDED]'
+              title="Tickets Ativos"
               value={(analytics as any)?.totalTickets || 0}
               icon={Ticket}
               trend={8}
@@ -226,50 +240,52 @@ export default function TenantAdminGeral() {
             />
             <StatCard
               title="Taxa de Resolução"
-              value={"%"
+              value={`${(analytics as any)?.resolutionRate || 0}%`}
               icon={TrendingUp}
               trend={3}
             />
           </div>
+
           {/* Seção de atividade recente */}
-          <div className="p-4"
+          <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Atividade da Equipe</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
-                  <div className="p-4"
-                    <span className="text-lg">"Membros ativos hoje</span>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Membros ativos hoje</span>
                     <Badge variant="secondary">{(teamStats as any)?.activeToday || 0}</Badge>
                   </div>
-                  <div className="p-4"
-                    <span className="text-lg">"Performance média</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Performance média</span>
                     <Badge variant="outline">{(teamStats as any)?.averagePerformance || 0}%</Badge>
                   </div>
-                  <div className="p-4"
-                    <span className="text-lg">"Novos membros (mês)</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Novos membros (mês)</span>
                     <Badge variant="default">{(teamStats as any)?.newMembersThisMonth || 0}</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Resumo de Tickets</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
-                  <div className="p-4"
-                    <span className="text-lg">"Abertos</span>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Abertos</span>
                     <Badge variant="destructive">{(analytics as any)?.openTickets || 0}</Badge>
                   </div>
-                  <div className="p-4"
-                    <span className="text-lg">"Em progresso</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Em progresso</span>
                     <Badge variant="default">{(analytics as any)?.inProgressTickets || 0}</Badge>
                   </div>
-                  <div className="p-4"
-                    <span className="text-lg">"Resolvidos (mês)</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Resolvidos (mês)</span>
                     <Badge variant="secondary">{(analytics as any)?.resolvedThisMonth || 0}</Badge>
                   </div>
                 </div>
@@ -277,19 +293,20 @@ export default function TenantAdminGeral() {
             </Card>
           </div>
         </TabsContent>
-        <TabsContent value="branding" className="p-4"
+
+        <TabsContent value="branding" className="space-y-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
-              <div className="p-4"
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
                 {/* Informações da Empresa */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="p-4"
+                    <CardTitle className="flex items-center gap-2">
                       <Building className="h-5 w-5" />
                       Informações da Empresa
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4"
+                  <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
                       name="companyName"
@@ -320,6 +337,7 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="websiteUrl"
@@ -338,15 +356,16 @@ export default function TenantAdminGeral() {
                     />
                   </CardContent>
                 </Card>
+
                 {/* Configurações Visuais */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="p-4"
+                    <CardTitle className="flex items-center gap-2">
                       <Palette className="h-5 w-5" />
                       Configurações Visuais
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4"
+                  <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
                       name="logoUrl"
@@ -354,12 +373,12 @@ export default function TenantAdminGeral() {
                         <FormItem>
                           <FormLabel>URL do Logo</FormLabel>
                           <FormControl>
-                            <div className="p-4"
+                            <div className="flex gap-2">
                               <Input 
                                 placeholder="https://exemplo.com/logo.png"
                                 {...field}
                               />
-                              <Button type="button" variant="outline" size="icon>
+                              <Button type="button" variant="outline" size="icon">
                                 <Upload className="h-4 w-4" />
                               </Button>
                             </div>
@@ -368,7 +387,8 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
-                    <div className="p-4"
+
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="primaryColor"
@@ -376,7 +396,7 @@ export default function TenantAdminGeral() {
                           <FormItem>
                             <FormLabel>Cor Primária</FormLabel>
                             <FormControl>
-                              <div className="p-4"
+                              <div className="flex gap-2">
                                 <Input type="color" {...field} className="w-16 h-10" />
                                 <Input {...field} placeholder="#3b82f6" />
                               </div>
@@ -385,6 +405,7 @@ export default function TenantAdminGeral() {
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={form.control}
                         name="secondaryColor"
@@ -392,7 +413,7 @@ export default function TenantAdminGeral() {
                           <FormItem>
                             <FormLabel>Cor Secundária</FormLabel>
                             <FormControl>
-                              <div className="p-4"
+                              <div className="flex gap-2">
                                 <Input type="color" {...field} className="w-16 h-10" />
                                 <Input {...field} placeholder="#64748b" />
                               </div>
@@ -404,15 +425,16 @@ export default function TenantAdminGeral() {
                     </div>
                   </CardContent>
                 </Card>
+
                 {/* Informações de Contato */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="p-4"
+                    <CardTitle className="flex items-center gap-2">
                       <Mail className="h-5 w-5" />
                       Informações de Contato
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4"
+                  <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
                       name="supportEmail"
@@ -430,6 +452,7 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="supportPhone"
@@ -446,6 +469,7 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="address"
@@ -464,15 +488,16 @@ export default function TenantAdminGeral() {
                     />
                   </CardContent>
                 </Card>
+
                 {/* Configurações Regionais */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="p-4"
+                    <CardTitle className="flex items-center gap-2">
                       <Globe className="h-5 w-5" />
                       Configurações Regionais
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4"
+                  <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
                       name="timezone"
@@ -482,7 +507,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                <SelectValue placeholder="Selecione o fuso horário" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -496,6 +521,7 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="language"
@@ -505,7 +531,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                <SelectValue placeholder="Selecione o idioma" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -521,7 +547,8 @@ export default function TenantAdminGeral() {
                   </CardContent>
                 </Card>
               </div>
-              <div className="p-4"
+
+              <div className="flex justify-end">
                 <Button
                   type="submit"
                   disabled={updateBrandingMutation.isPending}

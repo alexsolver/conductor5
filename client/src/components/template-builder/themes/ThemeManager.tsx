@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Palette,
   Eye,
   Download,
@@ -22,6 +22,7 @@ import {
   Type,
   Layout
 } from 'lucide-react';
+
 interface ThemeColors {
   primary: string;
   secondary: string;
@@ -35,6 +36,7 @@ interface ThemeColors {
   warning: string;
   error: string;
 }
+
 interface Typography {
   fontFamily: string;
   fontSize: {
@@ -58,6 +60,7 @@ interface Typography {
     relaxed: string;
   };
 }
+
 interface Theme {
   id: string;
   name: string;
@@ -88,15 +91,16 @@ interface Theme {
   createdAt: Date;
   updatedAt: Date;
 }
+
 interface ThemeManagerProps {
   currentTheme: Theme;
   onThemeChange: (theme: Theme) => void;
   onThemeUpdate: (theme: Theme) => void;
   onThemeCreate: (theme: Omit<Theme, 'id' | 'createdAt' | 'updatedAt'>) => void;
 }
+
 const defaultThemes: Theme[] = [
   {
-  // Localization temporarily disabled
     id: 'default',
     name: 'Padrão',
     description: 'Tema padrão do sistema com cores neutras',
@@ -353,6 +357,7 @@ const defaultThemes: Theme[] = [
     updatedAt: new Date()
   }
 ];
+
 export const ThemeManager: React.FC<ThemeManagerProps> = ({
   currentTheme,
   onThemeChange,
@@ -363,6 +368,7 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
   const [newThemeName, setNewThemeName] = useState('');
   const [activeTab, setActiveTab] = useState('themes');
+
   useEffect(() => {
     // Carregar temas salvos do localStorage
     const savedThemes = localStorage.getItem('customThemes');
@@ -371,11 +377,14 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
       setThemes([...defaultThemes, ...customThemes]);
     }
   }, []);
+
   const handleThemeSelect = (theme: Theme) => {
     onThemeChange(theme);
   };
+
   const handleCreateCustomTheme = () => {
     if (!newThemeName.trim()) return;
+
     const newTheme: Omit<Theme, 'id' | 'createdAt' | 'updatedAt'> = {
       name: newThemeName,
       description: `Tema personalizado criado por usuário`,
@@ -386,11 +395,14 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
       shadows: { ...currentTheme.shadows },
       isCustom: true
     };
+
     onThemeCreate(newTheme);
     setNewThemeName('');
   };
+
   const handleColorChange = (colorKey: keyof ThemeColors, value: string) => {
     if (!editingTheme) return;
+
     const updatedTheme = {
       ...editingTheme,
       colors: {
@@ -399,35 +411,41 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
       },
       updatedAt: new Date()
     };
+
     setEditingTheme(updatedTheme);
   };
+
   const handleSaveTheme = () => {
     if (!editingTheme) return;
+
     onThemeUpdate(editingTheme);
     setEditingTheme(null);
   };
+
   const handleExportTheme = (theme: Theme) => {
     const exportData = JSON.stringify(theme, null, 2);
     const blob = new Blob([exportData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = ".json`;
+    a.download = `theme-${theme.name.toLowerCase().replace(/\s+/g, '-')}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
   const handleImportTheme = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const importedTheme = JSON.parse(e.target?.result as string);
         const newTheme = {
           ...importedTheme,
-          id: "
+          id: `imported-${Date.now()}`,
           isCustom: true,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -440,33 +458,36 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
         const customThemes = updatedThemes.filter(t => t.isCustom);
         localStorage.setItem('customThemes', JSON.stringify(customThemes));
       } catch (error) {
-        console.error('[TRANSLATION_NEEDED]', error);
+        console.error('Erro ao importar tema:', error);
       }
     };
     reader.readAsText(file);
   };
+
   return (
-    <div className="w-full h-full>
-      <div className="p-4 border-b>
-        <h2 className="text-lg font-semibold flex items-center>
+    <div className="w-full h-full">
+      <div className="p-4 border-b">
+        <h2 className="text-lg font-semibold flex items-center">
           <Palette className="h-5 w-5 mr-2" />
           Gerenciador de Temas
         </h2>
-        <p className="text-sm text-gray-500 mt-1>
+        <p className="text-sm text-gray-500 mt-1">
           Personalize a aparência do seu template
         </p>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full>
-        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
+        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
           <TabsTrigger value="themes">Temas</TabsTrigger>
           <TabsTrigger value="customize">Personalizar</TabsTrigger>
           <TabsTrigger value="export">Importar/Exportar</TabsTrigger>
         </TabsList>
-        <div className="p-4>
-          <TabsContent value="themes" className="space-y-4>
+
+        <div className="p-4">
+          <TabsContent value="themes" className="space-y-4">
             <div>
               <Label>Temas Disponíveis</Label>
-              <div className="grid grid-cols-1 gap-3 mt-2>
+              <div className="grid grid-cols-1 gap-3 mt-2">
                 {themes.map((theme) => (
                   <Card 
                     key={theme.id}
@@ -474,27 +495,27 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                       currentTheme.id === theme.id 
                         ? 'ring-2 ring-blue-500 bg-blue-50' 
                         : 'hover:shadow-md'
-                    "
+                    }`}
                     onClick={() => handleThemeSelect(theme)}
                   >
-                    <CardContent className="p-4>
-                      <div className="flex items-center justify-between>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium flex items-center>
+                          <h4 className="font-medium flex items-center">
                             {theme.name}
                             {theme.isCustom && (
-                              <Badge variant="secondary" className="ml-2 text-xs>
+                              <Badge variant="secondary" className="ml-2 text-xs">
                                 Personalizado
                               </Badge>
                             )}
                           </h4>
-                          <p className="text-sm text-gray-500 mt-1>
+                          <p className="text-sm text-gray-500 mt-1">
                             {theme.description}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-1>
+                        <div className="flex items-center space-x-1">
                           {/* Preview de cores */}
-                          <div className="flex space-x-1>
+                          <div className="flex space-x-1">
                             <div 
                               className="w-4 h-4 rounded-full border"
                               style={{ backgroundColor: theme.colors.primary }}
@@ -526,10 +547,12 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                 ))}
               </div>
             </div>
+
             <Separator />
+
             <div>
               <Label>Criar Novo Tema</Label>
-              <div className="flex space-x-2 mt-2>
+              <div className="flex space-x-2 mt-2">
                 <Input
                   placeholder="Nome do tema"
                   value={newThemeName}
@@ -541,12 +564,13 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="customize" className="space-y-4>
+
+          <TabsContent value="customize" className="space-y-4">
             {editingTheme ? (
-              <div className="space-y-6>
-                <div className="flex items-center justify-between>
-                  <h3 className="text-lg">"Editando: {editingTheme.name}</h3>
-                  <div className="flex space-x-2>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Editando: {editingTheme.name}</h3>
+                  <div className="flex space-x-2">
                     <Button
                       variant="outline"
                       onClick={() => setEditingTheme(null)}
@@ -559,18 +583,20 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                     </Button>
                   </div>
                 </div>
-                <Tabs defaultValue="colors>
+
+                <Tabs defaultValue="colors">
                   <TabsList>
                     <TabsTrigger value="colors">Cores</TabsTrigger>
                     <TabsTrigger value="typography">Tipografia</TabsTrigger>
                     <TabsTrigger value="spacing">Espaçamento</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="colors" className="space-y-4>
-                    <div className="grid grid-cols-2 gap-4>
+
+                  <TabsContent value="colors" className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       {Object.entries(editingTheme.colors).map(([key, value]) => (
                         <div key={key}>
-                          <Label className="text-lg">"{key.replace(/([A-Z])/g, ' $1')}</Label>
-                          <div className="flex space-x-2 mt-1>
+                          <Label className="capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                          <div className="flex space-x-2 mt-1">
                             <Input
                               type="color"
                               value={value}
@@ -587,7 +613,8 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                       ))}
                     </div>
                   </TabsContent>
-                  <TabsContent value="typography" className="space-y-4>
+
+                  <TabsContent value="typography" className="space-y-4">
                     <div>
                       <Label>Família da Fonte</Label>
                       <Select
@@ -609,11 +636,12 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                       </Select>
                     </div>
                   </TabsContent>
-                  <TabsContent value="spacing" className="space-y-4>
-                    <div className="grid grid-cols-2 gap-4>
+
+                  <TabsContent value="spacing" className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       {Object.entries(editingTheme.spacing).map(([key, value]) => (
                         <div key={key}>
-                          <Label className="text-lg">"{key}</Label>
+                          <Label className="uppercase">{key}</Label>
                           <Input
                             value={value}
                             onChange={(e) => setEditingTheme({
@@ -629,16 +657,17 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                 </Tabs>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500>
+              <div className="text-center py-8 text-gray-500">
                 <Brush className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Selecione um tema para personalizar</p>
               </div>
             )}
           </TabsContent>
-          <TabsContent value="export" className="space-y-4>
+
+          <TabsContent value="export" className="space-y-4">
             <div>
               <Label>Exportar Tema Atual</Label>
-              <p className="text-sm text-gray-500 mb-2>
+              <p className="text-sm text-gray-500 mb-2">
                 Baixe o tema atual como arquivo JSON
               </p>
               <Button onClick={() => handleExportTheme(currentTheme)}>
@@ -646,20 +675,22 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                 Exportar {currentTheme.name}
               </Button>
             </div>
+
             <Separator />
+
             <div>
               <Label>Importar Tema</Label>
-              <p className="text-sm text-gray-500 mb-2>
+              <p className="text-sm text-gray-500 mb-2">
                 Carregue um arquivo de tema JSON
               </p>
-              <div className="flex items-center space-x-2>
+              <div className="flex items-center space-x-2">
                 <Input
                   type="file"
                   accept=".json"
                   onChange={handleImportTheme}
                   className="cursor-pointer"
                 />
-                <Button variant="outline>
+                <Button variant="outline">
                   <Upload className="h-4 w-4 mr-2" />
                   Importar
                 </Button>
@@ -671,4 +702,5 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
     </div>
   );
 };
+
 export default ThemeManager;

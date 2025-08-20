@@ -1,7 +1,9 @@
+
 /**
  * Canvas principal para construção drag-and-drop de templates
  * Implementa funcionalidades de arrastar, soltar, zoom e pan
  */
+
 import React, { useState, useCallback, useRef } from 'react'
 import {
   DndContext,
@@ -37,6 +39,7 @@ import { DraggableFieldItem } from './DraggableFieldItem'
 import { GridSystem } from './GridSystem'
 import { useCanvasZoom } from '../../hooks/useCanvasZoom'
 import { useUndoRedo } from '../../hooks/useUndoRedo'
+
 export interface FieldComponent {
   id: string
   type: string
@@ -47,12 +50,14 @@ export interface FieldComponent {
   size: { width: number; height: number }
   order: number
 }
+
 interface DragDropCanvasProps {
   templateId?: string
   initialFields?: FieldComponent[]
   onSave?: (fields: FieldComponent[]) => void
   readonly?: boolean
 }
+
 export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
   templateId,
   initialFields = [],
@@ -66,11 +71,13 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
   const [showGrid, setShowGrid] = useState(true)
   const [showPalette, setShowPalette] = useState(true)
   const [showProperties, setShowProperties] = useState(true)
+
   const canvasRef = useRef<HTMLDivElement>(null)
   
   // Custom hooks para funcionalidades avançadas
   const { zoom, pan, zoomIn, zoomOut, resetZoom, isPanning, handlePanStart, handlePanMove } = useCanvasZoom()
   const { undo, redo, canUndo, canRedo, pushState } = useUndoRedo(fields, setFields)
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -78,15 +85,18 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
       },
     })
   )
+
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event
     const field = fields.find(f => f.id === active.id) || 
                   (active.data.current as FieldComponent)
     setDraggedField(field || null)
   }, [fields])
+
   const handleDragOver = useCallback((event: DragOverEvent) => {
     // Implementar lógica de hover durante drag
   }, [])
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
     
@@ -94,14 +104,15 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
       setDraggedField(null)
       return
     }
+
     // Se arrastando da palette para o canvas
     if (active.data.current?.type && over.id === 'canvas') {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (rect) {
         const newField: FieldComponent = {
-          id: "
+          id: `field_${Date.now()}`,
           type: active.data.current.type,
-          label: active.data.current.label || "
+          label: active.data.current.label || `Campo ${fields.length + 1}`,
           properties: active.data.current.defaultProperties || {},
           validation: {},
           position: { 
@@ -129,14 +140,17 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
         setFields(newFields)
       }
     }
+
     setDraggedField(null)
   }, [fields, zoom, pushState])
+
   const handleFieldUpdate = useCallback((fieldId: string, updates: Partial<FieldComponent>) => {
     pushState(fields)
     setFields(prev => prev.map(field => 
       field.id === fieldId ? { ...field, ...updates } : field
     ))
   }, [fields, pushState])
+
   const handleFieldDelete = useCallback((fieldId: string) => {
     pushState(fields)
     setFields(prev => prev.filter(field => field.id !== fieldId))
@@ -144,28 +158,32 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
       setSelectedField(null)
     }
   }, [fields, selectedField, pushState])
+
   const handleSave = useCallback(() => {
     if (onSave) {
       onSave(fields)
     }
   }, [fields, onSave])
+
   const canvasStyle = {
-    transform: "px)`,
+    transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)`,
     transformOrigin: '0 0'
   }
+
   return (
-    <div className="flex h-screen bg-gray-50>
+    <div className="flex h-screen bg-gray-50">
       {/* Palette de Componentes */}
       {showPalette && !readonly && (
-        <div className="w-80 border-r bg-white shadow-sm>
+        <div className="w-80 border-r bg-white shadow-sm">
           <ComponentPalette />
         </div>
       )}
+
       {/* Área Principal do Canvas */}
-      <div className="flex-1 flex flex-col>
+      <div className="flex-1 flex flex-col">
         {/* Toolbar */}
-        <div className="h-16 border-b bg-white px-4 flex items-center justify-between>
-          <div className="flex items-center gap-2>
+        <div className="h-16 border-b bg-white px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -194,7 +212,8 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
               Código
             </Button>
           </div>
-          <div className="flex items-center gap-2>
+
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -204,7 +223,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
               <Grid3X3 className="h-4 w-4" />
             </Button>
             
-            <div className="flex items-center gap-1 border rounded>
+            <div className="flex items-center gap-1 border rounded">
               <Button
                 variant="ghost"
                 size="sm"
@@ -213,7 +232,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
-              <span className="px-2 text-sm font-mono>
+              <span className="px-2 text-sm font-mono">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
@@ -232,6 +251,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
                 <RotateCcw className="h-4 w-4" />
               </Button>
             </div>
+
             <Button
               variant="outline"
               size="sm"
@@ -248,16 +268,18 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
             >
               Refazer
             </Button>
+
             {!readonly && (
-              <Button onClick={handleSave} className="ml-4>
+              <Button onClick={handleSave} className="ml-4">
                 Salvar Template
               </Button>
             )}
           </div>
         </div>
+
         {/* Canvas Area */}
-        <div className="flex-1 flex>
-          <div className="flex-1 overflow-hidden relative>
+        <div className="flex-1 flex">
+          <div className="flex-1 overflow-hidden relative">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -275,13 +297,14 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
               >
                 {/* Grid System */}
                 {showGrid && <GridSystem zoom={zoom} />}
+
                 {/* Canvas Content */}
                 {viewMode === 'design' && (
                   <SortableContext
                     items={fields.map(f => f.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="min-h-full min-w-full p-8>
+                    <div className="min-h-full min-w-full p-8">
                       {fields.map(field => (
                         <DraggableFieldItem
                           key={field.id}
@@ -296,31 +319,35 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
                     </div>
                   </SortableContext>
                 )}
+
                 {viewMode === 'preview' && (
                   <PreviewPanel fields={fields} />
                 )}
+
                 {viewMode === 'code' && (
-                  <div className="p-8>
-                    <Card className="p-4>
-                      <pre className="text-sm>
+                  <div className="p-8">
+                    <Card className="p-4">
+                      <pre className="text-sm">
                         {JSON.stringify(fields, null, 2)}
                       </pre>
                     </Card>
                   </div>
                 )}
               </div>
+
               <DragOverlay>
                 {draggedField && (
-                  <div className="bg-white border-2 border-blue-500 rounded p-2 shadow-lg>
+                  <div className="bg-white border-2 border-blue-500 rounded p-2 shadow-lg">
                     {draggedField.label}
                   </div>
                 )}
               </DragOverlay>
             </DndContext>
           </div>
+
           {/* Properties Panel */}
           {showProperties && selectedField && !readonly && (
-            <div className="w-80 border-l bg-white shadow-sm>
+            <div className="w-80 border-l bg-white shadow-sm">
               <PropertiesPanel
                 field={fields.find(f => f.id === selectedField)!}
                 onUpdate={(updates) => handleFieldUpdate(selectedField, updates)}

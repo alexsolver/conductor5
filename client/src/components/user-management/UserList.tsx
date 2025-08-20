@@ -43,6 +43,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+
 interface EnhancedUser {
   id: string;
   email: string;
@@ -64,9 +65,11 @@ interface EnhancedUser {
   }>;
   sessions?: Array<{ id: string; isActive: boolean; lastActivity: string }>;
 }
+
 interface UserListProps {
   tenantAdmin?: boolean;
 }
+
 export function UserList({ tenantAdmin = false }: UserListProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -74,12 +77,14 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<EnhancedUser | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
+
   // Fetch users (different endpoint for tenant admin vs saas admin)
   const apiEndpoint = tenantAdmin ? "/api/tenant-admin/team/users" : "/api/user-management/users";
   const { data: usersData, isLoading } = useQuery<{ users: EnhancedUser[] }>({
     queryKey: [apiEndpoint],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
   // Enhanced user details query
   const { data: userDetails } = useQuery<{ user: EnhancedUser }>({
     queryKey: ["/api/user-management/users", selectedUser?.id, {
@@ -91,9 +96,10 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
     }],
     enabled: !!selectedUser?.id,
   });
+
   const toggleUserStatus = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      const endpoint = tenantAdmin ? "/api/saas-admin/users" : "/api/users"
+      const endpoint = tenantAdmin ? `/api/tenant-admin/team/users/${userId}` : `/api/user-management/users/${userId}`;
       return apiRequest(endpoint, {
         method: "PUT",
         body: { isActive: !isActive }
@@ -114,14 +120,17 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
       });
     },
   });
+
   const filteredUsers = usersData?.users?.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    "
+    `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
   const handleViewUser = (user: any) => {
     setSelectedUser(user);
     setShowUserDetails(true);
   };
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'saas_admin':
@@ -136,6 +145,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
         return 'secondary';
     }
   };
+
   const getRoleDisplayName = (role: string) => {
     const roleNames: Record<string, string> = {
       'saas_admin': 'SaaS Admin',
@@ -145,19 +155,20 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
     };
     return roleNames[role] || role;
   };
+
   return (
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between>
+          <div className="flex items-center justify-between">
             <div>
               <CardTitle>{t("userManagement.userList", "Lista de Usuários")}</CardTitle>
               <CardDescription>
                 {t("userManagement.userListDesc", "Gerencie usuários da sua organização")}
               </CardDescription>
             </div>
-            <div className="flex items-center space-x-2>
-              <div className="relative>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t("userManagement.searchUsers", "Buscar usuários...")}
@@ -171,7 +182,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8>
+            <div className="text-center py-8">
               {t("common.loading", "Carregando...")}
             </div>
           ) : (
@@ -183,15 +194,15 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   <TableHead>{t("userManagement.role", "Papel")}</TableHead>
                   <TableHead>{t("userManagement.status", "Status")}</TableHead>
                   <TableHead>{t("userManagement.lastLogin", "Último Login")}</TableHead>
-                  <TableHead className="text-lg">"{t("common.actions", "Ações")}</TableHead>
+                  <TableHead className="text-right">{t("common.actions", "Ações")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium>
+                    <TableCell className="font-medium">
                       {user.firstName || user.lastName 
-                        ? "
+                        ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
                         : t("userManagement.noName", "Sem nome")
                       }
                     </TableCell>
@@ -202,7 +213,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.isActive ? "default" : "secondary>
+                      <Badge variant={user.isActive ? "default" : "secondary"}>
                         {user.isActive 
                           ? t("userManagement.active", "Ativo")
                           : t("userManagement.inactive", "Inativo")
@@ -215,14 +226,14 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                         : t("userManagement.neverLoggedIn", "Nunca fez login")
                       }
                     </TableCell>
-                    <TableCell className="text-right>
+                    <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end>
+                        <DropdownMenuContent align="end">
                           <DropdownMenuLabel>
                             {t("common.actions", "Ações")}
                           </DropdownMenuLabel>
@@ -257,24 +268,26 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
           )}
         </CardContent>
       </Card>
+
       {/* User Details Dialog */}
       <Dialog open={showUserDetails} onOpenChange={setShowUserDetails}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {t("userManagement.userDetails", "Detalhes do Usuário")}
             </DialogTitle>
             <DialogDescription>
-              {selectedUser && "
+              {selectedUser && `${selectedUser.firstName || ''} ${selectedUser.lastName || ''}`.trim() || selectedUser?.email}
             </DialogDescription>
           </DialogHeader>
+
           {userDetails?.user && (
-            <div className="space-y-6>
+            <div className="space-y-6">
               {/* Basic Information */}
-              <div className="grid grid-cols-2 gap-4>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-lg">"{t("userManagement.basicInfo", "Informações Básicas")}</h4>
-                  <div className="space-y-2 text-sm>
+                  <h4 className="font-semibold mb-2">{t("userManagement.basicInfo", "Informações Básicas")}</h4>
+                  <div className="space-y-2 text-sm">
                     <div><strong>Email:</strong> {userDetails.user.email}</div>
                     <div><strong>Telefone:</strong> {userDetails.user.phone || "Não informado"}</div>
                     <div><strong>Papel:</strong> {getRoleDisplayName(userDetails.user.role)}</div>
@@ -282,37 +295,39 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-lg">"{t("userManagement.accountInfo", "Informações da Conta")}</h4>
-                  <div className="space-y-2 text-sm>
+                  <h4 className="font-semibold mb-2">{t("userManagement.accountInfo", "Informações da Conta")}</h4>
+                  <div className="space-y-2 text-sm">
                     <div><strong>Criado em:</strong> {format(new Date(userDetails.user.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}</div>
                     <div><strong>Último login:</strong> {userDetails.user.lastLogin ? format(new Date(userDetails.user.lastLogin), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "Nunca"}</div>
                   </div>
                 </div>
               </div>
+
               {/* Groups */}
               {userDetails.user.groups && userDetails.user.groups.length > 0 && (
                 <div>
-                  <h4 className="font-semibold mb-2 flex items-center>
+                  <h4 className="font-semibold mb-2 flex items-center">
                     <Users className="mr-2 h-4 w-4" />
                     {t("userManagement.groups", "Grupos")}
                   </h4>
-                  <div className="flex flex-wrap gap-2>
+                  <div className="flex flex-wrap gap-2">
                     {userDetails.user.groups.map((group) => (
-                      <Badge key={group.id} variant="outline>
+                      <Badge key={group.id} variant="outline">
                         {group.name}
                       </Badge>
                     ))}
                   </div>
                 </div>
               )}
+
               {/* Permissions */}
               {userDetails.user.permissions && userDetails.user.permissions.length > 0 && (
                 <div>
-                  <h4 className="font-semibold mb-2 flex items-center>
+                  <h4 className="font-semibold mb-2 flex items-center">
                     <Shield className="mr-2 h-4 w-4" />
                     {t("userManagement.permissions", "Permissões")}
                   </h4>
-                  <div className="max-h-40 overflow-y-auto>
+                  <div className="max-h-40 overflow-y-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -328,11 +343,11 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                             <TableCell>{permission.resource}</TableCell>
                             <TableCell>{permission.action}</TableCell>
                             <TableCell>
-                              <Badge variant={permission.granted ? "default" : "destructive>
-                                {permission.granted ? "Permitido" : "Negado"
+                              <Badge variant={permission.granted ? "default" : "destructive"}>
+                                {permission.granted ? "Permitido" : "Negado"}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground>
+                            <TableCell className="text-sm text-muted-foreground">
                               {permission.source}
                             </TableCell>
                           </TableRow>
@@ -342,14 +357,15 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   </div>
                 </div>
               )}
+
               {/* Active Sessions */}
               {userDetails.user.sessions && userDetails.user.sessions.length > 0 && (
                 <div>
-                  <h4 className="font-semibold mb-2 flex items-center>
+                  <h4 className="font-semibold mb-2 flex items-center">
                     <Monitor className="mr-2 h-4 w-4" />
                     {t("userManagement.activeSessions", "Sessões Ativas")}
                   </h4>
-                  <div className="text-sm>
+                  <div className="text-sm">
                     {userDetails.user.sessions.filter(s => s.isActive).length} sessões ativas
                   </div>
                 </div>

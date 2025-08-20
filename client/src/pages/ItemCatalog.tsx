@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-// import useLocalization from '@/hooks/useLocalization';
+
 // UI Components
 import {
   Package,
@@ -92,6 +92,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+
 // Schema and Types
 interface Item {
   id: string;
@@ -116,8 +117,8 @@ interface Item {
   linkedSuppliers?: { id: string; name: string }[];
   linkedChildren?: { id: string; name: string }[];
 }
+
 const itemSchema = z.object({
-  // Localization temporarily disabled
   name: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   type: z.enum(["material", "service"]),
   integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal("")),
@@ -129,6 +130,7 @@ const itemSchema = z.object({
   parentId: z.string().optional(),
   childrenIds: z.array(z.string()).optional(), // Para vincular filhos
 });
+
 const measurementUnits = [
   { value: 'UN', label: 'Unidade' },
   { value: 'M', label: 'Metro' },
@@ -142,12 +144,14 @@ const measurementUnits = [
   { value: 'GL', label: 'Galão' },
   { value: 'SET', label: 'Conjunto' }
 ];
+
 export default function ItemCatalog() {
   // Estados principais
   const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'item-edit'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [items, setItems] = useState<Item[]>([]); // State to hold fetched items
   const [loading, setLoading] = useState(true); // State for loading indicator
+
   // Estados de filtros e busca
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -155,14 +159,18 @@ export default function ItemCatalog() {
   const [hierarchyFilter, setHierarchyFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);
+
   // Estados para operações em lote
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isBulkMode, setIsBulkMode] = useState(false);
+
   // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Form
   const itemForm = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
@@ -179,16 +187,21 @@ export default function ItemCatalog() {
       childrenIds: [],
     }
   });
+
   // Fetch items on mount and when filters change
   useEffect(() => {
     fetchItems();
   }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
+
+
   // Fetch items with enhanced authentication handling per 1qa.md compliance
   const fetchItems = async () => {
     try {
       console.log('🔍 [ItemCatalog] Starting to fetch items...');
       setLoading(true);
+
       const params = new URLSearchParams();
+
       if (searchTerm && searchTerm.trim() !== '') {
         params.append('search', searchTerm.trim());
       }
@@ -198,8 +211,10 @@ export default function ItemCatalog() {
       if (statusFilter && statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
-      const url = "
+
+      const url = `/api/materials-services/items${params.toString() ? `?${params}` : ''}`;
       console.log('🔍 [ItemCatalog] Fetching from URL:', url);
+
       // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
       const token = localStorage.getItem('accessToken');
       if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
@@ -213,18 +228,21 @@ export default function ItemCatalog() {
         console.log('Invalid tokens detected - components will handle auth state');
         return;
       }
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
         },
         credentials: 'same-origin'
       });
+
       console.log('🔍 [ItemCatalog] Response status:', response.status);
       console.log('🔍 [ItemCatalog] Response headers:', Object.fromEntries(response.headers.entries()));
+
       // ✅ CRITICAL FIX - Handle 401/403 responses with token refresh per 1qa.md
       if (response.status === 401 || response.status === 403) {
         console.log('🔄 [ItemCatalog] Token expired, attempting refresh...');
@@ -241,6 +259,7 @@ export default function ItemCatalog() {
           console.log('Session expired detected - components will handle auth state');
           return;
         }
+
         try {
           const refreshResponse = await fetch('/api/auth/refresh', {
             method: 'POST',
@@ -249,6 +268,7 @@ export default function ItemCatalog() {
             },
             body: JSON.stringify({ refreshToken }),
           });
+
           if (refreshResponse.ok) {
             const refreshData = await refreshResponse.json();
             
@@ -263,7 +283,7 @@ export default function ItemCatalog() {
               // Retry the original request with new token
               const retryResponse = await fetch(url, {
                 headers: {
-                  'Authorization': "
+                  'Authorization': `Bearer ${accessToken}`,
                   'Content-Type': 'application/json'
                 }
               });
@@ -295,11 +315,13 @@ export default function ItemCatalog() {
         console.log('CSP-related errors detected - components will handle auth state');
         return;
       }
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('🔍 [ItemCatalog] Response error:', errorText);
-        throw new Error("
+        throw new Error(`Failed to fetch items: ${response.status} ${response.statusText}`);
       }
+
       // ✅ CRITICAL FIX - Enhanced error handling per 1qa.md compliance
       let data;
       try {
@@ -315,6 +337,7 @@ export default function ItemCatalog() {
           console.error('❌ [ItemCatalog] This indicates Vite is intercepting the API route');
           throw new Error('API route intercepted by Vite - authentication required');
         }
+
         // Check if response is HTML (error page)
         if (responseText.trim().startsWith('<!DOCTYPE') || 
             responseText.trim().startsWith('<html') || 
@@ -347,17 +370,20 @@ export default function ItemCatalog() {
           message: parseError.message,
           position: parseError.position
         });
-        throw new Error("
+        throw new Error(`Failed to parse server response: ${parseError.message}`);
       }
+
       console.log('🔍 [ItemCatalog] Response data:', {
         success: data.success,
         itemCount: data.data?.length || 0,
         total: data.total,
         metadata: data.metadata
       });
+
       if (data.success && Array.isArray(data.data)) {
         setItems(data.data);
         console.log('✅ [ItemCatalog] Successfully loaded', data.data.length, 'items');
+
         if (data.data.length > 0) {
           console.log('🔍 [ItemCatalog] Sample item:', data.data[0]);
         }
@@ -368,14 +394,15 @@ export default function ItemCatalog() {
     } catch (error) {
       console.error('❌ [ItemCatalog] Error fetching items:', error);
       setItems([]);
+
       // ✅ Enhanced error handling per 1qa.md compliance
       if (error.message.includes('authentication') || error.message.includes('401') || error.message.includes('403')) {
         // Don't force redirect following 1qa.md - let components handle auth state  
         console.log('Authentication error detected - components will handle auth state');
       } else {
         toast({
-          title: '[TRANSLATION_NEEDED]',
-          description: '[TRANSLATION_NEEDED]',
+          title: "Erro no catálogo",
+          description: "Erro ao carregar itens do catálogo. Tente novamente.",
           variant: "destructive"
         });
       }
@@ -383,32 +410,36 @@ export default function ItemCatalog() {
       setLoading(false);
     }
   };
+
   // Queries
   const { data: availableCustomers, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["/api/customers/companies"],
     queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
   });
+
   const { data: availableSuppliers, isLoading: isLoadingSuppliers } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
     queryFn: () => apiRequest('GET', '/api/materials-services/suppliers').then(res => res.json()),
   });
+
   // Query for specific item links when editing
   const { data: itemLinksData, refetch: refetchItemLinks } = useQuery({
     queryKey: ['/api/materials-services/items', selectedItem?.id, 'links'],
     queryFn: async () => {
       if (!selectedItem?.id) return { customers: [], suppliers: [] };
       try {
-        const response = await apiRequest('GET', "/links`);
+        const response = await apiRequest('GET', `/api/materials-services/items/${selectedItem.id}/links`);
         const result = await response.json();
         console.log('🔗 Links carregados:', result);
         return result?.data || { customers: [], suppliers: [] };
       } catch (error) {
-        console.error('[TRANSLATION_NEEDED]', error);
+        console.error('Erro ao carregar vínculos do item:', error);
         return { customers: [], suppliers: [] };
       }
     },
     enabled: !!selectedItem?.id && (currentView === 'item-details' || currentView === 'item-edit')
   });
+
   // Mutations
   const createItemMutation = useMutation({
     mutationFn: async (data: z.infer<typeof itemSchema>) => {
@@ -423,7 +454,7 @@ export default function ItemCatalog() {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Item criado com sucesso",
         description: "O item foi adicionado ao catálogo.",
       });
       setIsCreateModalOpen(false);
@@ -431,57 +462,61 @@ export default function ItemCatalog() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao criar item",
         description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
   });
+
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof itemSchema> }) => {
-      const response = await apiRequest('PUT', "
+      const response = await apiRequest('PUT', `/api/materials-services/items/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Item atualizado com sucesso",
         description: "As alterações foram salvas.",
       });
       setCurrentView('item-details');
     },
     onError: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao atualizar item",
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
   });
+
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', "
+      const response = await apiRequest('DELETE', `/api/materials-services/items/${id}`);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Item excluído com sucesso",
         description: "O item foi removido do catálogo.",
       });
     },
     onError: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao excluir item",
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
   });
+
   // Processar dados
   const companies = (availableCustomers as any)?.data || [];
   const suppliers = (availableSuppliers as any)?.data || [];
+
   const filteredItems = items.filter((item: Item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -494,22 +529,27 @@ export default function ItemCatalog() {
                            (hierarchyFilter === "parent" && item.isParent) ||
                            (hierarchyFilter === "child" && item.parentId) ||
                            (hierarchyFilter === "standalone" && !item.parentId && !item.isParent);
+
     return matchesSearch && matchesType && matchesStatus && matchesHierarchy;
   });
+
   // Paginação
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
   // Reset página quando filtros mudam
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
+
   const handleItemClick = (item: Item) => {
     setSelectedItem(item);
     setCurrentView('item-details');
   };
+
   const handleEditItem = (item: Item) => {
     setSelectedItem(item);
     itemForm.reset({
@@ -526,15 +566,17 @@ export default function ItemCatalog() {
     });
     setCurrentView('item-edit');
   };
+
   const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
     if (selectedItem && currentView === 'item-edit') {
       // Logic to update item and its hierarchical links
       try {
-        const updateResponse = await apiRequest('PUT', "
+        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, {
           ...data,
           childrenIds: data.childrenIds, // Ensure childrenIds are sent
         });
         if (!updateResponse.ok) throw new Error('Failed to update item');
+
         toast({ title: "Item atualizado", description: "Informações e vínculos salvos." });
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
         setCurrentView('item-details');
@@ -545,6 +587,7 @@ export default function ItemCatalog() {
       createItemMutation.mutate(data);
     }
   };
+
   const handleSelectAll = () => {
     if (selectedItems.size === paginatedItems.length) {
       setSelectedItems(new Set());
@@ -552,6 +595,7 @@ export default function ItemCatalog() {
       setSelectedItems(new Set(paginatedItems.map(item => item.id)));
     }
   };
+
   const handleSelectItem = (itemId: string) => {
     const newSelected = new Set(selectedItems);
     if (newSelected.has(itemId)) {
@@ -561,12 +605,13 @@ export default function ItemCatalog() {
     }
     setSelectedItems(newSelected);
   };
+
   const renderCatalogView = () => (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg">"Catálogo de Itens</h1>
-          <p className="p-4"
+          <h1 className="text-2xl font-bold text-gray-900">Catálogo de Itens</h1>
+          <p className="text-sm text-gray-500 mt-1">
             {items.length} {items.length === 1 ? 'item encontrado' : 'itens encontrados'}
             {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && ' (filtrado)'}
           </p>
@@ -580,21 +625,23 @@ export default function ItemCatalog() {
           Novo Item
         </Button>
       </div>
+
       <Card>
-        <CardContent className="p-4"
-          <div className="p-4"
-            <div className="p-4"
+        <CardContent className="p-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder='[TRANSLATION_NEEDED]'
+                placeholder="Buscar por nome, código ou descrição..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <div className="p-4"
+
+            <div className="flex gap-2">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="p-4"
+                <SelectTrigger className="w-32">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -603,8 +650,9 @@ export default function ItemCatalog() {
                   <SelectItem value="service">Serviços</SelectItem>
                 </SelectContent>
               </Select>
+
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="p-4"
+                <SelectTrigger className="w-32">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -613,8 +661,9 @@ export default function ItemCatalog() {
                   <SelectItem value="inactive">Inativo</SelectItem>
                 </SelectContent>
               </Select>
+
               <Select value={hierarchyFilter} onValueChange={setHierarchyFilter}>
-                <SelectTrigger className="p-4"
+                <SelectTrigger className="w-36">
                   <SelectValue placeholder="Hierarquia" />
                 </SelectTrigger>
                 <SelectContent>
@@ -624,15 +673,16 @@ export default function ItemCatalog() {
                   <SelectItem value="standalone">Independentes</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="p-4"
+
+              <div className="flex items-center">
                 <Button
-                  variant={isBulkMode ? "default" : "outline"
+                  variant={isBulkMode ? "default" : "outline"}
                   onClick={() => setIsBulkMode(!isBulkMode)}
                   className="flex items-center gap-2"
                 >
                   <div className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
                     isBulkMode ? 'bg-primary border-primary' : 'border-input'
-                  >
+                  }`}>
                     {isBulkMode && <div className="h-2 w-2 bg-primary-foreground rounded-sm" />}
                   </div>
                   Lote ({selectedItems.size})
@@ -642,22 +692,23 @@ export default function ItemCatalog() {
           </div>
         </CardContent>
       </Card>
+
       <Card>
-        <CardContent className="p-4"
+        <CardContent className="p-0">
           {loading ? (
-            <div className="p-4"
-              <div className="text-lg">"</div>
-              <span className="text-lg">"Carregando itens...</span>
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2">Carregando itens...</span>
             </div>
           ) : items.length === 0 ? (
-            <div className="p-4"
-              <div className="p-4"
+            <div className="text-center py-8">
+              <div className="text-gray-500 mb-4">
                 {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
-                  ? '[TRANSLATION_NEEDED]'
-                  : '[TRANSLATION_NEEDED]'}
+                  ? 'Nenhum item encontrado com os filtros aplicados'
+                  : 'Nenhum item cadastrado no catálogo'}
               </div>
               {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
-                <Button onClick={() => window.location.reload()} variant="outline>
+                <Button onClick={() => window.location.reload()} variant="outline">
                   Recarregar página
                 </Button>
               )}
@@ -668,7 +719,7 @@ export default function ItemCatalog() {
                 <TableHeader>
                   <TableRow>
                     {isBulkMode && (
-                      <TableHead className="p-4"
+                      <TableHead className="w-12">
                         <Checkbox
                           checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                           onCheckedChange={handleSelectAll}
@@ -676,14 +727,14 @@ export default function ItemCatalog() {
                       </TableHead>
                     )}
                     <TableHead>Nome</TableHead>
-                    <TableHead className="text-lg">"Tipo</TableHead>
-                    <TableHead className="text-lg">"Código</TableHead>
-                    <TableHead className="text-lg">"Unidade</TableHead>
-                    <TableHead className="text-lg">"Hierarquia</TableHead>
-                    <TableHead className="text-lg">"Empresas</TableHead>
-                    <TableHead className="text-lg">"Fornecedores</TableHead>
-                    <TableHead className="text-lg">"Status</TableHead>
-                    <TableHead className="text-lg">"Ações</TableHead>
+                    <TableHead className="w-24">Tipo</TableHead>
+                    <TableHead className="w-32">Código</TableHead>
+                    <TableHead className="w-24">Unidade</TableHead>
+                    <TableHead className="w-32">Hierarquia</TableHead>
+                    <TableHead className="w-32">Empresas</TableHead>
+                    <TableHead className="w-32">Fornecedores</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
+                    <TableHead className="w-32">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -692,7 +743,7 @@ export default function ItemCatalog() {
                       key={item.id}
                       className={`hover:bg-gray-50 transition-colors ${
                         selectedItems.has(item.id) ? 'bg-blue-50' : ''
-                      "
+                      }`}
                     >
                       {isBulkMode && (
                         <TableCell>
@@ -702,82 +753,91 @@ export default function ItemCatalog() {
                           />
                         </TableCell>
                       )}
+
                       <TableCell
                         className="font-medium cursor-pointer hover:text-blue-600"
                         onClick={() => handleItemClick(item)}
                       >
-                        <div className="p-4"
+                        <div className="flex items-center gap-2">
                           {item.type === 'material' ?
                             <Package className="h-4 w-4 text-blue-600" /> :
                             <Wrench className="h-4 w-4 text-green-600" />
                           }
                           <div>
-                            <div className="text-lg">"{item.name}</div>
+                            <div className="font-medium">{item.name}</div>
                             {item.description && (
-                              <div className="p-4"
+                              <div className="text-sm text-gray-500 truncate max-w-64">
                                 {item.description}
                               </div>
                             )}
                           </div>
                         </div>
                       </TableCell>
+
                       <TableCell>
                         <Badge variant={item.type === 'material' ? 'default' : 'secondary'}>
                           {item.type === 'material' ? 'Material' : 'Serviço'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="p-4"
+
+                      <TableCell className="text-sm font-mono">
                         {item.integrationCode || '-'}
                       </TableCell>
-                      <TableCell className="p-4"
+
+                      <TableCell className="text-sm">
                         {item.measurementUnit}
                       </TableCell>
+
                       <TableCell>
-                        <div className="p-4"
+                        <div className="flex items-center gap-1">
                           {item.isParent && (
-                            <Badge variant="outline" className="p-4"
+                            <Badge variant="outline" className="text-xs">
                               <Layers className="h-3 w-3 mr-1" />
                               Pai ({item.childrenCount || 0})
                             </Badge>
                           )}
                           {item.parentId && (
-                            <Badge variant="outline" className="p-4"
+                            <Badge variant="outline" className="text-xs">
                               <ChevronRight className="h-3 w-3 mr-1" />
                               Filho
                             </Badge>
                           )}
                           {!item.parentId && !item.isParent && (
-                            <span className="text-lg">"-</span>
+                            <span className="text-xs text-gray-400">-</span>
                           )}
                         </div>
                       </TableCell>
+
                       <TableCell>
                         {(item.companiesCount || 0) > 0 ? (
-                          <div className="p-4"
+                          <div className="flex items-center gap-1">
                             <Building className="h-3 w-3 text-blue-600" />
-                            <span className="text-lg">"{item.companiesCount}</span>
+                            <span className="text-sm">{item.companiesCount}</span>
                           </div>
                         ) : (
-                          <span className="text-lg">"-</span>
+                          <span className="text-xs text-gray-400">-</span>
                         )}
                       </TableCell>
+
                       <TableCell>
                         {(item.suppliersCount || 0) > 0 ? (
-                          <div className="p-4"
+                          <div className="flex items-center gap-1">
                             <Truck className="h-3 w-3 text-amber-600" />
-                            <span className="text-lg">"{item.suppliersCount}</span>
+                            <span className="text-sm">{item.suppliersCount}</span>
                           </div>
                         ) : (
-                          <span className="text-lg">"-</span>
+                          <span className="text-xs text-gray-400">-</span>
                         )}
                       </TableCell>
+
                       <TableCell>
-                        <Badge variant={item.active ? "default" : "secondary>
-                          {item.active ? "Ativo" : "Inativo"
+                        <Badge variant={item.active ? "default" : "secondary"}>
+                          {item.active ? "Ativo" : "Inativo"}
                         </Badge>
                       </TableCell>
+
                       <TableCell>
-                        <div className="p-4"
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -833,12 +893,13 @@ export default function ItemCatalog() {
                   ))}
                 </TableBody>
               </Table>
+
               {totalPages > 1 && (
-                <div className="p-4"
-                  <div className="p-4"
+                <div className="flex items-center justify-between p-4 border-t">
+                  <div className="text-sm text-gray-500">
                     Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} de {filteredItems.length} itens
                   </div>
-                  <div className="p-4"
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -847,7 +908,7 @@ export default function ItemCatalog() {
                     >
                       Anterior
                     </Button>
-                    <span className="p-4"
+                    <span className="text-sm">
                       Página {currentPage} de {totalPages}
                     </span>
                     <Button
@@ -867,12 +928,14 @@ export default function ItemCatalog() {
       </Card>
     </div>
   );
+
   const renderItemDetailsView = () => {
     if (!selectedItem) return null;
+
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="p-4"
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
@@ -882,23 +945,23 @@ export default function ItemCatalog() {
               Voltar ao Catálogo
             </Button>
             <div className="h-6 w-px bg-gray-300" />
-            <div className="p-4"
+            <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              >
+              }`}>
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
-                <h1 className="text-lg">"{selectedItem.name}</h1>
-                <div className="p-4"
-                  <Badge variant={selectedItem.active ? "default" : "secondary>
-                    {selectedItem.active ? "Ativo" : "Inativo"
+                <h1 className="text-2xl font-bold">{selectedItem.name}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant={selectedItem.active ? "default" : "secondary"}>
+                    {selectedItem.active ? "Ativo" : "Inativo"}
                   </Badge>
-                  <Badge variant="outline>
+                  <Badge variant="outline">
                     {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
                   </Badge>
                   {selectedItem.isParent && (
-                    <Badge variant="outline>
+                    <Badge variant="outline">
                       <Layers className="h-3 w-3 mr-1" />
                       Item Pai
                     </Badge>
@@ -907,7 +970,8 @@ export default function ItemCatalog() {
               </div>
             </div>
           </div>
-          <div className="p-4"
+
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               onClick={() => handleEditItem(selectedItem)}
@@ -917,71 +981,79 @@ export default function ItemCatalog() {
             </Button>
           </div>
         </div>
-        <div className="p-4"
-          <div className="p-4"
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <Card>
               <CardHeader>
                 <CardTitle>Informações Gerais</CardTitle>
               </CardHeader>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectedItem.integrationCode && (
                     <div>
-                      <label className="text-lg">"Código de Integração</label>
-                      <p className="text-lg">"{selectedItem.integrationCode}</p>
+                      <label className="text-sm font-medium text-gray-500">Código de Integração</label>
+                      <p className="text-sm mt-1">{selectedItem.integrationCode}</p>
                     </div>
                   )}
+
                   <div>
-                    <label className="text-lg">"Unidade de Medida</label>
-                    <p className="text-lg">"{selectedItem.measurementUnit}</p>
+                    <label className="text-sm font-medium text-gray-500">Unidade de Medida</label>
+                    <p className="text-sm mt-1">{selectedItem.measurementUnit}</p>
                   </div>
+
                   {selectedItem.maintenancePlan && (
                     <div>
-                      <label className="text-lg">"Plano de Manutenção</label>
-                      <p className="text-lg">"{selectedItem.maintenancePlan}</p>
+                      <label className="text-sm font-medium text-gray-500">Plano de Manutenção</label>
+                      <p className="text-sm mt-1">{selectedItem.maintenancePlan}</p>
                     </div>
                   )}
+
                   {selectedItem.defaultChecklist && (
                     <div>
-                      <label className="text-lg">"Checklist Padrão</label>
-                      <p className="text-lg">"{selectedItem.defaultChecklist}</p>
+                      <label className="text-sm font-medium text-gray-500">Checklist Padrão</label>
+                      <p className="text-sm mt-1">{selectedItem.defaultChecklist}</p>
                     </div>
                   )}
                 </div>
+
                 {selectedItem.description && (
                   <div>
-                    <label className="text-lg">"Descrição</label>
-                    <p className="text-lg">"{selectedItem.description}</p>
+                    <label className="text-sm font-medium text-gray-500">Descrição</label>
+                    <p className="text-sm mt-1">{selectedItem.description}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
+
           <div>
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos</CardTitle>
               </CardHeader>
-              <CardContent className="p-4"
-                <div className="p-4"
-                  <div className="p-4"
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <Building className="h-4 w-4 text-blue-600" />
-                    <span className="text-lg">"Empresas</span>
+                    <span className="text-sm">Empresas</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.companiesCount || 0}</Badge>
                 </div>
-                <div className="p-4"
-                  <div className="p-4"
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <Truck className="h-4 w-4 text-amber-600" />
-                    <span className="text-lg">"Fornecedores</span>
+                    <span className="text-sm">Fornecedores</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.suppliersCount || 0}</Badge>
                 </div>
+
                 {selectedItem.isParent && (
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <Layers className="h-4 w-4 text-purple-600" />
-                      <span className="text-lg">"Itens Filhos</span>
+                      <span className="text-sm">Itens Filhos</span>
                     </div>
                     <Badge variant="secondary">{selectedItem.childrenCount || 0}</Badge>
                   </div>
@@ -990,30 +1062,34 @@ export default function ItemCatalog() {
             </Card>
           </div>
         </div>
+
         <Card>
-          <CardContent className="p-4"
-            <Tabs defaultValue="hierarchy" className="p-4"
+          <CardContent className="p-6">
+            <Tabs defaultValue="hierarchy" className="w-full">
               <TabsList>
                 <TabsTrigger value="hierarchy">Hierarquia Pai-Filho</TabsTrigger>
                 <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                 <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
               </TabsList>
-              <TabsContent value="hierarchy" className="p-4"
-                <div className="p-4"
+
+              <TabsContent value="hierarchy" className="space-y-4 mt-6">
+                <div className="text-center py-8">
                   <Layers className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg">"Funcionalidade de vínculos pai-filho será implementada</p>
+                  <p className="text-gray-500">Funcionalidade de vínculos pai-filho será implementada</p>
                 </div>
               </TabsContent>
-              <TabsContent value="companies" className="p-4"
-                <div className="p-4"
+
+              <TabsContent value="companies" className="space-y-4 mt-6">
+                <div className="text-center py-8">
                   <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg">"Lista de empresas vinculadas será implementada</p>
+                  <p className="text-gray-500">Lista de empresas vinculadas será implementada</p>
                 </div>
               </TabsContent>
-              <TabsContent value="suppliers" className="p-4"
-                <div className="p-4"
+
+              <TabsContent value="suppliers" className="space-y-4 mt-6">
+                <div className="text-center py-8">
                   <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg">"Lista de fornecedores será implementada</p>
+                  <p className="text-gray-500">Lista de fornecedores será implementada</p>
                 </div>
               </TabsContent>
             </Tabs>
@@ -1022,13 +1098,16 @@ export default function ItemCatalog() {
       </div>
     );
   };
+
   const renderItemEditView = () => {
     if (!selectedItem) return null;
+
     const itemLinks = itemLinksData || { customers: [], suppliers: [] };
+
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="p-4"
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
@@ -1038,27 +1117,28 @@ export default function ItemCatalog() {
               Cancelar Edição
             </Button>
             <div className="h-6 w-px bg-gray-300" />
-            <div className="p-4"
+            <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              >
+              }`}>
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
-                <h1 className="text-lg">"Editar: {selectedItem.name}</h1>
-                <p className="text-lg">"Modificar informações e gerenciar vínculos</p>
+                <h1 className="text-2xl font-bold">Editar: {selectedItem.name}</h1>
+                <p className="text-gray-600">Modificar informações e gerenciar vínculos</p>
               </div>
             </div>
           </div>
         </div>
+
         <Form {...itemForm}>
-          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="p-4"
+          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Informações Básicas</CardTitle>
               </CardHeader>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={itemForm.control}
                     name="name"
@@ -1072,6 +1152,7 @@ export default function ItemCatalog() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={itemForm.control}
                     name="type"
@@ -1081,7 +1162,7 @@ export default function ItemCatalog() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1093,6 +1174,7 @@ export default function ItemCatalog() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={itemForm.control}
                     name="integrationCode"
@@ -1106,6 +1188,7 @@ export default function ItemCatalog() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={itemForm.control}
                     name="measurementUnit"
@@ -1129,6 +1212,7 @@ export default function ItemCatalog() {
                     )}
                   />
                 </div>
+
                 <FormField
                   control={itemForm.control}
                   name="description"
@@ -1142,13 +1226,14 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={itemForm.control}
                   name="active"
                   render={({ field }) => (
-                    <FormItem className="p-4"
-                      <div className="p-4"
-                        <FormLabel className="text-lg">"Status Ativo</FormLabel>
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Status Ativo</FormLabel>
                         <FormDescription>
                           Item disponível para uso
                         </FormDescription>
@@ -1162,7 +1247,8 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-                <div className="p-4"
+
+                <div className="flex justify-end gap-2">
                   <Button type="submit" disabled={updateItemMutation.isPending}>
                     {updateItemMutation.isPending ? (
                       <>
@@ -1179,16 +1265,17 @@ export default function ItemCatalog() {
                 </div>
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos Hierárquicos</CardTitle>
               </CardHeader>
-              <CardContent className="p-4"
+              <CardContent className="space-y-4">
                 {/* Campos para itens filhos com seleção múltipla */}
-                <div className="p-4"
+                <div className="space-y-4">
                   <div>
-                    <label className="text-lg">"Itens Filhos</label>
-                    <div className="p-4"
+                    <label className="text-sm font-medium">Itens Filhos</label>
+                    <div className="mt-2">
                       <Select
                         value=""
                         onValueChange={(value) => {
@@ -1202,7 +1289,7 @@ export default function ItemCatalog() {
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione itens filhos" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecionar item...</SelectItem>
@@ -1218,17 +1305,19 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
+
                     {/* Lista dos itens filhos selecionados */}
-                    <div className="p-4"
+                    <div className="mt-2 space-y-1">
                       {(itemForm.watch("childrenIds") || []).map((childId) => {
                         const child = items.find(item => item.id === childId);
                         if (!child) return null;
+
                         return (
-                          <div key={childId} className="p-4"
-                            <div className="p-4"
+                          <div key={childId} className="flex items-center justify-between bg-blue-50 border border-blue-200 p-2 rounded">
+                            <div className="flex items-center gap-2">
                               <ChevronRight className="h-3 w-3 text-blue-600" />
-                              <span className="text-lg">"{child.name}</span>
-                              <Badge variant="outline" className="p-4"
+                              <span className="text-sm font-medium">{child.name}</span>
+                              <Badge variant="outline" className="text-xs">
                                 {child.type === 'material' ? 'Material' : 'Serviço'}
                               </Badge>
                             </div>
@@ -1249,38 +1338,43 @@ export default function ItemCatalog() {
                         );
                       })}
                     </div>
-                    <p className="p-4"
+
+                    <p className="text-sm text-muted-foreground mt-2">
                       Selecione itens que serão filhos deste item. Os vínculos serão salvos automaticamente.
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
               </CardHeader>
-              <CardContent className="p-4"
-                <Tabs defaultValue="companies" className="p-4"
-                  <TabsList className="p-4"
+              <CardContent className="p-6">
+                <Tabs defaultValue="companies" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                     <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="companies" className="p-4"
-                    <div className="p-4"
-                      <h3 className="text-lg">"Empresas Vinculadas</h3>
+
+                  <TabsContent value="companies" className="space-y-4 mt-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">Empresas Vinculadas</h3>
                       <Select
                         onValueChange={async (companyId) => {
                           if (!selectedItem?.id || !companyId || companyId === "none") return;
+
                           try {
-                            const response = await fetch("/link-customer`, {
+                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ customerId: companyId })
                             });
+
                             if (response.ok) {
                               toast({
-                                title: '[TRANSLATION_NEEDED]',
+                                title: "Sucesso",
                                 description: "Empresa vinculada com sucesso"
                               });
                               refetchItemLinks();
@@ -1289,8 +1383,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: '[TRANSLATION_NEEDED]',
-                              description: '[TRANSLATION_NEEDED]',
+                              title: "Erro",
+                              description: "Erro ao vincular empresa",
                               variant: "destructive"
                             });
                           }
@@ -1312,22 +1406,25 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="p-4"
+
+                    <div className="space-y-2">
                       {itemLinks?.customers?.map((company: any) => (
-                        <div key={company.id} className="p-4"
+                        <div key={company.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
                           <span>{company.name}</span>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={async () => {
                               if (!selectedItem?.id) return;
+
                               try {
-                                const response = await fetch("
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`, {
                                   method: 'DELETE'
                                 });
+
                                 if (response.ok) {
                                   toast({
-                                    title: '[TRANSLATION_NEEDED]',
+                                    title: "Sucesso",
                                     description: "Empresa desvinculada com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1336,8 +1433,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: '[TRANSLATION_NEEDED]',
-                                  description: '[TRANSLATION_NEEDED]',
+                                  title: "Erro",
+                                  description: "Erro ao desvincular empresa",
                                   variant: "destructive"
                                 });
                               }
@@ -1347,28 +1444,32 @@ export default function ItemCatalog() {
                           </Button>
                         </div>
                       ))}
+
                       {(!itemLinks?.customers || itemLinks.customers.length === 0) && (
-                        <div className="p-4"
+                        <div className="text-center py-8 text-gray-500">
                           Nenhuma empresa vinculada
                         </div>
                       )}
                     </div>
                   </TabsContent>
-                  <TabsContent value="suppliers" className="p-4"
-                    <div className="p-4"
-                      <h3 className="text-lg">"Fornecedores Vinculados</h3>
+
+                  <TabsContent value="suppliers" className="space-y-4 mt-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">Fornecedores Vinculados</h3>
                       <Select
                         onValueChange={async (supplierId) => {
                           if (!selectedItem?.id || !supplierId || supplierId === "none") return;
+
                           try {
-                            const response = await fetch("/link-supplier`, {
+                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-supplier`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ supplierId })
                             });
+
                             if (response.ok) {
                               toast({
-                                title: '[TRANSLATION_NEEDED]',
+                                title: "Sucesso",
                                 description: "Fornecedor vinculado com sucesso"
                               });
                               refetchItemLinks();
@@ -1377,8 +1478,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: '[TRANSLATION_NEEDED]',
-                              description: '[TRANSLATION_NEEDED]',
+                              title: "Erro",
+                              description: "Erro ao vincular fornecedor",
                               variant: "destructive"
                             });
                           }
@@ -1400,22 +1501,25 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="p-4"
+
+                    <div className="space-y-2">
                       {itemLinks?.suppliers?.map((supplier: any) => (
-                        <div key={supplier.id} className="p-4"
+                        <div key={supplier.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
                           <span>{supplier.name}</span>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={async () => {
                               if (!selectedItem?.id) return;
+
                               try {
-                                const response = await fetch("
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`, {
                                   method: 'DELETE'
                                 });
+
                                 if (response.ok) {
                                   toast({
-                                    title: '[TRANSLATION_NEEDED]',
+                                    title: "Sucesso",
                                     description: "Fornecedor desvinculado com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1424,8 +1528,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: '[TRANSLATION_NEEDED]',
-                                  description: '[TRANSLATION_NEEDED]',
+                                  title: "Erro",
+                                  description: "Erro ao desvincular fornecedor",
                                   variant: "destructive"
                                 });
                               }
@@ -1435,8 +1539,9 @@ export default function ItemCatalog() {
                           </Button>
                         </div>
                       ))}
+
                       {(!itemLinks?.suppliers || itemLinks.suppliers.length === 0) && (
-                        <div className="p-4"
+                        <div className="text-center py-8 text-gray-500">
                           Nenhum fornecedor vinculado
                         </div>
                       )}
@@ -1450,38 +1555,42 @@ export default function ItemCatalog() {
       </div>
     );
   };
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center space-x-2 text-sm text-gray-500">
         <span>Gestão</span>
         <ChevronRight className="h-4 w-4" />
-        <span className="text-lg">"Catálogo de Itens</span>
+        <span className="font-medium text-gray-900">Catálogo de Itens</span>
         {selectedItem && (
           <>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-lg">"{selectedItem.name}</span>
+            <span className="font-medium text-gray-900">{selectedItem.name}</span>
           </>
         )}
       </div>
+
       {currentView === 'catalog' && renderCatalogView()}
       {currentView === 'item-details' && renderItemDetailsView()}
       {currentView === 'item-edit' && renderItemEditView()}
+
       <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
         setIsCreateModalOpen(open);
         if (!open) {
           itemForm.reset();
         }
       }}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Criar Novo Item</DialogTitle>
             <DialogDescription>
               Preencha as informações essenciais para criar um novo item
             </DialogDescription>
           </DialogHeader>
+
           <Form {...itemForm}>
-            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="p-4"
-              <div className="p-4"
+            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={itemForm.control}
                   name="name"
@@ -1495,6 +1604,7 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={itemForm.control}
                   name="type"
@@ -1504,7 +1614,7 @@ export default function ItemCatalog() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1516,6 +1626,7 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={itemForm.control}
                   name="integrationCode"
@@ -1529,6 +1640,7 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={itemForm.control}
                   name="measurementUnit"
@@ -1552,6 +1664,7 @@ export default function ItemCatalog() {
                   )}
                 />
               </div>
+
               <FormField
                 control={itemForm.control}
                 name="description"
@@ -1565,13 +1678,14 @@ export default function ItemCatalog() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={itemForm.control}
                 name="active"
                 render={({ field }) => (
-                  <FormItem className="p-4"
-                    <div className="p-4"
-                      <FormLabel className="text-lg">"Status Ativo</FormLabel>
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Status Ativo</FormLabel>
                       <FormDescription>
                         Item disponível para uso
                       </FormDescription>
@@ -1585,7 +1699,8 @@ export default function ItemCatalog() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
+
+              <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   type="button"
                   variant="outline"

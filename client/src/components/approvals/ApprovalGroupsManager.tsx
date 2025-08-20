@@ -3,6 +3,7 @@
  * Permite criar e configurar grupos para agentes, clientes e beneficiários
  * Seguindo padrões 1qa.md
  */
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Users, Edit, Trash2, UserPlus, X } from 'lucide-react';
@@ -16,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface ApprovalGroup {
   id: string;
   name: string;
@@ -26,6 +27,7 @@ interface ApprovalGroup {
   members?: ApprovalGroupMember[];
   createdAt: string;
 }
+
 interface ApprovalGroupMember {
   id: string;
   memberType: 'user' | 'customer' | 'beneficiary';
@@ -34,19 +36,21 @@ interface ApprovalGroupMember {
   memberEmail?: string;
   role: string;
 }
+
 const groupTypeLabels = {
-  // Localization temporarily disabled
   agents: 'Agentes',
-  clients: '[TRANSLATION_NEEDED]',
+  clients: 'Clientes',
   beneficiaries: 'Beneficiários',
   mixed: 'Misto'
 };
+
 const groupTypeBadgeVariants = {
   agents: 'default',
   clients: 'secondary',
   beneficiaries: 'outline',
   mixed: 'destructive'
 } as const;
+
 export function ApprovalGroupsManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<ApprovalGroup | null>(null);
@@ -56,8 +60,10 @@ export function ApprovalGroupsManager() {
     description: '',
     groupType: 'agents' as 'agents' | 'clients' | 'beneficiaries' | 'mixed'
   });
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   // Fetch approval groups
   const { data: groupsData, isLoading } = useQuery({
     queryKey: ['/api/approvals/groups'],
@@ -65,7 +71,7 @@ export function ApprovalGroupsManager() {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/approvals/groups', {
         headers: {
-          'Authorization': "Bearer " + token
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -73,7 +79,9 @@ export function ApprovalGroupsManager() {
       return response.json();
     }
   });
+
   const groups = groupsData?.data || [];
+
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: typeof createForm) => {
@@ -82,7 +90,7 @@ export function ApprovalGroupsManager() {
       const response = await fetch('/api/approvals/groups', {
         method: 'POST',
         headers: { 
-          'Authorization': "Bearer " + token
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json' 
         },
         body: JSON.stringify(groupData)
@@ -101,27 +109,28 @@ export function ApprovalGroupsManager() {
       setIsCreateDialogOpen(false);
       setCreateForm({ name: '', description: '', groupType: 'agents' });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Grupo de aprovação criado com sucesso"
       });
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message,
         variant: "destructive"
       });
     }
   });
+
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
       console.log('🗑️ [DELETE-GROUP] Tentando excluir grupo:', groupId);
       const token = localStorage.getItem('accessToken');
-      const response = await fetch("
+      const response = await fetch(`/api/approvals/groups/${groupId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': "Bearer " + token
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -137,75 +146,80 @@ export function ApprovalGroupsManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/groups'] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Grupo excluído com sucesso"
       });
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message,
         variant: "destructive"
       });
     }
   });
+
   const handleCreateGroup = () => {
     console.log('🔧 [HANDLE-CREATE-GROUP] Formulário atual:', createForm);
     if (!createForm.name.trim()) {
       console.log('❌ [HANDLE-CREATE-GROUP] Nome vazio');
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Nome do grupo é obrigatório",
         variant: "destructive"
       });
       return;
     }
+
     console.log('✅ [HANDLE-CREATE-GROUP] Iniciando criação do grupo');
     createGroupMutation.mutate(createForm);
   };
+
   const handleDeleteGroup = (groupId: string) => {
     if (confirm('Tem certeza que deseja excluir este grupo? Esta ação não pode ser desfeita.')) {
       deleteGroupMutation.mutate(groupId);
     }
   };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8>
-        <div className="text-center>
-          <div className="text-lg">"</div>
-          <p className="text-lg">"Carregando grupos...</p>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Carregando grupos...</p>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="space-y-6>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center>
+      <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
             <Users className="w-5 h-5" />
             Grupos de Aprovação
           </h3>
-          <p className="text-sm text-gray-600>
+          <p className="text-sm text-gray-600">
             Configure grupos de aprovadores para diferentes tipos de workflows
           </p>
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2>
+            <Button className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Novo Grupo
             </Button>
           </DialogTrigger>
           
-          <DialogContent className="max-w-md>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Criar Grupo de Aprovação</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-4>
+            <div className="space-y-4">
               <div>
                 <Label htmlFor="group-name">Nome do Grupo *</Label>
                 <Input
@@ -245,7 +259,7 @@ export function ApprovalGroupsManager() {
                 </Select>
               </div>
               
-              <div className="flex justify-end gap-2 pt-4>
+              <div className="flex justify-end gap-2 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => setIsCreateDialogOpen(false)}
@@ -256,22 +270,23 @@ export function ApprovalGroupsManager() {
                   onClick={handleCreateGroup}
                   disabled={createGroupMutation.isPending}
                 >
-                  {createGroupMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
+                  {createGroupMutation.isPending ? 'Criando...' : 'Criar Grupo'}
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       </div>
+
       {/* Groups List */}
       {groups.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-12>
+          <CardContent className="text-center py-12">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
               Nenhum grupo configurado
             </h3>
-            <p className="text-gray-600 mb-4>
+            <p className="text-gray-600 mb-4">
               Crie grupos de aprovadores para organizar seus workflows
             </p>
             <Button
@@ -284,23 +299,23 @@ export function ApprovalGroupsManager() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4>
+        <div className="grid gap-4">
           {groups.map((group: ApprovalGroup) => (
             <Card key={group.id}>
-              <CardHeader className="flex flex-row items-start justify-between>
-                <div className="space-y-1>
-                  <CardTitle className="text-lg">"{group.name}</CardTitle>
+              <CardHeader className="flex flex-row items-start justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg">{group.name}</CardTitle>
                   {group.description && (
                     <CardDescription>{group.description}</CardDescription>
                   )}
                 </div>
                 
-                <div className="flex items-center gap-2>
+                <div className="flex items-center gap-2">
                   <Badge variant={groupTypeBadgeVariants[group.groupType]}>
                     {groupTypeLabels[group.groupType]}
                   </Badge>
                   
-                  <div className="flex items-center gap-1>
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -325,8 +340,8 @@ export function ApprovalGroupsManager() {
               </CardHeader>
               
               <CardContent>
-                <div className="text-sm text-gray-600>
-                  <span className="font-medium>
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">
                     {group.members?.length || 0} membros
                   </span>
                   {' • '}
@@ -336,14 +351,14 @@ export function ApprovalGroupsManager() {
                 </div>
                 
                 {group.members && group.members.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2>
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {group.members.slice(0, 3).map((member) => (
-                      <Badge key={member.id} variant="secondary" className="text-xs>
+                      <Badge key={member.id} variant="secondary" className="text-xs">
                         {member.memberName || 'Usuário'}
                       </Badge>
                     ))}
                     {group.members.length > 3 && (
-                      <Badge variant="secondary" className="text-xs>
+                      <Badge variant="secondary" className="text-xs">
                         +{group.members.length - 3} mais
                       </Badge>
                     )}

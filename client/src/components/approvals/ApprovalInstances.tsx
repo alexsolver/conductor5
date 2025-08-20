@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Clock, 
   CheckCircle, 
   XCircle, 
@@ -21,6 +20,7 @@ import {
   Filter
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+
 interface ApprovalInstance {
   id: string;
   ruleId: string;
@@ -37,14 +37,15 @@ interface ApprovalInstance {
     moduleType: string;
   };
 }
+
 interface PaginatedResponse {
   data: ApprovalInstance[];
   total: number;
   page: number;
   totalPages: number;
 }
+
 export function ApprovalInstances() {
-  // Localization temporarily disabled
   const [selectedInstance, setSelectedInstance] = useState<ApprovalInstance | null>(null);
   const [decisionDialog, setDecisionDialog] = useState<ApprovalInstance | null>(null);
   const [decision, setDecision] = useState<'approved' | 'rejected' | 'delegated'>('approved');
@@ -56,7 +57,9 @@ export function ApprovalInstances() {
     search: ''
   });
   const [currentPage, setCurrentPage] = useState(1);
+
   const queryClient = useQueryClient();
+
   const { data: instancesData, isLoading } = useQuery<PaginatedResponse>({
     queryKey: ['/api/approvals/instances', filters, currentPage],
     queryFn: () => {
@@ -67,12 +70,13 @@ export function ApprovalInstances() {
       params.append('page', currentPage.toString());
       params.append('limit', '20');
       
-      return apiRequest("GET", "/api/approvals/instances"
+      return apiRequest(`/api/approvals/instances?${params}`);
     }
   });
+
   const processDecisionMutation = useMutation({
     mutationFn: ({ instanceId, data }: { instanceId: string, data: any }) => 
-      apiRequest("/decision`, {
+      apiRequest(`/api/approvals/instances/${instanceId}/decision`, {
         method: 'POST',
         body: JSON.stringify(data)
       }),
@@ -83,18 +87,22 @@ export function ApprovalInstances() {
       setDelegateTo('');
     }
   });
+
   const handleProcessDecision = () => {
     if (!decisionDialog) return;
+
     const data = {
       decision,
       comments,
       delegateTo: decision === 'delegated' ? delegateTo : undefined
     };
+
     processDecisionMutation.mutate({
       instanceId: decisionDialog.id,
       data
     });
   };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20';
@@ -105,6 +113,7 @@ export function ApprovalInstances() {
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20';
     }
   };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="h-4 w-4" />;
@@ -115,6 +124,7 @@ export function ApprovalInstances() {
       default: return <Clock className="h-4 w-4" />;
     }
   };
+
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending': return 'Pendente';
@@ -125,9 +135,11 @@ export function ApprovalInstances() {
       default: return status;
     }
   };
+
   const isOverdue = (slaDeadline: string) => {
     return new Date(slaDeadline) < new Date();
   };
+
   const formatTimeRemaining = (slaDeadline: string) => {
     const now = new Date();
     const deadline = new Date(slaDeadline);
@@ -138,43 +150,45 @@ export function ApprovalInstances() {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
     
-    if (diffDays > 0) return "h`;
-    return "h`;
+    if (diffDays > 0) return `${diffDays}d ${diffHours % 24}h`;
+    return `${diffHours}h`;
   };
+
   if (isLoading) {
     return (
-      <Card data-testid="instances-loading>
-        <CardContent className="p-6>
-          <div className="animate-pulse space-y-4>
+      <Card data-testid="instances-loading">
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="text-lg">"</div>
+              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
           </div>
         </CardContent>
       </Card>
     );
   }
+
   return (
-    <div className="space-y-6" data-testid="approval-instances>
+    <div className="space-y-6" data-testid="approval-instances">
       {/* Filters */}
-      <Card data-testid="instances-filters>
+      <Card data-testid="instances-filters">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2>
+          <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
             Filtros
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-lg">"Status</label>
+              <label className="text-sm font-medium">Status</label>
               <Select
                 value={filters.status}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
                 data-testid="filter-status"
               >
                 <SelectTrigger>
-                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                  <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os status</SelectItem>
@@ -188,14 +202,14 @@ export function ApprovalInstances() {
             </div>
             
             <div>
-              <label className="text-lg">"Módulo</label>
+              <label className="text-sm font-medium">Módulo</label>
               <Select
                 value={filters.moduleType}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, moduleType: value }))}
                 data-testid="filter-module"
               >
                 <SelectTrigger>
-                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                  <SelectValue placeholder="Todos os módulos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os módulos</SelectItem>
@@ -209,7 +223,7 @@ export function ApprovalInstances() {
             </div>
             
             <div>
-              <label className="text-lg">"Buscar</label>
+              <label className="text-sm font-medium">Buscar</label>
               <Input
                 placeholder="ID da entidade ou regra..."
                 value={filters.search}
@@ -220,18 +234,19 @@ export function ApprovalInstances() {
           </div>
         </CardContent>
       </Card>
+
       {/* Instances Table */}
-      <Card data-testid="instances-table-card>
+      <Card data-testid="instances-table-card">
         <CardHeader>
-          <div className="flex items-center justify-between>
+          <div className="flex items-center justify-between">
             <CardTitle>Instâncias de Aprovação</CardTitle>
-            <Badge variant="secondary" data-testid="instances-count>
+            <Badge variant="secondary" data-testid="instances-count">
               {instancesData?.total || 0} instâncias
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="p-0>
-          <Table data-testid="instances-table>
+        <CardContent className="p-0">
+          <Table data-testid="instances-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Entidade</TableHead>
@@ -245,53 +260,53 @@ export function ApprovalInstances() {
             <TableBody>
               {instancesData?.data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-instances-message>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-instances-message">
                     Nenhuma instância de aprovação encontrada.
                   </TableCell>
                 </TableRow>
               ) : (
                 instancesData?.data?.map((instance) => (
-                  <TableRow key={instance.id} data-testid={"
-                    <TableCell data-testid={"
+                  <TableRow key={instance.id} data-testid={`instance-row-${instance.id}`}>
+                    <TableCell data-testid={`instance-entity-${instance.id}`}>
                       <div>
-                        <div className="text-lg">"{instance.entityType}</div>
-                        <div className="text-lg">"{instance.entityId}</div>
+                        <div className="font-medium">{instance.entityType}</div>
+                        <div className="text-sm text-gray-500">{instance.entityId}</div>
                       </div>
                     </TableCell>
-                    <TableCell data-testid={"
+                    <TableCell data-testid={`instance-rule-${instance.id}`}>
                       <div>
-                        <div className="text-lg">"{instance.rule?.name || 'N/A'}</div>
-                        <Badge variant="outline" className="text-xs>
+                        <div className="font-medium">{instance.rule?.name || 'N/A'}</div>
+                        <Badge variant="outline" className="text-xs">
                           {instance.rule?.moduleType || instance.entityType}
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell data-testid={"
+                    <TableCell data-testid={`instance-status-${instance.id}`}>
                       <Badge className={getStatusColor(instance.status)}>
-                        <span className="flex items-center gap-1>
+                        <span className="flex items-center gap-1">
                           {getStatusIcon(instance.status)}
                           {getStatusText(instance.status)}
                         </span>
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={"
-                      <div className="text-lg">"
+                    <TableCell data-testid={`instance-sla-${instance.id}`}>
+                      <div className={`text-sm ${isOverdue(instance.slaDeadline) ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
                         {formatTimeRemaining(instance.slaDeadline)}
                       </div>
-                      <div className="text-xs text-gray-400>
+                      <div className="text-xs text-gray-400">
                         {new Date(instance.slaDeadline).toLocaleDateString('pt-BR')}
                       </div>
                     </TableCell>
-                    <TableCell data-testid={"
+                    <TableCell data-testid={`instance-created-${instance.id}`}>
                       {new Date(instance.createdAt).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2" data-testid={"
+                      <div className="flex items-center gap-2" data-testid={`instance-actions-${instance.id}`}>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setSelectedInstance(instance)}
-                          data-testid={"
+                          data-testid={`button-view-${instance.id}`}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -302,7 +317,7 @@ export function ApprovalInstances() {
                               size="sm"
                               onClick={() => setDecisionDialog(instance)}
                               className="text-green-600 hover:text-green-700"
-                              data-testid={"
+                              data-testid={`button-approve-${instance.id}`}
                             >
                               <ThumbsUp className="h-4 w-4" />
                             </Button>
@@ -314,7 +329,7 @@ export function ApprovalInstances() {
                                 setDecision('rejected');
                               }}
                               className="text-red-600 hover:text-red-700"
-                              data-testid={"
+                              data-testid={`button-reject-${instance.id}`}
                             >
                               <ThumbsDown className="h-4 w-4" />
                             </Button>
@@ -329,9 +344,10 @@ export function ApprovalInstances() {
           </Table>
         </CardContent>
       </Card>
+
       {/* Pagination */}
       {instancesData && instancesData.totalPages > 1 && (
-        <div className="flex justify-center gap-2" data-testid="pagination>
+        <div className="flex justify-center gap-2" data-testid="pagination">
           <Button
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -340,7 +356,7 @@ export function ApprovalInstances() {
           >
             Anterior
           </Button>
-          <span className="flex items-center px-4 text-sm text-gray-600" data-testid="page-info>
+          <span className="flex items-center px-4 text-sm text-gray-600" data-testid="page-info">
             Página {currentPage} de {instancesData.totalPages}
           </span>
           <Button
@@ -353,17 +369,18 @@ export function ApprovalInstances() {
           </Button>
         </div>
       )}
+
       {/* Decision Dialog */}
       {decisionDialog && (
         <Dialog open={!!decisionDialog} onOpenChange={() => setDecisionDialog(null)}>
-          <DialogContent data-testid="decision-dialog>
+          <DialogContent data-testid="decision-dialog">
             <DialogHeader>
               <DialogTitle>Processar Aprovação</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4>
+            <div className="space-y-4 mt-4">
               <div>
-                <label className="text-lg">"Decisão</label>
-                <Select value={decision} onValueChange={(value: any) => setDecision(value)} data-testid="select-decision>
+                <label className="text-sm font-medium">Decisão</label>
+                <Select value={decision} onValueChange={(value: any) => setDecision(value)} data-testid="select-decision">
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -374,9 +391,10 @@ export function ApprovalInstances() {
                   </SelectContent>
                 </Select>
               </div>
+
               {decision === 'delegated' && (
                 <div>
-                  <label className="text-lg">"Delegar para</label>
+                  <label className="text-sm font-medium">Delegar para</label>
                   <Input
                     placeholder="ID do usuário para delegação"
                     value={delegateTo}
@@ -385,8 +403,9 @@ export function ApprovalInstances() {
                   />
                 </div>
               )}
+
               <div>
-                <label className="text-lg">"Comentários</label>
+                <label className="text-sm font-medium">Comentários</label>
                 <Textarea
                   placeholder="Adicione comentários sobre sua decisão..."
                   value={comments}
@@ -394,7 +413,8 @@ export function ApprovalInstances() {
                   data-testid="textarea-comments"
                 />
               </div>
-              <div className="flex justify-end space-x-2>
+
+              <div className="flex justify-end space-x-2">
                 <Button 
                   variant="outline" 
                   onClick={() => setDecisionDialog(null)}
@@ -407,48 +427,50 @@ export function ApprovalInstances() {
                   disabled={processDecisionMutation.isPending || (decision === 'delegated' && !delegateTo)}
                   data-testid="button-confirm-decision"
                 >
-                  {processDecisionMutation.isPending ? '[TRANSLATION_NEEDED]' : 'Confirmar'}
+                  {processDecisionMutation.isPending ? 'Processando...' : 'Confirmar'}
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       )}
+
       {/* View Instance Dialog */}
       {selectedInstance && (
         <Dialog open={!!selectedInstance} onOpenChange={() => setSelectedInstance(null)}>
-          <DialogContent className="max-w-2xl" data-testid="view-instance-dialog>
+          <DialogContent className="max-w-2xl" data-testid="view-instance-dialog">
             <DialogHeader>
               <DialogTitle>Detalhes da Instância</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4>
-              <div className="grid grid-cols-2 gap-4>
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-lg">"ID</label>
+                  <label className="text-sm font-medium text-gray-500">ID</label>
                   <p className="font-mono text-sm" data-testid="view-instance-id">{selectedInstance.id}</p>
                 </div>
                 <div>
-                  <label className="text-lg">"Status</label>
-                  <Badge className={getStatusColor(selectedInstance.status)} data-testid="view-instance-status>
+                  <label className="text-sm font-medium text-gray-500">Status</label>
+                  <Badge className={getStatusColor(selectedInstance.status)} data-testid="view-instance-status">
                     {getStatusText(selectedInstance.status)}
                   </Badge>
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-lg">"Entidade</label>
+                  <label className="text-sm font-medium text-gray-500">Entidade</label>
                   <p data-testid="view-instance-entity">{selectedInstance.entityType}: {selectedInstance.entityId}</p>
                 </div>
                 <div>
-                  <label className="text-lg">"SLA</label>
-                  <p className={isOverdue(selectedInstance.slaDeadline) ? 'text-red-600 font-medium' : ''} data-testid="view-instance-sla>
+                  <label className="text-sm font-medium text-gray-500">SLA</label>
+                  <p className={isOverdue(selectedInstance.slaDeadline) ? 'text-red-600 font-medium' : ''} data-testid="view-instance-sla">
                     {formatTimeRemaining(selectedInstance.slaDeadline)}
                   </p>
                 </div>
               </div>
+
               <div>
-                <label className="text-lg">"Regra</label>
+                <label className="text-sm font-medium text-gray-500">Regra</label>
                 <p data-testid="view-instance-rule">{selectedInstance.rule?.name || 'N/A'}</p>
               </div>
             </div>

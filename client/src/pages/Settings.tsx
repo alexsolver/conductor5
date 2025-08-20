@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-// import useLocalization from '@/hooks/useLocalization';
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,12 +32,13 @@ import {
   Check,
   X
 } from "lucide-react";
+
 export default function Settings() {
-  // Localization temporarily disabled
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
+
   // Redirect to home if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -52,27 +53,30 @@ export default function Settings() {
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
+
   const handleSave = () => {
     toast({
-      title: '[TRANSLATION_NEEDED]',
+      title: "Settings saved",
       description: "Your settings have been updated successfully.",
     });
   };
+
   if (isLoading || !isAuthenticated) {
     return null;
   }
+
   return (
-    <div className="p-4"
-        <div className="p-4"
+    <div className="p-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Page Header */}
-          <Card className="p-4"
-            <CardContent className="p-4"
-              <div className="p-4"
+          <Card className="gradient-card mb-6">
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h1 className="p-4"
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Settings
                   </h1>
-                  <p className="p-4"
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                     Manage your account, team, and system preferences
                   </p>
                 </div>
@@ -83,9 +87,10 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+
           {/* Settings Tabs */}
-          <Tabs defaultValue="profile" className="p-4"
-            <TabsList className="p-4"
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="company">Company</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -93,34 +98,36 @@ export default function Settings() {
               <TabsTrigger value="appearance">Appearance</TabsTrigger>
               <TabsTrigger value="integrations">Integrations</TabsTrigger>
             </TabsList>
+
             {/* Profile Tab */}
-            <TabsContent value="profile" className="p-4"
-              <Card className="p-4"
+            <TabsContent value="profile" className="space-y-6">
+              <Card className="gradient-card">
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center">
                     <User className="w-5 h-5 mr-2" />
                     Personal Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
-                      <span className="p-4"
+                <CardContent className="space-y-6">
+                  <div className="flex items-center space-x-6">
+                    <div className="w-20 h-20 gradient-primary rounded-full flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">
                         {user?.firstName?.charAt(0) || 'U'}
                         {user?.lastName?.charAt(0) || 'S'}
                       </span>
                     </div>
                     <div>
-                      <Button variant="outline" className="p-4"
+                      <Button variant="outline" className="mr-2">
                         Change Avatar
                       </Button>
-                      <Button variant="ghost" className="p-4"
+                      <Button variant="ghost" className="text-red-600">
                         Remove
                       </Button>
                     </div>
                   </div>
-                  <div className="p-4"
-                    <div className="p-4"
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
                       <Label htmlFor="firstName">First Name</Label>
                       <Input
                         id="firstName"
@@ -128,7 +135,7 @@ export default function Settings() {
                         placeholder="Enter your first name"
                       />
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input
                         id="lastName"
@@ -136,7 +143,7 @@ export default function Settings() {
                         placeholder="Enter your last name"
                       />
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
                       <Input
                         id="email"
@@ -145,7 +152,7 @@ export default function Settings() {
                         placeholder="Enter your email"
                       />
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="phone">Phone</Label>
                       <Input
                         id="phone"
@@ -154,7 +161,8 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className="p-4"
+
+                  <div className="space-y-2">
                     <Label htmlFor="bio">Bio</Label>
                     <Textarea
                       id="bio"
@@ -162,7 +170,8 @@ export default function Settings() {
                       rows={3}
                     />
                   </div>
-                  <div className="p-4"
+
+                  <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
                     <Select defaultValue={user?.role || 'agent'}>
                       <SelectTrigger>
@@ -178,18 +187,19 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
+
             {/* Company Tab */}
-            <TabsContent value="company" className="p-4"
-              <Card className="p-4"
+            <TabsContent value="company" className="space-y-6">
+              <Card className="gradient-card">
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center">
                     <Building className="w-5 h-5 mr-2" />
                     Company Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
                       <Label htmlFor="companyName">Company Name</Label>
                       <Input
                         id="companyName"
@@ -197,7 +207,7 @@ export default function Settings() {
                         placeholder="Enter company name"
                       />
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="website">Website</Label>
                       <Input
                         id="website"
@@ -205,9 +215,9 @@ export default function Settings() {
                         placeholder="https://example.com"
                       />
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="industry">Industry</Label>
-                      <Select defaultValue="technology>
+                      <Select defaultValue="technology">
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -220,9 +230,9 @@ export default function Settings() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="size">Company Size</Label>
-                      <Select defaultValue="50-200>
+                      <Select defaultValue="50-200">
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -235,7 +245,8 @@ export default function Settings() {
                       </Select>
                     </div>
                   </div>
-                  <div className="p-4"
+
+                  <div className="space-y-2">
                     <Label htmlFor="address">Address</Label>
                     <Textarea
                       id="address"
@@ -243,37 +254,39 @@ export default function Settings() {
                       rows={2}
                     />
                   </div>
+
                   <Separator />
+
                   <div>
-                    <h4 className="text-lg">"Team Members</h4>
-                    <div className="p-4"
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Team Members</h4>
+                    <div className="space-y-3">
                       {[
                         { name: "Sarah Adams", email: "sarah@acme.com", role: "Admin" },
                         { name: "Mike Johnson", email: "mike@acme.com", role: "Agent" },
                         { name: "Emma Martinez", email: "emma@acme.com", role: "Agent" },
                       ].map((member) => (
-                        <div key={member.email} className="p-4"
-                          <div className="p-4"
-                            <div className="p-4"
-                              <span className="p-4"
+                        <div key={member.email} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-medium">
                                 {member.name.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
                             <div>
-                              <p className="text-lg">"{member.name}</p>
-                              <p className="text-lg">"{member.email}</p>
+                              <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{member.email}</p>
                             </div>
                           </div>
-                          <div className="p-4"
+                          <div className="flex items-center space-x-2">
                             <Badge variant="secondary">{member.role}</Badge>
-                            <Button variant="ghost" size="sm>
+                            <Button variant="ghost" size="sm">
                               <Edit className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <Button variant="outline" className="p-4"
+                    <Button variant="outline" className="mt-4">
                       <Plus className="w-4 h-4 mr-2" />
                       Invite Team Member
                     </Button>
@@ -281,57 +294,58 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
+
             {/* Notifications Tab */}
-            <TabsContent value="notifications" className="p-4"
-              <Card className="p-4"
+            <TabsContent value="notifications" className="space-y-6">
+              <Card className="gradient-card">
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center">
                     <Bell className="w-5 h-5 mr-2" />
                     Notification Preferences
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Email notifications</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Email notifications</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Receive notifications via email
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Push notifications</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Push notifications</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Receive push notifications in browser
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"New ticket alerts</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">New ticket alerts</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Get notified when new tickets are created
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Assignment notifications</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Assignment notifications</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Notify when tickets are assigned to you
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Weekly reports</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Weekly reports</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Receive weekly performance reports
                         </p>
                       </div>
@@ -341,23 +355,24 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
+
             {/* Security Tab */}
-            <TabsContent value="security" className="p-4"
-              <Card className="p-4"
+            <TabsContent value="security" className="space-y-6">
+              <Card className="gradient-card">
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center">
                     <Shield className="w-5 h-5 mr-2" />
                     Security Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
                       <Label htmlFor="currentPassword">Current Password</Label>
-                      <div className="p-4"
+                      <div className="relative">
                         <Input
                           id="currentPassword"
-                          type={showPassword ? "text" : "password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="Enter current password"
                         />
                         <Button
@@ -370,7 +385,7 @@ export default function Settings() {
                         </Button>
                       </div>
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="newPassword">New Password</Label>
                       <Input
                         id="newPassword"
@@ -378,7 +393,7 @@ export default function Settings() {
                         placeholder="Enter new password"
                       />
                     </div>
-                    <div className="p-4"
+                    <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirm Password</Label>
                       <Input
                         id="confirmPassword"
@@ -387,28 +402,30 @@ export default function Settings() {
                       />
                     </div>
                   </div>
+
                   <Separator />
-                  <div className="p-4"
-                    <div className="p-4"
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Two-factor authentication</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Two-factor authentication</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Add an extra layer of security to your account
                         </p>
                       </div>
-                      <Button variant="outline>
+                      <Button variant="outline">
                         Enable 2FA
                       </Button>
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Session timeout</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Session timeout</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Automatically log out after period of inactivity
                         </p>
                       </div>
-                      <Select defaultValue="30>
-                        <SelectTrigger className="p-4"
+                      <Select defaultValue="30">
+                        <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -420,25 +437,27 @@ export default function Settings() {
                       </Select>
                     </div>
                   </div>
+
                   <Separator />
+
                   <div>
-                    <h4 className="text-lg">"Active Sessions</h4>
-                    <div className="p-4"
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Active Sessions</h4>
+                    <div className="space-y-3">
                       {[
                         { device: "MacBook Pro", location: "New York, US", current: true },
                         { device: "iPhone 13", location: "New York, US", current: false },
                         { device: "Chrome on Windows", location: "San Francisco, US", current: false },
                       ].map((session, index) => (
-                        <div key={index} className="p-4"
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                           <div>
-                            <p className="p-4"
+                            <p className="font-medium text-gray-900 dark:text-white">
                               {session.device}
-                              {session.current && <Badge variant="default" className="text-lg">"Current</Badge>}
+                              {session.current && <Badge variant="default" className="ml-2">Current</Badge>}
                             </p>
-                            <p className="text-lg">"{session.location}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{session.location}</p>
                           </div>
                           {!session.current && (
-                            <Button variant="ghost" size="sm" className="p-4"
+                            <Button variant="ghost" size="sm" className="text-red-600">
                               <X className="w-4 h-4 mr-1" />
                               Revoke
                             </Button>
@@ -450,60 +469,64 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
+
             {/* Appearance Tab */}
-            <TabsContent value="appearance" className="p-4"
-              <Card className="p-4"
+            <TabsContent value="appearance" className="space-y-6">
+              <Card className="gradient-card">
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center">
                     <Palette className="w-5 h-5 mr-2" />
                     Appearance Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
-                  <div className="p-4"
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
                     <div>
                       <Label>Theme</Label>
-                      <div className="p-4"
-                        <div className="p-4"
-                          <div className="text-lg">"</div>
-                          <p className="text-lg">"Light</p>
+                      <div className="grid grid-cols-3 gap-4 mt-2">
+                        <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="w-full h-16 bg-white border rounded mb-2"></div>
+                          <p className="text-sm font-medium text-center">Light</p>
                         </div>
-                        <div className="p-4"
-                          <div className="text-lg">"</div>
-                          <p className="text-lg">"Dark</p>
+                        <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="w-full h-16 bg-gray-900 border rounded mb-2"></div>
+                          <p className="text-sm font-medium text-center">Dark</p>
                         </div>
-                        <div className="p-4"
-                          <div className="text-lg">"</div>
-                          <p className="text-lg">"Auto</p>
+                        <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="w-full h-16 bg-gradient-to-r from-white to-gray-900 border rounded mb-2"></div>
+                          <p className="text-sm font-medium text-center">Auto</p>
                         </div>
                       </div>
                     </div>
+
                     <div>
                       <Label>Gradient Style</Label>
-                      <div className="p-4"
-                        <div className="p-4"
-                          <div className="text-lg">"</div>
-                          <p className="text-lg">"Purple</p>
+                      <div className="grid grid-cols-2 gap-4 mt-2">
+                        <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="w-full h-8 gradient-primary rounded mb-2"></div>
+                          <p className="text-sm font-medium text-center">Purple</p>
                         </div>
-                        <div className="p-4"
-                          <div className="text-lg">"</div>
-                          <p className="text-lg">"Pink</p>
+                        <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="w-full h-8 gradient-secondary rounded mb-2"></div>
+                          <p className="text-sm font-medium text-center">Pink</p>
                         </div>
                       </div>
                     </div>
-                    <div className="p-4"
+
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Compact mode</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Compact mode</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Reduce spacing and padding throughout the interface
                         </p>
                       </div>
                       <Switch />
                     </div>
-                    <div className="p-4"
+
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-lg">"Sidebar animations</p>
-                        <p className="p-4"
+                        <p className="font-medium text-gray-900 dark:text-white">Sidebar animations</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Enable smooth transitions for sidebar interactions
                         </p>
                       </div>
@@ -513,40 +536,41 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
+
             {/* Integrations Tab */}
-            <TabsContent value="integrations" className="p-4"
-              <Card className="p-4"
+            <TabsContent value="integrations" className="space-y-6">
+              <Card className="gradient-card">
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center">
                     <Globe className="w-5 h-5 mr-2" />
                     Integrations
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
-                  <div className="p-4"
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
                       { name: "Slack", description: "Send notifications to Slack channels", connected: true },
                       { name: "Microsoft Teams", description: "Integrate with Teams for collaboration", connected: false },
                       { name: "Salesforce", description: "Sync customer data with Salesforce", connected: true },
                       { name: "Shopify", description: "Connect with your Shopify store", connected: false },
                       { name: "HubSpot", description: "Sync contacts and deals", connected: false },
-                      { name: "Jira", description: '[TRANSLATION_NEEDED]', connected: true },
+                      { name: "Jira", description: "Create issues from tickets", connected: true },
                     ].map((integration) => (
-                      <div key={integration.name} className="p-4"
-                        <div className="p-4"
-                          <h4 className="text-lg">"{integration.name}</h4>
+                      <div key={integration.name} className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900 dark:text-white">{integration.name}</h4>
                           {integration.connected ? (
-                            <Badge variant="default" className="p-4"
+                            <Badge variant="default" className="gradient-success">
                               <Check className="w-3 h-3 mr-1" />
                               Connected
                             </Badge>
                           ) : (
-                            <Button variant="outline" size="sm>
+                            <Button variant="outline" size="sm">
                               Connect
                             </Button>
                           )}
                         </div>
-                        <p className="p-4"
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {integration.description}
                         </p>
                       </div>

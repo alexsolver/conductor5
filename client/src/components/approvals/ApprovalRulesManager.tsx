@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Trash2, Play, Pause } from 'lucide-react';
 import { CompanySelector } from './CompanySelector';
 import { apiRequest } from '@/lib/queryClient';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface ApprovalRule {
   id: string;
   name: string;
@@ -26,8 +26,8 @@ interface ApprovalRule {
   createdAt: string;
   updatedAt: string;
 }
+
 export function ApprovalRulesManager() {
-  // Localization temporarily disabled
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const [newRule, setNewRule] = useState({
@@ -40,10 +40,13 @@ export function ApprovalRulesManager() {
     queryConditions: {},
     approvalSteps: []
   });
+
   const queryClient = useQueryClient();
+
   const { data: rules, isLoading } = useQuery<{ data: ApprovalRule[] }>({
     queryKey: ['/api/approvals/rules']
   });
+
   const createRuleMutation = useMutation({
     mutationFn: async (ruleData: any) => {
       const response = await apiRequest('POST', '/api/approvals/rules', ruleData);
@@ -64,9 +67,10 @@ export function ApprovalRulesManager() {
       });
     }
   });
+
   const updateRuleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: any }) => {
-      const response = await apiRequest('PUT', "
+      const response = await apiRequest('PUT', `/api/approvals/rules/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -74,21 +78,24 @@ export function ApprovalRulesManager() {
       setEditingRule(null);
     }
   });
+
   const deleteRuleMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', "
+      const response = await apiRequest('DELETE', `/api/approvals/rules/${id}`);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
     }
   });
+
   const toggleRuleStatus = (rule: ApprovalRule) => {
     updateRuleMutation.mutate({
       id: rule.id,
       data: { ...rule, isActive: !rule.isActive }
     });
   };
+
   const handleCreateRule = () => {
     createRuleMutation.mutate({
       ...newRule,
@@ -106,9 +113,11 @@ export function ApprovalRulesManager() {
       }]
     });
   };
+
   const handleEditRule = (rule: ApprovalRule) => {
     setEditingRule(rule);
   };
+
   const handleUpdateRule = () => {
     if (editingRule) {
       updateRuleMutation.mutate({
@@ -117,52 +126,56 @@ export function ApprovalRulesManager() {
       });
     }
   };
+
   const handleDeleteRule = (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta regra?')) {
       deleteRuleMutation.mutate(id);
     }
   };
+
   const moduleTypes = [
-    { value: 'tickets', label: '[TRANSLATION_NEEDED]' },
+    { value: 'tickets', label: 'Tickets' },
     { value: 'materials', label: 'Materiais/Serviços' },
     { value: 'knowledge_base', label: 'Knowledge Base' },
     { value: 'timecard', label: 'Timecard' },
     { value: 'contracts', label: 'Contratos' }
   ];
+
   if (isLoading) {
     return (
-      <Card data-testid="rules-loading>
-        <CardContent className="p-6>
-          <div className="animate-pulse space-y-4>
+      <Card data-testid="rules-loading">
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="text-lg">"</div>
+              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
           </div>
         </CardContent>
       </Card>
     );
   }
+
   return (
-    <div className="space-y-6" data-testid="approval-rules-manager>
-      <Card data-testid="rules-header>
+    <div className="space-y-6" data-testid="approval-rules-manager">
+      <Card data-testid="rules-header">
         <CardHeader>
-          <div className="flex items-center justify-between>
+          <div className="flex items-center justify-between">
             <CardTitle>Regras de Aprovação</CardTitle>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2" data-testid="button-create-rule>
+                <Button className="flex items-center gap-2" data-testid="button-create-rule">
                   <Plus className="h-4 w-4" />
                   Nova Regra
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl" data-testid="create-rule-dialog>
+              <DialogContent className="max-w-2xl" data-testid="create-rule-dialog">
                 <DialogHeader>
                   <DialogTitle>Criar Nova Regra de Aprovação</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 mt-4>
-                  <div className="grid grid-cols-2 gap-4>
+                <div className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-lg">"Nome da Regra</label>
+                      <label className="text-sm font-medium">Nome da Regra</label>
                       <Input
                         value={newRule.name}
                         onChange={(e) => setNewRule(prev => ({ ...prev, name: e.target.value }))}
@@ -171,7 +184,7 @@ export function ApprovalRulesManager() {
                       />
                     </div>
                     <div>
-                      <label className="text-lg">"Módulo</label>
+                      <label className="text-sm font-medium">Módulo</label>
                       <Select
                         value={newRule.moduleType}
                         onValueChange={(value) => setNewRule(prev => ({ ...prev, moduleType: value }))}
@@ -182,7 +195,7 @@ export function ApprovalRulesManager() {
                         </SelectTrigger>
                         <SelectContent>
                             {moduleTypes.map(type => (
-                            <SelectItem key={"
+                            <SelectItem key={`module-${type.value}`} value={type.value}>
                               {type.label}
                             </SelectItem>
                           ))}
@@ -198,9 +211,10 @@ export function ApprovalRulesManager() {
                     placeholder="Selecionar empresa (opcional para regra global)"
                     className="mb-4"
                   />
-                  <div className="grid grid-cols-2 gap-4>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-lg">"Prioridade</label>
+                      <label className="text-sm font-medium">Prioridade</label>
                       <Input
                         type="number"
                         value={newRule.priority}
@@ -209,16 +223,17 @@ export function ApprovalRulesManager() {
                         data-testid="input-priority"
                       />
                     </div>
-                    <div className="flex items-center space-x-2 mt-6>
+                    <div className="flex items-center space-x-2 mt-6">
                       <Switch
                         checked={newRule.isActive}
                         onCheckedChange={(checked) => setNewRule(prev => ({ ...prev, isActive: checked }))}
                         data-testid="switch-active"
                       />
-                      <label className="text-lg">"Regra Ativa</label>
+                      <label className="text-sm font-medium">Regra Ativa</label>
                     </div>
                   </div>
-                  <div className="flex justify-end space-x-2>
+
+                  <div className="flex justify-end space-x-2">
                     <Button 
                       variant="outline" 
                       onClick={() => setIsCreateDialogOpen(false)}
@@ -231,7 +246,7 @@ export function ApprovalRulesManager() {
                       disabled={createRuleMutation.isPending || !newRule.name}
                       data-testid="button-confirm-create"
                     >
-                      {createRuleMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
+                      {createRuleMutation.isPending ? 'Criando...' : 'Criar Regra'}
                     </Button>
                   </div>
                 </div>
@@ -240,9 +255,10 @@ export function ApprovalRulesManager() {
           </div>
         </CardHeader>
       </Card>
-      <Card data-testid="rules-table-card>
-        <CardContent className="p-0>
-          <Table data-testid="rules-table>
+
+      <Card data-testid="rules-table-card">
+        <CardContent className="p-0">
+          <Table data-testid="rules-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
@@ -256,39 +272,39 @@ export function ApprovalRulesManager() {
             <TableBody>
               {rules?.data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-rules-message>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-rules-message">
                     Nenhuma regra de aprovação encontrada. Crie sua primeira regra!
                   </TableCell>
                 </TableRow>
               ) : (
                 rules?.data?.map((rule) => (
-                  <TableRow key={rule.id} data-testid={"
-                    <TableCell className="font-medium" data-testid={"
+                  <TableRow key={rule.id} data-testid={`rule-row-${rule.id}`}>
+                    <TableCell className="font-medium" data-testid={`rule-name-${rule.id}`}>
                       {rule.name}
                     </TableCell>
-                    <TableCell data-testid={"
-                      <Badge variant="secondary>
+                    <TableCell data-testid={`rule-module-${rule.id}`}>
+                      <Badge variant="secondary">
                         {moduleTypes.find(t => t.value === rule.moduleType)?.label || rule.moduleType}
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={"
-                      <Badge variant={rule.isActive ? "default" : "secondary>
+                    <TableCell data-testid={`rule-status-${rule.id}`}>
+                      <Badge variant={rule.isActive ? "default" : "secondary"}>
                         {rule.isActive ? 'Ativa' : 'Inativa'}
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={"
+                    <TableCell data-testid={`rule-priority-${rule.id}`}>
                       {rule.priority}
                     </TableCell>
-                    <TableCell data-testid={"
+                    <TableCell data-testid={`rule-created-${rule.id}`}>
                       {new Date(rule.createdAt).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2" data-testid={"
+                      <div className="flex items-center gap-2" data-testid={`rule-actions-${rule.id}`}>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleRuleStatus(rule)}
-                          data-testid={"
+                          data-testid={`button-toggle-${rule.id}`}
                         >
                           {rule.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
@@ -296,7 +312,7 @@ export function ApprovalRulesManager() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditRule(rule)}
-                          data-testid={"
+                          data-testid={`button-edit-${rule.id}`}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -304,7 +320,7 @@ export function ApprovalRulesManager() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteRule(rule.id)}
-                          data-testid={"
+                          data-testid={`button-delete-${rule.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -317,17 +333,18 @@ export function ApprovalRulesManager() {
           </Table>
         </CardContent>
       </Card>
+
       {/* Edit Dialog */}
       {editingRule && (
         <Dialog open={!!editingRule} onOpenChange={() => setEditingRule(null)}>
-          <DialogContent className="max-w-2xl" data-testid="edit-rule-dialog>
+          <DialogContent className="max-w-2xl" data-testid="edit-rule-dialog">
             <DialogHeader>
               <DialogTitle>Editar Regra de Aprovação</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4>
-              <div className="grid grid-cols-2 gap-4>
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-lg">"Nome da Regra</label>
+                  <label className="text-sm font-medium">Nome da Regra</label>
                   <Input
                     value={editingRule.name}
                     onChange={(e) => setEditingRule(prev => prev ? { ...prev, name: e.target.value } : null)}
@@ -335,7 +352,7 @@ export function ApprovalRulesManager() {
                   />
                 </div>
                 <div>
-                  <label className="text-lg">"Prioridade</label>
+                  <label className="text-sm font-medium">Prioridade</label>
                   <Input
                     type="number"
                     value={editingRule.priority}
@@ -346,15 +363,16 @@ export function ApprovalRulesManager() {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2>
+              <div className="flex items-center space-x-2">
                 <Switch
                   checked={editingRule.isActive}
                   onCheckedChange={(checked) => setEditingRule(prev => prev ? { ...prev, isActive: checked } : null)}
                   data-testid="edit-switch-active"
                 />
-                <label className="text-lg">"Regra Ativa</label>
+                <label className="text-sm font-medium">Regra Ativa</label>
               </div>
-              <div className="flex justify-end space-x-2>
+
+              <div className="flex justify-end space-x-2">
                 <Button 
                   variant="outline" 
                   onClick={() => setEditingRule(null)}
@@ -367,7 +385,7 @@ export function ApprovalRulesManager() {
                   disabled={updateRuleMutation.isPending}
                   data-testid="button-confirm-edit"
                 >
-                  {updateRuleMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
+                  {updateRuleMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </div>
             </div>

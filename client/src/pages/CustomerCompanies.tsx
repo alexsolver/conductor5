@@ -14,7 +14,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   Plus, 
   Search, 
   Building2, 
@@ -33,8 +32,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
+
 const companySchema = z.object({
-  // Localization temporarily disabled
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
   description: z.string().optional(),
@@ -48,6 +47,7 @@ const companySchema = z.object({
   subscriptionTier: z.enum(["basic", "professional", "enterprise"]).default("basic"),
   status: z.enum(["active", "inactive", "suspended"]).default("active")
 });
+
 interface Company {
   id: string;
   name: string;
@@ -64,6 +64,7 @@ interface Company {
   createdAt: string;
   updatedAt: string;
 }
+
 export default function Companies() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -74,12 +75,14 @@ export default function Companies() {
    // Associate multiple customers modal
    const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
    const [selectedCompanyForAssociation, setSelectedCompanyForAssociation] = useState<any>(null);
+
   // Query para buscar companies
   const { data: companiesData, isLoading } = useQuery({
     queryKey: ['/api/companies'],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
   // Handle different response formats from the API
   const companies = (() => {
     console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
@@ -102,6 +105,7 @@ export default function Companies() {
     console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
     return [];
   })();
+
   // Mutation para criar company
   const createCompanyMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/customers/companies', data),
@@ -110,22 +114,23 @@ export default function Companies() {
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Empresa criada com sucesso!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao criar empresa",
         variant: "destructive",
       });
     }
   });
+
   // Mutation para atualizar company
   const updateCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest('PUT', "
+      apiRequest('PUT', `/api/customers/companies/${id}`, data),
     onSuccess: (result, variables) => {
       // Only invalidate cache for non-optimistic updates (when not called from Default button)
       const isOptimisticUpdate = variables.data.isOptimisticUpdate;
@@ -137,33 +142,37 @@ export default function Companies() {
       editForm.reset();
       if (!isOptimisticUpdate) {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Sucesso",
           description: "Empresa atualizada com sucesso!",
         });
       }
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao atualizar empresa",
         variant: "destructive",
       });
     }
   });
+
   // Mutation para deletar company
   const deleteCompanyMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', "
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
     onSuccess: async (data, deletedId) => {
       console.log('Company deleted successfully:', { deletedId, response: data });
+
       // Validate response
       if (!data || (data as any).success === false) {
         throw new Error((data as any)?.message || 'Falha na exclusão da empresa');
       }
+
       // Optimistic update: remove from cache immediately
       queryClient.setQueryData(['/api/companies'], (oldData: any) => {
         if (!oldData || !Array.isArray(oldData)) return oldData;
         return oldData.filter(company => company.id !== deletedId);
       });
+
       // Invalidate and refetch only necessary queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
@@ -174,25 +183,30 @@ export default function Companies() {
           refetchType: 'inactive' 
         })
       ]);
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Empresa excluída com sucesso!",
       });
     },
     onError: (error: any) => {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Error deleting company:', error);
+
       // Revert optimistic update if it was applied
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
-                          '[TRANSLATION_NEEDED]';
+                          "Erro ao excluir empresa";
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: errorMessage,
         variant: "destructive",
       });
     }
   });
+
   // Forms
   const createForm = useForm({
     resolver: zodResolver(companySchema),
@@ -209,6 +223,7 @@ export default function Companies() {
       status: "active"
     }
   });
+
   const editForm = useForm({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -224,9 +239,11 @@ export default function Companies() {
       status: "active"
     }
   });
+
   const handleCreateCompany = (data: any) => {
     createCompanyMutation.mutate(data);
   };
+
   const handleEditCompany = (company: Company) => {
     setSelectedCompany(company);
     editForm.reset({
@@ -243,6 +260,7 @@ export default function Companies() {
     });
     setIsEditDialogOpen(true);
   };
+
   const handleUpdateCompany = (data: any) => {
     if (selectedCompany) {
       console.log('[FRONTEND] Updating company with data:', {
@@ -253,11 +271,13 @@ export default function Companies() {
       updateCompanyMutation.mutate({ id: selectedCompany.id, data });
     }
   };
+
   const handleDeleteCompany = (company: Company) => {
-    if (window.confirm(""?`)) {
+    if (window.confirm(`Tem certeza que deseja excluir a empresa "${company.displayName || company.name}"?`)) {
       deleteCompanyMutation.mutate(company.id);
     }
   };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -266,6 +286,7 @@ export default function Companies() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
   const getSizeIcon = (size?: string) => {
     switch (size) {
       case 'startup': return <Star className="w-4 h-4" />;
@@ -276,6 +297,7 @@ export default function Companies() {
       default: return <Building2 className="w-4 h-4" />;
     }
   };
+
   const filteredCompanies = companies.filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -284,37 +306,45 @@ export default function Companies() {
     // Always put Default company first
     const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
     const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+
     if (aIsDefault && !bIsDefault) return -1;
     if (!aIsDefault && bIsDefault) return 1;
+
     // Secondary sort by status (active first)
     if (a.status === 'active' && b.status !== 'active') return -1;
     if (a.status !== 'active' && b.status === 'active') return 1;
+
     // Tertiary sort alphabetically
     return (a.displayName || a.name).localeCompare(b.displayName || b.name);
   });
+
   const handleOpenAssociateModal = (company: any) => {
     setSelectedCompanyForAssociation(company);
     setIsAssociateModalOpen(true);
   };
+
   const handleCloseAssociateModal = () => {
     setIsAssociateModalOpen(false);
     setSelectedCompanyForAssociation(null);
   };
+
     const handleAssociationSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
   };
+
+
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="text-lg">"</div>
-        <div className="p-4"
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="p-4"
-              <CardContent className="p-4"
-                <div className="p-4"
-                  <div className="text-lg">"</div>
-                  <div className="text-lg">"</div>
-                  <div className="text-lg">"</div>
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
                 </div>
               </CardContent>
             </Card>
@@ -323,35 +353,36 @@ export default function Companies() {
       </div>
     );
   }
+
   return (
-    <div className="p-4"
+    <div className="p-4 space-y-6">
       {/* Header */}
-      <div className="p-4"
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="p-4"
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Empresas
           </h1>
-          <p className="p-4"
+          <p className="text-gray-600 dark:text-gray-400">
             Gerencie empresas e suas informações
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="p-4"
+            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
               <Plus className="w-4 h-4 mr-2" />
               Nova Empresa
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl" aria-describedby="create-company-description>
-            <div id="create-company-description" className="p-4"
+          <DialogContent className="max-w-2xl" aria-describedby="create-company-description">
+            <div id="create-company-description" className="sr-only">
               Formulário para criar uma nova empresa cliente com informações básicas
             </div>
             <DialogHeader>
               <DialogTitle>Criar Nova Empresa</DialogTitle>
             </DialogHeader>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(handleCreateCompany)} className="p-4"
-                <div className="p-4"
+              <form onSubmit={createForm.handleSubmit(handleCreateCompany)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
                     name="name"
@@ -379,6 +410,7 @@ export default function Companies() {
                     )}
                   />
                 </div>
+
                 <FormField
                   control={createForm.control}
                   name="description"
@@ -392,7 +424,8 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-                <div className="p-4"
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
                     name="industry"
@@ -415,7 +448,7 @@ export default function Companies() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Selecione o tamanho" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -431,7 +464,8 @@ export default function Companies() {
                     )}
                   />
                 </div>
-                <div className="p-4"
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
                     name="email"
@@ -459,6 +493,7 @@ export default function Companies() {
                     )}
                   />
                 </div>
+
                 <FormField
                   control={createForm.control}
                   name="website"
@@ -472,7 +507,8 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-                <div className="p-4"
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
                     name="subscriptionTier"
@@ -518,7 +554,8 @@ export default function Companies() {
                     )}
                   />
                 </div>
-                <div className="p-4"
+
+                <div className="flex justify-end space-x-2 pt-4">
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -531,7 +568,7 @@ export default function Companies() {
                     disabled={createCompanyMutation.isPending}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
-                    {createCompanyMutation.isPending ? "Criando..." : '[TRANSLATION_NEEDED]'}
+                    {createCompanyMutation.isPending ? "Criando..." : "Criar Empresa"}
                   </Button>
                 </div>
               </form>
@@ -539,51 +576,53 @@ export default function Companies() {
           </DialogContent>
         </Dialog>
       </div>
+
       {/* Busca */}
-      <div className="p-4"
-        <div className="p-4"
+      <div className="flex items-center space-x-4">
+        <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder='[TRANSLATION_NEEDED]'
+            placeholder="Buscar empresas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
-        <Badge variant="outline" className="p-4"
+        <Badge variant="outline" className="text-sm">
           {filteredCompanies.length} empresa{filteredCompanies.length !== 1 ? 's' : ''}
         </Badge>
       </div>
+
       {/* Lista de empresas */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCompanies.map((company: Company) => (
-          <Card key={company.id} className="p-4"
-            <CardHeader className="p-4"
-              <div className="p-4"
+          <Card key={company.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
                 
-                <div className="p-4"
+                <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       company.status === 'inactive' ? 'bg-gray-100' : 'bg-blue-100'
-                    >
+                    }`}>
                       <Building2 className={`w-5 h-5 ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-blue-600'
-                      "} />
+                      }`} />
                     </div>
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
                       <p className={`text-sm font-medium truncate ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-gray-900'
-                      >
+                      }`}>
                         {company.name}
                       </p>
                       {(company.name?.toLowerCase().includes('default') || 
                     company.displayName?.toLowerCase().includes('default')) && (
-                        <Badge variant="outline" className="p-4"
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
                           Padrão
                         </Badge>
                       )}
                       {company.status === 'inactive' && (
-                        <Badge variant="outline" className="p-4"
+                        <Badge variant="outline" className="text-xs px-2 py-0 text-gray-500 border-gray-300">
                           Inativa
                         </Badge>
                       )}
@@ -591,54 +630,55 @@ export default function Companies() {
                     {company.description && (
                       <p className={`text-sm truncate ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-gray-500'
-                      >
+                      }`}>
                         {company.description}
                       </p>
                     )}
                   </div>
                 </div>
                 
-                <div className="p-4"
+                <div className="flex flex-col gap-1">
                   <Badge className={getStatusColor(company.status)}>
                     {company.status === 'active' ? 'Ativo' : 
                      company.status === 'inactive' ? 'Inativo' : 'Suspenso'}
                   </Badge>
                   {(company.name?.toLowerCase().includes('default') || 
                     company.displayName?.toLowerCase().includes('default')) && (
-                    <Badge variant="outline" className="p-4"
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
                       Padrão
                     </Badge>
                   )}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-4"
+            <CardContent className="space-y-3">
               {company.description && (
-                <p className="p-4"
+                <p className="text-sm text-gray-600 line-clamp-2">
                   {company.description}
                 </p>
               )}
-              <div className="p-4"
+
+              <div className="space-y-2">
                 {company.industry && (
-                  <div className="p-4"
+                  <div className="flex items-center text-sm text-gray-500">
                     <Building2 className="w-4 h-4 mr-2" />
                     {company.industry}
                   </div>
                 )}
                 {company.email && (
-                  <div className="p-4"
+                  <div className="flex items-center text-sm text-gray-500">
                     <Mail className="w-4 h-4 mr-2" />
                     {company.email}
                   </div>
                 )}
                 {company.phone && (
-                  <div className="p-4"
+                  <div className="flex items-center text-sm text-gray-500">
                     <Phone className="w-4 h-4 mr-2" />
                     {company.phone}
                   </div>
                 )}
                 {company.website && (
-                  <div className="p-4"
+                  <div className="flex items-center text-sm text-gray-500">
                     <Globe className="w-4 h-4 mr-2" />
                     <a 
                       href={company.website} 
@@ -651,14 +691,16 @@ export default function Companies() {
                   </div>
                 )}
               </div>
+
               {/* Customers Section */}
               <CompanyCustomersSection 
                 companyId={company.id}
                 onAssociateCustomers={() => handleOpenAssociateModal(company)}
               />
+
               {/* Company Footer with Actions */}
-              <div className="p-4"
-                <div className="p-4"
+              <div className="flex justify-between items-center pt-3 border-t mt-3">
+                <div className="flex items-center text-xs text-gray-400">
                   <Calendar className="w-3 h-3 mr-1" />
                   {(() => {
                     // Check multiple possible date fields
@@ -669,7 +711,7 @@ export default function Companies() {
                     return 'Cadastrada recentemente';
                   })()}
                 </div>
-                <div className="p-4"
+                <div className="flex justify-end space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -685,6 +727,7 @@ export default function Companies() {
                       !c.name?.toLowerCase().includes('default') && 
                       !c.displayName?.toLowerCase().includes('default')
                     ).length > 0;
+
                     // Show activate/deactivate option for Default company only if there are other companies
                     if (isDefaultCompany && hasOtherCompanies) {
                       const isActiveCompany = company.status === 'active' || company.isActive;
@@ -710,7 +753,7 @@ export default function Companies() {
                                 isOptimisticUpdate: true
                               };
                               
-                              console.log("
+                              console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus}`);
                               
                               // Optimistically update the company status in cache
                               queryClient.setQueryData(['/api/companies'], (oldData: any) => {
@@ -723,6 +766,7 @@ export default function Companies() {
                                 }
                                 return oldData;
                               });
+
                               // Use the correct mutation endpoint
                               await updateCompanyMutation.mutateAsync({ id: company.id, data: updateData });
                               
@@ -735,15 +779,15 @@ export default function Companies() {
                               
                               toast({
                                 title: "Empresa atualizada",
-                                description: " com sucesso.`,
+                                description: `Empresa Default ${isActiveCompany ? 'desativada' : 'ativada'} com sucesso.`,
                               });
                               
                             } catch (error) {
-                              console.error('[TRANSLATION_NEEDED]', error);
+                              console.error('Error updating Default company:', error);
                               // Revert optimistic update on error
                               queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
                               toast({
-                                title: '[TRANSLATION_NEEDED]',
+                                title: "Erro",
                                 description: "Falha ao atualizar empresa. Tente novamente.",
                                 variant: "destructive"
                               });
@@ -757,6 +801,7 @@ export default function Companies() {
                         </Button>
                       );
                     }
+
                     // Show delete for non-default companies or if it's the only company
                     return (
                       <Button
@@ -767,7 +812,7 @@ export default function Companies() {
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        {deleteCompanyMutation.isPending ? "Excluindo..." : '[TRANSLATION_NEEDED]'}
+                        {deleteCompanyMutation.isPending ? "Excluindo..." : "Excluir"}
                       </Button>
                     );
                   })()}
@@ -777,13 +822,14 @@ export default function Companies() {
           </Card>
         ))}
       </div>
+
       {filteredCompanies.length === 0 && !isLoading && (
-        <div className="p-4"
+        <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="p-4"
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
             Nenhuma empresa encontrada
           </h3>
-          <p className="p-4"
+          <p className="text-gray-500 mb-6">
             {searchTerm ? 'Tente ajustar sua busca.' : 'Comece criando sua primeira empresa cliente.'}
           </p>
           {!searchTerm && (
@@ -797,18 +843,19 @@ export default function Companies() {
           )}
         </div>
       )}
+
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl" aria-describedby="edit-company-description>
-          <div id="edit-company-description" className="p-4"
+        <DialogContent className="max-w-2xl" aria-describedby="edit-company-description">
+          <div id="edit-company-description" className="sr-only">
             Formulário para editar informações da empresa cliente selecionada
           </div>
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleUpdateCompany)} className="p-4"
-              <div className="p-4"
+            <form onSubmit={editForm.handleSubmit(handleUpdateCompany)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
                   name="name"
@@ -836,6 +883,7 @@ export default function Companies() {
                   )}
                 />
               </div>
+
               <FormField
                 control={editForm.control}
                 name="description"
@@ -849,7 +897,8 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
+
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
                   name="industry"
@@ -872,7 +921,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectValue placeholder="Selecione o tamanho" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -888,7 +937,8 @@ export default function Companies() {
                   )}
                 />
               </div>
-              <div className="p-4"
+
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
                   name="email"
@@ -916,6 +966,7 @@ export default function Companies() {
                   )}
                 />
               </div>
+
               <FormField
                 control={editForm.control}
                 name="website"
@@ -929,7 +980,8 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
+
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
                   name="subscriptionTier"
@@ -975,7 +1027,8 @@ export default function Companies() {
                   )}
                 />
               </div>
-              <div className="p-4"
+
+              <div className="flex justify-end space-x-2 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -991,13 +1044,14 @@ export default function Companies() {
                   disabled={updateCompanyMutation.isPending}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  {updateCompanyMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
+                  {updateCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
                 </Button>
               </div>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+
       {/* Associate Multiple Customers Modal */}
       <AssociateMultipleCustomersModal
         isOpen={isAssociateModalOpen}

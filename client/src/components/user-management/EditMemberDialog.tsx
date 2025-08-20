@@ -5,6 +5,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
+
 import {
   Dialog,
   DialogContent,
@@ -33,11 +34,13 @@ import {
   Save,
   X
 } from 'lucide-react';
+
 interface EditMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   member: any;
 }
+
 export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -47,6 +50,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   
   // ✅ Verificar se usuário é tenant_admin para editar emails seguindo 1qa.md
   const canEditEmail = user?.role === 'tenant_admin' || user?.role === 'saas_admin';
+
   const form = useForm({
     defaultValues: {
       // Dados Básicos
@@ -88,27 +92,30 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       groupIds: []
     }
   });
+
   // Fetch available groups
   const { data: groupsData } = useQuery({
     queryKey: ['/api/user-management/groups'],
     enabled: open,
   });
+
   // Fetch available roles
   const { data: rolesData } = useQuery({
     queryKey: ['/api/team-management/roles'],
     enabled: open,
   });
+
   // Fetch complete member details when modal opens
   const { data: memberDetails, isLoading: memberLoading } = useQuery({
     queryKey: ['/api/team-management/members', member?.id],
     queryFn: async () => {
       if (!member?.id) return null;
-      console.log('[TRANSLATION_NEEDED]', member.id);
+      console.log('EditMemberDialog - Fetching complete member details for:', member.id);
       
       // Try multiple endpoints to get complete user data
       try {
-        const response = await apiRequest('GET', "
-        console.log('[TRANSLATION_NEEDED]', response);
+        const response = await apiRequest('GET', `/api/user-management/users/${member.id}`);
+        console.log('EditMemberDialog - Got complete member details:', response);
         
         // If the response is empty object or doesn't have essential fields, use member data
         if (!response || Object.keys(response).length === 0 || !response.email) {
@@ -118,23 +125,26 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         
         return response;
       } catch (error) {
-        console.log('[TRANSLATION_NEEDED]', member);
+        console.log('EditMemberDialog - API error, fallback to basic member data:', member);
         return member;
       }
     },
     enabled: open && !!member?.id,
   });
+
   // Reset form when member details are loaded
   useEffect(() => {
     if (open && member && !memberLoading) {
       // Use member data as source since API returns empty object
       const sourceData = member;
       
-      console.log('[TRANSLATION_NEEDED]', sourceData);
-      console.log('[TRANSLATION_NEEDED]', Object.keys(sourceData));
+      console.log('EditMemberDialog - Setting form data for member:', sourceData);
+      console.log('EditMemberDialog - Available data keys:', Object.keys(sourceData));
+
       // Handle different data structures with more comprehensive mapping
       const firstName = sourceData.firstName || sourceData.first_name || (sourceData.name ? sourceData.name.split(' ')[0] : '');
       const lastName = sourceData.lastName || sourceData.last_name || (sourceData.name ? sourceData.name.split(' ').slice(1).join(' ') : '');
+
       const formDataToSet = {
         // Dados Básicos
         firstName,
@@ -175,59 +185,68 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         role: sourceData.role || '',
         groupIds: sourceData.groupIds || sourceData.group_ids || []
       };
-      console.log('[TRANSLATION_NEEDED]', formDataToSet);
+
+      console.log('EditMemberDialog - Final form data:', formDataToSet);
       form.reset(formDataToSet);
     }
   }, [member, open, memberLoading, form]);
+
   // Update member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('[TRANSLATION_NEEDED]', data);
-      const response = await apiRequest('PUT', "
+      console.log('EditMemberDialog - Updating member with data:', data);
+      const response = await apiRequest('PUT', `/api/team-management/members/${member.id}`, data);
       return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/members'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/stats'] });
+
       toast({
         title: "Membro atualizado",
         description: "Os dados do membro foram atualizados com sucesso.",
       });
+
       onOpenChange(false);
     },
     onError: (error: any) => {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('EditMemberDialog - Error updating member:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao atualizar",
         description: error?.message || "Falha ao atualizar os dados do membro.",
         variant: "destructive",
       });
     },
   });
+
   const handleSubmit = async (data: any) => {
-    console.log('[TRANSLATION_NEEDED]', data);
+    console.log('EditMemberDialog - Form submitted with data:', data);
     setIsSubmitting(true);
+
     try {
       await updateMemberMutation.mutateAsync(data);
     } catch (error) {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('EditMemberDialog - Submit error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
   const handleCancel = () => {
     form.reset();
     onOpenChange(false);
   };
+
   if (!member) {
     return null;
   }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2>
+          <DialogTitle className="flex items-center space-x-2">
             <User className="h-5 w-5" />
             <span>Editar Dados do Membro</span>
           </DialogTitle>
@@ -235,22 +254,23 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
             Atualize as informações pessoais e profissionais do membro da equipe.
           </DialogDescription>
         </DialogHeader>
+
         {memberLoading ? (
-          <div className="flex items-center justify-center py-8>
-            <div className="text-lg">"</div>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mr-2"></div>
             <span>Carregando dados do membro...</span>
           </div>
         ) : (
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             {/* Personal Information */}
             <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2>
+              <CardTitle className="text-lg flex items-center space-x-2">
                 <User className="h-4 w-4" />
                 <span>Informações Pessoais</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">Nome</Label>
                 <Input
@@ -269,7 +289,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <div className="relative>
+                <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="email"
@@ -281,14 +301,14 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   />
                 </div>
                 {!canEditEmail && (
-                  <p className="text-xs text-gray-500 mt-1>
+                  <p className="text-xs text-gray-500 mt-1">
                     Apenas administradores podem alterar emails de usuários
                   </p>
                 )}
               </div>
               <div>
                 <Label htmlFor="phone">Telefone</Label>
-                <div className="relative>
+                <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="phone"
@@ -300,7 +320,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="cellPhone">Celular</Label>
-                <div className="relative>
+                <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="cellPhone"
@@ -350,7 +370,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   onValueChange={(value) => form.setValue('vehicleType', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="nenhum">Nenhum</SelectItem>
@@ -361,19 +381,20 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
             </CardContent>
           </Card>
+
           {/* Professional Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2>
+              <CardTitle className="text-lg flex items-center space-x-2">
                 <Briefcase className="h-4 w-4" />
                 <span>Informações Profissionais</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* TIPO DE EMPREGO - Campo Fundamental */}
-              <div className="col-span-full>
-                <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700>
-                  <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300>
+              <div className="col-span-full">
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
+                  <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300">
                     <Briefcase className="w-4 h-4" />
                     Tipo de Emprego
                   </Label>
@@ -381,15 +402,15 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                     value={form.watch('employmentType')} 
                     onValueChange={(value) => form.setValue('employmentType', value)}
                   >
-                    <SelectTrigger className="mt-2 border-purple-300 dark:border-purple-600>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectTrigger className="mt-2 border-purple-300 dark:border-purple-600">
+                      <SelectValue placeholder="Selecione o tipo de emprego" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="clt">CLT (Consolidação das Leis do Trabalho)</SelectItem>
                       <SelectItem value="autonomo">Autônomo/Prestador de Serviços</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-purple-600 dark:text-purple-400 mt-2>
+                  <p className="text-sm text-purple-600 dark:text-purple-400 mt-2">
                     {form.watch('employmentType') === 'clt' 
                       ? "🕒 CLT: Sistema de Ponto Eletrônico com controle de jornada completo"
                       : "📋 Autônomo: Registro de Jornada para atividades e projetos"
@@ -405,7 +426,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   onValueChange={(value) => form.setValue('role', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectValue placeholder="Selecione o papel" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="agent">Agente</SelectItem>
@@ -425,7 +446,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="employeeCode">Código do Funcionário</Label>
-                <div className="relative>
+                <div className="relative">
                   <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="employeeCode"
@@ -437,7 +458,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="pis">PIS</Label>
-                <div className="relative>
+                <div className="relative">
                   <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="pis"
@@ -449,7 +470,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="admissionDate">Data de Admissão</Label>
-                <div className="relative>
+                <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="admissionDate"
@@ -485,15 +506,16 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
             </CardContent>
           </Card>
+
           {/* Address Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2>
+              <CardTitle className="text-lg flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
                 <span>Endereço</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="cep">CEP</Label>
                 <Input
@@ -568,18 +590,19 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
             </CardContent>
           </Card>
+
           {/* Groups */}
           {Array.isArray(groupsData?.groups) && groupsData.groups.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center space-x-2>
+                <CardTitle className="text-lg flex items-center space-x-2">
                   <Building className="h-4 w-4" />
                   <span>Grupos</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Label>Grupos Associados</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
                   {groupsData.groups.map((group: any) => {
                     const isSelected = form.watch('groupIds')?.includes(group.id);
                     return (
@@ -589,7 +612,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                           isSelected 
                             ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700' 
                             : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                        "
+                        }`}
                         onClick={() => {
                           const currentGroups = form.watch('groupIds') || [];
                           const newGroups = isSelected 
@@ -598,16 +621,16 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                           form.setValue('groupIds', newGroups);
                         }}
                       >
-                        <div className="flex items-center justify-between>
-                          <span className="text-lg">"{group.name}</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{group.name}</span>
                           {isSelected && (
-                            <Badge variant="default" className="text-xs>
+                            <Badge variant="default" className="text-xs">
                               Selecionado
                             </Badge>
                           )}
                         </div>
                         {group.description && (
-                          <p className="text-lg">"{group.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">{group.description}</p>
                         )}
                       </div>
                     );
@@ -616,6 +639,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </CardContent>
             </Card>
           )}
+
           <DialogFooter>
             <Button
               type="button"
@@ -633,7 +657,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
             >
               {isSubmitting || updateMemberMutation.isPending ? (
                 <>
-                  <div className="text-lg">"</div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Salvando...
                 </>
               ) : (

@@ -1,6 +1,8 @@
+
 /**
  * Componentes condicionais para o template builder
  */
+
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
 import { Input } from '../../ui/input'
@@ -11,7 +13,6 @@ import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Eye, 
   EyeOff, 
   Lock, 
@@ -22,12 +23,14 @@ import {
   CheckCircle,
   Zap
 } from 'lucide-react'
+
 interface ConditionalRule {
   sourceFieldId: string
   operator: 'equals' | 'not_equals' | 'contains' | 'greater' | 'less' | 'is_empty' | 'is_not_empty'
   value: any
   action: 'show' | 'hide' | 'require' | 'unrequire' | 'enable' | 'disable'
 }
+
 interface ConditionalFieldProps {
   field: any
   value?: any
@@ -36,8 +39,8 @@ interface ConditionalFieldProps {
   allFields?: any[]
   formData?: Record<string, any>
 }
+
 export const ConditionalField: React.FC<ConditionalFieldProps> = ({
-  // Localization temporarily disabled
   field,
   value,
   onChange,
@@ -49,6 +52,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
   const [isRequired, setIsRequired] = useState(field.isRequired || false)
   const [isEnabled, setIsEnabled] = useState(!disabled)
   const [conditionsMet, setConditionsMet] = useState(true)
+
   // Avaliar condições do campo
   useEffect(() => {
     if (!field.conditionalLogic?.conditions?.length) {
@@ -58,8 +62,10 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
       setConditionsMet(true)
       return
     }
+
     const conditions = field.conditionalLogic.conditions as ConditionalRule[]
     const operator = field.conditionalLogic.operator || 'AND'
+
     const results = conditions.map((condition) => {
       const sourceValue = formData[condition.sourceFieldId]
       
@@ -82,10 +88,13 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
           return true
       }
     })
+
     const allMet = operator === 'AND' 
       ? results.every(r => r)
       : results.some(r => r)
+
     setConditionsMet(allMet)
+
     // Aplicar ações baseadas nas condições
     conditions.forEach((condition, index) => {
       if (results[index] || (operator === 'OR' && allMet)) {
@@ -112,6 +121,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
       }
     })
   }, [formData, field.conditionalLogic, field.isVisible, field.isRequired, disabled])
+
   // Renderizar o campo base baseado no tipo
   const renderBaseField = () => {
     const commonProps = {
@@ -120,6 +130,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
       disabled: !isEnabled,
       required: isRequired
     }
+
     switch (field.type) {
       case 'text':
       case 'email':
@@ -128,9 +139,10 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
           <Input
             {...commonProps}
             type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : 'text'}
-            placeholder={field.placeholder || "
+            placeholder={field.placeholder || `Digite ${field.label.toLowerCase()}`}
           />
         )
+
       case 'number':
         return (
           <Input
@@ -141,6 +153,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
             placeholder={field.placeholder || 'Digite um número'}
           />
         )
+
       case 'select':
         return (
           <Select 
@@ -149,7 +162,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
             disabled={!isEnabled}
           >
             <SelectTrigger>
-              <SelectValue placeholder={field.placeholder || '[TRANSLATION_NEEDED]'} />
+              <SelectValue placeholder={field.placeholder || 'Selecione uma opção'} />
             </SelectTrigger>
             <SelectContent>
               {field.fieldOptions?.map((option: any) => (
@@ -160,6 +173,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
             </SelectContent>
           </Select>
         )
+
       case 'switch':
         return (
           <Switch
@@ -168,27 +182,30 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
             disabled={!isEnabled}
           />
         )
+
       default:
         return (
           <Input
             {...commonProps}
-            placeholder={field.placeholder || "
+            placeholder={field.placeholder || `Digite ${field.label.toLowerCase()}`}
           />
         )
     }
   }
+
   if (!isVisible) {
     return null
   }
+
   return (
-    <div className="space-y-2>
-      <div className="flex items-center justify-between>
-        <Label className="text-sm font-medium>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">
           {field.label}
-          {isRequired && <span className="text-lg">"*</span>}
+          {isRequired && <span className="text-red-500 ml-1">*</span>}
         </Label>
         
-        <div className="flex items-center gap-1>
+        <div className="flex items-center gap-1">
           {field.conditionalLogic?.conditions?.length > 0 && (
             <Badge 
               variant={conditionsMet ? "default" : "secondary"} 
@@ -203,23 +220,26 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
           {!isVisible && <EyeOff className="w-4 h-4 text-gray-400" />}
         </div>
       </div>
+
       {field.description && (
-        <p className="text-lg">"{field.description}</p>
+        <p className="text-xs text-gray-500">{field.description}</p>
       )}
+
       {renderBaseField()}
+
       {field.conditionalLogic?.conditions?.length > 0 && (
-        <div className="mt-2>
-          <Alert className="text-lg">"
-            <AlertDescription className="flex items-center gap-2>
+        <div className="mt-2">
+          <Alert className={`text-xs ${conditionsMet ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
+            <AlertDescription className="flex items-center gap-2">
               {conditionsMet ? (
                 <>
                   <CheckCircle className="w-3 h-3 text-green-600" />
-                  <span className="text-lg">"Condições atendidas</span>
+                  <span className="text-green-700">Condições atendidas</span>
                 </>
               ) : (
                 <>
                   <AlertTriangle className="w-3 h-3 text-yellow-600" />
-                  <span className="text-yellow-700>
+                  <span className="text-yellow-700">
                     Aguardando condições: {field.conditionalLogic.conditions.length} regra(s)
                   </span>
                 </>
@@ -231,21 +251,26 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
     </div>
   )
 }
+
 // Hook para gerenciar campos condicionais
 export const useConditionalFields = (fields: any[], formData: Record<string, any>) => {
   const [visibilityMap, setVisibilityMap] = useState<Record<string, boolean>>({})
   const [requirementMap, setRequirementMap] = useState<Record<string, boolean>>({})
+
   useEffect(() => {
     const newVisibility: Record<string, boolean> = {}
     const newRequirements: Record<string, boolean> = {}
+
     fields.forEach(field => {
       // Default values
       newVisibility[field.id] = field.isVisible !== false
       newRequirements[field.id] = field.isRequired || false
+
       // Apply conditional logic
       if (field.conditionalLogic?.conditions?.length) {
         const conditions = field.conditionalLogic.conditions
         const operator = field.conditionalLogic.operator || 'AND'
+
         const results = conditions.map((condition: ConditionalRule) => {
           const sourceValue = formData[condition.sourceFieldId]
           
@@ -268,9 +293,11 @@ export const useConditionalFields = (fields: any[], formData: Record<string, any
               return true
           }
         })
+
         const conditionsMet = operator === 'AND' 
           ? results.every(r => r)
           : results.some(r => r)
+
         if (conditionsMet) {
           conditions.forEach((condition: ConditionalRule) => {
             switch (condition.action) {
@@ -291,9 +318,11 @@ export const useConditionalFields = (fields: any[], formData: Record<string, any
         }
       }
     })
+
     setVisibilityMap(newVisibility)
     setRequirementMap(newRequirements)
   }, [fields, formData])
+
   return {
     isVisible: (fieldId: string) => visibilityMap[fieldId] !== false,
     isRequired: (fieldId: string) => requirementMap[fieldId] || false,
@@ -301,4 +330,5 @@ export const useConditionalFields = (fields: any[], formData: Record<string, any
     requirementMap
   }
 }
+
 export default ConditionalField

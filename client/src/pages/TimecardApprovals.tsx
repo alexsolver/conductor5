@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { CheckCircle, XCircle, Clock, User, Calendar, MapPin, MessageSquare, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-// import useLocalization from '@/hooks/useLocalization';
+
 interface PendingApproval {
   id: string;
   userId: string;
@@ -29,8 +30,8 @@ interface PendingApproval {
   notes?: string;
   isManualEntry?: boolean;
 }
+
 export default function TimecardApprovals() {
-  // Localization temporarily disabled
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedApprovals, setSelectedApprovals] = useState<string[]>([]);
@@ -38,6 +39,7 @@ export default function TimecardApprovals() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectionComments, setRejectionComments] = useState('');
   const [currentRejectId, setCurrentRejectId] = useState<string | null>(null);
+
   // Fetch pending approvals
   const { data: pendingData, isLoading, error } = useQuery({
     queryKey: ['/api/timecard/approval/pending'],
@@ -47,11 +49,13 @@ export default function TimecardApprovals() {
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
   const pendingApprovals: PendingApproval[] = pendingData?.pendingApprovals || [];
+
   // Approve mutation
   const approveMutation = useMutation({
     mutationFn: async ({ entryId, comments }: { entryId: string; comments?: string }) => {
-      return await apiRequest('POST', "/api/timecard/approval/approve/" + entryId, { comments });
+      return await apiRequest('POST', `/api/timecard/approval/approve/${entryId}`, { comments });
     },
     onSuccess: () => {
       toast({
@@ -62,13 +66,14 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao aprovar o registro.",
         variant: "destructive",
       });
       console.error('Error approving timecard:', error);
     },
   });
+
   // Reject mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ entryId, rejectionReason, comments }: { 
@@ -76,7 +81,7 @@ export default function TimecardApprovals() {
       rejectionReason: string; 
       comments?: string;
     }) => {
-      return await apiRequest('POST', "/api/timecard/approval/reject/" + entryId, { 
+      return await apiRequest('POST', `/api/timecard/approval/reject/${entryId}`, { 
         rejectionReason, 
         comments 
       });
@@ -94,13 +99,14 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao rejeitar o registro.",
         variant: "destructive",
       });
       console.error('Error rejecting timecard:', error);
     },
   });
+
   // Bulk approve mutation
   const bulkApproveMutation = useMutation({
     mutationFn: async ({ entryIds, comments }: { entryIds: string[]; comments?: string }) => {
@@ -109,53 +115,60 @@ export default function TimecardApprovals() {
     onSuccess: () => {
       toast({
         title: "Registros aprovados",
-        description: "registros foram aprovados com sucesso.",
+        description: `${selectedApprovals.length} registros foram aprovados com sucesso.`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/pending'] });
       setSelectedApprovals([]);
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao aprovar os registros selecionados.",
         variant: "destructive",
       });
       console.error('Error bulk approving timecards:', error);
     },
   });
+
   const handleApprove = (entryId: string) => {
     approveMutation.mutate({ entryId });
   };
+
   const handleReject = (entryId: string) => {
     setCurrentRejectId(entryId);
     setShowRejectDialog(true);
   };
+
   const handleRejectConfirm = () => {
     if (!currentRejectId || !rejectionReason.trim()) {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Motivo da rejeição é obrigatório.",
         variant: "destructive",
       });
       return;
     }
+
     rejectMutation.mutate({
       entryId: currentRejectId,
       rejectionReason: rejectionReason.trim(),
       comments: rejectionComments.trim() || undefined
     });
   };
+
   const handleBulkApprove = () => {
     if (selectedApprovals.length === 0) {
       toast({
-        title: 'Nenhum Registro Selecionado',
-        description: 'Selecione ao Menos um Registro para Aprovar',
+        title: "Nenhum registro selecionado",
+        description: "Selecione ao menos um registro para aprovar.",
         variant: "destructive",
       });
       return;
     }
+
     bulkApproveMutation.mutate({ entryIds: selectedApprovals });
   };
+
   const toggleSelection = (entryId: string) => {
     setSelectedApprovals(prev => 
       prev.includes(entryId) 
@@ -163,12 +176,15 @@ export default function TimecardApprovals() {
         : [...prev, entryId]
     );
   };
+
   const selectAll = () => {
     setSelectedApprovals(pendingApprovals.map(approval => approval.id));
   };
+
   const clearSelection = () => {
     setSelectedApprovals([]);
   };
+
   const formatTime = (dateString?: string) => {
     if (!dateString) return '--:--';
     try {
@@ -177,6 +193,7 @@ export default function TimecardApprovals() {
       return '--:--';
     }
   };
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
@@ -184,6 +201,7 @@ export default function TimecardApprovals() {
       return '--/--/----';
     }
   };
+
   const getRecordType = (approval: PendingApproval) => {
     if (approval.checkIn) return 'Entrada';
     if (approval.checkOut) return 'Saída';
@@ -191,34 +209,37 @@ export default function TimecardApprovals() {
     if (approval.breakEnd) return 'Fim da Pausa';
     return 'Registro';
   };
+
   const getRecordTime = (approval: PendingApproval) => {
     return approval.checkIn || approval.checkOut || approval.breakStart || approval.breakEnd || approval.createdAt;
   };
+
   if (isLoading) {
     return (
-      <div className="p-4">
-        <div className="p-4">
+      <div className="container mx-auto p-6">
+        <div className="flex items-center gap-2 mb-6">
           <CheckCircle className="h-6 w-6" />
-          <h1 className="text-lg">"Aprovação de Registros de Ponto</h1>
+          <h1 className="text-2xl font-bold">Aprovação de Registros de Ponto</h1>
         </div>
-        <div className="p-4">
-          <div className="text-lg">"</div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </div>
     );
   }
+
   if (error) {
     return (
-      <div className="p-4">
-        <div className="p-4">
+      <div className="container mx-auto p-6">
+        <div className="flex items-center gap-2 mb-6">
           <CheckCircle className="h-6 w-6" />
-          <h1 className="text-lg">"Aprovação de Registros de Ponto</h1>
+          <h1 className="text-2xl font-bold">Aprovação de Registros de Ponto</h1>
         </div>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg">"Erro ao carregar registros</h3>
-            <p className="p-4">
+            <h3 className="text-lg font-semibold mb-2">Erro ao carregar registros</h3>
+            <p className="text-muted-foreground text-center">
               Não foi possível carregar os registros pendentes de aprovação.
             </p>
           </CardContent>
@@ -226,39 +247,41 @@ export default function TimecardApprovals() {
       </div>
     );
   }
+
   return (
-    <div className="p-4">
-      <div className="p-4">
-        <div className="p-4">
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
           <CheckCircle className="h-6 w-6" />
-          <h1 className="text-lg">"Aprovação de Registros de Ponto</h1>
+          <h1 className="text-2xl font-bold">Aprovação de Registros de Ponto</h1>
         </div>
-        <Badge variant="outline" className="p-4">
+        <Badge variant="outline" className="text-base px-3 py-1">
           {pendingApprovals.length} pendente{pendingApprovals.length !== 1 ? 's' : ''}
         </Badge>
       </div>
+
       {pendingApprovals.length === 0 ? (
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="flex flex-col items-center justify-center py-12">
             <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
-            <h3 className="text-lg">"Todos os registros aprovados!</h3>
-            <p className="p-4">
+            <h3 className="text-lg font-semibold mb-2">Todos os registros aprovados!</h3>
+            <p className="text-muted-foreground text-center">
               Não há registros de ponto pendentes de aprovação no momento.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="p-4">
+        <div className="space-y-6">
           {/* Ações em lote */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">"Ações em Lote</CardTitle>
+              <CardTitle className="text-lg">Ações em Lote</CardTitle>
               <CardDescription>
                 Selecione múltiplos registros para aprovar de uma vez
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4">
+              <div className="flex gap-2 flex-wrap">
                 <Button 
                   variant="outline" 
                   onClick={selectAll}
@@ -284,15 +307,16 @@ export default function TimecardApprovals() {
               </div>
             </CardContent>
           </Card>
+
           {/* Lista de registros pendentes */}
-          <div className="p-4">
+          <div className="space-y-4">
             {pendingApprovals.map((approval) => (
               <Card key={approval.id} className={`transition-all ${
                 selectedApprovals.includes(approval.id) ? 'ring-2 ring-primary' : ''
-              >
-                <CardContent className="p-4">
-                  <div className="p-4">
-                    <div className="p-4">
+              }`}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
                         checked={selectedApprovals.includes(approval.id)}
@@ -300,62 +324,68 @@ export default function TimecardApprovals() {
                         className="mt-1"
                       />
                       
-                      <div className="p-4">
-                        <div className="p-4">
-                          <div className="p-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="p-4">
+                            <span className="font-medium">
                               {approval.firstName} {approval.lastName}
                             </span>
                           </div>
                           <Badge variant="secondary">{approval.email}</Badge>
                         </div>
-                        <div className="p-4">
-                          <div className="p-4">
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <div className="text-lg">"{getRecordType(approval)}</div>
-                              <div className="p-4">
+                              <div className="font-medium">{getRecordType(approval)}</div>
+                              <div className="text-muted-foreground">
                                 {formatTime(getRecordTime(approval))}
                               </div>
                             </div>
                           </div>
-                          <div className="p-4">
+
+                          <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <div className="text-lg">"Data</div>
-                              <div className="p-4">
+                              <div className="font-medium">Data</div>
+                              <div className="text-muted-foreground">
                                 {formatDate(approval.createdAt)}
                               </div>
                             </div>
                           </div>
+
                           {approval.location && (
-                            <div className="p-4">
+                            <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <div className="text-lg">"Localização</div>
-                                <div className="text-lg">"Capturada</div>
+                                <div className="font-medium">Localização</div>
+                                <div className="text-muted-foreground">Capturada</div>
                               </div>
                             </div>
                           )}
                         </div>
+
                         {approval.notes && (
-                          <div className="p-4">
+                          <div className="flex items-start gap-2">
                             <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
                             <div>
-                              <div className="text-lg">"Observações</div>
-                              <div className="text-lg">"{approval.notes}</div>
+                              <div className="font-medium text-sm">Observações</div>
+                              <div className="text-muted-foreground text-sm">{approval.notes}</div>
                             </div>
                           </div>
                         )}
+
                         {approval.isManualEntry && (
-                          <Badge variant="outline" className="p-4">
+                          <Badge variant="outline" className="text-amber-600 border-amber-600">
                             Entrada Manual
                           </Badge>
                         )}
                       </div>
                     </div>
-                    <div className="p-4">
+
+                    <div className="flex gap-2 ml-4">
                       <Button
                         size="sm"
                         onClick={() => handleApprove(approval.id)}
@@ -382,6 +412,7 @@ export default function TimecardApprovals() {
           </div>
         </div>
       )}
+
       {/* Dialog de rejeição */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
@@ -391,8 +422,8 @@ export default function TimecardApprovals() {
               Informe o motivo da rejeição do registro.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-4">
-            <div className="p-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="rejectionReason">Motivo da Rejeição *</Label>
               <select 
                 id="rejectionReason"
@@ -400,7 +431,7 @@ export default function TimecardApprovals() {
                 onChange={(e) => setRejectionReason(e.target.value)}
                 className="w-full p-2 border rounded-md"
               >
-                <option value="Selecione um motivo</option>
+                <option value="">Selecione um motivo</option>
                 <option value="invalid_time">Horário inválido</option>
                 <option value="missing_location">Localização não capturada</option>
                 <option value="duplicate_entry">Registro duplicado</option>
@@ -409,7 +440,7 @@ export default function TimecardApprovals() {
                 <option value="other">Outro motivo</option>
               </select>
             </div>
-            <div className="p-4">
+            <div className="space-y-2">
               <Label htmlFor="rejectionComments">Comentários (opcional)</Label>
               <Textarea
                 id="rejectionComments"
@@ -419,7 +450,7 @@ export default function TimecardApprovals() {
                 rows={3}
               />
             </div>
-            <div className="p-4">
+            <div className="flex justify-end gap-2">
               <Button 
                 variant="outline" 
                 onClick={() => setShowRejectDialog(false)}

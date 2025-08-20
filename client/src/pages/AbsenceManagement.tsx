@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,9 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-// import useLocalization from '@/hooks/useLocalization';
+
 const absenceFormSchema = z.object({
-  // Localization temporarily disabled
   userId: z.string().min(1, 'Usuário é obrigatório'),
   absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence']),
   startDate: z.string().min(1, 'Data inicial é obrigatória'),
@@ -25,13 +25,16 @@ const absenceFormSchema = z.object({
   medicalCertificate: z.string().optional(),
   coverUserId: z.string().optional(),
 });
+
 type AbsenceFormData = z.infer<typeof absenceFormSchema>;
+
 interface User {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
 }
+
 interface AbsenceRequest {
   id: string;
   userId: string;
@@ -46,6 +49,7 @@ interface AbsenceRequest {
   userName?: string;
   userEmail?: string;
 }
+
 const absenceTypeLabels = {
   vacation: 'Férias',
   sick_leave: 'Atestado Médico',
@@ -56,22 +60,26 @@ const absenceTypeLabels = {
   justified_absence: 'Falta Justificada',
   unjustified_absence: 'Falta Injustificada'
 };
+
 const statusLabels = {
   pending: 'Pendente',
   approved: 'Aprovada',
   rejected: 'Rejeitada',
-  cancelled: '[TRANSLATION_NEEDED]'
+  cancelled: 'Cancelada'
 };
+
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   approved: 'bg-green-100 text-green-800',
   rejected: 'bg-red-100 text-red-800',
   cancelled: 'bg-gray-100 text-gray-800'
 };
+
 export default function AbsenceManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const form = useForm<AbsenceFormData>({
     resolver: zodResolver(absenceFormSchema),
     defaultValues: {
@@ -84,6 +92,7 @@ export default function AbsenceManagement() {
       coverUserId: '',
     },
   });
+
   // Buscar solicitações pendentes
   const { data: pendingRequestsData, isLoading } = useQuery({
     queryKey: ['/api/timecard/absence-requests/pending'],
@@ -92,6 +101,7 @@ export default function AbsenceManagement() {
       return response;
     },
   });
+
   // Buscar usuários
   const { data: usersData } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
@@ -100,6 +110,7 @@ export default function AbsenceManagement() {
       return response;
     },
   });
+
   // Criar solicitação de ausência
   const createAbsenceRequestMutation = useMutation({
     mutationFn: async (data: AbsenceFormData) => {
@@ -116,16 +127,17 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: 'Erro ao Criar Solicitação',
+        description: error.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     },
   });
+
   // Aprovar solicitação
   const approveRequestMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      return await apiRequest('PUT', "/api/absences/approve");
+      return await apiRequest('PUT', `/api/timecard/absence-requests/${requestId}/approve`);
     },
     onSuccess: () => {
       toast({
@@ -136,16 +148,17 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: 'Erro ao Aprovar',
+        description: error.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     },
   });
+
   // Rejeitar solicitação
   const rejectRequestMutation = useMutation({
     mutationFn: async ({ requestId, reason }: { requestId: string; reason: string }) => {
-      return await apiRequest('PUT', "/reject`, { reason });
+      return await apiRequest('PUT', `/api/timecard/absence-requests/${requestId}/reject`, { reason });
     },
     onSuccess: () => {
       toast({
@@ -156,31 +169,37 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: 'Erro ao Rejeitar',
+        description: error.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     },
   });
+
   const pendingRequests = (pendingRequestsData as any)?.requests || [];
   const users = (usersData as any)?.users || [];
+
   const handleSubmit = (data: AbsenceFormData) => {
     createAbsenceRequestMutation.mutate(data);
   };
+
   const handleApprove = (requestId: string) => {
     if (confirm('Tem certeza que deseja aprovar esta solicitação?')) {
       approveRequestMutation.mutate(requestId);
     }
   };
+
   const handleReject = (requestId: string) => {
     const reason = prompt('Motivo da rejeição:');
     if (reason && reason.trim()) {
       rejectRequestMutation.mutate({ requestId, reason: reason.trim() });
     }
   };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
+
   const calculateDays = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -188,21 +207,23 @@ export default function AbsenceManagement() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return diffDays;
   };
+
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"Carregando solicitações de ausência...</div>
+      <div className="p-4">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Carregando solicitações de ausência...</div>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-lg">"Gestão de Ausências</h1>
-          <p className="text-lg">"Gerencie solicitações de férias, licenças e faltas</p>
+          <h1 className="text-2xl font-bold text-gray-900">Gestão de Ausências</h1>
+          <p className="text-gray-600">Gerencie solicitações de férias, licenças e faltas</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -212,7 +233,7 @@ export default function AbsenceManagement() {
               Nova Solicitação
             </Button>
           </DialogTrigger>
-          <DialogContent className="p-4"
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Nova Solicitação de Ausência</DialogTitle>
               <DialogDescription>
@@ -221,8 +242,8 @@ export default function AbsenceManagement() {
             </DialogHeader>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4"
-                <div className="p-4"
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="userId"
@@ -232,7 +253,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Selecione o funcionário" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -247,6 +268,7 @@ export default function AbsenceManagement() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="absenceType"
@@ -256,7 +278,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -272,7 +294,8 @@ export default function AbsenceManagement() {
                     )}
                   />
                 </div>
-                <div className="p-4"
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="startDate"
@@ -286,6 +309,7 @@ export default function AbsenceManagement() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="endDate"
@@ -300,6 +324,7 @@ export default function AbsenceManagement() {
                     )}
                   />
                 </div>
+
                 <FormField
                   control={form.control}
                   name="reason"
@@ -317,6 +342,7 @@ export default function AbsenceManagement() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="medicalCertificate"
@@ -333,6 +359,7 @@ export default function AbsenceManagement() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="coverUserId"
@@ -342,7 +369,7 @@ export default function AbsenceManagement() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectValue placeholder="Selecione um substituto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -358,12 +385,13 @@ export default function AbsenceManagement() {
                     </FormItem>
                   )}
                 />
-                <div className="p-4"
+
+                <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAbsenceRequestMutation.isPending}>
-                    {createAbsenceRequestMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
+                    {createAbsenceRequestMutation.isPending ? 'Criando...' : 'Criar Solicitação'}
                   </Button>
                 </div>
               </form>
@@ -371,10 +399,11 @@ export default function AbsenceManagement() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="p-4"
+
+      <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="p-4"
+            <CardTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               Solicitações Pendentes de Aprovação
             </CardTitle>
@@ -384,19 +413,19 @@ export default function AbsenceManagement() {
           </CardHeader>
           <CardContent>
             {pendingRequests.length === 0 ? (
-              <div className="p-4"
+              <div className="text-center py-8 text-gray-500">
                 Nenhuma solicitação pendente
               </div>
             ) : (
-              <div className="p-4"
+              <div className="space-y-4">
                 {pendingRequests.map((request: AbsenceRequest) => (
-                  <div key={request.id} className="p-4"
-                    <div className="p-4"
-                      <div className="p-4"
+                  <div key={request.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-3">
                         <User className="h-4 w-4 text-gray-400" />
                         <div>
-                          <h3 className="text-lg">"{request.userName || 'Usuário'}</h3>
-                          <p className="p-4"
+                          <h3 className="font-medium">{request.userName || 'Usuário'}</h3>
+                          <p className="text-sm text-gray-600">
                             {absenceTypeLabels[request.absenceType as keyof typeof absenceTypeLabels]}
                           </p>
                         </div>
@@ -405,28 +434,31 @@ export default function AbsenceManagement() {
                         {statusLabels[request.status as keyof typeof statusLabels]}
                       </Badge>
                     </div>
-                    <div className="p-4"
-                      <div className="p-4"
+
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="p-4"
+                        <span className="text-sm">
                           {formatDate(request.startDate)} a {formatDate(request.endDate)}
                         </span>
                       </div>
-                      <div className="p-4"
+                      <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-gray-400" />
-                        <span className="p-4"
+                        <span className="text-sm">
                           {calculateDays(request.startDate, request.endDate)} dia(s)
                         </span>
                       </div>
                     </div>
-                    <div className="p-4"
-                      <div className="p-4"
+
+                    <div className="mb-4">
+                      <div className="flex items-start gap-2">
                         <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <p className="text-lg">"{request.reason}</p>
+                        <p className="text-sm text-gray-700">{request.reason}</p>
                       </div>
                     </div>
+
                     {request.status === 'pending' && (
-                      <div className="p-4"
+                      <div className="flex justify-end space-x-2">
                         <Button
                           variant="outline"
                           size="sm"

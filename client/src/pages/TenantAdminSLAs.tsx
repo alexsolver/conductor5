@@ -15,7 +15,6 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   Clock, 
   AlertTriangle, 
   Target, 
@@ -32,9 +31,11 @@ import {
   Archive,
   Users
 } from 'lucide-react';
+
 // ======================================
 // TYPES AND SCHEMAS
 // ======================================
+
 interface TicketSLA {
   id: string;
   name: string;
@@ -51,6 +52,7 @@ interface TicketSLA {
   createdAt: string;
   updatedAt: string;
 }
+
 interface SlaRule {
   id: string;
   slaId: string;
@@ -63,6 +65,7 @@ interface SlaRule {
   };
   isActive: boolean;
 }
+
 interface StatusTimeout {
   id: string;
   slaId: string;
@@ -71,6 +74,7 @@ interface StatusTimeout {
   escalationAction: string;
   notificationRecipients: string[];
 }
+
 interface SlaMetrics {
   totalSlas: number;
   activeSlas: number;
@@ -79,9 +83,9 @@ interface SlaMetrics {
   avgResolutionTime: number;
   escalationCount: number;
 }
+
 // Validation schemas
 const slaFormSchema = z.object({
-  // Localization temporarily disabled
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   slaLevel: z.enum(['L1', 'L2', 'L3']),
@@ -94,6 +98,7 @@ const slaFormSchema = z.object({
     environment: z.array(z.string()).optional(),
   }).optional()
 });
+
 const ruleFormSchema = z.object({
   ruleName: z.string().min(1, 'Nome da regra é obrigatório'),
   conditions: z.any(),
@@ -102,15 +107,18 @@ const ruleFormSchema = z.object({
   escalationThreshold: z.number().min(1, 'Limite de escalação deve ser maior que 0'),
   isActive: z.boolean().default(true)
 });
+
 const timeoutFormSchema = z.object({
   statusName: z.string().min(1, 'Nome do status é obrigatório'),
   maxIdleTime: z.number().min(1, 'Tempo máximo deve ser maior que 0'),
   escalationAction: z.string().min(1, 'Ação de escalação é obrigatória'),
   notificationRecipients: z.array(z.string()).optional()
 });
+
 // ======================================
 // MAIN COMPONENT
 // ======================================
+
 export default function TenantAdminSLAs() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedSla, setSelectedSla] = useState<TicketSLA | null>(null);
@@ -120,26 +128,33 @@ export default function TenantAdminSLAs() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // ======================================
   // DATA FETCHING
   // ======================================
+
   const { data: slas = [], isLoading: isLoadingSlas } = useQuery({
     queryKey: ['/api/sla/tickets-slas'],
     refetchInterval: 30000
   });
+
   const { data: metrics, isLoading: isLoadingMetrics } = useQuery<SlaMetrics>({
     queryKey: ['/api/sla/metrics/compliance-stats'],
     refetchInterval: 60000
   });
+
   const { data: ticketMetadata } = useQuery({
     queryKey: ['/api/ticket-metadata/field-configurations']
   });
+
   const { data: fieldOptions } = useQuery({
     queryKey: ['/api/ticket-metadata/field-options']
   });
+
   // ======================================
   // MUTATIONS
   // ======================================
+
   const createSlaMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await fetch('/api/sla/tickets-slas', {
@@ -157,12 +172,13 @@ export default function TenantAdminSLAs() {
       setShowCreateDialog(false);
     },
     onError: () => {
-      toast({ title: '[TRANSLATION_NEEDED]', variant: 'destructive' });
+      toast({ title: 'Erro ao criar SLA', variant: 'destructive' });
     }
   });
+
   const updateSlaMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await fetch("
+      const response = await fetch(`/api/sla/tickets-slas/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -175,12 +191,13 @@ export default function TenantAdminSLAs() {
       toast({ title: 'SLA atualizado com sucesso!' });
     },
     onError: () => {
-      toast({ title: '[TRANSLATION_NEEDED]', variant: 'destructive' });
+      toast({ title: 'Erro ao atualizar SLA', variant: 'destructive' });
     }
   });
+
   const deleteSlaMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch("
+      const response = await fetch(`/api/sla/tickets-slas/${id}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error('Erro ao excluir SLA');
@@ -190,12 +207,14 @@ export default function TenantAdminSLAs() {
       toast({ title: 'SLA excluído com sucesso!' });
     },
     onError: () => {
-      toast({ title: '[TRANSLATION_NEEDED]', variant: 'destructive' });
+      toast({ title: 'Erro ao excluir SLA', variant: 'destructive' });
     }
   });
+
   // ======================================
   // FORM HANDLERS
   // ======================================
+
   const slaForm = useForm({
     resolver: zodResolver(slaFormSchema),
     defaultValues: {
@@ -206,23 +225,28 @@ export default function TenantAdminSLAs() {
       metadata: {}
     }
   });
+
   const handleCreateSla = (data: any) => {
     createSlaMutation.mutate(data);
   };
+
   const handleToggleSlaStatus = (sla: TicketSLA) => {
     updateSlaMutation.mutate({
       id: sla.id,
       data: { ...sla, isActive: !sla.isActive }
     });
   };
+
   const handleDeleteSla = (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este SLA?')) {
       deleteSlaMutation.mutate(id);
     }
   };
+
   // ======================================
   // COMPONENT HELPERS
   // ======================================
+
   const getSlaLevelColor = (level: string) => {
     switch (level) {
       case 'L1': return 'bg-red-100 text-red-800';
@@ -231,69 +255,76 @@ export default function TenantAdminSLAs() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
   const getStatusColor = (isActive: boolean) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
   };
+
   // ======================================
   // RENDER COMPONENTS
   // ======================================
+
   const renderOverviewTab = () => (
-    <div className="p-4"
+    <div className="space-y-6">
       {/* Metrics Cards */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Total de SLAs</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total de SLAs</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{metrics?.totalSlas || 0}</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{metrics?.totalSlas || 0}</div>
+            <p className="text-xs text-muted-foreground">
               {metrics?.activeSlas || 0} ativos
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Taxa de Compliance</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Taxa de Compliance</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{metrics?.complianceRate || 0}%</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{metrics?.complianceRate || 0}%</div>
+            <p className="text-xs text-muted-foreground">
               Últimos 30 dias
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Tempo de Resposta</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Tempo de Resposta</CardTitle>
             <Timer className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{metrics?.avgResponseTime || 0}h</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{metrics?.avgResponseTime || 0}h</div>
+            <p className="text-xs text-muted-foreground">
               Média mensal
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Escalações</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Escalações</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{metrics?.escalationCount || 0}</div>
-            <p className="p-4"
+            <div className="text-2xl font-bold">{metrics?.escalationCount || 0}</div>
+            <p className="text-xs text-muted-foreground">
               Este mês
             </p>
           </CardContent>
         </Card>
       </div>
+
       {/* SLA List */}
       <Card>
         <CardHeader>
-          <div className="p-4"
+          <div className="flex justify-between items-center">
             <div>
               <CardTitle>SLAs Configurados</CardTitle>
               <CardDescription>
@@ -308,16 +339,16 @@ export default function TenantAdminSLAs() {
         </CardHeader>
         <CardContent>
           {isLoadingSlas ? (
-            <div className="p-4"
-              <div className="text-lg">"</div>
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="p-4"
+            <div className="space-y-4">
               {slas.map((sla: TicketSLA) => (
-                <div key={sla.id} className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
-                      <h3 className="text-lg">"{sla.name}</h3>
+                <div key={sla.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold">{sla.name}</h3>
                       <Badge className={getSlaLevelColor(sla.slaLevel)}>
                         {sla.slaLevel}
                       </Badge>
@@ -326,9 +357,9 @@ export default function TenantAdminSLAs() {
                       </Badge>
                     </div>
                     {sla.description && (
-                      <p className="text-lg">"{sla.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{sla.description}</p>
                     )}
-                    <div className="p-4"
+                    <div className="flex gap-2 text-xs text-muted-foreground">
                       {sla.metadata?.priority && (
                         <span>Prioridades: {sla.metadata.priority.join(', ')}</span>
                       )}
@@ -337,7 +368,7 @@ export default function TenantAdminSLAs() {
                       )}
                     </div>
                   </div>
-                  <div className="p-4"
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -368,10 +399,11 @@ export default function TenantAdminSLAs() {
       </Card>
     </div>
   );
+
   const renderRulesTab = () => (
     <Card>
       <CardHeader>
-        <div className="p-4"
+        <div className="flex justify-between items-center">
           <div>
             <CardTitle>Regras de SLA</CardTitle>
             <CardDescription>
@@ -385,16 +417,17 @@ export default function TenantAdminSLAs() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="p-4"
+        <div className="text-center py-8 text-muted-foreground">
           Selecione um SLA na aba "Visão Geral" para gerenciar suas regras
         </div>
       </CardContent>
     </Card>
   );
+
   const renderStatusTimeoutsTab = () => (
     <Card>
       <CardHeader>
-        <div className="p-4"
+        <div className="flex justify-between items-center">
           <div>
             <CardTitle>Timeouts por Status</CardTitle>
             <CardDescription>
@@ -408,12 +441,13 @@ export default function TenantAdminSLAs() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="p-4"
+        <div className="text-center py-8 text-muted-foreground">
           Configure timeouts baseados nos status dos metadados de tickets
         </div>
       </CardContent>
     </Card>
   );
+
   const renderEscalationsTab = () => (
     <Card>
       <CardHeader>
@@ -423,37 +457,39 @@ export default function TenantAdminSLAs() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="p-4"
+        <div className="text-center py-8 text-muted-foreground">
           Nenhuma escalação registrada
         </div>
       </CardContent>
     </Card>
   );
+
   const renderMetricsTab = () => (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="p-4"
+            <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
               Performance por SLA
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-center py-8 text-muted-foreground">
               Gráfico de performance será exibido aqui
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader>
-            <CardTitle className="p-4"
+            <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Tendências de Compliance
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-center py-8 text-muted-foreground">
               Gráfico de tendências será exibido aqui
             </div>
           </CardContent>
@@ -461,54 +497,58 @@ export default function TenantAdminSLAs() {
       </div>
     </div>
   );
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg">"Sistema de SLA</h1>
-          <p className="p-4"
+          <h1 className="text-3xl font-bold">Sistema de SLA</h1>
+          <p className="text-muted-foreground">
             Gerencie acordos de nível de serviço integrados aos metadados de tickets
           </p>
         </div>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
-        <TabsList className="p-4"
-          <TabsTrigger value="overview" className="p-4"
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="rules" className="p-4"
+          <TabsTrigger value="rules" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Regras
           </TabsTrigger>
-          <TabsTrigger value="timeouts" className="p-4"
+          <TabsTrigger value="timeouts" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Timeouts
           </TabsTrigger>
-          <TabsTrigger value="escalations" className="p-4"
+          <TabsTrigger value="escalations" className="flex items-center gap-2">
             <Flag className="h-4 w-4" />
             Escalações
           </TabsTrigger>
-          <TabsTrigger value="metrics" className="p-4"
+          <TabsTrigger value="metrics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Métricas
           </TabsTrigger>
         </TabsList>
+
         <TabsContent value="overview">{renderOverviewTab()}</TabsContent>
         <TabsContent value="rules">{renderRulesTab()}</TabsContent>
         <TabsContent value="timeouts">{renderStatusTimeoutsTab()}</TabsContent>
         <TabsContent value="escalations">{renderEscalationsTab()}</TabsContent>
         <TabsContent value="metrics">{renderMetricsTab()}</TabsContent>
       </Tabs>
+
       {/* Create SLA Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Criar Novo SLA</DialogTitle>
           </DialogHeader>
           <Form {...slaForm}>
-            <form onSubmit={slaForm.handleSubmit(handleCreateSla)} className="p-4"
-              <div className="p-4"
+            <form onSubmit={slaForm.handleSubmit(handleCreateSla)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={slaForm.control}
                   name="name"
@@ -531,7 +571,7 @@ export default function TenantAdminSLAs() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectValue placeholder="Selecione o nível" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -559,14 +599,15 @@ export default function TenantAdminSLAs() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={slaForm.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className="p-4"
-                    <div className="p-4"
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
                       <FormLabel>SLA Ativo</FormLabel>
-                      <div className="p-4"
+                      <div className="text-sm text-muted-foreground">
                         Ativar este SLA para aplicação automática
                       </div>
                     </div>
@@ -579,7 +620,8 @@ export default function TenantAdminSLAs() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
+
+              <div className="flex justify-end gap-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -588,7 +630,7 @@ export default function TenantAdminSLAs() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createSlaMutation.isPending}>
-                  {createSlaMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
+                  {createSlaMutation.isPending ? 'Criando...' : 'Criar SLA'}
                 </Button>
               </div>
             </form>

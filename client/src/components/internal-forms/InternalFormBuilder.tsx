@@ -11,20 +11,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 const formSchema = z.object({
-  // Localization temporarily disabled
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   category: z.string().min(1, "Categoria é obrigatória"),
 });
+
 interface InternalFormBuilderProps {
   onClose: () => void;
 }
+
 export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
   const { toast } = useToast();
   const [fields, setFields] = useState<any[]>([]);
   const [actions, setActions] = useState<any[]>([]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,6 +35,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
       category: "general",
     },
   });
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       toast({
@@ -42,12 +45,13 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
       onClose();
     } catch (error) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: "Erro ao criar formulário.",
         variant: "destructive",
       });
     }
   };
+
   const addField = () => {
     setFields([...fields, {
       id: Date.now(),
@@ -58,24 +62,27 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
       placeholder: "",
     }]);
   };
+
   const removeField = (id: number) => {
     setFields(fields.filter(field => field.id !== id));
   };
+
   const updateField = (id: number, updates: any) => {
     setFields(fields.map(field => 
       field.id === id ? { ...field, ...updates } : field
     ));
   };
+
   return (
-    <div className="space-y-6>
+    <div className="space-y-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle>Informações Básicas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4>
+            <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -89,6 +96,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="description"
@@ -102,6 +110,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="category"
@@ -111,7 +120,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -128,12 +137,13 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
               />
             </CardContent>
           </Card>
+
           {/* Fields */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between>
+              <div className="flex items-center justify-between">
                 <CardTitle>Campos do Formulário</CardTitle>
-                <Button type="button" onClick={addField} size="sm>
+                <Button type="button" onClick={addField} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Campo
                 </Button>
@@ -141,14 +151,14 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
             </CardHeader>
             <CardContent>
               {fields.length === 0 ? (
-                <p className="text-gray-500 text-center py-8>
+                <p className="text-gray-500 text-center py-8">
                   Nenhum campo adicionado. Clique em "Adicionar Campo" para começar.
                 </p>
               ) : (
-                <div className="space-y-4>
+                <div className="space-y-4">
                   {fields.map((field) => (
-                    <div key={field.id} className="border rounded-lg p-4>
-                      <div className="flex items-center justify-between mb-4>
+                    <div key={field.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
                         <Badge variant="outline">{field.type}</Badge>
                         <Button
                           type="button"
@@ -160,9 +170,9 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4>
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-lg">"Nome do Campo</label>
+                          <label className="text-sm font-medium">Nome do Campo</label>
                           <Input
                             value={field.name}
                             onChange={(e) => updateField(field.id, { name: e.target.value })}
@@ -170,7 +180,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                           />
                         </div>
                         <div>
-                          <label className="text-lg">"Rótulo</label>
+                          <label className="text-sm font-medium">Rótulo</label>
                           <Input
                             value={field.label}
                             onChange={(e) => updateField(field.id, { label: e.target.value })}
@@ -184,23 +194,25 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
               )}
             </CardContent>
           </Card>
+
           {/* Actions */}
           <Card>
             <CardHeader>
               <CardTitle>Ações do Formulário</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500 text-center py-8>
+              <p className="text-gray-500 text-center py-8">
                 As ações serão executadas quando o formulário for submetido.
               </p>
             </CardContent>
           </Card>
+
           {/* Submit */}
-          <div className="flex justify-end space-x-4>
+          <div className="flex justify-end space-x-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit>
+            <Button type="submit">
               Criar Formulário
             </Button>
           </div>

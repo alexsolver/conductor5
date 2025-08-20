@@ -1,8 +1,8 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/utils';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Dialog, 
   DialogContent, 
   DialogDescription, 
@@ -24,6 +24,7 @@ import {
   Layers,
   FolderOpen
 } from 'lucide-react';
+
 interface Item {
   id: string;
   name: string;
@@ -31,6 +32,7 @@ interface Item {
   hasChildren?: boolean;
   childrenCount?: number;
 }
+
 interface ItemGroup {
   id: string;
   name: string;
@@ -39,12 +41,13 @@ interface ItemGroup {
   icon: string;
   item_count: number;
 }
+
 interface ItemGroupManagerProps {
   selectedItems: Item[];
   onItemsUpdated: () => void;
 }
+
 export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
-  // Localization temporarily disabled
   selectedItems,
   onItemsUpdated
 }) => {
@@ -62,6 +65,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
   const [groupName, setGroupName] = useState('');
   const [groupDescription, setGroupDescription] = useState('');
   const [groupColor, setGroupColor] = useState('#3B82F6');
+
   // Query for item groups
   const { data: itemGroups } = useQuery({
     queryKey: ['/api/materials-services/item-groups'],
@@ -70,6 +74,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       return response.json();
     }
   });
+
   // Mutations
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: any) => {
@@ -79,7 +84,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/item-groups'] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Grupo criado com sucesso",
         description: "O novo grupo foi criado e está disponível para uso.",
       });
       setIsCreateGroupOpen(false);
@@ -89,15 +94,16 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao criar grupo",
         description: "Ocorreu um erro ao criar o grupo. Tente novamente.",
         variant: "destructive",
       });
     }
   });
+
   const assignToGroupMutation = useMutation({
     mutationFn: async ({ groupId, itemIds }: { groupId: string, itemIds: string[] }) => {
-      const response = await apiRequest('POST', "/assign-items`, {
+      const response = await apiRequest('POST', `/api/materials-services/item-groups/${groupId}/assign-items`, {
         itemIds
       });
       return response.json();
@@ -105,7 +111,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/item-groups'] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Itens atribuídos com sucesso",
         description: "Os itens foram atribuídos ao grupo selecionado.",
       });
       setIsAssignGroupOpen(false);
@@ -113,12 +119,13 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao atribuir itens",
         description: "Ocorreu um erro ao atribuir os itens ao grupo.",
         variant: "destructive",
       });
     }
   });
+
   const createHierarchyMutation = useMutation({
     mutationFn: async ({ parentItemId, childItemIds }: { parentItemId: string, childItemIds: string[] }) => {
       const response = await apiRequest('POST', '/api/materials-services/item-hierarchy', {
@@ -129,7 +136,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Hierarquia criada com sucesso",
         description: "A relação pai/filho foi estabelecida entre os itens.",
       });
       setIsCreateHierarchyOpen(false);
@@ -139,12 +146,13 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao criar hierarquia",
         description: "Ocorreu um erro ao estabelecer a relação pai/filho.",
         variant: "destructive",
       });
     }
   });
+
   const handleCreateGroup = () => {
     if (!groupName.trim()) return;
     
@@ -155,10 +163,12 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       icon: 'folder'
     });
   };
+
   const handleAssignToGroup = (groupId: string) => {
     const itemIds = selectedItems.map(item => item.id);
     assignToGroupMutation.mutate({ groupId, itemIds });
   };
+
   const handleCreateHierarchy = () => {
     if (!selectedParentItem || selectedChildItems.length === 0) return;
     
@@ -167,15 +177,17 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       childItemIds: selectedChildItems
     });
   };
+
   const availableChildItems = selectedItems.filter(item => 
     item.id !== selectedParentItem?.id && !selectedChildItems.includes(item.id)
   );
+
   return (
-    <div className="flex gap-2>
+    <div className="flex gap-2">
       {/* Create Group Dialog */}
       <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
         <DialogTrigger asChild>
-          <Button size="sm" variant="outline" className="flex items-center gap-2>
+          <Button size="sm" variant="outline" className="flex items-center gap-2">
             <Folder className="w-4 h-4" />
             Criar Grupo
           </Button>
@@ -188,9 +200,9 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4>
+          <div className="space-y-4">
             <div>
-              <label className="text-lg">"Nome do Grupo</label>
+              <label className="text-sm font-medium mb-1 block">Nome do Grupo</label>
               <Input
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
@@ -199,7 +211,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
             </div>
             
             <div>
-              <label className="text-lg">"Descrição</label>
+              <label className="text-sm font-medium mb-1 block">Descrição</label>
               <Textarea
                 value={groupDescription}
                 onChange={(e) => setGroupDescription(e.target.value)}
@@ -209,18 +221,19 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
             </div>
             
             <div>
-              <label className="text-lg">"Cor</label>
-              <div className="flex items-center gap-2>
+              <label className="text-sm font-medium mb-1 block">Cor</label>
+              <div className="flex items-center gap-2">
                 <input
                   type="color"
                   value={groupColor}
                   onChange={(e) => setGroupColor(e.target.value)}
                   className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
                 />
-                <span className="text-lg">"{groupColor}</span>
+                <span className="text-sm text-gray-600">{groupColor}</span>
               </div>
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateGroupOpen(false)}>
               Cancelar
@@ -231,11 +244,12 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {/* Assign to Group Dialog */}
       {selectedItems.length > 0 && (
         <Dialog open={isAssignGroupOpen} onOpenChange={setIsAssignGroupOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="flex items-center gap-2>
+            <Button size="sm" variant="outline" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Atribuir ao Grupo ({selectedItems.length})
             </Button>
@@ -248,38 +262,39 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-2 max-h-60 overflow-y-auto>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
               {itemGroups?.data?.map((group: ItemGroup) => (
                 <div
                   key={group.id}
                   className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                   onClick={() => handleAssignToGroup(group.id)}
                 >
-                  <div className="flex items-center gap-3>
+                  <div className="flex items-center gap-3">
                     <div 
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: group.color }}
                     />
                     <div>
-                      <div className="text-lg">"{group.name}</div>
+                      <div className="font-medium">{group.name}</div>
                       {group.description && (
-                        <div className="text-lg">"{group.description}</div>
+                        <div className="text-xs text-gray-500">{group.description}</div>
                       )}
                     </div>
                   </div>
-                  <Badge variant="secondary>
+                  <Badge variant="secondary">
                     {group.item_count} itens
                   </Badge>
                 </div>
               ))}
               
               {!itemGroups?.data?.length && (
-                <div className="text-center py-6 text-gray-500>
+                <div className="text-center py-6 text-gray-500">
                   <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   Nenhum grupo encontrado. Crie um grupo primeiro.
                 </div>
               )}
             </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAssignGroupOpen(false)}>
                 Cancelar
@@ -288,16 +303,17 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
           </DialogContent>
         </Dialog>
       )}
+
       {/* Create Hierarchy Dialog */}
       {selectedItems.length >= 2 && (
         <Dialog open={isCreateHierarchyOpen} onOpenChange={setIsCreateHierarchyOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="flex items-center gap-2>
+            <Button size="sm" variant="outline" className="flex items-center gap-2">
               <Layers className="w-4 h-4" />
               Criar Hierarquia
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Criar Hierarquia Pai/Filho</DialogTitle>
               <DialogDescription>
@@ -305,12 +321,12 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4>
+            <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block>
+                <label className="text-sm font-medium mb-2 block">
                   Selecione o Item Pai (Kit/Conjunto)
                 </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2>
+                <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
                   {selectedItems.map((item) => (
                     <div
                       key={item.id}
@@ -318,7 +334,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                         selectedParentItem?.id === item.id
                           ? 'bg-blue-100 border border-blue-300'
                           : 'hover:bg-gray-50'
-                      "
+                      }`}
                       onClick={() => setSelectedParentItem(item)}
                     >
                       <input
@@ -327,14 +343,14 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                         readOnly
                         className="text-blue-600"
                       />
-                      <div className="flex-1>
-                        <div className="text-lg">"{item.name}</div>
-                        <div className="flex items-center gap-2>
-                          <Badge variant="outline" className="text-xs>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{item.name}</div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
                             {item.type}
                           </Badge>
                           {item.hasChildren && (
-                            <span className="text-xs text-amber-600 font-semibold>
+                            <span className="text-xs text-amber-600 font-semibold">
                               (Já possui {item.childrenCount} filhos)
                             </span>
                           )}
@@ -344,12 +360,13 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                   ))}
                 </div>
               </div>
+
               {selectedParentItem && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block>
+                  <label className="text-sm font-medium mb-2 block">
                     Selecione os Itens Filhos
                   </label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2>
+                  <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
                     {availableChildItems.map((item) => (
                       <div
                         key={item.id}
@@ -365,21 +382,22 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                             }
                           }}
                         />
-                        <div className="flex-1>
-                          <div className="text-lg">"{item.name}</div>
-                          <Badge variant="outline" className="text-xs>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{item.name}</div>
+                          <Badge variant="outline" className="text-xs">
                             {item.type}
                           </Badge>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="text-xs text-gray-500 mt-2>
+                  <div className="text-xs text-gray-500 mt-2">
                     {selectedChildItems.length} itens selecionados como filhos
                   </div>
                 </div>
               )}
             </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateHierarchyOpen(false)}>
                 Cancelar

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+
 interface ValidationRule {
   id: string;
   name: string;
@@ -38,6 +40,7 @@ interface ValidationRule {
   };
   enabled: boolean;
 }
+
 interface ValidationTest {
   id: string;
   name: string;
@@ -45,6 +48,7 @@ interface ValidationTest {
   expectedResult: 'valid' | 'invalid';
   description: string;
 }
+
 interface ValidationEngineProps {
   fieldId: string;
   fieldType: string;
@@ -52,6 +56,7 @@ interface ValidationEngineProps {
   onRulesChange: (rules: ValidationRule[]) => void;
   onTestValidation: (fieldId: string, value: any) => ValidationResult;
 }
+
 interface ValidationResult {
   isValid: boolean;
   errors: Array<{
@@ -64,6 +69,7 @@ interface ValidationResult {
     message: string;
   }>;
 }
+
 const validationRuleTemplates = [
   {
     type: 'required',
@@ -155,6 +161,7 @@ const validationRuleTemplates = [
     }
   }
 ];
+
 export const ValidationEngine: React.FC<ValidationEngineProps> = ({
   fieldId,
   fieldType,
@@ -167,19 +174,23 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
   const [testValue, setTestValue] = useState('');
   const [testResult, setTestResult] = useState<ValidationResult | null>(null);
   const [validationTests, setValidationTests] = useState<ValidationTest[]>([]);
+
   const handleAddRule = (type: string) => {
     const template = validationRuleTemplates.find(t => t.type === type);
     if (!template) return;
+
     const newRule: ValidationRule = {
-      id: "
+      id: `rule-${Date.now()}`,
       name: template.name,
       type: type as any,
       config: { ...template.defaultConfig },
       enabled: true
     };
+
     onRulesChange([...currentRules, newRule]);
     setEditingRule(newRule);
   };
+
   const handleUpdateRule = (updatedRule: ValidationRule) => {
     const updatedRules = currentRules.map(rule => 
       rule.id === updatedRule.id ? updatedRule : rule
@@ -187,34 +198,41 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
     onRulesChange(updatedRules);
     setEditingRule(null);
   };
+
   const handleDeleteRule = (ruleId: string) => {
     const filteredRules = currentRules.filter(rule => rule.id !== ruleId);
     onRulesChange(filteredRules);
   };
+
   const handleToggleRule = (ruleId: string) => {
     const updatedRules = currentRules.map(rule => 
       rule.id === ruleId ? { ...rule, enabled: !rule.enabled } : rule
     );
     onRulesChange(updatedRules);
   };
+
   const handleTestValidation = () => {
     const result = onTestValidation(fieldId, testValue);
     setTestResult(result);
   };
+
   const handleRunAllTests = () => {
     // Implementar execução de todos os testes
     console.log('Running all validation tests...');
   };
+
   const createValidationTest = () => {
     const newTest: ValidationTest = {
-      id: "
-      name: "
+      id: `test-${Date.now()}`,
+      name: `Teste ${validationTests.length + 1}`,
       fieldValues: { [fieldId]: testValue },
       expectedResult: testResult?.isValid ? 'valid' : 'invalid',
-      description: ""`
+      description: `Teste com valor: "${testValue}"`
     };
+
     setValidationTests([...validationTests, newTest]);
   };
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'error': return 'text-red-600';
@@ -223,6 +241,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
       default: return 'text-gray-600';
     }
   };
+
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'error': return <XCircle className="h-4 w-4" />;
@@ -231,39 +250,42 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
       default: return <CheckCircle className="h-4 w-4" />;
     }
   };
+
   return (
-    <div className="w-full h-full>
-      <div className="p-4 border-b>
-        <h2 className="text-lg font-semibold flex items-center>
+    <div className="w-full h-full">
+      <div className="p-4 border-b">
+        <h2 className="text-lg font-semibold flex items-center">
           <Shield className="h-5 w-5 mr-2" />
           Sistema de Validação
         </h2>
-        <p className="text-sm text-gray-500 mt-1>
+        <p className="text-sm text-gray-500 mt-1">
           Configure validações para o campo: <strong>{fieldId}</strong>
         </p>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full>
-        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
+        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
           <TabsTrigger value="rules">Regras ({currentRules.length})</TabsTrigger>
           <TabsTrigger value="test">Testar</TabsTrigger>
           <TabsTrigger value="suites">Suítes de Teste</TabsTrigger>
         </TabsList>
-        <div className="p-4>
-          <TabsContent value="rules" className="space-y-4>
+
+        <div className="p-4">
+          <TabsContent value="rules" className="space-y-4">
             {/* Lista de Regras Existentes */}
-            <div className="space-y-3>
+            <div className="space-y-3">
               {currentRules.map((rule) => (
-                <Card key={rule.id} className="text-lg">"
-                  <CardContent className="p-4>
-                    <div className="flex items-center justify-between>
-                      <div className="flex items-center space-x-3>
+                <Card key={rule.id} className={`${!rule.enabled ? 'opacity-50' : ''}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
                         <Switch
                           checked={rule.enabled}
                           onCheckedChange={() => handleToggleRule(rule.id)}
                         />
                         <div>
-                          <h4 className="text-lg">"{rule.name}</h4>
-                          <p className="text-sm text-gray-500>
+                          <h4 className="font-medium">{rule.name}</h4>
+                          <p className="text-sm text-gray-500">
                             {rule.config.message}
                           </p>
                         </div>
@@ -272,10 +294,10 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                           className={getSeverityColor(rule.config.severity)}
                         >
                           {getSeverityIcon(rule.config.severity)}
-                          <span className="text-lg">"{rule.config.severity}</span>
+                          <span className="ml-1 capitalize">{rule.config.severity}</span>
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-2>
+                      <div className="flex items-center space-x-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -296,6 +318,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                   </CardContent>
                 </Card>
               ))}
+
               {currentRules.length === 0 && (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
@@ -305,13 +328,14 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                 </Alert>
               )}
             </div>
+
             {/* Adicionar Nova Regra */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">"Adicionar Nova Regra</CardTitle>
+                <CardTitle className="text-base">Adicionar Nova Regra</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3>
+                <div className="grid grid-cols-2 gap-3">
                   {validationRuleTemplates
                     .filter(template => {
                       // Filtrar regras baseadas no tipo de campo
@@ -328,22 +352,23 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                         onClick={() => handleAddRule(template.type)}
                         className="justify-start h-auto p-3"
                       >
-                        <div className="text-left>
-                          <div className="text-lg">"{template.name}</div>
-                          <div className="text-lg">"{template.description}</div>
+                        <div className="text-left">
+                          <div className="font-medium">{template.name}</div>
+                          <div className="text-xs text-gray-500">{template.description}</div>
                         </div>
                       </Button>
                     ))}
                 </div>
               </CardContent>
             </Card>
+
             {/* Editor de Regra */}
             {editingRule && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">"Editar Regra: {editingRule.name}</CardTitle>
+                  <CardTitle className="text-base">Editar Regra: {editingRule.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4>
+                <CardContent className="space-y-4">
                   <div>
                     <Label>Nome da Regra</Label>
                     <Input
@@ -354,6 +379,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                       })}
                     />
                   </div>
+
                   <div>
                     <Label>Mensagem de Erro</Label>
                     <Input
@@ -364,6 +390,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                       })}
                     />
                   </div>
+
                   <div>
                     <Label>Severidade</Label>
                     <Select
@@ -383,9 +410,10 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                       </SelectContent>
                     </Select>
                   </div>
+
                   {/* Configurações específicas por tipo */}
                   {editingRule.type === 'length' && (
-                    <div className="grid grid-cols-2 gap-4>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label>Mínimo</Label>
                         <Input
@@ -410,6 +438,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                       </div>
                     </div>
                   )}
+
                   {editingRule.type === 'pattern' && (
                     <div>
                       <Label>Expressão Regular</Label>
@@ -423,6 +452,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                       />
                     </div>
                   )}
+
                   {editingRule.type === 'custom' && (
                     <div>
                       <Label>Código JavaScript</Label>
@@ -437,8 +467,9 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                       />
                     </div>
                   )}
+
                   {editingRule.type === 'dependency' && (
-                    <div className="grid grid-cols-2 gap-4>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label>Campo Dependente</Label>
                         <Input
@@ -463,7 +494,8 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                       </div>
                     </div>
                   )}
-                  <div className="flex justify-end space-x-2>
+
+                  <div className="flex justify-end space-x-2">
                     <Button
                       variant="outline"
                       onClick={() => setEditingRule(null)}
@@ -478,12 +510,13 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
               </Card>
             )}
           </TabsContent>
-          <TabsContent value="test" className="space-y-4>
+
+          <TabsContent value="test" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">"Testar Validações</CardTitle>
+                <CardTitle className="text-base">Testar Validações</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4>
+              <CardContent className="space-y-4">
                 <div>
                   <Label>Valor de Teste</Label>
                   <Input
@@ -492,7 +525,8 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                     placeholder="Digite um valor para testar..."
                   />
                 </div>
-                <div className="flex space-x-2>
+
+                <div className="flex space-x-2">
                   <Button onClick={handleTestValidation}>
                     <Play className="h-4 w-4 mr-2" />
                     Executar Teste
@@ -507,34 +541,37 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                     </Button>
                   )}
                 </div>
+
                 {testResult && (
-                  <Alert className="text-lg">"
-                    <div className="flex items-center>
+                  <Alert className={`${testResult.isValid ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                    <div className="flex items-center">
                       {testResult.isValid ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-red-600" />
                       )}
-                      <AlertDescription className="ml-2>
+                      <AlertDescription className="ml-2">
                         <strong>
                           {testResult.isValid ? 'Validação Passou' : 'Validação Falhou'}
                         </strong>
                       </AlertDescription>
                     </div>
+
                     {testResult.errors.length > 0 && (
-                      <div className="mt-3>
-                        <p className="text-lg">"Erros:</p>
-                        <ul className="list-disc list-inside text-sm text-red-700>
+                      <div className="mt-3">
+                        <p className="text-sm font-medium text-red-800">Erros:</p>
+                        <ul className="list-disc list-inside text-sm text-red-700">
                           {testResult.errors.map((error, index) => (
                             <li key={index}>{error.message}</li>
                           ))}
                         </ul>
                       </div>
                     )}
+
                     {testResult.warnings.length > 0 && (
-                      <div className="mt-3>
-                        <p className="text-lg">"Avisos:</p>
-                        <ul className="list-disc list-inside text-sm text-yellow-700>
+                      <div className="mt-3">
+                        <p className="text-sm font-medium text-yellow-800">Avisos:</p>
+                        <ul className="list-disc list-inside text-sm text-yellow-700">
                           {testResult.warnings.map((warning, index) => (
                             <li key={index}>{warning.message}</li>
                           ))}
@@ -546,22 +583,24 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="suites" className="space-y-4>
-            <div className="flex items-center justify-between>
-              <h3 className="text-lg">"Suítes de Teste</h3>
+
+          <TabsContent value="suites" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Suítes de Teste</h3>
               <Button onClick={handleRunAllTests}>
                 <Play className="h-4 w-4 mr-2" />
                 Executar Todos
               </Button>
             </div>
-            <div className="space-y-3>
+
+            <div className="space-y-3">
               {validationTests.map((test) => (
                 <Card key={test.id}>
-                  <CardContent className="p-4>
-                    <div className="flex items-center justify-between>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-lg">"{test.name}</h4>
-                        <p className="text-lg">"{test.description}</p>
+                        <h4 className="font-medium">{test.name}</h4>
+                        <p className="text-sm text-gray-500">{test.description}</p>
                         <Badge 
                           variant={test.expectedResult === 'valid' ? 'default' : 'destructive'}
                           className="mt-1"
@@ -569,8 +608,8 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                           Esperado: {test.expectedResult === 'valid' ? 'Válido' : 'Inválido'}
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-2>
-                        <Button variant="ghost" size="sm>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
                           <Play className="h-4 w-4" />
                         </Button>
                         <Button 
@@ -585,6 +624,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                   </CardContent>
                 </Card>
               ))}
+
               {validationTests.length === 0 && (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
@@ -600,4 +640,5 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
     </div>
   );
 };
+
 export default ValidationEngine;

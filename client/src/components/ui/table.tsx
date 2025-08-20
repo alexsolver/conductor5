@@ -1,11 +1,13 @@
 import * as React from "react"
 import { useTranslation } from 'react-i18next'
+
 import { cn } from "@/lib/utils"
+
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto>
+  <div className="relative w-full overflow-auto">
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
@@ -14,6 +16,7 @@ const Table = React.forwardRef<
   </div>
 ))
 Table.displayName = "Table"
+
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
@@ -21,6 +24,7 @@ const TableHeader = React.forwardRef<
   <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
+
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
@@ -32,6 +36,7 @@ const TableBody = React.forwardRef<
   />
 ))
 TableBody.displayName = "TableBody"
+
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
@@ -46,6 +51,7 @@ const TableFooter = React.forwardRef<
   />
 ))
 TableFooter.displayName = "TableFooter"
+
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
   React.HTMLAttributes<HTMLTableRowElement>
@@ -60,6 +66,7 @@ const TableRow = React.forwardRef<
   />
 ))
 TableRow.displayName = "TableRow"
+
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
@@ -74,6 +81,7 @@ const TableHead = React.forwardRef<
   />
 ))
 TableHead.displayName = "TableHead"
+
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
@@ -85,6 +93,7 @@ const TableCell = React.forwardRef<
   />
 ))
 TableCell.displayName = "TableCell"
+
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
   React.HTMLAttributes<HTMLTableCaptionElement>
@@ -96,6 +105,7 @@ const TableCaption = React.forwardRef<
   />
 ))
 TableCaption.displayName = "TableCaption"
+
 export {
   Table,
   TableHeader,

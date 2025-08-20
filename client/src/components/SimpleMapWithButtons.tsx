@@ -3,7 +3,7 @@ import { MapPin, Navigation, Search, Plus, Minus, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface SimpleMapProps {
   initialLat: number;
   initialLng: number;
@@ -17,14 +17,14 @@ interface SimpleMapProps {
   };
   onLocationSelect: (lat: number, lng: number) => void;
 }
+
 interface SearchResult {
   display_name: string;
   lat: string;
   lon: string;
 }
-function SimpleMapWithButtons({
-  // Localization temporarily disabled
- initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
+
+function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
   const defaultLat = initialLat || -23.550520; // São Paulo default
   const defaultLng = initialLng || -46.633308; // São Paulo default
   
@@ -36,6 +36,7 @@ function SimpleMapWithButtons({
   const [mapCenter, setMapCenter] = useState({ lat: defaultLat, lng: defaultLng });
   const [searchResult, setSearchResult] = useState<string>('');
   const { toast } = useToast();
+
   // Initialize search query with address data
   React.useEffect(() => {
     if (addressData) {
@@ -52,6 +53,7 @@ function SimpleMapWithButtons({
       }
     }
   }, [addressData]);
+
   const handleCoordinateSelect = (lat: number, lng: number) => {
     setSelectedLat(lat);
     setSelectedLng(lng);
@@ -59,6 +61,7 @@ function SimpleMapWithButtons({
     setZoomLevel(2.5); // Zoom in when location is selected
     onLocationSelect(lat, lng);
   };
+
   const searchLocation = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -68,6 +71,7 @@ function SimpleMapWithButtons({
       });
       return;
     }
+
     setIsSearching(true);
     try {
       // Try local cities first
@@ -81,15 +85,16 @@ function SimpleMapWithButtons({
         
         toast({
           title: "Local encontrado",
-          description: " - Coordenadas da cidade`
+          description: `${localResult.name} - Coordenadas da cidade`
         });
         return;
       }
+
       // Try external API
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const searchUrl = "&limit=5&countrycodes=br&addressdetails=1`;
+      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=br&addressdetails=1`;
       
       const response = await fetch(searchUrl, {
         signal: controller.signal,
@@ -103,8 +108,9 @@ function SimpleMapWithButtons({
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error("
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
       const results: SearchResult[] = await response.json();
       
       if (results.length > 0) {
@@ -125,23 +131,24 @@ function SimpleMapWithButtons({
         });
       } else {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Nenhum resultado",
           description: "Não foi possível encontrar o endereço. Tente ser mais específico.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.warn('[TRANSLATION_NEEDED]', error);
+      console.warn('Erro na busca:', error);
       
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "Erro na busca",
+        description: "Erro ao conectar com o serviço de busca. Tente novamente.",
         variant: "destructive"
       });
     } finally {
       setIsSearching(false);
     }
   };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
@@ -151,6 +158,7 @@ function SimpleMapWithButtons({
       });
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
@@ -160,13 +168,13 @@ function SimpleMapWithButtons({
         
         toast({
           title: "Localização atual",
-          description: "
+          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
         });
       },
       (error) => {
-        console.error('[TRANSLATION_NEEDED]', error.message || error);
+        console.error('Erro na geolocalização:', error.message || error);
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Erro na geolocalização",
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
@@ -178,6 +186,7 @@ function SimpleMapWithButtons({
       }
     );
   };
+
   // Local city database
   const searchLocalCities = (query: string) => {
     const cities = [
@@ -197,6 +206,7 @@ function SimpleMapWithButtons({
       { name: 'Santos, SP', lat: -23.9618, lng: -46.3322, keywords: ['santos'] },
       { name: 'São Bernardo do Campo, SP', lat: -23.6914, lng: -46.5646, keywords: ['sao bernardo', 'bernardo'] }
     ];
+
     const queryLower = query.toLowerCase();
     
     for (const city of cities) {
@@ -207,13 +217,14 @@ function SimpleMapWithButtons({
     
     return null;
   };
+
   return (
-    <div className="w-full space-y-4>
+    <div className="w-full space-y-4">
       {/* Search Controls */}
-      <div className="flex gap-2>
-        <div className="flex-1>
+      <div className="flex gap-2">
+        <div className="flex-1">
           <Input
-            placeholder='[TRANSLATION_NEEDED]'
+            placeholder="Digite um endereço para buscar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => {
@@ -243,11 +254,12 @@ function SimpleMapWithButtons({
           Minha Localização
         </Button>
       </div>
+
       {/* Map Placeholder with Real Street Information */}
-      <div className="relative border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-green-50>
-        <div className="w-full h-96 flex flex-col items-center justify-center>
+      <div className="relative border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+        <div className="w-full h-96 flex flex-col items-center justify-center">
           {/* Map Controls */}
-          <div className="absolute top-4 right-4 z-10 flex flex-col gap-2>
+          <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
             <Button
               type="button"
               variant="outline"
@@ -285,35 +297,35 @@ function SimpleMapWithButtons({
           <div 
             className="w-full h-full relative bg-[#E5E3DF] transition-transform duration-500 ease-in-out"
             style={{
-              transform: "px)`
+              transform: `scale(${zoomLevel}) translate(${(mapCenter.lng + 47) * -2}px, ${(mapCenter.lat + 15) * 2}px)`
             }}
           >
             {/* Major Brazil cities overlay */}
-            <div className="absolute inset-0>
+            <div className="absolute inset-0">
               {/* São Paulo region */}
-              <div className="absolute bottom-1/3 left-1/3 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold>
+              <div className="absolute bottom-1/3 left-1/3 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                 SP
               </div>
-              <div className="text-lg">"São Paulo</div>
+              <div className="absolute bottom-1/3 left-1/3 translate-x-2 translate-y-2 text-xs font-medium">São Paulo</div>
               
               {/* Rio de Janeiro */}
-              <div className="absolute bottom-1/4 left-1/2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs>
+              <div className="absolute bottom-1/4 left-1/2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
                 RJ
               </div>
-              <div className="text-lg">"Rio de Janeiro</div>
+              <div className="absolute bottom-1/4 left-1/2 translate-x-2 translate-y-2 text-xs">Rio de Janeiro</div>
               
               {/* Brasília */}
-              <div className="absolute top-1/3 left-1/2 w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-white text-xs>
+              <div className="absolute top-1/3 left-1/2 w-6 h-6 bg-yellow-600 rounded-full flex items-center justify-center text-white text-xs">
                 DF
               </div>
-              <div className="text-lg">"Brasília</div>
+              <div className="absolute top-1/3 left-1/2 translate-x-2 translate-y-2 text-xs">Brasília</div>
               
               {/* Selected location marker */}
               <div 
                 className="absolute w-8 h-8 flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2"
                 style={{
-                  left: "%`,
-                  top: "%`,
+                  left: `${50 + (selectedLng + 47) * 8}%`,
+                  top: `${50 - (selectedLat + 15) * 4}%`,
                 }}
               >
                 <MapPin className="h-8 w-8 text-red-600 drop-shadow-lg" />
@@ -321,15 +333,15 @@ function SimpleMapWithButtons({
             </div>
             
             {/* Street grid overlay */}
-            <svg className="absolute inset-0 w-full h-full opacity-30>
+            <svg className="absolute inset-0 w-full h-full opacity-30">
               {/* Horizontal streets */}
               {[...Array(12)].map((_, i) => (
                 <line
-                  key={"
+                  key={`h${i}`}
                   x1="0"
-                  y1={"%"
+                  y1={`${(i + 1) * 8}%`}
                   x2="100%"
-                  y2={"%"
+                  y2={`${(i + 1) * 8}%`}
                   stroke="#888"
                   strokeWidth="1"
                 />
@@ -337,10 +349,10 @@ function SimpleMapWithButtons({
               {/* Vertical streets */}
               {[...Array(16)].map((_, i) => (
                 <line
-                  key={"
-                  x1={"%"
+                  key={`v${i}`}
+                  x1={`${(i + 1) * 6}%`}
                   y1="0"
-                  x2={"%"
+                  x2={`${(i + 1) * 6}%`}
                   y2="100%"
                   stroke="#888"
                   strokeWidth="1"
@@ -352,62 +364,64 @@ function SimpleMapWithButtons({
             </svg>
             
             {/* Water bodies */}
-            <div className="text-lg">"</div>
-            <div className="text-lg">"</div>
+            <div className="absolute bottom-0 right-0 w-20 h-16 bg-blue-200 rounded-tl-full opacity-60"></div>
+            <div className="absolute top-10 left-10 w-16 h-12 bg-blue-200 rounded-full opacity-60"></div>
           </div>
           
           {/* Instructions overlay */}
-          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border>
-            <p className="text-sm text-gray-700 flex items-center font-medium>
+          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border">
+            <p className="text-sm text-gray-700 flex items-center font-medium">
               <MapPin className="h-4 w-4 mr-2 text-red-500" />
               Use os botões acima para encontrar uma localização
             </p>
           </div>
           
           {/* Coordinates display */}
-          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border>
-            <p className="text-sm font-medium text-gray-800>
-              <span className="text-lg">"Lat:</span> {(selectedLat || 0).toFixed(6)}
+          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border">
+            <p className="text-sm font-medium text-gray-800">
+              <span className="text-gray-600">Lat:</span> {(selectedLat || 0).toFixed(6)}
             </p>
-            <p className="text-sm font-medium text-gray-800>
-              <span className="text-lg">"Lng:</span> {(selectedLng || 0).toFixed(6)}
+            <p className="text-sm font-medium text-gray-800">
+              <span className="text-gray-600">Lng:</span> {(selectedLng || 0).toFixed(6)}
             </p>
           </div>
           
           {/* Scale indicator */}
-          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border>
-            <div className="flex items-center space-x-2>
-              <div className="text-lg">"</div>
-              <span className="text-lg">"50km</span>
+          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border">
+            <div className="flex items-center space-x-2">
+              <div className="w-12 h-0.5 bg-gray-700"></div>
+              <span className="text-xs text-gray-600">50km</span>
             </div>
           </div>
         </div>
       </div>
+
       {/* Location Info */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4>
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2>
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Localização Selecionada
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Latitude: {(selectedLat || 0).toFixed(6)} | Longitude: {(selectedLng || 0).toFixed(6)}
         </p>
         {searchResult && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1>
-            <span className="text-lg">"Encontrado:</span> {String(searchResult)}
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <span className="font-medium">Encontrado:</span> {String(searchResult)}
           </p>
         )}
         {searchQuery && !searchResult && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1>
-            <span className="text-lg">"Busca:</span> {searchQuery}
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <span className="font-medium">Busca:</span> {searchQuery}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-2>
-          <span className="text-lg">"Zoom: {zoomLevel.toFixed(1)}x</span>
-          <span className="text-lg">"|</span>
-          <span className="text-lg">"Centro: {(mapCenter.lat || 0).toFixed(2)}, {(mapCenter.lng || 0).toFixed(2)}</span>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-xs text-gray-500">Zoom: {zoomLevel.toFixed(1)}x</span>
+          <span className="text-xs text-gray-500">|</span>
+          <span className="text-xs text-gray-500">Centro: {(mapCenter.lat || 0).toFixed(2)}, {(mapCenter.lng || 0).toFixed(2)}</span>
         </div>
       </div>
     </div>
   );
 }
+
 export default SimpleMapWithButtons;

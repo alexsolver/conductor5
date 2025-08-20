@@ -16,12 +16,12 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import MapSelector from './MapSelector';
 import { renderAddressSafely } from '@/utils/addressFormatter';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 const locationSchema = z.object({
-  // Localization temporarily disabled
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(['cliente', 'ativo', 'filial', 'tecnico', 'parceiro']),
   status: z.enum(['ativo', 'inativo', 'manutencao', 'suspenso']).default('ativo'),
+
   // Address fields
   address: z.string().min(1, "Endereço é obrigatório"),
   number: z.string().optional(),
@@ -31,26 +31,33 @@ const locationSchema = z.object({
   state: z.string().min(1, "Estado é obrigatório"),
   zipCode: z.string().min(1, "CEP é obrigatório"),
   country: z.string().default('Brasil'),
+
   // Geographic coordinates
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+
   // Business hours and SLA
   timezone: z.string().default('America/Sao_Paulo'),
+
   // Access and security
   accessInstructions: z.string().optional(),
   requiresAuthorization: z.boolean().default(false),
 });
+
 type LocationFormData = z.infer<typeof locationSchema>;
+
 interface LocationModalProps {
   isOpen: boolean;
   onClose: () => void;
   location?: any;
   onSuccess?: () => void;
 }
+
 export function LocationModal({ isOpen, onClose, location, onSuccess }: LocationModalProps) {
   const [showMap, setShowMap] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationSchema),
     defaultValues: {
@@ -72,10 +79,11 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
       requiresAuthorization: location?.requiresAuthorization || false,
     }
   });
+
   const mutation = useMutation({
     mutationFn: async (data: LocationFormData) => {
       if (location?.id) {
-        return apiRequest("
+        return apiRequest(`/api/locations/${location.id}`, {
           method: 'PUT',
           body: data
         });
@@ -97,26 +105,30 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message || "Não foi possível salvar a localização.",
         variant: "destructive"
       });
     }
   });
+
   const onSubmit = (data: LocationFormData) => {
     mutation.mutate(data);
   };
+
   const handleLocationSelect = (lat: number, lng: number) => {
     form.setValue('latitude', lat.toString());
     form.setValue('longitude', lng.toString());
     setShowMap(false);
     toast({
       title: "Coordenadas definidas",
-      description: "
+      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`
     });
   };
+
   const currentLat = parseFloat(form.watch('latitude') || '-15.7942');
   const currentLng = parseFloat(form.watch('longitude') || '-47.8825');
+
   const addressData = {
     address: form.watch('address'),
     number: form.watch('number'),
@@ -126,42 +138,45 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
     zipCode: form.watch('zipCode'),
     country: form.watch('country')
   };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="location-modal-description>
-          <div id="location-modal-description" className="sr-only>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="location-modal-description">
+          <div id="location-modal-description" className="sr-only">
             Formulário para criar ou editar informações de localização
           </div>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2>
+            <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              {location?.id ? '[TRANSLATION_NEEDED]' : "Nova Localização"
+              {location?.id ? "Editar Localização" : "Nova Localização"}
             </DialogTitle>
           </DialogHeader>
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
-              <Tabs defaultValue="basic" className="w-full>
-                <TabsList className="grid w-full grid-cols-4>
-                  <TabsTrigger value="basic" className="flex items-center gap-2>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic" className="flex items-center gap-2">
                     <Building className="h-4 w-4" />
                     Básico
                   </TabsTrigger>
-                  <TabsTrigger value="address" className="flex items-center gap-2>
+                  <TabsTrigger value="address" className="flex items-center gap-2">
                     <Navigation className="h-4 w-4" />
                     Endereço
                   </TabsTrigger>
-                  <TabsTrigger value="coordinates" className="flex items-center gap-2>
+                  <TabsTrigger value="coordinates" className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
                     Coordenadas
                   </TabsTrigger>
-                  <TabsTrigger value="settings" className="flex items-center gap-2>
+                  <TabsTrigger value="settings" className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />
                     Configurações
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value="basic" className="space-y-4>
-                  <div className="grid grid-cols-2 gap-4>
+
+                <TabsContent value="basic" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="name"
@@ -184,7 +199,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                <SelectValue placeholder="Selecione o tipo" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -200,6 +215,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       )}
                     />
                   </div>
+
                   <FormField
                     control={form.control}
                     name="status"
@@ -209,7 +225,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Selecione o status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -224,9 +240,10 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                     )}
                   />
                 </TabsContent>
-                <TabsContent value="address" className="space-y-4>
-                  <div className="grid grid-cols-3 gap-4>
-                    <div className="col-span-2>
+
+                <TabsContent value="address" className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2">
                       <FormField
                         control={form.control}
                         name="address"
@@ -255,7 +272,8 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="complement"
@@ -283,7 +301,8 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-4>
+
+                  <div className="grid grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name="city"
@@ -325,8 +344,9 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                     />
                   </div>
                 </TabsContent>
-                <TabsContent value="coordinates" className="space-y-4>
-                  <div className="grid grid-cols-2 gap-4>
+
+                <TabsContent value="coordinates" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="latitude"
@@ -364,7 +384,8 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       )}
                     />
                   </div>
-                  <div className="text-center>
+
+                  <div className="text-center">
                     <Button
                       type="button"
                       variant="outline"
@@ -375,15 +396,16 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       Selecionar no Mapa
                     </Button>
                   </div>
+
                   {(form.watch('latitude') && form.watch('longitude')) && (
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4>
-                      <h4 className="text-lg">"Coordenadas Atuais</h4>
-                      <div className="text-sm text-gray-600 dark:text-gray-400>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <h4 className="font-medium text-sm mb-2">Coordenadas Atuais</h4>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
                         <div>Latitude: {form.watch('latitude')}</div>
                         <div>Longitude: {form.watch('longitude')}</div>
-                        <div className="mt-2>
+                        <div className="mt-2">
                           <a
-                            href={"
+                            href={`https://www.google.com/maps?q=${form.watch('latitude')},${form.watch('longitude')}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 underline"
@@ -395,7 +417,8 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                     </div>
                   )}
                 </TabsContent>
-                <TabsContent value="settings" className="space-y-4>
+
+                <TabsContent value="settings" className="space-y-4">
                   <FormField
                     control={form.control}
                     name="timezone"
@@ -405,7 +428,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Selecione o fuso horário" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -418,14 +441,15 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="requiresAuthorization"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
-                        <div className="space-y-0.5>
-                          <FormLabel className="text-lg">"Requer Autorização</FormLabel>
-                          <div className="text-sm text-muted-foreground>
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Requer Autorização</FormLabel>
+                          <div className="text-sm text-muted-foreground">
                             Local requer autorização especial para acesso
                           </div>
                         </div>
@@ -438,6 +462,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="accessInstructions"
@@ -457,22 +482,24 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                   />
                 </TabsContent>
               </Tabs>
-              <div className="flex justify-end gap-3 pt-6 border-t>
+
+              <div className="flex justify-end gap-3 pt-6 border-t">
                 <Button type="button" variant="outline" onClick={onClose}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Salvando...' : location?.id ? 'Atualizar' : '[TRANSLATION_NEEDED]'}
+                  {mutation.isPending ? 'Salvando...' : location?.id ? 'Atualizar' : 'Criar'}
                 </Button>
               </div>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+
       {/* Map Selector Modal */}
       <Dialog open={showMap} onOpenChange={setShowMap}>
-        <DialogContent className="max-w-5xl max-h-[90vh]" aria-describedby="map-selector-description>
-          <div id="map-selector-description" className="sr-only>
+        <DialogContent className="max-w-5xl max-h-[90vh]" aria-describedby="map-selector-description">
+          <div id="map-selector-description" className="sr-only">
             Seletor de mapa interativo para definir coordenadas de localização
           </div>
           <DialogHeader>

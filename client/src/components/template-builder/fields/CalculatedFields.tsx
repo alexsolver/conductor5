@@ -1,6 +1,8 @@
+
 /**
  * Componentes de campos calculados para o template builder
  */
+
 import React, { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
 import { Input } from '../../ui/input'
@@ -11,7 +13,6 @@ import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Calculator, 
   Code, 
   TrendingUp, 
@@ -22,6 +23,7 @@ import {
   CheckCircle,
   RefreshCw
 } from 'lucide-react'
+
 interface CalculationFormula {
   type: 'arithmetic' | 'conditional' | 'lookup' | 'date' | 'text' | 'custom'
   expression: string
@@ -29,6 +31,7 @@ interface CalculationFormula {
   format?: 'number' | 'currency' | 'percentage' | 'date' | 'text'
   precision?: number
 }
+
 interface CalculatedFieldProps {
   field: any
   value?: any
@@ -37,8 +40,8 @@ interface CalculatedFieldProps {
   allFields?: any[]
   formData?: Record<string, any>
 }
+
 export const CalculatedField: React.FC<CalculatedFieldProps> = ({
-  // Localization temporarily disabled
   field,
   value,
   onChange,
@@ -49,6 +52,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
   const [calculatedValue, setCalculatedValue] = useState<any>('')
   const [isCalculating, setIsCalculating] = useState(false)
   const [calculationError, setCalculationError] = useState<string | null>(null)
+
   // Funções de cálculo predefinidas
   const calculationFunctions = {
     // Funções matemáticas
@@ -78,28 +82,35 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
     isEmpty: (value: any) => value == null || value === '',
     isNotEmpty: (value: any) => value != null && value !== ''
   }
+
   // Executar cálculo
   const executeCalculation = useMemo(() => {
     if (!field.calculationFormula?.expression) return ''
+
     setIsCalculating(true)
     setCalculationError(null)
+
     try {
       const formula = field.calculationFormula as CalculationFormula
       let expression = formula.expression
+
       // Substituir referências de campos pelos valores
       formula.dependencies?.forEach(fieldId => {
         const fieldValue = formData[fieldId] || 0
         expression = expression.replace(
-          new RegExp("\\", 'g'), 
+          new RegExp(`\\{${fieldId}\\}`, 'g'), 
           String(fieldValue)
         )
       })
+
       // Criar contexto seguro para avaliação
       const context = {
         ...calculationFunctions,
         ...formData
       }
+
       let result: any
+
       switch (formula.type) {
         case 'arithmetic':
           // Avaliação matemática segura
@@ -125,35 +136,41 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
         default:
           result = evaluateArithmetic(expression)
       }
+
       // Aplicar formatação
       if (formula.format) {
         result = formatValue(result, formula.format, formula.precision)
       }
+
       setCalculatedValue(result)
       onChange?.(result)
       setIsCalculating(false)
       
       return result
+
     } catch (error) {
       setCalculationError(error instanceof Error ? error.message : 'Erro no cálculo')
       setIsCalculating(false)
       return ''
     }
   }, [field.calculationFormula, formData, onChange])
+
   useEffect(() => {
     executeCalculation
   }, [executeCalculation])
+
   // Funções de avaliação segura
   const evaluateArithmetic = (expression: string): number => {
     // Validar expressão (apenas números, operadores e parênteses)
     const safeExpression = expression.replace(/[^0-9+\-*/().\s]/g, '')
     
     try {
-      return Function(")`)()
+      return Function(`"use strict"; return (${safeExpression})`)()
     } catch {
       throw new Error('Expressão aritmética inválida')
     }
   }
+
   const evaluateConditional = (expression: string, context: any): any => {
     // Implementação simplificada de lógica condicional
     try {
@@ -167,6 +184,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       throw new Error('Expressão condicional inválida')
     }
   }
+
   const evaluateDate = (expression: string, context: any): string => {
     try {
       const func = new Function('context', `
@@ -180,6 +198,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       throw new Error('Expressão de data inválida')
     }
   }
+
   const evaluateText = (expression: string, context: any): string => {
     try {
       const func = new Function('context', `
@@ -192,6 +211,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       throw new Error('Expressão de texto inválida')
     }
   }
+
   const evaluateCustom = (expression: string, context: any): any => {
     try {
       const func = new Function('context', `
@@ -204,6 +224,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       throw new Error('Expressão customizada inválida')
     }
   }
+
   // Formatação de valores
   const formatValue = (value: any, format: string, precision?: number): string => {
     switch (format) {
@@ -236,6 +257,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
         return String(value)
     }
   }
+
   const getCalculationIcon = () => {
     const formula = field.calculationFormula as CalculationFormula
     switch (formula?.type) {
@@ -246,16 +268,17 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       default: return <Hash className="w-4 h-4" />
     }
   }
+
   return (
-    <div className="space-y-2>
-      <div className="flex items-center justify-between>
-        <Label className="text-sm font-medium>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">
           {field.label}
-          {field.isRequired && <span className="text-lg">"*</span>}
+          {field.isRequired && <span className="text-red-500 ml-1">*</span>}
         </Label>
         
-        <div className="flex items-center gap-1>
-          <Badge variant="secondary" className="text-xs>
+        <div className="flex items-center gap-1">
+          <Badge variant="secondary" className="text-xs">
             {getCalculationIcon()}
             Calculado
           </Badge>
@@ -263,10 +286,12 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
           {isCalculating && <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />}
         </div>
       </div>
+
       {field.description && (
-        <p className="text-lg">"{field.description}</p>
+        <p className="text-xs text-gray-500">{field.description}</p>
       )}
-      <div className="relative>
+
+      <div className="relative">
         <Input
           value={calculatedValue}
           readOnly
@@ -279,26 +304,29 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
           <DollarSign className="absolute right-3 top-2.5 w-4 h-4 text-gray-400" />
         )}
       </div>
+
       {calculationError && (
-        <Alert className="border-red-200 bg-red-50>
+        <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="w-4 h-4 text-red-600" />
-          <AlertDescription className="text-red-700 text-xs>
+          <AlertDescription className="text-red-700 text-xs">
             {calculationError}
           </AlertDescription>
         </Alert>
       )}
+
       {field.calculationFormula?.expression && (
-        <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded>
+        <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
           <strong>Fórmula:</strong> {field.calculationFormula.expression}
         </div>
       )}
+
       {field.calculationFormula?.dependencies?.length > 0 && (
-        <div className="flex flex-wrap gap-1>
-          <span className="text-lg">"Depende de:</span>
+        <div className="flex flex-wrap gap-1">
+          <span className="text-xs text-gray-500">Depende de:</span>
           {field.calculationFormula.dependencies.map((depId: string) => {
             const depField = allFields.find(f => f.id === depId)
             return (
-              <Badge key={depId} variant="outline" className="text-xs>
+              <Badge key={depId} variant="outline" className="text-xs">
                 {depField?.label || depId}
               </Badge>
             )
@@ -308,9 +336,11 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
     </div>
   )
 }
+
 // Hook para gerenciar campos calculados
 export const useCalculatedFields = (fields: any[], formData: Record<string, any>) => {
   const [calculatedValues, setCalculatedValues] = useState<Record<string, any>>({})
+
   useEffect(() => {
     const newValues: Record<string, any> = {}
     
@@ -322,11 +352,14 @@ export const useCalculatedFields = (fields: any[], formData: Record<string, any>
           // Por simplicidade, apenas copiando o valor
           newValues[field.id] = calculatedValues[field.id] || ''
         } catch (error) {
-          console.error('[TRANSLATION_NEEDED]', error)
+          console.error(`Error calculating field ${field.id}:`, error)
         }
       })
+
     setCalculatedValues(prev => ({ ...prev, ...newValues }))
   }, [fields, formData])
+
   return calculatedValues
 }
+
 export default CalculatedField

@@ -27,16 +27,19 @@ import { Mail, Calendar } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { addDays, format } from "date-fns";
+
 interface InviteUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tenantAdmin?: boolean;
 }
+
 interface UserGroup {
   id: string;
   name: string;
   description?: string;
 }
+
 export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: InviteUserDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -50,10 +53,12 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
     notes: "",
     sendEmail: true,
   });
+
   const { data: groupsData } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
     enabled: open,
   });
+
   const inviteUserMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       return apiRequest("/api/user-management/invitations", {
@@ -86,12 +91,14 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
       });
     },
   });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email.trim()) return;
     
     inviteUserMutation.mutate(formData);
   };
+
   const handleGroupToggle = (groupId: string, checked: boolean) => {
     if (checked) {
       setFormData(prev => ({
@@ -105,13 +112,15 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
       }));
     }
   };
+
   const expirationDate = addDays(new Date(), formData.expiresInDays);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg>
+      <DialogContent className="max-w-lg">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2>
+            <DialogTitle className="flex items-center space-x-2">
               <Mail className="h-5 w-5" />
               <span>{t("userManagement.inviteUser", "Convidar Usuário")}</span>
             </DialogTitle>
@@ -119,8 +128,9 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
               {t("userManagement.inviteUserDesc", "Envie um convite por email para um novo usuário")}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4>
-            <div className="space-y-2>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
               <Label htmlFor="email">{t("userManagement.email", "Email")} *</Label>
               <Input
                 id="email"
@@ -131,7 +141,8 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                 required
               />
             </div>
-            <div className="space-y-2>
+
+            <div className="space-y-2">
               <Label htmlFor="role">{t("userManagement.role", "Papel")} *</Label>
               <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger>
@@ -147,7 +158,8 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2>
+
+            <div className="space-y-2">
               <Label htmlFor="expiresInDays">{t("userManagement.expiration", "Expiração")}</Label>
               <Select 
                 value={formData.expiresInDays.toString()} 
@@ -164,27 +176,28 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                   <SelectItem value="30">{t("userManagement.expires30Days", "30 dias")}</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground flex items-center>
+              <p className="text-xs text-muted-foreground flex items-center">
                 <Calendar className="mr-1 h-3 w-3" />
                 {t("userManagement.expiresOn", "Expira em")}: {format(expirationDate, "dd/MM/yyyy HH:mm")}
               </p>
             </div>
+
             {groupsData?.groups && groupsData.groups.length > 0 && (
-              <div className="space-y-2>
+              <div className="space-y-2">
                 <Label>{t("userManagement.groups", "Grupos")} (opcional)</Label>
-                <ScrollArea className="h-32 border rounded-md p-3>
-                  <div className="space-y-2>
+                <ScrollArea className="h-32 border rounded-md p-3">
+                  <div className="space-y-2">
                     {groupsData.groups.map((group) => (
-                      <div key={group.id} className="flex items-center space-x-2>
+                      <div key={group.id} className="flex items-center space-x-2">
                         <Checkbox
-                          id={"invite-role-
+                          id={`group-${group.id}`}
                           checked={formData.groupIds.includes(group.id)}
                           onCheckedChange={(checked) => handleGroupToggle(group.id, !!checked)}
                         />
-                        <Label htmlFor={"
-                          <div className="text-lg">"{group.name}</div>
+                        <Label htmlFor={`group-${group.id}`} className="flex-1 cursor-pointer text-sm">
+                          <div className="font-medium">{group.name}</div>
                           {group.description && (
-                            <div className="text-lg">"{group.description}</div>
+                            <div className="text-xs text-muted-foreground">{group.description}</div>
                           )}
                         </Label>
                       </div>
@@ -193,13 +206,13 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                 </ScrollArea>
                 
                 {formData.groupIds.length > 0 && (
-                  <div className="mt-2>
-                    <p className="text-lg">"Grupos selecionados:</p>
-                    <div className="flex flex-wrap gap-1>
+                  <div className="mt-2">
+                    <p className="text-sm text-muted-foreground mb-1">Grupos selecionados:</p>
+                    <div className="flex flex-wrap gap-1">
                       {formData.groupIds.map((groupId) => {
                         const group = groupsData.groups?.find(g => g.id === groupId);
                         return group ? (
-                          <Badge key={groupId} variant="secondary" className="text-xs>
+                          <Badge key={groupId} variant="secondary" className="text-xs">
                             {group.name}
                           </Badge>
                         ) : null;
@@ -209,7 +222,8 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                 )}
               </div>
             )}
-            <div className="space-y-2>
+
+            <div className="space-y-2">
               <Label htmlFor="notes">{t("userManagement.notes", "Notas")} (opcional)</Label>
               <Textarea
                 id="notes"
@@ -219,17 +233,19 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                 rows={3}
               />
             </div>
-            <div className="flex items-center space-x-2>
+
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="sendEmail"
                 checked={formData.sendEmail}
                 onCheckedChange={(checked) => setFormData({ ...formData, sendEmail: !!checked })}
               />
-              <Label htmlFor="sendEmail" className="text-sm>
+              <Label htmlFor="sendEmail" className="text-sm">
                 {t("userManagement.sendInvitationEmail", "Enviar email de convite automaticamente")}
               </Label>
             </div>
           </div>
+
           <DialogFooter>
             <Button 
               type="button" 

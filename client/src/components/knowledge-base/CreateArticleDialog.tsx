@@ -11,28 +11,29 @@ import { Plus, X, BookOpen, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModernRichTextEditor } from "./ModernRichTextEditor";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface CreateArticleDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
 const categories = [
-  {
-  // Localization temporarily disabled
- value: 'technical_support', label: 'Suporte Técnico' },
+  { value: 'technical_support', label: 'Suporte Técnico' },
   { value: 'configuration', label: 'Configuração' },
   { value: 'troubleshooting', label: 'Resolução de Problemas' },
   { value: 'policies', label: 'Políticas' },
   { value: 'procedures', label: 'Procedimentos' },
   { value: 'faq', label: 'Perguntas Frequentes' },
   { value: 'training', label: 'Treinamento' },
-  { value: 'integrations', label: '[TRANSLATION_NEEDED]' }
+  { value: 'integrations', label: 'Integrações' }
 ];
+
 const accessLevels = [
   { value: 'public', label: 'Público' },
   { value: 'private', label: 'Privado' },
   { value: 'restricted', label: 'Restrito' }
 ];
+
 export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -41,8 +42,10 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
   const [published, setPublished] = useState(false);
   const [tags, setTags] = useState('');
   const [newTag, setNewTag] = useState(''); // This state might be redundant if tags are comma-separated input
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
   const createMutation = useMutation({
     mutationFn: async (data: { title: string; content: string; category: string; access_level: string; published: boolean; tags: string[]; status: string }) => {
       const response = await apiRequest('POST', '/api/knowledge-base/articles', data);
@@ -55,10 +58,12 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
     onSuccess: (result) => {
       if (result.success) {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "✅ Artigo criado com sucesso!",
           description: "O artigo foi salvo na base de conhecimento.",
         });
+
         queryClient.invalidateQueries({ queryKey: ['/api/knowledge-base/articles'] });
+
         // Reset form and close dialog
         setTitle('');
         setContent('');
@@ -69,7 +74,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         onClose();
       } else {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "❌ Erro ao criar artigo",
           description: result.message || "Ocorreu um erro inesperado.",
           variant: "destructive",
         });
@@ -78,29 +83,34 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
     onError: (error) => {
       console.error('❌ [CREATE-ARTICLE] Error:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "❌ Erro ao criar artigo",
         description: error instanceof Error ? error.message : "Não foi possível criar o artigo. Tente novamente.",
         variant: "destructive",
       });
     },
   });
+
   const addTag = () => {
     if (newTag.trim() && !tags.split(',').map(t => t.trim()).filter(Boolean).includes(newTag.trim())) {
-      setTags(prev => prev ? "
+      setTags(prev => prev ? `${prev}, ${newTag.trim()}` : newTag.trim());
       setNewTag('');
     }
   };
+
   const removeTag = (tagToRemove: string) => {
     setTags(prev => prev.split(',').map(t => t.trim()).filter(t => t !== tagToRemove).join(', '));
   };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addTag();
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!title.trim() || !content.trim() || !category) {
       toast({
         title: "⚠️ Campos obrigatórios",
@@ -109,7 +119,9 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
       });
       return;
     }
+
     setIsSubmitting(true);
+
     try {
       const articleData = {
         title: title.trim(),
@@ -120,29 +132,33 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
         status: published ? 'published' : 'draft'
       };
+
       console.log('📝 [CREATE-ARTICLE] Submitting:', articleData);
+
       createMutation.mutate(articleData);
+
     } catch (error) {
       console.error('❌ [CREATE-ARTICLE] Error:', error);
+
       // Tratamento mais específico de erros
       if (error instanceof Error) {
         if (error.message.includes('column') && error.message.includes('does not exist')) {
           toast({
-            title: '[TRANSLATION_NEEDED]',
-            description: '[TRANSLATION_NEEDED]',
+            title: "❌ Erro de configuração do banco de dados",
+            description: 'Erro de configuração do banco de dados. Contacte o suporte.',
             variant: "destructive",
           });
         } else {
           toast({
-            title: '[TRANSLATION_NEEDED]',
-            description: error.message || '[TRANSLATION_NEEDED]',
+            title: "❌ Erro ao criar artigo",
+            description: error.message || 'Erro interno do servidor',
             variant: "destructive",
           });
         }
       } else {
         toast({
-          title: '[TRANSLATION_NEEDED]',
-          description: '[TRANSLATION_NEEDED]',
+          title: "❌ Erro interno do servidor",
+          description: 'Erro interno do servidor',
           variant: "destructive",
         });
       }
@@ -151,11 +167,12 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
       // No explicit setIsSubmitting(false) here as it's managed by tanstack query's mutation state.
     }
   };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="create-article-dialog>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="create-article-dialog">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2>
+          <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-600" />
             Criar Novo Artigo
           </DialogTitle>
@@ -163,10 +180,11 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
             Adicione um novo artigo à base de conhecimento para ajudar sua equipe.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
-          <div className="space-y-2>
-            <Label htmlFor="title" className="text-sm font-medium>
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-medium">
               Título *
             </Label>
             <Input
@@ -177,14 +195,15 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
               data-testid="input-article-title"
             />
           </div>
+
           {/* Category */}
-          <div className="space-y-2>
-            <Label htmlFor="category" className="text-sm font-medium>
+          <div className="space-y-2">
+            <Label htmlFor="category" className="text-sm font-medium">
               Categoria *
             </Label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger data-testid="select-article-category>
-                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+              <SelectTrigger data-testid="select-article-category">
+                <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
@@ -195,13 +214,14 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
               </SelectContent>
             </Select>
           </div>
+
           {/* Access Level */}
-          <div className="space-y-2>
-            <Label htmlFor="access_level" className="text-sm font-medium>
+          <div className="space-y-2">
+            <Label htmlFor="access_level" className="text-sm font-medium">
               Nível de Acesso
             </Label>
             <Select value={access_level} onValueChange={(value: 'public' | 'private' | 'restricted') => setAccessLevel(value)}>
-              <SelectTrigger data-testid="select-access-level>
+              <SelectTrigger data-testid="select-access-level">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -213,9 +233,10 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
               </SelectContent>
             </Select>
           </div>
+
           {/* Content */}
-          <div className="space-y-2>
-            <Label htmlFor="content" className="text-sm font-medium>
+          <div className="space-y-2">
+            <Label htmlFor="content" className="text-sm font-medium">
               Conteúdo *
             </Label>
             <ModernRichTextEditor
@@ -225,12 +246,13 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
               className="min-h-[300px]"
             />
           </div>
+
           {/* Tags */}
-          <div className="space-y-2>
-            <Label htmlFor="tags" className="text-sm font-medium>
+          <div className="space-y-2">
+            <Label htmlFor="tags" className="text-sm font-medium">
               Tags
             </Label>
-            <div className="flex gap-2>
+            <div className="flex gap-2">
               <Input
                 placeholder="Adicionar tag..."
                 value={newTag}
@@ -238,20 +260,20 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
                 onKeyPress={handleKeyPress}
                 data-testid="input-new-tag"
               />
-              <Button type="button" onClick={addTag} size="sm" variant="outline" data-testid="button-add-tag>
+              <Button type="button" onClick={addTag} size="sm" variant="outline" data-testid="button-add-tag">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
             {tags && (
-              <div className="flex flex-wrap gap-2 mt-2>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {tags.split(',').map((tag) => (
-                  <Badge key={tag.trim()} variant="secondary" className="flex items-center gap-1" data-testid={"
+                  <Badge key={tag.trim()} variant="secondary" className="flex items-center gap-1" data-testid={`tag-${tag.trim()}`}>
                     {tag.trim()}
                     <button
                       type="button"
                       onClick={() => removeTag(tag.trim())}
                       className="ml-1 hover:bg-gray-400 rounded-full p-0.5"
-                      data-testid={"
+                      data-testid={`remove-tag-${tag.trim()}`}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -260,21 +282,23 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
               </div>
             )}
           </div>
+
           {/* Published */}
-          <div className="flex items-center space-x-2>
+          <div className="flex items-center space-x-2">
             <Switch
               id="published"
               checked={published}
               onCheckedChange={setPublished}
               data-testid="switch-published"
             />
-            <Label htmlFor="published" className="text-sm font-medium>
+            <Label htmlFor="published" className="text-sm font-medium">
               Publicar imediatamente
             </Label>
           </div>
+
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t>
-            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel">
               Cancelar
             </Button>
             <Button

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-// import useLocalization from '@/hooks/useLocalization';
+
 // Import user management components from old system
 import { UserList } from "@/components/user-management/UserList";
 import { UserGroups } from "@/components/user-management/UserGroups";
@@ -58,8 +58,8 @@ import {
   Monitor
 } from "lucide-react";
 import { Link } from "wouter";
+
 export default function TeamManagement() {
-  // Localization temporarily disabled
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
@@ -69,11 +69,13 @@ export default function TeamManagement() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [filterGroup, setFilterGroup] = useState("all");
+
   // Dialog states for user management
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+
   // Handle successful user creation
   const handleUserCreated = () => {
     setShowCreateUser(false);
@@ -84,6 +86,7 @@ export default function TeamManagement() {
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
   };
+
   // Handle successful user invitation
   const handleUserInvited = () => {
     setShowInviteUser(false);
@@ -94,60 +97,72 @@ export default function TeamManagement() {
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
   };
+
   // Fetch team overview data
   const { data: teamOverview, isLoading: overviewLoading } = useQuery({
     queryKey: ['/api/team-management/overview'],
     enabled: !!user,
   });
+
   // Fetch team members
   const { data: teamMembers, isLoading: membersLoading } = useQuery({
     queryKey: ['/api/team-management/members'],
     enabled: !!user,
   });
+
   // Fetch team stats
   const { data: teamStats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/team-management/stats'],
     enabled: !!user,
   });
+
   // Fetch performance data
   const { data: performanceData } = useQuery({
     queryKey: ['/api/team-management/performance'],
     enabled: !!user,
   });
+
   // Fetch skills matrix
   const { data: skillsMatrix, isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/team-management/skills-matrix'],
     enabled: !!user,
   });
+
   // Fetch old system data for consolidated functionality
   const { data: tenantStats, isLoading: tenantStatsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/team/stats"],
     enabled: !!user,
     refetchInterval: 30000,
   });
+
   // Usar user-management/users que funciona em vez de tenant-admin/team/members
   const { data: userManagementData, isLoading: tenantMembersLoading } = useQuery({
     queryKey: ["/api/user-management/users"],
     enabled: !!user,
     refetchInterval: 60000,
   });
+
   // Extrair users do objeto retornado
   const tenantMembers = userManagementData?.users || [];
+
   // Fetch groups for filter
   const { data: groupsData } = useQuery({
     queryKey: ['/api/user-management/groups'],
     enabled: !!user,
   });
+
   // Fetch departments for filter
   const { data: departmentsData } = useQuery({
     queryKey: ['/api/team-management/departments'],
     enabled: !!user,
   });
+
   // Fetch roles for filter
   const { data: rolesData } = useQuery({
     queryKey: ['/api/team-management/roles'],
     enabled: !!user,
   });
+
   // Filter team members - usando tenantMembers que funciona
   const membersArray = Array.isArray(tenantMembers) ? tenantMembers : 
                        (tenantMembers && Array.isArray(tenantMembers.members) ? tenantMembers.members : []);
@@ -155,7 +170,7 @@ export default function TeamManagement() {
   const filteredMembers = membersArray.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         " ${member.lastName || ''.toLowerCase().includes(searchTerm.toLowerCase());
+                         `${member.firstName || ''} ${member.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = filterDepartment === "all" || 
                              member.department === filterDepartment ||
                              member.departmentName === filterDepartment;
@@ -168,12 +183,14 @@ export default function TeamManagement() {
                         (Array.isArray(member.groupIds) && member.groupIds.some(groupId => 
                           String(groupId) === String(filterGroup)
                         ));
+
     return matchesSearch && matchesDepartment && matchesStatus && matchesRole && matchesGroup;
   });
+
   // Mutation to toggle member status
   const toggleMemberStatusMutation = useMutation({
     mutationFn: async ({ memberId, newStatus }: { memberId: string, newStatus: string }) => {
-      return apiRequest('PUT', "/status`, { status: newStatus });
+      return apiRequest('PUT', `/api/team-management/members/${memberId}/status`, { status: newStatus });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/members'] });
@@ -184,18 +201,19 @@ export default function TeamManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Atualizar Status',
+        title: "Erro ao atualizar status",
         description: error?.message || "Falha ao atualizar o status do membro.",
         variant: "destructive",
       });
     },
   });
+
   // Handle edit member
   const handleEditMember = (member: any) => {
     console.log('TeamManagement - Opening edit dialog with member:', member);
     if (!member || !member.id) {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -204,11 +222,12 @@ export default function TeamManagement() {
     setEditingMember(member);
     setShowEditDialog(true);
   };
+
   // Handle toggle member status
   const handleToggleMemberStatus = async (member: any) => {
     if (!member || !member.id) {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -221,22 +240,24 @@ export default function TeamManagement() {
     } catch (error) {
       console.error('Error toggling member status:', error);
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao alterar status do membro",
         variant: "destructive",
       });
     }
   };
+
   // Handle export team data
   const handleExportTeamData = () => {
     if (!teamMembers || teamMembers.length === 0) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Nenhum dado para exportar",
         description: "Não há membros da equipe para exportar.",
         variant: "destructive",
       });
       return;
     }
+
     try {
       // Prepare data for export
       const exportData = filteredMembers.map(member => ({
@@ -246,63 +267,68 @@ export default function TeamManagement() {
         Departamento: member.department,
         Status: member.status === 'active' ? 'Ativo' : member.status === 'inactive' ? 'Inativo' : 'Pendente',
         Telefone: member.phone,
-        Performance: "%`,
+        Performance: `${member.performance}%`,
         Metas: member.goals,
         'Metas Concluídas': member.completedGoals,
         'Última Atividade': new Date(member.lastActive).toLocaleDateString('pt-BR')
       }));
+
       // Convert to CSV
       const headers = Object.keys(exportData[0]).join(',');
       const csvContent = [
         headers,
-        ...exportData.map(row => Object.values(row).map(value => ""`).join(','))
+        ...exportData.map(row => Object.values(row).map(value => `"${value}"`).join(','))
       ].join('\n');
+
       // Create and download file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', ".csv`);
+      link.setAttribute('download', `equipe_${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
       toast({
         title: "Dados exportados",
-        description: " membros exportados com sucesso.`,
+        description: `${exportData.length} membros exportados com sucesso.`,
       });
     } catch (error) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro na exportação",
         description: "Falha ao exportar os dados da equipe.",
         variant: "destructive",
       });
     }
   };
+
   if (overviewLoading || membersLoading || statsLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"</div>
-          <div className="p-4"
+      <div className="p-4 space-y-4">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="text-lg">"</div>
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
             ))}
           </div>
-          <div className="text-lg">"</div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="p-4"
+    <div className="p-4 space-y-6">
       {/* Header */}
-      <div className="p-4"
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg">"Gestão de Equipe</h1>
-          <p className="text-lg">"Sistema integrado de gestão de recursos humanos</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestão de Equipe</h1>
+          <p className="text-gray-600 dark:text-gray-400">Sistema integrado de gestão de recursos humanos</p>
         </div>
-        <div className="p-4"
+        <div className="flex space-x-2">
           <Button 
             onClick={() => setShowCreateUser(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
@@ -327,14 +353,15 @@ export default function TeamManagement() {
           </Button>
         </div>
       </div>
+
       {/* Quick Stats Cards */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4"
-            <div className="p-4"
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg">"Total de Membros</p>
-                <p className="p-4"
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Membros</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {teamStats?.totalMembers ?? 0}
                 </p>
               </div>
@@ -342,12 +369,13 @@ export default function TeamManagement() {
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-4"
-            <div className="p-4"
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg">"Ativos Hoje</p>
-                <p className="p-4"
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ativos Hoje</p>
+                <p className="text-2xl font-bold text-green-600">
                   {teamStats?.activeToday ?? 0}
                 </p>
               </div>
@@ -355,12 +383,13 @@ export default function TeamManagement() {
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-4"
-            <div className="p-4"
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg">"Pending Approval</p>
-                <p className="p-4"
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Approval</p>
+                <p className="text-2xl font-bold text-orange-600">
                   {teamStats?.pendingApprovals ?? 0}
                 </p>
               </div>
@@ -368,12 +397,13 @@ export default function TeamManagement() {
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-4"
-            <div className="p-4"
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg">"Performance Média</p>
-                <p className="p-4"
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Performance Média</p>
+                <p className="text-2xl font-bold text-purple-600">
                   {teamStats?.averagePerformance ?? 0}%
                 </p>
               </div>
@@ -382,205 +412,210 @@ export default function TeamManagement() {
           </CardContent>
         </Card>
       </div>
+
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
-        <TabsList className="p-4"
-          <TabsTrigger value="overview" className="p-4"
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-10">
+          <TabsTrigger value="overview" className="flex items-center space-x-1">
             <BarChart3 className="h-3 w-3" />
-            <span className="text-lg">"Visão Geral</span>
+            <span className="text-xs">Visão Geral</span>
           </TabsTrigger>
-          <TabsTrigger value="members" className="p-4"
+          <TabsTrigger value="members" className="flex items-center space-x-1">
             <Users className="h-3 w-3" />
-            <span className="text-lg">"Membros</span>
+            <span className="text-xs">Membros</span>
           </TabsTrigger>
-          <TabsTrigger value="groups" className="p-4"
+          <TabsTrigger value="groups" className="flex items-center space-x-1">
             <Building className="h-3 w-3" />
-            <span className="text-lg">"Grupos</span>
+            <span className="text-xs">Grupos</span>
           </TabsTrigger>
-          <TabsTrigger value="roles" className="p-4"
+          <TabsTrigger value="roles" className="flex items-center space-x-1">
             <Shield className="h-3 w-3" />
-            <span className="text-lg">"Papéis</span>
+            <span className="text-xs">Papéis</span>
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="p-4"
+          <TabsTrigger value="invitations" className="flex items-center space-x-1">
             <Mail className="h-3 w-3" />
-            <span className="text-lg">"Convites</span>
+            <span className="text-xs">Convites</span>
           </TabsTrigger>
-          <TabsTrigger value="sessions" className="p-4"
+          <TabsTrigger value="sessions" className="flex items-center space-x-1">
             <Monitor className="h-3 w-3" />
-            <span className="text-lg">"Sessões</span>
+            <span className="text-xs">Sessões</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="p-4"
+          <TabsTrigger value="activity" className="flex items-center space-x-1">
             <Activity className="h-3 w-3" />
-            <span className="text-lg">"Atividade</span>
+            <span className="text-xs">Atividade</span>
           </TabsTrigger>
-          <TabsTrigger value="performance" className="p-4"
+          <TabsTrigger value="performance" className="flex items-center space-x-1">
             <Target className="h-3 w-3" />
-            <span className="text-lg">"Performance</span>
+            <span className="text-xs">Performance</span>
           </TabsTrigger>
-          <TabsTrigger value="skills" className="p-4"
+          <TabsTrigger value="skills" className="flex items-center space-x-1">
             <Award className="h-3 w-3" />
-            <span className="text-lg">"Habilidades</span>
+            <span className="text-xs">Habilidades</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="p-4"
+          <TabsTrigger value="analytics" className="flex items-center space-x-1">
             <TrendingUp className="h-3 w-3" />
-            <span className="text-lg">"Analytics</span>
+            <span className="text-xs">Analytics</span>
           </TabsTrigger>
         </TabsList>
+
         {/* Overview Tab */}
-        <TabsContent value="overview>
-          <div className="p-4"
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Department Distribution */}
             <Card>
               <CardHeader>
                 <CardTitle>Distribuição por Departamento</CardTitle>
                 <CardDescription>Membros ativos por departamento</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
+              <CardContent className="space-y-4">
                 {overviewLoading ? (
-                  <div className="p-4"
+                  <div className="space-y-3">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="p-4"
-                        <div className="text-lg">"</div>
-                        <div className="text-lg">"</div>
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   Array.isArray(teamOverview?.departments) ? teamOverview.departments.map((dept: any) => (
-                    <div key={dept.name} className="p-4"
-                      <div className="p-4"
+                    <div key={dept.name} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
                         <Building className="h-4 w-4 text-gray-500" />
-                        <span className="text-lg">"{dept.name}</span>
+                        <span className="font-medium">{dept.name}</span>
                       </div>
-                      <div className="p-4"
-                        <span className="text-lg">"{dept.count}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">{dept.count}</span>
                         <Progress value={dept.percentage} className="w-20" />
                       </div>
                     </div>
                   )) : (
-                    <div className="p-4"
+                    <div className="text-center py-4 text-gray-500">
                       Nenhum departamento encontrado
                     </div>
                   )
                 )}
               </CardContent>
             </Card>
+
             {/* Recent Activities */}
             <Card>
               <CardHeader>
                 <CardTitle>Atividades Recentes</CardTitle>
                 <CardDescription>Últimas ações da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
+              <CardContent className="space-y-3">
                 {overviewLoading ? (
-                  <div className="p-4"
+                  <div className="space-y-3">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="p-4"
-                        <div className="text-lg">"</div>
-                        <div className="p-4"
-                          <div className="text-lg">"</div>
-                          <div className="text-lg">"</div>
+                      <div key={i} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="flex-1 space-y-1">
+                          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   Array.isArray(teamOverview?.recentActivities) ? teamOverview.recentActivities.map((activity: any, index: number) => (
-                    <div key={index} className="p-4"
+                    <div key={index} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
                       <Activity className="h-4 w-4 text-blue-500" />
-                      <div className="p-4"
-                        <p className="text-lg">"{activity.description}</p>
-                        <p className="p-4"
-                          {activity.user && " - "
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{activity.description}</p>
+                        <p className="text-xs text-gray-500">
+                          {activity.user && `${activity.user} - `}
                           {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')}
                         </p>
                       </div>
                     </div>
                   )) : (
-                    <div className="p-4"
+                    <div className="text-center py-4 text-gray-500">
                       Nenhuma atividade recente
                     </div>
                   )
                 )}
               </CardContent>
             </Card>
+
             {/* Skills Overview */}
             <Card>
               <CardHeader>
                 <CardTitle>Matriz de Habilidades</CardTitle>
                 <CardDescription>Competências da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
+              <CardContent className="space-y-4">
                 {skillsLoading ? (
-                  <div className="p-4"
+                  <div className="space-y-3">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="p-4"
-                        <div className="text-lg">"</div>
-                        <div className="text-lg">"</div>
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   Array.isArray(skillsMatrix?.topSkills) ? skillsMatrix.topSkills.map((skill: any) => (
-                    <div key={skill.name} className="p-4"
-                      <div className="p-4"
+                    <div key={skill.name} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
                         <Award className="h-4 w-4 text-yellow-500" />
-                        <span className="text-lg">"{skill.name}</span>
+                        <span className="font-medium">{skill.name}</span>
                       </div>
-                      <div className="p-4"
-                        <span className="text-lg">"{skill.count} pessoas</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">{skill.count} pessoas</span>
                         <Badge variant={skill.level === 'Avançado' ? 'default' : 'secondary'}>
                           {skill.level}
                         </Badge>
                       </div>
                     </div>
                   )) : (
-                    <div className="p-4"
+                    <div className="text-center py-4 text-gray-500">
                       Nenhuma habilidade encontrada
                     </div>
                   )
                 )}
               </CardContent>
             </Card>
+
             {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>
                 <CardDescription>Módulos integrados do sistema</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
-                <Link href="/technical-skills>
-                  <Button variant="outline" className="p-4"
+              <CardContent className="grid grid-cols-2 gap-3">
+                <Link href="/technical-skills">
+                  <Button variant="outline" className="w-full justify-start">
                     <Award className="h-4 w-4 mr-2" />
                     Habilidades Técnicas
                   </Button>
                 </Link>
-                <Link href="/agenda-manager>
-                  <Button variant="outline" className="p-4"
+                <Link href="/agenda-manager">
+                  <Button variant="outline" className="w-full justify-start">
                     <Calendar className="h-4 w-4 mr-2" />
                     Agenda de Campo
                   </Button>
                 </Link>
-                <Link href="/timecard>
-                  <Button variant="outline" className="p-4"
+                <Link href="/timecard">
+                  <Button variant="outline" className="w-full justify-start">
                     <Clock className="h-4 w-4 mr-2" />
                     Controle de Ponto
                   </Button>
                 </Link>
-                <Link href="/holiday-calendar>
-                  <Button variant="outline" className="p-4"
+                <Link href="/holiday-calendar">
+                  <Button variant="outline" className="w-full justify-start">
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendário Feriados
                   </Button>
                 </Link>
-                <Link href="/hour-bank>
-                  <Button variant="outline" className="p-4"
+                <Link href="/hour-bank">
+                  <Button variant="outline" className="w-full justify-start">
                     <Clock className="h-4 w-4 mr-2" />
                     Banco de Horas
                   </Button>
                 </Link>
-                <Link href="/tenant-admin/multilocation>
-                  <Button variant="outline" className="p-4"
+                <Link href="/tenant-admin/multilocation">
+                  <Button variant="outline" className="w-full justify-start">
                     <Globe className="h-4 w-4 mr-2" />
                     Multi-localização
                   </Button>
@@ -589,8 +624,9 @@ export default function TeamManagement() {
             </Card>
           </div>
         </TabsContent>
+
         {/* Members Tab */}
-        <TabsContent value="members>
+        <TabsContent value="members">
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Membros da Equipe</CardTitle>
@@ -600,10 +636,10 @@ export default function TeamManagement() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className="p-4"
-                <div className="p-4"
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+                <div className="lg:col-span-2">
                   <Label htmlFor="search">Buscar membros</Label>
-                  <div className="p-4"
+                  <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="search"
@@ -618,7 +654,7 @@ export default function TeamManagement() {
                   <Label htmlFor="department">Departamento</Label>
                   <Select value={filterDepartment} onValueChange={setFilterDepartment}>
                     <SelectTrigger>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -654,7 +690,7 @@ export default function TeamManagement() {
                   <Label htmlFor="group">Grupo</Label>
                   <Select value={filterGroup} onValueChange={setFilterGroup}>
                     <SelectTrigger>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -664,7 +700,7 @@ export default function TeamManagement() {
                           <SelectItem key={group.id} value={String(group.id)}>
                             {group.name}
                             {group.description && (
-                              <span className="p-4"
+                              <span className="text-xs text-gray-500 ml-1">
                                 - {group.description}
                               </span>
                             )}
@@ -681,7 +717,7 @@ export default function TeamManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -692,61 +728,67 @@ export default function TeamManagement() {
                   </Select>
                 </div>
               </div>
+
               {/* Members List */}
-              <div className="p-4"
+              <div className="bg-white dark:bg-gray-800 border rounded-lg">
                 {/* Table Header */}
-                <div className="p-4"
-                  <div className="text-lg">"Membro</div>
-                  <div className="text-lg">"Posição</div>
-                  <div className="text-lg">"Departamento</div>
-                  <div className="text-lg">"Email</div>
-                  <div className="text-lg">"Status</div>
-                  <div className="text-lg">"Ações</div>
+                <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 dark:bg-gray-900 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="col-span-3">Membro</div>
+                  <div className="col-span-2">Posição</div>
+                  <div className="col-span-2">Departamento</div>
+                  <div className="col-span-2">Email</div>
+                  <div className="col-span-1">Status</div>
+                  <div className="col-span-2 text-right">Ações</div>
                 </div>
+
                 {/* Table Body */}
-                <div className="p-4"
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {filteredMembers && filteredMembers.length > 0 ? filteredMembers.map((member: any) => (
-                    <div key={member.id} className="p-4"
+                    <div key={member.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                       {/* Member Info */}
-                      <div className="p-4"
-                        <div className="p-4"
-                          <span className="p-4"
+                      <div className="col-span-3 flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-semibold text-sm">
                             {(member.name || member.email || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div className="p-4"
-                          <h3 className="p-4"
-                            {member.name || "
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário'}
                           </h3>
-                          <p className="p-4"
+                          <p className="text-xs text-gray-500 truncate">
                             ID: {member.id ? member.id.slice(-8) : 'N/A'}
                           </p>
                         </div>
                       </div>
+
                       {/* Position */}
-                      <div className="p-4"
-                        <span className="p-4"
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-sm text-gray-900 dark:text-gray-300 truncate">
                           {member.position || 'Não informado'}
                         </span>
                       </div>
+
                       {/* Department */}
-                      <div className="p-4"
-                        <span className="p-4"
+                      <div className="col-span-2 flex items-center">
+                        <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
                           {member.department || 'Geral'}
                         </span>
                       </div>
+
                       {/* Email */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="col-span-2 flex items-center">
+                        <div className="flex items-center space-x-1 min-w-0">
                           <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                          <span className="p-4"
+                          <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
                             {member.email}
                           </span>
                         </div>
                       </div>
+
                       {/* Status */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="col-span-1 flex items-center">
+                        <div className="flex items-center space-x-2">
                           <Badge 
                             variant={
                               (member.status === 'active' || member.isActive) ? 'default' : 
@@ -768,8 +810,9 @@ export default function TeamManagement() {
                           )}
                         </div>
                       </div>
+
                       {/* Actions */}
-                      <div className="p-4"
+                      <div className="col-span-2 flex items-center justify-end space-x-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -801,108 +844,113 @@ export default function TeamManagement() {
                       </div>
                     </div>
                   )) : (
-                    <div className="p-4"
+                    <div className="p-8 text-center">
                       <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="p-4"
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                         Nenhum membro encontrado
                       </h3>
-                      <p className="p-4"
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         {teamMembers && teamMembers.length === 0 
-                          ? '[TRANSLATION_NEEDED]'
+                          ? "Nenhum membro foi adicionado à equipe ainda."
                           : "Ajuste os filtros para encontrar membros da equipe."
                         }
                       </p>
                     </div>
                   )}
                 </div>
+
                 {/* Empty State */}
                 {filteredMembers.length === 0 && (
-                  <div className="p-4"
+                  <div className="p-8 text-center">
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="p-4"
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                       Nenhum membro encontrado
                     </h3>
-                    <p className="p-4"
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Ajuste os filtros ou adicione novos membros à equipe.
                     </p>
                   </div>
                 )}
               </div>
+
               {filteredMembers.length === 0 && (
-                <div className="p-4"
+                <div className="text-center py-8">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg">"Nenhum membro encontrado com os filtros aplicados</p>
+                  <p className="text-gray-500">Nenhum membro encontrado com os filtros aplicados</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
+
         {/* Performance Tab */}
-        <TabsContent value="performance>
-          <div className="p-4"
+        <TabsContent value="performance">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Avaliação de Performance</CardTitle>
                 <CardDescription>Métricas de desempenho da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
+              <CardContent className="space-y-4">
                 {Array.isArray(performanceData?.individuals) ? performanceData.individuals.map((person: any) => (
-                  <div key={person.id} className="p-4"
-                    <div className="p-4"
-                      <div className="p-4"
-                        <span className="p-4"
+                  <div key={person.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
                           {person.name?.charAt(0)}
                         </span>
                       </div>
                       <div>
-                        <p className="text-lg">"{person.name}</p>
-                        <p className="text-lg">"{person.role}</p>
+                        <p className="font-medium">{person.name}</p>
+                        <p className="text-sm text-gray-600">{person.role}</p>
                       </div>
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center space-x-2">
                       <Progress value={person.performance} className="w-20" />
-                      <span className="text-lg">"{person.performance}%</span>
+                      <span className="text-sm font-medium">{person.performance}%</span>
                     </div>
                   </div>
                 )) : []}
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Metas e Objetivos</CardTitle>
                 <CardDescription>Progresso das metas da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
+              <CardContent className="space-y-4">
                 {/* Dynamic goals data from performance API */}
                 {Array.isArray(performanceData?.goals) && performanceData.goals.length > 0 ? (
                   performanceData.goals.map((goal: any, index: number) => (
-                    <div key={index} className="p-4"
-                      <div className="p-4"
-                        <h4 className="text-lg">"{goal.name}</h4>
+                    <div key={index} className="p-3 rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">{goal.name}</h4>
                         <Badge variant={goal.percentage >= 100 ? 'default' : goal.percentage >= 75 ? 'secondary' : 'destructive'}>
                           {goal.percentage >= 100 ? 'Concluído' : goal.percentage >= 75 ? 'Em Progresso' : 'Atrasado'}
                         </Badge>
                       </div>
                       <Progress value={goal.percentage} className="mb-2" />
-                      <div className="p-4"
+                      <div className="flex justify-between text-sm text-gray-600">
                         <span>{goal.completed} de {goal.total}</span>
                         <span>{goal.percentage}%</span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="p-4"
+                  <div className="text-center py-8 text-gray-500">
                     <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p>Nenhuma meta encontrada</p>
-                    <p className="text-lg">"Configure metas para a equipe</p>
+                    <p className="text-sm">Configure metas para a equipe</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
+
         {/* Skills Tab */}
-        <TabsContent value="skills>
+        <TabsContent value="skills">
           <Card>
             <CardHeader>
               <CardTitle>Matriz de Habilidades da Equipe</CardTitle>
@@ -911,12 +959,12 @@ export default function TeamManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="text-center py-8">
                 <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="p-4"
+                <p className="text-gray-600 mb-4">
                   Integração com o módulo de Habilidades Técnicas
                 </p>
-                <Link href="/technical-skills>
+                <Link href="/technical-skills">
                   <Button>
                     <Award className="h-4 w-4 mr-2" />
                     Acessar Habilidades Técnicas
@@ -926,28 +974,34 @@ export default function TeamManagement() {
             </CardContent>
           </Card>
         </TabsContent>
+
         {/* Groups Tab */}
-        <TabsContent value="groups" className="p-4"
+        <TabsContent value="groups" className="space-y-4">
           <UserGroups tenantAdmin={true} />
         </TabsContent>
+
         {/* Roles Tab */}
-        <TabsContent value="roles" className="p-4"
+        <TabsContent value="roles" className="space-y-4">
           <CustomRoles tenantAdmin={true} />
         </TabsContent>
+
         {/* Invitations Tab */}
-        <TabsContent value="invitations" className="p-4"
+        <TabsContent value="invitations" className="space-y-4">
           <UserInvitations tenantAdmin={true} />
         </TabsContent>
+
         {/* Sessions Tab */}
-        <TabsContent value="sessions" className="p-4"
+        <TabsContent value="sessions" className="space-y-4">
           <UserSessions tenantAdmin={true} />
         </TabsContent>
+
         {/* Activity Tab */}
-        <TabsContent value="activity" className="p-4"
+        <TabsContent value="activity" className="space-y-4">
           <UserActivity tenantAdmin={true} />
         </TabsContent>
+
         {/* Schedules Tab */}
-        <TabsContent value="schedules>
+        <TabsContent value="schedules">
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Escalas e Horários</CardTitle>
@@ -956,25 +1010,26 @@ export default function TeamManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
-                <div className="p-4"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="p-4"
+                  <p className="text-gray-600 mb-4">
                     Agenda de Campo para técnicos
                   </p>
-                  <Link href="/agenda-manager>
+                  <Link href="/agenda-manager">
                     <Button>
                       <Calendar className="h-4 w-4 mr-2" />
                       Acessar Agenda de Campo
                     </Button>
                   </Link>
                 </div>
-                <div className="p-4"
+
+                <div className="text-center py-8">
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="p-4"
+                  <p className="text-gray-600 mb-4">
                     Controle de Ponto e Jornadas
                   </p>
-                  <Link href="/timecard>
+                  <Link href="/timecard">
                     <Button>
                       <Clock className="h-4 w-4 mr-2" />
                       Acessar Timecard
@@ -985,8 +1040,9 @@ export default function TeamManagement() {
             </CardContent>
           </Card>
         </TabsContent>
+
         {/* Absence Tab */}
-        <TabsContent value="absence>
+        <TabsContent value="absence">
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Ausências e Férias</CardTitle>
@@ -995,25 +1051,26 @@ export default function TeamManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
-                <div className="p-4"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="p-4"
+                  <p className="text-gray-600 mb-4">
                     Gestão de Ausências
                   </p>
-                  <Link href="/absence-management>
+                  <Link href="/absence-management">
                     <Button>
                       <Calendar className="h-4 w-4 mr-2" />
                       Acessar Gestão de Ausências
                     </Button>
                   </Link>
                 </div>
-                <div className="p-4"
+
+                <div className="text-center py-8">
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="p-4"
+                  <p className="text-gray-600 mb-4">
                     Banco de Horas
                   </p>
-                  <Link href="/hour-bank>
+                  <Link href="/hour-bank">
                     <Button>
                       <Clock className="h-4 w-4 mr-2" />
                       Acessar Banco de Horas
@@ -1024,38 +1081,40 @@ export default function TeamManagement() {
             </CardContent>
           </Card>
         </TabsContent>
+
         {/* Analytics Tab */}
-        <TabsContent value="analytics>
-          <div className="p-4"
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Analytics Avançados de RH</CardTitle>
                 <CardDescription>Métricas e insights da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="space-y-4">
+                <div className="text-center py-8">
                   <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="p-4"
+                  <p className="text-gray-600 mb-4">
                     Dashboard de analytics em desenvolvimento
                   </p>
-                  <p className="p-4"
+                  <p className="text-sm text-gray-500">
                     Incluirá métricas de produtividade, turnover, satisfação e retenção
                   </p>
                 </div>
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Compliance e Auditoria</CardTitle>
                 <CardDescription>Status de conformidade da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="space-y-4">
+                <div className="text-center py-8">
                   <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="p-4"
+                  <p className="text-gray-600 mb-4">
                     Sistema de compliance em desenvolvimento
                   </p>
-                  <p className="p-4"
+                  <p className="text-sm text-gray-500">
                     Tracking de conformidade, auditoria e riscos
                   </p>
                 </div>
@@ -1064,6 +1123,7 @@ export default function TeamManagement() {
           </div>
         </TabsContent>
       </Tabs>
+
       {/* User Management Dialogs */}
       <CreateUserDialog 
         open={showCreateUser} 

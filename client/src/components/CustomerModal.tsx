@@ -19,9 +19,8 @@ import { CustomerLocationManager } from './CustomerLocationManager';
 import { LocationModal } from './LocationModal';
 import DynamicCustomFields from '@/components/DynamicCustomFields';
 import { useCompanyFilter } from '@/hooks/useCompanyFilter';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 const customerSchema = z.object({
-  // Localization temporarily disabled
   // Tipo e status
   customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
   status: z.enum(['Ativo', 'Inativo', 'active', 'inactive']).transform((val) => {
@@ -30,27 +29,33 @@ const customerSchema = z.object({
     if (val === 'inactive') return 'Inativo';
     return val;
   }).default('Ativo'),
+
   // Informações básicas
   email: z.string().email('Email inválido'),
   description: z.string().optional(),
   internalCode: z.string().optional(),
+
   // Dados pessoa física
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   cpf: z.string().optional(),
+
   // Dados pessoa jurídica
   companyName: z.string().optional(),
   cnpj: z.string().optional(),
+
   // Contatos
   contactPerson: z.string().optional(),
   responsible: z.string().optional(),
   phone: z.string().optional(),
   mobilePhone: z.string().optional(),
+
   // Hierarquia
   position: z.string().optional(),
   supervisor: z.string().optional(),
   coordinator: z.string().optional(),
   manager: z.string().optional(),
+
   // Campos técnicos (mantidos)
   verified: z.boolean().default(false),
   active: z.boolean().default(true),
@@ -75,20 +80,26 @@ const customerSchema = z.object({
   message: "Campos obrigatórios: PF precisa de Nome e Sobrenome; PJ precisa de Razão Social e CNPJ",
   path: ["customerType"]
 });
+
 type CustomerFormData = z.infer<typeof customerSchema>;
+
 interface CustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
   customer?: any;
   onLocationModalOpen: () => void;
 }
+
 export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }: CustomerModalProps) {
   const [showLocationManager, setShowLocationManager] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const [companies, setCompanies] = useState<any[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
+
+
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
@@ -123,10 +134,11 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       signature: "",
     }
   });
+
   const mutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       if (customer?.id) {
-        return apiRequest('PATCH', "
+        return apiRequest('PATCH', `/api/customers/${customer.id}`, data);
       } else {
         return apiRequest('POST', '/api/customers', data);
       }
@@ -137,18 +149,19 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       queryClient.refetchQueries({ queryKey: ["/api/customers"] });
       onClose();
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Cliente salvo com sucesso",
         description: customer ? "Cliente atualizado." : "Novo cliente criado."
       });
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao salvar cliente",
         variant: "destructive"
       });
     }
   });
+
     // Fetch available companies
     const { data: availableCompaniesData, refetch: refetchAvailableCompanies, error: availableCompaniesError } = useQuery({
       queryKey: ['/api/companies'],
@@ -162,6 +175,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     });
+
     // Parse available companies and filter Default if inactive
     const rawCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
     const { filteredCompanies } = useCompanyFilter(rawCompanies);
@@ -170,19 +184,22 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     const availableCompanies = filteredCompanies.sort((a: any, b: any) => {
       const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
       const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+
       if (aIsDefault && !bIsDefault) return -1;
       if (!aIsDefault && bIsDefault) return 1;
       return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
     });
+
     if (availableCompaniesError) {
       console.error('Available companies error:', availableCompaniesError);
     }
+
     // Fetch customer companies
     const { data: companiesData, refetch: refetchCompanies } = useQuery({
-      queryKey: ["/companies`],
+      queryKey: [`/api/customers/${customer?.id}/companies`],
       queryFn: async () => {
         if (!customer?.id) return [];
-        const response = await apiRequest('GET', "/companies`);
+        const response = await apiRequest('GET', `/api/customers/${customer.id}/companies`);
         return response.json();
       },
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
@@ -191,6 +208,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     });
+
   useEffect(() => {
     // Handle both direct array and wrapped response formats
     let companies = [];
@@ -201,14 +219,17 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     } else if (companiesData?.data && Array.isArray(companiesData.data)) {
       companies = companiesData.data;
     }
+
     setCompanies(companies);
   }, [companiesData, customer?.id]);
+
   // Force refresh data when customer changes or modal opens
   useEffect(() => {
     if (customer?.id && isOpen) {
       // Clear cache and force fresh data
-      queryClient.removeQueries({ queryKey: ["/companies`] });
+      queryClient.removeQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
       queryClient.removeQueries({ queryKey: ['/api/companies'] });
+
       // Force immediate refresh
       setTimeout(() => {
         refetchCompanies();
@@ -216,6 +237,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       }, 100);
     }
   }, [customer?.id, isOpen, refetchCompanies, refetchAvailableCompanies, queryClient]);
+
   // Reset form when customer data changes
   useEffect(() => {
     if (customer && isOpen) {
@@ -285,9 +307,14 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       });
     }
   }, [customer, isOpen, form]);
+
+
+
+
   const onSubmit = (data: CustomerFormData) => {
     mutation.mutate(data);
   };
+
   const handleLocationManagerOpen = () => {
     if (!customer?.id) {
       toast({
@@ -299,95 +326,111 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     }
     setShowLocationManager(true);
   };
+
   const handleNewLocationClick = () => {
     setShowLocationManager(false);
     setShowLocationModal(true);
   };
+
   const handleAddCompany = async () => {
     // Validações melhoradas
     if (!customer?.id) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "É necessário salvar o cliente antes de associar empresas",
         variant: "destructive"
       });
       return;
     }
+
     if (!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated') {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: "Selecione uma empresa válida para associar",
         variant: "destructive"
       });
       return;
     }
+
     // Verificar se a empresa já está associada
     const isAlreadyAssociated = Array.isArray(companies) && 
       companies.some((cm: any) => (cm.company_id || cm.id) === selectedCompanyId);
+
     if (isAlreadyAssociated) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Esta empresa já está associada ao cliente",
         variant: "destructive"
       });
       return;
     }
+
     try {
       console.log('Adding company:', { 
         customerId: customer.id, 
         companyId: selectedCompanyId,
         currentAssociations: companies?.length || 0
       });
-      const response = await apiRequest('POST', "/companies`, {
+
+      const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
         companyId: selectedCompanyId,
         role: 'member',
         isPrimary: Array.isArray(companies) ? companies.length === 0 : true
       });
+
       // Limpar seleção antes de atualizar dados
       setSelectedCompanyId('');
+
       // Atualizar dados
       await refetchCompanies();
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Empresa associada com sucesso!",
       });
     } catch (error: any) {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Error adding company:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error?.message || "Erro ao associar empresa",
         variant: "destructive"
       });
     }
   };
+
   const handleRemoveCompany = async (companyId: string) => {
     if (!customer?.id) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Cliente não encontrado",
         variant: "destructive"
       });
       return;
     }
+
     if (!companyId || companyId === 'undefined' || companyId === 'null') {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "ID da empresa não encontrado ou inválido",
         variant: "destructive"
       });
       return;
     }
+
     try {
       console.log('Removing company:', { 
         customerId: customer.id, 
         companyId
       });
+
       // Fazer a requisição de exclusão
-      const result = await apiRequest('DELETE', "
-      console.log('[TRANSLATION_NEEDED]', result);
+      const result = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
+      console.log('Delete response:', result);
+
       if (result && (result as any).success === false) {
         throw new Error((result as any).message || 'Falha ao remover empresa');
       }
+
       // Atualizar estado local imediatamente
       setCompanies(prevCompanies => {
         const filtered = prevCompanies.filter(company => 
@@ -400,71 +443,80 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         });
         return filtered;
       });
+
       // Invalidar cache e fazer refetch simples
-      queryClient.invalidateQueries({ queryKey: ["/companies`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+
       // Aguardar um pouco para o backend processar
       await new Promise(resolve => setTimeout(resolve, 100));
+
       // Refetch simples
       await refetchCompanies();
       await refetchAvailableCompanies();
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Empresa removida com sucesso!",
       });
     } catch (error: any) {
-      console.error('[TRANSLATION_NEEDED]', {
+      console.error('Error removing company association:', {
         error,
         customerId: customer.id,
         companyId,
         errorMessage: error?.message,
         errorResponse: error?.response
       });
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error?.message || "Erro ao remover empresa",
         variant: "destructive"
       });
     }
   };
+
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="customer-modal-description>
-          <div id="customer-modal-description" className="sr-only>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="customer-modal-description">
+          <div id="customer-modal-description" className="sr-only">
             Formulário para criar ou editar informações de cliente
           </div>
           <DialogHeader>
             <DialogTitle>
-              {customer?.id ? '[TRANSLATION_NEEDED]' : "Novo Cliente"
+              {customer?.id ? "Editar Cliente" : "Novo Cliente"}
             </DialogTitle>
           </DialogHeader>
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
-              <Tabs defaultValue="dados-basicos" className="w-full>
-                <TabsList className="w-full h-auto p-1>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full>
-                    <TabsTrigger value="dados-basicos" className="flex items-center gap-2 text-xs lg:text-sm p-2>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <Tabs defaultValue="dados-basicos" className="w-full">
+                <TabsList className="w-full h-auto p-1">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full">
+                    <TabsTrigger value="dados-basicos" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <User className="h-3 w-3 lg:h-4 lg:w-4" />
                       Dados Básicos
                     </TabsTrigger>
-                    <TabsTrigger value="hierarquia" className="flex items-center gap-2 text-xs lg:text-sm p-2>
+                    <TabsTrigger value="hierarquia" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <Star className="h-3 w-3 lg:h-4 lg:w-4" />
                       Hierarquia
                     </TabsTrigger>
-                    <TabsTrigger value="empresas" className="flex items-center gap-2 text-xs lg:text-sm p-2>
+                    <TabsTrigger value="empresas" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <Building className="h-3 w-3 lg:h-4 lg:w-4" />
                       Empresas
                     </TabsTrigger>
-                    <TabsTrigger value="locais" className="flex items-center gap-2 text-xs lg:text-sm p-2>
+                    <TabsTrigger value="locais" className="flex items-center gap-2 text-xs lg:text-sm p-2">
                       <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
                       Locais
                     </TabsTrigger>
                   </div>
                 </TabsList>
-                <TabsContent value="dados-basicos" className="space-y-4>
+
+                <TabsContent value="dados-basicos" className="space-y-4">
                   {/* Tipo de Cliente e Status */}
-                  <div className="grid grid-cols-2 gap-4>
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="customerType"
@@ -474,7 +526,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                <SelectValue placeholder="Selecione o tipo" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -495,7 +547,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                <SelectValue placeholder="Selecione o status" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -508,10 +560,11 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       )}
                     />
                   </div>
+
                   {/* Campos condicionais baseados no tipo */}
                   {form.watch('customerType') === 'PF' && (
                     <>
-                      <div className="grid grid-cols-2 gap-4>
+                      <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
                           name="firstName"
@@ -554,6 +607,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       />
                     </>
                   )}
+
                   {form.watch('customerType') === 'PJ' && (
                     <>
                       <FormField
@@ -584,6 +638,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       />
                     </>
                   )}
+
                   {/* Campos comuns */}
                   <FormField
                     control={form.control}
@@ -598,7 +653,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-2 gap-4>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="description"
@@ -626,7 +682,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="contactPerson"
@@ -654,7 +711,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-4>
+
+                  <div className="grid grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name="phone"
@@ -695,10 +753,12 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       )}
                     />
                   </div>
+
                   
                 </TabsContent>
-                <TabsContent value="hierarquia" className="space-y-4>
-                  <div className="grid grid-cols-3 gap-4>
+
+                <TabsContent value="hierarquia" className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name="supervisor"
@@ -739,17 +799,19 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       )}
                     />
                   </div>
-                  <div className="border-t pt-4>
-                    <h3 className="text-lg">"Configurações Técnicas</h3>
-                    <div className="grid grid-cols-3 gap-6>
+
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-medium mb-4">Configurações Técnicas</h3>
+
+                    <div className="grid grid-cols-3 gap-6">
                       <FormField
                         control={form.control}
                         name="verified"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
-                            <div className="space-y-0.5>
-                              <FormLabel className="text-lg">"Verificado</FormLabel>
-                              <div className="text-sm text-muted-foreground>
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Verificado</FormLabel>
+                              <div className="text-sm text-muted-foreground">
                                 Cliente tem email verificado
                               </div>
                             </div>
@@ -762,14 +824,15 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={form.control}
                         name="active"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
-                            <div className="space-y-0.5>
-                              <FormLabel className="text-lg">"Ativo</FormLabel>
-                              <div className="text-sm text-muted-foreground>
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Ativo</FormLabel>
+                              <div className="text-sm text-muted-foreground">
                                 Cliente está ativo no sistema
                               </div>
                             </div>
@@ -782,14 +845,15 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={form.control}
                         name="suspended"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
-                            <div className="space-y-0.5>
-                              <FormLabel className="text-lg">"Suspenso</FormLabel>
-                              <div className="text-sm text-muted-foreground>
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Suspenso</FormLabel>
+                              <div className="text-sm text-muted-foreground">
                                 Cliente temporariamente suspenso
                               </div>
                             </div>
@@ -803,7 +867,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         )}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-4>
+
+                    <div className="grid grid-cols-2 gap-4 mt-4">
                       <FormField
                         control={form.control}
                         name="externalId"
@@ -831,6 +896,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         )}
                       />
                     </div>
+
                     <FormField
                       control={form.control}
                       name="notes"
@@ -839,7 +905,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <FormLabel>Observações</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder='[TRANSLATION_NEEDED]'
+                              placeholder="Observações sobre o cliente..."
                               className="resize-none"
                               rows={3}
                               {...field}
@@ -851,16 +917,17 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
                 </TabsContent>
-                <TabsContent value="locais" className="space-y-4>
-                  <div className="text-center py-8>
+
+                <TabsContent value="locais" className="space-y-4">
+                  <div className="text-center py-8">
                     <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-600 mb-2>
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">
                       Gerenciar Localizações
                     </h3>
-                    <p className="text-gray-500 mb-6>
+                    <p className="text-gray-500 mb-6">
                       Associe este cliente a uma ou mais localizações do sistema.
                     </p>
-                    <div className="flex gap-3 justify-center>
+                    <div className="flex gap-3 justify-center">
                       <Button
                         type="button"
                         onClick={handleLocationManagerOpen}
@@ -881,37 +948,40 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       </Button>
                     </div>
                     {!customer?.id && (
-                      <p className="text-sm text-amber-600 mt-4>
+                      <p className="text-sm text-amber-600 mt-4">
                         💡 Salve o cliente primeiro para gerenciar localizações
                       </p>
                     )}
                   </div>
                 </TabsContent>
-                 <TabsContent value="empresas" className="space-y-4>
+
+                 <TabsContent value="empresas" className="space-y-4">
                     {/* Empresas associadas */}
                     {customer?.id && (
-                      <div className="space-y-4>
+                      <div className="space-y-4">
                         <FormItem>
-                          <FormLabel className="text-base font-semibold flex items-center gap-2>
+                          <FormLabel className="text-base font-semibold flex items-center gap-2">
                             <Building className="h-4 w-4" />
                             Empresas Associadas
                           </FormLabel>
+
                           {/* Lista de empresas associadas */}
-                          <div className="mt-2 space-y-2>
+                          <div className="mt-2 space-y-2">
                             {Array.isArray(companies) && companies.length > 0 ? (
                               companies.map((membership: any, index: number) => {
                                 // Garantir ID único e válido para cada empresa
                                 const companyId = membership.company_id || membership.id;
                                 const membershipId = membership.membership_id || membership.id || index;
                                 // Chave única garantida usando múltiplos identificadores
-                                const uniqueKey = "
+                                const uniqueKey = `membership-${membershipId}-${companyId}-${index}`;
+
                                 return (
-                                  <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border>
-                                    <div className="flex items-center gap-2>
-                                      <span className="font-medium>
-                                        {membership.display_name || membership.company_name || membership.name || "
+                                  <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">
+                                        {membership.display_name || membership.company_name || membership.name || `Empresa ${companyId || index + 1}`}
                                       </span>
-                                      <Badge variant={membership.is_primary ? "default" : "secondary>
+                                      <Badge variant={membership.is_primary ? "default" : "secondary"}>
                                         {membership.role || 'member'}
                                       </Badge>
                                       {membership.is_primary && (
@@ -924,7 +994,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                       variant="ghost"
                                       onClick={() => handleRemoveCompany(companyId)}
                                       disabled={!companyId}
-                                      title={!companyId ? "ID da empresa não encontrado" : "Remover empresa"
+                                      title={!companyId ? "ID da empresa não encontrado" : "Remover empresa"}
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
@@ -932,16 +1002,16 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                 );
                               })
                             ) : (
-                              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border>
+                              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border">
                                 Nenhuma empresa associada
                               </div>
                             )}
                           </div>
                         </FormItem>{/* Adicionar nova empresa */}
-                        <div className="mt-4 space-y-2>
-                          <FormLabel className="text-lg">"Adicionar Empresa</FormLabel>
-                          <div className="flex gap-2>
-                            <FormItem className="flex-1>
+                        <div className="mt-4 space-y-2">
+                          <FormLabel className="text-sm font-medium">Adicionar Empresa</FormLabel>
+                          <div className="flex gap-2">
+                            <FormItem className="flex-1">
                               <Select 
                                 onValueChange={(value) => {
                                   setSelectedCompanyId(value);
@@ -961,6 +1031,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                             companies: companies,
                                             associatedIds: Array.isArray(companies) ? companies.map((cm: any) => cm.company_id || cm.id) : []
                                           });
+
                                           if (!Array.isArray(availableCompanies) || availableCompanies.length === 0) {
                                             return (
                                               <SelectItem value="no-companies" disabled>
@@ -968,19 +1039,23 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                               </SelectItem>
                                             );
                                           }
+
                                           // Filtrar empresas já associadas
                                           const associatedCompanyIds = Array.isArray(companies) 
                                             ? companies.map((cm: any) => cm.company_id || cm.id)
                                             : [];
+
                                           const unassociatedCompanies = availableCompanies.filter((company: any) => {
                                             return !associatedCompanyIds.includes(company.id);
                                           });
-                                          console.log('[TRANSLATION_NEEDED]', {
+
+                                          console.log('Filtered companies:', {
                                             total: availableCompanies.length,
                                             associated: associatedCompanyIds.length,
                                             available: unassociatedCompanies.length,
                                             unassociatedCompanies: unassociatedCompanies
                                           });
+
                                           if (unassociatedCompanies.length === 0) {
                                             return (
                                               <SelectItem value="all-associated" disabled>
@@ -988,22 +1063,24 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                               </SelectItem>
                                             );
                                           }
+
                                           return unassociatedCompanies.map((company: any) => (
-                                            <SelectItem key={"
-                                              {company.displayName || company.display_name || company.name || "
-                                              {company.cnpj && ")"
+                                            <SelectItem key={`available-company-${company.id}`} value={String(company.id)}>
+                                              {company.displayName || company.display_name || company.name || `Empresa ${company.id}`}
+                                              {company.cnpj && ` (${company.cnpj})`}
                                             </SelectItem>
                                           ));
                                         })()}
                                       </SelectContent>
                                     </Select>
                             </FormItem>
+
                             <Button
                               type="button"
                               size="sm"
                               onClick={handleAddCompany}
                               disabled={!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated'}
-                              title={!selectedCompanyId ? '[TRANSLATION_NEEDED]' : "Associar empresa"
+                              title={!selectedCompanyId ? "Selecione uma empresa primeiro" : "Associar empresa"}
                             >
                               <Plus className="h-4 w-4" />
                               Associar
@@ -1012,34 +1089,37 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         </div>
                       </div>
                     )}
+
                     {!customer?.id && (
-                      <div className="text-center py-8>
+                      <div className="text-center py-8">
                         <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-600 mb-2>
+                        <h3 className="text-lg font-medium text-gray-600 mb-2">
                           Gerenciar Empresas
                         </h3>
-                        <p className="text-gray-500 mb-4>
+                        <p className="text-gray-500 mb-4">
                           Associe este cliente a empresas do sistema após salvá-lo.
                         </p>
-                        <p className="text-sm text-amber-600>
+                        <p className="text-sm text-amber-600">
                           💡 Salve o cliente primeiro para gerenciar empresas
                         </p>
                       </div>
                     )}
                   </TabsContent>
               </Tabs>
-              <div className="flex justify-end gap-3 pt-6 border-t>
+
+              <div className="flex justify-end gap-3 pt-6 border-t">
                 <Button type="button" variant="outline" onClick={onClose}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Salvando...' : customer?.id ? 'Atualizar' : '[TRANSLATION_NEEDED]'}
+                  {mutation.isPending ? 'Salvando...' : customer?.id ? 'Atualizar' : 'Criar'}
                 </Button>
               </div>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+
       {/* Location Manager Modal */}
       {customer?.id && (
         <CustomerLocationManager
@@ -1049,6 +1129,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
           onAddNewLocation={handleNewLocationClick}
         />
       )}
+
       {/* Location Modal */}
       <LocationModal
         isOpen={showLocationModal}

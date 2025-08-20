@@ -41,6 +41,7 @@ import {
   Calculator,
   Layers
 } from 'lucide-react';
+
 // Tipos para os campos
 interface FieldDefinition {
   id: string;
@@ -56,11 +57,13 @@ interface FieldDefinition {
   styling: Record<string, any>;
   gridPosition: {row: number; col: number; span: number};
 }
+
 interface TemplateEditorProps {
   templateId?: string;
   onSave: (template: any) => void;
   onPreview: (template: any) => void;
 }
+
 // Componente de campo arrastável
 const DraggableField: React.FC<{
   field: FieldDefinition;
@@ -76,11 +79,13 @@ const DraggableField: React.FC<{
     transition,
     isDragging,
   } = useSortable({ id: field.id });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
   const getFieldIcon = (type: string) => {
     const icons = {
       text: Type,
@@ -93,6 +98,7 @@ const DraggableField: React.FC<{
     const Icon = icons[type as keyof typeof icons] || Type;
     return <Icon className="w-4 h-4" />;
   };
+
   return (
     <div
       ref={setNodeRef}
@@ -103,27 +109,28 @@ const DraggableField: React.FC<{
         p-3 border rounded-lg cursor-pointer transition-all
         ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
         ${isDragging ? 'shadow-lg' : 'shadow-sm'}
-      "
+      `}
       onClick={() => onSelect(field.id)}
       onDoubleClick={() => onEdit(field.id)}
     >
-      <div className="flex items-center justify-between>
-        <div className="flex items-center gap-2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           {getFieldIcon(field.type)}
-          <span className="text-lg">"{field.label}</span>
+          <span className="font-medium">{field.label}</span>
         </div>
-        <div className="flex items-center gap-1>
-          {field.isRequired && <Badge variant="destructive" className="text-lg">"*</Badge>}
-          {!field.isVisible && <Badge variant="secondary" className="text-lg">"Hidden</Badge>}
+        <div className="flex items-center gap-1">
+          {field.isRequired && <Badge variant="destructive" className="text-xs">*</Badge>}
+          {!field.isVisible && <Badge variant="secondary" className="text-xs">Hidden</Badge>}
           <Settings className="w-4 h-4 text-gray-400" />
         </div>
       </div>
-      <div className="text-xs text-gray-500 mt-1>
+      <div className="text-xs text-gray-500 mt-1">
         Tipo: {field.type} • Chave: {field.key}
       </div>
     </div>
   );
 };
+
 // Componente principal do editor
 export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   templateId,
@@ -137,12 +144,14 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   const [gridVisible, setGridVisible] = useState(true);
   const [history, setHistory] = useState<FieldDefinition[][]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
   // Palette de componentes disponíveis
   const fieldTypes = [
     { type: 'text', label: 'Texto', icon: Type },
@@ -160,13 +169,14 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     { type: 'location', label: 'Localização', icon: MapPin },
     { type: 'calculated', label: 'Calculado', icon: Calculator },
   ];
+
   // Adicionar novo campo
   const addField = useCallback((type: string) => {
     const newField: FieldDefinition = {
-      id: "
+      id: `field_${Date.now()}`,
       type,
-      label: "
-      key: "
+      label: `Novo ${fieldTypes.find(f => f.type === type)?.label || 'Campo'}`,
+      key: `field_${fields.length + 1}`,
       isRequired: false,
       isVisible: true,
       sortOrder: fields.length,
@@ -176,33 +186,42 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
       styling: {},
       gridPosition: { row: 0, col: 0, span: 1 }
     };
+
     const newFields = [...fields, newField];
     setFields(newFields);
     setSelectedFieldId(newField.id);
+
     // Adicionar ao histórico
     setHistory(prev => [...prev.slice(0, historyIndex + 1), newFields]);
     setHistoryIndex(prev => prev + 1);
   }, [fields, historyIndex]);
+
   // Handle drag end
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
+
     if (active.id !== over.id) {
       setFields((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over.id);
+
         const newFields = arrayMove(items, oldIndex, newIndex);
+
         // Atualizar sortOrder
         const updatedFields = newFields.map((field, index) => ({
           ...field,
           sortOrder: index
         }));
+
         // Adicionar ao histórico
         setHistory(prev => [...prev.slice(0, historyIndex + 1), updatedFields]);
         setHistoryIndex(prev => prev + 1);
+
         return updatedFields;
       });
     }
   };
+
   // Undo/Redo
   const undo = () => {
     if (historyIndex > 0) {
@@ -210,45 +229,49 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
       setFields(history[historyIndex - 1]);
     }
   };
+
   const redo = () => {
     if (historyIndex < history.length - 1) {
       setHistoryIndex(prev => prev + 1);
       setFields(history[historyIndex + 1]);
     }
   };
+
   // Controles de zoom
   const zoomIn = () => setZoomLevel(prev => Math.min(prev + 10, 200));
   const zoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 50));
+
   return (
-    <div className="h-full flex flex-col>
+    <div className="h-full flex flex-col">
       {/* Toolbar */}
-      <div className="border-b p-4 bg-white>
-        <div className="flex items-center justify-between>
-          <div className="flex items-center gap-2>
-            <Button onClick={undo} disabled={historyIndex === 0} size="sm" variant="outline>
+      <div className="border-b p-4 bg-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button onClick={undo} disabled={historyIndex === 0} size="sm" variant="outline">
               <Undo className="w-4 h-4" />
             </Button>
-            <Button onClick={redo} disabled={historyIndex >= history.length - 1} size="sm" variant="outline>
+            <Button onClick={redo} disabled={historyIndex >= history.length - 1} size="sm" variant="outline">
               <Redo className="w-4 h-4" />
             </Button>
             <div className="h-6 w-px bg-gray-300 mx-2" />
-            <Button onClick={zoomOut} size="sm" variant="outline>
+            <Button onClick={zoomOut} size="sm" variant="outline">
               <ZoomOut className="w-4 h-4" />
             </Button>
-            <span className="text-lg">"{zoomLevel}%</span>
-            <Button onClick={zoomIn} size="sm" variant="outline>
+            <span className="text-sm text-gray-600 min-w-[60px] text-center">{zoomLevel}%</span>
+            <Button onClick={zoomIn} size="sm" variant="outline">
               <ZoomIn className="w-4 h-4" />
             </Button>
             <Button 
               onClick={() => setGridVisible(!gridVisible)} 
               size="sm" 
-              variant={gridVisible ? "default" : "outline"
+              variant={gridVisible ? "default" : "outline"}
             >
               <Grid3X3 className="w-4 h-4" />
             </Button>
           </div>
-          <div className="flex items-center gap-2>
-            <Button onClick={() => onPreview({ fields })} variant="outline>
+
+          <div className="flex items-center gap-2">
+            <Button onClick={() => onPreview({ fields })} variant="outline">
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
@@ -259,19 +282,21 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
           </div>
         </div>
       </div>
+
       {/* Main content */}
-      <div className="flex-1 flex>
+      <div className="flex-1 flex">
         {/* Sidebar - Palette de componentes */}
-        <div className="w-80 border-r bg-gray-50 p-4>
+        <div className="w-80 border-r bg-gray-50 p-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="design">Componentes</TabsTrigger>
               <TabsTrigger value="properties">Propriedades</TabsTrigger>
             </TabsList>
-            <TabsContent value="design" className="space-y-4>
+
+            <TabsContent value="design" className="space-y-4">
               <div>
-                <h3 className="text-lg">"Campos Disponíveis</h3>
-                <div className="grid grid-cols-2 gap-2>
+                <h3 className="font-medium mb-3">Campos Disponíveis</h3>
+                <div className="grid grid-cols-2 gap-2">
                   {fieldTypes.map((fieldType) => {
                     const Icon = fieldType.icon;
                     return (
@@ -282,37 +307,39 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         onClick={() => addField(fieldType.type)}
                       >
                         <Icon className="w-5 h-5" />
-                        <span className="text-lg">"{fieldType.label}</span>
+                        <span className="text-xs">{fieldType.label}</span>
                       </Button>
                     );
                   })}
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="properties" className="space-y-4>
+
+            <TabsContent value="properties" className="space-y-4">
               {selectedFieldId ? (
                 <div>
-                  <h3 className="text-lg">"Propriedades do Campo</h3>
+                  <h3 className="font-medium mb-3">Propriedades do Campo</h3>
                   {/* Aqui virá o editor de propriedades */}
-                  <p className="text-sm text-gray-600>
+                  <p className="text-sm text-gray-600">
                     Editor de propriedades será implementado na próxima fase
                   </p>
                 </div>
               ) : (
-                <div className="text-center py-8>
-                  <p className="text-lg">"Selecione um campo para editar suas propriedades</p>
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Selecione um campo para editar suas propriedades</p>
                 </div>
               )}
             </TabsContent>
           </Tabs>
         </div>
+
         {/* Canvas */}
-        <div className="flex-1 relative overflow-auto>
+        <div className="flex-1 relative overflow-auto">
           <div 
-            className="p-8 min-h-full ""
-            style={{ transform: ")`, transformOrigin: 'top left' }}
+            className={`p-8 min-h-full ${gridVisible ? 'bg-grid-pattern' : 'bg-white'}`}
+            style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' }}
           >
-            <Card className="max-w-4xl mx-auto min-h-[600px]>
+            <Card className="max-w-4xl mx-auto min-h-[600px]">
               <CardHeader>
                 <CardTitle>Preview do Template</CardTitle>
               </CardHeader>
@@ -323,9 +350,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext items={fields} strategy={verticalListSortingStrategy}>
-                    <div className="space-y-4>
+                    <div className="space-y-4">
                       {fields.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500>
+                        <div className="text-center py-12 text-gray-500">
                           <Plus className="w-12 h-12 mx-auto mb-4 opacity-50" />
                           <p>Arraste componentes da barra lateral para começar</p>
                         </div>
@@ -354,4 +381,5 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     </div>
   );
 };
+
 export default TemplateEditor;

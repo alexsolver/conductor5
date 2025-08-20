@@ -14,7 +14,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   Plus, 
   Search, 
   Building2, 
@@ -33,8 +32,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
+
 const companySchema = z.object({
-  // Localization temporarily disabled
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
   description: z.string().optional(),
@@ -48,6 +47,7 @@ const companySchema = z.object({
   subscriptionTier: z.enum(["basic", "professional", "enterprise"]).default("basic"),
   status: z.enum(["active", "inactive", "suspended"]).default("active")
 });
+
 interface Company {
   id: string;
   name: string;
@@ -64,6 +64,7 @@ interface Company {
   createdAt: string;
   updatedAt: string;
 }
+
 export default function Companies() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -73,6 +74,7 @@ export default function Companies() {
   const [searchTerm, setSearchTerm] = useState("");
   // Associate multiple customers modal
   const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
+
   const companyForm = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -87,12 +89,14 @@ export default function Companies() {
       status: "active"
     },
   });
+
   // Query para buscar empresas - usando endpoint correto
   const { data: companiesData, isLoading, error } = useQuery({
     queryKey: ['/api/customers/companies'],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
   // Handle different response formats from the API
   const companies = (() => {
     console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
@@ -115,6 +119,7 @@ export default function Companies() {
     console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
     return [];
   })();
+
   // Mutation para criar empresa
   const createCompanyMutation = useMutation({
     mutationFn: (data: z.infer<typeof companySchema>) =>
@@ -130,16 +135,17 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao criar empresa",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     }
   });
+
   // Mutation para editar empresa
   const editCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: z.infer<typeof companySchema> }) =>
-      apiRequest('PUT', "
+      apiRequest('PUT', `/api/customers/companies/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       setIsEditDialogOpen(false);
@@ -152,16 +158,17 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao atualizar empresa",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     }
   });
+
   // Mutation para deletar empresa
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) =>
-      apiRequest('DELETE', "
+      apiRequest('DELETE', `/api/customers/companies/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       toast({
@@ -171,20 +178,23 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao remover empresa",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     }
   });
+
   const handleCreateCompany = (data: z.infer<typeof companySchema>) => {
     createCompanyMutation.mutate(data);
   };
+
   const handleEditCompany = (data: z.infer<typeof companySchema>) => {
     if (selectedCompany) {
       editCompanyMutation.mutate({ id: selectedCompany.id, data });
     }
   };
+
   const openEditDialog = (company: Company) => {
     setSelectedCompany(company);
     companyForm.reset({
@@ -201,21 +211,23 @@ export default function Companies() {
     });
     setIsEditDialogOpen(true);
   };
+
   // Filtrar empresas com base no termo de busca
   const filteredCompanies = (Array.isArray(companies) ? companies : []).filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (company.displayName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
     (company.industry?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
+
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="p-4"
-            <div className="p-4"
+      <div className="p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-pulse">
               <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             </div>
-            <p className="p-4"
+            <p className="text-lg text-gray-600 dark:text-gray-400">
               Carregando empresas...
             </p>
           </div>
@@ -223,19 +235,21 @@ export default function Companies() {
       </div>
     );
   }
+
   return (
-    <div className="p-4"
+    <div className="p-8 space-y-8">
       {/* Header */}
-      <div className="p-4"
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="p-4"
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Empresas
           </h1>
-          <p className="p-4"
+          <p className="text-gray-600 dark:text-gray-400">
             Gerencie suas empresas e clientes associados
           </p>
         </div>
-        <div className="p-4"
+
+        <div className="flex flex-col sm:flex-row gap-3">
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -243,13 +257,13 @@ export default function Companies() {
                 Nova Empresa
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-4"
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Criar Nova Empresa</DialogTitle>
               </DialogHeader>
               <Form {...companyForm}>
-                <form onSubmit={companyForm.handleSubmit(handleCreateCompany)} className="p-4"
-                  <div className="p-4"
+                <form onSubmit={companyForm.handleSubmit(handleCreateCompany)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={companyForm.control}
                       name="name"
@@ -263,6 +277,7 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={companyForm.control}
                       name="displayName"
@@ -276,6 +291,7 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={companyForm.control}
                       name="industry"
@@ -289,6 +305,7 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={companyForm.control}
                       name="size"
@@ -298,7 +315,7 @@ export default function Companies() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                <SelectValue placeholder="Selecione o porte" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -313,6 +330,7 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={companyForm.control}
                       name="email"
@@ -326,6 +344,7 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={companyForm.control}
                       name="phone"
@@ -339,6 +358,7 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={companyForm.control}
                       name="website"
@@ -352,6 +372,7 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={companyForm.control}
                       name="subscriptionTier"
@@ -375,6 +396,7 @@ export default function Companies() {
                       )}
                     />
                   </div>
+
                   <FormField
                     control={companyForm.control}
                     name="description"
@@ -392,7 +414,8 @@ export default function Companies() {
                       </FormItem>
                     )}
                   />
-                  <div className="p-4"
+
+                  <div className="flex justify-end gap-3">
                     <Button
                       type="button"
                       variant="outline"
@@ -404,7 +427,7 @@ export default function Companies() {
                       type="submit"
                       disabled={createCompanyMutation.isPending}
                     >
-                      {createCompanyMutation.isPending ? "Criando..." : '[TRANSLATION_NEEDED]'}
+                      {createCompanyMutation.isPending ? "Criando..." : "Criar Empresa"}
                     </Button>
                   </div>
                 </form>
@@ -413,26 +436,28 @@ export default function Companies() {
           </Dialog>
         </div>
       </div>
+
       {/* Search */}
-      <div className="p-4"
-        <div className="p-4"
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
-            placeholder='[TRANSLATION_NEEDED]'
+            placeholder="Buscar empresas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
           />
         </div>
       </div>
+
       {/* Companies Grid */}
       {filteredCompanies.length === 0 ? (
-        <div className="p-4"
+        <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="p-4"
-            {searchTerm ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            {searchTerm ? "Nenhuma empresa encontrada" : "Nenhuma empresa cadastrada"}
           </h3>
-          <p className="p-4"
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             {searchTerm 
               ? "Tente ajustar o termo de busca." 
               : "Comece criando sua primeira empresa para organizar seus clientes."
@@ -446,32 +471,33 @@ export default function Companies() {
           )}
         </div>
       ) : (
-        <div className="p-4"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.map((company: Company) => (
-            <Card key={company.id} className="p-4"
-              <CardHeader className="p-4"
-                <div className="p-4"
-                  <div className="p-4"
-                    <CardTitle className="p-4"
+            <Card key={company.id} className="group hover:shadow-lg transition-all duration-200">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg mb-1 line-clamp-1">
                       {company.displayName || company.name}
                     </CardTitle>
                     {company.displayName && (
-                      <p className="text-lg">"{company.name}</p>
+                      <p className="text-sm text-gray-500 mb-2">{company.name}</p>
                     )}
-                    <div className="p-4"
+                    <div className="flex items-center gap-2">
                       <Badge 
                         variant={company.status === 'active' ? 'default' : 'secondary'}
                       >
                         {company.status === 'active' ? 'Ativa' : 
                          company.status === 'inactive' ? 'Inativa' : 'Suspensa'}
                       </Badge>
-                      <Badge variant="outline>
+                      <Badge variant="outline">
                         {company.subscriptionTier === 'basic' ? 'Básico' :
                          company.subscriptionTier === 'professional' ? 'Profissional' : 'Empresarial'}
                       </Badge>
                     </div>
                   </div>
-                  <div className="p-4"
+
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="sm"
                       variant="ghost"
@@ -493,33 +519,35 @@ export default function Companies() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-4"
+
+              <CardContent className="pt-0">
                 {company.description && (
-                  <p className="p-4"
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                     {company.description}
                   </p>
                 )}
-                <div className="p-4"
+
+                <div className="space-y-2 mb-4">
                   {company.industry && (
-                    <div className="p-4"
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Building2 className="w-4 h-4" />
                       <span>{company.industry}</span>
                     </div>
                   )}
                   {company.email && (
-                    <div className="p-4"
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Mail className="w-4 h-4" />
-                      <span className="text-lg">"{company.email}</span>
+                      <span className="truncate">{company.email}</span>
                     </div>
                   )}
                   {company.phone && (
-                    <div className="p-4"
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Phone className="w-4 h-4" />
                       <span>{company.phone}</span>
                     </div>
                   )}
                   {company.website && (
-                    <div className="p-4"
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Globe className="w-4 h-4" />
                       <a 
                         href={company.website} 
@@ -532,6 +560,7 @@ export default function Companies() {
                     </div>
                   )}
                 </div>
+
                 {/* Company Customers Section */}
                 <CompanyCustomersSection 
                   companyId={company.id} 
@@ -545,15 +574,16 @@ export default function Companies() {
           ))}
         </div>
       )}
+
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
           <Form {...companyForm}>
-            <form onSubmit={companyForm.handleSubmit(handleEditCompany)} className="p-4"
-              <div className="p-4"
+            <form onSubmit={companyForm.handleSubmit(handleEditCompany)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={companyForm.control}
                   name="name"
@@ -567,6 +597,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="displayName"
@@ -580,6 +611,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="industry"
@@ -593,6 +625,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="size"
@@ -602,7 +635,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectValue placeholder="Selecione o porte" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -617,6 +650,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="email"
@@ -630,6 +664,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="phone"
@@ -643,6 +678,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="website"
@@ -656,6 +692,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="subscriptionTier"
@@ -678,6 +715,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={companyForm.control}
                   name="status"
@@ -701,6 +739,7 @@ export default function Companies() {
                   )}
                 />
               </div>
+
               <FormField
                 control={companyForm.control}
                 name="description"
@@ -718,7 +757,8 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
+
+              <div className="flex justify-end gap-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -730,13 +770,14 @@ export default function Companies() {
                   type="submit"
                   disabled={editCompanyMutation.isPending}
                 >
-                  {editCompanyMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
+                  {editCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
                 </Button>
               </div>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+
       {/* Associate Multiple Customers Modal */}
       <AssociateMultipleCustomersModal
         isOpen={isAssociateModalOpen}

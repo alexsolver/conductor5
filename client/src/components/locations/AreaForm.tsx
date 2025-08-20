@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,16 +17,15 @@ import { Map, Palette, Plus, Upload, Trash2, MapPin, Target, Route, FileText, Do
 import { areaSchema, type NewArea } from "@/../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 import LeafletMapSelector from "@/components/LeafletMapSelector";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface AreaFormProps {
   onSubmit: (data: NewArea) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
+
 // Componente para seleção de cores predefinidas
-const ColorPicker = ({
-  // Localization temporarily disabled
- value, onChange }) => {
+const ColorPicker = ({ value, onChange }) => {
   const coresPredefinidas = [
     { cor: "#3B82F6", nome: "Azul" },
     { cor: "#EF4444", nome: "Vermelho" },
@@ -38,9 +38,10 @@ const ColorPicker = ({
     { cor: "#6366F1", nome: "Índigo" },
     { cor: "#84CC16", nome: "Lima" }
   ];
+
   return (
-    <div className="space-y-2>
-      <div className="grid grid-cols-5 gap-2>
+    <div className="space-y-2">
+      <div className="grid grid-cols-5 gap-2">
         {coresPredefinidas.map((cor) => (
           <button
             key={cor.cor}
@@ -48,7 +49,7 @@ const ColorPicker = ({
             onClick={() => onChange(cor.cor)}
             className={`w-8 h-8 rounded-full border-2 ${
               value === cor.cor ? 'border-gray-800' : 'border-gray-300'
-            "
+            }`}
             style={{ backgroundColor: cor.cor }}
             title={cor.nome}
           />
@@ -63,21 +64,25 @@ const ColorPicker = ({
     </div>
   );
 };
+
 // Componente para gerenciar faixas de CEP
 const FaixasCepManager = ({ faixas = [], onChange }) => {
   const [novaFaixa, setNovaFaixa] = useState({ cepInicio: '', cepFim: '', grupo: '' });
+
   const adicionarFaixa = () => {
     if (novaFaixa.cepInicio && novaFaixa.cepFim) {
       onChange([...faixas, { ...novaFaixa }]);
       setNovaFaixa({ cepInicio: '', cepFim: '', grupo: '' });
     }
   };
+
   const removerFaixa = (index) => {
     onChange(faixas.filter((_, i) => i !== index));
   };
+
   return (
-    <div className="space-y-4>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
         <Input
           placeholder="CEP Início"
           value={novaFaixa.cepInicio}
@@ -93,11 +98,12 @@ const FaixasCepManager = ({ faixas = [], onChange }) => {
           value={novaFaixa.grupo}
           onChange={(e) => setNovaFaixa({ ...novaFaixa, grupo: e.target.value })}
         />
-        <Button type="button" onClick={adicionarFaixa} size="sm>
+        <Button type="button" onClick={adicionarFaixa} size="sm">
           <Plus className="h-4 w-4 mr-1" />
           Adicionar
         </Button>
       </div>
+
       {faixas.length > 0 && (
         <Table>
           <TableHeader>
@@ -132,9 +138,11 @@ const FaixasCepManager = ({ faixas = [], onChange }) => {
     </div>
   );
 };
+
 // Componente para gerenciar coordenadas de polígono
 const CoordenadasManager = ({ coordenadas = [], onChange }) => {
   const [coordenadaSelecionada, setCoordenadaSelecionada] = useState(null);
+
   const adicionarCoordenada = (lat, lng) => {
     const novaCoordenada = {
       lat,
@@ -143,6 +151,7 @@ const CoordenadasManager = ({ coordenadas = [], onChange }) => {
     };
     onChange([...coordenadas, novaCoordenada]);
   };
+
   const removerCoordenada = (index) => {
     const novasCoordenadas = coordenadas.filter((_, i) => i !== index);
     // Reordenar
@@ -152,18 +161,20 @@ const CoordenadasManager = ({ coordenadas = [], onChange }) => {
     }));
     onChange(coordenadasReordenadas);
   };
+
   return (
-    <div className="space-y-4>
-      <div className="h-96 border rounded-lg>
+    <div className="space-y-4">
+      <div className="h-96 border rounded-lg">
         <LeafletMapSelector
           initialLat={-23.5505}
           initialLng={-46.6333}
           onLocationSelect={adicionarCoordenada}
         />
       </div>
+
       {coordenadas.length > 0 && (
         <div>
-          <h4 className="text-lg">"Coordenadas do Polígono ({coordenadas.length} pontos)</h4>
+          <h4 className="font-medium mb-2">Coordenadas do Polígono ({coordenadas.length} pontos)</h4>
           <Table>
             <TableHeader>
               <TableRow>
@@ -194,7 +205,7 @@ const CoordenadasManager = ({ coordenadas = [], onChange }) => {
             </TableBody>
           </Table>
           {coordenadas.length < 3 && (
-            <p className="text-sm text-amber-600 mt-2>
+            <p className="text-sm text-amber-600 mt-2">
               Adicione pelo menos 3 coordenadas para formar um polígono válido
             </p>
           )}
@@ -203,13 +214,14 @@ const CoordenadasManager = ({ coordenadas = [], onChange }) => {
     </div>
   );
 };
+
 // Componente para configurar raio
 const RaioManager = ({ coordenadaCentral, raioMetros, onCoordenadaChange, onRaioChange }) => {
   return (
-    <div className="space-y-4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-lg">"Raio (metros)</label>
+          <label className="block text-sm font-medium mb-2">Raio (metros)</label>
           <Input
             type="number"
             placeholder="Ex: 1000"
@@ -220,18 +232,19 @@ const RaioManager = ({ coordenadaCentral, raioMetros, onCoordenadaChange, onRaio
           />
         </div>
         <div>
-          <label className="text-lg">"Coordenada Central</label>
+          <label className="block text-sm font-medium mb-2">Coordenada Central</label>
           {coordenadaCentral ? (
-            <div className="text-sm>
+            <div className="text-sm">
               <p>Lat: {coordenadaCentral.lat.toFixed(6)}</p>
               <p>Lng: {coordenadaCentral.lng.toFixed(6)}</p>
             </div>
           ) : (
-            <p className="text-lg">"Clique no mapa para definir o centro</p>
+            <p className="text-sm text-gray-500">Clique no mapa para definir o centro</p>
           )}
         </div>
       </div>
-      <div className="h-96 border rounded-lg>
+
+      <div className="h-96 border rounded-lg">
         <LeafletMapSelector
           initialLat={coordenadaCentral?.lat || -23.5505}
           initialLng={coordenadaCentral?.lng || -46.6333}
@@ -241,15 +254,19 @@ const RaioManager = ({ coordenadaCentral, raioMetros, onCoordenadaChange, onRaio
     </div>
   );
 };
+
 // Componente para upload de arquivos
 const ArquivoUploader = ({ onArquivoUpload }) => {
   const fileInputRef = useRef(null);
   const { toast } = useToast();
+
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
+
     const extension = file.name.split('.').pop().toLowerCase();
     const tiposPermitidos = ['kml', 'shp', 'geojson', 'json'];
+
     if (!tiposPermitidos.includes(extension)) {
       toast({
         title: "Tipo de arquivo não suportado",
@@ -258,6 +275,7 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
       });
       return;
     }
+
     // Simular processamento do arquivo
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -270,33 +288,37 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
           // Para KML e SHP, seria necessário usar bibliotecas específicas
           dadosGeograficos = { arquivo: file.name, conteudo: e.target.result };
         }
+
         onArquivoUpload({
           arquivoOriginal: file.name,
           tipoArquivo: extension === 'shp' ? 'shape' : extension,
           dadosGeograficos
         });
+
         toast({
-          title: '[TRANSLATION_NEEDED]',
-          description: " foi processado`
+          title: "Arquivo carregado com sucesso",
+          description: `${file.name} foi processado`
         });
       } catch (error) {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Erro ao processar arquivo",
           description: "Verifique se o arquivo está no formato correto",
           variant: "destructive"
         });
       }
     };
+
     reader.readAsText(file);
   };
+
   return (
-    <div className="space-y-4>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center>
+    <div className="space-y-4">
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
         <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-        <p className="text-sm text-gray-600 mb-4>
+        <p className="text-sm text-gray-600 mb-4">
           Arraste e solte um arquivo aqui ou clique para selecionar
         </p>
-        <p className="text-xs text-gray-500 mb-4>
+        <p className="text-xs text-gray-500 mb-4">
           Formatos suportados: KML, SHP, GeoJSON
         </p>
         <Button
@@ -318,6 +340,7 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
     </div>
   );
 };
+
 export default function AreaForm({ onSubmit, onCancel, isLoading = false }: AreaFormProps) {
   const form = useForm<NewArea>({
     resolver: zodResolver(areaSchema),
@@ -337,9 +360,11 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
       tipoArquivo: null
     }
   });
+
   const { handleSubmit, setValue, watch } = form;
   const tipoArea = useWatch({ control: form.control, name: 'tipoArea' });
   const corMapa = useWatch({ control: form.control, name: 'corMapa' });
+
   const tiposArea = [
     { value: "faixa_cep", label: "Faixa CEP", icon: MapPin },
     { value: "shape", label: "Shape", icon: Map },
@@ -348,10 +373,12 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
     { value: "linha", label: "Linha", icon: Route },
     { value: "importar_area", label: "Importar Área", icon: Upload }
   ];
+
   const handleFormSubmit = (data: NewArea) => {
     console.log('AreaForm - Submitting data:', data);
     onSubmit(data);
   };
+
   const renderTipoAreaContent = () => {
     switch (tipoArea) {
       case 'faixa_cep':
@@ -361,6 +388,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
             onChange={(faixas) => setValue('faixasCep', faixas)}
           />
         );
+
       case 'coordenadas':
         return (
           <CoordenadasManager
@@ -368,6 +396,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
             onChange={(coords) => setValue('coordenadas', coords)}
           />
         );
+
       case 'raio':
         return (
           <RaioManager
@@ -377,20 +406,23 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
             onRaioChange={(raio) => setValue('raioMetros', raio)}
           />
         );
+
       case 'linha':
         return (
-          <div className="text-center py-8 text-gray-500>
+          <div className="text-center py-8 text-gray-500">
             <Route className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>Funcionalidade de linha em desenvolvimento</p>
           </div>
         );
+
       case 'shape':
         return (
-          <div className="text-center py-8 text-gray-500>
+          <div className="text-center py-8 text-gray-500">
             <Map className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>Editor de shapes em desenvolvimento</p>
           </div>
         );
+
       case 'importar_area':
         return (
           <ArquivoUploader
@@ -401,31 +433,34 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
             }}
           />
         );
+
       default:
         return null;
     }
   };
+
   return (
-    <div className="max-w-6xl mx-auto p-6>
-      <div className="mb-6>
-        <h2 className="text-lg">"Nova Área</h2>
-        <p className="text-lg">"Configure uma nova área geográfica com integração de mapa</p>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Nova Área</h2>
+        <p className="text-gray-600 dark:text-gray-400">Configure uma nova área geográfica com integração de mapa</p>
       </div>
+
       <Form {...form}>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           {/* Identificação */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2>
+              <CardTitle className="flex items-center gap-2">
                 <Map className="h-5 w-5" />
                 Identificação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4>
-              <div className="flex items-center justify-between>
-                <div className="space-y-0.5>
-                  <label htmlFor="ativo" className="text-lg">"Status</label>
-                  <div className="text-sm text-muted-foreground>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <label htmlFor="ativo" className="text-sm font-medium">Status</label>
+                  <div className="text-sm text-muted-foreground">
                     Área ativa no sistema
                   </div>
                 </div>
@@ -444,7 +479,8 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                   )}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="nome"
@@ -458,6 +494,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="codigoIntegracao"
@@ -472,6 +509,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                   )}
                 />
               </div>
+
               <FormField
                 control={form.control}
                 name="descricao"
@@ -490,15 +528,16 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
               />
             </CardContent>
           </Card>
+
           {/* Classificação */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2>
+              <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
                 Classificação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6>
+            <CardContent className="space-y-6">
               {/* Tipo de Área */}
               <FormField
                 control={form.control}
@@ -509,7 +548,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione o tipo de área" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -517,7 +556,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                           const Icon = tipo.icon;
                           return (
                             <SelectItem key={tipo.value} value={tipo.value}>
-                              <div className="flex items-center gap-2>
+                              <div className="flex items-center gap-2">
                                 <Icon className="h-4 w-4" />
                                 {tipo.label}
                               </div>
@@ -530,15 +569,16 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                   </FormItem>
                 )}
               />
+
               {/* Cor no Mapa */}
               <div>
-                <label className="text-lg">"Cor no Mapa</label>
-                <div className="flex items-center gap-4>
+                <label className="block text-sm font-medium mb-2">Cor no Mapa</label>
+                <div className="flex items-center gap-4">
                   <div 
                     className="w-10 h-10 rounded-full border-2 border-gray-300"
                     style={{ backgroundColor: corMapa }}
                   />
-                  <div className="flex-1>
+                  <div className="flex-1">
                     <ColorPicker 
                       value={corMapa}
                       onChange={(cor) => setValue('corMapa', cor)}
@@ -546,16 +586,19 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                   </div>
                 </div>
               </div>
+
               <Separator />
+
               {/* Configuração específica do tipo */}
               <div>
-                <h4 className="text-sm font-medium mb-4>
+                <h4 className="text-sm font-medium mb-4">
                   Configuração: {tiposArea.find(t => t.value === tipoArea)?.label}
                 </h4>
                 {renderTipoAreaContent()}
               </div>
             </CardContent>
           </Card>
+
           {/* Preview da Área */}
           {(watch('coordenadas')?.length > 0 || watch('coordenadaCentral') || watch('faixasCep')?.length > 0) && (
             <Card>
@@ -563,20 +606,21 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                 <CardTitle>Preview da Área</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-100 rounded-lg p-4 text-center>
+                <div className="bg-gray-100 rounded-lg p-4 text-center">
                   <Map className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600>
+                  <p className="text-sm text-gray-600">
                     Visualização da área será exibida aqui em tempo real
                   </p>
-                  <Badge style={{ backgroundColor: corMapa, color: 'white' }} className="mt-2>
+                  <Badge style={{ backgroundColor: corMapa, color: 'white' }} className="mt-2">
                     {tiposArea.find(t => t.value === tipoArea)?.label}
                   </Badge>
                 </div>
               </CardContent>
             </Card>
           )}
+
           {/* Botões de Ação */}
-          <div className="flex justify-end space-x-4 pt-4>
+          <div className="flex justify-end space-x-4 pt-4">
             <Button
               type="button"
               variant="outline"
@@ -590,7 +634,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
               disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? "Criando..." : '[TRANSLATION_NEEDED]'}
+              {isLoading ? "Criando..." : "Criar Área"}
             </Button>
           </div>
         </form>

@@ -17,9 +17,8 @@ import { X, Plus, MapPin, Users, Building, Search, ChevronDown } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import SimpleMapWithButtons from "@/components/SimpleMapWithButtons";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 const regiaoSchema = z.object({
-  // Localization temporarily disabled
   ativo: z.boolean().default(true),
   nome: z.string().min(1, "Nome é obrigatório").max(200),
   descricao: z.string().optional(),
@@ -41,19 +40,24 @@ const regiaoSchema = z.object({
   numero: z.string().optional(),
   complemento: z.string().optional(),
 });
+
 type RegiaoFormData = z.infer<typeof regiaoSchema>;
+
 interface RegiaoFormProps {
   onSubmit: (data: RegiaoFormData) => void;
   isSubmitting?: boolean;
   onCancel?: () => void;
 }
+
 const TIPO_LOGRADOURO_OPTIONS = [
   'Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo'
 ];
+
 // Componentes de seleção
 function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
   const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -62,12 +66,13 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
     }
     return token;
   };
+
   const { data: clientes = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/customers'],
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/customers', {
-        headers: { 'Authorization': "
+        headers: { 'Authorization': `Bearer ${validToken}` }
       });
       if (response.ok) {
         const result = await response.json();
@@ -76,16 +81,19 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
       return [];
     }
   });
+
   const toggleCliente = (clienteId: string) => {
     const newValue = value.includes(clienteId)
       ? value.filter(id => id !== clienteId)
       : [...value, clienteId];
     onChange(newValue);
   };
+
   const selectedClientes = clientes.filter((c: any) => value.includes(c.id));
+
   return (
-    <div className="space-y-2>
-      <div className="relative>
+    <div className="space-y-2">
+      <div className="relative">
         <Button
           type="button"
           variant="outline"
@@ -93,13 +101,14 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
           className="w-full justify-between"
         >
           {selectedClientes.length > 0 
-            ? " cliente(s) selecionado(s)`
+            ? `${selectedClientes.length} cliente(s) selecionado(s)`
             : "Selecionar clientes"
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
+
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             {clientes.map((cliente: any) => (
               <div
                 key={cliente.id}
@@ -107,19 +116,20 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
                 onClick={() => toggleCliente(cliente.id)}
               >
                 <Checkbox checked={value.includes(cliente.id)} />
-                <div className="flex-1>
-                  <p className="text-lg">"{cliente.name}</p>
-                  <p className="text-lg">"{cliente.email}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{cliente.name}</p>
+                  <p className="text-xs text-gray-500">{cliente.email}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
       {selectedClientes.length > 0 && (
-        <div className="flex flex-wrap gap-1>
+        <div className="flex flex-wrap gap-1">
           {selectedClientes.map((cliente: any) => (
-            <Badge key={cliente.id} variant="secondary" className="flex items-center gap-1>
+            <Badge key={cliente.id} variant="secondary" className="flex items-center gap-1">
               {cliente.name}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -132,8 +142,10 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
     </div>
   );
 }
+
 function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: string) => void }) {
   const { refreshToken } = useAuth();
+
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -142,12 +154,13 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
     }
     return token;
   };
+
   const { data: tecnicos = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/tecnicos'],
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/tecnicos', {
-        headers: { 'Authorization': "
+        headers: { 'Authorization': `Bearer ${validToken}` }
       });
       if (response.ok) {
         const result = await response.json();
@@ -156,6 +169,7 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
       return [];
     }
   });
+
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
@@ -166,8 +180,8 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
         {tecnicos.map((tecnico: any) => (
           <SelectItem key={tecnico.id} value={tecnico.id}>
             <div>
-              <p className="text-lg">"{tecnico.name}</p>
-              <p className="text-lg">"{tecnico.email} - {tecnico.role}</p>
+              <p className="font-medium">{tecnico.name}</p>
+              <p className="text-sm text-gray-500">{tecnico.email} - {tecnico.role}</p>
             </div>
           </SelectItem>
         ))}
@@ -175,9 +189,11 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
     </Select>
   );
 }
+
 function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
   const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -186,12 +202,13 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
     }
     return token;
   };
+
   const { data: grupos = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/grupos'],
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/grupos', {
-        headers: { 'Authorization': "
+        headers: { 'Authorization': `Bearer ${validToken}` }
       });
       if (response.ok) {
         const result = await response.json();
@@ -200,16 +217,19 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
       return [];
     }
   });
+
   const toggleGrupo = (grupoId: string) => {
     const newValue = value.includes(grupoId)
       ? value.filter(id => id !== grupoId)
       : [...value, grupoId];
     onChange(newValue);
   };
+
   const selectedGrupos = grupos.filter((g: any) => value.includes(g.id));
+
   return (
-    <div className="space-y-2>
-      <div className="relative>
+    <div className="space-y-2">
+      <div className="relative">
         <Button
           type="button"
           variant="outline"
@@ -217,13 +237,14 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
           className="w-full justify-between"
         >
           {selectedGrupos.length > 0 
-            ? " grupo(s) selecionado(s)`
+            ? `${selectedGrupos.length} grupo(s) selecionado(s)`
             : "Selecionar grupos"
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
+
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             {grupos.map((grupo: any) => (
               <div
                 key={grupo.id}
@@ -231,9 +252,9 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
                 onClick={() => toggleGrupo(grupo.id)}
               >
                 <Checkbox checked={value.includes(grupo.id)} />
-                <div className="flex-1>
-                  <p className="text-lg">"{grupo.name}</p>
-                  <p className="text-xs text-gray-500>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{grupo.name}</p>
+                  <p className="text-xs text-gray-500">
                     {grupo.description} ({grupo.memberCount} membro(s))
                   </p>
                 </div>
@@ -242,10 +263,11 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
           </div>
         )}
       </div>
+
       {selectedGrupos.length > 0 && (
-        <div className="flex flex-wrap gap-1>
+        <div className="flex flex-wrap gap-1">
           {selectedGrupos.map((grupo: any) => (
-            <Badge key={grupo.id} variant="secondary" className="flex items-center gap-1>
+            <Badge key={grupo.id} variant="secondary" className="flex items-center gap-1">
               {grupo.name}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -258,9 +280,11 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
     </div>
   );
 }
+
 function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
   const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -269,12 +293,13 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
     }
     return token;
   };
+
   const { data: locais = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/locais'],
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/locais', {
-        headers: { 'Authorization': "
+        headers: { 'Authorization': `Bearer ${validToken}` }
       });
       if (response.ok) {
         const result = await response.json();
@@ -283,16 +308,19 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
       return [];
     }
   });
+
   const toggleLocal = (localId: string) => {
     const newValue = value.includes(localId)
       ? value.filter(id => id !== localId)
       : [...value, localId];
     onChange(newValue);
   };
+
   const selectedLocais = locais.filter((l: any) => value.includes(l.id));
+
   return (
-    <div className="space-y-2>
-      <div className="relative>
+    <div className="space-y-2">
+      <div className="relative">
         <Button
           type="button"
           variant="outline"
@@ -300,13 +328,14 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
           className="w-full justify-between"
         >
           {selectedLocais.length > 0 
-            ? " local(is) selecionado(s)`
+            ? `${selectedLocais.length} local(is) selecionado(s)`
             : "Selecionar locais de atendimento"
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
+
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             {locais.map((local: any) => (
               <div
                 key={local.id}
@@ -314,19 +343,20 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
                 onClick={() => toggleLocal(local.id)}
               >
                 <Checkbox checked={value.includes(local.id)} />
-                <div className="flex-1>
-                  <p className="text-lg">"{local.name}</p>
-                  <p className="text-lg">"{local.displayName}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{local.name}</p>
+                  <p className="text-xs text-gray-500">{local.displayName}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
       {selectedLocais.length > 0 && (
-        <div className="flex flex-wrap gap-1>
+        <div className="flex flex-wrap gap-1">
           {selectedLocais.map((local: any) => (
-            <Badge key={local.id} variant="secondary" className="flex items-center gap-1>
+            <Badge key={local.id} variant="secondary" className="flex items-center gap-1">
               {local.name}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -339,11 +369,13 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
     </div>
   );
 }
+
 export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }: RegiaoFormProps) {
   const { toast } = useToast();
   const { refreshToken } = useAuth();
   const [showMap, setShowMap] = useState(false);
   const [newCep, setNewCep] = useState("");
+
   const form = useForm<RegiaoFormData>({
     resolver: zodResolver(regiaoSchema),
     defaultValues: {
@@ -361,8 +393,10 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       tecnicoPrincipalId: "none",
     },
   });
+
   const { register, handleSubmit, setValue, watch, formState: { errors } } = form;
   const watchedValues = watch();
+
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -371,16 +405,19 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
     }
     return token;
   };
+
   const handleCepLookup = async (cep: string) => {
     if (!cep || cep.length < 8) return;
+
     try {
       const validToken = await getValidToken();
-      const response = await fetch("
+      const response = await fetch(`/api/locations-new/services/cep/${cep.replace('-', '')}`, {
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${validToken}`,
           'Content-Type': 'application/json',
         },
       });
+
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -397,12 +434,13 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         await refreshToken();
         // Retry with fresh token
         const freshToken = localStorage.getItem('accessToken');
-        const retryResponse = await fetch("
+        const retryResponse = await fetch(`/api/locations-new/services/cep/${cep.replace('-', '')}`, {
           headers: {
-            'Authorization': "
+            'Authorization': `Bearer ${freshToken}`,
             'Content-Type': 'application/json',
           },
         });
+
         if (retryResponse.ok) {
           const data = await retryResponse.json();
           if (data.success) {
@@ -418,23 +456,25 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         }
       }
     } catch (error) {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Erro ao buscar CEP:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: "Erro ao buscar CEP. Tente novamente.",
         variant: "destructive",
       });
     }
   };
+
   const handleMapCoordinateSelect = (lat: number, lng: number) => {
     setValue('latitude', lat.toString());
     setValue('longitude', lng.toString());
     setShowMap(false);
     toast({
       title: "Coordenadas selecionadas",
-      description: "
+      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`,
     });
   };
+
   const addCepAbrangido = () => {
     if (newCep.trim()) {
       const currentCeps = watchedValues.cepsAbrangidos || [];
@@ -442,30 +482,35 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       setNewCep("");
     }
   };
+
   const removeCepAbrangido = (index: number) => {
     const currentCeps = watchedValues.cepsAbrangidos || [];
     setValue('cepsAbrangidos', currentCeps.filter((_, i) => i !== index));
   };
+
   const handleFormSubmit = async (data: RegiaoFormData) => {
     try {
       const validToken = await getValidToken();
+
       const processedData = {
           ...data,
           tecnicoPrincipalId: data.tecnicoPrincipalId === "none" ? undefined : data.tecnicoPrincipalId
       };
+
       // Add the token to the data or pass it to onSubmit
       const response = await fetch('/api/locations-new/regiao', {
         method: 'POST',
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${validToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(processedData),
       });
+
       if (response.ok) {
         const result = await response.json();
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Sucesso",
           description: "Região criada com sucesso!",
         });
         onSubmit(data);
@@ -473,76 +518,81 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         // Token expired, refresh and retry
         await refreshToken();
         const freshToken = localStorage.getItem('accessToken');
+
         const retryResponse = await fetch('/api/locations-new/regiao', {
           method: 'POST',
           headers: {
-            'Authorization': "
+            'Authorization': `Bearer ${freshToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(processedData),
         });
+
         if (retryResponse.ok) {
           const result = await retryResponse.json();
           toast({
-            title: '[TRANSLATION_NEEDED]',
+            title: "Sucesso",
             description: "Região criada com sucesso!",
           });
           onSubmit(data);
         } else {
           const error = await retryResponse.json();
           toast({
-            title: '[TRANSLATION_NEEDED]',
-            description: error.message || '[TRANSLATION_NEEDED]',
+            title: "Erro",
+            description: error.message || "Erro ao criar região",
             variant: "destructive",
           });
         }
       } else {
         const error = await response.json();
         toast({
-          title: '[TRANSLATION_NEEDED]',
-          description: error.message || '[TRANSLATION_NEEDED]',
+          title: "Erro",
+          description: error.message || "Erro ao criar região",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Erro ao salvar região:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: "Erro de conexão. Tente novamente.",
         variant: "destructive",
       });
     }
   };
+
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Identificação */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2>
+          <CardTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
             Identificação
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4>
-          <div className="flex items-center space-x-2>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
             <Switch
               checked={watchedValues.ativo}
               onCheckedChange={(checked) => setValue('ativo', checked)}
             />
             <Label>Ativo</Label>
           </div>
+
           <div>
             <Label htmlFor="nome">Nome *</Label>
             <Input
               id="nome"
               {...register('nome')}
               placeholder="Nome da região"
-              className={errors.nome ? "border-red-500" : ""
+              className={errors.nome ? "border-red-500" : ""}
             />
             {errors.nome && (
-              <p className="text-lg">"{errors.nome.message}</p>
+              <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
             )}
           </div>
+
           <div>
             <Label htmlFor="descricao">Descrição</Label>
             <Textarea
@@ -552,6 +602,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               rows={3}
             />
           </div>
+
           <div>
             <Label htmlFor="codigoIntegracao">Código de Integração</Label>
             <Input
@@ -562,15 +613,16 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
+
       {/* Relacionamentos */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2>
+          <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
             Relacionamentos
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4>
+        <CardContent className="space-y-4">
           <div>
             <Label>Clientes Vinculados (Multi-seleção)</Label>
             <ClientesMultiSelect
@@ -578,13 +630,15 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               onChange={(clientes) => setValue('clientesVinculados', clientes)}
             />
           </div>
+
           <div>
             <Label>Técnico Principal</Label>
             <TecnicoSelect
-              value={watchedValues.tecnicoPrincipalId || "none"
+              value={watchedValues.tecnicoPrincipalId || "none"}
               onChange={(tecnicoId) => setValue('tecnicoPrincipalId', tecnicoId)}
             />
           </div>
+
           <div>
             <Label>Grupos Vinculados (Multi-seleção)</Label>
             <GruposMultiSelect
@@ -592,6 +646,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               onChange={(grupos) => setValue('gruposVinculados', grupos)}
             />
           </div>
+
           <div>
             <Label>Locais de Atendimento Vinculados (Multi-seleção)</Label>
             <LocaisMultiSelect
@@ -601,16 +656,17 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
+
       {/* Geolocalização */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2>
+          <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
             Geolocalização
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4>
-          <div className="grid grid-cols-2 gap-4>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="latitude">Latitude</Label>
               <Input
@@ -630,7 +686,8 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           </div>
-          <div className="flex gap-2>
+
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
@@ -653,8 +710,9 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               </Button>
             )}
           </div>
+
           {showMap && (
-            <div className="border rounded-lg p-4>
+            <div className="border rounded-lg p-4">
               <SimpleMapWithButtons
                 onCoordinateSelect={handleMapCoordinateSelect}
                 onCancel={() => setShowMap(false)}
@@ -663,24 +721,26 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           )}
+
           <Separator />
+
           <div>
             <Label>CEPs Abrangidos ou Próximos</Label>
-            <div className="flex gap-2 mt-2>
+            <div className="flex gap-2 mt-2">
               <Input
                 value={newCep}
                 onChange={(e) => setNewCep(e.target.value)}
                 placeholder="Digite um CEP (ex: 01234-567)"
                 className="flex-1"
               />
-              <Button type="button" onClick={addCepAbrangido} size="sm>
+              <Button type="button" onClick={addCepAbrangido} size="sm">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
             {watchedValues.cepsAbrangidos && watchedValues.cepsAbrangidos.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {watchedValues.cepsAbrangidos.map((cep, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1>
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {cep}
                     <X
                       className="h-3 w-3 cursor-pointer"
@@ -693,15 +753,16 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
+
       {/* Endereço Base */}
       <Card>
         <CardHeader>
           <CardTitle>Endereço Base</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4>
+        <CardContent className="space-y-4">
           <div>
             <Label htmlFor="cep">CEP</Label>
-            <div className="flex gap-2>
+            <div className="flex gap-2">
               <Input
                 id="cep"
                 {...register('cep')}
@@ -718,7 +779,8 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="pais">País</Label>
               <Input
@@ -736,7 +798,8 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="municipio">Município</Label>
               <Input
@@ -754,11 +817,12 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           </div>
+
           <div>
             <Label htmlFor="tipoLogradouro">Tipo de Logradouro</Label>
             <Select onValueChange={(value) => setValue('tipoLogradouro', value)}>
               <SelectTrigger>
-                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
                 {TIPO_LOGRADOURO_OPTIONS.map((tipo) => (
@@ -769,6 +833,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               </SelectContent>
             </Select>
           </div>
+
           <div>
             <Label htmlFor="logradouro">Logradouro</Label>
             <Input
@@ -777,7 +842,8 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               placeholder="Nome da rua, avenida, etc."
             />
           </div>
-          <div className="grid grid-cols-2 gap-4>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="numero">Número</Label>
               <Input
@@ -797,15 +863,16 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
+
       {/* Actions */}
-      <div className="flex justify-end gap-2>
+      <div className="flex justify-end gap-2">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Salvando..." : '[TRANSLATION_NEEDED]'}
+          {isSubmitting ? "Salvando..." : "Salvar Região"}
         </Button>
       </div>
     </form>

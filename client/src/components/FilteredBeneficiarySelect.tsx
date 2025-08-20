@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface FilteredBeneficiarySelectProps {
   value?: string;
   onChange: (value: string) => void;
@@ -11,9 +11,8 @@ interface FilteredBeneficiarySelectProps {
   disabled?: boolean;
   className?: string;
 }
-export function FilteredBeneficiarySelect({
-  // Localization temporarily disabled
- 
+
+export function FilteredBeneficiarySelect({ 
   value, 
   onChange, 
   selectedCustomerId,
@@ -29,14 +28,15 @@ export function FilteredBeneficiarySelect({
       return response.json();
     },
   });
+
   // Buscar favorecidos do cliente se um cliente foi selecionado
   const { data: customerBeneficiariesData, isLoading: isLoadingCustomerBeneficiaries } = useQuery({
     queryKey: ['/api/customers', selectedCustomerId, 'beneficiaries'],
     queryFn: async () => {
       if (!selectedCustomerId || selectedCustomerId === 'unspecified') return { beneficiaries: [] };
-      console.log("
+      console.log(`[FilteredBeneficiarySelect] 🔄 Fetching beneficiaries for customer: ${selectedCustomerId}`);
       try {
-        const response = await apiRequest('GET', "/beneficiaries`);
+        const response = await apiRequest('GET', `/api/customers/${selectedCustomerId}/beneficiaries`);
         console.log(`[FilteredBeneficiarySelect] 📋 Response status:`, response.status, response.statusText);
         
         if (!response.ok) {
@@ -47,7 +47,7 @@ export function FilteredBeneficiarySelect({
         }
         
         const data = await response.json();
-        console.log(":`, data);
+        console.log(`[FilteredBeneficiarySelect] 📊 API response for customer ${selectedCustomerId}:`, data);
         return data;
       } catch (error) {
         console.error(`[FilteredBeneficiarySelect] ❌ Error fetching beneficiaries:`, error);
@@ -58,6 +58,7 @@ export function FilteredBeneficiarySelect({
     retry: 3,
     refetchOnWindowFocus: false,
   });
+
   const isLoading = isLoadingBeneficiaries || (selectedCustomerId && selectedCustomerId !== 'unspecified' && isLoadingCustomerBeneficiaries);
   
   // Determinar quais favorecidos mostrar baseado no cliente selecionado
@@ -72,7 +73,7 @@ export function FilteredBeneficiarySelect({
         beneficiariesCount: beneficiariesToShow.length,
         beneficiaries: beneficiariesToShow.map(b => ({ 
           id: b.id, 
-          name: b.name || "
+          name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
           email: b.email 
         }))
       });
@@ -101,15 +102,17 @@ export function FilteredBeneficiarySelect({
       beneficiariesCount: beneficiariesToShow.length
     });
   }
+
   if (isLoading) {
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+          <SelectValue placeholder="Carregando favorecidos..." />
         </SelectTrigger>
       </Select>
     );
   }
+
   return (
     <Select 
       value={value || '__none__'} 
@@ -129,15 +132,15 @@ export function FilteredBeneficiarySelect({
             <SelectItem value="__none__">Nenhum favorecido</SelectItem>
             <SelectItem value="unspecified">Não especificado</SelectItem>
             {beneficiariesToShow.map((beneficiary: any) => {
-              const beneficiaryName = "
+              const beneficiaryName = `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
                                      beneficiary.fullName || beneficiary.name || 
                                      beneficiary.email || 'Favorecido sem nome';
               return (
                 <SelectItem key={beneficiary.id} value={beneficiary.id}>
-                  <div className="flex flex-col>
+                  <div className="flex flex-col">
                     <span>{beneficiaryName}</span>
-                    <span className="text-sm text-gray-500>
-                      {beneficiary.email} {beneficiary.cpfCnpj && "
+                    <span className="text-sm text-gray-500">
+                      {beneficiary.email} {beneficiary.cpfCnpj && `• CPF/CNPJ: ${beneficiary.cpfCnpj}`}
                     </span>
                   </div>
                 </SelectItem>

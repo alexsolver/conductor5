@@ -1,7 +1,9 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 import { ButtonProps, buttonVariants } from "@/components/ui/button"
+
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
     role="navigation"
@@ -11,9 +13,10 @@ const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   />
 )
 Pagination.displayName = "Pagination"
+
 const PaginationContent = React.forwardRef<
   HTMLUListElement,
-  React.ComponentProps<"ul>
+  React.ComponentProps<"ul">
 >(({ className, ...props }, ref) => (
   <ul
     ref={ref}
@@ -22,17 +25,20 @@ const PaginationContent = React.forwardRef<
   />
 ))
 PaginationContent.displayName = "PaginationContent"
+
 const PaginationItem = React.forwardRef<
   HTMLLIElement,
-  React.ComponentProps<"li>
+  React.ComponentProps<"li">
 >(({ className, ...props }, ref) => (
   <li ref={ref} className={cn("", className)} {...props} />
 ))
 PaginationItem.displayName = "PaginationItem"
+
 type PaginationLinkProps = {
   isActive?: boolean
 } & Pick<ButtonProps, "size"> &
-  React.ComponentProps<"a>
+  React.ComponentProps<"a">
+
 const PaginationLink = ({
   className,
   isActive,
@@ -52,6 +58,7 @@ const PaginationLink = ({
   />
 )
 PaginationLink.displayName = "PaginationLink"
+
 const PaginationPrevious = ({
   className,
   ...props
@@ -67,6 +74,7 @@ const PaginationPrevious = ({
   </PaginationLink>
 )
 PaginationPrevious.displayName = "PaginationPrevious"
+
 const PaginationNext = ({
   className,
   ...props
@@ -82,6 +90,7 @@ const PaginationNext = ({
   </PaginationLink>
 )
 PaginationNext.displayName = "PaginationNext"
+
 const PaginationEllipsis = ({
   className,
   ...props
@@ -92,10 +101,11 @@ const PaginationEllipsis = ({
     {...props}
   >
     <MoreHorizontal className="h-4 w-4" />
-    <span className="text-lg">"More pages</span>
+    <span className="sr-only">More pages</span>
   </span>
 )
 PaginationEllipsis.displayName = "PaginationEllipsis"
+
 export {
   Pagination,
   PaginationContent,

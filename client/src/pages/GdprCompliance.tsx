@@ -3,6 +3,7 @@
  * Clean Architecture - React implementation
  * Following 1qa.md enterprise patterns
  */
+
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -22,7 +23,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   Shield, 
   FileText, 
   AlertTriangle, 
@@ -48,9 +48,9 @@ import {
   AlertCircle,
   FileCheck
 } from 'lucide-react';
+
 // ✅ Form Schemas following 1qa.md patterns
 const gdprReportSchema = z.object({
-  // Localization temporarily disabled
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   reportType: z.enum([
@@ -65,7 +65,9 @@ const gdprReportSchema = z.object({
   dueDate: z.string().optional(),
   reportData: z.record(z.any()).optional()
 });
+
 type GdprReportFormData = z.infer<typeof gdprReportSchema>;
+
 interface GdprReport {
   id: string;
   title: string;
@@ -82,6 +84,7 @@ interface GdprReport {
   approvedAt?: string;
   publishedAt?: string;
 }
+
 interface GdprMetrics {
   totalReports: number;
   activeReports: number;
@@ -92,20 +95,24 @@ interface GdprMetrics {
   reportsThisMonth: number;
   reportsLastMonth: number;
 }
+
 export default function GdprCompliance() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
   // ✅ Queries following 1qa.md patterns
   const { data: reports, isLoading: reportsLoading, refetch: refetchReports } = useQuery({
     queryKey: ['/api/gdpr-compliance/reports'],
     queryFn: () => apiRequest('/api/gdpr-compliance/reports')
   });
+
   const { data: metricsData, isLoading: metricsLoading } = useQuery({
     queryKey: ['/api/gdpr-compliance/metrics'],
     queryFn: () => apiRequest('/api/gdpr-compliance/metrics')
   });
+
   // ✅ Mutations following 1qa.md patterns
   const createReportMutation = useMutation({
     mutationFn: (data: GdprReportFormData) => apiRequest('/api/gdpr-compliance/reports', {
@@ -121,9 +128,10 @@ export default function GdprCompliance() {
       toast({ title: 'Erro ao criar relatório GDPR', variant: 'destructive' });
     }
   });
+
   const updateReportMutation = useMutation({
     mutationFn: ({ id, ...data }: { id: string } & Partial<GdprReportFormData>) =>
-      apiRequest("
+      apiRequest(`/api/gdpr-compliance/reports/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data)
       }),
@@ -136,6 +144,7 @@ export default function GdprCompliance() {
       toast({ title: 'Erro ao atualizar relatório GDPR', variant: 'destructive' });
     }
   });
+
   // ✅ Report Type Translation
   const getReportTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -154,6 +163,7 @@ export default function GdprCompliance() {
     };
     return labels[type] || type;
   };
+
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       'draft': 'Rascunho',
@@ -165,6 +175,7 @@ export default function GdprCompliance() {
     };
     return labels[status] || status;
   };
+
   const getPriorityLabel = (priority: string) => {
     const labels: Record<string, string> = {
       'low': 'Baixa',
@@ -175,6 +186,7 @@ export default function GdprCompliance() {
     };
     return labels[priority] || priority;
   };
+
   // ✅ CreateGdprReportDialog Component
   const CreateGdprReportDialog = () => {
     const form = useForm<GdprReportFormData>({
@@ -185,24 +197,26 @@ export default function GdprCompliance() {
         priority: 'medium'
       }
     });
+
     const onSubmit = (data: GdprReportFormData) => {
       createReportMutation.mutate(data);
       form.reset();
     };
+
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <Button data-testid="button-create-report>
+          <Button data-testid="button-create-report">
             <Plus className="w-4 h-4 mr-2" />
             Novo Relatório GDPR
           </Button>
         </DialogTrigger>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Criar Relatório GDPR</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -216,6 +230,7 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="reportType"
@@ -224,8 +239,8 @@ export default function GdprCompliance() {
                     <FormLabel>Tipo de Relatório</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-report-type>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                        <SelectTrigger data-testid="select-report-type">
+                          <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -247,7 +262,8 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
+
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="priority"
@@ -256,7 +272,7 @@ export default function GdprCompliance() {
                       <FormLabel>Prioridade</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-priority>
+                          <SelectTrigger data-testid="select-priority">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -272,6 +288,7 @@ export default function GdprCompliance() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="riskLevel"
@@ -280,8 +297,8 @@ export default function GdprCompliance() {
                       <FormLabel>Nível de Risco</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-risk-level>
-                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectTrigger data-testid="select-risk-level">
+                            <SelectValue placeholder="Selecione o risco" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -297,6 +314,7 @@ export default function GdprCompliance() {
                   )}
                 />
               </div>
+
               <FormField
                 control={form.control}
                 name="dueDate"
@@ -310,6 +328,7 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="description"
@@ -323,9 +342,10 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
-                <Button type="submit" disabled={createReportMutation.isPending} data-testid="button-submit-report>
-                  {createReportMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
+
+              <div className="flex justify-end space-x-2">
+                <Button type="submit" disabled={createReportMutation.isPending} data-testid="button-submit-report">
+                  {createReportMutation.isPending ? 'Criando...' : 'Criar Relatório'}
                 </Button>
               </div>
             </form>
@@ -334,6 +354,7 @@ export default function GdprCompliance() {
       </Dialog>
     );
   };
+
   // ✅ Dashboard rendering
   const renderDashboard = () => {
     const metrics: GdprMetrics = metricsData?.data?.metrics || {
@@ -346,114 +367,125 @@ export default function GdprCompliance() {
       reportsThisMonth: 0,
       reportsLastMonth: 0
     };
+
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <h2 className="text-lg">"Dashboard GDPR Compliance</h2>
-          <div className="p-4"
-            <Button variant="outline" size="sm" onClick={() => refetchReports()} data-testid="button-refresh>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Dashboard GDPR Compliance</h2>
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm" onClick={() => refetchReports()} data-testid="button-refresh">
               <RefreshCw className="w-4 h-4 mr-2" />
               Atualizar
             </Button>
-            <Button variant="outline" size="sm" data-testid="button-export>
+            <Button variant="outline" size="sm" data-testid="button-export">
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
           </div>
         </div>
+
         {/* Metrics Cards */}
-        <div className="p-4"
-          <Card data-testid="card-total-reports>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Total de Relatórios</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card data-testid="card-total-reports">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Relatórios</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{metrics.totalReports}</div>
+              <div className="text-2xl font-bold">{metrics.totalReports}</div>
             </CardContent>
           </Card>
-          <Card data-testid="card-active-reports>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Relatórios Ativos</CardTitle>
+
+          <Card data-testid="card-active-reports">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Relatórios Ativos</CardTitle>
               <Activity className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{metrics.activeReports}</div>
+              <div className="text-2xl font-bold text-blue-600">{metrics.activeReports}</div>
             </CardContent>
           </Card>
-          <Card data-testid="card-overdue-reports>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Relatórios Vencidos</CardTitle>
+
+          <Card data-testid="card-overdue-reports">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Relatórios Vencidos</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{metrics.overdueReports}</div>
+              <div className="text-2xl font-bold text-red-600">{metrics.overdueReports}</div>
             </CardContent>
           </Card>
-          <Card data-testid="card-compliance-score>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Score de Compliance</CardTitle>
+
+          <Card data-testid="card-compliance-score">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Score de Compliance</CardTitle>
               <BarChart3 className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{metrics.averageComplianceScore}%</div>
+              <div className="text-2xl font-bold text-green-600">{metrics.averageComplianceScore}%</div>
               <Progress value={metrics.averageComplianceScore} className="mt-2" />
             </CardContent>
           </Card>
         </div>
+
         {/* Additional metrics */}
-        <div className="p-4"
-          <Card data-testid="card-high-risk>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Relatórios de Alto Risco</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card data-testid="card-high-risk">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Relatórios de Alto Risco</CardTitle>
               <AlertCircle className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{metrics.highRiskReports}</div>
-              <p className="text-lg">"Requerem atenção imediata</p>
+              <div className="text-2xl font-bold text-orange-600">{metrics.highRiskReports}</div>
+              <p className="text-xs text-muted-foreground">Requerem atenção imediata</p>
             </CardContent>
           </Card>
-          <Card data-testid="card-this-month>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Este Mês</CardTitle>
+
+          <Card data-testid="card-this-month">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Este Mês</CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{metrics.reportsThisMonth}</div>
-              <p className="p-4"
+              <div className="text-2xl font-bold">{metrics.reportsThisMonth}</div>
+              <p className="text-xs text-muted-foreground">
                 {metrics.reportsThisMonth > metrics.reportsLastMonth ? '+' : ''}
                 {metrics.reportsThisMonth - metrics.reportsLastMonth} vs mês anterior
               </p>
             </CardContent>
           </Card>
-          <Card data-testid="card-completed>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Concluídos</CardTitle>
+
+          <Card data-testid="card-completed">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{metrics.completedReports}</div>
-              <p className="text-lg">"Aprovados e publicados</p>
+              <div className="text-2xl font-bold text-green-600">{metrics.completedReports}</div>
+              <p className="text-xs text-muted-foreground">Aprovados e publicados</p>
             </CardContent>
           </Card>
         </div>
       </div>
     );
   };
+
   // ✅ Reports listing rendering
   const renderReports = () => {
     const reportsData = reports?.data || [];
+
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <h2 className="text-lg">"Relatórios GDPR</h2>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Relatórios GDPR</h2>
           <CreateGdprReportDialog />
         </div>
+
         {/* Filters */}
-        <div className="p-4"
-          <div className="p-4"
+        <div className="flex space-x-4">
+          <div className="flex-1">
             <Input
-              placeholder='[TRANSLATION_NEEDED]'
+              placeholder="Buscar relatórios..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -461,7 +493,7 @@ export default function GdprCompliance() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48" data-testid="select-status-filter>
+            <SelectTrigger className="w-48" data-testid="select-status-filter">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -474,15 +506,16 @@ export default function GdprCompliance() {
             </SelectContent>
           </Select>
         </div>
+
         {/* Reports Grid */}
-        <div className="p-4"
+        <div className="grid gap-6">
           {reportsData && Array.isArray(reportsData) && reportsData.length > 0 ? (
             reportsData.map((report: GdprReport) => (
-              <Card key={report.id} className="hover:shadow-md transition-shadow" data-testid={"
+              <Card key={report.id} className="hover:shadow-md transition-shadow" data-testid={`card-report-${report.id}`}>
                 <CardHeader>
-                  <div className="p-4"
-                    <div className="p-4"
-                      <div className="p-4"
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-3">
                         <Badge 
                           variant={report.priority === 'high' || report.priority === 'critical' ? 'destructive' : 'default'}
                           className="text-xs"
@@ -495,12 +528,12 @@ export default function GdprCompliance() {
                             report.status === 'published' ? 'bg-green-50 text-green-700' :
                             report.status === 'approved' ? 'bg-blue-50 text-blue-700' : 
                             'bg-gray-50 text-gray-700'
-                          "
+                          }`}
                         >
                           {getStatusLabel(report.status)}
                         </Badge>
                         {report.riskLevel && (
-                          <Badge variant="secondary" className="p-4"
+                          <Badge variant="secondary" className="text-xs">
                             Risco: {report.riskLevel === 'very_high' ? 'Muito Alto' : 
                                    report.riskLevel === 'high' ? 'Alto' :
                                    report.riskLevel === 'medium' ? 'Médio' :
@@ -508,57 +541,59 @@ export default function GdprCompliance() {
                           </Badge>
                         )}
                       </div>
-                      <CardTitle className="text-lg">"{report.title}</CardTitle>
-                      <CardDescription className="p-4"
+                      <CardTitle className="text-lg">{report.title}</CardTitle>
+                      <CardDescription className="line-clamp-2">
                         {getReportTypeLabel(report.reportType)}
-                        {report.description && "
+                        {report.description && ` - ${report.description}`}
                       </CardDescription>
                     </div>
                     
                     {report.complianceScore && (
-                      <div className="p-4"
-                        <div className="text-lg">"Score</div>
-                        <div className="text-lg">"{report.complianceScore}%</div>
+                      <div className="text-right">
+                        <div className="text-sm text-muted-foreground">Score</div>
+                        <div className="text-2xl font-bold text-green-600">{report.complianceScore}%</div>
                       </div>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
+
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-lg">"Criado:</span>
-                      <span className="p-4"
+                      <span className="text-muted-foreground">Criado:</span>
+                      <span className="font-medium">
                         {new Date(report.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     
                     {report.dueDate && (
-                      <div className="p-4"
+                      <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-lg">"Vencimento:</span>
+                        <span className="text-muted-foreground">Vencimento:</span>
                         <span className={`font-medium ${
                           new Date(report.dueDate) < new Date() ? 'text-red-600' : ''
-                        >
+                        }`}>
                           {new Date(report.dueDate).toLocaleDateString()}
                         </span>
                       </div>
                     )}
                     
                     {report.assignedUserId && (
-                      <div className="p-4"
+                      <div className="flex items-center space-x-2">
                         <Users className="h-4 w-4 text-gray-500" />
-                        <span className="text-lg">"Responsável:</span>
-                        <span className="text-lg">"Atribuído</span>
+                        <span className="text-muted-foreground">Responsável:</span>
+                        <span className="font-medium">Atribuído</span>
                       </div>
                     )}
                   </div>
-                  <div className="p-4"
-                    <Button size="sm" variant="outline" data-testid={"
+
+                  <div className="flex justify-end space-x-2">
+                    <Button size="sm" variant="outline" data-testid={`button-view-${report.id}`}>
                       <Eye className="w-3 h-3 mr-1" />
                       Ver Detalhes
                     </Button>
-                    <Button size="sm" variant="outline" data-testid={"
+                    <Button size="sm" variant="outline" data-testid={`button-edit-${report.id}`}>
                       <Edit className="w-3 h-3 mr-1" />
                       Editar
                     </Button>
@@ -566,7 +601,7 @@ export default function GdprCompliance() {
                       <Button
                         size="sm"
                         onClick={() => updateReportMutation.mutate({ id: report.id, status: 'in_progress' })}
-                        data-testid={"
+                        data-testid={`button-submit-${report.id}`}
                       >
                         <Send className="w-3 h-3 mr-1" />
                         Enviar
@@ -578,13 +613,13 @@ export default function GdprCompliance() {
             ))
           ) : (
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-6">
+                <div className="text-center py-8">
                   <Shield className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="p-4"
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                     Nenhum relatório GDPR
                   </h3>
-                  <p className="p-4"
+                  <p className="text-gray-500 dark:text-gray-400">
                     Crie relatórios GDPR para gerenciar compliance de dados.
                   </p>
                 </div>
@@ -595,43 +630,48 @@ export default function GdprCompliance() {
       </div>
     );
   };
+
   return (
-    <div className="p-4"
-      <div className="p-4"
-        <div className="p-4"
-          <h1 className="p-4"
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             GDPR Compliance
           </h1>
-          <p className="p-4"
+          <p className="text-gray-600 dark:text-gray-300">
             Sistema completo de gestão de compliance GDPR e proteção de dados
           </p>
         </div>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
-          <TabsList className="p-4"
-            <TabsTrigger value="dashboard" data-testid="tab-dashboard>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+            <TabsTrigger value="dashboard" data-testid="tab-dashboard">
               <BarChart3 className="w-4 h-4 mr-2" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="reports" data-testid="tab-reports>
+            <TabsTrigger value="reports" data-testid="tab-reports">
               <FileText className="w-4 h-4 mr-2" />
               Relatórios
             </TabsTrigger>
-            <TabsTrigger value="templates" data-testid="tab-templates>
+            <TabsTrigger value="templates" data-testid="tab-templates">
               <FileCheck className="w-4 h-4 mr-2" />
               Templates
             </TabsTrigger>
-            <TabsTrigger value="audit" data-testid="tab-audit>
+            <TabsTrigger value="audit" data-testid="tab-audit">
               <Shield className="w-4 h-4 mr-2" />
               Auditoria
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="dashboard" className="p-4"
+
+          <TabsContent value="dashboard" className="mt-6">
             {renderDashboard()}
           </TabsContent>
-          <TabsContent value="reports" className="p-4"
+
+          <TabsContent value="reports" className="mt-6">
             {renderReports()}
           </TabsContent>
-          <TabsContent value="templates" className="p-4"
+
+          <TabsContent value="templates" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Templates GDPR</CardTitle>
@@ -640,13 +680,14 @@ export default function GdprCompliance() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="p-4"
+                <p className="text-muted-foreground">
                   Funcionalidade em desenvolvimento - Templates para DPIA, relatórios de violação, etc.
                 </p>
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="audit" className="p-4"
+
+          <TabsContent value="audit" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Trilha de Auditoria</CardTitle>
@@ -655,7 +696,7 @@ export default function GdprCompliance() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="p-4"
+                <p className="text-muted-foreground">
                   Funcionalidade em desenvolvimento - Logs de auditoria e rastreamento de mudanças
                 </p>
               </CardContent>

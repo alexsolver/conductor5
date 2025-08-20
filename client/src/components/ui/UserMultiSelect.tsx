@@ -3,7 +3,6 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-// import { useLocalization } from '@/hooks/useLocalization';
   Command,
   CommandEmpty,
   CommandGroup,
@@ -16,12 +15,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+
 interface User {
   id: string;
   name: string;
   email: string;
   role?: string;
 }
+
 interface UserMultiSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
@@ -30,46 +31,52 @@ interface UserMultiSelectProps {
   className?: string;
   disabled?: boolean;
 }
+
 export function UserMultiSelect({
-  // Localization temporarily disabled
   value = [],
   onChange,
   users,
-  placeholder = '[TRANSLATION_NEEDED]',
+  placeholder = "Selecionar usuários...",
   className,
   disabled = false,
 }: UserMultiSelectProps) {
   const [open, setOpen] = useState(false);
+
   // Debug logs
   React.useEffect(() => {
     console.log('[UserMultiSelect] Users received:', users?.length, users);
     console.log('[UserMultiSelect] Current value:', value);
   }, [users, value]);
+
   const selectedUsers = users.filter(user => value.includes(user.id));
   const availableUsers = users.filter(user => !value.includes(user.id));
+
   const handleSelect = (userId: string) => {
     const newValue = [...value, userId];
     onChange(newValue);
   };
+
   const handleRemove = (userId: string) => {
     const newValue = value.filter(id => id !== userId);
     onChange(newValue);
   };
+
   const handleClear = () => {
     onChange([]);
   };
+
   return (
     <div className={cn("space-y-2", className)}>
       {/* Selected Users Display */}
       {selectedUsers.length > 0 && (
-        <div className="flex flex-wrap gap-1>
+        <div className="flex flex-wrap gap-1">
           {selectedUsers.map((user) => (
             <Badge
               key={user.id}
               variant="secondary"
               className="flex items-center gap-1 px-2 py-1"
             >
-              <span className="text-lg">"{user.name}</span>
+              <span className="text-xs font-medium">{user.name}</span>
               {!disabled && (
                 <button
                   type="button"
@@ -94,6 +101,7 @@ export function UserMultiSelect({
           )}
         </div>
       )}
+
       {/* User Selector */}
       {!disabled && (
         <Popover open={open} onOpenChange={setOpen}>
@@ -106,20 +114,20 @@ export function UserMultiSelect({
               disabled={disabled}
             >
               {selectedUsers.length > 0
-                ? "
+                ? `${selectedUsers.length} usuário${selectedUsers.length > 1 ? 's' : ''} selecionado${selectedUsers.length > 1 ? 's' : ''}`
                 : placeholder}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start>
+          <PopoverContent className="w-full p-0" align="start">
             <Command>
-              <CommandInput placeholder='[TRANSLATION_NEEDED]' />
+              <CommandInput placeholder="Buscar usuários..." />
               <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
-              <CommandGroup className="max-h-64 overflow-y-auto>
+              <CommandGroup className="max-h-64 overflow-y-auto">
                 {availableUsers.map((user) => (
                   <CommandItem
                     key={user.id}
-                    value={"
+                    value={`${user.name} ${user.email}`}
                     onSelect={() => {
                       handleSelect(user.id);
                     }}
@@ -131,11 +139,11 @@ export function UserMultiSelect({
                         value.includes(user.id) ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <div className="flex flex-col>
-                      <span className="text-lg">"{user.name}</span>
-                      <span className="text-lg">"{user.email}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{user.name}</span>
+                      <span className="text-xs text-muted-foreground">{user.email}</span>
                       {user.role && (
-                        <span className="text-lg">"{user.role}</span>
+                        <span className="text-xs text-blue-600">{user.role}</span>
                       )}
                     </div>
                   </CommandItem>

@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import {
-// import useLocalization from '@/hooks/useLocalization';
   Plus, Search, Edit, Eye, Copy, Trash2, TrendingUp, DollarSign, Settings, BarChart3,
   FileText, Clock, CheckCircle, Calculator, X, Save, RotateCcw, Check, AlertCircle,
   History, Upload, Download, Users, Target, Percent, Hash, Calendar, Building,
@@ -23,6 +22,7 @@ import {
 import PricingRuleConfigurationModal from "@/components/lpu/PricingRuleConfigurationModal";
 import PriceSimulatorModal from "@/components/lpu/PriceSimulatorModal";
 import MarginConfigurationPanel from "@/components/lpu/MarginConfigurationPanel";
+
 interface PriceList {
   id: string;
   name: string;
@@ -41,6 +41,7 @@ interface PriceList {
   updatedAt: string;
   customerCompanyId?: string;
 }
+
 interface PriceListItem {
   id: string;
   priceListId: string;
@@ -54,6 +55,7 @@ interface PriceListItem {
   itemName?: string;
   measurementUnit?: string;
 }
+
 interface PricingRule {
   id: string;
   name: string;
@@ -66,6 +68,7 @@ interface PricingRule {
   createdAt?: string;
   updatedAt?: string;
 }
+
 interface LPUStats {
   totalLists: number;
   activeLists: number;
@@ -75,14 +78,15 @@ interface LPUStats {
   activeRules: number;
   approvalRate: number;
 }
+
 export default function LPU() {
-  // Localization temporarily disabled
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPriceList, setSelectedPriceList] = useState<PriceList | null>(null);
   const [selectedPricingRule, setSelectedPricingRule] = useState<PricingRule | null>(null);
+
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -96,41 +100,49 @@ export default function LPU() {
   const [isAdvancedRuleDialogOpen, setIsAdvancedRuleDialogOpen] = useState(false);
   const [isPriceSimulatorOpen, setIsPriceSimulatorOpen] = useState(false);
   const [isMarginConfigOpen, setIsMarginConfigOpen] = useState(false);
+
   // Other states
   const [selectedPriceListForRules, setSelectedPriceListForRules] = useState<string | null>(null);
   const [itemToDelete, setItemToDelete] = useState<{ type: 'list' | 'rule', id: string } | null>(null);
+
   // Fetch LPU stats
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<LPUStats>({
     queryKey: ['/api/materials-services/price-lists/stats'],
     retry: 3,
     staleTime: 30000,
   });
+
   // Fetch price lists
   const { data: priceListsResponse, isLoading: priceListsLoading, error: priceListsError } = useQuery({
     queryKey: ['/api/materials-services/price-lists'],
     retry: 3,
     staleTime: 30000,
   });
+
   const priceLists = Array.isArray(priceListsResponse) ? priceListsResponse : 
     (priceListsResponse?.data && Array.isArray(priceListsResponse.data) ? priceListsResponse.data : []);
+
   // Fetch pricing rules
   const { data: pricingRulesResponse, isLoading: rulesLoading, error: rulesError } = useQuery({
     queryKey: ['/api/materials-services/pricing-rules'],
     retry: 3,
     staleTime: 30000,
   });
+
   const pricingRules = Array.isArray(pricingRulesResponse) ? pricingRulesResponse : [];
+
   // Fetch price list items when viewing details
   const { data: priceListItems = [], isLoading: itemsLoading } = useQuery({
     queryKey: ['/api/materials-services/price-lists', selectedPriceList?.id, 'items'],
     queryFn: async () => {
       if (!selectedPriceList) return [];
-      const response = await apiRequest('GET', "/items`);
+      const response = await apiRequest('GET', `/api/materials-services/price-lists/${selectedPriceList.id}/items`);
       return response.json();
     },
     enabled: !!selectedPriceList,
     retry: 3,
   });
+
   // Create price list mutation
   const createPriceListMutation = useMutation({
     mutationFn: async (data: Partial<PriceList>) => {
@@ -150,16 +162,17 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao criar lista de preços",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Update price list mutation
   const updatePriceListMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PriceList> }) => {
-      const response = await apiRequest('PUT', "
+      const response = await apiRequest('PUT', `/api/materials-services/price-lists/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -170,16 +183,17 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao atualizar lista de preços",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Delete price list mutation
   const deletePriceListMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', "
+      await apiRequest('DELETE', `/api/materials-services/price-lists/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
@@ -190,16 +204,17 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao excluir lista de preços",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Duplicate price list mutation
   const duplicatePriceListMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('POST', "/duplicate`, {});
+      const response = await apiRequest('POST', `/api/materials-services/price-lists/${id}/duplicate`, {});
       return response.json();
     },
     onSuccess: () => {
@@ -208,12 +223,13 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao duplicar lista de preços",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Create pricing rule mutation
   const createPricingRuleMutation = useMutation({
     mutationFn: async (data: Partial<PricingRule>) => {
@@ -228,16 +244,17 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao criar regra de precificação",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Update pricing rule mutation
   const updatePricingRuleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PricingRule> }) => {
-      const response = await apiRequest('PUT', "
+      const response = await apiRequest('PUT', `/api/materials-services/pricing-rules/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -248,16 +265,17 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao atualizar regra de precificação",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Delete pricing rule mutation
   const deletePricingRuleMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', "
+      await apiRequest('DELETE', `/api/materials-services/pricing-rules/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
@@ -267,54 +285,61 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao excluir regra de precificação",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Apply rules mutation
   const applyRulesMutation = useMutation({
     mutationFn: async (priceListId: string) => {
-      const response = await apiRequest('POST', "/apply-rules`, {});
+      const response = await apiRequest('POST', `/api/materials-services/price-lists/${priceListId}/apply-rules`, {});
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: " itens atualizados`
+        title: "Regras aplicadas com sucesso!",
+        description: `${data.affectedItems || 0} itens atualizados`
       });
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao aplicar regras",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Helper functions
   const handleEditPriceList = (list: PriceList) => {
     setSelectedPriceList(list);
     setIsEditDialogOpen(true);
   };
+
   const handleDeletePriceList = (id: string) => {
     setItemToDelete({ type: 'list', id });
     setIsDeleteDialogOpen(true);
   };
+
   const handleEditPricingRule = (rule: PricingRule) => {
     setSelectedPricingRule(rule);
     setIsEditRuleDialogOpen(true);
   };
+
   const handleDeletePricingRule = (id: string) => {
     setItemToDelete({ type: 'rule', id });
     setIsDeleteRuleDialogOpen(true);
   };
+
   const handleViewItems = (list: PriceList) => {
     setSelectedPriceList(list);
     setIsItemsDialogOpen(true);
   };
+
   const confirmDelete = () => {
     if (itemToDelete) {
       if (itemToDelete.type === 'list') {
@@ -324,6 +349,7 @@ export default function LPU() {
       }
     }
   };
+
   // Safe filtering
   const filteredPriceLists = priceLists.filter((list: PriceList) => {
     try {
@@ -333,6 +359,7 @@ export default function LPU() {
       return false;
     }
   });
+
   const filteredPricingRules = pricingRules.filter((rule: PricingRule) => {
     try {
       return rule?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -341,46 +368,49 @@ export default function LPU() {
       return false;
     }
   });
+
   // Error display component
   const ErrorDisplay = ({ error, title }: { error: any, title: string }) => (
-    <Card className="p-4"
-      <CardContent className="p-4"
-        <h3 className="text-lg">"{title}</h3>
-        <p className="p-4"
-          {error?.message || '[TRANSLATION_NEEDED]'}
+    <Card className="border-red-200 bg-red-50">
+      <CardContent className="p-4">
+        <h3 className="text-red-800 font-medium">{title}</h3>
+        <p className="text-red-600 text-sm mt-1">
+          {error?.message || 'Erro desconhecido'}
         </p>
       </CardContent>
     </Card>
   );
+
   // Improved loading state
   if (priceListsLoading || statsLoading || rulesLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"</div>
-          <div className="p-4"
-            <p className="text-lg">"Carregando Sistema LPU</p>
-            <p className="text-lg">"Preparando listas de preços e regras...</p>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-gray-900">Carregando Sistema LPU</p>
+            <p className="text-sm text-gray-600">Preparando listas de preços e regras...</p>
           </div>
         </div>
       </div>
     );
   }
+
   // Improved error state
   if (priceListsError || statsError || rulesError) {
     const errorMessage = (priceListsError as any)?.message || (statsError as any)?.message || (rulesError as any)?.message;
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"⚠️</div>
-          <div className="p-4"
-            <h3 className="text-lg">"Erro no Sistema LPU</h3>
-            <p className="p-4"
-              {errorMessage || '[TRANSLATION_NEEDED]'}
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-red-500 text-4xl">⚠️</div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">Erro no Sistema LPU</h3>
+            <p className="text-sm text-gray-600">
+              {errorMessage || 'Erro interno do servidor'}
             </p>
           </div>
-          <div className="p-4"
-            <Button onClick={() => window.location.reload()} variant="outline>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => window.location.reload()} variant="outline">
               Recarregar Página
             </Button>
             <Button onClick={() => {
@@ -395,17 +425,20 @@ export default function LPU() {
       </div>
     );
   }
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="space-y-6 pl-[9px] pr-[9px]">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg">"LPU - Lista de Preços Unitários</h1>
-          <p className="text-lg">"Sistema completo de gestão de listas de preços e regras de precificação</p>
+          <h1 className="text-3xl font-bold">LPU - Lista de Preços Unitários</h1>
+          <p className="text-muted-foreground">Sistema completo de gestão de listas de preços e regras de precificação</p>
         </div>
       </div>
+
       {/* Error States - Removed as the main error handling is done above */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
-        <TabsList className="p-4"
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="price-lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="pricing-rules">Regras de Precificação</TabsTrigger>
@@ -414,66 +447,71 @@ export default function LPU() {
           <TabsTrigger value="versions">Versões</TabsTrigger>
           <TabsTrigger value="analytics">Análises</TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className="p-4"
+
+        <TabsContent value="overview" className="space-y-4">
           {/* Statistics Cards */}
-          <div className="p-4"
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             <Card>
-              <CardHeader className="p-4"
-                <CardTitle className="text-lg">"Total de Listas</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="text-2xl font-bold">
                   {stats?.totalLists || 0}
                 </div>
-                <p className="p-4"
+                <p className="text-xs text-muted-foreground">
                   {stats?.activeLists || 0} listas ativas
                 </p>
               </CardContent>
             </Card>
+
             <Card>
-              <CardHeader className="p-4"
-                <CardTitle className="text-lg">"Regras Ativas</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Regras Ativas</CardTitle>
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="text-2xl font-bold">
                   {pricingRules.filter(r => r.isActive).length}
                 </div>
-                <p className="p-4"
+                <p className="text-xs text-muted-foreground">
                   {pricingRules.length} regras totais
                 </p>
               </CardContent>
             </Card>
+
             <Card>
-              <CardHeader className="p-4"
-                <CardTitle className="text-lg">"Taxa de Aprovação</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="p-4"
-                  {"%"
+                <div className="text-2xl font-bold">
+                  {`${stats?.approvalRate || 0}%`}
                 </div>
-                <p className="p-4"
+                <p className="text-xs text-muted-foreground">
                   {stats?.approvedVersions || 0} aprovadas
                 </p>
               </CardContent>
             </Card>
+
             <Card>
-              <CardHeader className="p-4"
-                <CardTitle className="text-lg">"Pendente Aprovação</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="text-2xl font-bold">
                   {stats?.pendingApproval || 0}
                 </div>
-                <p className="p-4"
+                <p className="text-xs text-muted-foreground">
                   aguardando análise
                 </p>
               </CardContent>
             </Card>
           </div>
+
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -481,7 +519,7 @@ export default function LPU() {
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
                 <Button
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="h-20 flex-col hover:scale-105 transition-transform"
@@ -529,6 +567,7 @@ export default function LPU() {
                   <CheckCircle className="h-6 w-6 mb-2" />
                   Central de Aprovações
                 </Button>
+
                 <Button
                   onClick={() => setActiveTab("analytics")}
                   variant="outline"
@@ -541,12 +580,13 @@ export default function LPU() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="price-lists" className="p-4"
-          <div className="p-4"
-            <div className="p-4"
+
+        <TabsContent value="price-lists" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder='[TRANSLATION_NEEDED]'
+                placeholder="Buscar listas de preços..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -557,46 +597,51 @@ export default function LPU() {
               Nova Lista de Preços
             </Button>
           </div>
-          <div className="p-4"
+
+          <div className="grid gap-4">
             {priceListsLoading ? (
-              <div className="text-lg">"Carregando listas...</div>
+              <div className="text-center py-8">Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
-              <div className="p-4"
-                {priceLists.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
+              <div className="text-center py-8 text-muted-foreground">
+                {priceLists.length === 0 ? "Nenhuma lista encontrada" : "Nenhum resultado para a busca"}
               </div>
             ) : (
               filteredPriceLists.map((list: PriceList) => (
-                <Card key={list.id} className="p-4"
-                  <CardHeader className="p-4"
-                    <div className="p-4"
-                      <CardTitle className="text-lg">"{list.name}</CardTitle>
-                      <p className="p-4"
+                <Card key={list.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="flex-1">
+                      <CardTitle className="text-base">{list.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
                         Código: {list.code} • Versão: {list.version} • {list.currency}
                       </p>
-                      <p className="p-4"
+                      <p className="text-xs text-muted-foreground mt-1">
                         Válida de {new Date(list.validFrom).toLocaleDateString()}
-                        {list.validTo && "
+                        {list.validTo && ` até ${new Date(list.validTo).toLocaleDateString()}`}
                       </p>
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center space-x-2">
                       <Badge
-                        variant={list.isActive ? "default" : "secondary"
-                        className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
+                        variant={list.isActive ? "default" : "secondary"}
+                        className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
                       >
-                        {list.isActive ? "Ativa" : "Inativa"
+                        {list.isActive ? "Ativa" : "Inativa"}
                       </Badge>
+
                       <Button variant="outline" size="sm" onClick={() => handleViewItems(list)}>
                         <Package className="mr-1 h-3 w-3" />
                         Itens
                       </Button>
+
                       <Button variant="outline" size="sm" onClick={() => handleEditPriceList(list)}>
                         <Edit className="mr-1 h-3 w-3" />
                         Editar
                       </Button>
+
                       <Button variant="outline" size="sm" onClick={() => duplicatePriceListMutation.mutate(list.id)}>
                         <Copy className="mr-1 h-3 w-3" />
                         Duplicar
                       </Button>
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -612,6 +657,7 @@ export default function LPU() {
                           </>
                         )}
                       </Button>
+
                       {!list.isActive && (
                         <Button
                           variant="outline"
@@ -629,6 +675,7 @@ export default function LPU() {
                           Aprovar
                         </Button>
                       )}
+
                       <Button variant="destructive" size="sm" onClick={() => handleDeletePriceList(list.id)}>
                         <Trash2 className="mr-1 h-3 w-3" />
                         Excluir
@@ -637,7 +684,7 @@ export default function LPU() {
                   </CardHeader>
                   {list.notes && (
                     <CardContent>
-                      <p className="text-lg">"{list.notes}</p>
+                      <p className="text-sm text-muted-foreground">{list.notes}</p>
                     </CardContent>
                   )}
                 </Card>
@@ -645,12 +692,13 @@ export default function LPU() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="pricing-rules" className="p-4"
-          <div className="p-4"
-            <div className="p-4"
+
+        <TabsContent value="pricing-rules" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder='[TRANSLATION_NEEDED]'
+                placeholder="Buscar regras de precificação..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -661,34 +709,35 @@ export default function LPU() {
               Nova Regra
             </Button>
           </div>
-          <div className="p-4"
+
+          <div className="grid gap-4">
             {rulesLoading ? (
-              <div className="text-lg">"Carregando regras...</div>
+              <div className="text-center py-8">Carregando regras...</div>
             ) : filteredPricingRules.length === 0 ? (
-              <div className="p-4"
-                {pricingRules.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
+              <div className="text-center py-8 text-muted-foreground">
+                {pricingRules.length === 0 ? "Nenhuma regra configurada" : "Nenhum resultado para a busca"}
               </div>
             ) : (
               filteredPricingRules.map((rule: PricingRule) => (
-                <Card key={rule.id} className="p-4"
-                  <CardHeader className="p-4"
-                    <div className="p-4"
-                      <CardTitle className="text-lg">"{rule.name}</CardTitle>
+                <Card key={rule.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="flex-1">
+                      <CardTitle className="text-base">{rule.name}</CardTitle>
                       {rule.description && (
-                        <p className="text-lg">"{rule.description}</p>
+                        <p className="text-sm text-muted-foreground">{rule.description}</p>
                       )}
-                      <div className="p-4"
-                        <Badge variant="outline" className="text-lg">"{rule.ruleType}</Badge>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Badge variant="outline" className="capitalize">{rule.ruleType}</Badge>
                         <Badge variant="secondary">Prioridade: {rule.priority}</Badge>
                         <Badge
-                          variant={rule.isActive ? "default" : "secondary"
-                          className={rule.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
+                          variant={rule.isActive ? "default" : "secondary"}
+                          className={rule.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
                         >
-                          {rule.isActive ? "Ativa" : "Inativa"
+                          {rule.isActive ? "Ativa" : "Inativa"}
                         </Badge>
                       </div>
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleEditPricingRule(rule)}>
                         <Edit className="mr-1 h-3 w-3" />
                         Editar
@@ -704,14 +753,16 @@ export default function LPU() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="associations" className="p-4"
-          <div className="p-4"
+
+        <TabsContent value="associations" className="space-y-6">
+          <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-lg">"Associação de Regras</h2>
-              <p className="text-lg">"Associe regras de precificação às listas de preços</p>
+              <h2 className="text-2xl font-bold text-gray-900">Associação de Regras</h2>
+              <p className="text-gray-600">Associe regras de precificação às listas de preços</p>
             </div>
           </div>
-          <div className="p-4"
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Lista de Preços */}
             <Card>
               <CardHeader>
@@ -719,7 +770,7 @@ export default function LPU() {
                 <CardDescription>Selecione uma lista para gerenciar suas regras</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="space-y-2">
                   {priceLists.map((list) => (
                     <div
                       key={list.id}
@@ -727,16 +778,16 @@ export default function LPU() {
                         selectedPriceListForRules === list.id
                           ? 'bg-blue-50 border-blue-300'
                           : 'hover:bg-gray-50'
-                      "
+                      }`}
                       onClick={() => setSelectedPriceListForRules(list.id)}
                     >
-                      <div className="p-4"
+                      <div className="flex justify-between items-center">
                         <div>
-                          <h4 className="text-lg">"{list.name}</h4>
-                          <p className="text-lg">"{list.code}</p>
+                          <h4 className="font-medium">{list.name}</h4>
+                          <p className="text-sm text-gray-500">{list.code}</p>
                         </div>
-                        <Badge variant={list.isActive ? "default" : "secondary>
-                          {list.isActive ? "Ativa" : "Inativa"
+                        <Badge variant={list.isActive ? "default" : "secondary"}>
+                          {list.isActive ? "Ativa" : "Inativa"}
                         </Badge>
                       </div>
                     </div>
@@ -744,6 +795,7 @@ export default function LPU() {
                 </div>
               </CardContent>
             </Card>
+
             {/* Regras Disponíveis */}
             <Card>
               <CardHeader>
@@ -751,16 +803,16 @@ export default function LPU() {
                 <CardDescription>Regras disponíveis para associação</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="space-y-2">
                   {pricingRules.map((rule) => (
-                    <div key={rule.id} className="p-4"
-                      <div className="p-4"
+                    <div key={rule.id} className="p-3 border rounded-lg">
+                      <div className="flex justify-between items-center">
                         <div>
-                          <h4 className="text-lg">"{rule.name}</h4>
-                          <p className="text-lg">"{rule.ruleType} • Prioridade: {rule.priority}</p>
+                          <h4 className="font-medium">{rule.name}</h4>
+                          <p className="text-sm text-gray-500">{rule.ruleType} • Prioridade: {rule.priority}</p>
                         </div>
-                        <Badge variant={rule.isActive ? "default" : "secondary>
-                          {rule.isActive ? "Ativa" : "Inativa"
+                        <Badge variant={rule.isActive ? "default" : "secondary"}>
+                          {rule.isActive ? "Ativa" : "Inativa"}
                         </Badge>
                       </div>
                     </div>
@@ -769,6 +821,7 @@ export default function LPU() {
               </CardContent>
             </Card>
           </div>
+
           {/* Seção de Aplicação de Regras */}
           {selectedPriceListForRules && (
             <Card>
@@ -779,8 +832,8 @@ export default function LPU() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
-                  <div className="p-4"
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-600">
                     Lista selecionada: <strong>{priceLists.find(l => l.id === selectedPriceListForRules)?.name}</strong>
                   </div>
                   <Button
@@ -788,21 +841,22 @@ export default function LPU() {
                     disabled={applyRulesMutation.isPending}
                     className="w-full"
                   >
-                    {applyRulesMutation.isPending ? "Aplicando..." : "Aplicar Todas as Regras Ativas"
+                    {applyRulesMutation.isPending ? "Aplicando..." : "Aplicar Todas as Regras Ativas"}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           )}
         </TabsContent>
-        <TabsContent value="advanced-config" className="p-4"
-          <div className="p-4"
+
+        <TabsContent value="advanced-config" className="space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg">"Configurações Avançadas</h2>
-              <p className="text-lg">"Configurações detalhadas de margens, fatores sazonais e simulações</p>
+              <h2 className="text-2xl font-bold">Configurações Avançadas</h2>
+              <p className="text-muted-foreground">Configurações detalhadas de margens, fatores sazonais e simulações</p>
             </div>
-            <div className="p-4"
-              <Button onClick={() => setIsPriceSimulatorOpen(true)} variant="outline>
+            <div className="flex space-x-2">
+              <Button onClick={() => setIsPriceSimulatorOpen(true)} variant="outline">
                 <Calculator className="mr-2 h-4 w-4" />
                 Simulador
               </Button>
@@ -812,6 +866,7 @@ export default function LPU() {
               </Button>
             </div>
           </div>
+
           {selectedPriceList ? (
             <MarginConfigurationPanel
               priceListId={selectedPriceList.id}
@@ -822,9 +877,9 @@ export default function LPU() {
             />
           ) : (
             <Card>
-              <CardContent className="p-4"
+              <CardContent className="p-8 text-center">
                 <Settings className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="p-4"
+                <p className="text-muted-foreground">
                   Selecione uma lista de preços para configurar margens avançadas
                 </p>
                 <Button 
@@ -837,29 +892,31 @@ export default function LPU() {
             </Card>
           )}
         </TabsContent>
-        <TabsContent value="versions" className="p-4"
-          <div className="p-4"
+
+        <TabsContent value="versions" className="space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg">"Controle de Versões</h2>
-              <p className="text-lg">"Gerenciar versões e histórico de listas de preços</p>
+              <h2 className="text-2xl font-bold">Controle de Versões</h2>
+              <p className="text-muted-foreground">Gerenciar versões e histórico de listas de preços</p>
             </div>
             <Button onClick={() => setIsVersionDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Nova Versão
             </Button>
           </div>
-          <div className="p-4"
+
+          <div className="grid gap-4">
             {priceLists.map((list: PriceList) => (
-              <Card key={list.id} className="p-4"
+              <Card key={list.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
-                  <div className="p-4"
+                  <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg">"{list.name}</CardTitle>
-                      <p className="p-4"
+                      <CardTitle className="text-lg">{list.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
                         Versão Atual: {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center space-x-2">
                       <Badge variant="outline">v{list.version}</Badge>
                       <Button variant="outline" size="sm" onClick={() => {
                         setSelectedPriceList(list);
@@ -872,42 +929,46 @@ export default function LPU() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="p-4"
-                    <div className="p-4"
-                      <span className="text-lg">"Última modificação:</span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Última modificação:</span>
                       <span>{new Date(list.updatedAt).toLocaleString()}</span>
                     </div>
-                    <div className="p-4"
-                      <span className="text-lg">"Status:</span>
-                      <Badge variant={list.isActive ? "default" : "secondary>
-                        {list.isActive ? "Ativa" : "Inativa"
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant={list.isActive ? "default" : "secondary"}>
+                        {list.isActive ? "Ativa" : "Inativa"}
                       </Badge>
                     </div>
-                    <div className="p-4"
-                      <div className="p-4"
+
+                    <div className="border-t pt-3">
+                      <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
-                          <div className="text-lg">"1</div>
-                          <div className="text-lg">"Versões</div>
+                          <div className="text-2xl font-bold text-blue-600">1</div>
+                          <div className="text-xs text-muted-foreground">Versões</div>
                         </div>
                         <div>
-                          <div className="text-lg">"{priceListItems.length}</div>
-                          <div className="text-lg">"Itens</div>
+                          <div className="text-2xl font-bold text-green-600">{priceListItems.length}</div>
+                          <div className="text-xs text-muted-foreground">Itens</div>
                         </div>
                         <div>
-                          <div className="text-lg">"0</div>
-                          <div className="text-lg">"Alterações</div>
+                          <div className="text-2xl font-bold text-purple-600">0</div>
+                          <div className="text-xs text-muted-foreground">Alterações</div>
                         </div>
                       </div>
                     </div>
-                    <div className="p-4"
+
+                    <div className="flex space-x-2">
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => {
                         const newVersion = (parseFloat(list.version) + 0.1).toFixed(1);
                         duplicatePriceListMutation.mutate(list.id);
-                        toast({ title: " criada!` });
+                        toast({ title: `Nova versão ${newVersion} criada!` });
                       }}>
                         <Copy className="mr-1 h-3 w-3" />
                         Criar Nova Versão
                       </Button>
+
                       <Button variant="outline" size="sm" disabled>
                         <RotateCcw className="mr-1 h-3 w-3" />
                         Rollback
@@ -918,11 +979,12 @@ export default function LPU() {
               </Card>
             ))}
           </div>
+
           {priceLists.length === 0 && (
-            <div className="p-4"
+            <div className="text-center py-12">
               <History className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg">"Nenhuma lista de preços encontrada</h3>
-              <p className="text-lg">"Crie sua primeira lista para começar o controle de versões</p>
+              <h3 className="text-lg font-medium">Nenhuma lista de preços encontrada</h3>
+              <p className="text-muted-foreground mb-4">Crie sua primeira lista para começar o controle de versões</p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Criar Primeira Lista
@@ -930,14 +992,15 @@ export default function LPU() {
             </div>
           )}
         </TabsContent>
-        <TabsContent value="analytics" className="p-4"
-          <div className="p-4"
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg">"Análises e Relatórios</h2>
-              <p className="text-lg">"Insights detalhados sobre precificação e performance</p>
+              <h2 className="text-2xl font-bold">Análises e Relatórios</h2>
+              <p className="text-muted-foreground">Insights detalhados sobre precificação e performance</p>
             </div>
-            <div className="p-4"
-              <Button variant="outline>
+            <div className="flex space-x-2">
+              <Button variant="outline">
                 <Download className="mr-2 h-4 w-4" />
                 Exportar Dados
               </Button>
@@ -947,145 +1010,154 @@ export default function LPU() {
               </Button>
             </div>
           </div>
+
           {/* Métricas Principais */}
-          <div className="p-4"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Margem Média</p>
-                    <p className="text-lg">"18.5%</p>
+                    <p className="text-sm text-muted-foreground">Margem Média</p>
+                    <p className="text-2xl font-bold text-green-600">18.5%</p>
                   </div>
                   <Percent className="h-8 w-8 text-green-600" />
                 </div>
-                <div className="p-4"
+                <div className="flex items-center mt-2 text-sm">
                   <ArrowUp className="h-4 w-4 text-green-600 mr-1" />
-                  <span className="text-lg">"+2.3%</span>
-                  <span className="text-lg">"vs mês anterior</span>
+                  <span className="text-green-600">+2.3%</span>
+                  <span className="text-muted-foreground ml-1">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
+
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Regras Aplicadas</p>
-                    <p className="text-lg">"{pricingRules.filter(r => r.isActive).length}</p>
+                    <p className="text-sm text-muted-foreground">Regras Aplicadas</p>
+                    <p className="text-2xl font-bold text-blue-600">{pricingRules.filter(r => r.isActive).length}</p>
                   </div>
                   <Calculator className="h-8 w-8 text-blue-600" />
                 </div>
-                <div className="p-4"
-                  <span className="text-lg">"{Math.round((pricingRules.filter(r => r.isActive).length / pricingRules.length) * 100)}%</span>
-                  <span className="text-lg">"das regras estão ativas</span>
+                <div className="flex items-center mt-2 text-sm">
+                  <span className="text-blue-600">{Math.round((pricingRules.filter(r => r.isActive).length / pricingRules.length) * 100)}%</span>
+                  <span className="text-muted-foreground ml-1">das regras estão ativas</span>
                 </div>
               </CardContent>
             </Card>
+
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Itens com Preços</p>
-                    <p className="text-lg">"{priceListItems.length}</p>
+                    <p className="text-sm text-muted-foreground">Itens com Preços</p>
+                    <p className="text-2xl font-bold text-purple-600">{priceListItems.length}</p>
                   </div>
                   <Package className="h-8 w-8 text-purple-600" />
                 </div>
-                <div className="p-4"
-                  <span className="text-lg">"100%</span>
-                  <span className="text-lg">"cobertura de preços</span>
+                <div className="flex items-center mt-2 text-sm">
+                  <span className="text-purple-600">100%</span>
+                  <span className="text-muted-foreground ml-1">cobertura de preços</span>
                 </div>
               </CardContent>
             </Card>
+
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Valor Médio</p>
-                    <p className="text-lg">"R$ 125,50</p>
+                    <p className="text-sm text-muted-foreground">Valor Médio</p>
+                    <p className="text-2xl font-bold text-orange-600">R$ 125,50</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-orange-600" />
                 </div>
-                <div className="p-4"
+                <div className="flex items-center mt-2 text-sm">
                   <ArrowUp className="h-4 w-4 text-orange-600 mr-1" />
-                  <span className="text-lg">"+5.2%</span>
-                  <span className="text-lg">"vs mês anterior</span>
+                  <span className="text-orange-600">+5.2%</span>
+                  <span className="text-muted-foreground ml-1">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
           </div>
+
           {/* Gráficos e Análises */}
-          <div className="p-4"
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Performance das Listas</CardTitle>
                 <CardDescription>Comparativo de utilização e eficiência</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="space-y-4">
                   {priceLists.slice(0, 5).map((list: PriceList, index) => (
-                    <div key={list.id} className="p-4"
-                      <div className="p-4"
-                        <div className="w-3 h-3 rounded-full "" />
+                    <div key={list.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-green-500' : index === 1 ? 'bg-blue-500' : 'bg-gray-400'}`} />
                         <div>
-                          <p className="text-lg">"{list.name}</p>
-                          <p className="text-lg">"v{list.version}</p>
+                          <p className="font-medium text-sm">{list.name}</p>
+                          <p className="text-xs text-muted-foreground">v{list.version}</p>
                         </div>
                       </div>
-                      <div className="p-4"
-                        <p className="text-lg">"{Math.floor(Math.random() * 100) + 50}%</p>
-                        <p className="text-lg">"utilização</p>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{Math.floor(Math.random() * 100) + 50}%</p>
+                        <p className="text-sm text-muted-foreground">utilização</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Tendências de Preços</CardTitle>
                 <CardDescription>Evolução dos preços ao longo do tempo</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
-                      <div className="text-lg">"+12%</div>
-                      <div className="text-lg">"Últimos 30 dias</div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-lg font-bold text-green-600">+12%</div>
+                      <div className="text-xs text-muted-foreground">Últimos 30 dias</div>
                     </div>
-                    <div className="p-4"
-                      <div className="text-lg">"+8%</div>
-                      <div className="text-lg">"Últimos 90 dias</div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-lg font-bold text-blue-600">+8%</div>
+                      <div className="text-xs text-muted-foreground">Últimos 90 dias</div>
                     </div>
-                    <div className="p-4"
-                      <div className="text-lg">"+15%</div>
-                      <div className="text-lg">"Último ano</div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-lg font-bold text-purple-600">+15%</div>
+                      <div className="text-xs text-muted-foreground">Último ano</div>
                     </div>
                   </div>
-                  <div className="p-4"
-                    <div className="p-4"
-                      <span className="text-lg">"Materiais</span>
-                      <div className="p-4"
-                        <div className="p-4"
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Materiais</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-green-600 h-2 rounded-full" style={{ width: '75%' }}></div>
                         </div>
-                        <span className="text-lg">"75%</span>
+                        <span className="text-sm font-medium">75%</span>
                       </div>
                     </div>
-                    <div className="p-4"
-                      <span className="text-lg">"Serviços</span>
-                      <div className="p-4"
-                        <div className="p-4"
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Serviços</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
                         </div>
-                        <span className="text-lg">"60%</span>
+                        <span className="text-sm font-medium">60%</span>
                       </div>
                     </div>
-                    <div className="p-4"
-                      <span className="text-lg">"Mão de Obra</span>
-                      <div className="p-4"
-                        <div className="p-4"
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Mão de Obra</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-purple-600 h-2 rounded-full" style={{ width: '85%' }}></div>
                         </div>
-                        <span className="text-lg">"85%</span>
+                        <span className="text-sm font-medium">85%</span>
                       </div>
                     </div>
                   </div>
@@ -1093,6 +1165,7 @@ export default function LPU() {
               </CardContent>
             </Card>
           </div>
+
           {/* Relatórios Personalizados */}
           <Card>
             <CardHeader>
@@ -1100,16 +1173,18 @@ export default function LPU() {
               <CardDescription>Gere relatórios específicos para suas necessidades</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
-                <Button variant="outline" className="p-4"
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button variant="outline" className="h-20 flex-col">
                   <BarChart3 className="h-6 w-6 mb-2" />
                   Relatório de Margens
                 </Button>
-                <Button variant="outline" className="p-4"
+
+                <Button variant="outline" className="h-20 flex-col">
                   <TrendingUp className="h-6 w-6 mb-2" />
                   Análise de Tendências
                 </Button>
-                <Button variant="outline" className="p-4"
+
+                <Button variant="outline" className="h-20 flex-col">
                   <Target className="h-6 w-6 mb-2" />
                   Performance por Cliente
                 </Button>
@@ -1118,9 +1193,10 @@ export default function LPU() {
           </Card>
         </TabsContent>
       </Tabs>
+
       {/* Create Price List Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Nova Lista de Preços</DialogTitle>
             <DialogDescription>
@@ -1134,9 +1210,10 @@ export default function LPU() {
           />
         </DialogContent>
       </Dialog>
+
       {/* Edit Price List Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Editar Lista de Preços</DialogTitle>
             <DialogDescription>
@@ -1156,6 +1233,7 @@ export default function LPU() {
           )}
         </DialogContent>
       </Dialog>
+
       {/* Create Pricing Rule Dialog */}
       <Dialog open={isCreateRuleDialogOpen} onOpenChange={setIsCreateRuleDialogOpen}>
         <DialogContent>
@@ -1172,6 +1250,7 @@ export default function LPU() {
           />
         </DialogContent>
       </Dialog>
+
       {/* Edit Pricing Rule Dialog */}
       <Dialog open={isEditRuleDialogOpen} onOpenChange={setIsEditRuleDialogOpen}>
         <DialogContent>
@@ -1194,9 +1273,10 @@ export default function LPU() {
           )}
         </DialogContent>
       </Dialog>
+
       {/* View Items Dialog */}
       <Dialog open={isItemsDialogOpen} onOpenChange={setIsItemsDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Itens da Lista: {selectedPriceList?.name}</DialogTitle>
             <DialogDescription>
@@ -1214,9 +1294,10 @@ export default function LPU() {
           />
         </DialogContent>
       </Dialog>
+
       {/* Approval Workflow Dialog */}
       <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Workflow de Aprovação</DialogTitle>
             <DialogDescription>
@@ -1229,12 +1310,13 @@ export default function LPU() {
           />
         </DialogContent>
       </Dialog>
+
       {/* Version History Dialog */}
       <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedPriceList ? "
+              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name}` : 'Criar Nova Versão'}
             </DialogTitle>
             <DialogDescription>
               Visualize o histórico de alterações e gerencie versões
@@ -1249,6 +1331,7 @@ export default function LPU() {
           />
         </DialogContent>
       </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
@@ -1261,12 +1344,13 @@ export default function LPU() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="p-4"
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       {/* Advanced Pricing Rule Configuration Modal */}
       <PricingRuleConfigurationModal
         open={isAdvancedRuleDialogOpen}
@@ -1282,6 +1366,7 @@ export default function LPU() {
           setSelectedPricingRule(null);
         }}
       />
+
       {/* Price Simulator Modal */}
       <PriceSimulatorModal
         open={isPriceSimulatorOpen}
@@ -1292,6 +1377,7 @@ export default function LPU() {
     </div>
   );
 }
+
 // Price List Form Component
 function PriceListForm({
   initialData,
@@ -1315,32 +1401,38 @@ function PriceListForm({
     customerCompanyId: initialData?.customerCompanyId || undefined as string | undefined,
     automaticMargin: initialData?.automaticMargin || undefined as number | undefined
   });
+
   // Fetch customer companies
   const { data: customerCompaniesResponse, isLoading: companiesLoading } = useQuery({
     queryKey: ['/api/customers/companies'],
     retry: 3,
     staleTime: 30000,
   });
+
   const customerCompanies = Array.isArray(customerCompaniesResponse) ? customerCompaniesResponse : [];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     // Enhanced validation
     if (!formData.name.trim()) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro de Validação",
         description: "Nome da lista é obrigatório",
         variant: "destructive"
       });
       return;
     }
+
     if (formData.validTo && new Date(formData.validTo) <= new Date(formData.validFrom)) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro de Validação",
         description: "Data de término deve ser posterior à data de início",
         variant: "destructive"
       });
       return;
     }
+
     const submitData = {
       ...formData,
       customerCompanyId: formData.customerCompanyId === 'none' ? undefined : formData.customerCompanyId,
@@ -1348,9 +1440,10 @@ function PriceListForm({
     };
     onSubmit(submitData);
   };
+
   return (
-    <form onSubmit={handleSubmit} className="p-4"
-      <div className="p-4"
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="name">Nome da Lista</Label>
           <Input
@@ -1371,7 +1464,8 @@ function PriceListForm({
           />
         </div>
       </div>
-      <div className="p-4"
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="validFrom">Válida a partir de</Label>
           <Input
@@ -1392,7 +1486,8 @@ function PriceListForm({
           />
         </div>
       </div>
-      <div className="p-4"
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="currency">Moeda</Label>
           <Select
@@ -1400,7 +1495,7 @@ function PriceListForm({
             onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+              <SelectValue placeholder="Selecione a moeda" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
@@ -1423,6 +1518,7 @@ function PriceListForm({
           />
         </div>
       </div>
+
       <div>
         <Label htmlFor="customerCompanyId">Empresa</Label>
         <Select
@@ -1430,7 +1526,7 @@ function PriceListForm({
           onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value === 'none' ? undefined : value }))}
         >
           <SelectTrigger>
-            <SelectValue placeholder={companiesLoading ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'} />
+            <SelectValue placeholder={companiesLoading ? "Carregando empresas..." : "Selecione uma empresa"} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Nenhuma empresa específica</SelectItem>
@@ -1448,6 +1544,7 @@ function PriceListForm({
           </SelectContent>
         </Select>
       </div>
+
       <div>
         <Label htmlFor="notes">Observações</Label>
         <Textarea
@@ -1455,11 +1552,12 @@ function PriceListForm({
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           rows={3}
-          placeholder='[TRANSLATION_NEEDED]'
+          placeholder="Observações sobre a lista de preços..."
         />
       </div>
-      <div className="p-4"
-        <div className="p-4"
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
           <input
             type="checkbox"
             id="isActive"
@@ -1468,7 +1566,8 @@ function PriceListForm({
           />
           <Label htmlFor="isActive">Lista Ativa</Label>
         </div>
-        <div className="p-4"
+
+        <div className="flex gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -1482,6 +1581,7 @@ function PriceListForm({
     </form>
   );
 }
+
 // Pricing Rule Form Component
 function PricingRuleForm({
   initialData,
@@ -1503,13 +1603,15 @@ function PricingRuleForm({
     conditions: initialData?.conditions || {},
     actions: initialData?.actions || {}
   });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
+
   return (
-    <form onSubmit={handleSubmit} className="p-4"
-      <div className="p-4"
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="name">Nome da Regra</Label>
           <Input
@@ -1535,6 +1637,7 @@ function PricingRuleForm({
           </Select>
         </div>
       </div>
+
       <div>
         <Label htmlFor="description">Descrição</Label>
         <Textarea
@@ -1545,6 +1648,7 @@ function PricingRuleForm({
           placeholder="Descrição detalhada da regra..."
         />
       </div>
+
       <div>
         <Label htmlFor="priority">Prioridade (1-10)</Label>
         <Input
@@ -1556,8 +1660,9 @@ function PricingRuleForm({
           onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 1 }))}
         />
       </div>
-      <div className="p-4"
-        <div className="p-4"
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
           <input
             type="checkbox"
             id="isActive"
@@ -1566,7 +1671,8 @@ function PricingRuleForm({
           />
           <Label htmlFor="isActive">Regra Ativa</Label>
         </div>
-        <div className="p-4"
+
+        <div className="flex gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -1580,6 +1686,7 @@ function PricingRuleForm({
     </form>
   );
 }
+
 // Price List Items View Component
 function PriceListItemsView({
   priceList,
@@ -1597,19 +1704,22 @@ function PriceListItemsView({
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PriceListItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<PriceListItem | null>(null);
+
   // Fetch available items from catalog
   const { data: catalogItemsResponse, isLoading: catalogLoading } = useQuery({
     queryKey: ['/api/materials-services/items'],
     retry: 3,
     staleTime: 30000,
   });
+
   // Ensure catalog items is always an array, handling both direct array and object with data property
   const catalogItems = Array.isArray(catalogItemsResponse) ? catalogItemsResponse : 
     (catalogItemsResponse?.data && Array.isArray(catalogItemsResponse.data) ? catalogItemsResponse.data : []);
+
   // Add item to price list mutation
   const addItemMutation = useMutation({
     mutationFn: async (data: Partial<PriceListItem>) => {
-      const response = await apiRequest('POST', "/items`, data);
+      const response = await apiRequest('POST', `/api/materials-services/price-lists/${priceList?.id}/items`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -1619,16 +1729,17 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao adicionar item",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Update item mutation
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PriceListItem> }) => {
-      const response = await apiRequest('PUT', "
+      const response = await apiRequest('PUT', `/api/materials-services/price-lists/items/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -1638,16 +1749,17 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao atualizar item",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   // Delete item mutation
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', "
+      await apiRequest('DELETE', `/api/materials-services/price-lists/items/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', priceList?.id, 'items'] });
@@ -1656,23 +1768,25 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error?.message || '[TRANSLATION_NEEDED]',
+        title: "Erro ao remover item",
+        description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
     }
   });
+
   if (!priceList) return null;
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg">"{priceList.name}</h3>
-          <p className="p-4"
+          <h3 className="text-lg font-semibold">{priceList.name}</h3>
+          <p className="text-sm text-muted-foreground">
             {items.length} itens • Versão {priceList.version} • {priceList.currency}
           </p>
         </div>
-        <div className="p-4"
+        <div className="flex space-x-2">
           <Button onClick={() => setIsAddItemDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Item
@@ -1683,20 +1797,21 @@ function PriceListItemsView({
           </Button>
         </div>
       </div>
+
       {isLoading || catalogLoading ? (
-        <div className="text-lg">"Carregando itens...</div>
+        <div className="text-center py-8">Carregando itens...</div>
       ) : items.length === 0 ? (
-        <div className="p-4"
+        <div className="text-center py-8 text-muted-foreground">
           <Package className="w-12 h-12 mx-auto mb-4" />
           <p>Nenhum item encontrado nesta lista</p>
-          <p className="text-lg">"Adicione itens para começar a usar a lista de preços</p>
+          <p className="text-sm mt-2">Adicione itens para começar a usar a lista de preços</p>
           <Button className="mt-4" onClick={() => setIsAddItemDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Primeiro Item
           </Button>
         </div>
       ) : (
-        <div className="p-4"
+        <div className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
@@ -1714,30 +1829,30 @@ function PriceListItemsView({
                 <TableRow key={item.id}>
                   <TableCell>
                     <div>
-                      <p className="text-lg">"{item.itemName || "
+                      <p className="font-medium">{item.itemName || `Item ${item.itemId}`}</p>
                       {item.itemId && (
-                        <p className="text-lg">"ID: {item.itemId}</p>
+                        <p className="text-sm text-muted-foreground">ID: {item.itemId}</p>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>{item.measurementUnit || '-'}</TableCell>
                   <TableCell>{priceList.currency} {Number(item.unitPrice).toFixed(2)}</TableCell>
                   <TableCell>
-                    {item.specialPrice ? "
+                    {item.specialPrice ? `${priceList.currency} ${Number(item.specialPrice).toFixed(2)}` : '-'}
                   </TableCell>
                   <TableCell>
-                    {item.hourlyRate ? "/h` : '-'}
+                    {item.hourlyRate ? `${priceList.currency} ${Number(item.hourlyRate).toFixed(2)}/h` : '-'}
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={item.isActive ? "default" : "secondary"
-                      className={item.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
+                      variant={item.isActive ? "default" : "secondary"}
+                      className={item.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
                     >
-                      {item.isActive ? "Ativo" : "Inativo"
+                      {item.isActive ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="p-4"
+                    <div className="flex space-x-1">
                       <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -1752,6 +1867,7 @@ function PriceListItemsView({
           </Table>
         </div>
       )}
+
       {/* Add Item Dialog */}
       <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
         <DialogContent>
@@ -1770,6 +1886,7 @@ function PriceListItemsView({
           />
         </DialogContent>
       </Dialog>
+
       {/* Edit Item Dialog */}
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
         <DialogContent>
@@ -1791,6 +1908,7 @@ function PriceListItemsView({
           )}
         </DialogContent>
       </Dialog>
+
       {/* Delete Item Dialog */}
       <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
         <AlertDialogContent>
@@ -1802,7 +1920,7 @@ function PriceListItemsView({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => itemToDelete && deleteItemMutation.mutate(itemToDelete.id)} className="p-4"
+            <AlertDialogAction onClick={() => itemToDelete && deleteItemMutation.mutate(itemToDelete.id)} className="bg-red-600 hover:bg-red-700">
               Remover
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1811,6 +1929,7 @@ function PriceListItemsView({
     </div>
   );
 }
+
 // Approval Workflow Component
 function ApprovalWorkflowComponent({
   priceLists,
@@ -1822,24 +1941,27 @@ function ApprovalWorkflowComponent({
   const [selectedForApproval, setSelectedForApproval] = useState<string[]>([]);
   const [approvalNotes, setApprovalNotes] = useState('');
   const { toast } = useToast();
+
   const pendingApprovals = priceLists.filter(list => !list.isActive);
+
   return (
-    <div className="p-4"
-      <div className="p-4"
-        <div className="p-4"
-          <h3 className="text-lg">"Itens Pendentes de Aprovação</h3>
-          <p className="text-lg">"{pendingApprovals.length} itens aguardando aprovação</p>
+    <div className="space-y-4">
+      <div className="border rounded-lg">
+        <div className="p-4 border-b bg-gray-50">
+          <h3 className="font-medium">Itens Pendentes de Aprovação</h3>
+          <p className="text-sm text-muted-foreground">{pendingApprovals.length} itens aguardando aprovação</p>
         </div>
-        <div className="p-4"
+
+        <div className="max-h-96 overflow-y-auto">
           {pendingApprovals.length === 0 ? (
-            <div className="p-4"
+            <div className="text-center py-8 text-muted-foreground">
               <CheckCircle className="w-12 h-12 mx-auto mb-4" />
               <p>Nenhum item pendente de aprovação</p>
             </div>
           ) : (
-            <div className="p-4"
+            <div className="space-y-2 p-4">
               {pendingApprovals.map((list) => (
-                <div key={list.id} className="p-4"
+                <div key={list.id} className="flex items-center space-x-3 p-3 border rounded-lg">
                   <input
                     type="checkbox"
                     checked={selectedForApproval.includes(list.id)}
@@ -1851,9 +1973,9 @@ function ApprovalWorkflowComponent({
                       }
                     }}
                   />
-                  <div className="p-4"
-                    <p className="text-lg">"{list.name}</p>
-                    <p className="p-4"
+                  <div className="flex-1">
+                    <p className="font-medium">{list.name}</p>
+                    <p className="text-sm text-muted-foreground">
                       Versão {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -1864,8 +1986,9 @@ function ApprovalWorkflowComponent({
           )}
         </div>
       </div>
+
       {selectedForApproval.length > 0 && (
-        <div className="p-4"
+        <div className="space-y-4">
           <div>
             <Label htmlFor="approvalNotes">Observações da Aprovação</Label>
             <Textarea
@@ -1873,15 +1996,16 @@ function ApprovalWorkflowComponent({
               value={approvalNotes}
               onChange={(e) => setApprovalNotes(e.target.value)}
               rows={3}
-              placeholder='[TRANSLATION_NEEDED]'
+              placeholder="Adicione observações sobre a aprovação..."
             />
           </div>
-          <div className="p-4"
+
+          <div className="flex space-x-2">
             <Button
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() => {
                 // Simulate approval action here
-                toast({ title: " item(s) aprovado(s) com sucesso!` });
+                toast({ title: `${selectedForApproval.length} item(s) aprovado(s) com sucesso!` });
                 setSelectedForApproval([]);
                 setApprovalNotes('');
               }}
@@ -1889,11 +2013,12 @@ function ApprovalWorkflowComponent({
               <Check className="mr-2 h-4 w-4" />
               Aprovar Selecionados ({selectedForApproval.length})
             </Button>
+
             <Button
               variant="destructive"
               onClick={() => {
                 toast({
-                  title: '[TRANSLATION_NEEDED]',
+                  title: `${selectedForApproval.length} item(s) rejeitado(s)`,
                   variant: "destructive"
                 });
                 setSelectedForApproval([]);
@@ -1906,7 +2031,8 @@ function ApprovalWorkflowComponent({
           </div>
         </div>
       )}
-      <div className="p-4"
+
+      <div className="flex justify-end">
         <Button variant="outline" onClick={onClose}>
           Fechar
         </Button>
@@ -1914,6 +2040,7 @@ function ApprovalWorkflowComponent({
     </div>
   );
 }
+
 // Version History Component
 function VersionHistoryComponent({
   priceList,
@@ -1924,13 +2051,14 @@ function VersionHistoryComponent({
 }) {
   if (!priceList) {
     return (
-      <div className="p-4"
+      <div className="text-center py-8">
         <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-lg">"Selecione uma lista de preços para ver o histórico</p>
+        <p className="text-muted-foreground">Selecione uma lista de preços para ver o histórico</p>
         <Button className="mt-4" onClick={onClose}> Fechar</Button>
       </div>
     );
   }
+
   // Mock version history
   const versionHistory = [
     {
@@ -1955,28 +2083,31 @@ function VersionHistoryComponent({
       status: "arquivado"
     }
   ];
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg">"{priceList.name}</h3>
-          <p className="text-lg">"Histórico completo de versões</p>
+          <h3 className="text-lg font-semibold">{priceList.name}</h3>
+          <p className="text-sm text-muted-foreground">Histórico completo de versões</p>
         </div>
       </div>
-      <div className="p-4"
+
+      <div className="space-y-3">
         {versionHistory.map((version, index) => (
-          <div key={index} className="p-4"
-            <div className="p-4"
-              <div className="p-4"
-                <Badge variant={index === 0 ? "default" : "secondary>
+          <div key={index} className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-3">
+                <Badge variant={index === 0 ? "default" : "secondary"}>
                   v{version.version}
                 </Badge>
-                <span className="text-lg">"{version.user}</span>
-                <span className="p-4"
+                <span className="text-sm font-medium">{version.user}</span>
+                <span className="text-sm text-muted-foreground">
                   {new Date(version.date).toLocaleString()}
                 </span>
               </div>
-              <div className="p-4"
+
+              <div className="flex space-x-2">
                 {index === 0 && <Badge variant="default">Atual</Badge>}
                 {index > 0 && (
                   <Button variant="outline" size="sm" disabled={index === 0}>
@@ -1986,16 +2117,19 @@ function VersionHistoryComponent({
                 )}
               </div>
             </div>
-            <p className="text-lg">"{version.changes}</p>
+
+            <p className="text-sm text-gray-700">{version.changes}</p>
+
             {index < versionHistory.length - 1 && (
-              <div className="p-4"
-                <div className="text-lg">"</div>
+              <div className="flex justify-center mt-3">
+                <div className="w-px h-4 bg-gray-300"></div>
               </div>
             )}
           </div>
         ))}
       </div>
-      <div className="p-4"
+
+      <div className="flex justify-end space-x-2">
         <Button variant="outline" onClick={onClose}>
           Fechar
         </Button>
@@ -2003,6 +2137,7 @@ function VersionHistoryComponent({
     </div>
   );
 }
+
 // Price List Item Form Component
 function PriceListItemForm({
   initialData,
@@ -2027,8 +2162,10 @@ function PriceListItemForm({
     travelCost: initialData?.travelCost || undefined as number | undefined,
     isActive: initialData?.isActive ?? true
   });
+
   const safeCatalogItems = Array.isArray(catalogItems) ? catalogItems : [];
   const selectedItem = safeCatalogItems.find(item => item.id === formData.itemId);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -2038,8 +2175,9 @@ function PriceListItemForm({
       travelCost: formData.travelCost === 0 ? undefined : formData.travelCost
     });
   };
+
   return (
-    <form onSubmit={handleSubmit} className="p-4"
+    <form onSubmit={handleSubmit} className="space-y-4">
       {!initialData && (
         <div>
           <Label htmlFor="itemId">Item do Catálogo</Label>
@@ -2061,7 +2199,7 @@ function PriceListItemForm({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+              <SelectValue placeholder="Selecione um item do catálogo" />
             </SelectTrigger>
             <SelectContent>
               {safeCatalogItems.length === 0 ? (
@@ -2076,13 +2214,14 @@ function PriceListItemForm({
             </SelectContent>
           </Select>
           {selectedItem && (
-            <p className="p-4"
+            <p className="text-sm text-muted-foreground mt-1">
               {selectedItem.description}
             </p>
           )}
         </div>
       )}
-      <div className="p-4"
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="unitPrice">Preço Unitário ({currency})</Label>
           <Input
@@ -2108,7 +2247,8 @@ function PriceListItemForm({
           />
         </div>
       </div>
-      <div className="p-4"
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="hourlyRate">Taxa Horária ({currency})</Label>
           <Input
@@ -2134,8 +2274,9 @@ function PriceListItemForm({
           />
         </div>
       </div>
-      <div className="p-4"
-        <div className="p-4"
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
           <input
             type="checkbox"
             id="isActive"
@@ -2144,7 +2285,8 @@ function PriceListItemForm({
           />
           <Label htmlFor="isActive">Item Ativo</Label>
         </div>
-        <div className="p-4"
+
+        <div className="flex gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar

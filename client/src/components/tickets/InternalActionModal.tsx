@@ -3,7 +3,6 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
-// import { useLocalization } from '@/hooks/useLocalization';
   Dialog,
   DialogContent,
   DialogHeader,
@@ -39,6 +38,8 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
+
+
 interface InternalActionModalProps {
   ticketId: string;
   isOpen: boolean;
@@ -46,13 +47,13 @@ interface InternalActionModalProps {
   editAction?: any; // Para modo de edição
   onStartTimer?: (ticketId: string) => Promise<void>;
 }
-export default function InternalActionModal({
-  // Localization temporarily disabled
- isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
+
+export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
     agent_id: "__none__",
+
     // Campos opcionais da tabela
     title: "",
     description: "",
@@ -63,12 +64,15 @@ export default function InternalActionModal({
     estimated_hours: "0",
     status: "pending",
     priority: "medium",
+
     // Campos auxiliares
     attachments: [] as File[]
   });
+
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Reset form function
   const resetForm = () => {
     setFormData({
@@ -87,6 +91,9 @@ export default function InternalActionModal({
     });
     setIsPublic(false);
   };
+
+
+
   // Reset form when modal opens or load edit data
   useEffect(() => {
     if (isOpen) {
@@ -114,6 +121,7 @@ export default function InternalActionModal({
       }
     }
   }, [isOpen, editAction]);
+
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
     queryKey: ["/api/user-management/users"],
@@ -123,6 +131,7 @@ export default function InternalActionModal({
     },
     enabled: isOpen,
   });
+
   // Create internal action mutation
   const createActionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -131,23 +140,30 @@ export default function InternalActionModal({
         // Required fields
         action_type: data.action_type,
         agent_id: data.agent_id === "__none__" ? null : data.agent_id,
+
         // Optional text fields
         title: data.title?.trim() || null,
         description: data.description?.trim() || null,
+
         // NEW: Planned date fields (testing the new database columns)
         planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
         planned_end_time: data.planned_end_time ? new Date(data.planned_end_time).toISOString() : null,
+
         // Actual execution date fields
         start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
         end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
+
         // Numeric fields with proper validation
         estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
+
         // Status and priority with defaults
         status: data.status || 'pending',
         priority: data.priority || 'medium',
+
         // Visibility flag
         is_public: isPublic,
       };
+
       // Debug log to verify all fields are properly mapped
       console.log('🔍 Internal Action Form Data Being Sent:', {
         originalData: data,
@@ -156,30 +172,36 @@ export default function InternalActionModal({
         hasPlannedEndTime: !!cleanedData.planned_end_time,
         allFields: Object.keys(cleanedData)
       });
-      const response = await apiRequest("POST", "/actions`, cleanedData);
+
+      const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, cleanedData);
       return response.json();
     },
     onSuccess: (data) => {
       console.log('✅ Internal Action Created Successfully:', data);
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Ação interna adicionada com sucesso",
       });
+
       // Reset form data
       resetForm();
+
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
+
       onClose();
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message || "Falha ao adicionar ação interna",
         variant: "destructive",
       });
     },
   });
+
   // Update internal action mutation (for edit mode)
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -197,110 +219,128 @@ export default function InternalActionModal({
         priority: data.priority || 'medium',
         is_public: isPublic,
       };
+
       console.log('🔧 [UPDATE] Updating action:', editAction.id, cleanedData);
-      const response = await fetch("
+
+      const response = await fetch(`/api/tickets/${ticketId}/actions/${editAction.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(cleanedData)
       });
+
       if (!response.ok) {
         const errorData = await response.text();
-        throw new Error("
+        throw new Error(`Failed to update action: ${response.status} ${errorData}`);
       }
+
       return response.json();
     },
     onSuccess: (data) => {
       console.log('✅ Internal Action Updated Successfully:', data);
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Ação interna atualizada com sucesso",
       });
+
       // Reset form data
       resetForm();
+
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
+
       onClose();
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message || "Falha ao atualizar ação interna",
         variant: "destructive",
       });
     },
   });
+
   const handleSubmit = () => {
     // Validate required fields
     if (!formData.action_type) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Por favor, selecione o tipo de ação interna",
         variant: "destructive",
       });
       return;
     }
+
     if (!formData.agent_id || formData.agent_id === "__none__") {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Por favor, selecione um agente responsável",
         variant: "destructive",
       });
       return;
     }
+
     // Validate date logic
     if (formData.planned_start_time && formData.planned_end_time) {
       const startDate = new Date(formData.planned_start_time);
       const endDate = new Date(formData.planned_end_time);
+
       if (endDate <= startDate) {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Erro",
           description: "A data de fim previsto deve ser posterior à data de início previsto",
           variant: "destructive",
         });
         return;
       }
     }
+
     if (formData.start_time && formData.end_time) {
       const startDate = new Date(formData.start_time);
       const endDate = new Date(formData.end_time);
+
       if (endDate <= startDate) {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Erro",
           description: "A data de fim realizado deve ser posterior à data de início realizado",
           variant: "destructive",
         });
         return;
       }
     }
+
     // Validate numeric fields
     if (formData.estimated_hours && parseFloat(formData.estimated_hours) < 0) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "As horas estimadas não podem ser negativas",
         variant: "destructive",
       });
       return;
     }
+
     // Validate text field lengths (based on typical database constraints)
     if (formData.title && formData.title.length > 255) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "O título não pode exceder 255 caracteres",
         variant: "destructive",
       });
       return;
     }
+
     if (formData.description && formData.description.length > 65535) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "A descrição é muito longa",
         variant: "destructive",
       });
       return;
     }
+
     // Submit the form - use appropriate mutation based on mode
     if (editAction) {
       updateActionMutation.mutate(formData);
@@ -308,6 +348,7 @@ export default function InternalActionModal({
       createActionMutation.mutate(formData);
     }
   };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setFormData(prev => ({
@@ -315,39 +356,46 @@ export default function InternalActionModal({
       attachments: [...prev.attachments, ...files]
     }));
   };
+
   const removeFile = (index: number) => {
     setFormData(prev => ({
       ...prev,
       attachments: prev.attachments.filter((_, i) => i !== index)
     }));
   };
+
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto>
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2>
+          <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            {editAction ? '[TRANSLATION_NEEDED]' : 'Nova Ação Interna'}
+            {editAction ? 'Editar Ação Interna' : 'Nova Ação Interna'}
           </DialogTitle>
           <DialogDescription>
             {editAction 
-              ? '[TRANSLATION_NEEDED]'
+              ? 'Edite os dados da ação interna selecionada.'
               : 'Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.'
             }
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6>
+
+        <div className="space-y-6">
+
           <Card>
-            <CardContent className="p-6>
-              <div className="space-y-6>
+            <CardContent className="p-6">
+              <div className="space-y-6">
+
                 {/* Campos Obrigatórios */}
-                <div className="grid grid-cols-2 gap-4>
+                <div className="grid grid-cols-2 gap-4">
                   {/* Tipo de Ação */}
                   <div>
                     <Label htmlFor="action-type">Tipo de Ação *</Label>
                     <Select value={formData.action_type} onValueChange={(value) => setFormData(prev => ({ ...prev, action_type: value }))}>
-                      <SelectTrigger className="mt-1>
-                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione o tipo de ação..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="analysis">Análise</SelectItem>
@@ -362,30 +410,32 @@ export default function InternalActionModal({
                       </SelectContent>
                     </Select>
                   </div>
+
                   {/* Agente Responsável */}
                   <div>
                     <Label htmlFor="agent">Agente Responsável *</Label>
                     <Select value={formData.agent_id} onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}>
-                      <SelectTrigger className="mt-1>
-                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione um agente..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">-- Selecione um agente --</SelectItem>
                         {teamMembers?.users?.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
-                            {user.name || "
+                            {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+
                 {/* Status e Prioridade */}
-                <div className="grid grid-cols-2 gap-4>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="status">Status</Label>
                     <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                      <SelectTrigger className="mt-1>
+                      <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -399,7 +449,7 @@ export default function InternalActionModal({
                   <div>
                     <Label htmlFor="priority">Prioridade</Label>
                     <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                      <SelectTrigger className="mt-1>
+                      <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -411,11 +461,12 @@ export default function InternalActionModal({
                     </Select>
                   </div>
                 </div>
+
                 {/* Título */}
                 <div>
-                  <div className="flex justify-between>
+                  <div className="flex justify-between">
                     <Label htmlFor="title">Título</Label>
-                    <span className="text-lg">"
+                    <span className={`text-xs ${formData.title.length > 255 ? 'text-red-600' : 'text-gray-500'}`}>
                       {formData.title.length}/255
                     </span>
                   </div>
@@ -424,18 +475,19 @@ export default function InternalActionModal({
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="Título resumido da ação..."
-                    className="mt-1 ""
+                    className={`mt-1 ${formData.title.length > 255 ? 'border-red-500' : ''}`}
                     maxLength={255}
                   />
                   {formData.title.length > 255 && (
-                    <p className="text-lg">"Título muito longo</p>
+                    <p className="text-sm text-red-600 mt-1">Título muito longo</p>
                   )}
                 </div>
+
                 {/* Descrição */}
                 <div>
-                  <div className="flex justify-between>
+                  <div className="flex justify-between">
                     <Label htmlFor="description">Descrição</Label>
-                    <span className="text-lg">"
+                    <span className={`text-xs ${formData.description.length > 1000 ? 'text-red-600' : 'text-gray-500'}`}>
                       {formData.description.length}/1000
                     </span>
                   </div>
@@ -445,13 +497,14 @@ export default function InternalActionModal({
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Descrição detalhada da ação realizada..."
                     rows={4}
-                    className="mt-1 ""
+                    className={`mt-1 ${formData.description.length > 1000 ? 'border-red-500' : ''}`}
                     maxLength={1000}
                   />
                   {formData.description.length > 1000 && (
-                    <p className="text-lg">"Descrição muito longa</p>
+                    <p className="text-sm text-red-600 mt-1">Descrição muito longa</p>
                   )}
                 </div>
+
                 {/* Tempo Estimado */}
                 <div>
                   <Label htmlFor="estimated-hours">Tempo Estimado (minutos)</Label>
@@ -466,6 +519,7 @@ export default function InternalActionModal({
                       const newValue = e.target.value;
                       setFormData(prev => {
                         const newData = { ...prev, estimated_hours: newValue };
+
                         // Auto-calculate planned end time if both estimated time and planned start time are filled
                         if (newValue && prev.planned_start_time) {
                           const estimatedMinutes = parseInt(newValue);
@@ -474,18 +528,22 @@ export default function InternalActionModal({
                             const [datePart, timePart] = prev.planned_start_time.split('T');
                             const [year, month, day] = datePart.split('-').map(Number);
                             const [hour, minute] = timePart.split(':').map(Number);
+
                             // Create date in local timezone
                             const startTime = new Date(year, month - 1, day, hour, minute);
                             const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+
                             // Format back to datetime-local format
                             const endYear = endTime.getFullYear();
                             const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
                             const endDay = String(endTime.getDate()).padStart(2, '0');
                             const endHour = String(endTime.getHours()).padStart(2, '0');
                             const endMinute = String(endTime.getMinutes()).padStart(2, '0');
-                            newData.planned_end_time = "
+
+                            newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
                           }
                         }
+
                         return newData;
                       });
                     }}
@@ -493,13 +551,14 @@ export default function InternalActionModal({
                     className="mt-1"
                   />
                 </div>
+
                 {/* Datas Previstas */}
-                <div className="space-y-2>
-                  <Label className="flex items-center gap-2>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     Datas Previstas
                   </Label>
-                  <div className="grid grid-cols-2 gap-4>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="planned-start-time">Data/Hora Início Previsto</Label>
                       <Input
@@ -510,9 +569,11 @@ export default function InternalActionModal({
                           const newValue = e.target.value;
                           setFormData(prev => {
                             const newData = { ...prev, planned_start_time: newValue };
+
                             // Set initial planned end time to same as planned start time
                             if (newValue) {
                               newData.planned_end_time = newValue;
+
                               // If estimated time is also filled, calculate the proper end time
                               if (prev.estimated_hours) {
                                 const estimatedMinutes = parseInt(prev.estimated_hours);
@@ -521,19 +582,23 @@ export default function InternalActionModal({
                                   const [datePart, timePart] = newValue.split('T');
                                   const [year, month, day] = datePart.split('-').map(Number);
                                   const [hour, minute] = timePart.split(':').map(Number);
+
                                   // Create date in local timezone
                                   const startTime = new Date(year, month - 1, day, hour, minute);
                                   const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+
                                   // Format back to datetime-local format
                                   const endYear = endTime.getFullYear();
                                   const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
                                   const endDay = String(endTime.getDate()).padStart(2, '0');
                                   const endHour = String(endTime.getHours()).padStart(2, '0');
                                   const endMinute = String(endTime.getMinutes()).padStart(2, '0');
-                                  newData.planned_end_time = "
+
+                                  newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
                                 }
                               }
                             }
+
                             return newData;
                           });
                         }}
@@ -556,19 +621,20 @@ export default function InternalActionModal({
                   </div>
                   {formData.planned_start_time && formData.planned_end_time && 
                    new Date(formData.planned_end_time) <= new Date(formData.planned_start_time) && (
-                    <p className="text-sm text-red-600 flex items-center gap-1>
+                    <p className="text-sm text-red-600 flex items-center gap-1">
                       <AlertCircle className="w-4 h-4" />
                       A data de fim deve ser posterior à data de início
                     </p>
                   )}
                 </div>
+
                 {/* Datas Realizadas e Tempo */}
-                <div className="space-y-4>
-                  <Label className="flex items-center gap-2>
+                <div className="space-y-4">
+                  <Label className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     Execução e Tempo
                   </Label>
-                  <div className="grid grid-cols-2 gap-4>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="start-time">Data/Hora Início Realizado</Label>
                       <Input
@@ -595,20 +661,21 @@ export default function InternalActionModal({
                   </div>
                   {formData.start_time && formData.end_time && 
                    new Date(formData.end_time) <= new Date(formData.start_time) && (
-                    <p className="text-sm text-red-600 flex items-center gap-1>
+                    <p className="text-sm text-red-600 flex items-center gap-1">
                       <AlertCircle className="w-4 h-4" />
                       A data de fim realizado deve ser posterior à data de início realizado
                     </p>
                   )}
                 </div>
+
                 {/* File Upload */}
                 <div>
-                  <Label className="flex items-center gap-2>
+                  <Label className="flex items-center gap-2">
                     <Paperclip className="w-4 h-4" />
                     Adicionar Arquivos
                   </Label>
-                  <div className="mt-2 space-y-2>
-                    <div className="flex items-center gap-2>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -627,14 +694,15 @@ export default function InternalActionModal({
                         className="hidden"
                       />
                     </div>
+
                     {formData.attachments.length > 0 && (
-                      <div className="space-y-1>
+                      <div className="space-y-1">
                         {formData.attachments.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border>
-                            <div className="flex items-center gap-2>
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                            <div className="flex items-center gap-2">
                               <FileText className="w-4 h-4 text-gray-500" />
-                              <span className="text-lg">"{file.name}</span>
-                              <span className="text-lg">"({(file.size / 1024).toFixed(1)} KB)</span>
+                              <span className="text-sm">{file.name}</span>
+                              <span className="text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
                             </div>
                             <Button
                               type="button"
@@ -651,15 +719,16 @@ export default function InternalActionModal({
                     )}
                   </div>
                 </div>
+
                 {/* Submit Section */}
-                <div className="flex items-center justify-between border-t pt-4>
-                  <div className="flex items-center space-x-2>
+                <div className="flex items-center justify-between border-t pt-4">
+                  <div className="flex items-center space-x-2">
                     <Switch
                       id="public-action"
                       checked={isPublic}
                       onCheckedChange={setIsPublic}
                     />
-                    <Label htmlFor="public-action" className="flex items-center gap-2 text-sm>
+                    <Label htmlFor="public-action" className="flex items-center gap-2 text-sm">
                       {isPublic ? (
                         <>
                           <Eye className="w-4 h-4 text-green-600" />
@@ -673,7 +742,8 @@ export default function InternalActionModal({
                       )}
                     </Label>
                   </div>
-                  <div className="flex gap-2>
+
+                  <div className="flex gap-2">
                     <Button
                       type="button"
                       variant="outline"
@@ -681,6 +751,7 @@ export default function InternalActionModal({
                     >
                       Cancelar
                     </Button>
+
                     <Button
                       onClick={handleSubmit}
                       disabled={

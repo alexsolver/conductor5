@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   GitBranch,
   Plus,
   Trash2,
@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Network
 } from 'lucide-react';
+
 interface FieldDependency {
   id: string;
   name: string;
@@ -39,6 +40,7 @@ interface FieldDependency {
   enabled: boolean;
   priority: number;
 }
+
 interface Field {
   id: string;
   name: string;
@@ -47,16 +49,16 @@ interface Field {
   visible: boolean;
   enabled: boolean;
 }
+
 interface FieldDependencyManagerProps {
   fields: Field[];
   dependencies: FieldDependency[];
   onDependenciesChange: (dependencies: FieldDependency[]) => void;
   onTestDependencies: (dependencies: FieldDependency[]) => void;
 }
+
 const conditionOperators = [
-  {
-  // Localization temporarily disabled
- value: 'equals', label: 'É igual a', description: 'Valor exato' },
+  { value: 'equals', label: 'É igual a', description: 'Valor exato' },
   { value: 'not_equals', label: 'É diferente de', description: 'Valor diferente' },
   { value: 'contains', label: 'Contém', description: 'Para textos' },
   { value: 'not_contains', label: 'Não contém', description: 'Para textos' },
@@ -67,6 +69,7 @@ const conditionOperators = [
   { value: 'in', label: 'Está em', description: 'Lista de valores' },
   { value: 'not_in', label: 'Não está em', description: 'Fora da lista' }
 ];
+
 const actionTypes = [
   { value: 'show', label: 'Mostrar Campo', description: 'Torna o campo visível' },
   { value: 'hide', label: 'Ocultar Campo', description: 'Torna o campo invisível' },
@@ -77,8 +80,9 @@ const actionTypes = [
   { value: 'set_value', label: 'Definir Valor', description: 'Define valor específico' },
   { value: 'clear_value', label: 'Limpar Valor', description: 'Remove o valor' },
   { value: 'set_options', label: 'Definir Opções', description: 'Para campos select' },
-  { value: 'filter_options', label: '[TRANSLATION_NEEDED]', description: 'Filtra opções existentes' }
+  { value: 'filter_options', label: 'Filtrar Opções', description: 'Filtra opções existentes' }
 ];
+
 export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
   fields,
   dependencies,
@@ -88,10 +92,11 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
   const [activeTab, setActiveTab] = useState('dependencies');
   const [editingDependency, setEditingDependency] = useState<FieldDependency | null>(null);
   const [showVisualization, setShowVisualization] = useState(false);
+
   const handleAddDependency = () => {
     const newDependency: FieldDependency = {
-      id: "
-      name: "
+      id: `dep-${Date.now()}`,
+      name: `Nova Dependência ${dependencies.length + 1}`,
       sourceFieldId: '',
       targetFieldId: '',
       condition: {
@@ -104,12 +109,14 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
       enabled: true,
       priority: dependencies.length
     };
+
     setEditingDependency(newDependency);
   };
+
   const handleSaveDependency = (dependency: FieldDependency) => {
     if (dependency.id.includes('new-')) {
       // Nova dependência
-      const newDep = { ...dependency, id: "
+      const newDep = { ...dependency, id: `dep-${Date.now()}` };
       onDependenciesChange([...dependencies, newDep]);
     } else {
       // Editar existente
@@ -120,20 +127,24 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
     }
     setEditingDependency(null);
   };
+
   const handleDeleteDependency = (dependencyId: string) => {
     const filtered = dependencies.filter(dep => dep.id !== dependencyId);
     onDependenciesChange(filtered);
   };
+
   const handleToggleDependency = (dependencyId: string) => {
     const updated = dependencies.map(dep => 
       dep.id === dependencyId ? { ...dep, enabled: !dep.enabled } : dep
     );
     onDependenciesChange(updated);
   };
+
   const getFieldName = (fieldId: string) => {
     const field = fields.find(f => f.id === fieldId);
     return field ? field.name : fieldId;
   };
+
   const getDependencyIcon = (action: string) => {
     switch (action) {
       case 'show': return <Eye className="h-4 w-4" />;
@@ -143,6 +154,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
       default: return <Settings className="h-4 w-4" />;
     }
   };
+
   const validateDependency = (dependency: FieldDependency): string[] => {
     const errors: string[] = [];
     
@@ -164,6 +176,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
     
     return errors;
   };
+
   const renderDependencyGraph = () => {
     // Simplified dependency visualization
     const nodes = fields.map(field => ({
@@ -171,24 +184,26 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
       name: field.name,
       type: field.type
     }));
+
     const edges = dependencies.filter(dep => dep.enabled).map(dep => ({
       source: dep.sourceFieldId,
       target: dep.targetFieldId,
       label: dep.name
     }));
+
     return (
-      <div className="p-4 bg-gray-50 rounded-lg>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
+      <div className="p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {nodes.map(node => (
-            <Card key={node.id} className="p-3>
-              <div className="text-lg">"{node.name}</div>
-              <Badge variant="outline" className="text-xs mt-1>
+            <Card key={node.id} className="p-3">
+              <div className="text-sm font-medium">{node.name}</div>
+              <Badge variant="outline" className="text-xs mt-1">
                 {node.type}
               </Badge>
               
               {/* Incoming dependencies */}
               {edges.filter(e => e.target === node.id).map(edge => (
-                <div key={"
+                <div key={`${edge.source}-${edge.target}`} className="mt-2 text-xs text-gray-600">
                   <ArrowRight className="h-3 w-3 inline mr-1" />
                   Depende de: {getFieldName(edge.source)}
                 </div>
@@ -199,21 +214,22 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
       </div>
     );
   };
+
   return (
-    <div className="w-full h-full>
-      <div className="p-4 border-b>
-        <div className="flex items-center justify-between>
+    <div className="w-full h-full">
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold flex items-center>
+            <h2 className="text-lg font-semibold flex items-center">
               <GitBranch className="h-5 w-5 mr-2" />
               Dependências de Campos
             </h2>
-            <p className="text-sm text-gray-500 mt-1>
+            <p className="text-sm text-gray-500 mt-1">
               Configure quando campos devem aparecer, desaparecer ou mudar comportamento
             </p>
           </div>
           
-          <div className="flex items-center space-x-2>
+          <div className="flex items-center space-x-2">
             <Button
               variant="outline"
               onClick={() => setShowVisualization(!showVisualization)}
@@ -229,43 +245,46 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
           </div>
         </div>
       </div>
+
       {showVisualization && (
-        <div className="p-4 border-b>
-          <h3 className="text-lg">"Mapa de Dependências</h3>
+        <div className="p-4 border-b">
+          <h3 className="text-md font-medium mb-3">Mapa de Dependências</h3>
           {renderDependencyGraph()}
         </div>
       )}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full>
-        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4>
-          <TabsTrigger value="dependencies>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
+        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4">
+          <TabsTrigger value="dependencies">
             Dependências ({dependencies.length})
           </TabsTrigger>
-          <TabsTrigger value="test>
+          <TabsTrigger value="test">
             Testar Dependências
           </TabsTrigger>
         </TabsList>
-        <div className="p-4>
-          <TabsContent value="dependencies" className="space-y-4>
+
+        <div className="p-4">
+          <TabsContent value="dependencies" className="space-y-4">
             {/* Lista de Dependências */}
-            <div className="space-y-3>
+            <div className="space-y-3">
               {dependencies.map((dependency) => {
                 const errors = validateDependency(dependency);
                 
                 return (
-                  <Card key={dependency.id} className="text-lg">"
-                    <CardContent className="p-4>
-                      <div className="flex items-center justify-between>
-                        <div className="flex items-center space-x-3>
+                  <Card key={dependency.id} className={`${!dependency.enabled ? 'opacity-50' : ''}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
                           <Switch
                             checked={dependency.enabled}
                             onCheckedChange={() => handleToggleDependency(dependency.id)}
                           />
                           
-                          <div className="flex items-center space-x-2>
+                          <div className="flex items-center space-x-2">
                             {getDependencyIcon(dependency.action.type)}
                             <div>
-                              <h4 className="text-lg">"{dependency.name}</h4>
-                              <p className="text-sm text-gray-500>
+                              <h4 className="font-medium">{dependency.name}</h4>
+                              <p className="text-sm text-gray-500">
                                 Se <strong>{getFieldName(dependency.sourceFieldId)}</strong> {' '}
                                 {conditionOperators.find(op => op.value === dependency.condition.operator)?.label.toLowerCase()} {' '}
                                 <strong>{dependency.condition.value}</strong>, então {' '}
@@ -274,15 +293,17 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                               </p>
                             </div>
                           </div>
+
                           {errors.length > 0 && (
-                            <Badge variant="destructive>
+                            <Badge variant="destructive">
                               <AlertTriangle className="h-3 w-3 mr-1" />
                               {errors.length} erro(s)
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2>
-                          <Badge variant="outline>
+
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline">
                             Prioridade: {dependency.priority}
                           </Badge>
                           
@@ -308,6 +329,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                   </Card>
                 );
               })}
+
               {dependencies.length === 0 && (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
@@ -317,15 +339,16 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                 </Alert>
               )}
             </div>
+
             {/* Editor de Dependência */}
             {editingDependency && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base>
-                    {editingDependency.id.includes('new-') ? 'Nova' : '[TRANSLATION_NEEDED]'} Dependência
+                  <CardTitle className="text-base">
+                    {editingDependency.id.includes('new-') ? 'Nova' : 'Editar'} Dependência
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4>
+                <CardContent className="space-y-4">
                   <div>
                     <Label>Nome da Dependência</Label>
                     <Input
@@ -336,7 +359,8 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                       })}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Campo de Origem (SE)</Label>
                       <Select
@@ -347,7 +371,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                         })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione o campo" />
                         </SelectTrigger>
                         <SelectContent>
                           {fields.map(field => (
@@ -358,6 +382,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label>Campo de Destino (ENTÃO)</Label>
                       <Select
@@ -368,7 +393,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                         })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione o campo" />
                         </SelectTrigger>
                         <SelectContent>
                           {fields
@@ -382,7 +407,8 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Condição</Label>
                       <Select
@@ -403,13 +429,14 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                             <SelectItem key={op.value} value={op.value}>
                               <div>
                                 <div>{op.label}</div>
-                                <div className="text-lg">"{op.description}</div>
+                                <div className="text-xs text-gray-500">{op.description}</div>
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label>Valor da Condição</Label>
                       <Input
@@ -426,6 +453,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                       />
                     </div>
                   </div>
+
                   <div>
                     <Label>Ação</Label>
                     <Select
@@ -446,13 +474,14 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                           <SelectItem key={action.value} value={action.value}>
                             <div>
                               <div>{action.label}</div>
-                              <div className="text-lg">"{action.description}</div>
+                              <div className="text-xs text-gray-500">{action.description}</div>
                             </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
                   {['set_value'].includes(editingDependency.action.type) && (
                     <div>
                       <Label>Valor da Ação</Label>
@@ -468,6 +497,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                       />
                     </div>
                   )}
+
                   <div>
                     <Label>Prioridade de Execução</Label>
                     <Input
@@ -479,11 +509,12 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                       })}
                       min="0"
                     />
-                    <p className="text-xs text-gray-500 mt-1>
+                    <p className="text-xs text-gray-500 mt-1">
                       Menor número = maior prioridade
                     </p>
                   </div>
-                  <div className="flex justify-end space-x-2>
+
+                  <div className="flex justify-end space-x-2">
                     <Button
                       variant="outline"
                       onClick={() => setEditingDependency(null)}
@@ -498,14 +529,15 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
               </Card>
             )}
           </TabsContent>
-          <TabsContent value="test" className="space-y-4>
+
+          <TabsContent value="test" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">"Testar Dependências</CardTitle>
+                <CardTitle className="text-base">Testar Dependências</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4>
-                  <p className="text-sm text-gray-600>
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
                     Simule valores para os campos e veja como as dependências afetam o formulário.
                   </p>
                   
@@ -521,4 +553,5 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
     </div>
   );
 };
+
 export default FieldDependencyManager;

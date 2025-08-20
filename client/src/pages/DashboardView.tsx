@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-// import useLocalization from '@/hooks/useLocalization';
   AlertCircle, ArrowLeft, RefreshCw, Share2, Maximize, BarChart3, Settings,
   PieChart, LineChart, Table, FileText, Monitor, Edit, Save, X, Plus, Grid, Trash2, CheckCircle
 } from "lucide-react";
@@ -13,10 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 // ✅ INTEGRAÇÃO DO SISTEMA DE GOVERNANÇA DE DASHBOARDS
 import { GovernedWidgetRenderer } from "@/components/dashboard/GovernedWidgetRenderer";
 import type { GovernedCard } from "@shared/dashboard-governance-schema";
 import { useAuth } from "@/hooks/useAuth";
+
 interface DashboardWidget {
   id: string;
   name: string;
@@ -34,6 +35,7 @@ interface DashboardWidget {
   };
   isVisible: boolean;
 }
+
 interface Dashboard {
   id: string;
   name: string;
@@ -51,8 +53,8 @@ interface Dashboard {
   status: "active" | "paused" | "error" | "draft";
   widgets?: DashboardWidget[];
 }
+
 const widgetTypeIcons = {
-  // Localization temporarily disabled
   chart: BarChart3,
   table: Table,
   metric: LineChart,
@@ -60,6 +62,7 @@ const widgetTypeIcons = {
   text: FileText,
   image: Monitor,
 };
+
 // Widget Content Renderer - following 1qa.md patterns with REAL DATA
 function WidgetContent({ widget }: { widget: DashboardWidget }) {
   // ✅ 1QA.MD COMPLIANCE: Connect to real API endpoints for authentic data
@@ -73,6 +76,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
       default: return null;
     }
   };
+
   const endpoint = getApiEndpoint(widget.config.dataSource);
   
   const { data: realData, isLoading } = useQuery({
@@ -80,9 +84,11 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
     enabled: !!endpoint,
     retry: false,
   });
+
   // ✅ 1QA.MD COMPLIANCE: Process real data instead of generating fake data
   const processRealData = (rawData: any, dataSource: string, widgetType: string) => {
     if (!rawData) return null;
+
     switch (dataSource) {
       case 'tickets':
         if (rawData.success && rawData.data) {
@@ -92,10 +98,10 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           if (widgetType === 'table') {
             return {
               value: total,
-              label: '[TRANSLATION_NEEDED]',
+              label: 'Total de Tickets',
               data: tickets.slice(0, 5).map((ticket: any) => ({
                 id: ticket.id,
-                title: ticket.title || "
+                title: ticket.title || `Ticket ${ticket.ticketNumber}`,
                 status: ticket.status,
                 priority: ticket.priority,
               })),
@@ -105,12 +111,13 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           
           return {
             value: total,
-            label: '[TRANSLATION_NEEDED]',
+            label: 'Total de Tickets',
             change: Math.floor(Math.random() * 20) - 10, // Placeholder até implementar histórico
             lastUpdated: 'Dados reais do banco',
           };
         }
         break;
+
       case 'timecard':
         if (rawData.status) {
           return {
@@ -122,26 +129,29 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           };
         }
         break;
+
       case 'customers':
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: '[TRANSLATION_NEEDED]',
+            label: 'Clientes Ativos',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
         }
         break;
+
       case 'users':
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: '[TRANSLATION_NEEDED]',
+            label: 'Usuários no Sistema',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
         }
         break;
+
       case 'materials':
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
@@ -153,43 +163,49 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         }
         break;
     }
+
     return null;
   };
+
   const widgetData = processRealData(realData, widget.config.dataSource, widget.type);
+
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="text-lg">"</div>
+      <div className="h-full flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
   }
+
   // ✅ 1QA.MD COMPLIANCE: Show error state for failed real data loading
   if (!widgetData && !isLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
           <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
-          <p className="text-lg">"Erro ao carregar dados</p>
-          <p className="p-4"
+          <p className="text-sm">Erro ao carregar dados</p>
+          <p className="text-xs text-gray-400">
             Fonte: {widget.config.dataSource}
           </p>
         </div>
       </div>
     );
   }
+
   const IconComponent = widgetTypeIcons[widget.type];
+
   switch (widget.type) {
     case 'metric':
       return (
-        <div className="p-4"
-          <div className="p-4"
+        <div className="h-full flex flex-col items-center justify-center">
+          <div className="text-3xl font-bold text-purple-600 mb-2">
             {widgetData?.value || '0'}
           </div>
-          <div className="p-4"
+          <div className="text-sm text-gray-600">
             {widgetData?.label || widget.name}
           </div>
           {widgetData?.change && (
-            <div className="text-lg">"
+            <div className={`text-xs mt-1 ${widgetData.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               {widgetData.change >= 0 ? '↗' : '↘'} {Math.abs(widgetData.change)}%
             </div>
           )}
@@ -198,51 +214,53 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
     
     case 'chart':
       return (
-        <div className="p-4"
-          <div className="p-4"
-            <div className="p-4"
+        <div className="h-full flex flex-col">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
               <BarChart3 className="w-16 h-16 text-purple-600 mx-auto mb-2" />
-              <div className="text-lg">"{widgetData?.value || '0'}</div>
-              <div className="text-lg">"{widgetData?.label || 'Chart Data'}</div>
+              <div className="text-2xl font-bold text-gray-800">{widgetData?.value || '0'}</div>
+              <div className="text-sm text-gray-600">{widgetData?.label || 'Chart Data'}</div>
             </div>
           </div>
         </div>
       );
+
     case 'table':
       return (
-        <div className="p-4"
+        <div className="h-full">
           {widgetData?.data && Array.isArray(widgetData.data) ? (
-            <div className="p-4"
+            <div className="text-center">
               <Table className="w-12 h-12 text-purple-600 mx-auto mb-2" />
-              <div className="p-4"
+              <div className="text-sm text-gray-600">
                 {widgetData.data.length} records
               </div>
-              <div className="p-4"
+              <div className="text-xs text-gray-400">
                 {widgetData.lastUpdated || 'Recently updated'}
               </div>
             </div>
           ) : (
-            <div className="p-4"
-              <div className="p-4"
+            <div className="h-full flex items-center justify-center text-gray-500">
+              <div className="text-center">
                 <Table className="w-12 h-12 mx-auto mb-2" />
-                <p className="text-lg">"Data Table</p>
-                <p className="text-lg">"Loading data...</p>
+                <p className="text-sm">Data Table</p>
+                <p className="text-xs text-gray-400">Loading data...</p>
               </div>
             </div>
           )}
         </div>
       );
+
     default:
       return (
-        <div className="p-4"
-          <div className="p-4"
+        <div className="h-full flex items-center justify-center text-gray-500">
+          <div className="text-center">
             <IconComponent className="w-12 h-12 mx-auto mb-2" />
-            <p className="p-4"
+            <p className="text-sm">
               {widget.type === 'gauge' && 'Progress Gauge'}
               {widget.type === 'text' && 'Text Content'}
               {widget.type === 'image' && 'Image Display'}
             </p>
-            <p className="p-4"
+            <p className="text-xs text-gray-400">
               Data source: {widget.config.dataSource}
             </p>
           </div>
@@ -250,7 +268,9 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
       );
   }
 }
+
 // ✅ 1QA.MD COMPLIANCE: Removed fake data generators - using only real data
+
 // Simple Widget Designer Component - following 1qa.md patterns
 function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) => void; dashboardId: string }) {
   const [widgetConfig, setWidgetConfig] = useState({
@@ -262,17 +282,19 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
       chartType: "bar",
     },
   });
+
   const handleSave = () => {
     if (!widgetConfig.name.trim()) {
       return;
     }
     onSave(widgetConfig);
   };
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-lg">"Widget Name</label>
+          <label className="text-sm font-medium">Widget Name</label>
           <Input
             value={widgetConfig.name}
             onChange={(e) => setWidgetConfig(prev => ({ ...prev, name: e.target.value }))}
@@ -280,13 +302,14 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             data-testid="input-widget-name"
           />
         </div>
+
         <div>
-          <label className="text-lg">"Widget Type</label>
+          <label className="text-sm font-medium">Widget Type</label>
           <Select 
             value={widgetConfig.type} 
             onValueChange={(value: any) => setWidgetConfig(prev => ({ ...prev, type: value }))}
           >
-            <SelectTrigger data-testid="select-widget-type>
+            <SelectTrigger data-testid="select-widget-type">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -299,8 +322,9 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             </SelectContent>
           </Select>
         </div>
+
         <div>
-          <label className="text-lg">"Data Source</label>
+          <label className="text-sm font-medium">Data Source</label>
           <Select 
             value={widgetConfig.config.dataSource} 
             onValueChange={(value) => setWidgetConfig(prev => ({
@@ -308,7 +332,7 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
               config: { ...prev.config, dataSource: value }
             }))}
           >
-            <SelectTrigger data-testid="select-widget-datasource>
+            <SelectTrigger data-testid="select-widget-datasource">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -320,8 +344,9 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             </SelectContent>
           </Select>
         </div>
-        <div className="p-4"
-          <Button onClick={handleSave} disabled={!widgetConfig.name.trim()} data-testid="button-save-widget>
+
+        <div className="flex items-end">
+          <Button onClick={handleSave} disabled={!widgetConfig.name.trim()} data-testid="button-save-widget">
             <CheckCircle className="w-4 h-4 mr-2" />
             Add Widget
           </Button>
@@ -330,6 +355,7 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
     </div>
   );
 }
+
 function DashboardView() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
@@ -346,31 +372,35 @@ function DashboardView() {
   const [editableWidgets, setEditableWidgets] = useState<DashboardWidget[]>([]);
   const [showWidgetDesigner, setShowWidgetDesigner] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
+
   // Following 1qa.md patterns for data fetching - called unconditionally
   const { data: dashboardResponse, isLoading, error } = useQuery({
-    queryKey: ["
-    queryFn: () => apiRequest("GET", "
+    queryKey: [`/api/reports-dashboards/dashboards/${id}`],
+    queryFn: () => apiRequest("GET", `/api/reports-dashboards/dashboards/${id}`),
     enabled: !!id,
     retry: false,
   });
+
   // ✅ SISTEMA DE GOVERNANÇA ATIVO: Carregar configurações de governança
   const { data: governanceData } = useQuery({
     queryKey: [`/api/dashboards/governance/data-sources`],
     enabled: !!id && !!dashboardResponse,
   });
+
   // ✅ GOVERNANÇA: Converter widgets antigos em cards governados
   const generateGovernedCards = (dashboardData: any): GovernedCard[] => {
     if (!dashboardData?.data?.widgets) return [];
+
     return dashboardData.data.widgets.map((widget: DashboardWidget, index: number): GovernedCard => ({
       id: widget.id,
       name: widget.name,
-      description: "
+      description: `Card governado: ${widget.name}`,
       
       // Camada 1: Fonte de dados
       data_source: {
         id: widget.config.dataSource,
-        name: "
-        description: "
+        name: `Sistema de ${widget.config.dataSource}`,
+        description: `Dados reais de ${widget.config.dataSource}`,
         type: 'database' as const,
         fields: [],
         refresh_interval: 300,
@@ -382,9 +412,9 @@ function DashboardView() {
       
       // Camada 2: KPI
       kpi: {
-        id: "
+        id: `${widget.config.dataSource}_${widget.type}`,
         name: widget.name,
-        description: "
+        description: `KPI governado para ${widget.name}`,
         data_source: widget.config.dataSource,
         formula: 'COUNT(*)',
         aggregation: 'count' as const,
@@ -398,7 +428,7 @@ function DashboardView() {
         }
       },
       targets: {
-        kpi_id: "
+        kpi_id: `${widget.config.dataSource}_${widget.type}`,
         target: 100,
         warning: 80,
         critical: 50,
@@ -442,6 +472,7 @@ function DashboardView() {
       is_active: widget.isVisible
     }));
   };
+
   const mapWidgetTypeToCardType = (widgetType: string): any => {
     const typeMap: Record<string, any> = {
       'metric': 'kpi_simple',
@@ -453,7 +484,9 @@ function DashboardView() {
     };
     return typeMap[widgetType] || 'kpi_simple';
   };
+
   const governedCards = dashboardResponse ? generateGovernedCards(dashboardResponse) : [];
+
   // Extract dashboard from response - moved before useEffect
   const dashboard: Dashboard = (dashboardResponse as any)?.data || {
     id: id || '',
@@ -505,35 +538,38 @@ function DashboardView() {
       },
     ]
   };
+
   // ✅ 1QA.MD COMPLIANCE: useEffect with controlled dependencies to prevent infinite loop
   useEffect(() => {
     if (isEditMode && dashboard?.widgets && editableWidgets.length === 0) {
       setEditableWidgets([...dashboard.widgets]);
     }
   }, [isEditMode, dashboard?.widgets]); // Fixed dependencies to avoid infinite loop
+
   // Early returns after all hooks are called
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"</div>
-          <div className="p-4"
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-64"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="text-lg">"</div>
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
             ))}
           </div>
         </div>
       </div>
     );
   }
+
   if (error || !dashboardResponse) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <h3 className="p-4"
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
             Dashboard not found
           </h3>
-          <p className="p-4"
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             The dashboard you're looking for doesn't exist or you don't have permission to view it.
           </p>
           <Button onClick={() => setLocation('/dashboards')}>
@@ -544,10 +580,11 @@ function DashboardView() {
       </div>
     );
   }
+
   // Edit mode functions - following 1qa.md patterns
   const addWidget = (widgetConfig: any) => {
     const newWidget: DashboardWidget = {
-      id: "
+      id: `widget-${Date.now()}`,
       name: widgetConfig.name || 'Untitled Widget',
       type: widgetConfig.type,
       position: widgetConfig.position,
@@ -556,12 +593,14 @@ function DashboardView() {
     };
     setEditableWidgets(prev => [...prev, newWidget]);
     setShowWidgetDesigner(false);
-    toast({ title: "Widget added", description: " has been added to the dashboard.` });
+    toast({ title: "Widget added", description: `${newWidget.name} has been added to the dashboard.` });
   };
+
   const removeWidget = (widgetId: string) => {
     setEditableWidgets(prev => prev.filter(w => w.id !== widgetId));
     toast({ title: "Widget removed", description: "Widget has been removed from the dashboard." });
   };
+
   const saveDashboard = async () => {
     try {
       // Save dashboard configuration following 1qa.md patterns
@@ -574,40 +613,44 @@ function DashboardView() {
       console.log('Saving dashboard configuration:', updatedConfig);
       
       toast({ 
-        title: '[TRANSLATION_NEEDED]', 
+        title: "Dashboard saved", 
         description: "Your dashboard changes have been saved successfully." 
       });
       
       // Navigate back to view mode
-      setLocation("
+      setLocation(`/dashboard/${id}`);
     } catch (error) {
       toast({ 
-        title: '[TRANSLATION_NEEDED]', 
+        title: "Save failed", 
         description: "There was an error saving your dashboard changes." 
       });
     }
   };
+
   // Dashboard handlers following 1qa.md patterns
   const handleRefresh = () => {
     window.location.reload();
   };
+
   const handleShare = () => {
-    const dashboardUrl = "
+    const dashboardUrl = `${window.location.origin}/dashboard/${id}`;
     navigator.clipboard.writeText(dashboardUrl);
     toast({ title: "Link copied", description: "Dashboard link copied to clipboard." });
   };
+
   const handleFullscreen = () => {
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
     }
   };
+
   return (
-    <div className="p-4"
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="p-4"
-        <div className="p-4"
-          <div className="p-4"
-            <div className="p-4"
+      <div className="bg-white dark:bg-gray-800 border-b shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
@@ -618,24 +661,24 @@ function DashboardView() {
                 Back
               </Button>
               <div>
-                <h1 className="p-4"
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {dashboard.name}
                 </h1>
                 {dashboard.description && (
-                  <p className="p-4"
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
                     {dashboard.description}
                   </p>
                 )}
-                <div className="p-4"
+                <div className="flex items-center space-x-2 mt-2">
                   <Badge variant="outline">{dashboard.layoutType}</Badge>
                   {dashboard.isRealTime && (
-                    <Badge variant="outline" className="p-4"
+                    <Badge variant="outline" className="text-green-600">
                       <RefreshCw className="w-3 h-3 mr-1" />
                       Real-time
                     </Badge>
                   )}
                   {dashboard.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="p-4"
+                    <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>
                   ))}
@@ -643,7 +686,7 @@ function DashboardView() {
               </div>
             </div>
             
-            <div className="p-4"
+            <div className="flex items-center space-x-2">
               {isEditMode ? (
                 // Edit mode buttons - following 1qa.md patterns
                 <>
@@ -659,7 +702,7 @@ function DashboardView() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setLocation("
+                    onClick={() => setLocation(`/dashboard/${id}`)}
                     data-testid="button-cancel-edit"
                   >
                     <X className="w-4 h-4 mr-2" />
@@ -707,7 +750,7 @@ function DashboardView() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setLocation("/edit`)}
+                    onClick={() => setLocation(`/dashboard/${id}/edit`)}
                     data-testid="button-edit-dashboard"
                   >
                     <Edit className="w-4 h-4 mr-2" />
@@ -719,12 +762,13 @@ function DashboardView() {
           </div>
         </div>
       </div>
+
       {/* Dashboard Canvas */}
-      <div className="p-4"
+      <div className="container mx-auto p-6">
         {isEditMode && showWidgetDesigner && (
-          <Card className="p-4"
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="p-4"
+              <CardTitle className="flex items-center justify-between">
                 <span>Widget Designer</span>
                 <Button
                   variant="ghost"
@@ -741,11 +785,12 @@ function DashboardView() {
             </CardContent>
           </Card>
         )}
+
         {/* 🎯 SISTEMA DE GOVERNANÇA ATIVO - Cards Governados */}
-        <div className="p-4"
+        <div className="grid grid-cols-12 gap-4">
           {isEditMode && showWidgetDesigner && (
-            <div className="p-4"
-              <div className="p-4"
+            <div className="col-span-12 mb-4">
+              <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
                 🎯 Sistema de Governança Ativo: Cards são gerenciados pelas 4 camadas de governança
               </div>
             </div>
@@ -763,29 +808,29 @@ function DashboardView() {
                   key={governedCard.id}
                   className={`bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow rounded-lg ${
                     isEditMode ? 'border-2 border-dashed border-purple-300' : 'border'
-                  "
+                  }`}
                   style={{
-                    gridColumn: "
-                    minHeight: "px`,
+                    gridColumn: `span ${Math.min(governedCard.layout.position?.width || 6, 12)}`,
+                    minHeight: `${(governedCard.layout.position?.height || 4) * 60}px`,
                   }}
-                  data-testid={"
+                  data-testid={`governed-card-${governedCard.id}`}
                 >
                   {isEditMode && (
-                    <div className="p-4"
-                      <div className="p-4"
+                    <div className="bg-purple-50 border-b border-purple-200 p-2 text-xs text-purple-700">
+                      <div className="flex justify-between items-center">
                         <span>🎯 Governança: {governedCard.card_type}</span>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removeWidget(governedCard.id)}
-                          data-testid={"
+                          data-testid={`button-remove-governed-card-${governedCard.id}`}
                         >
                           <Trash2 className="w-3 h-3 text-red-500" />
                         </Button>
                       </div>
                     </div>
                   )}
-                  <div className="p-4"
+                  <div className="p-4">
                     {/* ✅ WIDGET GOVERNADO: Usando GovernedWidgetRenderer */}
                     <GovernedWidgetRenderer 
                       card={governedCard} 
@@ -796,19 +841,19 @@ function DashboardView() {
                 </div>
               ))
             ) : (
-              <div className="p-4"
+              <div className="col-span-12 text-center py-12">
                 <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="p-4"
-                  {isEditMode ? "Empty Dashboard" : "No widgets configured"
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  {isEditMode ? "Empty Dashboard" : "No widgets configured"}
                 </h3>
-                <p className="p-4"
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
                   {isEditMode 
                     ? "Start building your dashboard by adding widgets" 
                     : "This dashboard doesn't have any widgets yet. Add some widgets to get started."
                   }
                 </p>
                 {!isEditMode && (
-                  <Button onClick={() => setLocation("/edit`)}>
+                  <Button onClick={() => setLocation(`/dashboard/${id}/edit`)}>
                     <Settings className="w-4 h-4 mr-2" />
                     Configure Dashboard
                   </Button>
@@ -821,4 +866,5 @@ function DashboardView() {
     </div>
   );
 }
+
 export default DashboardView;

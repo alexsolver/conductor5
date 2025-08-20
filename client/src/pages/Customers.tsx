@@ -10,23 +10,24 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CustomerModal } from "@/components/CustomerModal";
 import { useLocation } from "wouter";
 import { renderAddressSafely, formatCompanyDisplay, getFieldSafely, formatCustomerName } from "@/utils/addressFormatter";
-// import useLocalization from '@/hooks/useLocalization';
+
 export default function Customers() {
-  // Localization temporarily disabled
   const [, setLocation] = useLocation();
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+
   const { data: customersData, isLoading, error } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const { apiRequest } = await import('../lib/queryClient');
       const response = await apiRequest('GET', '/api/customers');
       const data = await response.json();
-      console.log('[TRANSLATION_NEEDED]', data);
+      console.log('Customers API Response:', data);
       return data;
     },
     retry: false,
   });
+
   // Enhanced data structure handling for customers
   let customers = [];
   let total = 0;
@@ -55,12 +56,14 @@ export default function Customers() {
     structure: customersData ? Object.keys(customersData) : 'no data',
     sampleCustomer: customers[0] || 'none'
   });
+
   // Standardized field access helper with validation and defaults
   const getCustomerField = (customer: any, field: string) => {
     if (!customer || typeof customer !== 'object') {
       console.warn('[CUSTOMERS] Invalid customer object:', customer);
       return null;
     }
+
     // Handle both camelCase and snake_case variations with proper defaults
     const variations: Record<string, string[]> = {
       firstName: ['first_name', 'firstName'],
@@ -73,6 +76,7 @@ export default function Customers() {
       phone: ['phone', 'mobile_phone', 'mobilePhone'],
       fullName: ['full_name', 'fullName']
     };
+
     const fieldVariations = variations[field] || [field];
     for (const variant of fieldVariations) {
       const value = customer[variant];
@@ -80,6 +84,7 @@ export default function Customers() {
         return value;
       }
     }
+
     // Return appropriate defaults
     switch (field) {
       case 'customerType':
@@ -93,11 +98,14 @@ export default function Customers() {
         return null;
     }
   };
-  console.log('[TRANSLATION_NEEDED]', { customers, total, error, isLoading });
+
+  console.log('Customers data:', { customers, total, error, isLoading });
+
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
     setIsCustomerModalOpen(true);
   };
+
   const normalizeCustomerStatus = (customer: any) => {
     return {
       ...customer,
@@ -106,25 +114,29 @@ export default function Customers() {
               customer.status || 'Ativo'
     };
   };
+
   const handleEditCustomer = (customer: any) => {
     setSelectedCustomer(normalizeCustomerStatus(customer));
     setIsCustomerModalOpen(true);
   };
+
   const handleLocationModalOpen = () => {
     setLocation('/locations');
   };
+
   const getInitials = (customer: any) => {
     // Use the same consistent field access as formatCustomerName
     const firstName = getFieldSafely(customer, 'firstName') || getFieldSafely(customer, 'first_name');
     const lastName = getFieldSafely(customer, 'lastName') || getFieldSafely(customer, 'last_name');
     const fullName = getFieldSafely(customer, 'fullName') || getFieldSafely(customer, 'full_name');
     const name = getFieldSafely(customer, 'name');
+
     if (firstName && lastName) {
-      return "
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     }
     if (fullName && fullName.includes(' ')) {
       const parts = fullName.split(' ');
-      return "
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
     }
     if (firstName) {
       return firstName.charAt(0).toUpperCase();
@@ -140,11 +152,13 @@ export default function Customers() {
     }
     return "?";
   };
+
   // Simplified company display component
   const CompanyDisplay = ({ companies }: { companies: string | null | undefined }) => {
     if (!companies || companies === 'undefined' || companies === 'null') {
-      return <span className="text-lg">"-</span>;
+      return <span className="text-gray-400">-</span>;
     }
+
     // Handle object or array companies data
     let displayText = companies;
     if (typeof companies === 'object' && companies !== null) {
@@ -155,8 +169,9 @@ export default function Customers() {
         displayText = values.length > 0 ? values.join(', ') : 'N/A';
       }
     }
+
     return (
-      <div className="p-4"
+      <div className="flex items-center text-gray-600 dark:text-gray-400">
         <Building className="h-3 w-3 mr-1 flex-shrink-0" />
         <span className="text-sm truncate" title={String(displayText)}>
           {String(displayText)}
@@ -164,22 +179,23 @@ export default function Customers() {
       </div>
     );
   };
+
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="text-lg">"</div>
+      <div className="p-4 space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
         <Card>
-          <CardContent className="p-4"
-            <div className="p-4"
+          <CardContent className="p-6">
+            <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="p-4"
-                  <div className="text-lg">"</div>
-                  <div className="p-4"
-                    <div className="text-lg">"</div>
-                    <div className="text-lg">"</div>
+                <div key={i} className="flex items-center space-x-4 animate-pulse">
+                  <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
                   </div>
-                  <div className="text-lg">"</div>
-                  <div className="text-lg">"</div>
+                  <div className="h-6 bg-gray-200 rounded w-16"></div>
+                  <div className="h-8 bg-gray-200 rounded w-20"></div>
                 </div>
               ))}
             </div>
@@ -188,54 +204,61 @@ export default function Customers() {
       </div>
     );
   }
+
   if (error) {
     // Enhanced error categorization with proper typing
     const errorType = (error as any)?.code || 'UNKNOWN_ERROR';
     const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
     const isPermissionError = errorType === 'PERMISSION_DENIED';
+
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <h1 className="text-lg">"Customers</h1>
+      <div className="p-4 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
         </div>
         <Card>
-          <CardContent className="p-4"
-            <div className="text-lg">"
-              <h4 className="p-4"
+          <CardContent className="p-8 text-center">
+            <div className={`mb-4 ${isPermissionError ? 'text-orange-500' : 'text-red-500'}`}>
+              <h4 className="text-lg font-medium mb-2">
                 {isSchemaError ? '🗄️ Problema de Esquema de Banco' :
                  isPermissionError ? '🔒 Problema de Permissão' :
                  '❌ Erro ao carregar clientes'}
               </h4>
-              <p className="p-4"
+              <p className="text-sm text-gray-600 mb-2">
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
+
               {/* Error Code Display */}
               {(error as any)?.code && (
-                <div className="p-4"
+                <div className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono mb-2">
                   Código: {(error as any).code}
                 </div>
               )}
+
               {/* Technical Details */}
               {(error as any)?.details && (
-                <details className="p-4"
-                  <summary className="text-lg">"Detalhes técnicos</summary>
-                  <pre className="text-lg">"{JSON.stringify((error as any).details, null, 2)}</pre>
+                <details className="text-left bg-gray-50 dark:bg-gray-800 p-3 rounded text-xs mt-3">
+                  <summary className="cursor-pointer font-medium">Detalhes técnicos</summary>
+                  <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify((error as any).details, null, 2)}</pre>
                 </details>
               )}
+
               {/* Suggestions */}
               {(error as any)?.suggestion && (
-                <div className="p-4"
+                <div className="text-sm text-blue-600 dark:text-blue-400 mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                   💡 <strong>Sugestão:</strong> {(error as any).suggestion}
                 </div>
               )}
+
               {/* Schema-specific help */}
               {isSchemaError && (
-                <div className="p-4"
+                <div className="text-sm text-purple-600 dark:text-purple-400 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
                   🔧 <strong>Para resolver:</strong> Execute as migrações de banco de dados ou consulte um administrador.
                 </div>
               )}
             </div>
-            <div className="p-4"
+
+            <div className="flex gap-2 justify-center">
               <Button
                 onClick={() => window.location.reload()}
                 variant="outline"
@@ -262,15 +285,16 @@ export default function Customers() {
       </div>
     );
   }
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="p-4 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg">"Customers</h1>
-          <p className="text-lg">"Manage your customer database and relationships ({total} registros)</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your customer database and relationships ({total} registros)</p>
         </div>
-        <div className="p-4"
-          <Button variant="outline>
+        <div className="flex space-x-2">
+          <Button variant="outline">
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
@@ -283,33 +307,34 @@ export default function Customers() {
           </Button>
         </div>
       </div>
+
       <Card>
-        <CardContent className="p-4"
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-lg">"</TableHead>
+                <TableHead className="w-12"></TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Empresa</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Criado em</TableHead>
-                <TableHead className="text-lg">"Ações</TableHead>
+                <TableHead className="w-24">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {customers?.length > 0 ? customers.map((customer: any) => (
-                <TableRow key={customer.id} className="p-4"
+                <TableRow key={customer.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <TableCell>
-                    <Avatar className="p-4"
-                      <AvatarFallback className="p-4"
-                        {getInitials(customer) || "U"
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-purple-500 text-white font-semibold text-sm">
+                        {getInitials(customer) || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell>
-                    <div className="p-4"
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
                       {formatCustomerName(customer)}
                     </div>
                     {(() => {
@@ -317,13 +342,13 @@ export default function Customers() {
                       if (customerType === 'PJ') {
                         const companyName = getCustomerField(customer, 'companyName');
                         return (
-                          <div className="p-4"
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             🏢 {companyName || 'Pessoa Jurídica'}
                           </div>
                         );
                       } else if (customerType === 'PF') {
                         return (
-                          <div className="p-4"
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             👤 Pessoa Física
                           </div>
                         );
@@ -332,9 +357,9 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className="p-4"
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
                       <Mail className="h-3 w-3 mr-1" />
-                      <span className="text-lg">"{customer.email}</span>
+                      <span className="truncate">{customer.email}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -343,13 +368,14 @@ export default function Customers() {
                                    customer.phone ||
                                    customer.mobile_phone ||
                                    customer.mobilePhone;
+
                       return phone ? (
-                        <div className="p-4"
+                        <div className="flex items-center text-gray-600 dark:text-gray-400">
                           <Phone className="h-3 w-3 mr-1" />
                           <span>{String(phone)}</span>
                         </div>
                       ) : (
-                        <span className="text-lg">"-</span>
+                        <span className="text-gray-400">-</span>
                       );
                     })()}
                   </TableCell>
@@ -357,16 +383,18 @@ export default function Customers() {
                     {(() => {
                       const companies = customer.associated_companies || customer.associatedCompanies;
                       if (!companies || companies === 'null' || companies === 'undefined') {
-                        return <span className="text-lg">"-</span>;
+                        return <span className="text-gray-400">-</span>;
                       }
+
                       let displayText = companies;
                       if (Array.isArray(companies)) {
                         displayText = companies.filter(Boolean).join(', ');
                       } else if (typeof companies === 'string') {
                         displayText = companies;
                       }
+
                       return (
-                        <div className="p-4"
+                        <div className="flex items-center text-gray-600 dark:text-gray-400">
                           <Building className="h-3 w-3 mr-1 flex-shrink-0" />
                           <span className="text-sm truncate" title={String(displayText)}>
                             {displayText || '-'}
@@ -376,7 +404,7 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className="p-4"
+                    <div className="flex items-center gap-2">
                       <Badge
                         variant={
                           customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true
@@ -406,18 +434,18 @@ export default function Customers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="p-4"
+                    <span className="text-sm text-gray-500">
                       {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                     </span>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="p-4"
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end>
+                      <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>
                           <Edit className="h-3 w-3 mr-2" />
                           Editar
@@ -436,10 +464,10 @@ export default function Customers() {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="p-4"
-                    <div className="p-4"
-                      <div className="text-lg">"Nenhum cliente encontrado</div>
-                      <p className="text-lg">"Adicione seu primeiro cliente para começar.</p>
+                  <TableCell colSpan={8} className="text-center py-12">
+                    <div className="text-gray-500">
+                      <div className="text-lg font-medium mb-2">Nenhum cliente encontrado</div>
+                      <p className="text-sm">Adicione seu primeiro cliente para começar.</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -448,6 +476,7 @@ export default function Customers() {
           </Table>
         </CardContent>
       </Card>
+
       {/* Customer Modal */}
       <CustomerModal
         isOpen={isCustomerModalOpen}

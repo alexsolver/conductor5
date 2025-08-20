@@ -1,11 +1,13 @@
 // ✅ 1QA.MD COMPLIANCE: SLA LED INDICATOR COMPONENT
 // Visual LED indicator for SLA expiration tracking
+
 import { Clock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 // ======================================
 // TYPES AND INTERFACES
 // ======================================
+
 export interface SlaLedProps {
   ticketId: string;
   slaStatus?: 'none' | 'active' | 'warning' | 'breached';
@@ -16,11 +18,12 @@ export interface SlaLedProps {
   showText?: boolean;
   className?: string;
 }
+
 // ======================================
 // LED STYLES CONFIGURATION
 // ======================================
+
 const ledStyles = {
-  // Localization temporarily disabled
   none: {
     color: 'bg-gray-400',
     text: 'text-gray-600',
@@ -38,7 +41,7 @@ const ledStyles = {
   warning: {
     color: 'bg-yellow-500',
     text: 'text-yellow-600',
-    label: '[TRANSLATION_NEEDED]',
+    label: 'Atenção',
     icon: AlertTriangle,
     badge: 'warning'
   },
@@ -50,14 +53,17 @@ const ledStyles = {
     badge: 'destructive'
   }
 } as const;
+
 const sizeClasses = {
   sm: 'w-2 h-2',
   md: 'w-3 h-3',
   lg: 'w-4 h-4'
 } as const;
+
 // ======================================
 // UTILITY FUNCTIONS
 // ======================================
+
 function calculateSlaStatus(
   slaElapsedPercent: number,
   slaExpirationDate?: string
@@ -79,6 +85,7 @@ function calculateSlaStatus(
     return 'active';
   }
 }
+
 function formatTimeRemaining(slaExpirationDate: string): string {
   const now = new Date();
   const expiration = new Date(slaExpirationDate);
@@ -91,16 +98,18 @@ function formatTimeRemaining(slaExpirationDate: string): string {
   
   if (diffHours > 24) {
     const diffDays = Math.floor(diffHours / 24);
-    return "h`;
+    return `${diffDays}d ${diffHours % 24}h`;
   } else if (diffHours > 0) {
-    return "m`;
+    return `${diffHours}h ${diffMinutes}m`;
   } else {
-    return "m`;
+    return `${diffMinutes}m`;
   }
 }
+
 // ======================================
 // MAIN COMPONENT
 // ======================================
+
 export function SlaLed({
   ticketId,
   slaStatus,
@@ -111,7 +120,7 @@ export function SlaLed({
   showText = false,
   className = ''
 }: SlaLedProps) {
-  console.log("
+  console.log(`🔍 [SLA-LED] Rendering for ticket: ${ticketId}`);
   console.log(`🔍 [SLA-LED] Component loaded and executing`);
   
   // Para demonstração, vamos simular um SLA em andamento baseado no ticketId
@@ -136,32 +145,32 @@ export function SlaLed({
   // LED simples (apenas círculo colorido)
   if (!showText) {
     return (
-      <div className="text-lg">"
+      <div className={`flex items-center space-x-1 ${className}`}>
         <div 
-          className="${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ""
-          title={"% decorrido)"
-          data-testid={"
+          className={`${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ${className}`}
+          title={`SLA: ${config.label} (${(slaElapsedPercent || demoElapsedPercent).toFixed(1)}% decorrido)`}
+          data-testid={`sla-led-${finalStatus}`}
         />
-        <span className="text-lg">"SLA</span>
+        <span className="text-xs text-gray-500 font-medium">SLA</span>
       </div>
     );
   }
   
   // LED com texto e informações detalhadas
   return (
-    <div className="flex items-center space-x-2 "" data-testid={"
-      <div className="${sizeClasses[size]} " rounded-full shadow-sm" />
+    <div className={`flex items-center space-x-2 ${className}`} data-testid={`sla-led-detailed-${finalStatus}`}>
+      <div className={`${sizeClasses[size]} ${config.color} rounded-full shadow-sm`} />
       
-      <div className="flex items-center space-x-2>
-        <IconComponent className="w-4 h-4 "" />
+      <div className="flex items-center space-x-2">
+        <IconComponent className={`w-4 h-4 ${config.text}`} />
         
-        <div className="text-sm>
-          <Badge variant={config.badge as any} className="text-xs>
+        <div className="text-sm">
+          <Badge variant={config.badge as any} className="text-xs">
             {config.label}
           </Badge>
           
           {slaExpirationDate && (
-            <div className="text-xs text-gray-500 mt-1>
+            <div className="text-xs text-gray-500 mt-1">
               <div>Tempo restante: {formatTimeRemaining(slaExpirationDate)}</div>
               <div>Progresso: {slaElapsedPercent.toFixed(1)}%</div>
             </div>
@@ -171,15 +180,18 @@ export function SlaLed({
     </div>
   );
 }
+
 // ======================================
 // PROGRESS BAR COMPONENT
 // ======================================
+
 interface SlaProgressBarProps {
   slaElapsedPercent: number;
   slaStatus?: 'none' | 'active' | 'warning' | 'breached';
   showPercentage?: boolean;
   className?: string;
 }
+
 export function SlaProgressBar({
   slaElapsedPercent,
   slaStatus = 'active',
@@ -189,21 +201,22 @@ export function SlaProgressBar({
   const config = ledStyles[slaStatus];
   
   return (
-    <div className="space-y-1 "" data-testid={"
-      <div className="flex justify-between items-center text-xs>
+    <div className={`space-y-1 ${className}`} data-testid={`sla-progress-${slaStatus}`}>
+      <div className="flex justify-between items-center text-xs">
         <span className={config.text}>SLA Progress</span>
         {showPercentage && (
           <span className={config.text}>{slaElapsedPercent.toFixed(1)}%</span>
         )}
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2>
+      <div className="w-full bg-gray-200 rounded-full h-2">
         <div 
-          className="h-2 rounded-full transition-all duration-300 ""
-          style={{ width: "%` }}
+          className={`h-2 rounded-full transition-all duration-300 ${config.color}`}
+          style={{ width: `${Math.min(slaElapsedPercent, 100)}%` }}
         />
       </div>
     </div>
   );
 }
+
 export default SlaLed;

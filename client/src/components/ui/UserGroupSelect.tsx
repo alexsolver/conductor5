@@ -1,7 +1,8 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, Users } from "lucide-react";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface UserGroupSelectProps {
   value?: string;
   onChange?: (value: string) => void;
@@ -9,18 +10,19 @@ interface UserGroupSelectProps {
   placeholder?: string;
   disabled?: boolean;
 }
+
 interface UserGroup {
   id: string;
   name: string;
   description?: string;
   isActive: boolean;
 }
+
 export function UserGroupSelect({
-  // Localization temporarily disabled
   value,
   onChange,
   onValueChange,
-  placeholder = '[TRANSLATION_NEEDED]',
+  placeholder = "Selecione um grupo",
   disabled = false
 }: UserGroupSelectProps) {
   const { data: groupsData, isLoading, error } = useQuery<{ success: boolean; data: UserGroup[] }>({
@@ -28,37 +30,43 @@ export function UserGroupSelect({
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
+
   const handleSelectChange = (selectedValue: string) => {
     const callback = onChange || onValueChange;
     if (callback) {
       callback(selectedValue);
     }
   };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-2 border rounded>
+      <div className="flex items-center justify-center p-2 border rounded">
         <Loader2 className="w-4 h-4 animate-spin mr-2" />
-        <span className="text-lg">"Carregando grupos...</span>
+        <span className="text-sm text-muted-foreground">Carregando grupos...</span>
       </div>
     );
   }
+
   if (error || !groupsData?.success) {
     return (
-      <div className="flex items-center justify-center p-2 border rounded border-destructive/20>
+      <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
-        <span className="text-lg">"Erro ao carregar grupos</span>
+        <span className="text-sm text-destructive">Erro ao carregar grupos</span>
       </div>
     );
   }
+
   const activeGroups = groupsData.data?.filter(group => group.isActive) || [];
+
   if (activeGroups.length === 0) {
     return (
-      <div className="flex items-center justify-center p-2 border rounded border-orange-200>
+      <div className="flex items-center justify-center p-2 border rounded border-orange-200">
         <Users className="w-4 h-4 text-orange-500 mr-2" />
-        <span className="text-lg">"Nenhum grupo disponível</span>
+        <span className="text-sm text-orange-600">Nenhum grupo disponível</span>
       </div>
     );
   }
+
   return (
     <Select value={value} onValueChange={handleSelectChange} disabled={disabled}>
       <SelectTrigger>
@@ -67,12 +75,12 @@ export function UserGroupSelect({
       <SelectContent>
         {activeGroups.map((group) => (
           <SelectItem key={group.id} value={group.id}>
-            <div className="flex items-center gap-2>
+            <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-muted-foreground" />
               <div>
-                <div className="text-lg">"{group.name}</div>
+                <div className="font-medium">{group.name}</div>
                 {group.description && (
-                  <div className="text-lg">"{group.description}</div>
+                  <div className="text-xs text-muted-foreground">{group.description}</div>
                 )}
               </div>
             </div>

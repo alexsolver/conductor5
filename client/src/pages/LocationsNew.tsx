@@ -18,7 +18,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   localSchema, 
   regiaoSchema, 
   rotaDinamicaSchema, 
@@ -29,9 +28,9 @@ import {
 } from "../../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+
 // Record type definitions
 const RECORD_TYPES = {
-  // Localization temporarily disabled
   local: {
     label: "Local",
     icon: MapPin,
@@ -75,6 +74,7 @@ const RECORD_TYPES = {
     sections: ["Identificação"]
   }
 };
+
 // Main component
 function LocationsNewContent() {
   const { toast } = useToast();
@@ -83,6 +83,7 @@ function LocationsNewContent() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+
   // Dynamic schema selection per 1qa.md Clean Architecture
   const getSchemaForType = useCallback((recordType: string) => {
     switch (recordType) {
@@ -96,6 +97,7 @@ function LocationsNewContent() {
       default: return localSchema;
     }
   }, []);
+
   // Dynamic default values per record type following 1qa.md
   const getDefaultValues = useCallback((recordType: string) => {
     const baseDefaults = {
@@ -104,6 +106,7 @@ function LocationsNewContent() {
       descricao: "",
       codigoIntegracao: ""
     };
+
     switch (recordType) {
       case 'rota-dinamica':
         return {
@@ -140,59 +143,76 @@ function LocationsNewContent() {
         return baseDefaults;
     }
   }, []);
+
   // Form setup with dynamic schema per 1qa.md
   const form = useForm<any>({
     resolver: zodResolver(getSchemaForType(activeRecordType)),
     defaultValues: getDefaultValues(activeRecordType)
   });
+
   // Reset form when record type changes following 1qa.md pattern
   React.useEffect(() => {
     form.reset(getDefaultValues(activeRecordType));
   }, [activeRecordType, form, getDefaultValues]);
+
   // Data queries for each record type - using proper authentication from queryClient
   const localQuery = useQuery({
     queryKey: [`/api/locations-new/local`]
   });
+
   const regiaoQuery = useQuery({
     queryKey: [`/api/locations-new/regiao`]
   });
+
   const rotaDinamicaQuery = useQuery({
     queryKey: [`/api/locations-new/rota-dinamica`]
   });
+
   const trechoQuery = useQuery({
     queryKey: [`/api/locations-new/trecho`]
   });
+
   const rotaTrechoQuery = useQuery({
     queryKey: [`/api/locations-new/rota-trecho`]
   });
+
   const areaQuery = useQuery({
     queryKey: [`/api/locations-new/area`]
   });
+
   const agrupamentoQuery = useQuery({
     queryKey: [`/api/locations-new/agrupamento`]
   });
+
   // Stats queries
   const localStatsQuery = useQuery({
     queryKey: [`/api/locations-new/local/stats`]
   });
+
   const regiaoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/regiao/stats`]
   });
+
   const rotaDinamicaStatsQuery = useQuery({
     queryKey: [`/api/locations-new/rota-dinamica/stats`]
   });
+
   const trechoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/trecho/stats`]
   });
+
   const rotaTrechoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/rota-trecho/stats`]
   });
+
   const areaStatsQuery = useQuery({
     queryKey: [`/api/locations-new/area/stats`]
   });
+
   const agrupamentoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/agrupamento/stats`]
   });
+
   // Organize queries into objects for easier access
   const queries = {
     local: localQuery,
@@ -203,6 +223,7 @@ function LocationsNewContent() {
     area: areaQuery,
     agrupamento: agrupamentoQuery
   };
+
   const statsQueries = {
     localStats: localStatsQuery,
     regiaoStats: regiaoStatsQuery,
@@ -212,43 +233,47 @@ function LocationsNewContent() {
     areaStats: areaStatsQuery,
     agrupamentoStats: agrupamentoStatsQuery
   };
+
   // Get current data safely - ✅ 1qa.md compliant: fix data path
   const getCurrentData = useCallback(() => {
     const currentQuery = queries[activeRecordType as keyof typeof queries];
     // Backend returns data directly, not nested in records
     return (currentQuery?.data as any)?.data || [];
   }, [queries, activeRecordType]);
+
   // Get current stats safely
   const getCurrentStats = useCallback(() => {
-    const statsKey = "Stats` as keyof typeof statsQueries;
+    const statsKey = `${activeRecordType.replace('-', '')}Stats` as keyof typeof statsQueries;
     const currentStatsQuery = statsQueries[statsKey];
     return (currentStatsQuery?.data as any)?.data || { total: 0, active: 0, inactive: 0 };
   }, [statsQueries, activeRecordType]);
+
   // Create mutation using apiRequest
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', "
+      const response = await apiRequest('POST', `/api/locations-new/${activeRecordType}`, data);
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: " criado com sucesso!`
+        title: "Sucesso",
+        description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} criado com sucesso!`
       });
-      queryClient.invalidateQueries({ queryKey: ["
-      queryClient.invalidateQueries({ queryKey: ["/stats`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
       setIsCreateDialogOpen(false);
       form.reset();
     },
     onError: (error) => {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Error creating record:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Falha ao criar registro. Tente novamente.",
         variant: "destructive"
       });
     }
   });
+
   // Submit handler with debug logging per 1qa.md
   const onSubmit = useCallback((data: any) => {
     console.log('🔍 [FORM-SUBMIT] Form data:', data);
@@ -260,6 +285,7 @@ function LocationsNewContent() {
     console.log('🔍 [FORM-SUBMIT] Proceeding with mutation...');
     createMutation.mutate(data);
   }, [createMutation, activeRecordType, form]);
+
   // Filtered data
   const filteredData = useMemo(() => {
     const data = getCurrentData();
@@ -267,34 +293,38 @@ function LocationsNewContent() {
       const matchesSearch = !searchTerm || 
         item.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.descricao?.toLowerCase().includes(searchTerm.toLowerCase());
+
       const matchesStatus = statusFilter === "all" || 
         (statusFilter === "active" && item.ativo) ||
         (statusFilter === "inactive" && !item.ativo);
+
       return matchesSearch && matchesStatus;
     });
   }, [getCurrentData, searchTerm, statusFilter]);
+
   const currentStats = getCurrentStats();
   const currentRecordType = RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES];
+
   return (
-    <div className="p-4"
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header with stats */}
-      <div className="p-4"
-        <div className="p-4"
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg">"Gerenciamento de Localizações</h1>
-            <p className="text-lg">"Sistema completo para gestão de 7 tipos de registros geográficos</p>
+            <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Localizações</h1>
+            <p className="text-muted-foreground">Sistema completo para gestão de 7 tipos de registros geográficos</p>
           </div>
-          <div className="p-4"
+          <div className="flex space-x-2">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline>
+                <Button variant="outline">
                   <Clock className="h-4 w-4 mr-2" />
                   Gerenciar Horários
                 </Button>
               </DialogTrigger>
-              <DialogContent className="p-4"
+              <DialogContent className="max-w-4xl max-h-[80vh]">
                 <DialogHeader>
-                  <DialogTitle className="p-4"
+                  <DialogTitle className="flex items-center">
                     <Clock className="h-5 w-5 mr-2" />
                     Gerenciamento de Horários de Funcionamento
                   </DialogTitle>
@@ -303,42 +333,42 @@ function LocationsNewContent() {
                   </DialogDescription>
                 </DialogHeader>
                 
-                <Tabs defaultValue="padroes" className="p-4"
-                  <TabsList className="p-4"
+                <Tabs defaultValue="padroes" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="padroes">Padrões de Horários</TabsTrigger>
                     <TabsTrigger value="associacoes">Associações</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="padroes" className="p-4"
-                    <div className="p-4"
-                      <div className="p-4"
-                        <h3 className="text-lg">"Padrões Cadastrados</h3>
-                        <Button size="sm>
+                  <TabsContent value="padroes" className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Padrões Cadastrados</h3>
+                        <Button size="sm">
                           <Plus className="h-4 w-4 mr-2" />
                           Novo Padrão
                         </Button>
                       </div>
                       
-                      <div className="p-4"
+                      <div className="grid gap-4">
                         {[
                           { id: 1, nome: "Comercial Padrão", horario: "08:00-18:00", dias: "Seg-Sex", entidades: 15 },
                           { id: 2, nome: "Shopping", horario: "10:00-22:00", dias: "Seg-Dom", entidades: 8 },
                           { id: 3, nome: "Técnico de Campo", horario: "07:00-17:00", dias: "Seg-Sáb", entidades: 12 }
                         ].map((padrao) => (
                           <Card key={padrao.id}>
-                            <CardContent className="p-4"
-                              <div className="p-4"
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
                                 <div>
-                                  <h4 className="text-lg">"{padrao.nome}</h4>
-                                  <p className="p-4"
+                                  <h4 className="font-semibold">{padrao.nome}</h4>
+                                  <p className="text-sm text-gray-600">
                                     {padrao.horario} • {padrao.dias} • {padrao.entidades} entidades associadas
                                   </p>
                                 </div>
-                                <div className="p-4"
-                                  <Button variant="outline" size="sm>
+                                <div className="flex space-x-2">
+                                  <Button variant="outline" size="sm">
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="outline" size="sm>
+                                  <Button variant="outline" size="sm">
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
@@ -350,16 +380,16 @@ function LocationsNewContent() {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="associacoes" className="p-4"
-                    <div className="p-4"
-                      <h3 className="text-lg">"Associar Horários às Entidades</h3>
+                  <TabsContent value="associacoes" className="space-y-4">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Associar Horários às Entidades</h3>
                       
-                      <div className="p-4"
-                        <div className="p-4"
-                          <h4 className="text-lg">"Selecionar Padrão de Horário</h4>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Selecionar Padrão de Horário</h4>
                           <Select>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Escolha um padrão" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="comercial">Comercial Padrão</SelectItem>
@@ -369,28 +399,28 @@ function LocationsNewContent() {
                           </Select>
                         </div>
                         
-                        <div className="p-4"
-                          <h4 className="text-lg">"Aplicar a Entidades</h4>
-                          <div className="p-4"
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Aplicar a Entidades</h4>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
                             {[
                               { tipo: "Local", nome: "Matriz São Paulo", ativo: true },
                               { tipo: "Local", nome: "Filial Campinas", ativo: false },
                               { tipo: "Região", nome: "Grande SP", ativo: true },
                               { tipo: "Rota", nome: "Rota ABC", ativo: false }
                             ].map((entidade, index) => (
-                              <div key={index} className="p-4"
+                              <div key={index} className="flex items-center space-x-3">
                                 <Checkbox defaultChecked={entidade.ativo} />
-                                <Badge variant="outline" className="p-4"
+                                <Badge variant="outline" className="text-xs">
                                   {entidade.tipo}
                                 </Badge>
-                                <span className="text-lg">"{entidade.nome}</span>
+                                <span className="text-sm">{entidade.nome}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       </div>
                       
-                      <Button className="p-4"
+                      <Button className="w-full">
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Aplicar Horários às Entidades Selecionadas
                       </Button>
@@ -399,6 +429,7 @@ function LocationsNewContent() {
                 </Tabs>
               </DialogContent>
             </Dialog>
+
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -406,7 +437,7 @@ function LocationsNewContent() {
                   Novo {currentRecordType.label}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="p-4"
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Criar Novo {currentRecordType.label}</DialogTitle>
                   <DialogDescription>
@@ -414,28 +445,28 @@ function LocationsNewContent() {
                   </DialogDescription>
                 </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* RENDERIZAÇÃO CONDICIONAL BASEADA NO TIPO DE REGISTRO */}
                   {activeRecordType === 'local' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <MapPin className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg">"Identificação</h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                     
-                    <div className="p-4"
+                    <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
                         name="ativo"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Ativo</FormLabel>
-                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false>
+                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -452,7 +483,7 @@ function LocationsNewContent() {
                         control={form.control}
                         name="nome"
                         render={({ field }) => (
-                          <FormItem className="p-4"
+                          <FormItem className="col-span-2">
                             <FormLabel>Nome *</FormLabel>
                             <FormControl>
                               <Input placeholder="Digite o nome do local" {...field} />
@@ -477,7 +508,7 @@ function LocationsNewContent() {
                       )}
                     />
                     
-                    <div className="p-4"
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="codigoIntegracao"
@@ -501,7 +532,7 @@ function LocationsNewContent() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -524,7 +555,7 @@ function LocationsNewContent() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                <SelectValue placeholder="Selecione um técnico" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -537,11 +568,12 @@ function LocationsNewContent() {
                       )}
                     />
                   </div>
+
                   {/* SEÇÃO 2: CONTATO */}
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
                       <Phone className="h-5 w-5 text-green-500" />
-                      <h3 className="text-lg">"Contato</h3>
+                      <h3 className="text-lg font-semibold">Contato</h3>
                     </div>
                     
                     <FormField
@@ -558,7 +590,7 @@ function LocationsNewContent() {
                       )}
                     />
                     
-                    <div className="p-4"
+                    <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
                         name="ddd"
@@ -577,7 +609,7 @@ function LocationsNewContent() {
                         control={form.control}
                         name="telefone"
                         render={({ field }) => (
-                          <FormItem className="p-4"
+                          <FormItem className="col-span-2">
                             <FormLabel>Telefone</FormLabel>
                             <FormControl>
                               <Input placeholder="99999-9999" {...field} />
@@ -588,25 +620,26 @@ function LocationsNewContent() {
                       />
                     </div>
                   </div>
+
                   {/* SEÇÃO 3: ENDEREÇO COM CEP LOOKUP */}
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
                       <MapPin className="h-5 w-5 text-purple-500" />
-                      <h3 className="text-lg">"Endereço</h3>
+                      <h3 className="text-lg font-semibold">Endereço</h3>
                     </div>
                     
-                    <div className="p-4"
+                    <div className="grid grid-cols-4 gap-4">
                       <FormField
                         control={form.control}
                         name="cep"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>CEP</FormLabel>
-                            <div className="p-4"
+                            <div className="flex space-x-2">
                               <FormControl>
                                 <Input placeholder="00000-000" {...field} />
                               </FormControl>
-                              <Button type="button" variant="outline" size="sm>
+                              <Button type="button" variant="outline" size="sm">
                                 Buscar
                               </Button>
                             </div>
@@ -658,7 +691,7 @@ function LocationsNewContent() {
                       />
                     </div>
                     
-                    <div className="p-4"
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="bairro"
@@ -682,7 +715,7 @@ function LocationsNewContent() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -700,12 +733,12 @@ function LocationsNewContent() {
                       />
                     </div>
                     
-                    <div className="p-4"
+                    <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
                         name="logradouro"
                         render={({ field }) => (
-                          <FormItem className="p-4"
+                          <FormItem className="col-span-2">
                             <FormLabel>Logradouro</FormLabel>
                             <FormControl>
                               <Input placeholder="Nome da rua/avenida" {...field} />
@@ -744,11 +777,12 @@ function LocationsNewContent() {
                       )}
                     />
                   </div>
+
                   {/* SEÇÃO 4: GEOLOCALIZAÇÃO COM MAPA INTERATIVO */}
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
                       <Map className="h-5 w-5 text-red-500" />
-                      <h3 className="text-lg">"Georreferenciamento</h3>
+                      <h3 className="text-lg font-semibold">Georreferenciamento</h3>
                     </div>
                     
                     <Alert>
@@ -759,7 +793,7 @@ function LocationsNewContent() {
                       </AlertDescription>
                     </Alert>
                     
-                    <div className="p-4"
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="latitude"
@@ -789,18 +823,19 @@ function LocationsNewContent() {
                       />
                     </div>
                     
-                    <div className="p-4"
-                      <Button type="button" variant="outline>
+                    <div className="flex justify-center">
+                      <Button type="button" variant="outline">
                         <Map className="h-4 w-4 mr-2" />
                         Abrir Mapa Interativo
                       </Button>
                     </div>
                   </div>
+
                   {/* SEÇÃO 5: TEMPO E DISPONIBILIDADE */}
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 pb-2 border-b">
                       <Clock className="h-5 w-5 text-orange-500" />
-                      <h3 className="text-lg">"Tempo e Disponibilidade</h3>
+                      <h3 className="text-lg font-semibold">Tempo e Disponibilidade</h3>
                     </div>
                     
                     <FormField
@@ -826,16 +861,16 @@ function LocationsNewContent() {
                       )}
                     />
                     
-                    <div className="p-4"
-                      <h4 className="text-lg">"Feriados</h4>
-                      <div className="p-4"
-                        <Button type="button" variant="outline" size="sm>
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Feriados</h4>
+                      <div className="flex space-x-2">
+                        <Button type="button" variant="outline" size="sm">
                           Buscar Feriados Municipais
                         </Button>
-                        <Button type="button" variant="outline" size="sm>
+                        <Button type="button" variant="outline" size="sm">
                           Buscar Feriados Estaduais
                         </Button>
-                        <Button type="button" variant="outline" size="sm>
+                        <Button type="button" variant="outline" size="sm">
                           Buscar Feriados Federais
                         </Button>
                       </div>
@@ -843,27 +878,28 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
+
                   {/* MODAL REGIÃO */}
                   {activeRecordType === 'regiao' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <MapPin className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg">"Identificação</h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -880,7 +916,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="nome"
                             render={({ field }) => (
-                              <FormItem className="p-4"
+                              <FormItem className="col-span-2">
                                 <FormLabel>Nome *</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Digite o nome da região" {...field} />
@@ -919,14 +955,15 @@ function LocationsNewContent() {
                           )}
                         />
                       </div>
+
                       {/* SEÇÃO 2: RELACIONAMENTOS */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Users className="h-5 w-5 text-green-500" />
-                          <h3 className="text-lg">"Relacionamentos</h3>
+                          <h3 className="text-lg font-semibold">Relacionamentos</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="nome"
@@ -934,7 +971,7 @@ function LocationsNewContent() {
                               <FormItem>
                                 <FormLabel>Clientes Vinculados</FormLabel>
                                 <FormControl>
-                                  <Input placeholder='[TRANSLATION_NEEDED]' {...field} />
+                                  <Input placeholder="Multi-seleção de clientes" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -950,7 +987,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -964,14 +1001,15 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
+
                       {/* SEÇÃO 3: GEOLOCALIZAÇÃO */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <MapPin className="h-5 w-5 text-red-500" />
-                          <h3 className="text-lg">"Geolocalização</h3>
+                          <h3 className="text-lg font-semibold">Geolocalização</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="latitude"
@@ -1015,14 +1053,15 @@ function LocationsNewContent() {
                           )}
                         />
                       </div>
+
                       {/* SEÇÃO 4: ENDEREÇO BASE */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Home className="h-5 w-5 text-orange-500" />
-                          <h3 className="text-lg">"Endereço Base</h3>
+                          <h3 className="text-lg font-semibold">Endereço Base</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="cep"
@@ -1052,7 +1091,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="estado"
@@ -1082,7 +1121,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="bairro"
@@ -1106,7 +1145,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1124,7 +1163,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
                             name="logradouro"
@@ -1170,27 +1209,28 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
+
                   {/* MODAL ROTA DINÂMICA */}
                   {activeRecordType === 'rota-dinamica' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Route className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg">"Identificação</h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1232,18 +1272,19 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
+
                       {/* SEÇÃO 2: PLANEJAMENTO DA ROTA */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Calendar className="h-5 w-5 text-purple-500" />
-                          <h3 className="text-lg">"Planejamento da Rota</h3>
+                          <h3 className="text-lg font-semibold">Planejamento da Rota</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-7 gap-2">
                           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, index) => (
-                            <div key={index} className="p-4"
-                              <Checkbox id={"
-                              <label htmlFor={"
+                            <div key={index} className="flex items-center space-x-2">
+                              <Checkbox id={`dia-${index}`} />
+                              <label htmlFor={`dia-${index}`} className="text-sm">{dia}</label>
                             </div>
                           ))}
                         </div>
@@ -1270,26 +1311,27 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
+
                   {/* MODAL TRECHO */}
                   {activeRecordType === 'trecho' && (
                     <>
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <ArrowRight className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg">"Identificação do Trecho</h3>
+                          <h3 className="text-lg font-semibold">Identificação do Trecho</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1306,7 +1348,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="codigoIntegracao"
                             render={({ field }) => (
-                              <FormItem className="p-4"
+                              <FormItem className="col-span-2">
                                 <FormLabel>Código de Integração</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Código do trecho" {...field} />
@@ -1317,7 +1359,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="localAId"
@@ -1327,7 +1369,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione origem" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1349,7 +1391,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione destino" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1365,26 +1407,27 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
+
                   {/* MODAL ROTA DE TRECHO */}
                   {activeRecordType === 'rota-trecho' && (
                     <>
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Network className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg">"Definição da Rota</h3>
+                          <h3 className="text-lg font-semibold">Definição da Rota</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1412,9 +1455,9 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className="p-4"
-                          <h4 className="text-lg">"Definição do Trecho - Múltiplos Registros</h4>
-                          <div className="p-4"
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Definição do Trecho - Múltiplos Registros</h4>
+                          <div className="border rounded-lg">
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -1430,11 +1473,11 @@ function LocationsNewContent() {
                                   <TableCell>Trecho Intermediário 1</TableCell>
                                   <TableCell>Local Intermédio</TableCell>
                                   <TableCell>
-                                    <div className="p-4"
-                                      <Button variant="outline" size="sm>
+                                    <div className="flex space-x-1">
+                                      <Button variant="outline" size="sm">
                                         <Edit className="h-3 w-3" />
                                       </Button>
-                                      <Button variant="outline" size="sm>
+                                      <Button variant="outline" size="sm">
                                         <Trash2 className="h-3 w-3" />
                                       </Button>
                                     </div>
@@ -1445,11 +1488,11 @@ function LocationsNewContent() {
                                   <TableCell>Trecho Final</TableCell>
                                   <TableCell>Local B</TableCell>
                                   <TableCell>
-                                    <div className="p-4"
-                                      <Button variant="outline" size="sm>
+                                    <div className="flex space-x-1">
+                                      <Button variant="outline" size="sm">
                                         <Edit className="h-3 w-3" />
                                       </Button>
-                                      <Button variant="outline" size="sm>
+                                      <Button variant="outline" size="sm">
                                         <Trash2 className="h-3 w-3" />
                                       </Button>
                                     </div>
@@ -1458,7 +1501,7 @@ function LocationsNewContent() {
                               </TableBody>
                             </Table>
                           </div>
-                          <Button type="button" variant="outline>
+                          <Button type="button" variant="outline">
                             <Plus className="mr-2 h-4 w-4" />
                             Adicionar Trecho
                           </Button>
@@ -1466,26 +1509,27 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
+
                   {/* MODAL ÁREA */}
                   {activeRecordType === 'area' && (
                     <>
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Layers className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg">"Identificação</h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1502,7 +1546,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="nome"
                             render={({ field }) => (
-                              <FormItem className="p-4"
+                              <FormItem className="col-span-2">
                                 <FormLabel>Nome *</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Nome da área" {...field} />
@@ -1513,7 +1557,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="descricao"
@@ -1543,11 +1587,12 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
+
                       {/* SEÇÃO 2: CLASSIFICAÇÃO */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Grid3X3 className="h-5 w-5 text-teal-500" />
-                          <h3 className="text-lg">"Classificação</h3>
+                          <h3 className="text-lg font-semibold">Classificação</h3>
                         </div>
                         
                         <FormField
@@ -1559,7 +1604,7 @@ function LocationsNewContent() {
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                    <SelectValue placeholder="Selecione o tipo" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -1582,7 +1627,7 @@ function LocationsNewContent() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Cor no Mapa</FormLabel>
-                              <div className="p-4"
+                              <div className="flex space-x-2">
                                 <FormControl>
                                   <Input type="color" defaultValue="#3b82f6" {...field} />
                                 </FormControl>
@@ -1595,34 +1640,35 @@ function LocationsNewContent() {
                           )}
                         />
                         
-                        <div className="p-4"
-                          <p className="p-4"
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <p className="text-sm text-blue-700">
                             A configuração específica dos parâmetros da área será baseada no tipo selecionado acima.
                           </p>
                         </div>
                       </div>
                     </>
                   )}
+
                   {/* MODAL AGRUPAMENTO */}
                   {activeRecordType === 'agrupamento' && (
                     <>
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Folder className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg">"Identificação</h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1639,7 +1685,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="nome"
                             render={({ field }) => (
-                              <FormItem className="p-4"
+                              <FormItem className="col-span-2">
                                 <FormLabel>Nome *</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Nome do agrupamento" {...field} />
@@ -1650,7 +1696,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className="p-4"
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
                             name="descricao"
@@ -1680,31 +1726,33 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
+
                       {/* SEÇÃO 2: SELEÇÃO DE ÁREAS */}
-                      <div className="p-4"
-                        <div className="p-4"
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2 pb-2 border-b">
                           <Map className="h-5 w-5 text-indigo-500" />
-                          <h3 className="text-lg">"Seleção de Áreas</h3>
+                          <h3 className="text-lg font-semibold">Seleção de Áreas</h3>
                         </div>
                         
-                        <div className="p-4"
-                          <h4 className="text-lg">"Áreas Disponíveis</h4>
-                          <div className="p-4"
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Áreas Disponíveis</h4>
+                          <div className="grid grid-cols-2 gap-2">
                             {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
-                              <div key={index} className="p-4"
-                                <Checkbox id={"
-                                <label htmlFor={"
-                                  <div className="text-lg">"</div>
+                              <div key={index} className="flex items-center space-x-2">
+                                <Checkbox id={`area-${index}`} />
+                                <label htmlFor={`area-${index}`} className="text-sm flex items-center space-x-2">
+                                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
                                   <span>{area}</span>
-                                  <Badge variant="outline" className="text-lg">"Faixa CEP</Badge>
+                                  <Badge variant="outline" className="text-xs">Faixa CEP</Badge>
                                 </label>
                               </div>
                             ))}
                           </div>
                         </div>
-                        <div className="p-4"
-                          <h4 className="text-lg">"Adicionar Faixas de CEP</h4>
-                          <div className="p-4"
+
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Adicionar Faixas de CEP</h4>
+                          <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
                               name="cepInicio"
@@ -1733,7 +1781,7 @@ function LocationsNewContent() {
                               )}
                             />
                           </div>
-                          <Button type="button" variant="outline>
+                          <Button type="button" variant="outline">
                             <Plus className="mr-2 h-4 w-4" />
                             Adicionar Faixa CEP
                           </Button>
@@ -1741,7 +1789,8 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-                  <div className="p-4"
+
+                  <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -1750,7 +1799,7 @@ function LocationsNewContent() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createMutation.isPending}>
-                      {createMutation.isPending ? "Criando..." : '[TRANSLATION_NEEDED]'}
+                      {createMutation.isPending ? "Criando..." : "Criar"}
                     </Button>
                   </div>
                 </form>
@@ -1759,61 +1808,64 @@ function LocationsNewContent() {
             </Dialog>
           </div>
         </div>
+
         {/* Stats cards */}
-        <div className="p-4"
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Total</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
               <currentRecordType.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{currentStats.total || 0}</div>
-              <p className="text-lg">"registros cadastrados</p>
+              <div className="text-2xl font-bold">{currentStats.total || 0}</div>
+              <p className="text-xs text-muted-foreground">registros cadastrados</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Ativos</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{currentStats.active || 0}</div>
-              <p className="text-lg">"em funcionamento</p>
+              <div className="text-2xl font-bold">{currentStats.active || 0}</div>
+              <p className="text-xs text-muted-foreground">em funcionamento</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="p-4"
-              <CardTitle className="text-lg">"Inativos</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Inativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg">"{currentStats.inactive || 0}</div>
-              <p className="text-lg">"desabilitados</p>
+              <div className="text-2xl font-bold">{currentStats.inactive || 0}</div>
+              <p className="text-xs text-muted-foreground">desabilitados</p>
             </CardContent>
           </Card>
         </div>
       </div>
+
       {/* Tabs for record types */}
       <Tabs value={activeRecordType} onValueChange={setActiveRecordType}>
-        <TabsList className="p-4"
+        <TabsList className="grid w-full grid-cols-7">
           {Object.entries(RECORD_TYPES).map(([key, type]) => (
-            <TabsTrigger key={key} value={key} className="p-4"
+            <TabsTrigger key={key} value={key} className="flex items-center space-x-1">
               <type.icon className="h-4 w-4" />
               <span>{type.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
+
         {Object.keys(RECORD_TYPES).map((recordType) => (
-          <TabsContent key={recordType} value={recordType} className="p-4"
+          <TabsContent key={recordType} value={recordType} className="space-y-4">
             {/* Search and filters */}
-            <div className="p-4"
-              <div className="p-4"
-                <div className="p-4"
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
+                <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder='[TRANSLATION_NEEDED]'
+                    placeholder="Buscar registros..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -1821,8 +1873,8 @@ function LocationsNewContent() {
                 </div>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="p-4"
-                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
@@ -1831,6 +1883,7 @@ function LocationsNewContent() {
                 </SelectContent>
               </Select>
             </div>
+
             {/* Data table */}
             <Card>
               <CardHeader>
@@ -1850,15 +1903,15 @@ function LocationsNewContent() {
                     <TableBody>
                       {filteredData.map((item: any) => (
                         <TableRow key={item.id}>
-                          <TableCell className="text-lg">"{item.nome}</TableCell>
+                          <TableCell className="font-medium">{item.nome}</TableCell>
                           <TableCell>{item.codigoIntegracao || item.codigo_integracao || "-"}</TableCell>
                           <TableCell>
-                            <Badge variant={item.ativo ? "default" : "secondary>
-                              {item.ativo ? "Ativo" : "Inativo"
+                            <Badge variant={item.ativo ? "default" : "secondary"}>
+                              {item.ativo ? "Ativo" : "Inativo"}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm>
+                            <Button variant="outline" size="sm">
                               Editar
                             </Button>
                           </TableCell>
@@ -1867,12 +1920,12 @@ function LocationsNewContent() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="p-4"
+                  <div className="text-center py-12">
                     <currentRecordType.icon className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="p-4"
+                    <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
                       Nenhum registro encontrado
                     </h3>
-                    <p className="p-4"
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Comece criando um novo {RECORD_TYPES[recordType as keyof typeof RECORD_TYPES].label.toLowerCase()}.
                     </p>
                   </div>
@@ -1885,6 +1938,7 @@ function LocationsNewContent() {
     </div>
   );
 }
+
 export default function LocationsNew() {
   return <LocationsNewContent />;
 }

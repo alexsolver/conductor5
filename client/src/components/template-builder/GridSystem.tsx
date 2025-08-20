@@ -1,13 +1,17 @@
+
 /**
  * Sistema de grid para auxiliar no posicionamento dos elementos no canvas
  */
+
 import React from 'react'
+
 interface GridSystemProps {
   zoom: number
   visible?: boolean
   gridSize?: number
   opacity?: number
 }
+
 export const GridSystem: React.FC<GridSystemProps> = ({
   zoom,
   visible = true,
@@ -15,10 +19,11 @@ export const GridSystem: React.FC<GridSystemProps> = ({
   opacity = 0.1
 }) => {
   if (!visible) return null
+
   const adjustedGridSize = gridSize * zoom
   
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
       <svg
         width="100%"
         height="100%"
@@ -34,7 +39,7 @@ export const GridSystem: React.FC<GridSystemProps> = ({
           >
             {/* Linhas verticais */}
             <path
-              d={"
+              d={`M ${adjustedGridSize} 0 L 0 0 0 ${adjustedGridSize}`}
               fill="none"
               stroke="currentColor"
               strokeWidth="1"
@@ -59,7 +64,7 @@ export const GridSystem: React.FC<GridSystemProps> = ({
             patternUnits="userSpaceOnUse"
           >
             <path
-              d={"
+              d={`M ${adjustedGridSize * 5} 0 L 0 0 0 ${adjustedGridSize * 5}`}
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"

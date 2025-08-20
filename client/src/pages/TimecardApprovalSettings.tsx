@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Settings, Users, Clock, CheckCircle, XCircle, Plus, Trash2, Edit, UserPlus, X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-// import useLocalization from '@/hooks/useLocalization';
+
 interface ApprovalGroup {
   id: string;
   name: string;
@@ -23,6 +23,7 @@ interface ApprovalGroup {
   memberCount: number;
   createdAt: string;
 }
+
 interface ApprovalSettings {
   approvalType: 'automatic' | 'manual';
   autoApproveComplete: boolean;
@@ -37,6 +38,7 @@ interface ApprovalSettings {
   escalationRules: any;
   notificationSettings: any;
 }
+
 interface User {
   id: string;
   firstName: string;
@@ -44,8 +46,8 @@ interface User {
   email: string;
   role: string;
 }
-function TimecardApprovalSettings() {
-  // Localization temporarily disabled
+
+export default function TimecardApprovalSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('settings');
@@ -55,25 +57,31 @@ function TimecardApprovalSettings() {
   const [newGroupDescription, setNewGroupDescription] = useState('');
   const [showMembersDialog, setShowMembersDialog] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
   // Fetch approval settings
   const { data: settings, isLoading: settingsLoading } = useQuery({
     queryKey: ['/api/timecard/approval/settings'],
     retry: false,
   });
+
   // Fetch approval groups
   const { data: groupsData, isLoading: groupsLoading } = useQuery({
     queryKey: ['/api/timecard/approval/groups'],
     retry: false,
   });
+
   // Fetch available users
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['/api/timecard/approval/users'],
     retry: false,
   });
+
   const groups: ApprovalGroup[] = (groupsData as any)?.groups || [];
   const users: User[] = (usersData as any)?.users || [];
+
   // Estado para contadores de membros 
   const [groupMemberCounts, setGroupMemberCounts] = useState<Record<string, number>>({});
+
   // Buscar contadores de membros quando grupos mudarem
   useEffect(() => {
     const fetchMemberCounts = async () => {
@@ -84,9 +92,9 @@ function TimecardApprovalSettings() {
       for (const group of groups) {
         try {
           // Usar queries individuais para cada grupo para evitar problemas de cache
-          const response = await fetch("/api/timecard/approval/groups/" + id + "/members", {
+          const response = await fetch(`/api/timecard/approval/groups/${group.id}/members`, {
             headers: {
-              'Authorization': `Bearer " + (localStorage.getItem("accessToken") || ""),
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
               'Content-Type': 'application/json',
             },
             credentials: 'include',
@@ -95,9 +103,9 @@ function TimecardApprovalSettings() {
           if (response.ok) {
             const data = await response.json();
             counts[group.id] = data.members?.length || 0;
-            console.log("Group " + group.name + " (" + group.id + ") has " + counts[group.id] + " members");
+            console.log(`Group ${group.name} (${group.id}) has ${counts[group.id]} members`);
           } else {
-            console.error("Failed to fetch members for group " + group.id + ":", response.status);
+            console.error(`Failed to fetch members for group ${group.id}:`, response.status);
             counts[group.id] = 0;
           }
         } catch (error) {
@@ -109,15 +117,19 @@ function TimecardApprovalSettings() {
       console.log('Final member counts:', counts);
       setGroupMemberCounts(counts);
     };
+
     fetchMemberCounts();
   }, [groups]);
+
   // Fetch group members when a group is selected
   const { data: groupMembersData, isLoading: membersLoading } = useQuery({
     queryKey: ['/api/timecard/approval/groups', selectedGroup?.id, 'members'],
     enabled: !!selectedGroup?.id && showMembersDialog,
     retry: false,
   });
+
   const groupMembers: User[] = (groupMembersData as any)?.members || [];
+
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (newSettings: Partial<ApprovalSettings>) => {
@@ -126,20 +138,21 @@ function TimecardApprovalSettings() {
     },
     onSuccess: () => {
       toast({
-        title: 'Configurações Salvas',
+        title: "Configurações salvas",
         description: "As configurações de aprovação foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/settings'] });
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao salvar as configurações.",
         variant: "destructive",
       });
       console.error('Error updating settings:', error);
     },
   });
+
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: { name: string; description?: string }) => {
@@ -157,17 +170,18 @@ function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao criar o grupo.",
         variant: "destructive",
       });
       console.error('Error creating group:', error);
     },
   });
+
   // Update group mutation
   const updateGroupMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
-      return await apiRequest('PUT', /api/timecard/approval/groups/" + id, data);
+      return await apiRequest('PUT', `/api/timecard/approval/groups/${id}`, data);
     },
     onSuccess: () => {
       toast({
@@ -182,17 +196,18 @@ function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao atualizar o grupo.",
         variant: "destructive",
       });
       console.error('Error updating group:', error);
     },
   });
+
   // Update group members mutation
   const updateMembersMutation = useMutation({
     mutationFn: async ({ groupId, userIds }: { groupId: string; userIds: string[] }) => {
-      return await apiRequest('PUT', /api/timecard/approval/groups/" + groupId + "/members", { userIds });
+      return await apiRequest('PUT', `/api/timecard/approval/groups/${groupId}/members`, { userIds });
     },
     onSuccess: () => {
       toast({
@@ -209,17 +224,18 @@ function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao atualizar membros do grupo.",
         variant: "destructive",
       });
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Error updating members:', error);
     },
   });
+
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      return await apiRequest('DELETE', /api/timecard/approval/groups/" + groupId);
+      return await apiRequest('DELETE', `/api/timecard/approval/groups/${groupId}`);
     },
     onSuccess: () => {
       toast({
@@ -230,13 +246,14 @@ function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Falha ao remover o grupo.",
         variant: "destructive",
       });
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Error deleting group:', error);
     },
   });
+
   const currentSettings: ApprovalSettings = (settings as any)?.settings || {
     approvalType: 'manual',
     autoApproveComplete: false,
@@ -251,34 +268,41 @@ function TimecardApprovalSettings() {
     escalationRules: {},
     notificationSettings: {}
   };
+
+
+
   const handleSettingsChange = (key: keyof ApprovalSettings, value: any) => {
     const updatedSettings = { ...currentSettings, [key]: value };
     console.log('Sending settings update:', updatedSettings);
     updateSettingsMutation.mutate(updatedSettings);
   };
+
   const handleCreateGroup = () => {
     if (!newGroupName.trim()) {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
       return;
     }
+
     createGroupMutation.mutate({
       name: newGroupName.trim(),
       description: newGroupDescription.trim() || undefined
     });
   };
+
   const handleUpdateGroup = () => {
     if (!selectedGroup || !newGroupName.trim()) {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
       return;
     }
+
     updateGroupMutation.mutate({
       id: selectedGroup.id,
       data: {
@@ -287,13 +311,16 @@ function TimecardApprovalSettings() {
       }
     });
   };
+
   const handleUpdateMembers = () => {
     if (!selectedGroup) return;
+
     updateMembersMutation.mutate({
       groupId: selectedGroup.id,
       userIds: selectedUsers
     });
   };
+
   const handleUserToggle = (userId: string, checked: boolean) => {
     if (checked) {
       setSelectedUsers(prev => [...prev, userId]);
@@ -301,49 +328,56 @@ function TimecardApprovalSettings() {
       setSelectedUsers(prev => prev.filter(id => id !== userId));
     }
   };
+
   // Initialize selected users when members dialog opens
   const handleOpenMembersDialog = (group: ApprovalGroup) => {
     setSelectedGroup(group);
     setSelectedUsers([]); // Reset first
     setShowMembersDialog(true);
   };
+
   // Update selected users when group members data changes
   React.useEffect(() => {
     if (groupMembers.length > 0 && showMembersDialog) {
       setSelectedUsers(groupMembers.map(member => member.id));
     }
   }, [groupMembers, showMembersDialog]);
+
   const handleDeleteGroup = (groupId: string) => {
     if (confirm('Tem certeza que deseja remover este grupo?')) {
       deleteGroupMutation.mutate(groupId);
     }
   };
+
   if (settingsLoading || groupsLoading || usersLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
+      <div className="container mx-auto p-6">
+        <div className="flex items-center gap-2 mb-6">
           <Settings className="h-6 w-6" />
-          <h1 className="text-lg">"Configurações de Aprovação do Timecard</h1>
+          <h1 className="text-2xl font-bold">Configurações de Aprovação do Timecard</h1>
         </div>
-        <div className="p-4"
-          <div className="text-lg">"</div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="container mx-auto p-6">
+      <div className="flex items-center gap-2 mb-6">
         <Settings className="h-6 w-6" />
-        <h1 className="text-lg">"Configurações de Aprovação do Timecard</h1>
+        <h1 className="text-2xl font-bold">Configurações de Aprovação do Timecard</h1>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
-        <TabsList className="p-4"
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="settings">Configurações Gerais</TabsTrigger>
           <TabsTrigger value="groups">Grupos de Aprovação</TabsTrigger>
           <TabsTrigger value="tickets">Integração com Tickets</TabsTrigger>
         </TabsList>
-        <TabsContent value="settings" className="p-4"
+
+        <TabsContent value="settings" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Modelo de Aprovação</CardTitle>
@@ -351,8 +385,8 @@ function TimecardApprovalSettings() {
                 Defina como os registros de ponto devem ser aprovados
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-4"
-              <div className="p-4"
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
                 <Label>Tipo de Aprovação</Label>
                 <Select
                   value={currentSettings.approvalType}
@@ -362,18 +396,19 @@ function TimecardApprovalSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="automatic>
+                    <SelectItem value="automatic">
                       Automática (após registros completos)
                     </SelectItem>
-                    <SelectItem value="manual>
+                    <SelectItem value="manual">
                       Manual (todos os registros ou tipos específicos)
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
               {currentSettings.approvalType === 'automatic' && (
-                <div className="p-4"
-                  <div className="p-4"
+                <div className="space-y-4 border-l-4 border-blue-500 pl-4">
+                  <div className="flex items-center space-x-2">
                     <Switch
                       checked={currentSettings.autoApproveComplete}
                       onCheckedChange={(checked) => handleSettingsChange('autoApproveComplete', checked)}
@@ -381,7 +416,7 @@ function TimecardApprovalSettings() {
                     <Label>Aprovar automaticamente registros completos</Label>
                   </div>
                   
-                  <div className="p-4"
+                  <div className="space-y-2">
                     <Label>Aprovar automaticamente após (horas)</Label>
                     <Input
                       type="number"
@@ -393,17 +428,18 @@ function TimecardApprovalSettings() {
                   </div>
                 </div>
               )}
+
               {currentSettings.approvalType === 'manual' && (
-                <div className="p-4"
+                <div className="space-y-4 border-l-4 border-orange-500 pl-4">
                   <Label>Requer aprovação para:</Label>
-                  <div className="p-4"
+                  <div className="space-y-2">
                     {[
-                      { value: 'all', label: '[TRANSLATION_NEEDED]' },
+                      { value: 'all', label: 'Todos os registros' },
                       { value: 'inconsistencies', label: 'Inconsistências' },
                       { value: 'overtime', label: 'Horas extras' },
                       { value: 'absences', label: 'Faltas/atrasos' }
                     ].map(option => (
-                      <div key={option.value} className="p-4"
+                      <div key={option.value} className="flex items-center space-x-2">
                         <input
                           type="checkbox"
                           id={option.value}
@@ -424,6 +460,7 @@ function TimecardApprovalSettings() {
               )}
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Configuração de Aprovadores</CardTitle>
@@ -431,15 +468,15 @@ function TimecardApprovalSettings() {
                 Defina quem pode aprovar os registros de ponto
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-4"
-              <div className="p-4"
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
                 <Label>Grupo de Aprovação</Label>
                 <Select
                   value={currentSettings.approvalGroupId || ''}
                   onValueChange={(value) => handleSettingsChange('approvalGroupId', value || null)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectValue placeholder="Selecione um grupo" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum grupo selecionado</SelectItem>
@@ -451,7 +488,8 @@ function TimecardApprovalSettings() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="p-4"
+
+              <div className="space-y-4">
                 <Label>Aprovadores Individuais</Label>
                 <Select
                   onValueChange={(userId) => {
@@ -473,12 +511,13 @@ function TimecardApprovalSettings() {
                       ))}
                   </SelectContent>
                 </Select>
+
                 {currentSettings.defaultApprovers.length > 0 && (
-                  <div className="p-4"
+                  <div className="flex flex-wrap gap-2">
                     {currentSettings.defaultApprovers.map(userId => {
                       const user = users.find(u => u.id === userId);
                       return user ? (
-                        <Badge key={userId} variant="secondary" className="p-4"
+                        <Badge key={userId} variant="secondary" className="flex items-center gap-1">
                           {user.firstName} {user.lastName}
                           <button
                             onClick={() => {
@@ -500,9 +539,10 @@ function TimecardApprovalSettings() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="groups" className="p-4"
-          <div className="p-4"
-            <h3 className="text-lg">"Grupos de Aprovação</h3>
+
+        <TabsContent value="groups" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Grupos de Aprovação</h3>
             <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
               <DialogTrigger asChild>
                 <Button>
@@ -513,17 +553,17 @@ function TimecardApprovalSettings() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedGroup ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
+                    {selectedGroup ? 'Editar Grupo de Aprovação' : 'Criar Grupo de Aprovação'}
                   </DialogTitle>
                   <DialogDescription>
                     {selectedGroup 
-                      ? '[TRANSLATION_NEEDED]'
+                      ? 'Edite as informações do grupo de aprovação.'
                       : 'Crie um novo grupo para organizar os aprovadores de timecard.'
                     }
                   </DialogDescription>
                 </DialogHeader>
-                <div className="p-4"
-                  <div className="p-4"
+                <div className="space-y-4">
+                  <div className="space-y-2">
                     <Label htmlFor="groupName">Nome do Grupo</Label>
                     <Input
                       id="groupName"
@@ -532,7 +572,7 @@ function TimecardApprovalSettings() {
                       placeholder="Ex: Supervisores de Produção"
                     />
                   </div>
-                  <div className="p-4"
+                  <div className="space-y-2">
                     <Label htmlFor="groupDescription">Descrição (opcional)</Label>
                     <Textarea
                       id="groupDescription"
@@ -541,7 +581,7 @@ function TimecardApprovalSettings() {
                       placeholder="Descrição do grupo..."
                     />
                   </div>
-                  <div className="p-4"
+                  <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => {
                       setShowGroupDialog(false);
                       setSelectedGroup(null);
@@ -563,9 +603,10 @@ function TimecardApprovalSettings() {
                 </div>
               </DialogContent>
             </Dialog>
+
             {/* Members Management Dialog */}
             <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
-              <DialogContent className="p-4"
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
                     Gerenciar Membros - {selectedGroup?.name}
@@ -574,22 +615,22 @@ function TimecardApprovalSettings() {
                     Selecione os funcionários que farão parte deste grupo de aprovação.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="p-4"
+                <div className="space-y-4">
                   {membersLoading ? (
-                    <div className="text-lg">"Carregando membros...</div>
+                    <div className="text-center py-4">Carregando membros...</div>
                   ) : (
-                    <div className="p-4"
+                    <div className="max-h-96 overflow-y-auto space-y-2">
                       {users.map(user => (
-                        <div key={user.id} className="p-4"
+                        <div key={user.id} className="flex items-center space-x-3 p-3 rounded border">
                           <Checkbox
                             checked={selectedUsers.includes(user.id)}
                             onCheckedChange={(checked) => handleUserToggle(user.id, !!checked)}
                           />
-                          <div className="p-4"
-                            <div className="p-4"
+                          <div className="flex-1">
+                            <div className="font-medium">
                               {user.firstName} {user.lastName}
                             </div>
-                            <div className="p-4"
+                            <div className="text-sm text-muted-foreground">
                               {user.email} • {user.role}
                             </div>
                           </div>
@@ -598,11 +639,11 @@ function TimecardApprovalSettings() {
                     </div>
                   )}
                   
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="border-t pt-4">
+                    <div className="text-sm text-muted-foreground mb-2">
                       {selectedUsers.length} de {users.length} funcionários selecionados
                     </div>
-                    <div className="p-4"
+                    <div className="flex justify-end gap-2">
                       <Button 
                         variant="outline" 
                         onClick={() => {
@@ -617,7 +658,7 @@ function TimecardApprovalSettings() {
                         onClick={handleUpdateMembers}
                         disabled={updateMembersMutation.isPending}
                       >
-                        {updateMembersMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
+                        {updateMembersMutation.isPending ? 'Salvando...' : 'Salvar Membros'}
                       </Button>
                     </div>
                   </div>
@@ -625,13 +666,14 @@ function TimecardApprovalSettings() {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="p-4"
+
+          <div className="grid gap-4">
             {groups.length === 0 ? (
               <Card>
-                <CardContent className="p-4"
+                <CardContent className="flex flex-col items-center justify-center py-12">
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg">"Nenhum grupo criado</h3>
-                  <p className="p-4"
+                  <h3 className="text-lg font-semibold mb-2">Nenhum grupo criado</h3>
+                  <p className="text-muted-foreground text-center mb-4">
                     Crie grupos para organizar seus aprovadores de timecard.
                   </p>
                   <Button onClick={() => setShowGroupDialog(true)}>
@@ -643,25 +685,25 @@ function TimecardApprovalSettings() {
             ) : (
               groups.map(group => (
                 <Card key={group.id}>
-                  <CardContent className="p-4"
-                    <div className="p-4"
-                      <div className="p-4"
+                  <CardContent className="flex items-center justify-between p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
                         <Users className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <h4 className="text-lg">"{group.name}</h4>
+                        <h4 className="font-semibold">{group.name}</h4>
                         {group.description && (
-                          <p className="text-lg">"{group.description}</p>
+                          <p className="text-sm text-muted-foreground">{group.description}</p>
                         )}
-                        <div className="p-4"
+                        <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline">{groupMemberCounts[group.id] || 0} membros</Badge>
-                          <Badge variant={group.isActive ? "default" : "secondary>
-                            {group.isActive ? "Ativo" : "Inativo"
+                          <Badge variant={group.isActive ? "default" : "secondary"}>
+                            {group.isActive ? "Ativo" : "Inativo"}
                           </Badge>
                         </div>
                       </div>
                     </div>
-                    <div className="p-4"
+                    <div className="flex items-center gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -698,7 +740,8 @@ function TimecardApprovalSettings() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="tickets" className="p-4"
+
+        <TabsContent value="tickets" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Integração com Sistema de Tickets</CardTitle>
@@ -706,17 +749,18 @@ function TimecardApprovalSettings() {
                 Configure a criação automática de tickets para aprovações
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-4"
-              <div className="p-4"
+            <CardContent className="space-y-6">
+              <div className="flex items-center space-x-2">
                 <Switch
                   checked={currentSettings.createAutoTickets}
                   onCheckedChange={(checked) => handleSettingsChange('createAutoTickets', checked)}
                 />
                 <Label>Criar tickets automaticamente para aprovações</Label>
               </div>
+
               {currentSettings.createAutoTickets && (
-                <div className="p-4"
-                  <div className="p-4"
+                <div className="space-y-4 border-l-4 border-green-500 pl-4">
+                  <div className="space-y-2">
                     <Label>Recorrência dos tickets</Label>
                     <Select
                       value={currentSettings.ticketRecurrence}
@@ -732,8 +776,9 @@ function TimecardApprovalSettings() {
                       </SelectContent>
                     </Select>
                   </div>
+
                   {currentSettings.ticketRecurrence === 'weekly' && (
-                    <div>
+                    <div className="space-y-2">
                       <Label>Dia da semana</Label>
                       <Select
                         value={currentSettings.ticketDay.toString()}
@@ -754,7 +799,8 @@ function TimecardApprovalSettings() {
                       </Select>
                     </div>
                   )}
-                  <div>
+
+                  <div className="space-y-2">
                     <Label>Horário de criação</Label>
                     <Input
                       type="time"
@@ -771,4 +817,3 @@ function TimecardApprovalSettings() {
     </div>
   );
 }
-export default TimecardApprovalSettings;

@@ -3,6 +3,7 @@
  * Combina regras, query builder e pipeline designer em uma única experiência UX
  * Seguindo rigorosamente padrões 1qa.md
  */
+
 import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,6 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Plus, Save, Settings, Users, Filter, Workflow, 
   Play, Trash2, Eye, Clock, AlertTriangle, Check,
   ArrowRight, ArrowDown, Move, X 
@@ -26,6 +26,7 @@ import {
 import { CompanySelector } from './CompanySelector';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+
 interface ApprovalCondition {
   id: string;
   field: string;
@@ -33,6 +34,7 @@ interface ApprovalCondition {
   value: any;
   logicalOperator: 'AND' | 'OR';
 }
+
 interface ApprovalStep {
   id: string;
   name: string;
@@ -43,6 +45,7 @@ interface ApprovalStep {
   autoApproval: boolean;
   autoApprovalConditions: ApprovalCondition[];
 }
+
 interface ApprovalApprover {
   id: string;
   type: 'user' | 'user_group' | 'customer_contact' | 'supplier' | 'manager_chain';
@@ -50,6 +53,7 @@ interface ApprovalApprover {
   name: string;
   hierarchyLevel?: number;
 }
+
 interface ApprovalRule {
   id?: string;
   name: string;
@@ -66,15 +70,15 @@ interface ApprovalRule {
   isActive: boolean;
   priority: number;
 }
+
 const moduleTypes = [
-  {
-  // Localization temporarily disabled
- value: 'tickets', label: '[TRANSLATION_NEEDED]', fields: ['priority', 'category', 'estimatedCost', 'location', 'customerId', 'assignedTo'] },
+  { value: 'tickets', label: 'Tickets', fields: ['priority', 'category', 'estimatedCost', 'location', 'customerId', 'assignedTo'] },
   { value: 'materials', label: 'Materiais/Serviços', fields: ['itemValue', 'supplierId', 'category', 'stockImpact', 'urgencyLevel'] },
   { value: 'knowledge_base', label: 'Knowledge Base', fields: ['articleType', 'visibilityLevel', 'contentSensitivity', 'authorId'] },
   { value: 'timecard', label: 'Timecard', fields: ['overtimeHours', 'approvalAmount', 'employeeLevel'] },
   { value: 'contracts', label: 'Contratos', fields: ['contractValue', 'duration', 'contractType', 'supplierId'] }
 ];
+
 const operators = [
   { value: 'EQ', label: 'Igual a (=)' },
   { value: 'NEQ', label: 'Diferente de (≠)' },
@@ -89,11 +93,13 @@ const operators = [
   { value: 'EXISTS', label: 'Campo existe' },
   { value: 'BETWEEN', label: 'Entre valores' }
 ];
+
 const decisionModes = [
-  { value: 'ALL', label: '[TRANSLATION_NEEDED]' },
+  { value: 'ALL', label: 'Todos devem aprovar' },
   { value: 'ANY', label: 'Qualquer um pode aprovar' },
   { value: 'QUORUM', label: 'Quórum (X de N aprovadores)' }
 ];
+
 export function UnifiedApprovalConfigurator() {
   const [currentRule, setCurrentRule] = useState<ApprovalRule>({
     name: '',
@@ -110,11 +116,13 @@ export function UnifiedApprovalConfigurator() {
     isActive: true,
     priority: 100
   });
+
   const [activeTab, setActiveTab] = useState('basic');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   // Fetch existing rules
   const { data: rulesData, isLoading } = useQuery({
     queryKey: ['/api/approvals/rules'],
@@ -122,7 +130,7 @@ export function UnifiedApprovalConfigurator() {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/approvals/rules', {
         headers: {
-          'Authorization': "Bearer " + token
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -130,6 +138,7 @@ export function UnifiedApprovalConfigurator() {
       return response.json();
     }
   });
+
   // Save rule mutation
   const saveRuleMutation = useMutation({
     mutationFn: async (ruleData: ApprovalRule) => {
@@ -138,7 +147,7 @@ export function UnifiedApprovalConfigurator() {
       const response = await fetch('/api/approvals/rules', {
         method: 'POST',
         headers: {
-          'Authorization': "Bearer " + token
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(ruleData)
@@ -158,7 +167,7 @@ export function UnifiedApprovalConfigurator() {
       console.log('✅ [SAVE-SUCCESS] Regra salva com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Regra salva com sucesso",
         description: "A regra de aprovação foi criada e está ativa."
       });
       resetRule();
@@ -166,12 +175,13 @@ export function UnifiedApprovalConfigurator() {
     onError: (error: any) => {
       console.log('❌ [SAVE-ERROR] Erro ao salvar:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao salvar regra",
         description: error.message || "Verifique os dados e tente novamente.",
         variant: "destructive"
       });
     }
   });
+
   const resetRule = useCallback(() => {
     console.log('🔧 [RESET-RULE] Resetando regra para nova configuração');
     const newRule = {
@@ -193,9 +203,10 @@ export function UnifiedApprovalConfigurator() {
     setActiveTab('basic');
     console.log('✅ [RESET-RULE] Regra resetada:', newRule);
   }, []);
+
   const addCondition = useCallback(() => {
     const newCondition: ApprovalCondition = {
-      id: "
+      id: `condition_${Date.now()}`,
       field: '',
       operator: 'EQ',
       value: '',
@@ -206,6 +217,7 @@ export function UnifiedApprovalConfigurator() {
       queryConditions: [...prev.queryConditions, newCondition]
     }));
   }, []);
+
   const updateCondition = useCallback((id: string, updates: Partial<ApprovalCondition>) => {
     setCurrentRule(prev => ({
       ...prev,
@@ -214,16 +226,18 @@ export function UnifiedApprovalConfigurator() {
       )
     }));
   }, []);
+
   const removeCondition = useCallback((id: string) => {
     setCurrentRule(prev => ({
       ...prev,
       queryConditions: prev.queryConditions.filter(cond => cond.id !== id)
     }));
   }, []);
+
   const addApprovalStep = useCallback(() => {
     const newStep: ApprovalStep = {
-      id: "
-      name: "
+      id: `step_${Date.now()}`,
+      name: `Etapa ${currentRule.approvalSteps.length + 1}`,
       decisionMode: 'ALL',
       slaHours: 24,
       approvers: [],
@@ -235,6 +249,7 @@ export function UnifiedApprovalConfigurator() {
       approvalSteps: [...prev.approvalSteps, newStep]
     }));
   }, [currentRule.approvalSteps.length]);
+
   const updateApprovalStep = useCallback((id: string, updates: Partial<ApprovalStep>) => {
     setCurrentRule(prev => ({
       ...prev,
@@ -243,12 +258,14 @@ export function UnifiedApprovalConfigurator() {
       )
     }));
   }, []);
+
   const removeApprovalStep = useCallback((id: string) => {
     setCurrentRule(prev => ({
       ...prev,
       approvalSteps: prev.approvalSteps.filter(step => step.id !== id)
     }));
   }, []);
+
   const validateRule = useCallback(() => {
     const errors = [];
     if (!currentRule.name.trim()) errors.push('Nome é obrigatório');
@@ -258,6 +275,7 @@ export function UnifiedApprovalConfigurator() {
     
     return errors;
   }, [currentRule]);
+
   const handleSave = useCallback(() => {
     console.log('💾 [SAVE-RULE] Tentando salvar regra:', currentRule);
     const errors = validateRule();
@@ -273,27 +291,29 @@ export function UnifiedApprovalConfigurator() {
     console.log('✅ [SAVE-RULE] Validação passou, salvando...');
     saveRuleMutation.mutate(currentRule);
   }, [currentRule, validateRule, saveRuleMutation, toast]);
+
   const selectedModuleType = moduleTypes.find(m => m.value === currentRule.moduleType);
+
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6" data-testid="unified-approval-configurator>
+    <div className="max-w-7xl mx-auto p-6 space-y-6" data-testid="unified-approval-configurator">
       {/* Header */}
-      <div className="flex items-center justify-between>
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Configurador Universal de Aprovações
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Configure regras, condições e fluxos de aprovação em uma única interface
           </p>
         </div>
-        <div className="flex items-center gap-3>
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
             onClick={() => setIsPreviewMode(!isPreviewMode)}
             data-testid="button-preview-toggle"
           >
             <Eye className="h-4 w-4 mr-2" />
-            {isPreviewMode ? '[TRANSLATION_NEEDED]' : 'Preview'}
+            {isPreviewMode ? 'Editar' : 'Preview'}
           </Button>
           <Button
             onClick={() => {
@@ -311,43 +331,44 @@ export function UnifiedApprovalConfigurator() {
             data-testid="button-save-rule"
           >
             <Save className="h-4 w-4 mr-2" />
-            {saveRuleMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
+            {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
           </Button>
         </div>
       </div>
+
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Sidebar - Existing Rules */}
-        <div className="lg:col-span-1>
+        <div className="lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2>
+              <CardTitle className="text-lg flex items-center gap-2">
                 <Settings className="h-5 w-5" />
                 Regras Existentes
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-96>
+              <ScrollArea className="h-96">
                 {isLoading ? (
-                  <div className="space-y-2>
+                  <div className="space-y-2">
                     {[...Array(3)].map((_, i) => (
                       <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-2>
+                  <div className="space-y-2">
                     {rulesData?.data?.map((rule: any) => (
                       <div
-                        key={"
+                        key={`rule-${rule.id}`}
                         className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                         onClick={() => setCurrentRule(rule)}
                       >
-                        <div className="text-lg">"{rule.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-2>
-                          <Badge variant="outline" className="text-xs>
+                        <div className="font-medium truncate">{rule.name}</div>
+                        <div className="text-sm text-gray-500 flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
                             {moduleTypes.find(m => m.value === rule.moduleType)?.label}
                           </Badge>
-                          <Badge variant={rule.isActive ? "default" : "secondary"} className="text-xs>
+                          <Badge variant={rule.isActive ? "default" : "secondary"} className="text-xs">
                             {rule.isActive ? 'Ativa' : 'Inativa'}
                           </Badge>
                         </div>
@@ -359,43 +380,46 @@ export function UnifiedApprovalConfigurator() {
             </CardContent>
           </Card>
         </div>
+
         {/* Main Configuration Area */}
-        <div className="lg:col-span-3>
+        <div className="lg:col-span-3">
           <Card>
-            <CardContent className="p-6>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full>
-                <TabsList className="grid w-full grid-cols-4>
-                  <TabsTrigger value="basic>
+            <CardContent className="p-6">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">
                     <Settings className="h-4 w-4 mr-2" />
                     Básico
                   </TabsTrigger>
-                  <TabsTrigger value="conditions>
+                  <TabsTrigger value="conditions">
                     <Filter className="h-4 w-4 mr-2" />
                     Condições
                   </TabsTrigger>
-                  <TabsTrigger value="workflow>
+                  <TabsTrigger value="workflow">
                     <Workflow className="h-4 w-4 mr-2" />
                     Fluxo
                   </TabsTrigger>
-                  <TabsTrigger value="advanced>
+                  <TabsTrigger value="advanced">
                     <AlertTriangle className="h-4 w-4 mr-2" />
                     Avançado
                   </TabsTrigger>
                 </TabsList>
+
                 {/* Basic Configuration */}
-                <TabsContent value="basic" className="space-y-6>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
-                    <div className="space-y-4>
+                <TabsContent value="basic" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       <div>
                         <Label htmlFor="rule-name">Nome da Regra</Label>
                         <Input
                           id="rule-name"
                           value={currentRule.name}
                           onChange={(e) => setCurrentRule(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder='[TRANSLATION_NEEDED]'
+                          placeholder="Ex: Aprovação Alto Valor Tickets"
                           data-testid="input-rule-name"
                         />
                       </div>
+
                       <div>
                         <Label htmlFor="rule-description">Descrição</Label>
                         <Textarea
@@ -407,6 +431,7 @@ export function UnifiedApprovalConfigurator() {
                           data-testid="textarea-rule-description"
                         />
                       </div>
+
                       <div>
                         <Label htmlFor="module-type">Módulo</Label>
                         <Select
@@ -425,14 +450,16 @@ export function UnifiedApprovalConfigurator() {
                           </SelectContent>
                         </Select>
                       </div>
+
                       <CompanySelector
                         value={currentRule.companyId}
                         onValueChange={(companyId) => setCurrentRule(prev => ({ ...prev, companyId }))}
                         placeholder="Selecionar empresa (opcional para regra global)"
                       />
                     </div>
-                    <div className="space-y-4>
-                      <div className="grid grid-cols-2 gap-4>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="priority">Prioridade</Label>
                           <Input
@@ -455,14 +482,16 @@ export function UnifiedApprovalConfigurator() {
                           />
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2>
+
+                      <div className="flex items-center space-x-2">
                         <Switch
                           checked={currentRule.businessHoursOnly}
                           onCheckedChange={(checked) => setCurrentRule(prev => ({ ...prev, businessHoursOnly: checked }))}
                         />
                         <Label>Apenas horário comercial</Label>
                       </div>
-                      <div className="flex items-center space-x-2>
+
+                      <div className="flex items-center space-x-2">
                         <Switch
                           checked={currentRule.isActive}
                           onCheckedChange={(checked) => setCurrentRule(prev => ({ ...prev, isActive: checked }))}
@@ -472,15 +501,17 @@ export function UnifiedApprovalConfigurator() {
                     </div>
                   </div>
                 </TabsContent>
+
                 {/* Query Conditions */}
-                <TabsContent value="conditions" className="space-y-6>
-                  <div className="flex items-center justify-between>
-                    <h3 className="text-lg">"Query Builder - Condições de Ativação</h3>
-                    <Button onClick={addCondition} size="sm>
+                <TabsContent value="conditions" className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Query Builder - Condições de Ativação</h3>
+                    <Button onClick={addCondition} size="sm">
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Condição
                     </Button>
                   </div>
+
                   {selectedModuleType && (
                     <Alert>
                       <AlertTriangle className="h-4 w-4" />
@@ -489,10 +520,11 @@ export function UnifiedApprovalConfigurator() {
                       </AlertDescription>
                     </Alert>
                   )}
-                  <div className="space-y-4>
+
+                  <div className="space-y-4">
                     {currentRule.queryConditions.map((condition, index) => (
-                      <Card key={condition.id} className="p-4>
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end>
+                      <Card key={condition.id} className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                           {index > 0 && (
                             <Select
                               value={condition.logicalOperator}
@@ -507,7 +539,8 @@ export function UnifiedApprovalConfigurator() {
                               </SelectContent>
                             </Select>
                           )}
-                          <div className={index === 0 ? "col-span-1" : ">
+
+                          <div className={index === 0 ? "col-span-1" : ""}>
                             <Label>Campo</Label>
                             <Select
                               value={condition.field}
@@ -525,6 +558,7 @@ export function UnifiedApprovalConfigurator() {
                               </SelectContent>
                             </Select>
                           </div>
+
                           <div>
                             <Label>Operador</Label>
                             <Select
@@ -543,6 +577,7 @@ export function UnifiedApprovalConfigurator() {
                               </SelectContent>
                             </Select>
                           </div>
+
                           <div>
                             <Label>Valor</Label>
                             <Input
@@ -551,6 +586,7 @@ export function UnifiedApprovalConfigurator() {
                               placeholder="Valor da condição"
                             />
                           </div>
+
                           <Button
                             variant="outline"
                             size="sm"
@@ -561,28 +597,31 @@ export function UnifiedApprovalConfigurator() {
                         </div>
                       </Card>
                     ))}
+
                     {currentRule.queryConditions.length === 0 && (
-                      <div className="text-center py-8 text-gray-500>
+                      <div className="text-center py-8 text-gray-500">
                         Nenhuma condição definida. Adicione condições para ativar a regra.
                       </div>
                     )}
                   </div>
                 </TabsContent>
+
                 {/* Workflow Pipeline */}
-                <TabsContent value="workflow" className="space-y-6>
-                  <div className="flex items-center justify-between>
-                    <h3 className="text-lg">"Pipeline Designer - Fluxo de Aprovação</h3>
-                    <Button onClick={addApprovalStep} size="sm>
+                <TabsContent value="workflow" className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Pipeline Designer - Fluxo de Aprovação</h3>
+                    <Button onClick={addApprovalStep} size="sm">
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Etapa
                     </Button>
                   </div>
-                  <div className="space-y-6>
+
+                  <div className="space-y-6">
                     {currentRule.approvalSteps.map((step, index) => (
-                      <Card key={step.id} className="p-6>
-                        <div className="flex items-center justify-between mb-4>
-                          <div className="flex items-center gap-3>
-                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-sm font-medium>
+                      <Card key={step.id} className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-sm font-medium">
                               {index + 1}
                             </div>
                             <Input
@@ -600,7 +639,8 @@ export function UnifiedApprovalConfigurator() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <Label>Modo de Decisão</Label>
                             <Select
@@ -619,6 +659,7 @@ export function UnifiedApprovalConfigurator() {
                               </SelectContent>
                             </Select>
                           </div>
+
                           {step.decisionMode === 'QUORUM' && (
                             <div>
                               <Label>Quórum (quantos aprovadores)</Label>
@@ -630,6 +671,7 @@ export function UnifiedApprovalConfigurator() {
                               />
                             </div>
                           )}
+
                           <div>
                             <Label>SLA da Etapa (horas)</Label>
                             <Input
@@ -640,16 +682,18 @@ export function UnifiedApprovalConfigurator() {
                             />
                           </div>
                         </div>
-                        <div className="mt-4>
-                          <div className="flex items-center space-x-2 mb-2>
+
+                        <div className="mt-4">
+                          <div className="flex items-center space-x-2 mb-2">
                             <Switch
                               checked={step.autoApproval}
                               onCheckedChange={(checked) => updateApprovalStep(step.id, { autoApproval: checked })}
                             />
                             <Label>Auto-aprovação habilitada</Label>
                           </div>
+
                           {step.autoApproval && (
-                            <Alert className="mt-2>
+                            <Alert className="mt-2">
                               <Check className="h-4 w-4" />
                               <AlertDescription>
                                 Esta etapa será aprovada automaticamente quando as condições forem atendidas
@@ -657,64 +701,69 @@ export function UnifiedApprovalConfigurator() {
                             </Alert>
                           )}
                         </div>
+
                         {index < currentRule.approvalSteps.length - 1 && (
-                          <div className="flex justify-center mt-4>
+                          <div className="flex justify-center mt-4">
                             <ArrowDown className="h-6 w-6 text-gray-400" />
                           </div>
                         )}
                       </Card>
                     ))}
+
                     {currentRule.approvalSteps.length === 0 && (
-                      <div className="text-center py-8 text-gray-500>
+                      <div className="text-center py-8 text-gray-500">
                         Nenhuma etapa de aprovação definida. Adicione etapas para criar o fluxo.
                       </div>
                     )}
                   </div>
                 </TabsContent>
+
                 {/* Advanced Settings */}
-                <TabsContent value="advanced" className="space-y-6>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
-                    <Card className="p-4>
-                      <h4 className="text-lg">"Configurações de Escalação</h4>
-                      <div className="space-y-3>
-                        <div className="flex items-center space-x-2>
+                <TabsContent value="advanced" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="p-4">
+                      <h4 className="font-medium mb-4">Configurações de Escalação</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
                           <Switch />
                           <Label>Escalação automática por timeout</Label>
                         </div>
-                        <div className="flex items-center space-x-2>
+                        <div className="flex items-center space-x-2">
                           <Switch />
                           <Label>Lembretes automáticos</Label>
                         </div>
-                        <div className="flex items-center space-x-2>
+                        <div className="flex items-center space-x-2">
                           <Switch />
                           <Label>Delegação automática</Label>
                         </div>
                       </div>
                     </Card>
-                    <Card className="p-4>
-                      <h4 className="text-lg">"Notificações</h4>
-                      <div className="space-y-3>
-                        <div className="flex items-center space-x-2>
+
+                    <Card className="p-4">
+                      <h4 className="font-medium mb-4">Notificações</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
                           <Switch defaultChecked />
                           <Label>Email</Label>
                         </div>
-                        <div className="flex items-center space-x-2>
+                        <div className="flex items-center space-x-2">
                           <Switch defaultChecked />
                           <Label>In-app</Label>
                         </div>
-                        <div className="flex items-center space-x-2>
+                        <div className="flex items-center space-x-2">
                           <Switch />
                           <Label>WhatsApp</Label>
                         </div>
-                        <div className="flex items-center space-x-2>
+                        <div className="flex items-center space-x-2">
                           <Switch />
                           <Label>Slack</Label>
                         </div>
                       </div>
                     </Card>
                   </div>
-                  <Card className="p-4>
-                    <h4 className="text-lg">"Auditoria e Compliance</h4>
+
+                  <Card className="p-4">
+                    <h4 className="font-medium mb-4">Auditoria e Compliance</h4>
                     <Alert>
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
@@ -729,6 +778,7 @@ export function UnifiedApprovalConfigurator() {
           </Card>
         </div>
       </div>
+
       {/* Preview Mode */}
       {isPreviewMode && (
         <Card>
@@ -736,68 +786,71 @@ export function UnifiedApprovalConfigurator() {
             <CardTitle>Preview da Regra</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4>
+            <div className="space-y-4">
               <div>
-                <h4 className="text-lg">"{currentRule.name || 'Nome da Regra'}</h4>
-                <p className="text-lg">"{currentRule.description || 'Descrição não informada'}</p>
+                <h4 className="font-medium text-lg">{currentRule.name || 'Nome da Regra'}</h4>
+                <p className="text-gray-600 dark:text-gray-400">{currentRule.description || 'Descrição não informada'}</p>
               </div>
               
               <Separator />
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-lg">"Módulo:</span>
-                  <div className="mt-1>
+                  <span className="font-medium">Módulo:</span>
+                  <div className="mt-1">
                     <Badge>{moduleTypes.find(m => m.value === currentRule.moduleType)?.label}</Badge>
                   </div>
                 </div>
                 <div>
-                  <span className="text-lg">"Prioridade:</span>
-                  <div className="text-lg">"{currentRule.priority}</div>
+                  <span className="font-medium">Prioridade:</span>
+                  <div className="mt-1">{currentRule.priority}</div>
                 </div>
                 <div>
-                  <span className="text-lg">"SLA:</span>
-                  <div className="text-lg">"{currentRule.slaHours}h</div>
+                  <span className="font-medium">SLA:</span>
+                  <div className="mt-1">{currentRule.slaHours}h</div>
                 </div>
                 <div>
-                  <span className="text-lg">"Status:</span>
-                  <div className="mt-1>
-                    <Badge variant={currentRule.isActive ? "default" : "secondary>
+                  <span className="font-medium">Status:</span>
+                  <div className="mt-1">
+                    <Badge variant={currentRule.isActive ? "default" : "secondary"}>
                       {currentRule.isActive ? 'Ativa' : 'Inativa'}
                     </Badge>
                   </div>
                 </div>
               </div>
+
               <Separator />
+
               <div>
-                <h5 className="text-lg">"Condições ({currentRule.queryConditions.length})</h5>
+                <h5 className="font-medium mb-2">Condições ({currentRule.queryConditions.length})</h5>
                 {currentRule.queryConditions.length > 0 ? (
-                  <div className="space-y-1 text-sm font-mono bg-gray-50 dark:bg-gray-900 p-3 rounded>
+                  <div className="space-y-1 text-sm font-mono bg-gray-50 dark:bg-gray-900 p-3 rounded">
                     {currentRule.queryConditions.map((cond, index) => (
                       <div key={cond.id}>
-                        {index > 0 && <span className="text-lg">"{cond.logicalOperator} </span>}
-                        <span className="text-lg">"{cond.field}</span>
-                        <span className="text-lg">"{cond.operator}</span>
-                        <span className="text-lg">""{cond.value}"</span>
+                        {index > 0 && <span className="text-blue-600 dark:text-blue-400">{cond.logicalOperator} </span>}
+                        <span className="text-green-600 dark:text-green-400">{cond.field}</span>
+                        <span className="mx-2 text-orange-600 dark:text-orange-400">{cond.operator}</span>
+                        <span className="text-purple-600 dark:text-purple-400">"{cond.value}"</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-lg">"Nenhuma condição definida</div>
+                  <div className="text-gray-500 text-sm">Nenhuma condição definida</div>
                 )}
               </div>
+
               <div>
-                <h5 className="text-lg">"Fluxo de Aprovação ({currentRule.approvalSteps.length} etapas)</h5>
+                <h5 className="font-medium mb-2">Fluxo de Aprovação ({currentRule.approvalSteps.length} etapas)</h5>
                 {currentRule.approvalSteps.length > 0 ? (
-                  <div className="space-y-2>
+                  <div className="space-y-2">
                     {currentRule.approvalSteps.map((step, index) => (
-                      <div key={step.id} className="flex items-center gap-3 text-sm>
-                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-xs font-medium>
+                      <div key={step.id} className="flex items-center gap-3 text-sm">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-xs font-medium">
                           {index + 1}
                         </div>
-                        <div className="flex-1>
-                          <span className="text-lg">"{step.name}</span>
-                          <div className="text-gray-500>
+                        <div className="flex-1">
+                          <span className="font-medium">{step.name}</span>
+                          <div className="text-gray-500">
                             {decisionModes.find(m => m.value === step.decisionMode)?.label} • SLA: {step.slaHours}h
                             {step.autoApproval && ' • Auto-aprovação'}
                           </div>
@@ -806,7 +859,7 @@ export function UnifiedApprovalConfigurator() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-lg">"Nenhuma etapa definida</div>
+                  <div className="text-gray-500 text-sm">Nenhuma etapa definida</div>
                 )}
               </div>
             </div>

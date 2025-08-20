@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
-// import { useLocalization } from "@/hooks/useLocalization";
 import { useState } from "react";
 import { 
   BarChart3, 
@@ -58,10 +57,12 @@ import {
   MessageCircle, // Import MessageCircle for OmniBridge
   MessageSquare // Import MessageSquare for OmniBridge
 } from "lucide-react";
+
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
 }
+
 // Base navigation with proper types
 const baseNavigation: Array<{
   name: string;
@@ -95,10 +96,12 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Locais", href: "/locations", icon: MapPin },
+
   {
     name: "Materiais e Serviços",
     icon: Package,
     children: [
+
       { name: "Catálogo de Itens", href: "/item-catalog", icon: Package },
       { name: "Gestão de Estoque", href: "/stock-management", icon: Warehouse },
       { name: "Gestão de Fornecedores", href: "/supplier-management", icon: Building2 },
@@ -112,7 +115,7 @@ const baseNavigation: Array<{
   { name: "Compliance", href: "/compliance", icon: Shield },
   { name: "GDPR Compliance", href: "/gdpr-compliance", icon: Shield },
   {
-    name: "Relatórios",
+    name: "Reports",
     icon: PieChart,
     children: [
       { name: "Productivity Reports", href: "/productivity-reports", icon: PieChart },
@@ -120,7 +123,9 @@ const baseNavigation: Array<{
       { name: "System Analytics", href: "/system-analytics", icon: BarChart3 },
     ]
   },
+
 ];
+
 // Admin navigation with hierarchical structure
 const adminNavigation = [
   { 
@@ -172,17 +177,21 @@ const adminNavigation = [
     ]
   },
 ];
+
 const secondaryNavigation = [
-  { name: "Configurações", href: "/settings", icon: Settings },
+  { name: "Settings", href: "/settings", icon: Settings },
   { name: "Security", href: "/security", icon: Shield },
   { name: "Help & Support", href: "/help", icon: HelpCircle },
 ];
+
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { t } = useTranslation();
+
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const { terminology, employmentType } = useEmploymentDetection();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
   // Helper function to translate menu items
   const translateName = (name: string): string => {
     // Check if it's a translation key
@@ -191,28 +200,33 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     }
     return name;
   };
+
   // Fetch tickets count for badge
   const { data: ticketsData } = useQuery({
     queryKey: ["/api/tickets"], // Simple query key for consistent caching
     enabled: !!user,
     staleTime: 30000, // Cache for 30 seconds
   });
+
   // Fetch tenant data for current user
   const { data: tenantData } = useQuery({
     queryKey: ["/api/tenants/current"],
     enabled: !!user?.tenantId,
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/users/profile"
+      const response = await apiRequest('GET', `/api/tenants/${user?.tenantId}`);
       return response.json();
     },
     staleTime: 300000, // Cache for 5 minutes
   });
+
   const activeTicketsCount = Array.isArray(ticketsData) ? ticketsData.length : 0;
+
   // Create navigation with dynamic badges and employment-specific terminology
   const navigation = baseNavigation.map(item => {
     if (item.name.includes('ticketSystem.title') && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
+
     // Update timecard section based on employment type
     if (item.name === "Controle de Jornadas") {
       const timecardRoute = employmentType === 'autonomo' ? '/timecard-autonomous' : '/timecard';
@@ -248,16 +262,19 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         ]
       };
     }
+
     return item;
   });
+
   // Toggle menu function
   const toggleMenu = (menuName: string) => {
     setOpenMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
   };
+
   return (
     <div className={`hidden lg:flex lg:flex-col transition-all duration-300 ${
       collapsed ? 'lg:w-16' : 'lg:w-64'
-    >
+    }`}>
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto" style={{
         background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
         color: 'white'
@@ -265,23 +282,24 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         {/* Logo */}
         <div className={`flex items-center flex-shrink-0 transition-all duration-300 ${
           collapsed ? 'px-2 justify-center' : 'px-4 justify-between'
-        >
+        }`}>
           <div className={`flex items-center transition-all duration-300 ${
             collapsed ? 'justify-center w-full' : ''
-          >
+          }`}>
             <div className={`bg-white rounded-lg flex items-center justify-center transition-all duration-300 ${
               collapsed ? 'w-10 h-10' : 'w-8 h-8 mr-3'
-            >
+            }`}>
               <Zap className={`text-purple-600 transition-all duration-300 ${
                 collapsed ? 'w-6 h-6' : 'w-5 h-5'
-              "} />
+              }`} />
             </div>
             {!collapsed && (
-              <h1 className="text-xl font-bold text-white transition-opacity duration-300>
+              <h1 className="text-xl font-bold text-white transition-opacity duration-300">
                 Conductor
               </h1>
             )}
           </div>
+
           {/* Toggle Button - Always visible and properly positioned */}
           {!collapsed && (
             <Button
@@ -295,9 +313,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </Button>
           )}
         </div>
+
         {/* Expand Button - Only visible when collapsed, positioned below logo */}
         {collapsed && (
-          <div className="px-2 mt-3>
+          <div className="px-2 mt-3">
             <Button
               variant="ghost"
               size="sm"
@@ -309,30 +328,31 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </Button>
           </div>
         )}
+
         {/* Tenant Selector */}
-        <div className="text-lg">"
+        <div className={`mt-6 transition-all duration-300 ${collapsed ? 'px-2' : 'px-4'}`}>
           <div className={`rounded-lg border transition-all duration-300 ${
             collapsed ? 'p-2' : 'p-3'
-          "} style={{
+          }`} style={{
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             borderColor: 'rgba(255, 255, 255, 0.2)'
           }}>
             <div className={`flex items-center transition-all duration-300 ${
               collapsed ? 'justify-center' : 'justify-between'
-            >
+            }`}>
               <div className={`flex items-center transition-all duration-300 ${
                 collapsed ? 'justify-center' : ''
-              >
+              }`}>
                 <div className={`bg-white rounded-full flex items-center justify-center transition-all duration-300 ${
                   collapsed ? 'w-8 h-8' : 'w-6 h-6 mr-2'
-                >
+                }`}>
                   <span className={`font-semibold text-purple-600 transition-all duration-300 ${
                     collapsed ? 'text-sm' : 'text-xs'
-                  ">AC</span>
+                  }`}>AC</span>
                 </div>
                 {!collapsed && (
-                  <span className="text-sm font-medium text-white transition-opacity duration-300>
-                    {tenantData?.name || '[TRANSLATION_NEEDED]'}
+                  <span className="text-sm font-medium text-white transition-opacity duration-300">
+                    {tenantData?.name || 'Carregando...'}
                   </span>
                 )}
               </div>
@@ -340,17 +360,19 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </div>
           </div>
         </div>
+
         {/* Navigation */}
-        <nav className="mt-6 flex-1 px-2 space-y-1>
+        <nav className="mt-6 flex-1 px-2 space-y-1">
           {navigation.map((item) => {
             // If item has children, render as collapsible menu
             if (item.children) {
               const isOpen = openMenus[item.name] || false;
               const hasActiveChild = item.children.some(child => location === child.href);
+
               // In collapsed mode, don't show submenu items - larger icons and better spacing
               if (collapsed) {
                 return (
-                  <div key={item.name} className="relative group>
+                  <div key={item.name} className="relative group">
                     <div className={cn(
                       "flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer hover:scale-105",
                       hasActiveChild
@@ -363,21 +385,22 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     title={translateName(item.name)}>
                       <item.icon className="h-6 w-6 flex-shrink-0" />
                       {item.badge && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center>
-                          <span className="text-lg">"{item.badge}</span>
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold text-white">{item.badge}</span>
                         </div>
                       )}
                       {/* Tooltip for collapsed state */}
-                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50>
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                         {translateName(item.name)}
                       </div>
                     </div>
                   </div>
                 );
               }
+
               return (
                 <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
-                  <CollapsibleTrigger className="w-full>
+                  <CollapsibleTrigger className="w-full">
                     <div className={cn(
                       "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                       hasActiveChild
@@ -390,7 +413,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                       {translateName(item.name)}
                       {item.badge && (
-                        <Badge variant="destructive" className="ml-2>
+                        <Badge variant="destructive" className="ml-2">
                           {item.badge}
                         </Badge>
                       )}
@@ -401,7 +424,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       )}
                     </div>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="ml-4 mt-1 space-y-1>
+                  <CollapsibleContent className="ml-4 mt-1 space-y-1">
                     {item.children.map((child) => {
                       const isActive = location === child.href;
                       return (
@@ -425,9 +448,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 </Collapsible>
               );
             }
+
             // If item has no children, render as simple link
             if (!item.href) return null; // Skip items without href
             const isActive = location === item.href;
+
             // In collapsed mode, show only icons - larger and better spaced
             if (collapsed) {
               return (
@@ -444,18 +469,19 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   title={item.name}>
                     <item.icon className="h-6 w-6 flex-shrink-0" />
                     {item.badge && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center>
-                        <span className="text-lg">"{item.badge}</span>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">{item.badge}</span>
                       </div>
                     )}
                     {/* Tooltip for collapsed state */}
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50>
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                       {item.name}
                     </div>
                   </div>
                 </Link>
               );
             }
+
             return (
               <Link key={item.name} href={item.href}>
                 <div className={cn(
@@ -470,7 +496,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                   {item.name}
                   {item.badge && (
-                    <Badge variant="destructive" className="ml-auto>
+                    <Badge variant="destructive" className="ml-auto">
                       {item.badge}
                     </Badge>
                   )}
@@ -478,12 +504,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               </Link>
             );
           })}
+
           {/* Admin Navigation - Role-based with hierarchy */}
           {user && ['saas_admin', 'tenant_admin'].includes(user.role) && (
-            <div className="pt-4 mt-4 border-t border-white border-opacity-20>
+            <div className="pt-4 mt-4 border-t border-white border-opacity-20">
               {!collapsed && (
-                <div className="px-2 mb-2>
-                  <span className="text-xs text-white text-opacity-70 uppercase tracking-wider font-medium>
+                <div className="px-2 mb-2">
+                  <span className="text-xs text-white text-opacity-70 uppercase tracking-wider font-medium">
                     Administração
                   </span>
                 </div>
@@ -493,10 +520,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 .map((item) => {
                   const isOpen = openMenus[item.name] || false;
                   const hasActiveChild = item.children?.some(child => location === child.href);
+
                   // In collapsed mode, show only parent icon with tooltip
                   if (collapsed) {
                     return (
-                      <div key={item.name} className="relative group>
+                      <div key={item.name} className="relative group">
                         <div className={cn(
                           "flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer hover:scale-105",
                           hasActiveChild
@@ -508,16 +536,17 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                         } : {}}>
                           <item.icon className="h-6 w-6 flex-shrink-0" />
                           {/* Tooltip for collapsed state */}
-                          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50>
+                          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                             {item.name}
                           </div>
                         </div>
                       </div>
                     );
                   }
+
                   return (
                     <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
-                      <CollapsibleTrigger className="w-full>
+                      <CollapsibleTrigger className="w-full">
                         <div className={cn(
                           "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                           hasActiveChild
@@ -536,7 +565,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                           )}
                         </div>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="ml-4 mt-1 space-y-1>
+                      <CollapsibleContent className="ml-4 mt-1 space-y-1">
                         {item.children?.map((child) => {
                           const isActive = location === child.href;
                           return (
@@ -562,9 +591,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 })}
             </div>
           )}
-          <div className="pt-4 mt-4 border-t border-white border-opacity-20>
+
+          <div className="pt-4 mt-4 border-t border-white border-opacity-20">
             {/* Aparência Link */}
-            <Link key="Aparência" href="/layouts>
+            <Link key="Aparência" href="/layouts">
               <div className={cn(
                 "group flex items-center rounded-md transition-all duration-300 cursor-pointer relative",
                 collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
@@ -576,15 +606,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 color: 'white'
               } : {}}>
                 <Palette className={collapsed ? "h-6 w-6 flex-shrink-0" : "mr-3 h-4 w-4 flex-shrink-0"} />
-                {!collapsed && "Aparência"
+                {!collapsed && "Aparência"}
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50>
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                     Aparência
                   </div>
                 )}
               </div>
             </Link>
+
             {/* Secondary Navigation */}
             {secondaryNavigation.map((item) => {
               const isActive = location === item.href;
@@ -604,7 +635,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     {!collapsed && item.name}
                     {/* Tooltip for collapsed state */}
                     {collapsed && (
-                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50>
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                         {item.name}
                       </div>
                     )}
@@ -614,11 +645,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             })}
           </div>
         </nav>
+
         {/* Footer - Logout only */}
-        <div className="flex-shrink-0 flex border-t border-white border-opacity-20>
-          <div className="w-full>
-            <div className="flex items-center justify-center p-3 transition-all duration-300>
-              <div className="relative group>
+        <div className="flex-shrink-0 flex border-t border-white border-opacity-20">
+          <div className="w-full">
+            <div className="flex items-center justify-center p-3 transition-all duration-300">
+              <div className="relative group">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -629,7 +661,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   <LogOut className="h-5 w-5" />
                 </Button>
                 {/* Tooltip */}
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50>
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                   Fazer logout
                 </div>
               </div>

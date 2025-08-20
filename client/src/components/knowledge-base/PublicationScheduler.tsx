@@ -1,5 +1,6 @@
 // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE FRONTEND - PUBLICATION SCHEDULER
 // React component for scheduling article publications
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-// import { useLocalization } from '@/hooks/useLocalization';
   Dialog,
   DialogContent,
   DialogDescription,
@@ -22,14 +22,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
 interface PublicationSchedulerProps {
   articleId: string;
   currentStatus: string;
   onScheduled?: () => void;
 }
-export function PublicationScheduler({
-  // Localization temporarily disabled
- articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
+
+export function PublicationScheduler({ articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
   const [schedulerOpen, setSchedulerOpen] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
@@ -37,6 +37,7 @@ export function PublicationScheduler({
   const [notifyUsers, setNotifyUsers] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const schedulePublicationMutation = useMutation({
     mutationFn: async (scheduleData: {
       articleId: string;
@@ -44,11 +45,11 @@ export function PublicationScheduler({
       autoPublish: boolean;
       notifyUsers: boolean;
     }) => {
-      return await apiRequest("/schedule`, 'POST', scheduleData);
+      return await apiRequest(`/api/knowledge-base/articles/${articleId}/schedule`, 'POST', scheduleData);
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Publicação agendada com sucesso"
       });
       setSchedulerOpen(false);
@@ -61,31 +62,34 @@ export function PublicationScheduler({
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao agendar publicação",
         variant: "destructive"
       });
     }
   });
+
   const handleSchedule = () => {
     if (!scheduledDate || !scheduledTime) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Data e hora são obrigatórias",
         variant: "destructive"
       });
       return;
     }
-    const scheduledFor = new Date("
+
+    const scheduledFor = new Date(`${scheduledDate}T${scheduledTime}`);
     
     if (scheduledFor <= new Date()) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "A data deve ser no futuro",
         variant: "destructive"
       });
       return;
     }
+
     schedulePublicationMutation.mutate({
       articleId,
       scheduledFor: scheduledFor.toISOString(),
@@ -93,15 +97,18 @@ export function PublicationScheduler({
       notifyUsers
     });
   };
+
   // Só mostrar se o artigo não estiver publicado
   if (currentStatus === 'published') {
     return null;
   }
+
   const getMinDateTime = () => {
     const now = new Date();
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     return format(tomorrow, 'yyyy-MM-dd');
   };
+
   const getMinTime = () => {
     const now = new Date();
     if (scheduledDate === format(now, 'yyyy-MM-dd')) {
@@ -109,16 +116,17 @@ export function PublicationScheduler({
     }
     return '00:00';
   };
+
   return (
     <Dialog open={schedulerOpen} onOpenChange={setSchedulerOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" data-testid="button-schedule-publication>
+        <Button variant="outline" data-testid="button-schedule-publication">
           <Calendar className="h-4 w-4 mr-2" />
           Agendar Publicação
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Agendar Publicação</DialogTitle>
           <DialogDescription>
@@ -126,11 +134,11 @@ export function PublicationScheduler({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6>
+        <div className="space-y-6">
           {/* Data e Hora */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base flex items-center>
+              <CardTitle className="text-base flex items-center">
                 <Clock className="h-4 w-4 mr-2" />
                 Data e Hora
               </CardTitle>
@@ -138,8 +146,8 @@ export function PublicationScheduler({
                 Quando o artigo deve ser publicado
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4>
-              <div className="grid grid-cols-2 gap-4>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="schedule-date">Data</Label>
                   <Input
@@ -165,10 +173,10 @@ export function PublicationScheduler({
               </div>
               
               {scheduledDate && scheduledTime && (
-                <div className="p-2 bg-muted rounded text-sm>
+                <div className="p-2 bg-muted rounded text-sm">
                   <strong>Publicação agendada para:</strong><br />
                   {format(
-                    new Date("
+                    new Date(`${scheduledDate}T${scheduledTime}`),
                     "dd 'de' MMMM 'de' yyyy 'às' HH:mm",
                     { locale: ptBR }
                   )}
@@ -176,19 +184,20 @@ export function PublicationScheduler({
               )}
             </CardContent>
           </Card>
+
           {/* Configurações */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">"Configurações</CardTitle>
+              <CardTitle className="text-base">Configurações</CardTitle>
               <CardDescription>
                 Opções para a publicação agendada
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4>
-              <div className="flex items-center justify-between>
-                <div className="space-y-0.5>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
                   <Label>Publicar automaticamente</Label>
-                  <p className="text-sm text-muted-foreground>
+                  <p className="text-sm text-muted-foreground">
                     O artigo será publicado automaticamente na data agendada
                   </p>
                 </div>
@@ -199,10 +208,10 @@ export function PublicationScheduler({
                 />
               </div>
               
-              <div className="flex items-center justify-between>
-                <div className="space-y-0.5>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
                   <Label>Notificar usuários</Label>
-                  <p className="text-sm text-muted-foreground>
+                  <p className="text-sm text-muted-foreground">
                     Enviar notificação quando o artigo for publicado
                   </p>
                 </div>

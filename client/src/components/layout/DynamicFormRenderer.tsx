@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   CalendarIcon,
   Type,
   AlignLeft,
@@ -34,6 +33,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { FieldConfiguration } from '@/hooks/useFieldLayout';
+
 interface DynamicFormRendererProps {
   form: UseFormReturn<any>;
   fields: FieldConfiguration[];
@@ -41,14 +41,15 @@ interface DynamicFormRendererProps {
   isReadOnly?: boolean;
   className?: string;
 }
+
 const getIconComponent = (iconName: string) => {
-  // Localization temporarily disabled
   const icons = {
     Type, AlignLeft, ChevronDown, Hash, CalendarIcon, CheckSquare, Mail, Phone,
     AlertTriangle, Circle, Tag, User, Building, MapPin, Users, Package, Truck, DollarSign
   };
   return icons[iconName as keyof typeof icons] || Type;
 };
+
 const renderFieldByType = (
   field: FieldConfiguration,
   form: UseFormReturn<any>,
@@ -57,11 +58,13 @@ const renderFieldByType = (
 ) => {
   const fieldKey = field.customId || field.id;
   const IconComponent = getIconComponent((field as any).icon || 'Type');
+
   const handleChange = (value: any) => {
     if (onFieldChange) {
       onFieldChange(fieldKey, value);
     }
   };
+
   switch (field.fieldType) {
     case 'text':
     case 'email':
@@ -72,16 +75,16 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2>
+              <FormLabel className="flex items-center gap-2">
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-lg">"*</span>}
+                {field.isRequired && <span className="text-red-500">*</span>}
               </FormLabel>
               <FormControl>
                 <Input
                   {...formField}
                   type={field.fieldType === 'email' ? 'email' : field.fieldType === 'phone' ? 'tel' : 'text'}
-                  placeholder="Enter Digite ${field.label.toLowerCase()"
+                  placeholder={`Digite ${field.label.toLowerCase()}`}
                   disabled={isReadOnly}
                   onChange={(e) => {
                     formField.onChange(e);
@@ -94,6 +97,7 @@ const renderFieldByType = (
           )}
         />
       );
+
     case 'textarea':
       return (
         <FormField
@@ -101,15 +105,15 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2>
+              <FormLabel className="flex items-center gap-2">
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-lg">"*</span>}
+                {field.isRequired && <span className="text-red-500">*</span>}
               </FormLabel>
               <FormControl>
                 <Textarea
                   {...formField}
-                  placeholder="Enter Digite ${field.label.toLowerCase()"
+                  placeholder={`Digite ${field.label.toLowerCase()}`}
                   disabled={isReadOnly}
                   rows={4}
                   onChange={(e) => {
@@ -123,6 +127,7 @@ const renderFieldByType = (
           )}
         />
       );
+
     case 'number':
     case 'price':
       return (
@@ -131,16 +136,16 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2>
+              <FormLabel className="flex items-center gap-2">
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-lg">"*</span>}
+                {field.isRequired && <span className="text-red-500">*</span>}
               </FormLabel>
               <FormControl>
                 <Input
                   {...formField}
                   type="number"
-                  placeholder="Enter Digite ${field.label.toLowerCase()"
+                  placeholder={`Digite ${field.label.toLowerCase()}`}
                   disabled={isReadOnly}
                   onChange={(e) => {
                     const value = parseFloat(e.target.value) || 0;
@@ -154,6 +159,7 @@ const renderFieldByType = (
           )}
         />
       );
+
     case 'select':
     case 'priority':
     case 'status':
@@ -163,16 +169,17 @@ const renderFieldByType = (
         { value: 'option2', label: 'Opção 2' },
         { value: 'option3', label: 'Opção 3' }
       ];
+
       return (
         <FormField
           control={form.control}
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2>
+              <FormLabel className="flex items-center gap-2">
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-lg">"*</span>}
+                {field.isRequired && <span className="text-red-500">*</span>}
               </FormLabel>
               <FormControl>
                 <Select
@@ -184,7 +191,7 @@ const renderFieldByType = (
                   disabled={isReadOnly}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={'[TRANSLATION_NEEDED]'} />
+                    <SelectValue placeholder={`Selecione ${field.label.toLowerCase()}`} />
                   </SelectTrigger>
                   <SelectContent>
                     {options.map((option: any) => (
@@ -200,6 +207,7 @@ const renderFieldByType = (
           )}
         />
       );
+
     case 'date':
       return (
         <FormField
@@ -207,10 +215,10 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2>
+              <FormLabel className="flex items-center gap-2">
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-lg">"*</span>}
+                {field.isRequired && <span className="text-red-500">*</span>}
               </FormLabel>
               <FormControl>
                 <Popover>
@@ -223,11 +231,11 @@ const renderFieldByType = (
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formField.value ? 
                         format(new Date(formField.value), "PPP", { locale: ptBR }) : 
-                        '[TRANSLATION_NEEDED]'
+                        `Selecione ${field.label.toLowerCase()}`
                       }
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0>
+                  <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
                       selected={formField.value ? new Date(formField.value) : undefined}
@@ -245,13 +253,14 @@ const renderFieldByType = (
           )}
         />
       );
+
     case 'checkbox':
       return (
         <FormField
           control={form.control}
           name={fieldKey}
           render={({ field: formField }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0>
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
                 <Checkbox
                   checked={formField.value}
@@ -262,11 +271,11 @@ const renderFieldByType = (
                   disabled={isReadOnly}
                 />
               </FormControl>
-              <div className="space-y-1 leading-none>
-                <FormLabel className="flex items-center gap-2>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="flex items-center gap-2">
                   <IconComponent className="h-4 w-4" />
                   {field.label}
-                  {field.isRequired && <span className="text-lg">"*</span>}
+                  {field.isRequired && <span className="text-red-500">*</span>}
                 </FormLabel>
               </div>
               <FormMessage />
@@ -274,12 +283,13 @@ const renderFieldByType = (
           )}
         />
       );
+
     default:
       return (
-        <div className="p-4 border border-dashed border-gray-300 rounded-lg>
-          <div className="flex items-center gap-2 text-gray-500>
+        <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+          <div className="flex items-center gap-2 text-gray-500">
             <IconComponent className="h-4 w-4" />
-            <span className="text-sm>
+            <span className="text-sm">
               Campo personalizado: {field.label} ({field.fieldType})
             </span>
           </div>
@@ -287,6 +297,7 @@ const renderFieldByType = (
       );
   }
 };
+
 export function DynamicFormRenderer({
   form,
   fields,
@@ -302,6 +313,7 @@ export function DynamicFormRenderer({
     acc[field.section].push(field);
     return acc;
   }, {} as Record<string, FieldConfiguration[]>);
+
   const getSectionTitle = (sectionId: string) => {
     const titles = {
       main: 'Campos Principais',
@@ -309,39 +321,43 @@ export function DynamicFormRenderer({
       metadata: 'Metadados',
       sidebar: 'Informações Adicionais'
     };
-    return titles[sectionId as keyof typeof titles] || "
+    return titles[sectionId as keyof typeof titles] || `Seção ${sectionId}`;
   };
+
   if (fields.length === 0) {
     return (
-      <div className="text-lg">"
+      <div className={`p-8 text-center text-gray-500 ${className}`}>
         <Type className="h-8 w-8 mx-auto mb-2 text-gray-400" />
         <p>Nenhum campo personalizado configurado</p>
-        <p className="text-sm mt-1>
+        <p className="text-sm mt-1">
           Use o editor de layout para adicionar campos personalizados
         </p>
       </div>
     );
   }
+
   return (
-    <div className="text-lg">"
+    <div className={`space-y-6 ${className}`}>
       {Object.entries(groupedFields).map(([sectionId, sectionFields]) => {
         // Sort fields by position
         const sortedFields = sectionFields
           .filter(field => field.isVisible)
           .sort((a, b) => a.position - b.position);
+
         if (sortedFields.length === 0) return null;
+
         return (
           <Card key={sectionId}>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between>
+              <CardTitle className="flex items-center justify-between">
                 <span>{getSectionTitle(sectionId)}</span>
-                <Badge variant="secondary>
+                <Badge variant="secondary">
                   {sortedFields.length} {sortedFields.length === 1 ? 'campo' : 'campos'}
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {sortedFields.map((field) => (
                   <div key={field.id}>
                     {renderFieldByType(field, form, onFieldChange, isReadOnly)}
@@ -355,4 +371,5 @@ export function DynamicFormRenderer({
     </div>
   );
 }
+
 export default DynamicFormRenderer;

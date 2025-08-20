@@ -2,6 +2,7 @@
  * Tenant Auto-Provisioning Management Page
  * Interface for configuring and managing automatic tenant creation
  */
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -32,6 +33,7 @@ import {
   Cog
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+
 // Schema for manual tenant provisioning
 const provisionTenantSchema = z.object({
   name: z.string().min(1, "Nome do tenant é obrigatório"),
@@ -39,6 +41,7 @@ const provisionTenantSchema = z.object({
   companyName: z.string().optional(),
   settings: z.record(z.any()).optional()
 });
+
 // Schema for configuration updates
 const configSchema = z.object({
   enabled: z.boolean(),
@@ -52,8 +55,10 @@ const configSchema = z.object({
     theme: z.string()
   })
 });
+
 type ProvisionTenantFormData = z.infer<typeof provisionTenantSchema>;
 type ConfigFormData = z.infer<typeof configSchema>;
+
 export default function TenantProvisioning() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -61,25 +66,28 @@ export default function TenantProvisioning() {
   const queryClient = useQueryClient();
   const [isProvisionDialogOpen, setIsProvisionDialogOpen] = useState(false);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
-      <div className="p-4"
+      <div className="p-8 text-center">
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="p-4"
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           Acesso Negado
         </h1>
-        <p className="p-4"
+        <p className="text-gray-600 dark:text-gray-400">
           Esta página é restrita para administradores da plataforma SaaS.
         </p>
       </div>
     );
   }
+
   // Query para configuração de auto-provisioning
   const { data: config, isLoading: isLoadingConfig } = useQuery({
     queryKey: ['/api/tenant-provisioning/config'],
     staleTime: 5 * 60 * 1000,
   });
+
   // Form para provisionamento manual
   const provisionForm = useForm<ProvisionTenantFormData>({
     resolver: zodResolver(provisionTenantSchema),
@@ -90,6 +98,7 @@ export default function TenantProvisioning() {
       settings: {}
     }
   });
+
   // Form para configuração
   const configForm = useForm<ConfigFormData>({
     resolver: zodResolver(configSchema),
@@ -106,6 +115,7 @@ export default function TenantProvisioning() {
       }
     }
   });
+
   // Mutation para provisionamento manual
   const provisionMutation = useMutation({
     mutationFn: async (data: ProvisionTenantFormData) => {
@@ -118,17 +128,18 @@ export default function TenantProvisioning() {
       provisionForm.reset();
       toast({
         title: "Tenant Criado",
-        description: "criado com sucesso!",
+        description: `Tenant "${data.tenant.name}" criado com sucesso!`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao Criar Tenant',
+        title: "Erro ao criar tenant",
         description: error.message,
         variant: "destructive",
       });
     }
   });
+
   // Mutation para atualizar configuração
   const updateConfigMutation = useMutation({
     mutationFn: async (data: Partial<ConfigFormData>) => {
@@ -140,70 +151,74 @@ export default function TenantProvisioning() {
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
-        description: 'Configurações de Autoprovisioning Atualizadas com Sucesso',
+        description: "Configurações de auto-provisioning atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao Atualizar Configuração',
+        title: "Erro ao atualizar configuração",
         description: error.message,
         variant: "destructive",
       });
     }
   });
+
   const onProvisionSubmit = (data: ProvisionTenantFormData) => {
     provisionMutation.mutate(data);
   };
+
   const onConfigSubmit = (data: ConfigFormData) => {
     updateConfigMutation.mutate(data);
   };
+
   const getStatusBadge = (enabled: boolean) => {
     return enabled ? (
-      <Badge variant="default" className="p-4"
+      <Badge variant="default" className="bg-green-500">
         <CheckCircle className="w-3 h-3 mr-1" />
         Ativo
       </Badge>
     ) : (
-      <Badge variant="secondary>
+      <Badge variant="secondary">
         <XCircle className="w-3 h-3 mr-1" />
         Inativo
       </Badge>
     );
   };
+
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="p-4"
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Auto-Provisioning de Tenants
           </h1>
-          <p className="p-4"
+          <p className="text-gray-600 dark:text-gray-400">
             Configure e gerencie a criação automática de tenants
           </p>
         </div>
-        <div className="p-4"
+        <div className="flex gap-3">
           <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline>
+              <Button variant="outline">
                 <Settings className="w-4 h-4 mr-2" />
                 Configurações
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-4"
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Configurações de Auto-Provisioning</DialogTitle>
               </DialogHeader>
               <Form {...configForm}>
-                <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="p-4"
-                  <div className="p-4"
+                <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={configForm.control}
                       name="enabled"
                       render={({ field }) => (
-                        <FormItem className="p-4"
-                          <div className="p-4"
-                            <FormLabel className="text-lg">"Auto-Provisioning</FormLabel>
-                            <div className="p-4"
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Auto-Provisioning</FormLabel>
+                            <div className="text-sm text-muted-foreground">
                               Habilitar criação automática de tenants
                             </div>
                           </div>
@@ -221,10 +236,10 @@ export default function TenantProvisioning() {
                       control={configForm.control}
                       name="allowSelfProvisioning"
                       render={({ field }) => (
-                        <FormItem className="p-4"
-                          <div className="p-4"
-                            <FormLabel className="text-lg">"Auto-Provisioning</FormLabel>
-                            <div className="p-4"
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Auto-Provisioning</FormLabel>
+                            <div className="text-sm text-muted-foreground">
                               Permitir criação por usuários
                             </div>
                           </div>
@@ -238,6 +253,7 @@ export default function TenantProvisioning() {
                       )}
                     />
                   </div>
+
                   <FormField
                     control={configForm.control}
                     name="subdomainGeneration"
@@ -247,7 +263,7 @@ export default function TenantProvisioning() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectValue placeholder="Selecione o método" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -260,18 +276,20 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-                  <div className="p-4"
+
+                  <div className="flex justify-end gap-3">
                     <Button type="button" variant="outline" onClick={() => setIsConfigDialogOpen(false)}>
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateConfigMutation.isPending}>
-                      {updateConfigMutation.isPending ? "Salvando..." : 'Salvar Configuração'}
+                      {updateConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                     </Button>
                   </div>
                 </form>
               </Form>
             </DialogContent>
           </Dialog>
+
           <Dialog open={isProvisionDialogOpen} onOpenChange={setIsProvisionDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -284,7 +302,7 @@ export default function TenantProvisioning() {
                 <DialogTitle>Provisionar Novo Tenant</DialogTitle>
               </DialogHeader>
               <Form {...provisionForm}>
-                <form onSubmit={provisionForm.handleSubmit(onProvisionSubmit)} className="p-4"
+                <form onSubmit={provisionForm.handleSubmit(onProvisionSubmit)} className="space-y-4">
                   <FormField
                     control={provisionForm.control}
                     name="name"
@@ -298,6 +316,7 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={provisionForm.control}
                     name="subdomain"
@@ -311,6 +330,7 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={provisionForm.control}
                     name="companyName"
@@ -324,12 +344,13 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-                  <div className="p-4"
+
+                  <div className="flex justify-end gap-3">
                     <Button type="button" variant="outline" onClick={() => setIsProvisionDialogOpen(false)}>
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={provisionMutation.isPending}>
-                      {provisionMutation.isPending ? "Criando..." : 'Criar Tenant'}
+                      {provisionMutation.isPending ? "Criando..." : "Criar Tenant"}
                     </Button>
                   </div>
                 </form>
@@ -338,57 +359,61 @@ export default function TenantProvisioning() {
           </Dialog>
         </div>
       </div>
+
       {/* Status Cards */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Status do Sistema</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Status do Sistema</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="flex items-center space-x-2">
               {isLoadingConfig ? (
                 <Badge variant="secondary">Carregando...</Badge>
               ) : (
                 getStatusBadge(config?.enabled || false)
               )}
             </div>
-            <p className="p-4"
+            <p className="text-xs text-muted-foreground mt-2">
               {config?.enabled ? 'Auto-provisioning ativo' : 'Auto-provisioning desabilitado'}
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Geração de Subdomínio</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Geração de Subdomínio</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold">
               {config?.subdomainGeneration === 'company-based' && 'Empresa'}
               {config?.subdomainGeneration === 'user-based' && 'Usuário'}
               {config?.subdomainGeneration === 'random' && 'Aleatório'}
             </div>
-            <p className="p-4"
+            <p className="text-xs text-muted-foreground">
               Método de geração ativo
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Limites Padrão</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Limites Padrão</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold">
               {config?.defaultTenantSettings?.maxUsers || 50}
             </div>
-            <p className="p-4"
+            <p className="text-xs text-muted-foreground">
               Usuários por tenant
             </p>
           </CardContent>
         </Card>
       </div>
+
       {/* Configuration Overview */}
       <Card>
         <CardHeader>
@@ -399,31 +424,31 @@ export default function TenantProvisioning() {
         </CardHeader>
         <CardContent>
           {isLoadingConfig ? (
-            <div className="text-lg">"Carregando configurações...</div>
+            <div className="text-center py-8">Carregando configurações...</div>
           ) : config ? (
-            <div className="p-4"
-              <div className="p-4"
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Auto-Provisioning</Label>
-                  <div className="p-4"
+                  <div className="mt-1">
                     {getStatusBadge(config.enabled)}
                   </div>
                 </div>
                 <div>
                   <Label>Criação por Usuários</Label>
-                  <div className="p-4"
+                  <div className="mt-1">
                     {getStatusBadge(config.allowSelfProvisioning)}
                   </div>
                 </div>
                 <div>
                   <Label>Criação no Primeiro Usuário</Label>
-                  <div className="p-4"
+                  <div className="mt-1">
                     {getStatusBadge(config.autoCreateOnFirstUser)}
                   </div>
                 </div>
                 <div>
                   <Label>Método de Subdomínio</Label>
-                  <div className="p-4"
+                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                     {config.subdomainGeneration}
                   </div>
                 </div>
@@ -431,26 +456,26 @@ export default function TenantProvisioning() {
               
               <div>
                 <Label>Configurações Padrão</Label>
-                <div className="p-4"
-                  <div className="p-4"
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-lg">"Máximo de Usuários:</span> {config.defaultTenantSettings.maxUsers}
+                      <span className="font-medium">Máximo de Usuários:</span> {config.defaultTenantSettings.maxUsers}
                     </div>
                     <div>
-                      <span className="text-lg">"Máximo de Tickets:</span> {config.defaultTenantSettings.maxTickets}
+                      <span className="font-medium">Máximo de Tickets:</span> {config.defaultTenantSettings.maxTickets}
                     </div>
                     <div>
-                      <span className="text-lg">"Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')}
+                      <span className="font-medium">Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')}
                     </div>
                     <div>
-                      <span className="text-lg">"Tema:</span> {config.defaultTenantSettings.theme}
+                      <span className="font-medium">Tema:</span> {config.defaultTenantSettings.theme}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="p-4"
+            <div className="text-center py-8 text-gray-500">
               Falha ao carregar configurações
             </div>
           )}

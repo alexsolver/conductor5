@@ -14,16 +14,18 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-// import useLocalization from '@/hooks/useLocalization';
+
 // Define the new interface for weekly schedules
 interface DaySchedule {
   startTime: string;
   endTime: string;
   breakDurationMinutes: number;
 }
+
 interface WeeklySchedule {
   [key: number]: DaySchedule; // Key is the day of the week (0 for Sunday, 6 for Saturday)
 }
+
 interface WorkSchedule {
   id: string;
   userId: string;
@@ -39,6 +41,7 @@ interface WorkSchedule {
   useWeeklySchedule?: boolean;
   weeklySchedule?: WeeklySchedule;
 }
+
 interface User {
   id: string;
   firstName: string;
@@ -46,6 +49,7 @@ interface User {
   email: string;
   role?: string;
 }
+
 // Interface for Schedule Template
 interface ScheduleTemplate {
   id: string;
@@ -63,10 +67,13 @@ interface ScheduleTemplate {
   isActive: boolean;
   category: 'default' | 'custom';
 }
+
 import { SCHEDULE_TYPE_OPTIONS, SCHEDULE_TYPE_LABELS } from '@shared/schedule-types';
+
 // Use shared definitions for consistency
 const scheduleTypeLabels = SCHEDULE_TYPE_LABELS;
 const scheduleTypeOptions = SCHEDULE_TYPE_OPTIONS;
+
 const weekDays = [
   { value: 0, label: 'Domingo' },
   { value: 1, label: 'Segunda' },
@@ -76,6 +83,7 @@ const weekDays = [
   { value: 5, label: 'Sexta' },
   { value: 6, label: 'Sábado' }
 ];
+
 // Component for configuring weekly schedules
 function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, onWorkDaysChange }: {
   weeklySchedule: WeeklySchedule;
@@ -93,9 +101,11 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
     };
     onWeeklyScheduleChange(newWeeklySchedule);
   };
+
   const handleDayToggle = (dayValue: number) => {
     const currentIndex = workDays.indexOf(dayValue);
     const newWorkDays = [...workDays];
+
     if (currentIndex > -1) {
       newWorkDays.splice(currentIndex, 1);
       // Optionally remove the schedule for this day if it exists
@@ -113,14 +123,15 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
     }
     onWorkDaysChange(newWorkDays);
   };
+
   return (
-    <div className="p-4">
-      <div className="p-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
         {weekDays.map(day => (
           <Button
             key={day.value}
             type="button"
-            variant={workDays.includes(day.value) ? "default" : "outline"
+            variant={workDays.includes(day.value) ? "default" : "outline"}
             size="sm"
             onClick={() => handleDayToggle(day.value)}
             className="text-xs px-2 py-1 min-w-0"
@@ -129,43 +140,43 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
           </Button>
         ))}
       </div>
-      <div className="p-4">
+      <div className="space-y-3 max-h-72 overflow-y-auto">
         {workDays.sort((a, b) => a - b).map(dayValue => (
-          <div key={dayValue} className="p-4">
-            <h4 className="p-4">
+          <div key={dayValue} className="border rounded-md p-3 bg-white shadow-sm">
+            <h4 className="text-sm font-semibold mb-2 text-gray-700">
               {weekDays.find(d => d.value === dayValue)?.label}
             </h4>
-            <div className="p-4">
-              <div className="p-4">
-                <Label htmlFor={`weekly-start-time-" + dayValue} className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor={`weekly-start-time-${dayValue}`} className="text-xs text-gray-600">
                   Entrada
                 </Label>
                 <Input
-                  id={"weekly-start-time-" + dayValue}
+                  id={`weekly-start-time-${dayValue}`}
                   type="time"
                   value={weeklySchedule[dayValue]?.startTime || '08:00'}
                   onChange={(e) => handleDayChange(dayValue, 'startTime', e.target.value)}
                   className="text-sm"
                 />
               </div>
-              <div className="p-4">
-                <Label htmlFor={"weekly-end-time-" + dayValue} className="p-4">
+              <div className="space-y-1">
+                <Label htmlFor={`weekly-end-time-${dayValue}`} className="text-xs text-gray-600">
                   Saída
                 </Label>
                 <Input
-                  id={"weekly-end-time-" + dayValue}
+                  id={`weekly-end-time-${dayValue}`}
                   type="time"
                   value={weeklySchedule[dayValue]?.endTime || '17:00'}
                   onChange={(e) => handleDayChange(dayValue, 'endTime', e.target.value)}
                   className="text-sm"
                 />
               </div>
-              <div className="p-4">
-                <Label htmlFor={"weekly-break-" + dayValue} className="p-4">
+              <div className="space-y-1">
+                <Label htmlFor={`weekly-break-${dayValue}`} className="text-xs text-gray-600">
                   Pausa (min)
                 </Label>
                 <Input
-                  id={"weekly-break-" + dayValue}
+                  id={`weekly-break-${dayValue}`}
                   type="number"
                   value={weeklySchedule[dayValue]?.breakDurationMinutes || 60}
                   onChange={(e) => handleDayChange(dayValue, 'breakDurationMinutes', e.target.value)}
@@ -181,12 +192,16 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
     </div>
   );
 }
+
+
 import { WorkScheduleErrorBoundary } from '@/components/WorkScheduleErrorBoundary';
+
 function WorkSchedulesContent() {
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
   // Template related states
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplate | null>(null);
@@ -207,6 +222,7 @@ function WorkSchedulesContent() {
     isActive: true,
     category: 'custom' as 'default' | 'custom'
   });
+
   // Updated formData with new states for weekly schedules
   const [formData, setFormData] = useState({
     userId: '',
@@ -224,8 +240,10 @@ function WorkSchedulesContent() {
     templateName: '', // Template name when saving as template
     templateDescription: '' // Template description when saving as template
   });
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Fetching all schedules
   const { data: schedulesData, isLoading: schedulesLoading, error: schedulesError } = useQuery({
     queryKey: ['/api/timecard/work-schedules'],
@@ -240,6 +258,7 @@ function WorkSchedulesContent() {
     retry: 3,
     retryDelay: 1000
   });
+
   // Fetching users/employees via the admin endpoint
   const { data: usersData, error: usersError } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
@@ -252,6 +271,7 @@ function WorkSchedulesContent() {
     retry: 3,
     retryDelay: 1000
   });
+
   // Fetching custom schedule types (templates)
   const { data: scheduleTemplatesData, error: templatesError, isLoading: templatesLoading } = useQuery<any, Error>({
     queryKey: ['/api/timecard/schedule-templates'],
@@ -264,6 +284,7 @@ function WorkSchedulesContent() {
     retry: 3,
     retryDelay: 1000
   });
+
   // Create schedule mutation
   const createScheduleMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -284,16 +305,17 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-CREATE-ERROR]:', error);
       toast({
-        title: 'Erro ao Criar Escala',
+        title: 'Erro ao criar escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },
   });
+
   // Update schedule mutation
   const updateScheduleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await apiRequest('PUT', /api/timecard/work-schedules/" + id, data);
+      const response = await apiRequest('PUT', `/api/timecard/work-schedules/${id}`, data);
       console.log('[SCHEDULE-UPDATE] Response:', response);
       return response;
     },
@@ -310,16 +332,17 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-UPDATE-ERROR]:', error);
       toast({
-        title: 'Erro ao Atualizar Escala',
+        title: 'Erro ao atualizar escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },
   });
+
   // Delete schedule mutation
   const deleteScheduleMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest('DELETE', /api/timecard/work-schedules/" + id);
+      return await apiRequest('DELETE', `/api/timecard/work-schedules/${id}`);
     },
     onSuccess: () => {
       toast({
@@ -330,12 +353,13 @@ function WorkSchedulesContent() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Excluir Escala',
+        title: 'Erro ao excluir escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },
   });
+
   // Create template mutation
   const createTemplateMutation = useMutation({
     mutationFn: async (templateData: Partial<ScheduleTemplate>) => {
@@ -356,16 +380,17 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-CREATE-ERROR]:', error);
       toast({
-        title: 'Erro ao Criar Template',
+        title: 'Erro ao criar template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },
   });
+
   // Update template mutation
   const updateTemplateMutation = useMutation({
     mutationFn: async (templateData: ScheduleTemplate) => {
-      const response = await apiRequest('PUT', /api/timecard/schedule-templates/" + templateData.id, templateData);
+      const response = await apiRequest('PUT', `/api/timecard/schedule-templates/${templateData.id}`, templateData);
       console.log('[TEMPLATE-UPDATE] Response:', response);
       return response;
     },
@@ -382,16 +407,17 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-UPDATE-ERROR]:', error);
       toast({
-        title: 'Erro ao Atualizar Template',
+        title: 'Erro ao atualizar template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },
   });
+
   // Delete template mutation
   const deleteTemplateMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', /api/timecard/schedule-templates/" + id);
+      const response = await apiRequest('DELETE', `/api/timecard/schedule-templates/${id}`);
       console.log('[TEMPLATE-DELETE] Response:', response);
       return response;
     },
@@ -406,16 +432,17 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-DELETE-ERROR]:', error);
       toast({
-        title: 'Erro ao Excluir Template',
+        title: 'Erro ao excluir template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },
   });
+
   // Assign template to user mutation
   const assignTemplateMutation = useMutation({
     mutationFn: async ({ userId, templateId }: { userId: string; templateId: string }) => {
-      const response = await apiRequest('POST', `/api/timecard/work-schedules/assign-template/" + templateId, { userId });
+      const response = await apiRequest('POST', `/api/timecard/work-schedules/assign-template/${templateId}`, { userId });
       console.log('[TEMPLATE-ASSIGN] Response:', response);
       return response;
     },
@@ -431,17 +458,20 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro ao Atribuir Template',
+        title: 'Erro ao atribuir template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
     },
   });
+
   // Safe data processing with proper type checking
   let schedules: WorkSchedule[] = [];
+
   console.log('[FRONTEND-DEBUG] Processing schedules data:', schedulesData);
   console.log('[FRONTEND-DEBUG] Data type:', typeof schedulesData);
   console.log('[FRONTEND-DEBUG] Is array:', Array.isArray(schedulesData));
+
   try {
     if (Array.isArray(schedulesData)) {
       console.log('[FRONTEND-DEBUG] Processing as direct array, length:', schedulesData.length);
@@ -529,13 +559,16 @@ function WorkSchedulesContent() {
     console.error('[QA-ERROR] Error processing schedules data:', error);
     schedules = [];
   }
+
   // Filter custom templates (excluding default ones like 5x2, 6x1, 12x36)
   const customTemplates = Array.isArray(scheduleTemplatesData?.templates)
     ? scheduleTemplatesData.templates.filter((t: ScheduleTemplate) => 
         !['5x2', '6x1', '12x36', '4x3', 'flexible', 'part-time'].includes(t.id)
       )
     : [];
+
   const users = Array.isArray(usersData) ? usersData : (usersData?.users || usersData?.members || []);
+
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
@@ -543,16 +576,20 @@ function WorkSchedulesContent() {
     console.log('Schedule templates data:', scheduleTemplatesData);
     console.log('Custom templates (excluding defaults):', customTemplates);
   }
+
   if (templatesError) {
     console.error('Templates fetch error:', templatesError);
   }
+
   if (usersError) {
     console.error('Users fetch error:', usersError);
   }
+
   // Add error state handling
   if (schedulesError) {
     console.error('[QA-DEBUG] Schedules fetch error:', schedulesError);
   }
+
   const resetForm = () => {
     setSelectedSchedule(null);
     setFormData({
@@ -572,6 +609,7 @@ function WorkSchedulesContent() {
       templateDescription: ''
     });
   };
+
   const resetTemplateForm = () => {
     setTemplateFormData({
       id: '',
@@ -590,8 +628,10 @@ function WorkSchedulesContent() {
       category: 'custom'
     });
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     // Validations
     if (!formData.userId) {
       toast({ title: 'Erro de validação', description: 'Selecione um funcionário.', variant: 'destructive' });
@@ -617,6 +657,7 @@ function WorkSchedulesContent() {
       toast({ title: 'Erro de validação', description: 'Nome do template é obrigatório quando salvar como template.', variant: 'destructive' });
       return;
     }
+
     // Prepare data for API
     const apiData = {
       userId: formData.userId,
@@ -634,12 +675,14 @@ function WorkSchedulesContent() {
             breakDurationMinutes: Math.max(0, Math.min(480, formData.breakDurationMinutes)), // Validate range
           }),
     };
+
     console.log('[QA-DEBUG] Submitting schedule data:', apiData);
+
     // If saving as template, create template first
     if (formData.saveAsTemplate && !selectedSchedule) {
       const templateData = {
         name: formData.templateName.trim(),
-        description: formData.templateDescription.trim() || "
+        description: formData.templateDescription.trim() || `Template baseado em escala ${formData.scheduleType}`,
         scheduleType: formData.scheduleType,
         category: 'custom',
         workDays: Array.from(new Set(formData.workDays)),
@@ -653,8 +696,10 @@ function WorkSchedulesContent() {
             }),
         isActive: true
       };
+
       createTemplateMutation.mutate(templateData);
     }
+
     if (selectedSchedule) {
       updateScheduleMutation.mutate({
         id: selectedSchedule.id,
@@ -664,18 +709,22 @@ function WorkSchedulesContent() {
       createScheduleMutation.mutate(apiData);
     }
   };
+
   const handleCreateOrUpdateTemplate = (e: React.FormEvent) => {
     e.preventDefault();
+
     // Basic validation for template name
     if (!templateFormData.name.trim()) {
       toast({ title: 'Erro de validação', description: 'O nome do template é obrigatório.', variant: 'destructive' });
       return;
     }
+
     // Validate work days
     if (!templateFormData.useWeeklySchedule && templateFormData.workDays.length === 0) {
       toast({ title: 'Erro de validação', description: 'Selecione pelo menos um dia da semana.', variant: 'destructive' });
       return;
     }
+
     // Validate time fields for non-weekly schedules
     if (!templateFormData.useWeeklySchedule) {
       if (!templateFormData.startTime || !templateFormData.endTime) {
@@ -687,6 +736,7 @@ function WorkSchedulesContent() {
         return;
       }
     }
+
     const templatePayload = {
       name: templateFormData.name.trim(),
       description: templateFormData.description?.trim() || '',
@@ -703,7 +753,9 @@ function WorkSchedulesContent() {
             breakDurationMinutes: Math.max(0, Math.min(480, templateFormData.breakDurationMinutes)),
           })
     };
+
     console.log('[FRONTEND-TEMPLATE] Submitting template:', templatePayload);
+
     if (selectedTemplate) {
       // Update existing template
       updateTemplateMutation.mutate({ ...selectedTemplate, ...templatePayload });
@@ -712,6 +764,7 @@ function WorkSchedulesContent() {
       createTemplateMutation.mutate(templatePayload);
     }
   };
+
   const handleEdit = (schedule: WorkSchedule) => {
     setSelectedSchedule(schedule);
     setFormData({
@@ -732,15 +785,18 @@ function WorkSchedulesContent() {
     });
     setIsDialogOpen(true);
   };
+
   const handleNew = () => {
     resetForm();
     setIsDialogOpen(true);
   };
+
   const handleNewTemplate = () => {
     resetTemplateForm();
     setSelectedTemplate(null);
     setIsTemplateDialogOpen(true);
   };
+
   const handleEditTemplate = (template: ScheduleTemplate) => {
     setSelectedTemplate(template);
     setTemplateFormData({
@@ -761,20 +817,24 @@ function WorkSchedulesContent() {
     });
     setIsTemplateDialogOpen(true);
   };
+
+
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta escala?')) {
       deleteScheduleMutation.mutate(id);
     }
   };
+
   const handleBulkAssign = async () => {
     if (selectedUsers.length === 0) {
       toast({
         title: 'Erro',
-        description: 'Selecione pelo menos um funcionário',
+        description: 'Selecione pelo menos um funcionário.',
         variant: 'destructive',
       });
       return;
     }
+
     if (!formData.startDate) {
       toast({
         title: 'Erro',
@@ -783,6 +843,7 @@ function WorkSchedulesContent() {
       });
       return;
     }
+
     const bulkScheduleData = {
       scheduleType: formData.scheduleType,
       startDate: formData.startDate,
@@ -798,19 +859,22 @@ function WorkSchedulesContent() {
             breakDurationMinutes: formData.breakDurationMinutes,
           }),
     };
+
     try {
       const response = await apiRequest('POST', '/api/timecard/work-schedules/bulk-assign', {
         userIds: selectedUsers,
         scheduleData: bulkScheduleData
       });
+
       if (response.ok) {
         await queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
         setBulkAssignOpen(false);
         setSelectedUsers([]);
         resetForm();
+
         toast({
-          title: 'Sucesso',
-          description: " funcionários.`,
+          title: 'Sucesso!',
+          description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
         });
       } else {
         throw new Error('Falha na atribuição em massa');
@@ -818,71 +882,80 @@ function WorkSchedulesContent() {
     } catch (error: any) {
       console.error('[BULK-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro na Atribuição em Lote',
-        description: error?.message || 'Erro Interno do Servidor',
+        title: 'Erro na atribuição em lote',
+        description: error?.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     }
   };
+
   const handleAssignTemplate = async () => {
     if (!selectedTemplate || selectedUsers.length === 0) {
       toast({ title: 'Erro', description: 'Selecione um template e pelo menos um funcionário.', variant: 'destructive' });
       return;
     }
+
     try {
       // Process each user assignment
       for (const userId of selectedUsers) {
         await assignTemplateMutation.mutateAsync({ userId, templateId: selectedTemplate.id });
       }
+
       // Close dialogs and reset selections
       setIsAssignDialogOpen(false);
       setSelectedUsers([]);
       setSelectedTemplate(null);
+
       toast({
         title: 'Templates atribuídos!',
-        description: " funcionários.`,
+        description: `Template "${selectedTemplate.name}" atribuído para ${selectedUsers.length} funcionários.`,
       });
     } catch (error: any) {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro ao Atribuir Template',
-        description: error?.message || 'Erro Interno do Servidor',
+        title: 'Erro ao atribuir template',
+        description: error?.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     }
   };
+
+
   const getWorkDaysText = (workDays: number[] | null | undefined) => {
     try {
       if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
       return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).filter(Boolean).join(', ');
     } catch (error) {
-      console.error('Error processing workdays:', error, workDays);
-      return 'Erro na Formatação';
+      console.error('Error processing workDays:', error, workDays);
+      return 'Erro na formatação';
     }
   };
+
   const getStatusBadge = (isActive: boolean) => {
     return isActive ? (
-      <Badge className="text-lg">"Ativa</Badge>
+      <Badge className="bg-green-500">Ativa</Badge>
     ) : (
       <Badge variant="secondary">Inativa</Badge>
     );
   };
+
   if (schedulesLoading || templatesLoading) {
     return (
       <div className="p-4">
-        <div className="p-4">
-          <div className="text-lg">"Carregando dados...</div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Carregando dados...</div>
         </div>
       </div>
     );
   }
+
   if (schedulesError) {
     return (
       <div className="p-4">
-        <div className="p-4">
-          <div className="p-4">
-            <div className="text-lg">"Erro ao carregar escalas</div>
-            <div className="text-lg">"{schedulesError.message}</div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-lg text-red-600 mb-2">Erro ao carregar escalas</div>
+            <div className="text-sm text-gray-600">{schedulesError.message}</div>
             <button
               onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
@@ -894,6 +967,7 @@ function WorkSchedulesContent() {
       </div>
     );
   }
+
   // Helper to get schedule details for display, handling weekly schedules
   const getScheduleDetails = (schedule: WorkSchedule) => {
     if (schedule.useWeeklySchedule && schedule.weeklySchedule) {
@@ -903,17 +977,18 @@ function WorkSchedulesContent() {
         .map(dayValue => weekDays.find(wd => wd.value === dayValue)?.label)
         .filter(Boolean)
         .join(', ');
-      return "
+      return `Horários variados por dia: ${days}`;
     } else {
-      return " min pausa)`;
+      return `${schedule.startTime} - ${schedule.endTime} (${schedule.breakDurationMinutes} min pausa)`;
     }
   };
+
   return (
-    <div className="p-4">
+    <div className="p-4 space-y-6">
       {/* Header Section */}
-      <div className="p-4">
-        <h1 className="text-lg">"Escalas de Trabalho</h1>
-        <div className="p-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Escalas de Trabalho</h1>
+        <div className="flex gap-2">
           <Button
             onClick={handleNewTemplate}
             variant="outline"
@@ -939,10 +1014,11 @@ function WorkSchedulesContent() {
           </Button>
         </div>
       </div>
+
       {/* Templates Management Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="p-4">
+          <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
             Templates de Escala Disponíveis
           </CardTitle>
@@ -952,21 +1028,21 @@ function WorkSchedulesContent() {
         </CardHeader>
         <CardContent>
           {templatesLoading ? (
-            <div className="p-4">
-              <div className="text-lg">"Carregando templates...</div>
+            <div className="flex justify-center items-center h-32">
+              <div className="text-gray-500">Carregando templates...</div>
             </div>
           ) : customTemplates.length === 0 ? (
-            <div className="p-4">
+            <div className="text-center py-8 text-gray-500">
               Nenhum template personalizado encontrado. Crie um novo template.
             </div>
           ) : (
-            <div className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {customTemplates.map((template) => (
-                <Card key={template.id} className="p-4">
-                  <CardHeader className="p-4">
-                    <div className="p-4">
-                      <CardTitle className="text-lg">"{template.name}</CardTitle>
-                      <div className="p-4">
+                <Card key={template.id} className="border-l-4 border-l-blue-500">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <div className="flex gap-1">
                         <Button
                           size="sm"
                           variant="outline"
@@ -994,13 +1070,13 @@ function WorkSchedulesContent() {
                       </div>
                     </div>
                     {template.description && (
-                      <CardDescription className="text-lg">"{template.description}</CardDescription>
+                      <CardDescription className="text-sm">{template.description}</CardDescription>
                     )}
                   </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="p-4">
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 text-sm">
                       <div><strong>Tipo:</strong> {template.scheduleType}</div>
-                      <div><strong>Horário:</strong> {template.startTime ? "
+                      <div><strong>Horário:</strong> {template.startTime ? `${template.startTime} - ${template.endTime}` : 'N/A'}</div>
                       <div><strong>Dias:</strong> {template.workDays?.length || 0} dias por semana</div>
                     </div>
                   </CardContent>
@@ -1010,9 +1086,10 @@ function WorkSchedulesContent() {
           )}
         </CardContent>
       </Card>
+
       {/* Dialog for creating/editing templates */}
       <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
-        <DialogContent className="p-4">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedTemplate ? 'Editar Template' : 'Novo Template de Escala'}</DialogTitle>
             <DialogDescription>
@@ -1020,7 +1097,7 @@ function WorkSchedulesContent() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateOrUpdateTemplate} className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto"  style={{ scrollbarWidth: 'thin' }}>
-            <div className="p-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="template-name">Nome do Template *</Label>
                 <Input
@@ -1041,7 +1118,8 @@ function WorkSchedulesContent() {
                 />
               </div>
             </div>
-            <div className="p-4">
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="template-scheduleType">Tipo de Escala</Label>
                 <Select
@@ -1061,8 +1139,9 @@ function WorkSchedulesContent() {
                 </Select>
               </div>
             </div>
+
             {/* Toggle for weekly schedule */}
-            <div className="p-4">
+            <div className="flex items-center space-x-2">
               <Switch
                 id="template-useWeeklySchedule"
                 checked={templateFormData.useWeeklySchedule}
@@ -1075,8 +1154,9 @@ function WorkSchedulesContent() {
               />
               <Label htmlFor="template-useWeeklySchedule">Horários diferentes por dia da semana</Label>
             </div>
+
             {templateFormData.useWeeklySchedule ? (
-              <div className="p-4">
+              <div className="max-h-96 overflow-y-auto border rounded-md p-4 bg-gray-50">
                 <WeeklyScheduleForm
                   weeklySchedule={templateFormData.weeklySchedule}
                   workDays={templateFormData.workDays}
@@ -1086,7 +1166,7 @@ function WorkSchedulesContent() {
               </div>
             ) : (
               <>
-                <div className="p-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="template-startTime">Horário de Entrada</Label>
                     <Input
@@ -1119,14 +1199,15 @@ function WorkSchedulesContent() {
                     max="480"
                   />
                 </div>
+
                 <div>
                   <Label>Dias da Semana</Label>
-                  <div className="p-4">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {weekDays.map((day) => (
                       <Button
                         key={day.value}
                         type="button"
-                        variant={templateFormData.workDays.includes(day.value) ? "default" : "outline"
+                        variant={templateFormData.workDays.includes(day.value) ? "default" : "outline"}
                         size="sm"
                         onClick={() => {
                           const newWorkDays = templateFormData.workDays.includes(day.value)
@@ -1142,7 +1223,8 @@ function WorkSchedulesContent() {
                 </div>
               </>
             )}
-            <div className="p-4">
+
+            <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setIsTemplateDialogOpen(false)}>
                 Cancelar
               </Button>
@@ -1156,17 +1238,18 @@ function WorkSchedulesContent() {
           </form>
         </DialogContent>
       </Dialog>
+
       {/* Dialog for bulk assignment */}
       <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
-        <DialogContent className="p-4">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Atribuição em Massa</DialogTitle>
             <DialogDescription>
               Configure uma escala e atribua para múltiplos funcionários de uma vez.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); handleBulkAssign(); }} className="p-4">
-            <div className="p-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleBulkAssign(); }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="bulk-scheduleType">Tipo de Escala</Label>
                 <Select
@@ -1196,7 +1279,8 @@ function WorkSchedulesContent() {
                 />
               </div>
             </div>
-            <div className="p-4">
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="bulk-startTime">Horário de Entrada</Label>
                 <Input
@@ -1218,13 +1302,14 @@ function WorkSchedulesContent() {
                 />
               </div>
             </div>
+
             <div>
               <Label>Funcionários</Label>
-              <div className="p-4">
+              <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
                 {users.map((user: User) => (
-                  <div key={user.id} className="p-4">
+                  <div key={user.id} className="flex items-center space-x-2 py-1">
                     <Checkbox
-                      id={"
+                      id={`bulk-${user.id}`}
                       checked={selectedUsers.includes(user.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
@@ -1234,14 +1319,15 @@ function WorkSchedulesContent() {
                         }
                       }}
                     />
-                    <Label htmlFor={"
+                    <Label htmlFor={`bulk-${user.id}`} className="cursor-pointer">
                       {user.firstName} {user.lastName} ({user.role || 'Funcionário'})
                     </Label>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="p-4">
+
+            <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setBulkAssignOpen(false)}>
                 Cancelar
               </Button>
@@ -1252,21 +1338,22 @@ function WorkSchedulesContent() {
           </form>
         </DialogContent>
       </Dialog>
+
       {/* Dialog for assigning template to users */}
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent className="p-4">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Atribuir Template a Funcionários</DialogTitle>
             <DialogDescription>
               Selecione os funcionários para os quais o template "{selectedTemplate?.name}" será atribuído.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-4">
+          <div className="space-y-4">
             <div>
               <Label>Funcionários</Label>
-              <div className="p-4">
+              <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
                 {users.map((user: User) => (
-                  <div key={user.id} className="p-4">
+                  <div key={user.id} className="flex items-center space-x-2 py-1">
                     <Checkbox
                       id={user.id}
                       checked={selectedUsers.includes(user.id)}
@@ -1278,14 +1365,15 @@ function WorkSchedulesContent() {
                         }
                       }}
                     />
-                    <Label htmlFor={user.id} className="p-4">
+                    <Label htmlFor={user.id} className="cursor-pointer">
                       {user.firstName} {user.lastName} ({user.role || 'Funcionário'})
                     </Label>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="p-4">
+
+            <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
                 Cancelar
               </Button>
@@ -1296,62 +1384,67 @@ function WorkSchedulesContent() {
           </div>
         </DialogContent>
       </Dialog>
+
       {/* Main schedules list */}
-      <div className="p-4">
+      <div className="grid gap-4">
         {schedules.length > 0 ? (
           schedules.map((schedule: WorkSchedule) => (
-            <Card key={schedule.id} className="p-4">
-              <CardContent className="p-4">
-                <div className="p-4">
-                  <div className="p-4">
+            <Card key={schedule.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 space-y-3">
                     {/* Header with name and badges */}
-                    <div className="p-4">
-                      <div className="p-4">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-blue-600" />
-                        <h3 className="text-lg">"{schedule.userName || 'Usuário Não Identificado'}</h3>
+                        <h3 className="font-semibold text-lg">{schedule.userName || 'Usuário Não Identificado'}</h3>
                       </div>
                       {getStatusBadge(schedule.isActive)}
-                      <Badge variant="outline" className="p-4">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                         {scheduleTypeLabels[schedule.scheduleType] || schedule.scheduleType}
                       </Badge>
                     </div>
+
                     {/* Main information organized */}
-                    <div className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       {/* Schedule Type Details */}
-                      <div className="p-4">
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                         <Clock className="h-4 w-4 text-gray-600" />
                         <div>
-                          <div className="text-lg">"Jornada</div>
-                          <div className="text-lg">"{getScheduleDetails(schedule)}</div>
+                          <div className="text-xs text-gray-500">Jornada</div>
+                          <div className="font-medium">{getScheduleDetails(schedule)}</div>
                         </div>
                       </div>
+
                       {/* Work Days */}
-                      <div className="p-4">
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                         <Calendar className="h-4 w-4 text-gray-600" />
                         <div>
-                          <div className="text-lg">"Dias da Semana</div>
-                          <div className="p-4">
+                          <div className="text-xs text-gray-500">Dias da Semana</div>
+                          <div className="font-medium text-sm">
                             {schedule.useWeeklySchedule ? getWorkDaysText(Object.keys(schedule.weeklySchedule || {}).map(Number)) : getWorkDaysText(schedule.workDays)}
                           </div>
                         </div>
                       </div>
+
                       {/* Start Date */}
-                      <div className="p-4">
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                         <Calendar className="h-4 w-4 text-gray-600" />
                         <div>
-                          <div className="text-lg">"Data de Início</div>
-                          <div className="p-4">
+                          <div className="text-xs text-gray-500">Data de Início</div>
+                          <div className="font-medium">
                             {schedule.startDate ? format(new Date(schedule.startDate), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}
                           </div>
                         </div>
                       </div>
+
                       {/* End Date */}
                       {schedule.endDate && (
-                        <div className="p-4">
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                           <Calendar className="h-4 w-4 text-gray-600" />
                           <div>
-                            <div className="text-lg">"Data de Fim</div>
-                            <div className="p-4">
+                            <div className="text-xs text-gray-500">Data de Fim</div>
+                            <div className="font-medium">
                               {format(new Date(schedule.endDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </div>
                           </div>
@@ -1359,8 +1452,9 @@ function WorkSchedulesContent() {
                       )}
                     </div>
                   </div>
+
                   {/* Action buttons */}
-                  <div className="p-4">
+                  <div className="flex gap-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -1385,10 +1479,10 @@ function WorkSchedulesContent() {
           ))
         ) : (
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-12 text-center">
               <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg">"Nenhuma escala configurada</h3>
-              <p className="p-4">
+              <h3 className="text-lg font-medium mb-2">Nenhuma escala configurada</h3>
+              <p className="text-gray-600 mb-4">
                 Configure escalas de trabalho para gerenciar jornadas dos funcionários
               </p>
               <Button onClick={handleNew}>
@@ -1402,6 +1496,7 @@ function WorkSchedulesContent() {
     </div>
   );
 }
+
 export default function WorkSchedules() {
   return (
     <WorkScheduleErrorBoundary>

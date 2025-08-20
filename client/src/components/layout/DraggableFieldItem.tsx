@@ -25,6 +25,7 @@ import {
   GripVertical,
   X
 } from 'lucide-react';
+
 interface DraggableFieldItemProps {
   field: {
     id: string;
@@ -36,6 +37,7 @@ interface DraggableFieldItemProps {
   isDropped?: boolean;
   onRemove?: () => void;
 }
+
 const getIconComponent = (iconName: string) => {
   const icons = {
     Type,
@@ -60,6 +62,7 @@ const getIconComponent = (iconName: string) => {
   
   return icons[iconName as keyof typeof icons] || Type;
 };
+
 const getFieldTypeColor = (type: string) => {
   const colors = {
     text: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -84,6 +87,7 @@ const getFieldTypeColor = (type: string) => {
   
   return colors[type as keyof typeof colors] || 'bg-gray-50 text-gray-700 border-gray-200';
 };
+
 export function DraggableFieldItem({ field, isDragging, isDropped = false, onRemove }: DraggableFieldItemProps) {
   const {
     attributes,
@@ -95,11 +99,14 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
     id: field.id,
     disabled: isDropped
   });
+
   const IconComponent = getIconComponent(field.icon);
   const colorClass = getFieldTypeColor(field.type);
+
   const style = transform ? {
-    transform: "px, 0)`,
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined;
+
   const baseCardClass = `
     relative cursor-pointer border transition-all duration-200
     ${colorClass}
@@ -107,6 +114,7 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
     ${isDraggedOver ? 'ring-2 ring-blue-500' : ''}
     ${isDropped ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}
   `;
+
   return (
     <Card
       ref={setNodeRef}
@@ -115,18 +123,18 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
       {...(isDropped ? {} : listeners)}
       {...attributes}
     >
-      <div className="p-3>
-        <div className="flex items-center justify-between>
-          <div className="flex items-center gap-2 flex-1>
+      <div className="p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1">
             {!isDropped && (
               <GripVertical className="h-4 w-4 text-gray-400" />
             )}
             <IconComponent className="h-4 w-4" />
-            <div className="flex-1 min-w-0>
-              <p className="text-sm font-medium truncate>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">
                 {field.label}
               </p>
-              <p className="text-xs opacity-75>
+              <p className="text-xs opacity-75">
                 {field.type}
               </p>
             </div>
@@ -143,8 +151,9 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
             </Button>
           )}
         </div>
+
         {/* Field Type Badge */}
-        <div className="mt-2>
+        <div className="mt-2">
           <Badge 
             variant="outline" 
             className="text-xs"
@@ -153,13 +162,15 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
           </Badge>
         </div>
       </div>
+
       {/* Drag Indicator */}
       {!isDropped && (
-        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity>
-          <div className="text-lg">"</div>
+        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="w-2 h-2 bg-current rounded-full"></div>
         </div>
       )}
     </Card>
   );
 }
+
 export default DraggableFieldItem;

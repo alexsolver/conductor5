@@ -1,5 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Plus, Target } from "lucide-react";
+
 interface DropZoneProps {
   id: string;
   children?: React.ReactNode;
@@ -7,6 +8,7 @@ interface DropZoneProps {
   className?: string;
   showIndicator?: boolean;
 }
+
 export default function DropZone({ 
   id, 
   children, 
@@ -21,6 +23,7 @@ export default function DropZone({
       accepts: ['field']
     }
   });
+
   return (
     <div
       ref={setNodeRef}
@@ -31,19 +34,19 @@ export default function DropZone({
           : 'border-gray-300 hover:border-gray-400'
         }
         ${className}
-      "
+      `}
     >
       {children ? (
-        <div className="p-4>
+        <div className="p-4">
           {children}
         </div>
       ) : (
         showIndicator && (
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center>
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className={`
               p-4 rounded-full mb-3 transition-colors
               ${isOver ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}
-            >
+            `}>
               {isOver ? (
                 <Target className="w-8 h-8" />
               ) : (
@@ -53,10 +56,10 @@ export default function DropZone({
             <p className={`
               font-medium transition-colors
               ${isOver ? 'text-blue-600' : 'text-gray-500'}
-            >
+            `}>
               {isOver ? 'Solte o campo aqui' : label}
             </p>
-            <p className="text-xs text-gray-400 mt-1>
+            <p className="text-xs text-gray-400 mt-1">
               Arraste campos da paleta para esta área
             </p>
           </div>

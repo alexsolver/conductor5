@@ -1,6 +1,8 @@
+
 /**
  * Editor de CSS personalizado para campos do template builder
  */
+
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
 import { Button } from '../../ui/button'
@@ -12,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 import { Badge } from '../../ui/badge'
 import { Slider } from '../../ui/slider'
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Palette, 
   Type, 
   Layout, 
@@ -24,6 +25,7 @@ import {
   Undo,
   Download
 } from 'lucide-react'
+
 interface CSSStyles {
   // Layout
   display?: string
@@ -63,13 +65,14 @@ interface CSSStyles {
   // Custom CSS
   customCSS?: string
 }
+
 interface CSSStyleEditorProps {
   field: any
   onUpdate: (styles: CSSStyles) => void
   onClose: () => void
 }
+
 export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
-  // Localization temporarily disabled
   field,
   onUpdate,
   onClose
@@ -77,6 +80,7 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
   const [styles, setStyles] = useState<CSSStyles>(field.styling || {})
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [customCSS, setCustomCSS] = useState(styles.customCSS || '')
+
   // Predefined style presets
   const stylePresets = {
     modern: {
@@ -111,6 +115,7 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
       fontSize: '14px'
     }
   }
+
   // Color palette
   const colorPalette = [
     '#000000', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f3f4f6', '#ffffff',
@@ -118,12 +123,14 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
     '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
     '#d946ef', '#ec4899', '#f43f5e'
   ]
+
   // Update styles
   const updateStyle = (property: keyof CSSStyles, value: string) => {
     const newStyles = { ...styles, [property]: value }
     setStyles(newStyles)
     onUpdate(newStyles)
   }
+
   // Apply preset
   const applyPreset = (presetName: keyof typeof stylePresets) => {
     const preset = stylePresets[presetName]
@@ -131,6 +138,7 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
     setStyles(newStyles)
     onUpdate(newStyles)
   }
+
   // Generate CSS string
   const generateCSS = () => {
     const cssRules: string[] = []
@@ -138,27 +146,31 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
     Object.entries(styles).forEach(([property, value]) => {
       if (value && property !== 'customCSS') {
         const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase()
-        cssRules.push(";`)
+        cssRules.push(`  ${cssProperty}: ${value};`)
       }
     })
+
     if (customCSS) {
-      cssRules.push("
+      cssRules.push(`  ${customCSS}`)
     }
-    return "\n"
+
+    return `.field-${field.id} {\n${cssRules.join('\n')}\n}`
   }
+
   // Copy CSS to clipboard
   const copyCSSToClipboard = () => {
     navigator.clipboard.writeText(generateCSS())
   }
+
   return (
-    <div className="h-full flex flex-col bg-white border-l>
+    <div className="h-full flex flex-col bg-white border-l">
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between>
-        <div className="flex items-center gap-2>
+      <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <Palette className="w-5 h-5 text-purple-600" />
-          <h3 className="text-lg">"Editor de CSS</h3>
+          <h3 className="font-semibold">Editor de CSS</h3>
         </div>
-        <div className="flex items-center gap-2>
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={copyCSSToClipboard}>
             <Copy className="w-4 h-4" />
           </Button>
@@ -167,21 +179,23 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
           </Button>
         </div>
       </div>
+
       {/* Content */}
-      <div className="flex-1 overflow-y-auto>
-        <Tabs defaultValue="visual" className="h-full>
-          <TabsList className="grid w-full grid-cols-4>
+      <div className="flex-1 overflow-y-auto">
+        <Tabs defaultValue="visual" className="h-full">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="visual">Visual</TabsTrigger>
             <TabsTrigger value="layout">Layout</TabsTrigger>
             <TabsTrigger value="code">Código</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
           </TabsList>
+
           {/* Visual Editor */}
-          <TabsContent value="visual" className="p-4 space-y-4>
+          <TabsContent value="visual" className="p-4 space-y-4">
             {/* Style Presets */}
             <div>
-              <Label className="text-lg">"Estilos Predefinidos</Label>
-              <div className="grid grid-cols-2 gap-2>
+              <Label className="text-sm font-medium mb-3 block">Estilos Predefinidos</Label>
+              <div className="grid grid-cols-2 gap-2">
                 {Object.entries(stylePresets).map(([name, preset]) => (
                   <Button
                     key={name}
@@ -189,7 +203,7 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     className="h-auto p-3 flex flex-col items-start gap-1"
                     onClick={() => applyPreset(name as keyof typeof stylePresets)}
                   >
-                    <span className="text-lg">"{name}</span>
+                    <span className="text-sm font-medium capitalize">{name}</span>
                     <div 
                       className="w-full h-6 rounded border"
                       style={preset}
@@ -198,14 +212,15 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                 ))}
               </div>
             </div>
+
             {/* Colors */}
             <div>
-              <Label className="text-lg">"Cores</Label>
+              <Label className="text-sm font-medium mb-3 block">Cores</Label>
               
-              <div className="space-y-3>
+              <div className="space-y-3">
                 <div>
-                  <Label className="text-lg">"Cor do Texto</Label>
-                  <div className="flex items-center gap-2>
+                  <Label className="text-xs">Cor do Texto</Label>
+                  <div className="flex items-center gap-2">
                     <Input
                       type="color"
                       value={styles.color || '#000000'}
@@ -220,9 +235,10 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     />
                   </div>
                 </div>
+
                 <div>
-                  <Label className="text-lg">"Cor de Fundo</Label>
-                  <div className="flex items-center gap-2>
+                  <Label className="text-xs">Cor de Fundo</Label>
+                  <div className="flex items-center gap-2">
                     <Input
                       type="color"
                       value={styles.backgroundColor || '#ffffff'}
@@ -238,7 +254,8 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-7 gap-1 mt-3>
+
+              <div className="grid grid-cols-7 gap-1 mt-3">
                 {colorPalette.map((color) => (
                   <button
                     key={color}
@@ -249,13 +266,14 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                 ))}
               </div>
             </div>
+
             {/* Typography */}
             <div>
-              <Label className="text-lg">"Tipografia</Label>
+              <Label className="text-sm font-medium mb-3 block">Tipografia</Label>
               
-              <div className="grid grid-cols-2 gap-3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-lg">"Tamanho da Fonte</Label>
+                  <Label className="text-xs">Tamanho da Fonte</Label>
                   <Select
                     value={styles.fontSize || '14px'}
                     onValueChange={(value) => updateStyle('fontSize', value)}
@@ -273,8 +291,9 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
-                  <Label className="text-lg">"Peso da Fonte</Label>
+                  <Label className="text-xs">Peso da Fonte</Label>
                   <Select
                     value={styles.fontWeight || 'normal'}
                     onValueChange={(value) => updateStyle('fontWeight', value)}
@@ -291,8 +310,9 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="col-span-2>
-                  <Label className="text-lg">"Alinhamento</Label>
+
+                <div className="col-span-2">
+                  <Label className="text-xs">Alinhamento</Label>
                   <Select
                     value={styles.textAlign || 'left'}
                     onValueChange={(value) => updateStyle('textAlign', value)}
@@ -310,13 +330,14 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                 </div>
               </div>
             </div>
+
             {/* Border & Radius */}
             <div>
-              <Label className="text-lg">"Bordas</Label>
+              <Label className="text-sm font-medium mb-3 block">Bordas</Label>
               
-              <div className="grid grid-cols-2 gap-3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-lg">"Espessura da Borda</Label>
+                  <Label className="text-xs">Espessura da Borda</Label>
                   <Select
                     value={styles.borderWidth || '1px'}
                     onValueChange={(value) => updateStyle('borderWidth', value)}
@@ -333,9 +354,10 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
-                  <Label className="text-lg">"Cor da Borda</Label>
-                  <div className="flex items-center gap-2>
+                  <Label className="text-xs">Cor da Borda</Label>
+                  <div className="flex items-center gap-2">
                     <Input
                       type="color"
                       value={styles.borderColor || '#d1d5db'}
@@ -350,28 +372,30 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     />
                   </div>
                 </div>
-                <div className="col-span-2>
-                  <Label className="text-lg">"Raio da Borda</Label>
-                  <div className="flex items-center gap-3>
+
+                <div className="col-span-2">
+                  <Label className="text-xs">Raio da Borda</Label>
+                  <div className="flex items-center gap-3">
                     <Slider
                       value={[parseInt(styles.borderRadius?.replace('px', '') || '0')]}
-                      onValueChange={([value]) => updateStyle('borderRadius', "px`)}
+                      onValueChange={([value]) => updateStyle('borderRadius', `${value}px`)}
                       max={20}
                       step={1}
                       className="flex-1"
                     />
-                    <span className="text-lg">"{styles.borderRadius || '0px'}</span>
+                    <span className="text-xs w-8">{styles.borderRadius || '0px'}</span>
                   </div>
                 </div>
               </div>
             </div>
+
             {/* Effects */}
             <div>
-              <Label className="text-lg">"Efeitos</Label>
+              <Label className="text-sm font-medium mb-3 block">Efeitos</Label>
               
-              <div className="space-y-3>
+              <div className="space-y-3">
                 <div>
-                  <Label className="text-lg">"Sombra</Label>
+                  <Label className="text-xs">Sombra</Label>
                   <Select
                     value={styles.boxShadow || 'none'}
                     onValueChange={(value) => updateStyle('boxShadow', value)}
@@ -388,8 +412,9 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
-                  <Label className="text-lg">"Transição</Label>
+                  <Label className="text-xs">Transição</Label>
                   <Select
                     value={styles.transition || 'none'}
                     onValueChange={(value) => updateStyle('transition', value)}
@@ -408,22 +433,24 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
               </div>
             </div>
           </TabsContent>
+
           {/* Layout Editor */}
-          <TabsContent value="layout" className="p-4 space-y-4>
+          <TabsContent value="layout" className="p-4 space-y-4">
             <div>
-              <Label className="text-lg">"Dimensões</Label>
+              <Label className="text-sm font-medium mb-3 block">Dimensões</Label>
               
-              <div className="grid grid-cols-2 gap-3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-lg">"Largura</Label>
+                  <Label className="text-xs">Largura</Label>
                   <Input
                     value={styles.width || ''}
                     onChange={(e) => updateStyle('width', e.target.value)}
                     placeholder="auto, 100%, 200px"
                   />
                 </div>
+
                 <div>
-                  <Label className="text-lg">"Altura</Label>
+                  <Label className="text-xs">Altura</Label>
                   <Input
                     value={styles.height || ''}
                     onChange={(e) => updateStyle('height', e.target.value)}
@@ -432,20 +459,22 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                 </div>
               </div>
             </div>
+
             <div>
-              <Label className="text-lg">"Espaçamento</Label>
+              <Label className="text-sm font-medium mb-3 block">Espaçamento</Label>
               
-              <div className="grid grid-cols-2 gap-3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-lg">"Margem</Label>
+                  <Label className="text-xs">Margem</Label>
                   <Input
                     value={styles.margin || ''}
                     onChange={(e) => updateStyle('margin', e.target.value)}
                     placeholder="10px, 10px 20px"
                   />
                 </div>
+
                 <div>
-                  <Label className="text-lg">"Preenchimento</Label>
+                  <Label className="text-xs">Preenchimento</Label>
                   <Input
                     value={styles.padding || ''}
                     onChange={(e) => updateStyle('padding', e.target.value)}
@@ -454,12 +483,13 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                 </div>
               </div>
             </div>
+
             <div>
-              <Label className="text-lg">"Posicionamento</Label>
+              <Label className="text-sm font-medium mb-3 block">Posicionamento</Label>
               
-              <div className="grid grid-cols-2 gap-3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-lg">"Display</Label>
+                  <Label className="text-xs">Display</Label>
                   <Select
                     value={styles.display || 'block'}
                     onValueChange={(value) => updateStyle('display', value)}
@@ -477,8 +507,9 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
-                  <Label className="text-lg">"Position</Label>
+                  <Label className="text-xs">Position</Label>
                   <Select
                     value={styles.position || 'static'}
                     onValueChange={(value) => updateStyle('position', value)}
@@ -498,10 +529,11 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
               </div>
             </div>
           </TabsContent>
+
           {/* Code Editor */}
-          <TabsContent value="code" className="p-4 space-y-4>
+          <TabsContent value="code" className="p-4 space-y-4">
             <div>
-              <Label className="text-lg">"CSS Personalizado</Label>
+              <Label className="text-sm font-medium mb-3 block">CSS Personalizado</Label>
               <Textarea
                 value={customCSS}
                 onChange={(e) => {
@@ -515,21 +547,23 @@ hover:transform: scale(1.05);"
                 className="font-mono text-sm"
               />
             </div>
+
             <div>
-              <Label className="text-lg">"CSS Gerado</Label>
-              <div className="bg-gray-50 p-3 rounded border>
-                <pre className="text-xs text-gray-700 whitespace-pre-wrap>
+              <Label className="text-sm font-medium mb-3 block">CSS Gerado</Label>
+              <div className="bg-gray-50 p-3 rounded border">
+                <pre className="text-xs text-gray-700 whitespace-pre-wrap">
                   {generateCSS()}
                 </pre>
               </div>
             </div>
           </TabsContent>
+
           {/* Preview */}
-          <TabsContent value="preview" className="p-4 space-y-4>
-            <div className="flex items-center justify-between mb-4>
-              <Label className="text-lg">"Preview do Campo</Label>
+          <TabsContent value="preview" className="p-4 space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <Label className="text-sm font-medium">Preview do Campo</Label>
               
-              <div className="flex items-center gap-2>
+              <div className="flex items-center gap-2">
                 {['desktop', 'tablet', 'mobile'].map((mode) => (
                   <Button
                     key={mode}
@@ -542,17 +576,18 @@ hover:transform: scale(1.05);"
                 ))}
               </div>
             </div>
-            <Card className="p-4>
+
+            <Card className="p-4">
               <div 
                 className={`transition-all duration-300 ${
                   previewMode === 'mobile' ? 'max-w-sm mx-auto' :
                   previewMode === 'tablet' ? 'max-w-md mx-auto' :
                   'max-w-full'
-                "
+                }`}
               >
-                <Label className="text-sm font-medium mb-2 block>
+                <Label className="text-sm font-medium mb-2 block">
                   {field.label}
-                  {field.isRequired && <span className="text-lg">"*</span>}
+                  {field.isRequired && <span className="text-red-500 ml-1">*</span>}
                 </Label>
                 
                 <div style={styles}>
@@ -565,7 +600,7 @@ hover:transform: scale(1.05);"
                   {field.type === 'select' && (
                     <Select>
                       <SelectTrigger>
-                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                        <SelectValue placeholder="Selecione uma opção" />
                       </SelectTrigger>
                     </Select>
                   )}
@@ -575,9 +610,10 @@ hover:transform: scale(1.05);"
           </TabsContent>
         </Tabs>
       </div>
+
       {/* Footer */}
-      <div className="p-4 border-t flex gap-2>
-        <Button onClick={() => onUpdate(styles)} className="flex-1>
+      <div className="p-4 border-t flex gap-2">
+        <Button onClick={() => onUpdate(styles)} className="flex-1">
           Aplicar Estilos
         </Button>
         <Button variant="outline" onClick={onClose}>
@@ -587,4 +623,5 @@ hover:transform: scale(1.05);"
     </div>
   )
 }
+
 export default CSSStyleEditor

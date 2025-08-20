@@ -1,9 +1,12 @@
 import * as React from "react"
 import { useTranslation } from 'react-i18next'
+
 import { cn } from "@/lib/utils"
+
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
   const { t } = useTranslation();
+
     return (
       <input
         type={type}
@@ -18,4 +21,5 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   }
 )
 Input.displayName = "Input"
+
 export { Input }

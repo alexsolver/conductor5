@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import L from 'leaflet';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 // Fix for default markers in React Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,6 +13,7 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
+
 interface LeafletMapSelectorProps {
   initialLat: number;
   initialLng: number;
@@ -27,16 +28,16 @@ interface LeafletMapSelectorProps {
   };
   onLocationSelect: (lat: number, lng: number) => void;
 }
+
 interface SearchResult {
   display_name: string;
   lat: string;
   lon: string;
   boundingbox: [string, string, string, string];
 }
+
 // Component to handle map clicks
-function MapClickHandler({
-  // Localization temporarily disabled
- onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
+function MapClickHandler({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
   useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
@@ -45,6 +46,7 @@ function MapClickHandler({
   });
   return null;
 }
+
 // Component to control map programmatically
 function MapController({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
@@ -55,6 +57,7 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
   
   return null;
 }
+
 export default function LeafletMapSelector({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapSelectorProps) {
   const [selectedLat, setSelectedLat] = useState(initialLat);
   const [selectedLng, setSelectedLng] = useState(initialLng);
@@ -65,6 +68,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
   const [searchResult, setSearchResult] = useState<string>('');
   const mapRef = useRef<L.Map | null>(null);
   const { toast } = useToast();
+
   // Initialize search query with address data
   useEffect(() => {
     if (addressData) {
@@ -81,6 +85,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       }
     }
   }, [addressData]);
+
   const handleLocationSelect = (lat: number, lng: number) => {
     setSelectedLat(lat);
     setSelectedLng(lng);
@@ -88,6 +93,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
     setZoomLevel(16); // Zoom closer when location is selected
     onLocationSelect(lat, lng);
   };
+
   const searchLocation = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -97,13 +103,14 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       });
       return;
     }
+
     setIsSearching(true);
     try {
       // Search using Nominatim API
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       
-      const searchUrl = "&limit=5&countrycodes=br&addressdetails=1`;
+      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=br&addressdetails=1`;
       
       const response = await fetch(searchUrl, {
         signal: controller.signal,
@@ -117,8 +124,9 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error("
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
       const results: SearchResult[] = await response.json();
       
       if (results.length > 0) {
@@ -145,7 +153,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         });
       }
     } catch (error: any) {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Erro na busca:', error);
       
       if (error.name === 'AbortError') {
         toast({
@@ -155,7 +163,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         });
       } else {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Erro na busca",
           description: "Não foi possível buscar o endereço. Verifique sua conexão.",
           variant: "destructive"
         });
@@ -164,6 +172,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       setIsSearching(false);
     }
   };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
@@ -173,6 +182,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       });
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
@@ -183,13 +193,13 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         
         toast({
           title: "Localização atual",
-          description: "
+          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
         });
       },
       (error) => {
-        console.error('[TRANSLATION_NEEDED]', error.message || error);
+        console.error('Erro na geolocalização:', error.message || error);
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "Erro na geolocalização",
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
@@ -201,17 +211,19 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       }
     );
   };
+
   const resetView = () => {
     setMapCenter([-15.7942, -47.8825]); // Brasília center
     setZoomLevel(6);
     setSearchResult('');
     setSearchQuery('');
   };
+
   return (
-    <div className="w-full space-y-4>
+    <div className="w-full space-y-4">
       {/* Search Controls */}
-      <div className="flex gap-2>
-        <div className="flex-1>
+      <div className="flex gap-2">
+        <div className="flex-1">
           <Input
             placeholder="Digite um endereço completo..."
             value={searchQuery}
@@ -252,6 +264,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
           Reset
         </Button>
       </div>
+
       {/* Map Container */}
       <div className="relative border rounded-lg overflow-hidden" style={{ height: '400px' }}>
         <MapContainer
@@ -270,14 +283,14 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
           
           <Marker position={[selectedLat, selectedLng]}>
             <Popup>
-              <div className="text-center>
-                <p className="text-lg">"Localização Selecionada</p>
-                <p className="text-sm text-gray-600>
+              <div className="text-center">
+                <p className="font-medium">Localização Selecionada</p>
+                <p className="text-sm text-gray-600">
                   Lat: {selectedLat.toFixed(6)}<br />
                   Lng: {selectedLng.toFixed(6)}
                 </p>
                 {searchResult && (
-                  <p className="text-lg">"{searchResult}</p>
+                  <p className="text-sm text-gray-500 mt-1">{searchResult}</p>
                 )}
               </div>
             </Popup>
@@ -285,7 +298,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         </MapContainer>
         
         {/* Map Controls Overlay */}
-        <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2>
+        <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
           <Button
             type="button"
             variant="outline"
@@ -306,27 +319,28 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
           </Button>
         </div>
       </div>
+
       {/* Location Info */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4>
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2>
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Localização Selecionada
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Latitude: {selectedLat.toFixed(6)} | Longitude: {selectedLng.toFixed(6)}
         </p>
         {searchResult && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1>
-            <span className="text-lg">"Encontrado:</span> {String(searchResult)}
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <span className="font-medium">Encontrado:</span> {String(searchResult)}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-2>
-          <span className="text-lg">"Zoom: {zoomLevel}</span>
-          <span className="text-lg">"|</span>
-          <span className="text-xs text-gray-500>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-xs text-gray-500">Zoom: {zoomLevel}</span>
+          <span className="text-xs text-gray-500">|</span>
+          <span className="text-xs text-gray-500">
             Centro: {mapCenter[0].toFixed(2)}, {mapCenter[1].toFixed(2)}
           </span>
         </div>
-        <p className="text-xs text-gray-500 mt-1>
+        <p className="text-xs text-gray-500 mt-1">
           💡 Clique no mapa para selecionar uma localização ou use a busca acima
         </p>
       </div>

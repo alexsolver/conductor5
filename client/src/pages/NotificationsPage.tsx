@@ -14,7 +14,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   Bell, 
   AlertTriangle, 
   CheckCircle, 
@@ -30,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+
 // Types
 interface Notification {
   id: string;
@@ -51,6 +51,7 @@ interface Notification {
   canBeSent: boolean;
   requiresEscalation: boolean;
 }
+
 interface NotificationStats {
   overview: {
     total: number;
@@ -70,9 +71,9 @@ interface NotificationStats {
     lastMonth: number;
   };
 }
+
 // Form schemas
 const createNotificationSchema = z.object({
-  // Localization temporarily disabled
   type: z.string().min(1, 'Type is required'),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
   title: z.string().min(1, 'Title is required').max(500, 'Title too long'),
@@ -84,7 +85,9 @@ const createNotificationSchema = z.object({
   relatedEntityType: z.string().optional(),
   relatedEntityId: z.string().optional()
 });
+
 type CreateNotificationForm = z.infer<typeof createNotificationSchema>;
+
 // Severity color mapping
 const severityColors = {
   low: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -92,6 +95,7 @@ const severityColors = {
   high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
   critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
 };
+
 // Status color mapping
 const statusColors = {
   pending: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
@@ -100,6 +104,7 @@ const statusColors = {
   failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
   expired: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
 };
+
 export default function NotificationsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -111,6 +116,7 @@ export default function NotificationsPage() {
     page: 1
   });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   // Form
   const form = useForm<CreateNotificationForm>({
     resolver: zodResolver(createNotificationSchema),
@@ -120,6 +126,7 @@ export default function NotificationsPage() {
       type: 'system_maintenance'
     }
   });
+
   // Queries
   const { data: notifications, isLoading: notificationsLoading, refetch: refetchNotifications } = useQuery({
     queryKey: ['/api/notifications', filters],
@@ -130,9 +137,9 @@ export default function NotificationsPage() {
         ...(filters.severity && filters.severity !== 'all' && { severity: filters.severity }),
         page: filters.page.toString(),
         pageSize: '50'
-      }).toString()", {
+      }).toString()}`, {
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -140,12 +147,13 @@ export default function NotificationsPage() {
       return response.json();
     },
   });
+
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/notifications/stats'],
     queryFn: async () => {
       const response = await fetch('/api/notifications/stats', {
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -153,13 +161,14 @@ export default function NotificationsPage() {
       return response.json();
     },
   });
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: async (data: CreateNotificationForm) => {
       const response = await fetch('/api/notifications', {
         method: 'POST',
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         },
@@ -169,7 +178,7 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: 'Success',
         description: 'Notification created successfully'
       });
       setIsCreateOpen(false);
@@ -178,18 +187,19 @@ export default function NotificationsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: 'Error',
         description: error.message || 'Failed to create notification',
         variant: 'destructive'
       });
     }
   });
+
   const processMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch('/api/notifications/process', {
         method: 'POST',
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -198,25 +208,26 @@ export default function NotificationsPage() {
     },
     onSuccess: (data: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: "
+        title: 'Processing Complete',
+        description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0}`
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: 'Error',
         description: error.message || 'Failed to process notifications',
         variant: 'destructive'
       });
     }
   });
+
   const markAsReadMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       const response = await fetch('/api/notifications/bulk-read', {
         method: 'PATCH',
         headers: {
-          'Authorization': "
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         },
@@ -226,28 +237,32 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: 'Success',
         description: 'Notifications marked as read'
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: 'Error',
         description: error.message || 'Failed to mark as read',
         variant: 'destructive'
       });
     }
   });
+
   const onSubmit = (data: CreateNotificationForm) => {
     createMutation.mutate(data);
   };
+
   const handleProcessNotifications = () => {
     processMutation.mutate();
   };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-4 h-4" />;
@@ -258,16 +273,17 @@ export default function NotificationsPage() {
       default: return <Bell className="w-4 h-4" />;
     }
   };
+
   return (
-    <div className="container mx-auto p-6 space-y-6" data-testid="notifications-page>
-      <div className="p-4"
+    <div className="container mx-auto p-6 space-y-6" data-testid="notifications-page">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg">"Notifications & Alerts</h1>
-          <p className="p-4"
+          <h1 className="text-3xl font-bold tracking-tight">Notifications & Alerts</h1>
+          <p className="text-muted-foreground">
             Manage system notifications and alerts delivery
           </p>
         </div>
-        <div className="p-4"
+        <div className="flex gap-2">
           <Button
             onClick={handleProcessNotifications}
             disabled={processMutation.isPending}
@@ -275,16 +291,16 @@ export default function NotificationsPage() {
             data-testid="button-process-notifications"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            {processMutation.isPending ? '[TRANSLATION_NEEDED]' : 'Process Now'}
+            {processMutation.isPending ? 'Processing...' : 'Process Now'}
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button data-testid="button-create-notification>
+              <Button data-testid="button-create-notification">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Notification
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-4"
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create New Notification</DialogTitle>
                 <DialogDescription>
@@ -293,8 +309,8 @@ export default function NotificationsPage() {
               </DialogHeader>
               
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
-                  <div className="p-4"
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="type"
@@ -303,8 +319,8 @@ export default function NotificationsPage() {
                           <FormLabel>Type</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-notification-type>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectTrigger data-testid="select-notification-type">
+                                <SelectValue placeholder="Select type" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -324,6 +340,7 @@ export default function NotificationsPage() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="severity"
@@ -332,8 +349,8 @@ export default function NotificationsPage() {
                           <FormLabel>Severity</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-notification-severity>
-                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                              <SelectTrigger data-testid="select-notification-severity">
+                                <SelectValue placeholder="Select severity" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -348,6 +365,7 @@ export default function NotificationsPage() {
                       )}
                     />
                   </div>
+
                   <FormField
                     control={form.control}
                     name="title"
@@ -365,6 +383,7 @@ export default function NotificationsPage() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="message"
@@ -383,20 +402,21 @@ export default function NotificationsPage() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="channels"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Delivery Channels</FormLabel>
-                        <div className="p-4"
+                        <div className="grid grid-cols-3 gap-2">
                           {[
                             { value: 'in_app', label: 'In-App' },
                             { value: 'email', label: 'Email' },
                             { value: 'sms', label: 'SMS' },
                             { value: 'push', label: 'Push' },
                             { value: 'webhook', label: 'Webhook' },
-                            { value: 'dashboard_alert', label: '[TRANSLATION_NEEDED]' }
+                            { value: 'dashboard_alert', label: 'Dashboard' }
                           ].map((channel) => (
                             <label 
                               key={channel.value} 
@@ -411,9 +431,9 @@ export default function NotificationsPage() {
                                     : (field.value || []).filter(c => c !== channel.value);
                                   field.onChange(updatedChannels);
                                 }}
-                                data-testid={"
+                                data-testid={`checkbox-channel-${channel.value}`}
                               />
-                              <span className="text-lg">"{channel.label}</span>
+                              <span className="text-sm">{channel.label}</span>
                             </label>
                           ))}
                         </div>
@@ -421,7 +441,8 @@ export default function NotificationsPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="p-4"
+
+                  <div className="flex justify-end space-x-2">
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -435,7 +456,7 @@ export default function NotificationsPage() {
                       disabled={createMutation.isPending}
                       data-testid="button-submit-create"
                     >
-                      {createMutation.isPending ? 'Creating...' : '[TRANSLATION_NEEDED]'}
+                      {createMutation.isPending ? 'Creating...' : 'Create Notification'}
                     </Button>
                   </div>
                 </form>
@@ -444,35 +465,37 @@ export default function NotificationsPage() {
           </Dialog>
         </div>
       </div>
+
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList>
-          <TabsTrigger value="notifications" data-testid="tab-notifications>
+          <TabsTrigger value="notifications" data-testid="tab-notifications">
             <Bell className="w-4 h-4 mr-2" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="stats" data-testid="tab-stats>
+          <TabsTrigger value="stats" data-testid="tab-stats">
             <BarChart3 className="w-4 h-4 mr-2" />
             Statistics
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="notifications" className="p-4"
+
+        <TabsContent value="notifications" className="space-y-4">
           {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle className="p-4"
+              <CardTitle className="flex items-center gap-2">
                 <Filter className="w-5 h-5" />
                 Filters
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="grid grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="status-filter">Status</Label>
                   <Select value={filters.status} onValueChange={(value) => 
                     setFilters(prev => ({ ...prev, status: value }))
                   }>
-                    <SelectTrigger data-testid="filter-status>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectTrigger data-testid="filter-status">
+                      <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
@@ -490,8 +513,8 @@ export default function NotificationsPage() {
                   <Select value={filters.severity} onValueChange={(value) => 
                     setFilters(prev => ({ ...prev, severity: value }))
                   }>
-                    <SelectTrigger data-testid="filter-severity>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectTrigger data-testid="filter-severity">
+                      <SelectValue placeholder="All severities" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Severities</SelectItem>
@@ -502,13 +525,14 @@ export default function NotificationsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <Label htmlFor="type-filter">Type</Label>
                   <Select value={filters.type} onValueChange={(value) => 
                     setFilters(prev => ({ ...prev, type: value }))
                   }>
-                    <SelectTrigger data-testid="filter-type>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectTrigger data-testid="filter-type">
+                      <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
@@ -520,7 +544,8 @@ export default function NotificationsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="p-4"
+
+                <div className="flex items-end">
                   <Button 
                     onClick={() => setFilters({ status: '', type: '', severity: '', page: 1 })}
                     variant="outline"
@@ -532,63 +557,64 @@ export default function NotificationsPage() {
               </div>
             </CardContent>
           </Card>
+
           {/* Notifications List */}
-          <div className="p-4"
+          <div className="space-y-4">
             {notificationsLoading ? (
               <Card>
-                <CardContent className="p-4"
-                  <div className="text-lg">"Loading notifications...</div>
+                <CardContent className="p-6">
+                  <div className="text-center">Loading notifications...</div>
                 </CardContent>
               </Card>
             ) : notifications?.success && notifications.data?.notifications?.length > 0 ? (
               (notifications.data.notifications as Notification[]).map((notification: Notification) => (
-                <Card key={notification.id} className="p-4"
-                  <CardContent className="p-4"
-                    <div className="p-4"
-                      <div className="p-4"
-                        <div className="p-4"
+                <Card key={notification.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
                           {getStatusIcon(notification.status)}
-                          <h3 className="font-semibold text-lg" data-testid={"
+                          <h3 className="font-semibold text-lg" data-testid={`notification-title-${notification.id}`}>
                             {notification.title}
                           </h3>
                           <Badge 
                             className={severityColors[notification.severity]}
-                            data-testid={"
+                            data-testid={`notification-severity-${notification.id}`}
                           >
                             {notification.severity.toUpperCase()}
                           </Badge>
                           <Badge 
                             className={statusColors[notification.status]}
-                            data-testid={"
+                            data-testid={`notification-status-${notification.id}`}
                           >
                             {notification.status.toUpperCase()}
                           </Badge>
                         </div>
                         
-                        <p className="text-muted-foreground mb-3" data-testid={"
+                        <p className="text-muted-foreground mb-3" data-testid={`notification-message-${notification.id}`}>
                           {notification.message}
                         </p>
                         
-                        <div className="p-4"
-                          <span data-testid={"
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span data-testid={`notification-type-${notification.id}`}>
                             Type: {notification.type}
                           </span>
-                          <span data-testid={"
+                          <span data-testid={`notification-channels-${notification.id}`}>
                             Channels: {notification.channels.join(', ')}
                           </span>
-                          <span data-testid={"
+                          <span data-testid={`notification-created-${notification.id}`}>
                             Created: {formatDate(notification.createdAt)}
                           </span>
                           {notification.sentAt && (
-                            <span data-testid={"
+                            <span data-testid={`notification-sent-${notification.id}`}>
                               Sent: {formatDate(notification.sentAt)}
                             </span>
                           )}
                         </div>
                         
                         {notification.requiresEscalation && (
-                          <div className="p-4"
-                            <Badge className="p-4"
+                          <div className="mt-2">
+                            <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
                               <AlertTriangle className="w-3 h-3 mr-1" />
                               Requires Escalation
                             </Badge>
@@ -596,14 +622,14 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       
-                      <div className="p-4"
+                      <div className="flex flex-col gap-2 ml-4">
                         {!notification.readAt && (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => markAsReadMutation.mutate([notification.id])}
                             disabled={markAsReadMutation.isPending}
-                            data-testid={"
+                            data-testid={`button-mark-read-${notification.id}`}
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             Mark Read
@@ -616,8 +642,8 @@ export default function NotificationsPage() {
               ))
             ) : (
               <Card>
-                <CardContent className="p-4"
-                  <div className="p-4"
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
                     No notifications found
                   </div>
                 </CardContent>
@@ -625,84 +651,87 @@ export default function NotificationsPage() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="stats" className="p-4"
+
+        <TabsContent value="stats" className="space-y-4">
           {statsLoading ? (
-            <div className="text-lg">"Loading statistics...</div>
+            <div className="text-center py-8">Loading statistics...</div>
           ) : stats?.success && stats.data ? (
-            <div className="p-4"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Overview Stats */}
-              <Card data-testid="stats-total>
-                <CardHeader className="p-4"
-                  <CardTitle className="text-lg">"Total</CardTitle>
+              <Card data-testid="stats-total">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Total</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-lg">"{(stats.data as any).overview?.total || 0}</div>
-                  <p className="text-lg">"All notifications</p>
+                  <div className="text-2xl font-bold">{(stats.data as any).overview?.total || 0}</div>
+                  <p className="text-xs text-muted-foreground">All notifications</p>
                 </CardContent>
               </Card>
               
-              <Card data-testid="stats-pending>
-                <CardHeader className="p-4"
-                  <CardTitle className="text-lg">"Pending</CardTitle>
+              <Card data-testid="stats-pending">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-lg">"{(stats.data as any).overview?.pending || 0}</div>
-                  <p className="text-lg">"Awaiting delivery</p>
+                  <div className="text-2xl font-bold text-yellow-600">{(stats.data as any).overview?.pending || 0}</div>
+                  <p className="text-xs text-muted-foreground">Awaiting delivery</p>
                 </CardContent>
               </Card>
               
-              <Card data-testid="stats-delivered>
-                <CardHeader className="p-4"
-                  <CardTitle className="text-lg">"Delivered</CardTitle>
+              <Card data-testid="stats-delivered">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Delivered</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-lg">"{(stats.data as any).overview?.delivered || 0}</div>
-                  <p className="text-lg">"Successfully delivered</p>
+                  <div className="text-2xl font-bold text-green-600">{(stats.data as any).overview?.delivered || 0}</div>
+                  <p className="text-xs text-muted-foreground">Successfully delivered</p>
                 </CardContent>
               </Card>
               
-              <Card data-testid="stats-failed>
-                <CardHeader className="p-4"
-                  <CardTitle className="text-lg">"Failed</CardTitle>
+              <Card data-testid="stats-failed">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Failed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-lg">"{(stats.data as any).overview?.failed || 0}</div>
-                  <p className="text-lg">"Delivery failed</p>
+                  <div className="text-2xl font-bold text-red-600">{(stats.data as any).overview?.failed || 0}</div>
+                  <p className="text-xs text-muted-foreground">Delivery failed</p>
                 </CardContent>
               </Card>
+
               {/* Recent Activity */}
-              <Card className="md:col-span-2" data-testid="stats-recent-activity>
+              <Card className="md:col-span-2" data-testid="stats-recent-activity">
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="p-4"
-                    <div className="p-4"
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
                       <span>Last 24 hours:</span>
-                      <span className="text-lg">"{(stats.data as any).recentActivity?.last24Hours || 0}</span>
+                      <span className="font-semibold">{(stats.data as any).recentActivity?.last24Hours || 0}</span>
                     </div>
-                    <div className="p-4"
+                    <div className="flex justify-between">
                       <span>Last week:</span>
-                      <span className="text-lg">"{(stats.data as any).recentActivity?.lastWeek || 0}</span>
+                      <span className="font-semibold">{(stats.data as any).recentActivity?.lastWeek || 0}</span>
                     </div>
-                    <div className="p-4"
+                    <div className="flex justify-between">
                       <span>Last month:</span>
-                      <span className="text-lg">"{(stats.data as any).recentActivity?.lastMonth || 0}</span>
+                      <span className="font-semibold">{(stats.data as any).recentActivity?.lastMonth || 0}</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
+
               {/* Type Distribution */}
-              <Card className="md:col-span-2" data-testid="stats-type-distribution>
+              <Card className="md:col-span-2" data-testid="stats-type-distribution">
                 <CardHeader>
                   <CardTitle>By Type</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="p-4"
+                  <div className="space-y-2">
                     {Object.entries((stats.data as any).distribution?.byType || {}).map(([type, count]) => (
-                      <div key={type} className="p-4"
-                        <span className="text-lg">"{type.replace('_', ' ')}:</span>
-                        <span className="text-lg">"{count as number}</span>
+                      <div key={type} className="flex justify-between">
+                        <span className="capitalize">{type.replace('_', ' ')}:</span>
+                        <span className="font-semibold">{count as number}</span>
                       </div>
                     ))}
                   </div>
@@ -710,7 +739,7 @@ export default function NotificationsPage() {
               </Card>
             </div>
           ) : (
-            <div className="p-4"
+            <div className="text-center py-8 text-muted-foreground">
               No statistics available
             </div>
           )}

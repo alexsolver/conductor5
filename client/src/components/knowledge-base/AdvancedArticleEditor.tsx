@@ -1,5 +1,6 @@
 // ✅ 1QA.MD COMPLIANCE: ADVANCED KNOWLEDGE BASE EDITOR - CLEAN ARCHITECTURE FRONTEND
 // Componente integrado com todas as funcionalidades avançadas mantendo o React Quill
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,6 @@ import { TemplateSelector } from './TemplateSelector';
 import { CommentsSection } from './CommentsSection';
 import { PublicationScheduler } from './PublicationScheduler';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Save, 
   Send, 
   FileText, 
@@ -31,6 +31,7 @@ import {
   Upload,
   Settings
 } from 'lucide-react';
+
 interface Article {
   id?: string;
   title: string;
@@ -45,14 +46,14 @@ interface Article {
   publishedAt?: string;
   version?: number;
 }
+
 interface AdvancedArticleEditorProps {
   articleId?: string;
   onSave?: (article: Article) => void;
   onCancel?: () => void;
 }
-export function AdvancedArticleEditor({
-  // Localization temporarily disabled
- articleId, onSave, onCancel }: AdvancedArticleEditorProps) {
+
+export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedArticleEditorProps) {
   const [article, setArticle] = useState<Article>({
     title: '',
     content: '',
@@ -67,12 +68,13 @@ export function AdvancedArticleEditor({
   const [isDraft, setIsDraft] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Carregar artigo existente se articleId for fornecido
   const { data: existingArticle, isLoading } = useQuery({
     queryKey: ['/api/knowledge-base/articles', articleId],
     queryFn: async () => {
       if (!articleId) return null;
-      const response = await fetch("
+      const response = await fetch(`/api/knowledge-base/articles/${articleId}`, {
         headers: {
           'x-tenant-id': localStorage.getItem('tenantId') || '',
           'x-user-id': localStorage.getItem('userId') || '',
@@ -84,6 +86,7 @@ export function AdvancedArticleEditor({
     },
     enabled: !!articleId
   });
+
   // Aplicar dados do artigo existente
   useEffect(() => {
     if (existingArticle) {
@@ -91,11 +94,12 @@ export function AdvancedArticleEditor({
       setIsDraft(existingArticle.status === 'draft');
     }
   }, [existingArticle]);
+
   // Mutação para salvar artigo
   const saveArticleMutation = useMutation({
     mutationFn: async (articleData: Article) => {
       const endpoint = articleId 
-        ? "
+        ? `/api/knowledge-base/articles/${articleId}`
         : '/api/knowledge-base/articles';
       const method = articleId ? 'PUT' : 'POST';
       
@@ -103,7 +107,7 @@ export function AdvancedArticleEditor({
     },
     onSuccess: (data) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: articleId ? "Artigo atualizado" : "Artigo criado"
       });
       if (data && typeof data === 'object' && 'data' in data) {
@@ -117,12 +121,13 @@ export function AdvancedArticleEditor({
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro",
+        description: error.message || "Erro ao salvar artigo",
         variant: "destructive"
       });
     }
   });
+
   const handleTemplateSelect = (template: any) => {
     setArticle(prev => ({
       ...prev,
@@ -132,9 +137,10 @@ export function AdvancedArticleEditor({
     setSelectedTemplate(template.id);
     toast({
       title: "Template aplicado",
-      description: "" foi aplicado ao artigo`
+      description: `Template "${template.name}" foi aplicado ao artigo`
     });
   };
+
   const handleAddTag = () => {
     if (newTag.trim() && !article.tags.includes(newTag.trim())) {
       setArticle(prev => ({
@@ -144,51 +150,57 @@ export function AdvancedArticleEditor({
       setNewTag('');
     }
   };
+
   const handleRemoveTag = (tagToRemove: string) => {
     setArticle(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
   };
+
   const handleSave = () => {
     if (!article.title.trim()) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Título é obrigatório",
         variant: "destructive"
       });
       return;
     }
+
     const articleData = {
       ...article,
       status: isDraft ? 'draft' : 'published'
     };
+
     saveArticleMutation.mutate(articleData);
   };
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-96>
-        <div className="text-center>
-          <div className="text-lg">"</div>
-          <p className="text-lg">"Carregando artigo...</p>
+      <div className="flex justify-center items-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Carregando artigo...</p>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="space-y-6" data-testid="advanced-article-editor>
+    <div className="space-y-6" data-testid="advanced-article-editor">
       {/* Header com ações principais */}
-      <div className="flex items-center justify-between>
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold>
-            {articleId ? '[TRANSLATION_NEEDED]' : 'Novo Artigo'}
+          <h2 className="text-2xl font-bold">
+            {articleId ? 'Editar Artigo' : 'Novo Artigo'}
           </h2>
-          <p className="text-muted-foreground>
+          <p className="text-muted-foreground">
             {articleId ? 'Atualize as informações do artigo' : 'Crie um novo artigo para a base de conhecimento'}
           </p>
         </div>
         
-        <div className="flex items-center space-x-2>
+        <div className="flex items-center space-x-2">
           <Button
             variant="outline"
             onClick={onCancel}
@@ -214,17 +226,18 @@ export function AdvancedArticleEditor({
             data-testid="button-save"
           >
             <Save className="h-4 w-4 mr-2" />
-            {saveArticleMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
+            {saveArticleMutation.isPending ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>
       </div>
-      <Tabs defaultValue="content" className="w-full>
-        <TabsList className="grid w-full grid-cols-4>
-          <TabsTrigger value="content>
+
+      <Tabs defaultValue="content" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="content">
             <FileText className="h-4 w-4 mr-2" />
             Conteúdo
           </TabsTrigger>
-          <TabsTrigger value="metadata>
+          <TabsTrigger value="metadata">
             <Settings className="h-4 w-4 mr-2" />
             Configurações
           </TabsTrigger>
@@ -237,7 +250,8 @@ export function AdvancedArticleEditor({
             Versões
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="content" className="space-y-6>
+
+        <TabsContent value="content" className="space-y-6">
           {/* Seletor de Templates */}
           <Card>
             <CardHeader>
@@ -253,6 +267,7 @@ export function AdvancedArticleEditor({
               />
             </CardContent>
           </Card>
+
           {/* Editor Principal */}
           <Card>
             <CardHeader>
@@ -268,6 +283,7 @@ export function AdvancedArticleEditor({
               />
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Conteúdo</CardTitle>
@@ -285,8 +301,9 @@ export function AdvancedArticleEditor({
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="metadata" className="space-y-6>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
+
+        <TabsContent value="metadata" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Categoria</CardTitle>
@@ -296,7 +313,7 @@ export function AdvancedArticleEditor({
                   value={article.category} 
                   onValueChange={(value) => setArticle(prev => ({ ...prev, category: value }))}
                 >
-                  <SelectTrigger data-testid="select-category>
+                  <SelectTrigger data-testid="select-category">
                     <SelectValue placeholder="Selecionar categoria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -309,6 +326,7 @@ export function AdvancedArticleEditor({
                 </Select>
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Visibilidade</CardTitle>
@@ -320,24 +338,24 @@ export function AdvancedArticleEditor({
                     setArticle(prev => ({ ...prev, visibility: value }))
                   }
                 >
-                  <SelectTrigger data-testid="select-visibility>
+                  <SelectTrigger data-testid="select-visibility">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="public>
-                      <div className="flex items-center>
+                    <SelectItem value="public">
+                      <div className="flex items-center">
                         <Eye className="h-4 w-4 mr-2" />
                         Público
                       </div>
                     </SelectItem>
-                    <SelectItem value="internal>
-                      <div className="flex items-center>
+                    <SelectItem value="internal">
+                      <div className="flex items-center">
                         <EyeOff className="h-4 w-4 mr-2" />
                         Interno
                       </div>
                     </SelectItem>
-                    <SelectItem value="private>
-                      <div className="flex items-center>
+                    <SelectItem value="private">
+                      <div className="flex items-center">
                         <EyeOff className="h-4 w-4 mr-2" />
                         Privado
                       </div>
@@ -347,6 +365,7 @@ export function AdvancedArticleEditor({
               </CardContent>
             </Card>
           </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Tags</CardTitle>
@@ -354,8 +373,8 @@ export function AdvancedArticleEditor({
                 Adicione tags para facilitar a busca e organização
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4>
-              <div className="flex space-x-2>
+            <CardContent className="space-y-4">
+              <div className="flex space-x-2">
                 <Input
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
@@ -374,14 +393,14 @@ export function AdvancedArticleEditor({
               </div>
               
               {article.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2>
+                <div className="flex flex-wrap gap-2">
                   {article.tags.map((tag, index) => (
                     <Badge 
                       key={index} 
                       variant="secondary" 
                       className="cursor-pointer"
                       onClick={() => handleRemoveTag(tag)}
-                      data-testid={"
+                      data-testid={`tag-${tag}`}
                     >
                       {tag} ×
                     </Badge>
@@ -390,6 +409,7 @@ export function AdvancedArticleEditor({
               )}
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Resumo Automático</CardTitle>
@@ -408,13 +428,14 @@ export function AdvancedArticleEditor({
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="comments>
+
+        <TabsContent value="comments">
           {articleId ? (
             <CommentsSection articleId={articleId} />
           ) : (
             <Card>
-              <CardContent className="pt-6>
-                <div className="text-center text-muted-foreground>
+              <CardContent className="pt-6">
+                <div className="text-center text-muted-foreground">
                   <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>Salve o artigo primeiro para habilitar os comentários</p>
                 </div>
@@ -422,7 +443,8 @@ export function AdvancedArticleEditor({
             </Card>
           )}
         </TabsContent>
-        <TabsContent value="versions>
+
+        <TabsContent value="versions">
           {articleId ? (
             <Card>
               <CardHeader>
@@ -432,17 +454,17 @@ export function AdvancedArticleEditor({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center text-muted-foreground py-8>
+                <div className="text-center text-muted-foreground py-8">
                   <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>Funcionalidade de versionamento implementada</p>
-                  <p className="text-lg">"Versões são criadas automaticamente a cada atualização</p>
+                  <p className="text-sm">Versões são criadas automaticamente a cada atualização</p>
                 </div>
               </CardContent>
             </Card>
           ) : (
             <Card>
-              <CardContent className="pt-6>
-                <div className="text-center text-muted-foreground>
+              <CardContent className="pt-6">
+                <div className="text-center text-muted-foreground">
                   <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>Salve o artigo primeiro para ver o histórico de versões</p>
                 </div>

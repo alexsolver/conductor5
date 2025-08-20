@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Search, Package, DollarSign, User, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-// import useLocalization from '@/hooks/useLocalization';
+
 interface CustomerItemMapping {
   id: string;
   tenant_id: string;
@@ -33,8 +33,8 @@ interface CustomerItemMapping {
   customer_last_name: string;
   customer_email: string;
 }
+
 export function CustomerItemMappings() {
-  // Localization temporarily disabled
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,6 +54,7 @@ export function CustomerItemMappings() {
     special_instructions: "",
     notes: ""
   });
+
   // Get user data for tenant context
   const { data: userData } = useQuery({
     queryKey: ['/api/auth/me'],
@@ -62,7 +63,9 @@ export function CustomerItemMappings() {
       return response.json();
     }
   });
+
   const tenantId = userData?.tenantId;
+
   // Fetch customer item mappings
   const { data: mappingsData, isLoading: mappingsLoading, refetch } = useQuery({
     queryKey: ['/api/materials-services/customer-item-mappings', tenantId, searchTerm, selectedCustomer],
@@ -75,39 +78,42 @@ export function CustomerItemMappings() {
         ...(selectedCustomer && selectedCustomer !== "all-customers" && { customerId: selectedCustomer })
       });
       
-      const response = await apiRequest('GET', "
+      const response = await apiRequest('GET', `/api/materials-services/customer-item-mappings?${params}`);
       const result = await response.json();
       console.log('🔍 [CustomerMappings] Fetched mappings:', result.data?.length || 0);
       return result;
     },
     enabled: !!tenantId,
   });
+
   // Fetch customer companies for filter
   const { data: customerCompaniesData } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
       if (!tenantId) return [];
-      const response = await apiRequest('GET', "
+      const response = await apiRequest('GET', `/api/companies?tenantId=${tenantId}`);
       return response.json();
     },
     enabled: !!tenantId,
   });
+
   // Fetch items for creating new mappings
   const { data: itemsData } = useQuery({
     queryKey: ['/api/materials-services/items'],
     queryFn: async () => {
       if (!tenantId) return { data: [] };
-      const response = await apiRequest('GET', "
+      const response = await apiRequest('GET', `/api/materials-services/items?tenantId=${tenantId}`);
       return response.json();
     },
     enabled: !!tenantId,
   });
+
   // Create/Update mapping mutation
   const createMappingMutation = useMutation({
     mutationFn: async (data: any) => {
       const method = editingMapping ? 'PUT' : 'POST';
       const url = editingMapping 
-        ? "
+        ? `/api/materials-services/customer-item-mappings/${editingMapping.id}`
         : '/api/materials-services/customer-item-mappings';
       
       const response = await apiRequest(method, url, {
@@ -124,7 +130,7 @@ export function CustomerItemMappings() {
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: editingMapping ? "Mapeamento atualizado com sucesso!" : "Novo mapeamento criado com sucesso!"
       });
       setDialogOpen(false);
@@ -134,16 +140,17 @@ export function CustomerItemMappings() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message,
         variant: "destructive"
       });
     }
   });
+
   // Delete mapping mutation
   const deleteMappingMutation = useMutation({
     mutationFn: async (mappingId: string) => {
-      const response = await apiRequest('DELETE', "
+      const response = await apiRequest('DELETE', `/api/materials-services/customer-item-mappings/${mappingId}?tenantId=${tenantId}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erro ao deletar mapeamento');
@@ -152,19 +159,20 @@ export function CustomerItemMappings() {
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Mapeamento deletado com sucesso!"
       });
       refetch();
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message,
         variant: "destructive"
       });
     }
   });
+
   const resetForm = () => {
     setFormData({
       customer_id: "",
@@ -177,6 +185,7 @@ export function CustomerItemMappings() {
       notes: ""
     });
   };
+
   const handleEdit = (mapping: CustomerItemMapping) => {
     setEditingMapping(mapping);
     setFormData({
@@ -191,18 +200,21 @@ export function CustomerItemMappings() {
     });
     setDialogOpen(true);
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createMappingMutation.mutate(formData);
   };
+
   const mappings = mappingsData?.data || [];
+
   return (
-    <div className="p-4"
-      <div className="p-4"
-        <div className="p-4"
+    <div className="space-y-6">
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg">"Personalização de Itens por Cliente</h1>
-            <p className="p-4"
+            <h1 className="text-3xl font-bold">Personalização de Itens por Cliente</h1>
+            <p className="text-muted-foreground">
               Gerencie SKUs e configurações personalizadas para cada cliente
             </p>
           </div>
@@ -213,14 +225,14 @@ export function CustomerItemMappings() {
                 Novo Mapeamento
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-4"
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingMapping ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
+                  {editingMapping ? "Editar Mapeamento" : "Criar Novo Mapeamento"}
                 </DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="p-4"
-                <div className="p-4"
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="customer_id">Empresa Cliente</Label>
                     <Select 
@@ -229,12 +241,12 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                        <SelectValue placeholder="Selecione uma empresa" />
                       </SelectTrigger>
                       <SelectContent>
                         {customerCompaniesData?.map((company: any) => (
                           <SelectItem key={company.id} value={company.id}>
-                            {company.name} {company.tradeName && ")"
+                            {company.name} {company.tradeName && `(${company.tradeName})`}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -248,7 +260,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                        <SelectValue placeholder="Selecione um item" />
                       </SelectTrigger>
                       <SelectContent>
                         {itemsData?.data?.map((item: any) => (
@@ -260,7 +272,8 @@ export function CustomerItemMappings() {
                     </Select>
                   </div>
                 </div>
-                <div className="p-4"
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="custom_sku">SKU Personalizado</Label>
                     <Input
@@ -280,6 +293,7 @@ export function CustomerItemMappings() {
                     />
                   </div>
                 </div>
+
                 <div>
                   <Label htmlFor="custom_name">Nome Personalizado</Label>
                   <Input
@@ -289,6 +303,7 @@ export function CustomerItemMappings() {
                     placeholder="Nome como aparece para o cliente"
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="custom_description">Descrição Personalizada</Label>
                   <Textarea
@@ -298,6 +313,7 @@ export function CustomerItemMappings() {
                     placeholder="Descrição específica para este cliente"
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="special_instructions">Instruções Especiais</Label>
                   <Textarea
@@ -307,38 +323,41 @@ export function CustomerItemMappings() {
                     placeholder="Instruções de instalação, uso ou manuseio"
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="notes">Observações</Label>
                   <Textarea
                     id="notes"
                     value={formData.notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder='[TRANSLATION_NEEDED]'
+                    placeholder="Observações internas sobre este mapeamento"
                   />
                 </div>
-                <div className="p-4"
+
+                <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createMappingMutation.isPending}>
-                    {createMappingMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
+                    {createMappingMutation.isPending ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
               </form>
             </DialogContent>
           </Dialog>
         </div>
+
         {/* Filtros */}
         <Card>
-          <CardContent className="p-4"
-            <div className="p-4"
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="search">Buscar</Label>
-                <div className="p-4"
+                <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder='[TRANSLATION_NEEDED]'
+                    placeholder="Buscar por SKU, nome, referência..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -355,7 +374,7 @@ export function CustomerItemMappings() {
                     <SelectItem value="all-customers">Todas as empresas</SelectItem>
                     {customerCompaniesData?.map((company: any) => (
                       <SelectItem key={company.id} value={company.id}>
-                        {company.name} {company.tradeName && ")"
+                        {company.name} {company.tradeName && `(${company.tradeName})`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -365,7 +384,7 @@ export function CustomerItemMappings() {
                 <Label htmlFor="type-filter">Tipo de Item</Label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger>
-                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                    <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-types">Todos os tipos</SelectItem>
@@ -378,34 +397,37 @@ export function CustomerItemMappings() {
             </div>
           </CardContent>
         </Card>
+
         {/* Estatísticas */}
-        <div className="p-4"
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="p-4"
-              <div className="p-4"
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
                 <Package className="h-4 w-4 text-blue-500" />
                 <div>
-                  <p className="text-lg">"Total de Mapeamentos</p>
-                  <p className="text-lg">"{mappings.length}</p>
+                  <p className="text-sm font-medium">Total de Mapeamentos</p>
+                  <p className="text-2xl font-bold">{mappings.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4"
-              <div className="p-4"
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-green-500" />
                 <div>
-                  <p className="text-lg">"Clientes Ativos</p>
-                  <p className="p-4"
+                  <p className="text-sm font-medium">Clientes Ativos</p>
+                  <p className="text-2xl font-bold">
                     {new Set(mappings.map((m: CustomerItemMapping) => m.customer_id)).size}
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
         </div>
       </div>
+
       {/* Tabela de Mapeamentos */}
       <Card>
         <CardHeader>
@@ -413,9 +435,9 @@ export function CustomerItemMappings() {
         </CardHeader>
         <CardContent>
           {mappingsLoading ? (
-            <div className="text-lg">"Carregando mapeamentos...</div>
+            <div className="text-center py-8">Carregando mapeamentos...</div>
           ) : mappings.length === 0 ? (
-            <div className="p-4"
+            <div className="text-center py-8 text-muted-foreground">
               Nenhum mapeamento encontrado. Crie o primeiro mapeamento personalizado!
             </div>
           ) : (
@@ -435,18 +457,18 @@ export function CustomerItemMappings() {
                   <TableRow key={mapping.id}>
                     <TableCell>
                       <div>
-                        <div className="p-4"
+                        <div className="font-medium">
                           {mapping.customer_first_name} {mapping.customer_last_name}
                         </div>
-                        <div className="p-4"
+                        <div className="text-sm text-muted-foreground">
                           {mapping.customer_email}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="text-lg">"{mapping.item_name}</div>
-                        <div className="p-4"
+                        <div className="font-medium">{mapping.item_name}</div>
+                        <div className="text-sm text-muted-foreground">
                           {mapping.item_integration_code} • {mapping.item_type}
                         </div>
                       </div>
@@ -455,22 +477,23 @@ export function CustomerItemMappings() {
                       <Badge variant="outline">{mapping.custom_sku}</Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="p-4"
-                        <div className="text-lg">"{mapping.custom_name}</div>
+                      <div className="max-w-xs">
+                        <div className="font-medium">{mapping.custom_name}</div>
                         {mapping.customer_reference && (
-                          <div className="p-4"
+                          <div className="text-sm text-muted-foreground">
                             Ref: {mapping.customer_reference}
                           </div>
                         )}
                       </div>
                     </TableCell>
+
                     <TableCell>
-                      <Badge variant={mapping.is_active ? "default" : "secondary>
-                        {mapping.is_active ? "Ativo" : "Inativo"
+                      <Badge variant={mapping.is_active ? "default" : "secondary"}>
+                        {mapping.is_active ? "Ativo" : "Inativo"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="p-4"
+                      <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="sm"

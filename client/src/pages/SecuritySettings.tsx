@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { 
-// import useLocalization from '@/hooks/useLocalization';
   Shield, 
   Key, 
   Mail, 
@@ -23,6 +22,8 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+
+
 interface SecurityEvent {
   id: string;
   ip: string;
@@ -31,31 +32,36 @@ interface SecurityEvent {
   attempts: number;
   createdAt: string;
 }
+
 interface TwoFactorStatus {
   enabled: boolean;
   secret?: string;
   qrCodeUrl?: string;
 }
+
 interface AccountStatus {
   locked: boolean;
   twoFactorEnabled: boolean;
 }
+
 export default function SecuritySettings() {
-  // Localization temporarily disabled
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const [setupStep, setSetupStep] = useState<'password' | 'qr' | 'verify'>('password');
+
   // Queries
   const { data: twoFactorStatus } = useQuery<TwoFactorStatus>({
     queryKey: ['/api/auth-security/2fa/status'],
     retry: false,
   });
+
   const { data: securityEvents } = useQuery<SecurityEvent[]>({
     queryKey: ['/api/auth-security/events'],
     retry: false,
   });
+
   // Mutations
   const magicLinkMutation = useMutation({
     mutationFn: async (email: string) => {
@@ -70,12 +76,13 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+
   const passwordResetMutation = useMutation({
     mutationFn: async (email: string) => {
       const response = await apiRequest('POST', '/api/auth-security/password-reset/request', { email });
@@ -89,12 +96,13 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+
   const twoFactorSetupMutation = useMutation({
     mutationFn: async (password: string) => {
       const response = await apiRequest('POST', '/api/auth-security/2fa/setup', { password });
@@ -114,12 +122,13 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+
   const twoFactorVerifyMutation = useMutation({
     mutationFn: async (token: string) => {
       const response = await apiRequest('POST', '/api/auth-security/2fa/verify', { token });
@@ -136,12 +145,13 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+
   const twoFactorToggleMutation = useMutation({
     mutationFn: async ({ enabled, token }: { enabled: boolean; token: string }) => {
       const response = await apiRequest('POST', '/api/auth-security/2fa/toggle', { enabled, token });
@@ -157,16 +167,17 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+
   const handleSendMagicLink = () => {
     if (!email) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: "Please enter an email address",
         variant: "destructive",
       });
@@ -174,10 +185,11 @@ export default function SecuritySettings() {
     }
     magicLinkMutation.mutate(email);
   };
+
   const handlePasswordReset = () => {
     if (!email) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: "Please enter an email address",
         variant: "destructive",
       });
@@ -185,10 +197,11 @@ export default function SecuritySettings() {
     }
     passwordResetMutation.mutate(email);
   };
+
   const handleSetupTwoFactor = () => {
     if (!password) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: "Please enter your password",
         variant: "destructive",
       });
@@ -196,10 +209,11 @@ export default function SecuritySettings() {
     }
     twoFactorSetupMutation.mutate(password);
   };
+
   const handleVerifyTwoFactor = () => {
     if (!twoFactorToken) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: "Please enter the 6-digit code",
         variant: "destructive",
       });
@@ -207,10 +221,11 @@ export default function SecuritySettings() {
     }
     twoFactorVerifyMutation.mutate(twoFactorToken);
   };
+
   const handleToggleTwoFactor = (enabled: boolean) => {
     if (!twoFactorToken) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Error",
         description: "Please enter the 6-digit code",
         variant: "destructive",
       });
@@ -218,29 +233,32 @@ export default function SecuritySettings() {
     }
     twoFactorToggleMutation.mutate({ enabled, token: twoFactorToken });
   };
+
   return (
-    <div className="p-4"
-        <div className="p-4"
-          <h1 className="text-lg">"Security Settings</h1>
-          <p className="text-lg">"Manage your account security and authentication methods</p>
+    <div className="p-4 max-w-6xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold gradient-text mb-2">Security Settings</h1>
+          <p className="text-gray-600">Manage your account security and authentication methods</p>
         </div>
-        <Tabs defaultValue="auth" className="p-4"
-          <TabsList className="p-4"
+
+        <Tabs defaultValue="auth" className="space-y-6">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="auth">Authentication</TabsTrigger>
             <TabsTrigger value="2fa">Two-Factor Auth</TabsTrigger>
             <TabsTrigger value="events">Security Events</TabsTrigger>
             <TabsTrigger value="admin">Admin Tools</TabsTrigger>
           </TabsList>
-          <TabsContent value="auth" className="p-4"
-            <div className="p-4"
+
+          <TabsContent value="auth" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center gap-2">
                     <Mail className="h-5 w-5" />
                     Magic Link Authentication
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
+                <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="magic-email">Email Address</Label>
                     <Input
@@ -258,19 +276,20 @@ export default function SecuritySettings() {
                   >
                     {magicLinkMutation.isPending ? 'Sending...' : 'Send Magic Link'}
                   </Button>
-                  <p className="p-4"
+                  <p className="text-sm text-gray-600">
                     Login without a password using a secure link sent to your email
                   </p>
                 </CardContent>
               </Card>
+
               <Card>
                 <CardHeader>
-                  <CardTitle className="p-4"
+                  <CardTitle className="flex items-center gap-2">
                     <Key className="h-5 w-5" />
                     Password Reset
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4"
+                <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="reset-email">Email Address</Label>
                     <Input
@@ -289,32 +308,33 @@ export default function SecuritySettings() {
                   >
                     {passwordResetMutation.isPending ? 'Sending...' : 'Send Reset Link'}
                   </Button>
-                  <p className="p-4"
+                  <p className="text-sm text-gray-600">
                     Reset your password using a secure link sent to your email
                   </p>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
-          <TabsContent value="2fa" className="p-4"
+
+          <TabsContent value="2fa" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="p-4"
+                <CardTitle className="flex items-center gap-2">
                   <Smartphone className="h-5 w-5" />
                   Two-Factor Authentication
                   {twoFactorStatus?.enabled && (
-                    <Badge variant="secondary" className="p-4"
+                    <Badge variant="secondary" className="ml-2">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Enabled
                     </Badge>
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4"
+              <CardContent className="space-y-4">
                 {!twoFactorStatus?.enabled ? (
-                  <div className="p-4"
+                  <div className="space-y-4">
                     {setupStep === 'password' && (
-                      <div className="p-4"
+                      <div className="space-y-4">
                         <Alert>
                           <Shield className="h-4 w-4" />
                           <AlertDescription>
@@ -340,17 +360,18 @@ export default function SecuritySettings() {
                         </Button>
                       </div>
                     )}
+
                     {setupStep === 'qr' && twoFactorStatus?.qrCodeUrl && (
-                      <div className="p-4"
+                      <div className="space-y-4">
                         <Alert>
                           <QrCode className="h-4 w-4" />
                           <AlertDescription>
                             Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
                           </AlertDescription>
                         </Alert>
-                        <div className="p-4"
-                          <div className="p-4"
-                            <p className="p-4"
+                        <div className="text-center">
+                          <div className="inline-block p-4 bg-white rounded-lg border">
+                            <p className="text-sm font-mono break-all">
                               {twoFactorStatus.qrCodeUrl}
                             </p>
                           </div>
@@ -363,8 +384,9 @@ export default function SecuritySettings() {
                         </Button>
                       </div>
                     )}
+
                     {setupStep === 'verify' && (
-                      <div className="p-4"
+                      <div className="space-y-4">
                         <Alert>
                           <Smartphone className="h-4 w-4" />
                           <AlertDescription>
@@ -393,7 +415,7 @@ export default function SecuritySettings() {
                     )}
                   </div>
                 ) : (
-                  <div className="p-4"
+                  <div className="space-y-4">
                     <Alert>
                       <CheckCircle className="h-4 w-4" />
                       <AlertDescription>
@@ -424,41 +446,42 @@ export default function SecuritySettings() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="events" className="p-4"
+
+          <TabsContent value="events" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="p-4"
+                <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5" />
                   Recent Security Events
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4"
+                <div className="space-y-4">
                   {securityEvents?.map((event) => (
-                    <div key={event.id} className="p-4"
-                      <div className="p-4"
-                        <div className="p-4"
+                    <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-yellow-100 rounded-full">
                           <AlertTriangle className="h-4 w-4 text-yellow-600" />
                         </div>
                         <div>
-                          <p className="text-lg">"{event.eventType}</p>
-                          <p className="p-4"
+                          <p className="font-medium">{event.eventType}</p>
+                          <p className="text-sm text-gray-600">
                             {event.email} from {event.ip}
                           </p>
                         </div>
                       </div>
-                      <div className="p-4"
-                        <Badge variant="outline>
+                      <div className="text-right">
+                        <Badge variant="outline">
                           {event.attempts} attempts
                         </Badge>
-                        <p className="p-4"
+                        <p className="text-sm text-gray-600 mt-1">
                           {new Date(event.createdAt).toLocaleString()}
                         </p>
                       </div>
                     </div>
                   ))}
                   {!securityEvents?.length && (
-                    <div className="p-4"
+                    <div className="text-center py-8 text-gray-500">
                       No security events recorded
                     </div>
                   )}
@@ -466,10 +489,11 @@ export default function SecuritySettings() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="admin" className="p-4"
+
+          <TabsContent value="admin" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="p-4"
+                <CardTitle className="flex items-center gap-2">
                   <Lock className="h-5 w-5" />
                   Admin Security Tools
                 </CardTitle>
@@ -481,17 +505,17 @@ export default function SecuritySettings() {
                     These tools are for system administrators only. Use with caution.
                   </AlertDescription>
                 </Alert>
-                <div className="p-4"
-                  <div className="p-4"
-                    <div className="p-4"
-                      <h4 className="text-lg">"Rate Limit Status</h4>
-                      <p className="p-4"
+                <div className="mt-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">Rate Limit Status</h4>
+                      <p className="text-sm text-gray-600">
                         Monitor and manage rate limiting for login attempts
                       </p>
                     </div>
-                    <div className="p-4"
-                      <h4 className="text-lg">"Account Lockouts</h4>
-                      <p className="p-4"
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">Account Lockouts</h4>
+                      <p className="text-sm text-gray-600">
                         View and manage locked user accounts
                       </p>
                     </div>

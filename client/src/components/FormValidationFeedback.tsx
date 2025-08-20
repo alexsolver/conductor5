@@ -1,7 +1,7 @@
 import React from "react";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface FormValidationFeedbackProps {
   isValidating?: boolean;
   isValid?: boolean;
@@ -10,8 +10,8 @@ interface FormValidationFeedbackProps {
   className?: string;
   fieldName?: string;
 }
+
 export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
-  // Localization temporarily disabled
   isValidating = false,
   isValid = false,
   isInvalid = false,
@@ -24,7 +24,7 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       <div 
         className={cn("flex items-center gap-2 text-blue-600 text-sm mt-1", className)}
         role="status"
-        aria-label={"..."
+        aria-label={`Validando ${fieldName}...`}
         aria-live="polite"
       >
         <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
@@ -32,12 +32,13 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       </div>
     );
   }
+
   if (isValid && !isInvalid) {
     return (
       <div 
         className={cn("flex items-center gap-2 text-green-600 text-sm mt-1", className)}
         role="status"
-        aria-label={" válido"
+        aria-label={`${fieldName} válido`}
         aria-live="polite"
       >
         <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
@@ -45,12 +46,13 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       </div>
     );
   }
+
   if (isInvalid && validationMessage) {
     return (
       <div 
         className={cn("flex items-center gap-2 text-red-600 text-sm mt-1", className)}
         role="alert"
-        aria-label={'[TRANSLATION_NEEDED]'}
+        aria-label={`Erro em ${fieldName}: ${validationMessage}`}
         aria-live="assertive"
       >
         <AlertCircle className="h-3 w-3" aria-hidden="true" />
@@ -58,8 +60,10 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       </div>
     );
   }
+
   return null;
 };
+
 // Enhanced form field wrapper with accessibility
 export const AccessibleFormField: React.FC<{
   children: React.ReactNode;
@@ -70,8 +74,9 @@ export const AccessibleFormField: React.FC<{
   className?: string;
 }> = ({ children, label, required = false, error, description, className = "" }) => {
   const fieldId = React.useId();
-  const errorId = "-error`;
-  const descriptionId = "-description`;
+  const errorId = `${fieldId}-error`;
+  const descriptionId = `${fieldId}-description`;
+
   return (
     <div className={cn("space-y-2", className)}>
       <label 
@@ -80,7 +85,7 @@ export const AccessibleFormField: React.FC<{
       >
         {label}
         {required && (
-          <span className="text-red-500 ml-1" aria-label="obrigatório>
+          <span className="text-red-500 ml-1" aria-label="obrigatório">
             *
           </span>
         )}

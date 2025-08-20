@@ -11,16 +11,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 interface EditInternalActionModalProps {
   ticketId: string;
   action: any;
   isOpen: boolean;
   onClose: () => void;
 }
-export default function EditInternalActionModal({
-  // Localization temporarily disabled
- ticketId, action, isOpen, onClose }: EditInternalActionModalProps) {
+
+export default function EditInternalActionModal({ ticketId, action, isOpen, onClose }: EditInternalActionModalProps) {
   const [formData, setFormData] = useState({
     startDateTime: "",
     endDateTime: "",
@@ -36,19 +35,22 @@ export default function EditInternalActionModal({
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Fetch detailed action data for editing
   const { data: actionDetails, isLoading: actionLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "actions", action?.id],
     queryFn: async () => {
       if (!action?.id || !ticketId) return null;
-      const response = await apiRequest("GET", "
+      const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions/${action.id}`);
       return response.json();
     },
     enabled: isOpen && !!action?.id && !!ticketId,
   });
+
   // Populate form with existing action data
   useEffect(() => {
     if (!isOpen || !action) return;
+
     // Reset form data whenever modal opens
     let dataToUse = action;
     
@@ -67,10 +69,11 @@ export default function EditInternalActionModal({
         const date = new Date(dateTime);
         return date.toISOString().slice(0, 16);
       } catch (error) {
-        console.warn('[TRANSLATION_NEEDED]', dateTime, error);
+        console.warn('Error formatting datetime:', dateTime, error);
         return "";
       }
     };
+
     setFormData({
       startDateTime: formatDateTime(dataToUse.start_time || dataToUse.startDateTime),
       endDateTime: formatDateTime(dataToUse.end_time || dataToUse.endDateTime),
@@ -86,6 +89,7 @@ export default function EditInternalActionModal({
     
     setIsPublic(dataToUse.is_public !== undefined ? dataToUse.is_public : dataToUse.isPublic || false);
   }, [actionDetails, action, isOpen]);
+
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
     queryKey: ["/api/user-management/users"],
@@ -95,6 +99,7 @@ export default function EditInternalActionModal({
     },
     enabled: isOpen,
   });
+
   // Update internal action mutation
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -115,38 +120,43 @@ export default function EditInternalActionModal({
       
       console.log('🔧 PUT Update - Sending data:', payload);
       
-      const response = await apiRequest("PUT", "
+      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, payload);
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Ação interna atualizada com sucesso",
       });
+
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
+
       onClose();
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error.message || "Falha ao atualizar ação interna",
         variant: "destructive",
       });
     },
   });
+
   const handleSubmit = () => {
     if (!formData.actionType) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: "Por favor, selecione o tipo de ação interna",
         variant: "destructive",
       });
       return;
     }
+
     updateActionMutation.mutate(formData);
   };
+
   const handleTimeSpentToggle = (checked: boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -154,12 +164,14 @@ export default function EditInternalActionModal({
       timeSpentMinutes: checked ? prev.timeSpentMinutes : "0"
     }));
   };
+
   if (!action) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto>
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2>
+          <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
             Editar Ação Interna
           </DialogTitle>
@@ -167,11 +179,12 @@ export default function EditInternalActionModal({
             Modifique os detalhes da ação interna registrada neste ticket.
           </DialogDescription>
         </DialogHeader>
+
         <Card>
-          <CardContent className="p-6>
-            <div className="space-y-6>
+          <CardContent className="p-6">
+            <div className="space-y-6">
               {/* Date/Time and Time Controls */}
-              <div className="grid grid-cols-4 gap-4>
+              <div className="grid grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="start-datetime">Data/Hora Início</Label>
                   <Input
@@ -205,13 +218,13 @@ export default function EditInternalActionModal({
                   />
                 </div>
                 <div>
-                  <div className="flex items-center space-x-2 mb-1>
+                  <div className="flex items-center space-x-2 mb-1">
                     <Switch
                       id="alter-time"
                       checked={formData.alterTimeSpent}
                       onCheckedChange={handleTimeSpentToggle}
                     />
-                    <Label htmlFor="alter-time" className="text-lg">"Alterar tempo gasto</Label>
+                    <Label htmlFor="alter-time" className="text-sm">Alterar tempo gasto</Label>
                   </div>
                   <Input
                     id="time-spent"
@@ -223,37 +236,39 @@ export default function EditInternalActionModal({
                     disabled={!formData.alterTimeSpent}
                     className="mt-1"
                   />
-                  <Label htmlFor="time-spent" className="text-lg">"minutos</Label>
+                  <Label htmlFor="time-spent" className="text-xs text-gray-500">minutos</Label>
                 </div>
               </div>
+
               {/* Assigned To - Highlighted */}
-              <Card className="border-blue-200 bg-blue-50>
-                <CardContent className="p-4>
-                  <div className="flex items-center gap-2 mb-2>
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
                     <User className="w-4 h-4 text-blue-600" />
-                    <Label htmlFor="assigned-to" className="text-lg">"Atribuído a</Label>
+                    <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
                   </div>
                   <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                      <SelectValue placeholder="Selecione um membro..." />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
                       {(teamMembers?.users || []).map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
-                          {user.name || "
+                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </CardContent>
               </Card>
+
               {/* Action Type */}
               <div>
                 <Label htmlFor="action-type">Ação Interna *</Label>
                 <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
-                  <SelectTrigger className="mt-1>
-                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione o tipo de ação..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="analysis">Análise</SelectItem>
@@ -268,6 +283,7 @@ export default function EditInternalActionModal({
                   </SelectContent>
                 </Select>
               </div>
+
               {/* Description */}
               <div>
                 <Label htmlFor="description">Descrição</Label>
@@ -279,21 +295,23 @@ export default function EditInternalActionModal({
                   className="mt-1"
                 />
               </div>
+
               {/* Status */}
-              <div className="grid grid-cols-2 gap-4>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="flex items-center space-x-2 mb-1>
+                  <div className="flex items-center space-x-2 mb-1">
                     <Switch
                       id="status-toggle"
-                      checked={formData.status === "completed"
+                      checked={formData.status === "completed"}
                       onCheckedChange={(checked) => setFormData(prev => ({ ...prev, status: checked ? "completed" : "pending" }))}
                     />
-                    <Label htmlFor="status-toggle" className="text-sm>
-                      {formData.status === "completed" ? "Concluída" : "Pendente"
+                    <Label htmlFor="status-toggle" className="text-sm">
+                      {formData.status === "completed" ? "Concluída" : "Pendente"}
                     </Label>
                   </div>
                 </div>
               </div>
+
               {/* Work Log */}
               <div>
                 <Label htmlFor="work-log">Registro de Trabalho</Label>
@@ -306,19 +324,21 @@ export default function EditInternalActionModal({
                   className="mt-1"
                 />
               </div>
+
               {/* Public/Private Toggle */}
-              <div className="flex items-center space-x-2 mb-4>
+              <div className="flex items-center space-x-2 mb-4">
                 <Switch
                   id="public-action"
                   checked={isPublic}
                   onCheckedChange={setIsPublic}
                 />
-                <Label htmlFor="public-action" className="text-sm>
-                  {isPublic ? "Ação Pública (Visível ao cliente)" : "Ação Privada (Apenas agentes)"
+                <Label htmlFor="public-action" className="text-sm">
+                  {isPublic ? "Ação Pública (Visível ao cliente)" : "Ação Privada (Apenas agentes)"}
                 </Label>
               </div>
+
               {/* Submit Section */}
-              <div className="flex gap-2 justify-end border-t pt-4>
+              <div className="flex gap-2 justify-end border-t pt-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -333,7 +353,7 @@ export default function EditInternalActionModal({
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {updateActionMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
+                  {updateActionMutation.isPending ? "Salvando..." : "Salvar Alterações"}
                 </Button>
               </div>
             </div>

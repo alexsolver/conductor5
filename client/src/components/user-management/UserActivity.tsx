@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
 interface UserActivityItem {
   id: string;
   userId: string;
@@ -59,14 +60,17 @@ interface UserActivityItem {
     email: string;
   };
 }
+
 interface UserActivityProps {
   tenantAdmin?: boolean;
 }
+
 export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [dateRange, setDateRange] = useState("7");
+
   const { data: activityData, isLoading } = useQuery<{ activities: UserActivityItem[] }>({
     queryKey: ["/api/user-management/activity", {
       search: searchTerm,
@@ -74,6 +78,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
       days: parseInt(dateRange)
     }],
   });
+
   const getActionIcon = (action: string) => {
     const iconMap: Record<string, JSX.Element> = {
       'login': <LogIn className="h-4 w-4" />,
@@ -88,6 +93,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
     };
     return iconMap[action] || <Activity className="h-4 w-4" />;
   };
+
   const getActionDisplayName = (action: string) => {
     const actionNames: Record<string, string> = {
       'login': 'Login',
@@ -111,6 +117,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
     };
     return actionNames[action] || action;
   };
+
   const getResourceDisplayName = (resource?: string) => {
     if (!resource) return '';
     
@@ -121,30 +128,33 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
       'group': 'Grupo',
       'role': 'Papel',
       'permission': 'Permissão',
-      'settings': '[TRANSLATION_NEEDED]',
+      'settings': 'Configurações',
     };
     return resourceNames[resource] || resource;
   };
+
   const filteredActivities = activityData?.activities || [];
+
   return (
-    <div className="space-y-4>
+    <div className="space-y-4">
       <div>
-        <h3 className="text-lg">"{t("userManagement.userActivity", "Atividade dos Usuários")}</h3>
-        <p className="text-sm text-muted-foreground>
+        <h3 className="text-lg font-medium">{t("userManagement.userActivity", "Atividade dos Usuários")}</h3>
+        <p className="text-sm text-muted-foreground">
           {t("userManagement.userActivityDesc", "Monitore ações e atividades dos usuários no sistema")}
         </p>
       </div>
+
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base>
+          <CardTitle className="text-base">
             {t("userManagement.filters", "Filtros")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4>
-            <div className="flex-1>
-              <div className="relative>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t("userManagement.searchActivity", "Buscar por usuário, ação ou recurso...")}
@@ -155,7 +165,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
               </div>
             </div>
             <Select value={actionFilter} onValueChange={setActionFilter}>
-              <SelectTrigger className="w-48>
+              <SelectTrigger className="w-48">
                 <SelectValue placeholder={t("userManagement.filterByAction", "Filtrar por ação")} />
               </SelectTrigger>
               <SelectContent>
@@ -168,7 +178,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
               </SelectContent>
             </Select>
             <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40>
+              <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -181,6 +191,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
           </div>
         </CardContent>
       </Card>
+
       {/* Activity Log */}
       <Card>
         <CardHeader>
@@ -191,7 +202,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8>
+            <div className="text-center py-8">
               {t("common.loading", "Carregando...")}
             </div>
           ) : (
@@ -210,25 +221,25 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
                 {filteredActivities.map((activity) => (
                   <TableRow key={activity.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-2>
+                      <div className="flex items-center space-x-2">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <div className="font-medium>
+                          <div className="font-medium">
                             {activity.user 
-                              ? "text-green-600"
+                              ? `${activity.user.firstName || ''} ${activity.user.lastName || ''}`.trim() || activity.user.email
                               : t("userManagement.unknownUser", "Usuário desconhecido")
                             }
                           </div>
                           {activity.performedByUser && activity.performedByUser.email !== activity.user?.email && (
-                            <div className="text-xs text-muted-foreground>
-                              por {"
+                            <div className="text-xs text-muted-foreground">
+                              por {`${activity.performedByUser.firstName || ''} ${activity.performedByUser.lastName || ''}`.trim() || activity.performedByUser.email}
                             </div>
                           )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2>
+                      <div className="flex items-center space-x-2">
                         {getActionIcon(activity.action)}
                         <span>{getActionDisplayName(activity.action)}</span>
                       </div>
@@ -236,29 +247,29 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
                     <TableCell>
                       <div>
                         {activity.resource && (
-                          <span className="font-medium>
+                          <span className="font-medium">
                             {getResourceDisplayName(activity.resource)}
                           </span>
                         )}
                         {activity.resourceId && (
-                          <div className="text-xs text-muted-foreground>
+                          <div className="text-xs text-muted-foreground">
                             ID: {activity.resourceId.slice(0, 8)}...
                           </div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={activity.success ? "text-green-600"default" : "destructive>
+                      <Badge variant={activity.success ? "default" : "destructive"}>
                         {activity.success 
                           ? t("userManagement.success", "Sucesso")
                           : t("userManagement.failed", "Falha")
                         }
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground>
+                    <TableCell className="text-sm text-muted-foreground">
                       {activity.ipAddress || '-'}
                     </TableCell>
-                    <TableCell className="text-sm>
+                    <TableCell className="text-sm">
                       {format(new Date(activity.performedAt), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
                     </TableCell>
                   </TableRow>
@@ -266,10 +277,11 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
               </TableBody>
             </Table>
           )}
+
           {filteredActivities.length === 0 && !isLoading && (
-            <div className="text-center py-8>
+            <div className="text-center py-8">
               <Activity className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground>
+              <p className="text-muted-foreground">
                 {searchTerm || actionFilter !== "all" 
                   ? t("userManagement.noActivityMatch", "Nenhuma atividade encontrada com os filtros aplicados")
                   : t("userManagement.noActivity", "Nenhuma atividade registrada")
@@ -279,35 +291,36 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
           )}
         </CardContent>
       </Card>
+
       {/* Activity Summary */}
       {filteredActivities.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-3>
+        <div className="grid gap-4 md:grid-cols-3">
           <Card>
-            <CardContent className="pt-6>
-              <div className="text-2xl font-bold>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">
                 {filteredActivities.length}
               </div>
-              <p className="text-xs text-muted-foreground>
+              <p className="text-xs text-muted-foreground">
                 {t("userManagement.totalActivities", "Total de Atividades")}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6>
-              <div className="text-2xl font-bold text-green-600>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-green-600">
                 {filteredActivities.filter(a => a.success).length}
               </div>
-              <p className="text-xs text-muted-foreground>
+              <p className="text-xs text-muted-foreground">
                 {t("userManagement.successfulActivities", "Atividades Bem-sucedidas")}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6>
-              <div className="text-2xl font-bold text-red-600>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-red-600">
                 {filteredActivities.filter(a => !a.success).length}
               </div>
-              <p className="text-xs text-muted-foreground>
+              <p className="text-xs text-muted-foreground">
                 {t("userManagement.failedActivities", "Atividades com Falha")}
               </p>
             </CardContent>

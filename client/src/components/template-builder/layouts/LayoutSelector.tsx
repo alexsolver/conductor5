@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
-// import { useLocalization } from '@/hooks/useLocalization';
   Layout,
   Grid,
   Columns,
@@ -20,6 +20,7 @@ import {
   Star,
   StarOff
 } from 'lucide-react';
+
 interface LayoutStructure {
   sections: Array<{
     id: string;
@@ -32,6 +33,7 @@ interface LayoutStructure {
     }>;
   }>;
 }
+
 interface LayoutTemplate {
   id: string;
   name: string;
@@ -45,15 +47,16 @@ interface LayoutTemplate {
   createdAt: Date;
   updatedAt: Date;
 }
+
 interface LayoutSelectorProps {
   currentLayout?: LayoutTemplate;
   onLayoutSelect: (layout: LayoutTemplate) => void;
   onLayoutSave: (layout: Omit<LayoutTemplate, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onLayoutDelete: (layoutId: string) => void;
 }
+
 const predefinedLayouts: LayoutTemplate[] = [
   {
-  // Localization temporarily disabled
     id: 'simple-form',
     name: 'Formulário Simples',
     description: 'Layout básico com uma coluna para formulários simples',
@@ -62,7 +65,7 @@ const predefinedLayouts: LayoutTemplate[] = [
       sections: [
         {
           id: 'main',
-          title: '[TRANSLATION_NEEDED]',
+          title: 'Informações Principais',
           columns: 1,
           fields: [
             { type: 'text', colspan: 1, required: true },
@@ -149,7 +152,7 @@ const predefinedLayouts: LayoutTemplate[] = [
       sections: [
         {
           id: 'basic-info',
-          title: '[TRANSLATION_NEEDED]',
+          title: 'Informações Básicas',
           columns: 2,
           fields: [
             { type: 'text', colspan: 1, required: true },
@@ -172,7 +175,7 @@ const predefinedLayouts: LayoutTemplate[] = [
         },
         {
           id: 'additional',
-          title: '[TRANSLATION_NEEDED]',
+          title: 'Informações Adicionais',
           columns: 1,
           fields: [
             { type: 'textarea', colspan: 1 },
@@ -328,6 +331,7 @@ const predefinedLayouts: LayoutTemplate[] = [
     updatedAt: new Date()
   }
 ];
+
 export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
   currentLayout,
   onLayoutSelect,
@@ -340,19 +344,22 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newLayoutName, setNewLayoutName] = useState('');
   const [newLayoutDescription, setNewLayoutDescription] = useState('');
+
   const filteredLayouts = layouts.filter(layout => {
     const matchesSearch = layout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          layout.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || layout.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
   const categoryLabels = {
-    all: '[TRANSLATION_NEEDED]',
+    all: 'Todos',
     basic: 'Básicos',
     advanced: 'Avançados',
     specialized: 'Especializados',
     custom: 'Personalizados'
   };
+
   const handleToggleFavorite = (layoutId: string) => {
     setLayouts(layouts.map(layout => 
       layout.id === layoutId 
@@ -360,8 +367,10 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
         : layout
     ));
   };
+
   const handleCreateLayout = () => {
     if (!newLayoutName.trim()) return;
+
     const newLayout: Omit<LayoutTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
       name: newLayoutName,
       description: newLayoutDescription,
@@ -379,11 +388,13 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
       preview: 'Layout personalizado',
       usageCount: 0
     };
+
     onLayoutSave(newLayout);
     setNewLayoutName('');
     setNewLayoutDescription('');
     setShowCreateDialog(false);
   };
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'basic': return <Square className="h-4 w-4" />;
@@ -393,16 +404,17 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
       default: return <Layout className="h-4 w-4" />;
     }
   };
+
   return (
-    <div className="w-full h-full>
-      <div className="p-4 border-b>
-        <div className="flex items-center justify-between mb-4>
+    <div className="w-full h-full">
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold flex items-center>
+            <h2 className="text-lg font-semibold flex items-center">
               <Layout className="h-5 w-5 mr-2" />
               Layouts de Template
             </h2>
-            <p className="text-sm text-gray-500>
+            <p className="text-sm text-gray-500">
               Escolha um layout base para seu template
             </p>
           </div>
@@ -421,7 +433,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                   Crie um layout personalizado baseado no layout atual
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4>
+              <div className="space-y-4">
                 <div>
                   <Label htmlFor="layoutName">Nome do Layout</Label>
                   <Input
@@ -441,7 +453,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                     rows={3}
                   />
                 </div>
-                <div className="flex justify-end space-x-2>
+                <div className="flex justify-end space-x-2">
                   <Button 
                     variant="outline" 
                     onClick={() => setShowCreateDialog(false)}
@@ -459,32 +471,34 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
             </DialogContent>
           </Dialog>
         </div>
+
         {/* Filtros */}
-        <div className="flex space-x-4>
-          <div className="flex-1>
+        <div className="flex space-x-4">
+          <div className="flex-1">
             <Input
-              placeholder='[TRANSLATION_NEEDED]'
+              placeholder="Buscar layouts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex space-x-2>
+          <div className="flex space-x-2">
             {Object.entries(categoryLabels).map(([value, label]) => (
               <Button
                 key={value}
-                variant={selectedCategory === value ? "default" : "outline"
+                variant={selectedCategory === value ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(value)}
               >
                 {getCategoryIcon(value)}
-                <span className="text-lg">"{label}</span>
+                <span className="ml-1 hidden sm:inline">{label}</span>
               </Button>
             ))}
           </div>
         </div>
       </div>
-      <div className="p-4>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4>
+
+      <div className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredLayouts.map((layout) => (
             <Card 
               key={layout.id}
@@ -492,21 +506,21 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                 currentLayout?.id === layout.id 
                   ? 'ring-2 ring-blue-500 bg-blue-50' 
                   : 'hover:shadow-lg'
-              "
+              }`}
               onClick={() => onLayoutSelect(layout)}
             >
-              <CardHeader className="pb-3>
-                <div className="flex items-center justify-between>
-                  <div className="flex items-center space-x-2>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
                     {getCategoryIcon(layout.category)}
-                    <CardTitle className="text-lg">"{layout.name}</CardTitle>
+                    <CardTitle className="text-base">{layout.name}</CardTitle>
                     {layout.isDefault && (
-                      <Badge variant="secondary" className="text-xs>
+                      <Badge variant="secondary" className="text-xs">
                         Padrão
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center space-x-1>
+                  <div className="flex items-center space-x-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -536,20 +550,21 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                     )}
                   </div>
                 </div>
-                <p className="text-sm text-gray-500>
+                <p className="text-sm text-gray-500">
                   {layout.description}
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4>
+                <div className="space-y-4">
                   {/* Preview visual */}
-                  <div className="bg-gray-50 p-3 rounded border>
-                    <pre className="text-xs font-mono text-gray-600 whitespace-pre-wrap>
+                  <div className="bg-gray-50 p-3 rounded border">
+                    <pre className="text-xs font-mono text-gray-600 whitespace-pre-wrap">
                       {layout.preview}
                     </pre>
                   </div>
+
                   {/* Estatísticas */}
-                  <div className="flex items-center justify-between text-xs text-gray-500>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>
                       {layout.structure.sections.length} seção(ões)
                     </span>
@@ -564,11 +579,12 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
             </Card>
           ))}
         </div>
+
         {filteredLayouts.length === 0 && (
-          <div className="text-center py-12 text-gray-500>
+          <div className="text-center py-12 text-gray-500">
             <Layout className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg">"Nenhum layout encontrado</p>
-            <p className="text-sm>
+            <p className="text-lg font-medium">Nenhum layout encontrado</p>
+            <p className="text-sm">
               Tente ajustar os filtros ou criar um novo layout personalizado
             </p>
           </div>
@@ -577,4 +593,5 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
     </div>
   );
 };
+
 export default LayoutSelector;

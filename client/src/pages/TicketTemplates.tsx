@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock, Building2, Settings } from 'lucide-react';
-// import useLocalization from '@/hooks/useLocalization';
+
 // Import new components
 import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
 import CustomFieldsEditor, { CustomField } from '@/components/templates/CustomFieldsEditor';
@@ -25,6 +25,7 @@ import TemplateCanvasEditor from '@/components/templates/TemplateCanvasEditor';
 import { TemplateHierarchyManager } from '@/components/template-builder/hierarchy/TemplateHierarchyManager';
 import { ApprovalWorkflow } from '@/components/template-builder/workflow/ApprovalWorkflow';
 import { AuditTrail } from '@/components/template-builder/audit/AuditTrail';
+
 // Schema para validação do formulário
 const templateSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -41,7 +42,9 @@ const templateSchema = z.object({
   autoAssign: z.boolean(),
   defaultAssigneeRole: z.string().optional(),
 });
+
 type TemplateFormData = z.infer<typeof templateSchema>;
+
 interface TicketTemplate {
   id: string;
   name: string;
@@ -63,6 +66,7 @@ interface TicketTemplate {
   updated_at: string;
   custom_fields?: string;
 }
+
 export default function TicketTemplates() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -72,8 +76,10 @@ export default function TicketTemplates() {
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [activeTab, setActiveTab] = useState('templates');
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // Form para criar/editar templates
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateSchema),
@@ -93,37 +99,44 @@ export default function TicketTemplates() {
       defaultAssigneeRole: '',
     },
   });
+
   // Query para buscar templates baseado na empresa selecionada
   const { data: templatesResponse, isLoading } = useQuery({
-    queryKey: ['"/api/ticket-templates/company', selectedCompany],
+    queryKey: ['/api/ticket-templates/company', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', "/api/ticket-templates/company/" + selectedCompany);
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}`);
       return response.json();
     },
   });
+
   const templates = Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
+
   // Query para buscar estatísticas baseado na empresa selecionada
   const { data: statsResponse } = useQuery({
-    queryKey: ['"/api/ticket-templates/company', selectedCompany, 'stats'],
+    queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', "/api/ticket-templates/stats");
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/stats`);
       return response.json();
     },
   });
+
   const stats = statsResponse?.data?.[0] || {};
+
   // Query para buscar categorias baseado na empresa selecionada
   const { data: categoriesResponse } = useQuery({
-    queryKey: ['"/api/ticket-templates/company', selectedCompany, 'categories'],
+    queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'],
     queryFn: async () => {
-      const response = await apiRequest('GET', "/api/ticket-templates/categories");
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/categories`);
       return response.json();
     },
   });
+
   const categories = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
+
   // Mutation para criar template
   const createTemplateMutation = useMutation({
     mutationFn: (data: TemplateFormData & { customFields?: CustomField[] }) => 
-      apiRequest('POST', "/api/ticket-templates/company/" + selectedCompany, {
+      apiRequest('POST', `/api/ticket-templates/company/${selectedCompany}`, {
         ...data,
         // Required fields
         companyId: selectedCompany === 'all' ? null : selectedCompany,
@@ -142,9 +155,9 @@ export default function TicketTemplates() {
         optionalFields: JSON.stringify(customFields.filter(f => !f.required && !f.hidden).map(f => f.name)),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-templates/company', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-templates/company', selectedCompany, 'stats'] });
-      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-templates/company', selectedCompany, 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'] });
       setIsCreateOpen(false);
       setCustomFields([]);
       form.reset();
@@ -155,19 +168,20 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Criar Template',
+        title: "Erro ao criar template",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     },
   });
+
   // Mutation para atualizar template
   const updateTemplateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<TemplateFormData> }) =>
-      apiRequest('PUT', "/api/ticket-templates/" + id, data),
+      apiRequest('PUT', `/api/ticket-templates/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-templates/company', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-templates/company', selectedCompany, 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
       setIsEditOpen(false);
       setEditingTemplate(null);
       setCustomFields([]);
@@ -179,18 +193,19 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Atualizar Template',
+        title: "Erro ao atualizar template",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     },
   });
+
   // Mutation para deletar template
   const deleteTemplateMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', "/api/ticket-templates/" + id),
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/ticket-templates/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-templates/company', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-templates/company', selectedCompany, 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
       toast({
         title: "Template excluído",
         description: "O template foi excluído com sucesso.",
@@ -198,18 +213,21 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Excluir Template',
+        title: "Erro ao excluir template",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     },
   });
+
   // Handlers
   const handleCreateTemplate = (data: TemplateFormData) => {
     createTemplateMutation.mutate({ ...data, customFields });
   };
+
   const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
+
     // Parse custom fields if they exist
     try {
       const parsedCustomFields = template.custom_fields ? JSON.parse(template.custom_fields) : [];
@@ -217,6 +235,7 @@ export default function TicketTemplates() {
     } catch (e) {
       setCustomFields([]);
     }
+
     form.reset({
       name: template.name,
       description: template.description,
@@ -234,15 +253,18 @@ export default function TicketTemplates() {
     });
     setIsEditOpen(true);
   };
+
   const handleUpdateTemplate = (data: TemplateFormData) => {
     if (!editingTemplate) return;
     updateTemplateMutation.mutate({ id: editingTemplate.id, data });
   };
+
   const handleDeleteTemplate = (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este template?')) {
       deleteTemplateMutation.mutate(id);
     }
   };
+
   // Filtrar templates
   const filteredTemplates = (templates || []).filter((template: TicketTemplate) => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -250,6 +272,7 @@ export default function TicketTemplates() {
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'low': return 'bg-green-100 text-green-800';
@@ -259,6 +282,7 @@ export default function TicketTemplates() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
   const getPriorityLabel = (priority: string) => {
     switch (priority) {
       case 'low': return 'Baixa';
@@ -268,13 +292,14 @@ export default function TicketTemplates() {
       default: return priority;
     }
   };
+
   return (
-    <div className="p-4"
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="p-4"
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg">"Templates de Tickets</h1>
-          <p className="p-4"
+          <h1 className="text-3xl font-bold">Templates de Tickets</h1>
+          <p className="text-muted-foreground">
             Sistema completo de templates com campos customizáveis e análise inteligente
           </p>
         </div>
@@ -283,75 +308,79 @@ export default function TicketTemplates() {
           Novo Template
         </Button>
       </div>
+
       {/* Company Selector */}
       <CompanyTemplateSelector 
         selectedCompany={selectedCompany}
         onCompanyChange={setSelectedCompany}
         showStats={false}
       />
+
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="p-4"
-          <TabsTrigger value="templates" className="p-4"
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="templates" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Gerenciar Templates
           </TabsTrigger>
-          <TabsTrigger value="editor" className="p-4"
+          <TabsTrigger value="editor" className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Editor Visual
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="p-4"
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics e Relatórios
           </TabsTrigger>
-          <TabsTrigger value="company" className="p-4"
+          <TabsTrigger value="company" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
             Configurações da Empresa
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="templates" className="p-4"
+
+        <TabsContent value="templates" className="space-y-6">
+
         {/* Stats Cards */}
         {stats && Object.keys(stats).length > 0 && (
-          <div className="p-4"
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Total</p>
-                    <p className="text-lg">"{stats.total_templates || 0}</p>
+                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Ativos</p>
-                    <p className="text-lg">"{stats.active_templates || 0}</p>
+                    <p className="text-sm text-muted-foreground">Ativos</p>
+                    <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
                   </div>
                   <Users className="w-8 h-8 text-green-500" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Uso médio</p>
-                    <p className="text-lg">"{Math.round(stats.avg_usage || 0)}</p>
+                    <p className="text-sm text-muted-foreground">Uso médio</p>
+                    <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
                   </div>
                   <Clock className="w-8 h-8 text-orange-500" />
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4"
-                <div className="p-4"
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-lg">"Mais usado</p>
-                    <p className="text-lg">"{stats.max_usage || 0}</p>
+                    <p className="text-sm text-muted-foreground">Mais usado</p>
+                    <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-purple-500" />
                 </div>
@@ -359,15 +388,16 @@ export default function TicketTemplates() {
             </Card>
           </div>
         )}
+
       {/* Filters */}
       <Card>
-        <CardContent className="p-4"
-          <div className="p-4"
-            <div className="p-4"
-              <div className="p-4"
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar Templates"
+                  placeholder="Buscar templates..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -375,7 +405,7 @@ export default function TicketTemplates() {
               </div>
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="p-4"
+              <SelectTrigger className="w-full sm:w-48">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
@@ -391,28 +421,29 @@ export default function TicketTemplates() {
           </div>
         </CardContent>
       </Card>
+
       {/* Templates Grid */}
       {isLoading ? (
-        <div className="p-4"
-          <p className="text-lg">"Carregando templates...</p>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Carregando templates...</p>
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="p-4"
-          <p className="p-4"
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
             {searchTerm || selectedCategory !== 'all' ? 
-              'Nenhum Template Encontrado com os Filtros Aplicados' :
-              'Nenhum Template Encontrado - Crie o Primeiro'
+              'Nenhum template encontrado com os filtros aplicados.' :
+              'Nenhum template encontrado. Crie o primeiro!'
             }
           </p>
         </div>
       ) : (
-        <div className="p-4"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template: TicketTemplate) => (
-            <Card key={template.id} className="p-4"
-              <CardHeader className="p-4"
-                <div className="p-4"
-                  <CardTitle className="text-lg">"{template.name}</CardTitle>
-                  <div className="p-4"
+            <Card key={template.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{template.name}</CardTitle>
+                  <div className="flex gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -429,30 +460,32 @@ export default function TicketTemplates() {
                     </Button>
                   </div>
                 </div>
-                <p className="p-4"
+                <p className="text-sm text-muted-foreground line-clamp-2">
                   {template.description}
                 </p>
               </CardHeader>
-              <CardContent className="p-4"
-                <div className="p-4"
-                  <div className="p-4"
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
                     <Badge variant="outline">{template.category}</Badge>
                     <Badge className={getPriorityColor(template.priority)}>
                       {getPriorityLabel(template.priority)}
                     </Badge>
                   </div>
-                  <div className="p-4"
+
+                  <div className="text-sm text-muted-foreground space-y-1">
                     <p>Estimativa: {template.estimated_hours}h</p>
                     <p>Usado: {template.usage_count || 0} vezes</p>
                     {template.requires_approval && (
-                      <p className="text-lg">"Requer aprovação</p>
+                      <p className="text-orange-600">Requer aprovação</p>
                     )}
                     {template.auto_assign && (
-                      <p className="text-lg">"Atribuição automática</p>
+                      <p className="text-blue-600">Atribuição automática</p>
                     )}
                   </div>
-                  <div className="p-4"
-                    <p className="p-4"
+
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-muted-foreground">
                       Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
@@ -463,16 +496,17 @@ export default function TicketTemplates() {
         </div>
       )}
         </TabsContent>
-        <TabsContent value="editor" className="p-4"
+
+        <TabsContent value="editor" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Editor Visual de Templates</CardTitle>
-              <p className="p-4"
+              <p className="text-muted-foreground">
                 Crie templates de abertura e atribuição usando drag-and-drop. Inclui campos do sistema e campos customizados.
               </p>
             </CardHeader>
-            <CardContent className="p-4"
-              <div className="p-4"
+            <CardContent className="p-0">
+              <div className="h-[800px]">
                 <TemplateCanvasEditor
                   onSave={(template) => {
                     console.log('Template salvo:', template);
@@ -497,7 +531,7 @@ export default function TicketTemplates() {
                     console.log('Preview do template:', template);
                     toast({
                       title: "Preview do Template",
-                      description: "Template carregado para preview.",
+                      description: `Template "${template.name}" carregado para preview.`,
                     });
                   }}
                 />
@@ -505,34 +539,37 @@ export default function TicketTemplates() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="analytics" className="p-4"
+
+        <TabsContent value="analytics" className="space-y-6">
           <TemplateAnalytics companyId={selectedCompany} />
         </TabsContent>
-        <TabsContent value="company" className="p-4"
+
+        <TabsContent value="company" className="space-y-6">
           <CompanyTemplateSelector 
             selectedCompany={selectedCompany}
             onCompanyChange={setSelectedCompany}
             showStats={true}
           />
+
           <Card>
             <CardHeader>
               <CardTitle>Configurações Avançadas</CardTitle>
             </CardHeader>
-            <CardContent className="p-4"
-              <p className="p-4"
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
                 Configure templates específicos para esta empresa, definindo terminologias 
                 e fluxos personalizados que atendem às necessidades específicas do cliente.
               </p>
-              <div className="p-4"
-                <Card className="p-4"
-                  <h4 className="text-lg">"Templates Personalizados</h4>
-                  <p className="p-4"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <h4 className="font-medium mb-2">Templates Personalizados</h4>
+                  <p className="text-sm text-muted-foreground">
                     Crie templates específicos para esta empresa com campos customizados.
                   </p>
                 </Card>
-                <Card className="p-4"
-                  <h4 className="text-lg">"Aprovações Automáticas</h4>
-                  <p className="p-4"
+                <Card className="p-4">
+                  <h4 className="font-medium mb-2">Aprovações Automáticas</h4>
+                  <p className="text-sm text-muted-foreground">
                     Configure regras de aprovação baseadas no perfil da empresa.
                   </p>
                 </Card>
@@ -541,15 +578,16 @@ export default function TicketTemplates() {
           </Card>
         </TabsContent>
       </Tabs>
+
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Criar Novo Template - {selectedCompany === 'all' ? 'Global' : 'Específico da Empresa'}</DialogTitle>
           </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="p-4"
-            <div className="p-4"
+          <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -563,6 +601,7 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="category"
@@ -577,6 +616,7 @@ export default function TicketTemplates() {
                 )}
               />
             </div>
+
             <FormField
               control={form.control}
               name="description"
@@ -594,7 +634,8 @@ export default function TicketTemplates() {
                 </FormItem>
               )}
             />
-            <div className="p-4"
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="priority"
@@ -618,6 +659,7 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="urgency"
@@ -641,6 +683,7 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="impact"
@@ -665,7 +708,8 @@ export default function TicketTemplates() {
                 )}
               />
             </div>
-            <div className="p-4"
+
+            <div className="flex justify-end gap-2 pt-4">
               <Button 
                 type="button" 
                 variant="outline" 
@@ -684,9 +728,10 @@ export default function TicketTemplates() {
         </Form>
         </DialogContent>
       </Dialog>
+
       {/* Edit Dialog - Similar structure with populated fields */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="p-4"
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Template</DialogTitle>
           </DialogHeader>
@@ -695,9 +740,9 @@ export default function TicketTemplates() {
               if (editingTemplate) {
                 updateTemplateMutation.mutate({ id: editingTemplate.id, data });
               }
-            })} className="p-4"
+            })} className="space-y-4">
               {/* Similar form structure as create, but populated with current values */}
-              <div className="p-4"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -711,6 +756,7 @@ export default function TicketTemplates() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="category"
@@ -725,6 +771,7 @@ export default function TicketTemplates() {
                   )}
                 />
               </div>
+
               <FormField
                 control={form.control}
                 name="description"
@@ -742,7 +789,8 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
-              <div className="p-4"
+
+              <div className="flex justify-end gap-2 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 

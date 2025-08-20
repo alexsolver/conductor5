@@ -1,11 +1,13 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
 interface DynamicBadgeProps extends React.ComponentProps<typeof Badge> {
   fieldName: string;
   value?: string | null;
   children: React.ReactNode;
 }
+
 export const DynamicBadge = React.forwardRef<
   React.ElementRef<typeof Badge>,
   DynamicBadgeProps
@@ -55,6 +57,7 @@ export const DynamicBadge = React.forwardRef<
         return "outline";
     }
   };
+
   return (
     <Badge
       variant={getVariant()}
@@ -65,4 +68,5 @@ export const DynamicBadge = React.forwardRef<
     </Badge>
   );
 });
+
 DynamicBadge.displayName = "DynamicBadge";

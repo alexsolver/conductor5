@@ -1,9 +1,11 @@
 // ✅ 1QA.MD COMPLIANCE: MODERN RICH TEXT EDITOR - NO findDOMNode
 // Editor moderno sem dependência de ReactQuill para evitar warnings
+
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { Bold, Italic, Underline, List, ListOrdered, Link, Quote, Code, Undo, Redo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+
 interface ModernRichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -12,6 +14,7 @@ interface ModernRichTextEditorProps {
   className?: string;
   'data-testid'?: string;
 }
+
 export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
   value,
   onChange,
@@ -22,6 +25,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isInternalUpdate, setIsInternalUpdate] = useState(false);
+
   // Update editor content when value changes
   useEffect(() => {
     if (!editorRef.current || isInternalUpdate) return;
@@ -30,6 +34,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
       editorRef.current.innerHTML = value;
     }
   }, [value, isInternalUpdate]);
+
   // Handle content changes
   const handleInput = useCallback(() => {
     if (!editorRef.current || readOnly) return;
@@ -41,6 +46,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
     // Reset flag after a brief delay
     setTimeout(() => setIsInternalUpdate(false), 0);
   }, [onChange, readOnly]);
+
   // Toolbar command execution
   const executeCommand = useCallback((command: string, value?: string) => {
     if (readOnly) return;
@@ -49,6 +55,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
     editorRef.current?.focus();
     handleInput();
   }, [readOnly, handleInput]);
+
   // Formatting functions
   const formatText = {
     bold: () => executeCommand('bold'),
@@ -65,10 +72,11 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
     undo: () => executeCommand('undo'),
     redo: () => executeCommand('redo'),
   };
+
   return (
-    <div className="text-lg">"
+    <div className={`border rounded-lg bg-background ${className}`}>
       {!readOnly && (
-        <div className="flex items-center gap-1 p-2 border-b bg-muted/30>
+        <div className="flex items-center gap-1 p-2 border-b bg-muted/30">
           <Button
             type="button"
             variant="ghost"
@@ -79,6 +87,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <Bold className="h-4 w-4" />
           </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -89,6 +98,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <Italic className="h-4 w-4" />
           </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -99,7 +109,9 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <Underline className="h-4 w-4" />
           </Button>
+
           <Separator orientation="vertical" className="h-6" />
+
           <Button
             type="button"
             variant="ghost"
@@ -110,6 +122,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <List className="h-4 w-4" />
           </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -120,6 +133,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <ListOrdered className="h-4 w-4" />
           </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -130,6 +144,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <Link className="h-4 w-4" />
           </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -140,6 +155,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <Quote className="h-4 w-4" />
           </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -150,7 +166,9 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <Code className="h-4 w-4" />
           </Button>
+
           <Separator orientation="vertical" className="h-6" />
+
           <Button
             type="button"
             variant="ghost"
@@ -161,6 +179,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           >
             <Undo className="h-4 w-4" />
           </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -173,6 +192,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           </Button>
         </div>
       )}
+
       <div
         ref={editorRef}
         contentEditable={!readOnly}
@@ -217,7 +237,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
           color: #3b82f6;
           text-decoration: underline;
         }
-      "</style>
+      `}</style>
     </div>
   );
 };

@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-// import useLocalization from '@/hooks/useLocalization';
   Card,
   CardContent,
   CardHeader,
@@ -66,6 +65,7 @@ import {
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+
 interface TenantIntegration {
   id: string;
   name: string;
@@ -78,9 +78,9 @@ interface TenantIntegration {
   config?: any;
   lastSync?: string;
 }
+
 // ✅ VALIDATION: Schema for integration configurations
 const integrationConfigSchema = z.object({
-  // Localization temporarily disabled
   enabled: z.boolean().default(false),
   useSSL: z.boolean().default(false),
   apiKey: z.string().optional(),
@@ -97,7 +97,7 @@ const integrationConfigSchema = z.object({
   // IMAP specific fields
   imapServer: z.string().optional(),
   imapPort: z.string().optional(),
-  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', '[TRANSLATION_NEEDED]']).optional(),
+  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', 'None']).optional(),
   emailAddress: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
     message: "Deve ser um email válido"
   }),
@@ -121,6 +121,7 @@ const integrationConfigSchema = z.object({
   whatsappNotificationTemplate: z.string().optional(),
   whatsappConfirmationTemplate: z.string().optional(),
 });
+
 export default function TenantAdminIntegrations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -128,6 +129,7 @@ export default function TenantAdminIntegrations() {
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
   const [isTestingIntegration, setIsTestingIntegration] = useState(false); // State for general testing
   const [testResult, setTestResult] = useState<any>(null); // State for test results
+
   const configForm = useForm<z.infer<typeof integrationConfigSchema>>({
     resolver: zodResolver(integrationConfigSchema),
     defaultValues: {
@@ -156,42 +158,46 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
-      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-      telegramAlertTemplate: "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-      telegramSummaryTemplate: "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
       whatsappWebhookUrl: '',
       whatsappVerifyToken: '',
-      whatsappNotificationTemplate: "Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
+      whatsappNotificationTemplate: `Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
       whatsappConfirmationTemplate: `Olá {customer_name}, confirmamos o recebimento da sua solicitação:\n\nProtocolo: {protocol}\nTipo: {type}\nStatus: {status}\n\nAcompanhe pelo sistema Conductor.`,
     },
   });
+
   // Function to load integrations
   const loadIntegrations = async () => {
     const response = await fetch('/api/tenant-admin/integrations', {
       method: 'GET',
       headers: {
-        'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         'Content-Type': 'application/json'
       },
       credentials: 'include'
     });
+
     if (!response.ok) {
-      throw new Error("HTTP error! status: " + response.status);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
   };
+
   // Query para buscar integrações
   const { data: integrationsData, isLoading, refetch } = useQuery({
     queryKey: ['/api/tenant-admin/integrations'],
     queryFn: loadIntegrations,
   });
+
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
     mutationFn: ({ integrationId, config }: { integrationId: string; config: any }) =>
-      apiRequest('POST', "/api/tenant-admin/config", config),
+      apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/config`, config),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       setIsConfigDialogOpen(false);
@@ -202,39 +208,46 @@ export default function TenantAdminIntegrations() {
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro ao salvar configuração",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     }
   });
+
   // ✅ CRITICAL FIX: Função para testar uma integração específica com melhor tratamento de erros
   const handleTestIntegration = async (integrationId: string) => {
     console.log('🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para:', integrationId);
+
     setIsTestingIntegration(true);
     setTestResult(null);
+
     try {
-      const response = await fetch("/api/tenant-admin/test", {
+      const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
         method: 'POST',
         headers: {
-          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""), // Use accessToken consistently
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Use accessToken consistently
           'Content-Type': 'application/json'
         }
       });
+
       console.log('🧪 [TESTE-INTEGRAÇÃO] Response status:', response.status);
       console.log('🔍 [TESTE-INTEGRAÇÃO] Response details:', {
         status: response.status,
         contentType: response.headers.get('content-type'),
         headers: Object.fromEntries(response.headers.entries())
       });
+
       // ✅ VALIDATION: Check for JSON response
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await response.text();
         console.error('❌ [TESTE-INTEGRAÇÃO] Non-JSON response received:', { status: response.status, contentType, body: textResponse.substring(0, 200) });
-        throw new Error("Erro na integração");
+        throw new Error(`Resposta inválida do servidor (Content-Type: ${contentType || 'N/A'})`);
       }
+
       const result = await response.json();
+
       if (response.ok && result.success) { // Check for HTTP OK and backend success flag
         console.log('✅ [TESTE-INTEGRAÇÃO] Sucesso:', result);
         setTestResult({
@@ -254,7 +267,7 @@ export default function TenantAdminIntegrations() {
       }
     } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro:', error);
-      let errorMessage = '[TRANSLATION_NEEDED]';
+      let errorMessage = 'Erro desconhecido';
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
@@ -262,21 +275,25 @@ export default function TenantAdminIntegrations() {
       }
       setTestResult({
         success: false,
-        message: "Falha ao testar integração: " + errorMessage,
+        message: `Falha ao testar integração: ${errorMessage}`,
         error: error
       });
     } finally {
       setIsTestingIntegration(false);
     }
   };
+
   // ✅ NEW: Webhook management functions for Telegram
   const handleSetWebhook = async () => {
     if (!selectedIntegration) return;
+
     console.log('🔧 [WEBHOOK-SETUP] Configurando webhook para Telegram');
     setIsTestingIntegration(true);
     setTestResult(null); // Clear previous test results
+
     try {
       const webhookUrl = configForm.getValues('telegramWebhookUrl');
+
       if (!webhookUrl) {
         setTestResult({
           success: false,
@@ -284,20 +301,24 @@ export default function TenantAdminIntegrations() {
         });
         return;
       }
+
       // ✅ SECURITY: Ensure the URL is valid and points to your service
       if (!webhookUrl.startsWith(window.location.origin)) {
-          console.warn(") não parece ser interna. Certifique-se de que é segura e pública.");
+          console.warn(`⚠️ [WEBHOOK-SETUP] A URL do webhook (${webhookUrl}) não parece ser interna. Certifique-se de que é segura e pública.`);
       }
+
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ webhookUrl })
       });
+
       console.log('🔧 [WEBHOOK-SETUP] Response status:', response.status);
       const result = await response.json();
+
       if (response.ok && result.success) { // Check for HTTP OK and backend success flag
         console.log('✅ [WEBHOOK-SETUP] Webhook configurado com sucesso:', result);
         setTestResult({
@@ -305,13 +326,14 @@ export default function TenantAdminIntegrations() {
           message: result.message || 'Webhook configurado com sucesso!',
           details: result
         });
+
         // Invalidate queries to refresh integration status and potentially show updated info
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       } else {
         console.error('❌ [WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || '[TRANSLATION_NEEDED]',
+          message: result.message || result.error || 'Erro ao configurar webhook',
           details: result
         });
       }
@@ -319,32 +341,37 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: '[TRANSLATION_NEEDED]',
+        message: `Erro de conexão ao configurar webhook: ${error.message}`,
         error: error
       });
     } finally {
       setIsTestingIntegration(false);
     }
   };
+
   // ✅ NEW: Set default webhook using current domain
   const handleSetDefaultWebhook = async () => {
     if (!selectedIntegration) return;
+
     console.log('🚀 [DEFAULT-WEBHOOK-SETUP] Configurando webhook padrão para Telegram');
     setIsTestingIntegration(true);
     setTestResult(null);
+
     try {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
           useDefault: true 
         })
       });
+
       console.log('🚀 [DEFAULT-WEBHOOK-SETUP] Response status:', response.status);
       const result = await response.json();
+
       if (response.ok && result.success) {
         console.log('✅ [DEFAULT-WEBHOOK-SETUP] Webhook padrão configurado com sucesso:', result);
         setTestResult({
@@ -352,15 +379,17 @@ export default function TenantAdminIntegrations() {
           message: result.message || '✅ Webhook padrão configurado automaticamente!',
           details: result
         });
+
         // Invalidate queries to refresh integration status
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
+
         // Refresh config to show the new webhook URL
-        queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/config"] });
+        queryClient.invalidateQueries({ queryKey: [`/api/tenant-admin/integrations/${selectedIntegration.id}/config`] });
       } else {
         console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || '[TRANSLATION_NEEDED]',
+          message: result.message || result.error || 'Erro ao configurar webhook padrão',
           details: result
         });
       }
@@ -368,29 +397,34 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: '[TRANSLATION_NEEDED]',
+        message: `Erro de conexão ao configurar webhook padrão: ${error.message}`,
         error: error
       });
     } finally {
       setIsTestingIntegration(false);
     }
   };
+
   // ✅ NEW: Check webhook status function
   const handleCheckWebhookStatus = async () => {
     if (!selectedIntegration) return;
+
     console.log('📊 [WEBHOOK-STATUS] Verificando status do webhook para Telegram');
     setIsTestingIntegration(true);
     setTestResult(null);
+
     try {
       const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
         method: 'GET',
         headers: {
-          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         }
       });
+
       console.log('📊 [WEBHOOK-STATUS] Response status:', response.status);
       const result = await response.json();
+
       if (response.ok && result.success) {
         console.log('✅ [WEBHOOK-STATUS] Status obtido com sucesso:', result);
         setTestResult({
@@ -405,7 +439,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-STATUS] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || '[TRANSLATION_NEEDED]',
+          message: result.message || result.error || 'Erro ao obter status do webhook',
           details: result
         });
       }
@@ -413,13 +447,15 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: '[TRANSLATION_NEEDED]',
+        message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
         error: error
       });
     } finally {
       setIsTestingIntegration(false);
     }
   };
+
+
   // Map integrations with proper icons and saved configuration status
   const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations?.length > 0 
     ? integrationsData.integrations.map((integration: any) => ({
@@ -459,7 +495,7 @@ export default function TenantAdminIntegrations() {
       icon: Mail,
       status: 'disconnected',
       configured: false,
-      features: ['Notificações por email', '[TRANSLATION_NEEDED]', '[TRANSLATION_NEEDED]']
+      features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
     },
     {
       id: 'imap-email',
@@ -541,7 +577,7 @@ export default function TenantAdminIntegrations() {
       icon: BarChart3,
       status: 'disconnected',
       configured: false,
-      features: ['Métricas de conversão', 'Funis de atendimento', '[TRANSLATION_NEEDED]']
+      features: ['Métricas de conversão', 'Funis de atendimento', 'Relatórios customizados']
     },
     {
       id: 'crm-integration',
@@ -596,6 +632,7 @@ export default function TenantAdminIntegrations() {
       features: ['Backup automático', 'Sincronização de anexos', 'Armazenamento seguro', 'API v2 Dropbox']
     }
   ];
+
   function getIntegrationIcon(id: string) {
     switch (id) {
       case 'gmail-oauth2':
@@ -632,15 +669,17 @@ export default function TenantAdminIntegrations() {
         return Database;
     }
   }
+
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="text-lg">"Carregando integrações...</div>
+      <div className="space-y-8 p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Carregando integrações...</div>
         </div>
       </div>
     );
   }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'connected': return 'text-green-600 bg-green-100';
@@ -649,6 +688,7 @@ export default function TenantAdminIntegrations() {
       default: return 'text-gray-600 bg-gray-100';
     }
   };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'connected': return <CheckCircle className="h-4 w-4" />;
@@ -657,6 +697,7 @@ export default function TenantAdminIntegrations() {
       default: return <AlertTriangle className="h-4 w-4" />;
     }
   };
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Comunicação': return 'bg-blue-100 text-blue-800';
@@ -667,34 +708,40 @@ export default function TenantAdminIntegrations() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
   const onConfigureIntegration = async (integration: TenantIntegration) => {
-    console.log(`🔧 [CONFIG-LOAD] Configurando integração: " + integration.id`);
+    console.log(`🔧 [CONFIG-LOAD] Configurando integração: ${integration.id}`);
     setSelectedIntegration(integration);
     setTestResult(null); // Clear previous test results when opening dialog
+
     try {
       // ✅ CRITICAL FIX: Usar fetch direto com headers corretos
-      console.log("🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id`);
-      const response = await fetch("/api/tenant-admin/config", {
+      console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id}`);
+
+      const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
         method: 'GET',
         headers: {
-          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         credentials: 'include'
       });
-      console.log("
+
+      console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
+
       if (!response.ok) {
         // Handle case where config might not exist yet (e.g., return 404)
         if (response.status === 404) {
-          console.log(", usando valores padrão.`);
+          console.log(`ℹ️ [CONFIG-LOAD] Configuração não encontrada para ${integration.id}, usando valores padrão.`);
           // Set default values here
           configForm.reset(getDefaultValues(integration.id));
           setIsConfigDialogOpen(true);
           return;
         }
-        throw new Error("
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await response.text();
@@ -705,8 +752,10 @@ export default function TenantAdminIntegrations() {
         });
         throw new Error('Servidor retornou resposta inválida (não JSON)');
       }
+
       const existingConfigData = await response.json(); // Renamed to avoid confusion with form data
       console.log(`📋 [CONFIG-LOAD] Resposta recebida:`, existingConfigData);
+
       // ✅ IMPROVED: Validação mais robusta da configuração existente
       // Check if 'configured' field exists and is true, and if 'config' object is present and has keys
       const hasValidConfig = existingConfigData && 
@@ -714,9 +763,11 @@ export default function TenantAdminIntegrations() {
         existingConfigData.config && 
         typeof existingConfigData.config === 'object' &&
         Object.keys(existingConfigData.config).length > 0;
+
       if (hasValidConfig) {
         const config = existingConfigData.config;
-        console.log("
+        console.log(`✅ [CONFIG-LOAD] Configuração válida encontrada para ${integration.id}`);
+
         // ✅ SECURITY: Função para mascarar dados sensíveis de forma consistente
         const maskSensitiveData = (value: string | undefined | null): string => {
           if (!value || value.length === 0) return '';
@@ -725,41 +776,50 @@ export default function TenantAdminIntegrations() {
           // Mask if the value is long enough to be considered sensitive
           return value.length > 8 ? '••••••••' : value; 
         };
+
         // ✅ STANDARDIZED: Carregamento padronizado para todas as integrações
         const formValues = {
           enabled: Boolean(config.enabled),
           useSSL: config.useSSL !== false,
+
           // OAuth2 fields
           clientId: config.clientId || '',
           clientSecret: maskSensitiveData(config.clientSecret),
           redirectUri: config.redirectUri || '',
           tenantId: config.tenantId || '',
+
           // Generic API fields
           apiKey: maskSensitiveData(config.apiKey),
           apiSecret: maskSensitiveData(config.apiSecret),
           webhookUrl: config.webhookUrl || '',
+
           // Server/Email fields
           serverHost: config.serverHost || config.imapServer || '',
           serverPort: config.serverPort ? String(config.serverPort) : (config.imapPort ? String(config.imapPort) : ''),
           username: config.username || config.emailAddress || '',
           password: maskSensitiveData(config.password),
+
           // IMAP specific fields
           imapServer: config.imapServer || 'imap.gmail.com',
           imapPort: config.imapPort ? String(config.imapPort) : '993',
           imapSecurity: config.imapSecurity || 'SSL/TLS',
           emailAddress: config.emailAddress || '',
+
           // Dropbox specific fields
           dropboxAppKey: config.dropboxAppKey || '',
           dropboxAppSecret: maskSensitiveData(config.dropboxAppSecret),
           dropboxAccessToken: maskSensitiveData(config.dropboxAccessToken),
           backupFolder: config.backupFolder || '/Backups/Conductor',
+
           // Telegram specific fields - CRITICAL FIX
           telegramBotToken: maskSensitiveData(config.telegramBotToken),
           telegramChatId: config.telegramChatId || '',
           telegramWebhookUrl: config.telegramWebhookUrl || '', // Load the webhook URL
-          telegramNotificationTemplate: config.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-          telegramAlertTemplate: config.telegramAlertTemplate || "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-          telegramSummaryTemplate: config.telegramSummaryTemplate || "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+          telegramNotificationTemplate: config.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+          telegramAlertTemplate: config.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+          telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+
+
           // WhatsApp Business specific fields
           whatsappApiKey: maskSensitiveData(config.whatsappApiKey),
           whatsappPhoneNumberId: config.whatsappPhoneNumberId || '',
@@ -768,6 +828,7 @@ export default function TenantAdminIntegrations() {
           whatsappNotificationTemplate: config.whatsappNotificationTemplate || '',
           whatsappConfirmationTemplate: config.whatsappConfirmationTemplate || '',
         };
+
         // ✅ TELEGRAM DEBUG: Log específico para debugging
         if (integration.id === 'telegram') {
           console.log(`📱 [TELEGRAM-CONFIG] Configuração carregada:`, {
@@ -778,36 +839,46 @@ export default function TenantAdminIntegrations() {
             webhookUrl: formValues.telegramWebhookUrl
           });
         }
+
         configForm.reset(formValues);
+
         toast({
           title: "✅ Configuração carregada",
-          description: " carregados com sucesso",
+          description: `Dados de ${integration.name} carregados com sucesso`,
         });
+
       } else {
-        console.log(", usando valores padrão.`);
+        console.log(`⚠️ [CONFIG-LOAD] Configuração não encontrada ou inválida para ${integration.id}, usando valores padrão.`);
         configForm.reset(getDefaultValues(integration.id));
+
         toast({
           title: "ℹ️ Nova configuração",
-          description: " pela primeira vez`,
+          description: `Configure ${integration.name} pela primeira vez`,
         });
       }
+
     } catch (error: any) {
-      console.error(":`, error);
+      console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
+
       // ✅ IMPROVED: Tratamento de erro mais robusto
-      const errorMessage = error?.message || '[TRANSLATION_NEEDED]';
+      const errorMessage = error?.message || 'Erro desconhecido';
       const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('Network');
+
       // Fallback values if an error occurs during loading
       configForm.reset(getDefaultValues(integration.id));
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "⚠️ Erro ao carregar configuração",
         description: isNetworkError 
           ? "Problema de conectividade. Usando valores padrão." 
-          : '[TRANSLATION_NEEDED]',
+          : `Erro do servidor: ${errorMessage}. Usando valores padrão.`,
         variant: "destructive",
       });
     }
+
     setIsConfigDialogOpen(true);
   };
+
   // Helper function to get default values based on integration ID
   const getDefaultValues = (integrationId: string) => {
     const baseDefaults = {
@@ -835,17 +906,18 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
-      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-      telegramAlertTemplate: "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-      telegramSummaryTemplate: "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
       whatsappWebhookUrl: '',
       whatsappVerifyToken: '',
-      whatsappNotificationTemplate: "Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
+      whatsappNotificationTemplate: `Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
       whatsappConfirmationTemplate: `Olá {customer_name}, confirmamos o recebimento da sua solicitação:\n\nProtocolo: {protocol}\nTipo: {type}\nStatus: {status}\n\nAcompanhe pelo sistema Conductor.`,
     };
+
     // Specific defaults by integration type
     switch (integrationId) {
       case 'imap-email':
@@ -853,32 +925,36 @@ export default function TenantAdminIntegrations() {
       case 'email-smtp':
         return { ...baseDefaults, serverPort: '587', useSSL: true }; // SMTP often uses STARTTLS on 587
       case 'telegram':
-        return { ...baseDefaults, telegramWebhookUrl: "/api/webhooks/telegram` }; // Suggest a default webhook URL
+        return { ...baseDefaults, telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram` }; // Suggest a default webhook URL
       case 'whatsapp-business':
-        return { ...baseDefaults, whatsappWebhookUrl: "/api/webhooks/whatsapp` }; // Suggest a default webhook URL
+        return { ...baseDefaults, whatsappWebhookUrl: `${window.location.origin}/api/webhooks/whatsapp` }; // Suggest a default webhook URL
       default:
         return baseDefaults;
     }
   };
+
   // Function to initiate OAuth2 flow
   const startOAuthFlow = async (integration: TenantIntegration) => {
     try {
       // ✅ ENHANCEMENT: Use the actual integration ID to construct the redirect URI
-      const redirectUri = "/callback`;
+      const redirectUri = `${window.location.origin}/auth/${integration.id}/callback`;
+
       // ✅ IMPROVEMENT: Pass redirectUri to backend for state management and validation
-      const response = await fetch("/oauth/start`, {
+      const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
         method: 'POST',
         headers: {
-          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ redirectUri }) // Send redirect URI to backend
       });
+
       // ✅ VALIDATION: Check for 'authUrl' in response
       const result = await response.json();
       if (!result.authUrl) {
         throw new Error(result.error || 'Não foi possível obter a URL de autorização.');
       }
+
       // Open OAuth2 URL in new window
       window.open(result.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
       toast({
@@ -888,30 +964,34 @@ export default function TenantAdminIntegrations() {
     } catch (error: any) {
       console.error('❌ [OAUTH-FLOW] Erro:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: "Erro OAuth2",
+        description: error.message || "Erro ao iniciar fluxo OAuth2",
         variant: "destructive",
       });
     }
   };
+
   const onSubmitConfig = async (data: z.infer<typeof integrationConfigSchema>) => {
     if (!selectedIntegration) {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "❌ Erro de validação",
+        description: "Nenhuma integração selecionada",
         variant: "destructive",
       });
       return;
     }
+
     try {
       // ✅ VALIDATION: Validação específica por tipo de integração
       const validateIntegrationData = (integrationId: string, formData: any) => {
         const errors: string[] = [];
+
         // Helper to check if a sensitive field needs to be provided (not masked)
         const isSensitiveFieldProvided = (fieldName: string): boolean => {
           const value = formData[fieldName];
           return value && value !== '••••••••';
         };
+
         switch (integrationId) {
           case 'telegram':
             if (formData.enabled) {
@@ -927,6 +1007,7 @@ export default function TenantAdminIntegrations() {
               }
             }
             break;
+
           case 'email-smtp':
             if (formData.enabled) {
               if (!formData.serverHost) errors.push('Servidor SMTP é obrigatório');
@@ -937,6 +1018,7 @@ export default function TenantAdminIntegrations() {
               }
             }
             break;
+
           case 'imap-email':
             if (formData.enabled) {
               if (!formData.imapServer) errors.push('Servidor IMAP é obrigatório');
@@ -946,6 +1028,7 @@ export default function TenantAdminIntegrations() {
               }
             }
             break;
+
           case 'gmail-oauth2':
           case 'outlook-oauth2':
             if (formData.enabled) {
@@ -955,6 +1038,7 @@ export default function TenantAdminIntegrations() {
               }
             }
             break;
+
           case 'dropbox-personal':
             if (formData.enabled) {
               if (!formData.dropboxAppKey) errors.push('App Key é obrigatória');
@@ -963,11 +1047,13 @@ export default function TenantAdminIntegrations() {
               }
             }
             break;
+
           case 'webhooks':
             if (formData.enabled && formData.webhookUrl && !formData.webhookUrl.startsWith('https://')) {
                 errors.push('URL do Webhook deve começar com "https://"');
             }
             break;
+
           case 'whatsapp-business':
             if (formData.enabled) {
               if (!formData.whatsappApiKey) errors.push('API Key do WhatsApp Business é obrigatória');
@@ -977,17 +1063,21 @@ export default function TenantAdminIntegrations() {
             }
             break;
         }
+
         return errors;
       };
+
       const validationErrors = validateIntegrationData(selectedIntegration.id, data);
+
       if (validationErrors.length > 0) {
         toast({
-          title: '[TRANSLATION_NEEDED]',
+          title: "❌ Erro de validação",
           description: validationErrors.join('. '),
           variant: "destructive",
         });
         return;
       }
+
       // ✅ PREPARATION: Preparar dados baseado no tipo de integração
       let configData: any = {
         enabled: data.enabled === true,
@@ -995,6 +1085,7 @@ export default function TenantAdminIntegrations() {
         integrationVersion: '1.0',
         ...data
       };
+
       // ✅ SPECIALIZED PROCESSING: Processamento específico por integração
       // Ensure sensitive data is not re-masked if it was already '••••••••'
       const processSensitiveData = (currentConfig: any, newData: any) => {
@@ -1014,13 +1105,14 @@ export default function TenantAdminIntegrations() {
         });
         return newData;
       };
+
       // Fetch current config to handle sensitive data correctly
       let currentConfig = null;
       try {
-        const configResponse = await fetch("/api/tenant-admin/config", {
+        const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
           method: 'GET',
           headers: {
-            'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
             'Content-Type': 'application/json'
           }
         });
@@ -1033,7 +1125,9 @@ export default function TenantAdminIntegrations() {
       } catch (fetchError) {
         console.warn("Could not fetch current config for sensitive data processing:", fetchError);
       }
+
       configData = processSensitiveData(currentConfig, configData);
+
       switch (selectedIntegration.id) {
         case 'imap-email':
           configData = {
@@ -1047,6 +1141,7 @@ export default function TenantAdminIntegrations() {
             username: data.emailAddress || ''
           };
           break;
+
         case 'email-smtp':
           configData = {
             ...configData,
@@ -1056,17 +1151,19 @@ export default function TenantAdminIntegrations() {
             // useSSL is handled by the general field
           };
           break;
+
         case 'telegram':
           configData = {
             ...configData,
             telegramBotToken: data.telegramBotToken || '',
             telegramChatId: data.telegramChatId || '',
             telegramWebhookUrl: data.telegramWebhookUrl || '', // Include the webhook URL
-            telegramNotificationTemplate: data.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-            telegramAlertTemplate: data.telegramAlertTemplate || "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-            telegramSummaryTemplate: data.telegramSummaryTemplate || "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+            telegramNotificationTemplate: data.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+            telegramAlertTemplate: data.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+            telegramSummaryTemplate: data.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
           };
           break;
+
         case 'dropbox-personal':
           configData = {
             ...configData,
@@ -1076,6 +1173,7 @@ export default function TenantAdminIntegrations() {
             backupFolder: data.backupFolder || '/Backups/Conductor'
           };
           break;
+
         case 'whatsapp-business':
           configData = {
             ...configData,
@@ -1087,28 +1185,34 @@ export default function TenantAdminIntegrations() {
             whatsappConfirmationTemplate: data.whatsappConfirmationTemplate || '',
           };
           break;
+
         default:
           // For other integrations, standard fields apply
           break;
       }
-      console.log(":`, {
+
+      console.log(`💾 [SUBMIT-CONFIG] Enviando configuração para ${selectedIntegration.id}:`, {
         integrationId: selectedIntegration.id,
         enabled: configData.enabled,
         fieldsCount: Object.keys(configData).length
       });
+
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
         config: configData
       });
+
     } catch (error: any) {
       console.error('❌ [SUBMIT-CONFIG] Erro ao processar configuração:', error);
+
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: '[TRANSLATION_NEEDED]',
+        title: "❌ Erro interno",
+        description: "Erro ao processar a configuração. Tente novamente.",
         variant: "destructive",
       });
     }
   };
+
   const groupedIntegrations = tenantIntegrations.reduce((acc, integration) => {
     if (!acc[integration.category]) {
       acc[integration.category] = [];
@@ -1116,70 +1220,76 @@ export default function TenantAdminIntegrations() {
     acc[integration.category].push(integration);
     return acc;
   }, {} as Record<string, TenantIntegration[]>);
+
   return (
-    <div className="p-4"
+    <div className="p-4 space-y-8">
       {/* Header */}
-      <div className="p-4"
-        <div className="p-4"
+      <div className="border-b border-gray-200 pb-4">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="p-4"
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Integrações do Tenant
             </h1>
-            <p className="p-4"
+            <p className="text-gray-600 mt-2">
               Configurar integrações específicas para este workspace
             </p>
           </div>
         </div>
       </div>
+
       {/* Stats Cards */}
-      <div className="p-4"
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Total de Integrações</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Integrações</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg">"{tenantIntegrations.length}</div>
+            <div className="text-2xl font-bold">{tenantIntegrations.length}</div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Ativas</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ativas</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold text-green-600">
               {tenantIntegrations.filter(i => i.status === 'connected').length}
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Configuradas</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Configuradas</CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold">
               {tenantIntegrations.filter(i => i.configured).length}
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-lg">"Categorias</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Categorias</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="text-2xl font-bold">
               {Object.keys(groupedIntegrations).length}
             </div>
           </CardContent>
         </Card>
       </div>
+
       {/* Integrações por Categoria */}
-      <Tabs defaultValue="certificados" className="p-4"
-        <TabsList className="text-lg">"
-          <TabsTrigger value="certificados>
+      <Tabs defaultValue="certificados" className="space-y-4">
+        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 1}`}>
+          <TabsTrigger value="certificados">
             Certificados
           </TabsTrigger>
           {Object.keys(groupedIntegrations).map((category) => (
@@ -1188,15 +1298,16 @@ export default function TenantAdminIntegrations() {
             </TabsTrigger>
           ))}
         </TabsList>
+
         {/* Aba de Certificados */}
-        <TabsContent value="certificados" className="p-4"
+        <TabsContent value="certificados" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="p-4"
+              <CardTitle className="flex items-center space-x-2">
                 <Shield className="h-6 w-6 text-purple-600" />
                 <span>Gerenciamento de Certificados Digitais</span>
               </CardTitle>
-              <p className="p-4"
+              <p className="text-gray-600">
                 Configure e gerencie certificados digitais ICP-Brasil para assinatura de documentos CLT
               </p>
             </CardHeader>
@@ -1205,40 +1316,41 @@ export default function TenantAdminIntegrations() {
             </CardContent>
           </Card>
         </TabsContent>
+
         {Object.entries(groupedIntegrations).map(([category, integrations]) => (
-          <TabsContent key={category} value={category} className="p-4"
-            <div className="p-4"
+          <TabsContent key={category} value={category} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
               {integrations.map((integration) => {
                 const IconComponent = integration.icon || Mail; // Fallback to Mail icon
                 return (
-                  <Card key={integration.id} className="p-4"
-                    <CardHeader className="p-4"
-                      <div className="p-4"
-                        <div className="p-4"
-                          <div className="p-4"
+                  <Card key={integration.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex-shrink-0">
                             <IconComponent className="h-6 w-6 text-purple-600" />
                           </div>
-                          <div className="p-4"
+                          <div className="min-w-0 flex-1">
                             <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
                               {integration.name}
                             </CardTitle>
-                            <Badge className="p-4" text-xs mt-1>
+                            <Badge className={`${getCategoryColor(integration.category)} text-xs mt-1`}>
                               {integration.category}
                             </Badge>
                           </div>
                         </div>
-                        <div className="p-4"
+                        <div className="flex flex-col items-end space-y-1 flex-shrink-0">
                           {integration.configured && (
-                            <Badge className="p-4"
+                            <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
                               <CheckCircle className="h-3 w-3 mr-1" />
-                              <span className="text-lg">"Configurado</span>
-                              <span className="text-lg">"Config.</span>
+                              <span className="hidden sm:inline">Configurado</span>
+                              <span className="sm:hidden">Config.</span>
                             </Badge>
                           )}
-                          <Badge className="p-4" text-xs>
+                          <Badge className={`${getStatusColor(integration.status)} text-xs`}>
                             {getStatusIcon(integration.status)}
-                            <span className="text-lg">"{integration.status}</span>
-                            <span className="p-4"
+                            <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
+                            <span className="ml-1 capitalize sm:hidden">
                               {integration.status === 'connected' ? 'OK' : 
                                integration.status === 'disconnected' ? 'OFF' : 'ERR'}
                             </span>
@@ -1246,29 +1358,32 @@ export default function TenantAdminIntegrations() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4"
+
+                    <CardContent className="flex-1 flex flex-col">
                       <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={integration.description}>
                         {integration.description}
                       </p>
+
                       {integration.features && integration.features.length > 0 && (
-                        <div className="p-4"
-                          <h4 className="text-lg">"Recursos:</h4>
-                          <div className="p-4"
+                        <div className="mb-4 flex-1">
+                          <h4 className="text-sm font-medium mb-2">Recursos:</h4>
+                          <div className="flex flex-wrap gap-1">
                             {integration.features.slice(0, 2).map((feature, index) => (
                               <Badge key={index} variant="outline" className="text-xs" title={feature}>
-                                {feature.length > 20 ? "...` : feature}
+                                {feature.length > 20 ? `${feature.substring(0, 20)}...` : feature}
                               </Badge>
                             ))}
                             {integration.features.length > 2 && (
-                              <Badge variant="outline" className="text-xs" title={" recursos adicionais>
+                              <Badge variant="outline" className="text-xs" title={`${integration.features.length - 2} recursos adicionais`}>
                                 +{integration.features.length - 2}
                               </Badge>
                             )}
                           </div>
                         </div>
                       )}
+
                       {/* ✅ IMPROVED: Layout responsivo dos botões */}
-                      <div className="p-4"
+                      <div className="space-y-2 mt-auto">
                         {/* Primeira linha - Configurar (sempre visível) */}
                         <Button 
                           size="sm" 
@@ -1282,8 +1397,9 @@ export default function TenantAdminIntegrations() {
                           <Settings className="h-4 w-4 mr-2" />
                           Configurar
                         </Button>
+
                         {/* Segunda linha - OAuth2 e Testar */}
-                        <div className="p-4"
+                        <div className="flex gap-2">
                           {(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') && (
                             <Button 
                               size="sm" 
@@ -1296,26 +1412,27 @@ export default function TenantAdminIntegrations() {
                               className="flex-1"
                             >
                               <Key className="h-4 w-4 mr-1" />
-                              <span className="text-lg">"OAuth2</span>
-                              <span className="text-lg">"Auth</span>
+                              <span className="hidden sm:inline">OAuth2</span>
+                              <span className="sm:hidden">Auth</span>
                             </Button>
                           )}
+
                           <Button 
                             size="sm" 
                             variant="outline"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              handleTestIntegration(integration.id`);
+                              handleTestIntegration(integration.id);
                             }}
                             disabled={isTestingIntegration}
-                            className="p-4"
+                            className={`${(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') ? 'flex-1' : 'w-full'}`}
                           >
                             {isTestingIntegration ? ( // Use the general isTestingIntegration state
                               <>
                                 <div className="h-4 w-4 mr-1 animate-spin border-2 border-current border-t-transparent rounded-full" />
-                                <span className="text-lg">"Testando...</span>
-                                <span className="text-lg">"Test...</span>
+                                <span className="hidden sm:inline">Testando...</span>
+                                <span className="sm:hidden">Test...</span>
                               </>
                             ) : (
                               <>
@@ -1326,8 +1443,9 @@ export default function TenantAdminIntegrations() {
                           </Button>
                         </div>
                       </div>
+
                       {integration.lastSync && (
-                        <p className="text-xs text-gray-500 mt-3 truncate" title={"
+                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')}`}>
                           Sync: {new Date(integration.lastSync).toLocaleDateString('pt-BR')}
                         </p>
                       )}
@@ -1339,34 +1457,36 @@ export default function TenantAdminIntegrations() {
           </TabsContent>
         ))}
       </Tabs>
+
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description">
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
-            <DialogDescription id="integration-config-description>
+            <DialogDescription id="integration-config-description">
               Configure os parâmetros necessários para ativar esta integração no seu workspace.
             </DialogDescription>
           </DialogHeader>
+
           {selectedIntegration && (
             <Form {...configForm}>
               <form onSubmit={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 configForm.handleSubmit(onSubmitConfig)(e);
-              }} className="p-4"
+              }} className="space-y-4">
                 <FormField
                   control={configForm.control}
                   name="enabled"
                   render={({ field }) => (
-                    <FormItem className="p-4"
-                      <div className="p-4"
-                        <FormLabel className="p-4"
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
                           Habilitar Integração
                         </FormLabel>
-                        <div className="p-4"
+                        <div className="text-sm text-gray-500">
                           Ativar ou desativar esta integração
                         </div>
                       </div>
@@ -1379,6 +1499,7 @@ export default function TenantAdminIntegrations() {
                     </FormItem>
                   )}
                 />
+
                 {/* Campos específicos para OAuth2 */}
                 {(selectedIntegration.id === 'gmail-oauth2' || selectedIntegration.id === 'outlook-oauth2') && (
                   <>
@@ -1397,6 +1518,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="clientSecret"
@@ -1410,6 +1532,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="redirectUri"
@@ -1418,7 +1541,7 @@ export default function TenantAdminIntegrations() {
                           <FormLabel>Redirect URI</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter ${window.location.origin}/auth/${selectedIntegration.id}/callback" 
+                              placeholder={`${window.location.origin}/auth/${selectedIntegration.id}/callback`} 
                               {...field} 
                             />
                           </FormControl>
@@ -1426,6 +1549,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     {selectedIntegration.id === 'outlook-oauth2' && (
                       <FormField
                         control={configForm.control}
@@ -1443,6 +1567,7 @@ export default function TenantAdminIntegrations() {
                     )}
                   </>
                 )}
+
                 {/* Campos para SMTP */}
                 {selectedIntegration.id === 'email-smtp' && (
                   <>
@@ -1458,6 +1583,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="serverPort"
@@ -1471,6 +1597,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="username"
@@ -1484,6 +1611,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="password"
@@ -1497,16 +1625,17 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="useSSL"
                       render={({ field }) => (
-                        <FormItem className="p-4"
-                          <div className="p-4"
-                            <FormLabel className="p-4"
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
                               Usar SSL/TLS
                             </FormLabel>
-                            <div className="p-4"
+                            <div className="text-sm text-gray-500">
                               Habilitar conexão segura
                             </div>
                           </div>
@@ -1521,9 +1650,10 @@ export default function TenantAdminIntegrations() {
                     />
                   </>
                 )}
+
                 {/* Campos para IMAP Email */}
                 {selectedIntegration.id === 'imap-email' && (
-                  <div className="p-4"
+                  <div className="space-y-4">
                     <FormField
                       control={configForm.control}
                       name="imapServer"
@@ -1537,6 +1667,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="imapPort"
@@ -1550,6 +1681,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="emailAddress"
@@ -1563,6 +1695,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="password"
@@ -1576,6 +1709,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="imapSecurity"
@@ -1589,23 +1723,24 @@ export default function TenantAdminIntegrations() {
                             >
                               <option value="SSL/TLS">SSL/TLS (Porta 993)</option>
                               <option value="STARTTLS">STARTTLS (Porta 143)</option>
-                              <option value='[TRANSLATION_NEEDED]'>Sem criptografia (Porta 143)</option>
+                              <option value="None">Sem criptografia (Porta 143)</option>
                             </select>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="useSSL"
                       render={({ field }) => (
-                        <FormItem className="p-4"
-                          <div className="p-4"
-                            <FormLabel className="p-4"
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
                               Usar SSL/TLS
                             </FormLabel>
-                            <div className="p-4"
+                            <div className="text-sm text-gray-500">
                               Habilitar conexão segura IMAP
                             </div>
                           </div>
@@ -1620,6 +1755,7 @@ export default function TenantAdminIntegrations() {
                     />
                   </div>
                 )}
+
                 {/* Campos para Dropbox Pessoal */}
                 {selectedIntegration.id === 'dropbox-personal' && (
                   <>
@@ -1636,6 +1772,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="dropboxAppSecret"
@@ -1649,6 +1786,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="dropboxAccessToken"
@@ -1662,6 +1800,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="backupFolder"
@@ -1677,12 +1816,14 @@ export default function TenantAdminIntegrations() {
                     />
                   </>
                 )}
+
                 {/* Campos para Telegram */}
                 {selectedIntegration.id === 'telegram' && (
                   <>
                     {/* Original Telegram Fields */}
-                    <div className="p-4"
-                      <h4 className="text-lg">"🤖 Configuração do Bot Telegram</h4>
+                    <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="font-medium text-sm text-blue-800">🤖 Configuração do Bot Telegram</h4>
+
                       <FormField
                         control={configForm.control}
                         name="telegramBotToken"
@@ -1699,6 +1840,7 @@ export default function TenantAdminIntegrations() {
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={configForm.control}
                         name="telegramChatId"
@@ -1715,6 +1857,7 @@ export default function TenantAdminIntegrations() {
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={configForm.control}
                         name="telegramWebhookUrl"
@@ -1735,12 +1878,14 @@ export default function TenantAdminIntegrations() {
                         )}
                       />
                     </div>
+
                     {/* Templates de Mensagens Personalizáveis */}
-                    <div className="p-4"
-                      <h4 className="text-lg">"📝 Templates de Mensagens</h4>
-                      <div className="p-4"
-                        <div className="p-4"
-                          <Label className="text-lg">"Template de Notificação</Label>
+                    <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="font-medium text-sm text-green-800">📝 Templates de Mensagens</h4>
+
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Notificação</Label>
                           <Textarea
                             placeholder="🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}"
                             className="text-xs h-24 bg-white border-green-200"
@@ -1748,8 +1893,9 @@ export default function TenantAdminIntegrations() {
                             onChange={(e) => configForm.setValue('telegramNotificationTemplate', e.target.value)}
                           />
                         </div>
-                        <div className="p-4"
-                          <Label className="text-lg">"Template de Alerta</Label>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Alerta</Label>
                           <Textarea
                             placeholder="🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}"
                             className="text-xs h-24 bg-white border-green-200"
@@ -1757,8 +1903,9 @@ export default function TenantAdminIntegrations() {
                             onChange={(e) => configForm.setValue('telegramAlertTemplate', e.target.value)}
                           />
                         </div>
-                        <div className="p-4"
-                          <Label className="text-lg">"Template de Resumo</Label>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Resumo</Label>
                           <Textarea
                             placeholder="📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}"
                             className="text-xs h-24 bg-white border-green-200"
@@ -1770,9 +1917,10 @@ export default function TenantAdminIntegrations() {
                     </div>
                   </>
                 )}
+
                 {/* Campos para WhatsApp Business */}
                 {selectedIntegration.id === 'whatsapp-business' && (
-                  <div className="p-4"
+                  <div className="space-y-4">
                     <FormField
                       control={configForm.control}
                       name="whatsappApiKey"
@@ -1789,6 +1937,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="whatsappPhoneNumberId"
@@ -1805,6 +1954,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="whatsappWebhookUrl"
@@ -1821,6 +1971,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="whatsappVerifyToken"
@@ -1837,30 +1988,37 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
+
                     {/* WhatsApp Templates */}
-                    <div className="p-4"
-                      <h4 className="text-lg">"📱 Templates Aprovados do WhatsApp</h4>
-                      <div className="p-4"
-                        <div className="p-4"
-                          <Label className="text-lg">"Template de Notificação (aprovado)</Label>
+                    <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="font-medium text-sm text-green-800">📱 Templates Aprovados do WhatsApp</h4>
+
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Notificação (aprovado)</Label>
                           <Textarea
                             placeholder="Olá {customer_name}, você tem uma nova notificação do Conductor:
+
 Título: {title}
 Descrição: {description}
 Data: {date}
+
 Para mais detalhes, acesse o sistema."
                             className="text-xs h-24 bg-white border-green-200"
                             value={configForm.watch('whatsappNotificationTemplate') || ''}
                             onChange={(e) => configForm.setValue('whatsappNotificationTemplate', e.target.value)}
                           />
                         </div>
-                        <div className="p-4"
-                          <Label className="text-lg">"Template de Confirmação (aprovado)</Label>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Confirmação (aprovado)</Label>
                           <Textarea
                             placeholder="Olá {customer_name}, confirmamos o recebimento da sua solicitação:
+
 Protocolo: {protocol}
 Tipo: {type}
 Status: {status}
+
 Acompanhe pelo sistema Conductor."
                             className="text-xs h-24 bg-white border-green-200"
                             value={configForm.watch('whatsappConfirmationTemplate') || ''}
@@ -1868,7 +2026,8 @@ Acompanhe pelo sistema Conductor."
                           />
                         </div>
                       </div>
-                      <div className="p-4"
+
+                      <div className="flex gap-2 pt-2 border-t border-green-200">
                         <Button
                           type="button"
                           variant="outline"
@@ -1883,6 +2042,7 @@ Acompanhe pelo sistema Conductor."
                         >
                           ✅ Validar Template
                         </Button>
+
                         <Button
                           type="button"
                           variant="outline"
@@ -1901,6 +2061,8 @@ Acompanhe pelo sistema Conductor."
                     </div>
                   </div>
                 )}
+
+
                 {/* Campos genéricos para outras integrações */}
                 {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'dropbox-personal', 'telegram', 'whatsapp-business'].includes(selectedIntegration.id) && (
                   <>
@@ -1917,6 +2079,7 @@ Acompanhe pelo sistema Conductor."
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="webhookUrl"
@@ -1932,14 +2095,16 @@ Acompanhe pelo sistema Conductor."
                     />
                   </>
                 )}
+
                 {/* Display test results below the form if available and not for webhook section */}
                 {testResult && !['telegram'].includes(selectedIntegration.id) && (
-                  <pre className="text-lg">"
+                  <pre className={`p-2 text-xs rounded-md ${testResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {testResult.message}
-                    {testResult.details && <code className="text-lg">"{JSON.stringify(testResult.details, null, 2)}</code>}
+                    {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
                   </pre>
                 )}
-                <div className="p-4"
+
+                <div className="flex justify-end space-x-2 pt-4">
                   <Button
                     type="button"
                     variant="outline"
@@ -1951,7 +2116,7 @@ Acompanhe pelo sistema Conductor."
                     type="submit"
                     disabled={saveConfigMutation.isPending || isTestingIntegration} // Disable if saving or testing
                   >
-                    {saveConfigMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
+                    {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                   </Button>
                 </div>
               </form>

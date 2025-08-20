@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 interface FieldType {
   id: string;
   type: string;
@@ -16,9 +17,11 @@ interface FieldType {
   description: string;
   category: string;
 }
+
 interface DraggableFieldProps {
   field: FieldType;
 }
+
 function DraggableField({ field }: DraggableFieldProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: field.id,
@@ -29,9 +32,11 @@ function DraggableField({ field }: DraggableFieldProps) {
       category: field.category
     }
   });
+
   const style = transform ? {
-    transform: "px, 0)`,
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined;
+
   return (
     <div
       ref={setNodeRef}
@@ -42,20 +47,22 @@ function DraggableField({ field }: DraggableFieldProps) {
         p-3 border rounded-lg cursor-grab active:cursor-grabbing
         hover:border-blue-300 hover:bg-blue-50 transition-all
         ${isDragging ? 'opacity-50 shadow-lg' : ''}
-      "
+      `}
     >
-      <div className="flex items-center gap-2>
-        <div className="text-lg">"{field.icon}</div>
-        <div className="flex-1>
-          <p className="text-lg">"{field.label}</p>
-          <p className="text-lg">"{field.description}</p>
+      <div className="flex items-center gap-2">
+        <div className="text-blue-600">{field.icon}</div>
+        <div className="flex-1">
+          <p className="font-medium text-sm">{field.label}</p>
+          <p className="text-xs text-gray-500">{field.description}</p>
         </div>
       </div>
     </div>
   );
 }
+
 export default function FieldsPalette() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['basic']);
+
   const fieldTypes: FieldType[] = [
     // Campos Básicos
     {
@@ -98,6 +105,7 @@ export default function FieldsPalette() {
       description: 'Alternador verdadeiro/falso',
       category: 'basic'
     },
+
     // Campos Avançados
     {
       id: 'select-field',
@@ -131,6 +139,7 @@ export default function FieldsPalette() {
       description: 'Múltiplas opções marcáveis',
       category: 'advanced'
     },
+
     // Campos Especiais
     {
       id: 'file-field',
@@ -157,11 +166,13 @@ export default function FieldsPalette() {
       category: 'special'
     }
   ];
+
   const categories = [
     { id: 'basic', label: 'Campos Básicos', icon: <Type className="w-4 h-4" /> },
     { id: 'advanced', label: 'Campos Avançados', icon: <Settings className="w-4 h-4" /> },
     { id: 'special', label: 'Campos Especiais', icon: <Palette className="w-4 h-4" /> }
   ];
+
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev => 
       prev.includes(categoryId)
@@ -169,18 +180,19 @@ export default function FieldsPalette() {
         : [...prev, categoryId]
     );
   };
+
   return (
-    <Card className="w-80 h-full>
+    <Card className="w-80 h-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2>
+        <CardTitle className="flex items-center gap-2">
           <Palette className="w-5 h-5 text-blue-600" />
           Paleta de Campos
         </CardTitle>
-        <p className="text-sm text-gray-600>
+        <p className="text-sm text-gray-600">
           Arraste os campos para adicionar ao formulário
         </p>
       </CardHeader>
-      <CardContent className="space-y-4>
+      <CardContent className="space-y-4">
         {categories.map(category => (
           <Collapsible
             key={category.id}
@@ -192,10 +204,10 @@ export default function FieldsPalette() {
                 variant="ghost"
                 className="w-full justify-between p-2 h-auto"
               >
-                <div className="flex items-center gap-2>
+                <div className="flex items-center gap-2">
                   {category.icon}
-                  <span className="text-lg">"{category.label}</span>
-                  <Badge variant="outline" className="text-xs>
+                  <span className="font-medium">{category.label}</span>
+                  <Badge variant="outline" className="text-xs">
                     {fieldTypes.filter(f => f.category === category.id).length}
                   </Badge>
                 </div>
@@ -205,7 +217,7 @@ export default function FieldsPalette() {
                 }
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2>
+            <CollapsibleContent className="space-y-2 mt-2">
               {fieldTypes
                 .filter(field => field.category === category.id)
                 .map(field => (

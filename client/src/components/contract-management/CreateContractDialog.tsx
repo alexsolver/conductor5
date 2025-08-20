@@ -17,9 +17,8 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-// import { useLocalization } from '@/hooks/useLocalization';
+
 const createContractSchema = z.object({
-  // Localization temporarily disabled
   contractNumber: z.string().optional(), // Gerado automaticamente pelo backend
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
@@ -41,15 +40,19 @@ const createContractSchema = z.object({
   terminationClause: z.string().optional(),
   scopeOfWork: z.string().optional(),
 });
+
 type CreateContractFormData = z.infer<typeof createContractSchema>;
+
 interface CreateContractDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }
+
 export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateContractDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const form = useForm<CreateContractFormData>({
     resolver: zodResolver(createContractSchema),
     defaultValues: {
@@ -68,15 +71,18 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
       scopeOfWork: '',
     },
   });
+
   // Fetch customer companies for dropdown using apiRequest
   const { data: companiesData, isLoading: companiesLoading, error: companiesError } = useQuery({
     queryKey: ['/api/companies'],
     retry: 1,
   });
+
   // Fetch users for manager dropdown
   const { data: usersData } = useQuery({
     queryKey: ['/api/user-management/users'],
   });
+
   // Ensure data is always arrays and sort companies with Default first
   const companies = (() => {
     const companiesList = Array.isArray(companiesData) ? companiesData : 
@@ -84,6 +90,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     return companiesList.sort((a: any, b: any) => {
       const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
       const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+
       if (aIsDefault && !bIsDefault) return -1;
       if (!aIsDefault && bIsDefault) return 1;
       return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
@@ -92,8 +99,10 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   
   const users = Array.isArray(usersData) ? usersData : 
                (usersData as any)?.users ? (usersData as any).users : [];
+
   // Debug log
   console.log('Customer companies data:', { companiesData, companies, companiesLoading, companiesError });
+
   const createContractMutation = useMutation({
     mutationFn: (data: CreateContractFormData) => {
       // Transform data to match backend schema
@@ -118,7 +127,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     },
     onSuccess: () => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: 'Sucesso',
         description: 'Contrato criado com sucesso!',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
@@ -127,32 +136,36 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     },
     onError: (error: any) => {
       toast({
-        title: '[TRANSLATION_NEEDED]',
-        description: error.message || '[TRANSLATION_NEEDED]',
+        title: 'Erro',
+        description: error.message || 'Erro ao criar contrato',
         variant: 'destructive',
       });
     },
   });
+
   const onSubmit = (data: CreateContractFormData) => {
     createContractMutation.mutate(data);
   };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Criar Novo Contrato</DialogTitle>
         </DialogHeader>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Contract Number Auto-Generated Info */}
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200>
-              <div className="flex items-center gap-2>
-                <div className="text-lg">"Número do Contrato:</div>
-                <div className="text-sm text-gray-500 italic>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-medium text-gray-700">Número do Contrato:</div>
+                <div className="text-sm text-gray-500 italic">
                   Será gerado automaticamente após a criação (ex: CTR-2025-003)
                 </div>
               </div>
             </div>
+
             {/* Contract Type */}
             <FormField
               control={form.control}
@@ -163,7 +176,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                        <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -179,6 +192,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="title"
@@ -192,6 +206,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="description"
@@ -209,8 +224,9 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 </FormItem>
               )}
             />
+
             {/* Contract Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="status"
@@ -235,6 +251,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="priority"
@@ -259,8 +276,9 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
+
             {/* Client and Manager */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="companyId"
@@ -270,7 +288,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione a empresa contratante" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -282,7 +300,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                         )}
                         {Array.isArray(companies) && companies.map((company: any) => (
                           <SelectItem key={company.id} value={company.id}>
-                            {company.name} {company.cnpj ? ")` : ''}
+                            {company.name} {company.cnpj ? `(${company.cnpj})` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -291,6 +309,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="managerId"
@@ -300,7 +319,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                          <SelectValue placeholder="Selecione o gerente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -317,8 +336,9 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
+
             {/* Financial Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="totalValue"
@@ -339,6 +359,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="currency"
@@ -362,19 +383,20 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
+
             {/* Dates */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="startDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Data de Início *</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"
+                            variant={"outline"}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
@@ -389,7 +411,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start>
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -405,17 +427,18 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="endDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Data de Fim *</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"
+                            variant={"outline"}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
@@ -430,7 +453,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start>
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -447,8 +470,9 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
+
             {/* Additional Terms */}
-            <div className="space-y-4>
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="scopeOfWork"
@@ -466,6 +490,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="paymentTerms"
@@ -483,6 +508,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="renewalTerms"
@@ -500,6 +526,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="terminationClause"
@@ -518,8 +545,9 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
+
             {/* Action Buttons */}
-            <div className="flex justify-end gap-2 pt-4>
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"

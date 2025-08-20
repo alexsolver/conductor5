@@ -2,6 +2,7 @@
  * Translation Manager Page
  * SaaS Admin interface for managing translations across all languages
  */
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -33,22 +34,26 @@ import {
   CheckCircle,
   XCircle
 } from "lucide-react";
-// import useLocalization from '@/hooks/useLocalization';
+
 // Schema for translation updates
 const updateTranslationSchema = z.object({
   translations: z.record(z.any())
 });
+
 type UpdateTranslationFormData = z.infer<typeof updateTranslationSchema>;
+
 interface Language {
   code: string;
   name: string;
   flag: string;
 }
+
 interface TranslationData {
   language: string;
   translations: Record<string, any>;
   lastModified: string;
 }
+
 export default function TranslationManager() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -57,36 +62,41 @@ export default function TranslationManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [newKeyDialog, setNewKeyDialog] = useState(false);
+
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
-      <div className="p-4">
+      <div className="p-8 text-center">
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="p-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           Acesso Negado
         </h1>
-        <p className="p-4">
+        <p className="text-gray-600 dark:text-gray-400">
           Esta página é restrita para administradores da plataforma SaaS.
         </p>
       </div>
     );
   }
+
   // Query para idiomas disponíveis
   const { data: languagesData, isLoading: isLoadingLanguages } = useQuery({
     queryKey: ['/api/translations/languages'],
     staleTime: 5 * 60 * 1000,
   });
+
   // Query para traduções do idioma selecionado
   const { data: translationData, isLoading: isLoadingTranslations } = useQuery({
     queryKey: ['/api/translations', selectedLanguage],
     staleTime: 60 * 1000,
     enabled: !!selectedLanguage
   });
+
   // Query para todas as chaves de tradução
   const { data: allKeysData, isLoading: isLoadingKeys } = useQuery({
     queryKey: ['/api/translations/keys/all'],
     staleTime: 2 * 60 * 1000,
   });
+
   // Form para edição de traduções
   const form = useForm<UpdateTranslationFormData>({
     resolver: zodResolver(updateTranslationSchema),
@@ -94,16 +104,18 @@ export default function TranslationManager() {
       translations: {}
     }
   });
+
   // Atualizar form quando translations carregam
   useEffect(() => {
-    if (translationData && (translationData as any).translations) {
-      form.reset({ translations: (translationData as any).translations });
+    if (translationData?.translations) {
+      form.reset({ translations: translationData.translations });
     }
   }, [translationData, form]);
+
   // Mutation para salvar traduções
   const saveTranslationMutation = useMutation({
     mutationFn: async (data: UpdateTranslationFormData) => {
-      const res = await apiRequest('PUT', "/api/translations/" + selectedLanguage, data);
+      const res = await apiRequest('PUT', `/api/translations/${selectedLanguage}`, data);
       return res.json();
     },
     onSuccess: () => {
@@ -111,50 +123,55 @@ export default function TranslationManager() {
       queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
       toast({
         title: "Traduções Salvas",
-        description: "atualizadas com sucesso!",
+        description: `Traduções do idioma ${selectedLanguage} atualizadas com sucesso!`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao Salvar Traduções',
+        title: "Erro ao salvar traduções",
         description: error.message,
         variant: "destructive",
       });
     }
   });
+
   // Mutation para restaurar backup
   const restoreBackupMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', "/api/translations/restore");
+      const res = await apiRequest('POST', `/api/translations/${selectedLanguage}/restore`);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
       toast({
         title: "Backup Restaurado",
-        description: "Traduções restauradas do backup!",
+        description: `Traduções do idioma ${selectedLanguage} restauradas do backup!`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao Restaurar Backup',
+        title: "Erro ao restaurar backup",
         description: error.message,
         variant: "destructive",
       });
     }
   });
+
   const onSubmit = (data: UpdateTranslationFormData) => {
     saveTranslationMutation.mutate(data);
   };
+
   const handleRestore = () => {
-    if (confirm("Confirma a exclusão do backup?"))) {
+    if (confirm(`Tem certeza que deseja restaurar as traduções do ${selectedLanguage} do backup?`)) {
       restoreBackupMutation.mutate();
     }
   };
+
   // Função para buscar valor nested
   const getNestedValue = (obj: any, path: string): any => {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   };
+
   // Função para definir valor nested
   const setNestedValue = (obj: any, path: string, value: any) => {
     const keys = path.split('.');
@@ -165,22 +182,24 @@ export default function TranslationManager() {
     }, obj);
     target[lastKey] = value;
   };
+
   // Filtrar chaves baseado na busca
-  const filteredKeys = (allKeysData as any)?.keys?.filter((key: string) => 
+  const filteredKeys = allKeysData?.keys?.filter((key: string) => 
     key.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
   return (
-    <div className="p-4">
-      <div className="p-4">
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="p-4">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Gerenciador de Traduções
           </h1>
-          <p className="p-4">
+          <p className="text-gray-600 dark:text-gray-400">
             Gerencie traduções em todos os idiomas suportados
           </p>
         </div>
-        <div className="p-4">
+        <div className="flex gap-3">
           <Button 
             variant="outline" 
             onClick={handleRestore}
@@ -194,14 +213,15 @@ export default function TranslationManager() {
             disabled={saveTranslationMutation.isPending}
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveTranslationMutation.isPending ? "Salvando..." : 'Salvar Alterações'}
+            {saveTranslationMutation.isPending ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </div>
       </div>
+
       {/* Language Selector */}
       <Card>
         <CardHeader>
-          <CardTitle className="p-4">
+          <CardTitle className="flex items-center gap-2">
             <Languages className="w-5 h-5" />
             Selecionar Idioma
           </CardTitle>
@@ -210,18 +230,18 @@ export default function TranslationManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-4">
+          <div className="flex flex-wrap gap-2">
             {isLoadingLanguages ? (
               <div>Carregando idiomas...</div>
             ) : (
-              ((languagesData as any)?.languages || []).map((lang: Language) => (
+              languagesData?.languages.map((lang: Language) => (
                 <Button
                   key={lang.code}
-                  variant={selectedLanguage === lang.code ? "default" : "outline"
+                  variant={selectedLanguage === lang.code ? "default" : "outline"}
                   onClick={() => setSelectedLanguage(lang.code)}
                   className="flex items-center gap-2"
                 >
-                  <span className="text-lg">"{lang.flag}</span>
+                  <span className="text-lg">{lang.flag}</span>
                   {lang.name}
                 </Button>
               ))
@@ -229,13 +249,14 @@ export default function TranslationManager() {
           </div>
         </CardContent>
       </Card>
+
       {/* Search */}
       <Card>
-        <CardContent className="p-4">
-          <div className="p-4">
+        <CardContent className="pt-6">
+          <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
-              placeholder='Buscar chaves de tradução'
+              placeholder="Buscar chaves de tradução..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -243,46 +264,49 @@ export default function TranslationManager() {
           </div>
         </CardContent>
       </Card>
+
       {/* Translation Tabs */}
-      <Tabs defaultValue="editor" className="p-4">
-          <TabsList className="p-4">
+      <Tabs defaultValue="editor" className="flex-1">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="editor">Editor de Traduções</TabsTrigger>
             <TabsTrigger value="completion">Completude Automática</TabsTrigger>
             <TabsTrigger value="keys">Todas as Chaves</TabsTrigger>
           </TabsList>
+
         {/* Translation Editor Tab */}
-        <TabsContent value="editor" className="p-4">
+        <TabsContent value="editor" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="p-4">
+              <CardTitle className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5" />
                 Editor de Traduções - {selectedLanguage}
               </CardTitle>
               <CardDescription>
-                {(translationData as any)?.lastModified && (
-                  <span>Última modificação: {new Date((translationData as any).lastModified).toLocaleString()}</span>
+                {translationData?.lastModified && (
+                  <span>Última modificação: {new Date(translationData.lastModified).toLocaleString()}</span>
                 )}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingTranslations ? (
-                <div className="text-lg">"Carregando traduções...</div>
+                <div className="text-center py-8">Carregando traduções...</div>
               ) : (
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="p-4">
-                    <div className="p-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
                       {filteredKeys.map((key: string) => {
                         const currentValue = getNestedValue(form.watch('translations'), key);
                         return (
-                          <div key={key} className="p-4">
-                            <div className="p-4">
-                              <Label className="p-4">
+                          <div key={key} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 {key}
                               </Label>
-                              <Badge variant="secondary" className="p-4">
+                              <Badge variant="secondary" className="text-xs">
                                 {typeof currentValue === 'string' ? 'Texto' : 'Objeto'}
                               </Badge>
                             </div>
+
                             {typeof currentValue === 'string' ? (
                               <Textarea
                                 value={currentValue || ''}
@@ -291,12 +315,12 @@ export default function TranslationManager() {
                                   setNestedValue(newTranslations, key, e.target.value);
                                   form.setValue('translations', newTranslations);
                                 }}
-                                placeholder={"Enter Tradução para " + key}
+                                placeholder={`Tradução para ${key}`}
                                 className="min-h-20"
                               />
                             ) : (
-                              <div className="p-4">
-                                <pre className="p-4">
+                              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                                <pre className="text-sm text-gray-600 dark:text-gray-400">
                                   {JSON.stringify(currentValue, null, 2)}
                                 </pre>
                               </div>
@@ -305,8 +329,9 @@ export default function TranslationManager() {
                         );
                       })}
                     </div>
+
                     {filteredKeys.length === 0 && (
-                      <div className="p-4">
+                      <div className="text-center py-8 text-gray-500">
                         {searchTerm ? 'Nenhuma chave encontrada para a busca' : 'Nenhuma tradução encontrada'}
                       </div>
                     )}
@@ -316,16 +341,17 @@ export default function TranslationManager() {
             </CardContent>
           </Card>
         </TabsContent>
-          <TabsContent value="completion" className="p-4">
-            <div className="p-4">
-              <h3 className="text-lg">"Completar Traduções Automaticamente</h3>
+
+          <TabsContent value="completion" className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Completar Traduções Automaticamente</h3>
               <Button 
                 onClick={async () => {
                   try {
                     const response = await fetch('/api/translation-completion/auto-complete-all', {
                       method: 'POST',
                       headers: {
-                        'Authorization': "Bearer " + (localStorage.getItem("token") || ""),
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'Content-Type': 'application/json'
                       }
                     });
@@ -334,7 +360,7 @@ export default function TranslationManager() {
                     
                     if (data.success) {
                       toast({
-                        title: 'Sucesso',
+                        title: "Sucesso!",
                         description: data.message,
                       });
                       // Recarrega a página para ver as mudanças
@@ -344,11 +370,11 @@ export default function TranslationManager() {
                     }
                   } catch (error) {
                     toast({
-                      title: 'Erro',
+                      title: "Erro",
                       description: "Falha ao completar traduções automaticamente",
                       variant: "destructive"
                     });
-                    console.error('Error autocompleting translations:', error);
+                    console.error('Error auto-completing translations:', error);
                   }
                 }}
                 className="bg-green-600 hover:bg-green-700"
@@ -358,10 +384,11 @@ export default function TranslationManager() {
             </div>
             <TranslationCompletionPanel />
           </TabsContent>
-          <TabsContent value="keys" className="p-4">
+
+          <TabsContent value="keys" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="p-4">
+                <CardTitle className="flex items-center gap-2">
                   <Globe className="w-5 h-5" />
                   Todas as Chaves de Tradução
                 </CardTitle>
@@ -371,15 +398,15 @@ export default function TranslationManager() {
               </CardHeader>
               <CardContent>
                 {isLoadingKeys ? (
-                  <div className="text-lg">"Carregando chaves...</div>
+                  <div className="text-center py-8">Carregando chaves...</div>
                 ) : (
-                  <div className="p-4">
-                    {((allKeysData as any)?.keys || []).map((key: string) => (
-                      <div key={key} className="p-4">
-                        <Label className="p-4">
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {allKeysData?.keys?.map((key: string) => (
+                      <div key={key} className="border rounded-lg p-4 flex items-center justify-between">
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {key}
                         </Label>
-                        <Badge variant="outline" className="p-4">
+                        <Badge variant="outline" className="text-xs">
                           {key.split('.').length > 1 ? 'Nested' : 'Top Level'}
                         </Badge>
                       </div>
@@ -390,46 +417,49 @@ export default function TranslationManager() {
             </Card>
           </TabsContent>
       </Tabs>
+
       {/* Statistics */}
-      <div className="p-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-lg">"Total de Chaves</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Chaves</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4">
-              {((allKeysData as any)?.keys || []).length}
+            <div className="text-2xl font-bold">
+              {allKeysData?.keys?.length || 0}
             </div>
-            <p className="p-4">
+            <p className="text-xs text-muted-foreground">
               Chaves de tradução no sistema
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-lg">"Idiomas Suportados</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Idiomas Suportados</CardTitle>
             <Languages className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4">
-              {((languagesData as any)?.languages || []).length}
+            <div className="text-2xl font-bold">
+              {languagesData?.languages?.length || 0}
             </div>
-            <p className="p-4">
+            <p className="text-xs text-muted-foreground">
               Idiomas disponíveis
             </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-lg">"Idioma Atual</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Idioma Atual</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="p-4">
+            <div className="text-2xl font-bold">
               {selectedLanguage.toUpperCase()}
             </div>
-            <p className="p-4">
+            <p className="text-xs text-muted-foreground">
               Idioma sendo editado
             </p>
           </CardContent>

@@ -1,5 +1,6 @@
 // ✅ 1QA.MD COMPLIANCE: EDIT CONTRACT DIALOG
 // Clean Architecture - Frontend Form Component for Contract Editing
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +8,6 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { Edit } from 'lucide-react';
 import {
-// import { useLocalization } from '@/hooks/useLocalization';
   Dialog,
   DialogContent,
   DialogDescription,
@@ -37,9 +37,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+
 // ✅ 1QA.MD COMPLIANCE: ZOD SCHEMA VALIDATION FOR EDIT
 const editContractSchema = z.object({
-  // Localization temporarily disabled
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   contractType: z.enum(['service', 'supply', 'maintenance', 'rental', 'sla']),
   status: z.enum(['draft', 'analysis', 'approved', 'active', 'finished', 'canceled']),
@@ -55,7 +55,9 @@ const editContractSchema = z.object({
   autoRenewal: z.boolean().default(false),
   renewalPeriodMonths: z.string().transform(val => parseInt(val)).optional(),
 });
+
 type EditContractFormData = z.infer<typeof editContractSchema>;
+
 // Opções para os selects
 const contractTypes = [
   { value: 'service', label: 'Serviço' },
@@ -64,14 +66,16 @@ const contractTypes = [
   { value: 'rental', label: 'Locação' },
   { value: 'sla', label: 'SLA' },
 ];
+
 const contractStatuses = [
   { value: 'draft', label: 'Rascunho' },
   { value: 'analysis', label: 'Análise' },
   { value: 'approved', label: 'Aprovado' },
   { value: 'active', label: 'Ativo' },
   { value: 'finished', label: 'Finalizado' },
-  { value: 'canceled', label: '[TRANSLATION_NEEDED]' },
+  { value: 'canceled', label: 'Cancelado' },
 ];
+
 const priorities = [
   { value: 'low', label: 'Baixa' },
   { value: 'medium', label: 'Média' },
@@ -79,29 +83,34 @@ const priorities = [
   { value: 'critical', label: 'Crítica' },
   { value: 'emergency', label: 'Emergencial' },
 ];
+
 const currencies = [
   { value: 'BRL', label: 'Real (BRL)' },
   { value: 'USD', label: 'Dólar (USD)' },
   { value: 'EUR', label: 'Euro (EUR)' },
 ];
+
 interface EditContractDialogProps {
   contractId: string;
   children?: React.ReactNode;
 }
+
 export function EditContractDialog({ contractId, children }: EditContractDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   // ✅ 1QA.MD COMPLIANCE: FETCH CONTRACT DATA
   const { data: contractData, isLoading: isLoadingContract } = useQuery({
     queryKey: ['/api/contracts', contractId],
     queryFn: async () => {
-      const response = await fetch("
+      const response = await fetch(`/api/contracts/${contractId}`);
       const data = await response.json();
       return data?.contract || data?.data || data;
     },
     enabled: isOpen && !!contractId,
   });
+
   const form = useForm<EditContractFormData>({
     resolver: zodResolver(editContractSchema),
     defaultValues: {
@@ -112,6 +121,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
       autoRenewal: false,
     },
   });
+
   // ✅ RESET FORM WITH CONTRACT DATA
   useEffect(() => {
     if (contractData && isOpen) {
@@ -133,10 +143,11 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
       });
     }
   }, [contractData, isOpen, form]);
+
   // ✅ 1QA.MD COMPLIANCE: UPDATE MUTATION
   const updateContractMutation = useMutation({
     mutationFn: async (data: EditContractFormData) => {
-      const response = await apiRequest("
+      const response = await apiRequest(`/api/contracts/${contractId}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
@@ -147,50 +158,53 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
       queryClient.invalidateQueries({ queryKey: ['/api/contracts', contractId] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Sucesso",
         description: "Contrato atualizado com sucesso",
       });
       setIsOpen(false);
     },
     onError: (error: any) => {
-      console.error('[TRANSLATION_NEEDED]', error);
+      console.error('Error updating contract:', error);
       toast({
-        title: '[TRANSLATION_NEEDED]',
+        title: "Erro",
         description: error?.message || "Falha ao atualizar contrato",
         variant: "destructive",
       });
     },
   });
+
   const onSubmit = (data: EditContractFormData) => {
     updateContractMutation.mutate(data);
   };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild data-testid={"
+      <DialogTrigger asChild data-testid={`button-edit-contract-${contractId}`}>
         {children || (
-          <Button variant="outline" size="sm>
+          <Button variant="outline" size="sm">
             <Edit className="h-4 w-4" />
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-edit-contract>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-edit-contract">
         <DialogHeader>
           <DialogTitle data-testid="title-edit-contract">Editar Contrato</DialogTitle>
           <DialogDescription>
             Atualize as informações do contrato. Campos marcados com * são obrigatórios.
           </DialogDescription>
         </DialogHeader>
+
         {isLoadingContract ? (
-          <div className="flex items-center justify-center py-8>
-            <div className="text-lg">"Carregando dados do contrato...</div>
+          <div className="flex items-center justify-center py-8">
+            <div className="text-muted-foreground">Carregando dados do contrato...</div>
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Informações Básicas */}
-                <div className="space-y-4>
-                  <h3 className="text-lg">"Informações Básicas</h3>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-muted-foreground">Informações Básicas</h3>
                   
                   <FormField
                     control={form.control}
@@ -209,6 +223,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="contractType"
@@ -217,8 +232,8 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Tipo de Contrato *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-type>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectTrigger data-testid="select-edit-type">
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -233,6 +248,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="status"
@@ -241,8 +257,8 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Status *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-status>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectTrigger data-testid="select-edit-status">
+                              <SelectValue placeholder="Selecione o status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -257,6 +273,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="priority"
@@ -265,8 +282,8 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Prioridade</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-priority>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectTrigger data-testid="select-edit-priority">
+                              <SelectValue placeholder="Selecione a prioridade" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -281,6 +298,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="description"
@@ -300,11 +318,12 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                     )}
                   />
                 </div>
+
                 {/* Informações Comerciais */}
-                <div className="space-y-4>
-                  <h3 className="text-lg">"Dados Comerciais</h3>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-muted-foreground">Dados Comerciais</h3>
                   
-                  <div className="grid grid-cols-2 gap-4>
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="startDate"
@@ -322,6 +341,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="endDate"
@@ -340,7 +360,8 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="totalValue"
@@ -360,6 +381,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="monthlyValue"
@@ -380,6 +402,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       )}
                     />
                   </div>
+
                   <FormField
                     control={form.control}
                     name="currency"
@@ -388,8 +411,8 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Moeda</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-currency>
-                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
+                            <SelectTrigger data-testid="select-edit-currency">
+                              <SelectValue placeholder="Selecione a moeda" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -404,6 +427,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="paymentTerms"
@@ -422,15 +446,16 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       </FormItem>
                     )}
                   />
-                  <div className="space-y-4>
+
+                  <div className="space-y-4">
                     <FormField
                       control={form.control}
                       name="autoRenewal"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
-                          <div className="space-y-0.5>
-                            <FormLabel className="text-lg">"Renovação Automática</FormLabel>
-                            <div className="text-sm text-muted-foreground>
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Renovação Automática</FormLabel>
+                            <div className="text-sm text-muted-foreground">
                               Renovar automaticamente o contrato
                             </div>
                           </div>
@@ -444,6 +469,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         </FormItem>
                       )}
                     />
+
                     {form.watch('autoRenewal') && (
                       <FormField
                         control={form.control}
@@ -465,6 +491,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                       />
                     )}
                   </div>
+
                   <FormField
                     control={form.control}
                     name="termsConditions"
@@ -485,7 +512,8 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                   />
                 </div>
               </div>
-              <DialogFooter className="gap-2>
+
+              <DialogFooter className="gap-2">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -499,7 +527,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                   disabled={updateContractMutation.isPending}
                   data-testid="button-save-edit"
                 >
-                  {updateContractMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
+                  {updateContractMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </DialogFooter>
             </form>

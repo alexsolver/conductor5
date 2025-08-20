@@ -1,12 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, UserPlus, FileText, Settings } from "lucide-react";
-// import { useLocalization } from '@/hooks/useLocalization';
+
 const quickActions = [
   {
-  // Localization temporarily disabled
     id: "create-ticket",
-    label: '[TRANSLATION_NEEDED]', 
+    label: "Create Ticket", 
     icon: Plus,
   },
   {
@@ -25,18 +24,20 @@ const quickActions = [
     icon: Settings,
   },
 ];
+
 export function QuickActions() {
   const handleQuickAction = (actionId: string) => {
-    console.log("
+    console.log(`Quick action: ${actionId}`);
     // TODO: Implement quick action handlers
   };
+
   return (
-    <Card className="gradient-card>
+    <Card className="gradient-card">
       <CardHeader>
         <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {quickActions.map((action) => (
             <Button
               key={action.id}
@@ -45,7 +46,7 @@ export function QuickActions() {
               onClick={() => handleQuickAction(action.id)}
             >
               <action.icon className="h-5 w-5 mb-2" />
-              <span className="text-lg">"{action.label}</span>
+              <span className="text-sm font-medium">{action.label}</span>
             </Button>
           ))}
         </div>
