@@ -1,0 +1,123 @@
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/AbsenceManagement.tsx:21:8:
+      21 │   const { t } = useTranslation();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ActivityPlanner.tsx:28:7:
+      28 │ import { useTranslation } from 'react-i18next';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/AssetManagement.tsx:15:7:
+      15 │ import { useTranslation } from 'react-i18next';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'AuthPage.createAccount'"
+
+    client/src/pages/AuthPage.tsx:191:15:
+      191 │             {t('AuthPage.createAccount')}
+          ╵                ~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/Beneficiaries.tsx:46:8:
+      46 │   const { t } = useTranslation();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/CLTCompliance.tsx:9:7:
+      9 │ import { useTranslation } from 'react-i18next';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'CertificateManager.erroAoInstalarCertificado'"
+
+    client/src/pages/CertificateManager.tsx:60:27:
+      60 │ ...ow new Error({t('CertificateManager.erroAoInstalarCertificado')});
+         ╵                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/Companies.tsx:17:7:
+      17 │ import { useTranslation } from 'react-i18next';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'Compliance.dashboard'"
+
+    client/src/pages/Compliance.tsx:60:12:
+      60 │     case {t('Compliance.dashboard')}:
+         ╵             ~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ComplianceManagement.tsx:17:7:
+      17 │ import { useTranslation } from 'react-i18next';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ContractManagement.tsx:14:7:
+      14 │ import { useTranslation } from 'react-i18next';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/CorporateExpenseManagement.tsx:33:8:
+      33 │   const { t } = useTranslation();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected identifier but found "'CustomFieldsAdministrator.clientes'"
+
+    client/src/pages/CustomFieldsAdministrator.tsx:64:34:
+      64 │ ...: 'customers', label: {t('CustomFieldsAdministrator.clientes')} },
+         ╵                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'CustomerItemMappings.erroAoSalvarMapeamento'"
+
+    client/src/pages/CustomerItemMappings.tsx:129:48:
+      129 │ ...a.message || {t('CustomerItemMappings.erroAoSalvarMapeamento')});
+          ╵                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'Customers.customersApiResponse'"
+
+    client/src/pages/Customers.tsx:28:21:
+      28 │       console.log({t('Customers.customersApiResponse')}, data);
+         ╵                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/DashboardView.tsx:7:7:
+      7 │ import { useTranslation } from 'react-i18next';
+        │        ^
+        ╵        as
