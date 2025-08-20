@@ -228,22 +228,22 @@ export default function TimecardReports() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
+    <div className=""
+      <div className=""
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className=""
             Relatórios de Ponto
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className=""
             Análises e relatórios de frequência dos funcionários
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={exportToExcel} variant="outline" size="sm">
+        <div className=""
+          <Button onClick={exportToExcel} variant="outline" size="sm>
             <Download className="h-4 w-4 mr-2" />
             Excel
           </Button>
-          <Button onClick={exportToPDF} variant="outline" size="sm">
+          <Button onClick={exportToPDF} variant="outline" size="sm>
             <Download className="h-4 w-4 mr-2" />
             PDF
           </Button>
@@ -256,7 +256,7 @@ export default function TimecardReports() {
           <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className=""
             <div>
               <label className="text-sm font-medium">Data Inicial</label>
               <input 
@@ -309,10 +309,10 @@ export default function TimecardReports() {
       </Card>
 
       {/* Métricas Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <CardHeader className=""
+            <CardTitle className=""
               <Users className="h-4 w-4" />
               Funcionários Ativos
             </CardTitle>
@@ -324,8 +324,8 @@ export default function TimecardReports() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <CardHeader className=""
+            <CardTitle className=""
               <Clock className="h-4 w-4" />
               Presença Média
             </CardTitle>
@@ -337,8 +337,8 @@ export default function TimecardReports() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <CardHeader className=""
+            <CardTitle className=""
               <TrendingUp className="h-4 w-4" />
               Faltas Total
             </CardTitle>
@@ -350,8 +350,8 @@ export default function TimecardReports() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <CardHeader className=""
+            <CardTitle className=""
               <CalendarDays className="h-4 w-4" />
               Atrasos Total
             </CardTitle>
@@ -366,24 +366,24 @@ export default function TimecardReports() {
       {/* Relatório CLT Brasileiro */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className=""
             <FileText className="h-5 w-5" />
             📋 ESPELHO DE PONTO ELETRÔNICO - PADRÃO CLT
           </CardTitle>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className=""
             Conforme Portaria MTE 671/2021 - Registro Eletrônico de Ponto
           </p>
           
           {/* Cabeçalho de Identificação Obrigatório */}
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className=""
             <h4 className="text-sm font-semibold text-blue-900 mb-3">📋 IDENTIFICAÇÃO DO FUNCIONÁRIO</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-1">
+            <div className=""
+              <div className=""
                 <div><span className="font-medium">Funcionário:</span> Alex Silva</div>
                 <div><span className="font-medium">Matrícula:</span> 550e8400</div>
                 <div><span className="font-medium">Setor:</span> Tecnologia da Informação</div>
               </div>
-              <div className="space-y-1">
+              <div className=""
                 <div><span className="font-medium">Empresa:</span> Conductor Support Platform</div>
                 <div><span className="font-medium">Período:</span> Agosto/2025</div>
                 <div><span className="font-medium">Regime:</span> CLT - 44h semanais</div>
@@ -393,11 +393,11 @@ export default function TimecardReports() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
+            <div className=""
               <div className="animate-pulse">Carregando relatório...</div>
             </div>
           ) : currentError ? (
-            <div className="text-center text-red-600 py-8">
+            <div className=""
               <div>Erro ao carregar dados: {currentError.message}</div>
               <div className="text-sm mt-2">Verifique sua conexão e tente novamente</div>
             </div>
@@ -406,10 +406,10 @@ export default function TimecardReports() {
             (reportType === 'overtime' && currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length > 0) ||
             (reportType === 'compliance' && currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length >= 0)
           ) ? (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border-2 border-black text-xs">
+            <div className=""
+              <table className=""
                 <thead>
-                  <tr className="bg-gray-100">
+                  <tr className=""
                     <th className="border-2 border-black px-3 py-3 text-center font-bold">DATA<br/><span className="font-normal text-xs">(DD/MM/YYYY)</span></th>
                     <th className="border-2 border-black px-2 py-3 text-center font-bold">DIA DA<br/>SEMANA</th>
                     <th className="border-2 border-black px-3 py-3 text-center font-bold">1ª ENTRADA<br/><span className="font-normal text-xs">(HH:MM)</span></th>
@@ -431,37 +431,37 @@ export default function TimecardReports() {
                       return dateA - dateB;
                     })
                     ?.map((record: any, index: number) => (
-                      <tr key={index} className="h-14">
-                        <td className="border-2 border-black px-2 py-3 text-center font-bold text-sm">
+                      <tr key={index} className=""
+                        <td className=""
                           {record.date}
                         </td>
-                        <td className="border-2 border-black px-2 py-3 text-center font-bold text-sm">
+                        <td className=""
                           {record.dayOfWeek}
                         </td>
-                        <td className="border-2 border-black px-3 py-3 text-center font-mono font-bold text-lg text-blue-700">
+                        <td className=""
                           {record.firstEntry}
                         </td>
-                        <td className="border-2 border-black px-3 py-3 text-center font-mono font-bold text-lg text-orange-600">
+                        <td className=""
                           {record.firstExit}
                         </td>
-                        <td className="border-2 border-black px-3 py-3 text-center font-mono font-bold text-lg text-green-600">
+                        <td className=""
                           {record.secondEntry}
                         </td>
-                        <td className="border-2 border-black px-3 py-3 text-center font-mono font-bold text-lg text-red-600">
+                        <td className=""
                           {record.secondExit}
                         </td>
-                        <td className="border-2 border-black px-3 py-3 text-center font-mono font-bold text-lg text-green-700">
+                        <td className=""
                           {record.totalHours}h
                         </td>
-                        <td className="border-2 border-black px-2 py-3 text-center">
-                          <div className="flex flex-col items-center gap-1">
+                        <td className=""
+                          <div className=""
                             <span className={"inline-flex px-3 py-1 text-xs font-bold rounded-full border-2 ${
                               record.status === 'approved' ? 'bg-green-500 text-white border-green-600' :
                               record.status === 'pending' ? 'bg-yellow-500 text-white border-yellow-600' :
                               record.status === 'working' ? 'bg-blue-500 text-white border-blue-600' :
                               'bg-gray-500 text-white border-gray-600'
-                            ">
-                               {record.status === 'approved' ? '✅ OK' :
+                            >
+                               {record.status === "approved" ? "✅ OK' :
                                record.status === 'pending' ? '⏳ PEND' :
                                record.status === 'working' ? '🔄 TRAB' :
                                record.status}
@@ -478,43 +478,43 @@ export default function TimecardReports() {
 
               {/* RESUMO MENSAL OBRIGATÓRIO - PORTARIA MTE 671/2021 */}
               {/* Resumo baseado no tipo de relatório */}
-              <div className="mt-6 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-                <h4 className="text-sm font-bold text-green-900 mb-4 flex items-center gap-2">
+              <div className=""
+                <h4 className=""
                   📊 {reportType === 'attendance' ? 'RESUMO MENSAL OBRIGATÓRIO - CLT' : 
                       reportType === 'overtime' ? 'RESUMO DE HORAS EXTRAS' : 
                       'RESUMO DE COMPLIANCE'}
-                  <span className="text-xs bg-green-200 px-2 py-1 rounded">
+                  <span className=""
                     {reportType === 'attendance' ? 'Portaria MTE 671/2021' : 
                      reportType === 'overtime' ? 'Análise de Sobrejornada' : 
                      'Análise de Conformidade'}
                   </span>
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+                <div className=""
                   {reportType === 'attendance' && (
                     <>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.totalHours || '0.0'}h
                         </div>
                         <div className="font-semibold text-green-800">Total de Horas</div>
                         <div className="text-xs text-gray-600 mt-1">Soma do período</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.workingDays || 0}
                         </div>
                         <div className="font-semibold text-blue-800">Dias Trabalhados</div>
                         <div className="text-xs text-gray-600 mt-1">Quantidade de dias</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.overtimeHours || '0.0'}h
                         </div>
                         <div className="font-semibold text-orange-800">Horas Extras</div>
                         <div className="text-xs text-gray-600 mt-1">Total de sobrejornada</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.averageHoursPerDay || '0.0'}h
                         </div>
                         <div className="font-semibold text-purple-800">Média Diária</div>
@@ -524,29 +524,29 @@ export default function TimecardReports() {
                   )}
                   {reportType === 'overtime' && (
                     <>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.totalOvertimeHours || '0.0'}h
                         </div>
                         <div className="font-semibold text-orange-800">Total Horas Extras</div>
                         <div className="text-xs text-gray-600 mt-1">Período selecionado</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-700">
+                      <div className=""
+                        <div className=""
                           R$ {currentReport.summary?.totalOvertimeValue || '0.00'}
                         </div>
                         <div className="font-semibold text-green-800">Valor Total</div>
                         <div className="text-xs text-gray-600 mt-1">R$ {currentReport.summary?.hourlyRate || '25.50'}/hora</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.overtimeDaysCount || 0}
                         </div>
                         <div className="font-semibold text-blue-800">Dias com Extras</div>
                         <div className="text-xs text-gray-600 mt-1">Dias trabalhados</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.averageOvertimePerDay || '0.0'}h
                         </div>
                         <div className="font-semibold text-purple-800">Média Diária</div>
@@ -556,29 +556,29 @@ export default function TimecardReports() {
                   )}
                   {reportType === 'compliance' && (
                     <>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.complianceRate || '0%'}
                         </div>
                         <div className="font-semibold text-green-800">Taxa de Conformidade</div>
                         <div className="text-xs text-gray-600 mt-1">Registros corretos</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-red-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.issuesFound || 0}
                         </div>
                         <div className="font-semibold text-red-800">Problemas Encontrados</div>
                         <div className="text-xs text-gray-600 mt-1">Total de inconsistências</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.highSeverityIssues || 0}
                         </div>
                         <div className="font-semibold text-orange-800">Críticos</div>
                         <div className="text-xs text-gray-600 mt-1">Alta severidade</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-700">
+                      <div className=""
+                        <div className=""
                           {currentReport.summary?.totalRecords || 0}
                         </div>
                         <div className="font-semibold text-blue-800">Total Registros</div>
@@ -590,11 +590,11 @@ export default function TimecardReports() {
               </div>
 
               {/* OBSERVAÇÕES LEGAIS E COMPLIANCE */}
-              <div className="mt-6 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
-                <h4 className="text-sm font-bold text-yellow-900 mb-3 flex items-center gap-2">
+              <div className=""
+                <h4 className=""
                   🔐 OBSERVAÇÕES LEGAIS OBRIGATÓRIAS
                 </h4>
-                <div className="text-xs text-gray-700 space-y-2">
+                <div className=""
                   <div>• <strong>Sistema CLT-Compliant:</strong> Registros realizados através de sistema eletrônico conforme legislação trabalhista brasileira</div>
                   <div>• <strong>Integridade de Dados:</strong> Garantida por hash SHA-256 conforme Portaria MTE 671/2021</div>
                   <div>• <strong>Fuso Horário:</strong> Todos os horários estão em UTC-3 (Horário de Brasília)</div>
@@ -603,47 +603,47 @@ export default function TimecardReports() {
               </div>
 
               {/* ASSINATURAS DIGITAIS OBRIGATÓRIAS */}
-              <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-                <h4 className="text-sm font-bold text-blue-900 mb-4 flex items-center gap-2">
+              <div className=""
+                <h4 className=""
                   ✍️ ASSINATURAS DIGITAIS OBRIGATÓRIAS
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-white border border-blue-200 rounded">
+                <div className=""
+                  <div className=""
                     <div className="font-bold text-sm text-blue-800">👤 FUNCIONÁRIO</div>
                     <div className="text-xs mt-2 text-gray-600">Assinatura Digital</div>
-                    <div className="text-xs font-mono mt-1 bg-gray-100 p-2 rounded">
+                    <div className=""
                       SHA-256: a7b9c2d4...
                     </div>
                     <div className="text-xs text-green-600 mt-2">✅ Certificado Válido</div>
                   </div>
-                  <div className="text-center p-3 bg-white border border-blue-200 rounded">
+                  <div className=""
                     <div className="font-bold text-sm text-blue-800">🏢 RESPONSÁVEL RH</div>
                     <div className="text-xs mt-2 text-gray-600">Validação Departamento Pessoal</div>
-                    <div className="text-xs font-mono mt-1 bg-gray-100 p-2 rounded">
+                    <div className=""
                       SHA-256: e8f1a5c9...
                     </div>
                     <div className="text-xs text-green-600 mt-2">✅ Certificado Válido</div>
                   </div>
-                  <div className="text-center p-3 bg-white border border-blue-200 rounded">
+                  <div className=""
                     <div className="font-bold text-sm text-blue-800">⚙️ SISTEMA CLT</div>
                     <div className="text-xs mt-2 text-gray-600">Certificação Automatizada</div>
-                    <div className="text-xs font-mono mt-1 bg-gray-100 p-2 rounded">
+                    <div className=""
                       SHA-256: 3d6e7b2f...
                     </div>
                     <div className="text-xs text-green-600 mt-2">✅ Certificado Válido</div>
                   </div>
                 </div>
-                <div className="text-center mt-4 text-xs text-gray-600">
+                <div className=""
                   <div><strong>Data/Hora da Certificação:</strong> {new Date().toLocaleString('pt-BR')} (UTC-3)</div>
                   <div className="mt-1"><strong>Versão do Sistema:</strong> Conductor CLT v2025.08.06</div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-center text-gray-500 py-8">
+            <div className=""
               <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <div className="font-medium">Nenhum dado encontrado para o período selecionado</div>
-              <div className="text-sm mt-1">
+              <div className=""
                 Selecione um período diferente ou verifique se há registros de ponto aprovados
               </div>
             </div>

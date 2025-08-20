@@ -117,10 +117,10 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
+            <DialogTitle className="flex items-center space-x-2>
               <Mail className="h-5 w-5" />
               <span>{t("userManagement.inviteUser", "Convidar Usuário")}</span>
             </DialogTitle>
@@ -129,8 +129,8 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
+          <div className="space-y-4 py-4>
+            <div className="space-y-2>
               <Label htmlFor="email">{t("userManagement.email", "Email")} *</Label>
               <Input
                 id="email"
@@ -142,7 +142,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2>
               <Label htmlFor="role">{t("userManagement.role", "Papel")} *</Label>
               <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger>
@@ -159,7 +159,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2>
               <Label htmlFor="expiresInDays">{t("userManagement.expiration", "Expiração")}</Label>
               <Select 
                 value={formData.expiresInDays.toString()} 
@@ -176,21 +176,21 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                   <SelectItem value="30">{t("userManagement.expires30Days", "30 dias")}</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground flex items-center">
+              <p className="text-xs text-muted-foreground flex items-center>
                 <Calendar className="mr-1 h-3 w-3" />
                 {t("userManagement.expiresOn", "Expira em")}: {format(expirationDate, "dd/MM/yyyy HH:mm")}
               </p>
             </div>
 
             {groupsData?.groups && groupsData.groups.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2>
                 <Label>{t("userManagement.groups", "Grupos")} (opcional)</Label>
-                <ScrollArea className="h-32 border rounded-md p-3">
-                  <div className="space-y-2">
+                <ScrollArea className="h-32 border rounded-md p-3>
+                  <div className="space-y-2>
                     {groupsData.groups.map((group) => (
-                      <div key={group.id} className="flex items-center space-x-2">
+                      <div key={group.id} className="flex items-center space-x-2>
                         <Checkbox
-                          id={"
+                          id={"invite-role-
                           checked={formData.groupIds.includes(group.id)}
                           onCheckedChange={(checked) => handleGroupToggle(group.id, !!checked)}
                         />
@@ -206,13 +206,13 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                 </ScrollArea>
                 
                 {formData.groupIds.length > 0 && (
-                  <div className="mt-2">
+                  <div className="mt-2>
                     <p className="text-sm text-muted-foreground mb-1">Grupos selecionados:</p>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1>
                       {formData.groupIds.map((groupId) => {
                         const group = groupsData.groups?.find(g => g.id === groupId);
                         return group ? (
-                          <Badge key={groupId} variant="secondary" className="text-xs">
+                          <Badge key={groupId} variant="secondary" className="text-xs>
                             {group.name}
                           </Badge>
                         ) : null;
@@ -223,7 +223,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-2>
               <Label htmlFor="notes">{t("userManagement.notes", "Notas")} (opcional)</Label>
               <Textarea
                 id="notes"
@@ -234,13 +234,13 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
               />
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2>
               <Checkbox
                 id="sendEmail"
                 checked={formData.sendEmail}
                 onCheckedChange={(checked) => setFormData({ ...formData, sendEmail: !!checked })}
               />
-              <Label htmlFor="sendEmail" className="text-sm">
+              <Label htmlFor="sendEmail" className="text-sm>
                 {t("userManagement.sendInvitationEmail", "Enviar email de convite automaticamente")}
               </Label>
             </div>

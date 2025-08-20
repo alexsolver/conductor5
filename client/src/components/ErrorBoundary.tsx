@@ -108,19 +108,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-          <Card className="w-full max-w-2xl">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50>
+          <Card className="w-full max-w-2xl>
+            <CardHeader className="text-center>
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4>
                 <AlertTriangle className="w-8 h-8 text-red-600" />
               </div>
-              <CardTitle className="text-2xl text-gray-900">
+              <CardTitle className="text-2xl text-gray-900>
                 Oops! Algo deu errado
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="space-y-6">
-              <Alert variant="destructive">
+            <CardContent className="space-y-6>
+              <Alert variant="destructive>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   {this.state.error?.message || 'Um erro inesperado ocorreu no módulo de locais.'}
@@ -128,18 +128,18 @@ export class ErrorBoundary extends Component<Props, State> {
               </Alert>
 
               {this.props.showDetails && this.state.error && (
-                <details className="bg-gray-100 p-4 rounded-lg">
-                  <summary className="cursor-pointer font-medium text-sm text-gray-700">
+                <details className="bg-gray-100 p-4 rounded-lg>
+                  <summary className="cursor-pointer font-medium text-sm text-gray-700>
                     Detalhes técnicos (clique para expandir)
                   </summary>
-                  <div className="mt-3 text-xs font-mono text-gray-600 whitespace-pre-wrap">
-                    <div className="mb-2">
+                  <div className="mt-3 text-xs font-mono text-gray-600 whitespace-pre-wrap>
+                    <div className="mb-2>
                       <strong>Erro:</strong> {this.state.error.message}
                     </div>
                     {this.state.error.stack && (
-                      <div className="mb-2">
+                      <div className="mb-2>
                         <strong>Stack trace:</strong>
-                        <pre className="text-xs overflow-auto max-h-32">
+                        <pre className="text-xs overflow-auto max-h-32>
                           {this.state.error.stack}
                         </pre>
                       </div>
@@ -147,7 +147,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     {this.state.errorInfo?.componentStack && (
                       <div>
                         <strong>Component stack:</strong>
-                        <pre className="text-xs overflow-auto max-h-32">
+                        <pre className="text-xs overflow-auto max-h-32>
                           {this.state.errorInfo.componentStack}
                         </pre>
                       </div>
@@ -156,7 +156,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </details>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center>
                 {this.state.retryCount < this.maxRetries && (
                   <Button 
                     onClick={this.handleRetry}
@@ -186,9 +186,9 @@ export class ErrorBoundary extends Component<Props, State> {
                 </Button>
               </div>
 
-              <div className="text-center text-sm text-gray-500">
+              <div className="text-center text-sm text-gray-500>
                 <p>Se o problema persistir, entre em contato com o suporte técnico.</p>
-                <p className="mt-1">
+                <p className="mt-1>
                   Código do erro: {this.state.error?.name || 'UNKNOWN_ERROR'}
                 </p>
               </div>

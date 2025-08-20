@@ -31,7 +31,7 @@ const LocalSelector = ({
   });
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2>
       <Label>{label}</Label>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger>
@@ -40,12 +40,12 @@ const LocalSelector = ({
         <SelectContent>
           {locais.map((local) => (
             <SelectItem key={local.id} value={local.id}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2>
                 <MapPin className="h-4 w-4 text-gray-500" />
                 <div>
                   <div className="font-medium">{local.nome}</div>
                   {local.municipio && local.estado && (
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500>
                       {local.municipio}, {local.estado}
                     </div>
                   )}
@@ -82,8 +82,8 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-4 p-4 border rounded-lg bg-gray-50>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
         <div>
           <Label>DE (Local de Origem) *</Label>
           <Select 
@@ -131,7 +131,7 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
@@ -263,20 +263,20 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
       {/* Identificação */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Route className="h-5 w-5" />
             Identificação da Rota de Trecho
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
+        <CardContent className="space-y-4>
+          <div className="flex items-center justify-between>
+            <div className="space-y-0.5>
               <Label htmlFor="ativo">Status</Label>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground>
                 Rota ativa no sistema
               </div>
             </div>
@@ -298,7 +298,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
             {errors.idRota && (
               <p className="text-sm text-red-500 mt-1">{errors.idRota.message}</p>
             )}
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-gray-500 mt-1>
               {watchedValues.idRota?.length || 0}/100 caracteres
             </div>
           </div>
@@ -310,8 +310,8 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
         <CardHeader>
           <CardTitle>Definição do Trecho</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <LocalSelector
                 value={watchedValues.localAId}
@@ -342,7 +342,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
       {/* Múltiplos Trechos */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between>
             Definição de Múltiplos Trechos
             <Button
               type="button"
@@ -356,7 +356,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4>
           {addingSegment && (
             <SegmentForm
               onSave={addSegment}
@@ -380,7 +380,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
           )}
 
           {trechos.length > 0 && (
-            <div className="border rounded-lg">
+            <div className="border rounded-lg>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -396,7 +396,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                     <TableRow key={index}>
                       <TableCell className="font-mono">{index + 1}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2>
                           <MapPin className="h-4 w-4 text-gray-500" />
                           {getLocalName(trecho.localOrigemId)}
                         </div>
@@ -405,13 +405,13 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                         {trecho.nomeTrecho || '-'}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2>
                           <MapPin className="h-4 w-4 text-gray-500" />
                           {getLocalName(trecho.localDestinoId)}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1>
                           <Button
                             type="button"
                             variant="ghost"
@@ -439,7 +439,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
           )}
 
           {trechos.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500>
               <Route className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>Nenhum trecho adicionado</p>
               <p className="text-sm">Clique em "Adicionar Trecho" para começar</p>
@@ -448,11 +448,11 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
 
           {/* Validations Display */}
           {trechos.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2>
               {!isValidRoute() && (
-                <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
+                <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg>
                   <strong>Validações necessárias:</strong>
-                  <ul className="list-disc list-inside mt-1 space-y-1">
+                  <ul className="list-disc list-inside mt-1 space-y-1>
                     {trechos[0]?.localOrigemId !== watchedValues.localAId && (
                       <li>O primeiro trecho deve iniciar no Local A</li>
                     )}
@@ -466,7 +466,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 </div>
               )}
               {isValidRoute() && (
-                <div className="text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+                <div className="text-sm text-green-600 bg-green-50 p-3 rounded-lg>
                   ✓ Rota válida com {trechos.length} trecho(s) sequencial(is)
                 </div>
               )}
@@ -476,7 +476,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
       </Card>
 
       {/* Actions */}
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>

@@ -306,29 +306,29 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
 
   return (
     <TooltipProvider>
-      <div className="h-screen flex bg-gray-50">
+      <div className="h-screen flex bg-gray-50>
         {/* Left Sidebar - Component Library */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          <div className="p-4 border-b">
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col>
+          <div className="p-4 border-b>
             <h3 className="text-lg font-semibold text-gray-900">Design Studio</h3>
             <p className="text-sm text-gray-600">Drag components to build your report</p>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-            <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1>
+            <TabsList className="grid w-full grid-cols-3 mx-4 mt-4>
               <TabsTrigger value="components">Components</TabsTrigger>
               <TabsTrigger value="styles">Styles</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="components" className="flex-1 p-4 space-y-4">
+            <TabsContent value="components" className="flex-1 p-4 space-y-4>
               {/* Component Categories */}
               {['content', 'data', 'media', 'layout'].map((category) => (
                 <div key={category}>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2 capitalize">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2 capitalize>
                     {category}
                   </h4>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2>
                     {DESIGN_COMPONENTS
                       .filter(comp => comp.category === category)
                       .map((component) => {
@@ -342,12 +342,12 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                                 className="p-3 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 hover:bg-blue-50 transition-colors"
                               >
                                 <Icon className="h-5 w-5 text-gray-600 mx-auto mb-1" />
-                                <p className="text-xs text-center text-gray-700">
+                                <p className="text-xs text-center text-gray-700>
                                   {component.name}
                                 </p>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent side="right">
+                            <TooltipContent side="right>
                               <p>{component.description}</p>
                             </TooltipContent>
                           </Tooltip>
@@ -358,21 +358,21 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               ))}
             </TabsContent>
 
-            <TabsContent value="styles" className="flex-1 p-4">
+            <TabsContent value="styles" className="flex-1 p-4>
               {selectedComponentData ? (
                 <ComponentStyleEditor 
                   component={selectedComponentData}
                   onUpdate={(updates) => updateComponent(selectedComponent, updates)}
                 />
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-8>
                   <Palette className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600">Select a component to edit styles</p>
                 </div>
               )}
             </TabsContent>
 
-            <TabsContent value="data" className="flex-1 p-4">
+            <TabsContent value="data" className="flex-1 p-4>
               {selectedComponentData && ['chart', 'table', 'kpi'].includes(selectedComponentData.type) ? (
                 <ComponentDataEditor 
                   component={selectedComponentData}
@@ -380,7 +380,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                   availableData={data}
                 />
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-8>
                   <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600">Select a data component to configure</p>
                 </div>
@@ -390,11 +390,11 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
         </div>
 
         {/* Main Canvas Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col>
           {/* Toolbar */}
-          <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+          <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between>
+            <div className="flex items-center space-x-4>
+              <div className="flex items-center space-x-2>
                 <Button
                   variant="outline"
                   size="sm"
@@ -425,7 +425,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               
               <Separator orientation="vertical" className="h-6" />
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 <Button
                   variant={previewMode ? 'default' : 'outline'}
                   size="sm"
@@ -437,16 +437,16 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+            <div className="flex items-center space-x-2>
+              <Button variant="outline" size="sm>
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm>
                 <Share className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button size="sm">
+              <Button size="sm>
                 <Save className="h-4 w-4 mr-2" />
                 Save
               </Button>
@@ -454,7 +454,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
           </div>
 
           {/* Canvas */}
-          <div className="flex-1 overflow-auto bg-gray-100 p-8">
+          <div className="flex-1 overflow-auto bg-gray-100 p-8>
             <div
               ref={canvasRef}
               className="mx-auto bg-white shadow-lg relative"
@@ -494,13 +494,13 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
 
               {/* Empty state */}
               {(!design?.components || design.components.length === 0) && !previewMode && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
+                <div className="absolute inset-0 flex items-center justify-center>
+                  <div className="text-center>
                     <Layout className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2>
                       Start Building Your Report
                     </h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 mb-4>
                       Drag components from the sidebar to get started
                     </p>
                     <Button onClick={() => addComponent('text')}>
@@ -516,10 +516,10 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
 
         {/* Right Sidebar - Properties */}
         {selectedComponentData && !previewMode && (
-          <div className="w-80 bg-white border-l border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-4">
+          <div className="w-80 bg-white border-l border-gray-200 p-4>
+            <div className="flex items-center justify-between mb-4>
               <h3 className="text-lg font-semibold text-gray-900">Properties</h3>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -599,10 +599,10 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
 
       case 'chart':
         return (
-          <div className="w-full h-full border border-gray-300 rounded flex items-center justify-center bg-gray-50">
-            <div className="text-center">
+          <div className="w-full h-full border border-gray-300 rounded flex items-center justify-center bg-gray-50>
+            <div className="text-center>
               <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600>
                 {component.props.chartType} Chart
               </p>
             </div>
@@ -611,11 +611,11 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
 
       case 'table':
         return (
-          <div className="w-full h-full border border-gray-300 rounded">
-            <div className="bg-gray-50 p-2 border-b">
+          <div className="w-full h-full border border-gray-300 rounded>
+            <div className="bg-gray-50 p-2 border-b>
               <Table className="h-4 w-4 text-gray-600" />
             </div>
-            <div className="p-2">
+            <div className="p-2>
               <p className="text-sm text-gray-600">Data Table</p>
             </div>
           </div>
@@ -713,10 +713,10 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
 // Component Style Editor
 function ComponentStyleEditor({ component, onUpdate }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       <div>
         <Label className="text-sm font-medium">Position</Label>
-        <div className="grid grid-cols-2 gap-2 mt-1">
+        <div className="grid grid-cols-2 gap-2 mt-1>
           <Input
             type="number"
             placeholder="X"
@@ -738,7 +738,7 @@ function ComponentStyleEditor({ component, onUpdate }) {
 
       <div>
         <Label className="text-sm font-medium">Size</Label>
-        <div className="grid grid-cols-2 gap-2 mt-1">
+        <div className="grid grid-cols-2 gap-2 mt-1>
           <Input
             type="number"
             placeholder="Width"
@@ -777,7 +777,7 @@ function ComponentStyleEditor({ component, onUpdate }) {
 
           <div>
             <Label className="text-sm font-medium">Color</Label>
-            <div className="grid grid-cols-6 gap-1 mt-2">
+            <div className="grid grid-cols-6 gap-1 mt-2>
               {COLOR_PALETTE.map((color) => (
                 <button
                   key={color}
@@ -799,7 +799,7 @@ function ComponentStyleEditor({ component, onUpdate }) {
                 props: { ...component.props, fontWeight: value }
               })}
             >
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -818,7 +818,7 @@ function ComponentStyleEditor({ component, onUpdate }) {
 // Component Data Editor
 function ComponentDataEditor({ component, onUpdate, availableData }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       <div>
         <Label className="text-sm font-medium">Data Source</Label>
         <Select
@@ -827,7 +827,7 @@ function ComponentDataEditor({ component, onUpdate, availableData }) {
             props: { ...component.props, dataSource: value }
           })}
         >
-          <SelectTrigger className="mt-1">
+          <SelectTrigger className="mt-1>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -847,7 +847,7 @@ function ComponentDataEditor({ component, onUpdate, availableData }) {
               props: { ...component.props, chartType: value }
             })}
           >
-            <SelectTrigger className="mt-1">
+            <SelectTrigger className="mt-1>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -866,7 +866,7 @@ function ComponentDataEditor({ component, onUpdate, availableData }) {
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       <div>
         <Label className="text-sm font-medium">Component Type</Label>
         <Badge variant="outline" className="mt-1">{component.type}</Badge>

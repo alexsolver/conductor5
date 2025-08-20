@@ -252,40 +252,40 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
   };
 
   return (
-    <div className="w-full h-full">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold flex items-center">
+    <div className="w-full h-full>
+      <div className="p-4 border-b>
+        <h2 className="text-lg font-semibold flex items-center>
           <Shield className="h-5 w-5 mr-2" />
           Sistema de Validação
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 mt-1>
           Configure validações para o campo: <strong>{fieldId}</strong>
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
-        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full>
+        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4>
           <TabsTrigger value="rules">Regras ({currentRules.length})</TabsTrigger>
           <TabsTrigger value="test">Testar</TabsTrigger>
           <TabsTrigger value="suites">Suítes de Teste</TabsTrigger>
         </TabsList>
 
-        <div className="p-4">
-          <TabsContent value="rules" className="space-y-4">
+        <div className="p-4>
+          <TabsContent value="rules" className="space-y-4>
             {/* Lista de Regras Existentes */}
-            <div className="space-y-3">
+            <div className="space-y-3>
               {currentRules.map((rule) => (
-                <Card key={rule.id} className=""">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                <Card key={rule.id} className="">
+                  <CardContent className="p-4>
+                    <div className="flex items-center justify-between>
+                      <div className="flex items-center space-x-3>
                         <Switch
                           checked={rule.enabled}
                           onCheckedChange={() => handleToggleRule(rule.id)}
                         />
                         <div>
                           <h4 className="font-medium">{rule.name}</h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500>
                             {rule.config.message}
                           </p>
                         </div>
@@ -297,7 +297,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                           <span className="ml-1 capitalize">{rule.config.severity}</span>
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -335,7 +335,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                 <CardTitle className="text-base">Adicionar Nova Regra</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3>
                   {validationRuleTemplates
                     .filter(template => {
                       // Filtrar regras baseadas no tipo de campo
@@ -352,7 +352,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                         onClick={() => handleAddRule(template.type)}
                         className="justify-start h-auto p-3"
                       >
-                        <div className="text-left">
+                        <div className="text-left>
                           <div className="font-medium">{template.name}</div>
                           <div className="text-xs text-gray-500">{template.description}</div>
                         </div>
@@ -368,7 +368,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                 <CardHeader>
                   <CardTitle className="text-base">Editar Regra: {editingRule.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4>
                   <div>
                     <Label>Nome da Regra</Label>
                     <Input
@@ -413,7 +413,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
 
                   {/* Configurações específicas por tipo */}
                   {editingRule.type === 'length' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4>
                       <div>
                         <Label>Mínimo</Label>
                         <Input
@@ -469,7 +469,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                   )}
 
                   {editingRule.type === 'dependency' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4>
                       <div>
                         <Label>Campo Dependente</Label>
                         <Input
@@ -495,7 +495,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                     </div>
                   )}
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-2>
                     <Button
                       variant="outline"
                       onClick={() => setEditingRule(null)}
@@ -511,12 +511,12 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
             )}
           </TabsContent>
 
-          <TabsContent value="test" className="space-y-4">
+          <TabsContent value="test" className="space-y-4>
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Testar Validações</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4>
                 <div>
                   <Label>Valor de Teste</Label>
                   <Input
@@ -526,7 +526,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                   />
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex space-x-2>
                   <Button onClick={handleTestValidation}>
                     <Play className="h-4 w-4 mr-2" />
                     Executar Teste
@@ -543,14 +543,14 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                 </div>
 
                 {testResult && (
-                  <Alert className=""">
-                    <div className="flex items-center">
+                  <Alert className="">
+                    <div className="flex items-center>
                       {testResult.isValid ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-red-600" />
                       )}
-                      <AlertDescription className="ml-2">
+                      <AlertDescription className="ml-2>
                         <strong>
                           {testResult.isValid ? 'Validação Passou' : 'Validação Falhou'}
                         </strong>
@@ -558,9 +558,9 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                     </div>
 
                     {testResult.errors.length > 0 && (
-                      <div className="mt-3">
+                      <div className="mt-3>
                         <p className="text-sm font-medium text-red-800">Erros:</p>
-                        <ul className="list-disc list-inside text-sm text-red-700">
+                        <ul className="list-disc list-inside text-sm text-red-700>
                           {testResult.errors.map((error, index) => (
                             <li key={index}>{error.message}</li>
                           ))}
@@ -569,9 +569,9 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                     )}
 
                     {testResult.warnings.length > 0 && (
-                      <div className="mt-3">
+                      <div className="mt-3>
                         <p className="text-sm font-medium text-yellow-800">Avisos:</p>
-                        <ul className="list-disc list-inside text-sm text-yellow-700">
+                        <ul className="list-disc list-inside text-sm text-yellow-700>
                           {testResult.warnings.map((warning, index) => (
                             <li key={index}>{warning.message}</li>
                           ))}
@@ -584,8 +584,8 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
             </Card>
           </TabsContent>
 
-          <TabsContent value="suites" className="space-y-4">
-            <div className="flex items-center justify-between">
+          <TabsContent value="suites" className="space-y-4>
+            <div className="flex items-center justify-between>
               <h3 className="text-lg font-medium">Suítes de Teste</h3>
               <Button onClick={handleRunAllTests}>
                 <Play className="h-4 w-4 mr-2" />
@@ -593,11 +593,11 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
               </Button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3>
               {validationTests.map((test) => (
                 <Card key={test.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
+                  <CardContent className="p-4>
+                    <div className="flex items-center justify-between>
                       <div>
                         <h4 className="font-medium">{test.name}</h4>
                         <p className="text-sm text-gray-500">{test.description}</p>
@@ -608,8 +608,8 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                           Esperado: {test.expectedResult === 'valid' ? 'Válido' : 'Inválido'}
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
+                      <div className="flex items-center space-x-2>
+                        <Button variant="ghost" size="sm>
                           <Play className="h-4 w-4" />
                         </Button>
                         <Button 

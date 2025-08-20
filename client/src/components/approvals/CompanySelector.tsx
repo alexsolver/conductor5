@@ -85,15 +85,15 @@ export function CompanySelector({
 
   if (error) {
     return (
-      <div className="text-sm text-red-600 p-2 border border-red-200 rounded">
+      <div className="text-sm text-red-600 p-2 border border-red-200 rounded>
         Erro ao carregar empresas
       </div>
     );
   }
 
   return (
-    <div className="space-y-2 "">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+    <div className="space-y-2 ">
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2>
         <Building2 className="w-4 h-4" />
         Empresa (Associação Hierárquica)
       </label>
@@ -103,20 +103,20 @@ export function CompanySelector({
         onValueChange={(val) => onValueChange(val === 'none' ? null : val)}
         disabled={disabled || isLoading}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full>
           <SelectValue placeholder={isLoading ? '[TRANSLATION_NEEDED]' : placeholder} />
         </SelectTrigger>
         
         <SelectContent>
           {/* Opção para remover seleção */}
-          <SelectItem value="none">
+          <SelectItem value="none>
             <span className="text-gray-500">Nenhuma empresa (regra global)</span>
           </SelectItem>
           
           {companies.map((company) => (
             <SelectItem key={company.id} value={company.id}>
-              <div className="flex flex-col">
-                <span className="font-medium">
+              <div className="flex flex-col>
+                <span className="font-medium>
                   {company.displayName || company.name}
                 </span>
                 {company.email && (
@@ -136,12 +136,12 @@ export function CompanySelector({
       
       {/* Debug info */}
       {companies.length > 0 && (
-        <div className="text-xs text-gray-500 mt-1">
+        <div className="text-xs text-gray-500 mt-1>
           {companies.length} empresas encontradas
         </div>
       )}
       
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-xs text-gray-500 dark:text-gray-400>
         Deixe vazio para aplicar a regra globalmente ou selecione uma empresa específica
       </p>
     </div>

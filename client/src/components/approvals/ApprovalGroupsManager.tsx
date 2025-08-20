@@ -74,7 +74,7 @@ export function ApprovalGroupsManager() {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/approvals/groups', {
         headers: {
-          'Authorization': "
+          'Authorization': "Bearer " + token
           'Content-Type': 'application/json'
         }
       });
@@ -93,7 +93,7 @@ export function ApprovalGroupsManager() {
       const response = await fetch('/api/approvals/groups', {
         method: 'POST',
         headers: { 
-          'Authorization': "
+          'Authorization': "Bearer " + token
           'Content-Type': 'application/json' 
         },
         body: JSON.stringify(groupData)
@@ -133,7 +133,7 @@ export function ApprovalGroupsManager() {
       const response = await fetch("
         method: 'DELETE',
         headers: {
-          'Authorization': "
+          'Authorization': "Bearer " + token
           'Content-Type': 'application/json'
         }
       });
@@ -186,8 +186,8 @@ export function ApprovalGroupsManager() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
+      <div className="flex items-center justify-center p-8>
+        <div className="text-center>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-gray-600">Carregando grupos...</p>
         </div>
@@ -196,33 +196,33 @@ export function ApprovalGroupsManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center>
         <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
+          <h3 className="text-lg font-semibold flex items-center gap-2>
             <Users className="w-5 h-5" />
             Grupos de Aprovação
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600>
             Configure grupos de aprovadores para diferentes tipos de workflows
           </p>
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2>
               <Plus className="w-4 h-4" />
               Novo Grupo
             </Button>
           </DialogTrigger>
           
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md>
             <DialogHeader>
               <DialogTitle>Criar Grupo de Aprovação</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-4">
+            <div className="space-y-4>
               <div>
                 <Label htmlFor="group-name">Nome do Grupo *</Label>
                 <Input
@@ -262,7 +262,7 @@ export function ApprovalGroupsManager() {
                 </Select>
               </div>
               
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end gap-2 pt-4>
                 <Button
                   variant="outline"
                   onClick={() => setIsCreateDialogOpen(false)}
@@ -284,12 +284,12 @@ export function ApprovalGroupsManager() {
       {/* Groups List */}
       {groups.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-12">
+          <CardContent className="text-center py-12>
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-gray-900 mb-2>
               Nenhum grupo configurado
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4>
               Crie grupos de aprovadores para organizar seus workflows
             </p>
             <Button
@@ -302,23 +302,23 @@ export function ApprovalGroupsManager() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4>
           {groups.map((group: ApprovalGroup) => (
             <Card key={group.id}>
-              <CardHeader className="flex flex-row items-start justify-between">
-                <div className="space-y-1">
+              <CardHeader className="flex flex-row items-start justify-between>
+                <div className="space-y-1>
                   <CardTitle className="text-lg">{group.name}</CardTitle>
                   {group.description && (
                     <CardDescription>{group.description}</CardDescription>
                   )}
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2>
                   <Badge variant={groupTypeBadgeVariants[group.groupType]}>
                     {groupTypeLabels[group.groupType]}
                   </Badge>
                   
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -343,8 +343,8 @@ export function ApprovalGroupsManager() {
               </CardHeader>
               
               <CardContent>
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">
+                <div className="text-sm text-gray-600>
+                  <span className="font-medium>
                     {group.members?.length || 0} membros
                   </span>
                   {' • '}
@@ -354,14 +354,14 @@ export function ApprovalGroupsManager() {
                 </div>
                 
                 {group.members && group.members.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2>
                     {group.members.slice(0, 3).map((member) => (
-                      <Badge key={member.id} variant="secondary" className="text-xs">
+                      <Badge key={member.id} variant="secondary" className="text-xs>
                         {member.memberName || 'Usuário'}
                       </Badge>
                     ))}
                     {group.members.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs>
                         +{group.members.length - 3} mais
                       </Badge>
                     )}

@@ -736,18 +736,18 @@ export default function LocalForm({
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+    <div className="space-y-6>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6>
         {/* Seção 1: Identificação */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <Users className="h-5 w-5" />
               Identificação
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-2">
+          <CardContent className="space-y-4>
+            <div className="flex items-center space-x-2>
               <Switch
                 checked={form.watch('ativo')}
                 onCheckedChange={(checked) => form.setValue('ativo', checked)}
@@ -797,18 +797,18 @@ export default function LocalForm({
                 value={form.watch('tipoClienteFavorecido') || ''} 
                 onValueChange={(value) => form.setValue('tipoClienteFavorecido', value)}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1>
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cliente">
-                    <div className="flex items-center gap-2">
+                  <SelectItem value="cliente>
+                    <div className="flex items-center gap-2>
                       <Badge variant="default">Cliente</Badge>
                       Cliente
                     </div>
                   </SelectItem>
-                  <SelectItem value="favorecido">
-                    <div className="flex items-center gap-2">
+                  <SelectItem value="favorecido>
+                    <div className="flex items-center gap-2>
                       <Badge variant="secondary">Favorecido</Badge>
                       Favorecido
                     </div>
@@ -823,13 +823,13 @@ export default function LocalForm({
                 value={form.watch('tecnicoPrincipalId') || ''} 
                 onValueChange={(value) => form.setValue('tecnicoPrincipalId', value)}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1>
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
                   {teamMembers.map((member) => (
                     <SelectItem key={member.id} value={member.id}>
-                      <div className="flex flex-col">
+                      <div className="flex flex-col>
                         <span>{member.name}</span>
                         <span className="text-sm text-gray-500">{member.role} - {member.email}</span>
                       </div>
@@ -844,12 +844,12 @@ export default function LocalForm({
         {/* Seção 2: Contato */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <Phone className="h-5 w-5" />
               Contato
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4>
             <div>
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -864,7 +864,7 @@ export default function LocalForm({
               )}
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4>
               <div>
                 <Label htmlFor="ddd">DDD</Label>
                 <Input
@@ -875,7 +875,7 @@ export default function LocalForm({
                   className="mt-1"
                 />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-2>
                 <Label htmlFor="telefone">Telefone</Label>
                 <Input
                   id="telefone"
@@ -891,14 +891,14 @@ export default function LocalForm({
         {/* Seção 3: Endereço */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <Home className="h-5 w-5" />
               Endereço
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <div className="flex-1">
+          <CardContent className="space-y-4>
+            <div className="flex gap-2>
+              <div className="flex-1>
                 <Label htmlFor="cep">CEP</Label>
                 <Input
                   id="cep"
@@ -930,7 +930,7 @@ export default function LocalForm({
                   <p className="text-sm text-red-500 mt-1">{form.formState.errors.cep.message}</p>
                 )}
               </div>
-              <div className="flex items-end">
+              <div className="flex items-end>
                 <Button
                   type="button"
                   variant="outline"
@@ -967,7 +967,7 @@ export default function LocalForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="estado">Estado</Label>
                 <Input
@@ -998,14 +998,14 @@ export default function LocalForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="tipoLogradouro">Tipo de Logradouro</Label>
                 <Select 
                   value={form.watch('tipoLogradouro') || ''} 
                   onValueChange={(value) => form.setValue('tipoLogradouro', value)}
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-1>
                     <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                   </SelectTrigger>
                   <SelectContent>
@@ -1028,7 +1028,7 @@ export default function LocalForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="numero">Número</Label>
                 <Input
@@ -1054,13 +1054,13 @@ export default function LocalForm({
         {/* Seção 4: Georreferenciamento */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <MapPin className="h-5 w-5" />
               Georreferenciamento
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="space-y-4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
                 <div>
                   <Label htmlFor="latitude">Latitude</Label>
                   <Input
@@ -1091,7 +1091,7 @@ export default function LocalForm({
                   )}
                 </div>
 
-                <div className="flex items-end">
+                <div className="flex items-end>
                   <Button
                     type="button"
                     variant="outline"
@@ -1105,10 +1105,10 @@ export default function LocalForm({
                 </div>
               </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2>
               {(form.watch('latitude') && form.watch('longitude')) && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-sm text-blue-700 flex items-center gap-2">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md>
+                  <p className="text-sm text-blue-700 flex items-center gap-2>
                     <MapPin className="h-4 w-4" />
                     Coordenadas: {parseFloat(form.watch('latitude')).toFixed(6)}, {parseFloat(form.watch('longitude')).toFixed(6)}
                   </p>
@@ -1116,8 +1116,8 @@ export default function LocalForm({
               )}
               
               {form.watch('geoCoordenadas') && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                  <p className="text-sm text-green-700">
+                <div className="p-3 bg-green-50 border border-green-200 rounded-md>
+                  <p className="text-sm text-green-700>
                     ✓ Coordenadas validadas automaticamente pelo endereço
                   </p>
                 </div>
@@ -1129,19 +1129,19 @@ export default function LocalForm({
         {/* Seção 5: Tempo e Disponibilidade */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <Clock className="h-5 w-5" />
               Tempo e Disponibilidade
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4>
             <div>
               <Label htmlFor="fusoHorario">Fuso Horário</Label>
               <Select 
                 value={form.watch('fusoHorario') || 'America/Sao_Paulo'} 
                 onValueChange={(value) => form.setValue('fusoHorario', value)}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1154,7 +1154,7 @@ export default function LocalForm({
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2>
               <Button
                 type="button"
                 variant="outline"
@@ -1167,15 +1167,15 @@ export default function LocalForm({
               </Button>
 
               {Object.values(selectedHolidays).some(arr => arr.some(h => h.incluir)) && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-sm text-blue-700">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md>
+                  <p className="text-sm text-blue-700>
                     {Object.values(selectedHolidays).flat().filter(h => h.incluir).length} feriados selecionados
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2>
               <Button
                 type="button"
                 variant="outline"
@@ -1187,8 +1187,8 @@ export default function LocalForm({
               </Button>
 
               {indisponibilidades.length > 0 && (
-                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
-                  <p className="text-sm text-orange-700">
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md>
+                  <p className="text-sm text-orange-700>
                     {indisponibilidades.length} período(s) de indisponibilidade configurado(s)
                   </p>
                 </div>
@@ -1197,7 +1197,7 @@ export default function LocalForm({
           </CardContent>
         </Card>
 
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end space-x-4>
           <Button 
             type="submit" 
             disabled={isLoading}
@@ -1209,28 +1209,28 @@ export default function LocalForm({
 
       {/* Dialog de Feriados */}
       <Dialog open={showHolidaysDialog} onOpenChange={setShowHolidaysDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto>
           <DialogHeader>
             <DialogTitle>Selecionar Feriados</DialogTitle>
             <DialogDescription>
               Selecione os feriados municipais, estaduais e federais que devem ser considerados para este local
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6">
+          <div className="space-y-6>
             {Object.entries(holidays).map(([type, holidayList]) => (
               <div key={type}>
-                <h3 className="font-semibold mb-3 capitalize">
+                <h3 className="font-semibold mb-3 capitalize>
                   Feriados {type}
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-2>
                   {holidayList.map((holiday, index) => (
-                    <div key={index} className="flex items-center space-x-2">
+                    <div key={index} className="flex items-center space-x-2>
                       <Checkbox
                         checked={selectedHolidays[type as keyof HolidaysByType]?.[index]?.incluir || false}
                         onCheckedChange={() => toggleHoliday(type as keyof HolidaysByType, index)}
                       />
                       <span className="text-sm">{holiday.nome}</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500>
                         {new Date(holiday.data).toLocaleDateString()}
                       </span>
                     </div>
@@ -1239,7 +1239,7 @@ export default function LocalForm({
               </div>
             ))}
           </div>
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2>
             <Button variant="outline" onClick={() => setShowHolidaysDialog(false)}>
               Cancelar
             </Button>
@@ -1252,17 +1252,17 @@ export default function LocalForm({
 
       {/* Dialog de Indisponibilidades */}
       <Dialog open={showIndisponibilidadesDialog} onOpenChange={setShowIndisponibilidadesDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl>
           <DialogHeader>
             <DialogTitle>Gerenciar Indisponibilidades</DialogTitle>
             <DialogDescription>
               Configure períodos de indisponibilidade do local com data de início, fim e observações
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4>
             {indisponibilidades.map((item, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-center">
+              <div key={index} className="border rounded-lg p-4 space-y-3>
+                <div className="flex justify-between items-center>
                   <span className="font-medium">Período {index + 1}</span>
                   <Button
                     type="button"
@@ -1273,7 +1273,7 @@ export default function LocalForm({
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3>
                   <div>
                     <Label>Data Início</Label>
                     <Input
@@ -1324,7 +1324,7 @@ export default function LocalForm({
               Adicionar Período
             </Button>
           </div>
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2>
             <Button variant="outline" onClick={() => setShowIndisponibilidadesDialog(false)}>
               Cancelar
             </Button>
@@ -1337,14 +1337,14 @@ export default function LocalForm({
 
       {/* Dialog do Mapa */}
       <Dialog open={showMapModal} onOpenChange={setShowMapModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-4xl max-h-[90vh]>
           <DialogHeader>
             <DialogTitle>Selecionar Coordenadas no Mapa</DialogTitle>
             <DialogDescription>
               Clique no mapa para definir a localização exata do local
             </DialogDescription>
           </DialogHeader>
-          <div className="h-[60vh]">
+          <div className="h-[60vh]>
             <MapSelector
               initialLat={mapCenter[0]}
               initialLng={mapCenter[1]}

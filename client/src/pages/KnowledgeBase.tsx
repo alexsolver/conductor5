@@ -111,12 +111,12 @@ export default function KnowledgeBase() {
   };
 
   const EmptyState = () => (
-    <div className="text-center py-16">
+    <div className=""
       <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+      <h3 className=""
         Nenhum artigo disponível
       </h3>
-      <p className="text-gray-600 mb-6">
+      <p className=""
         Não há artigos publicados na base de conhecimento.
       </p>
       {activeTab === "articles" && (
@@ -133,16 +133,16 @@ export default function KnowledgeBase() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8" data-testid="knowledge-base-page">
+    <div className="container mx-auto px-4 py-8" data-testid="knowledge-base-page>
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+      <div className=""
+        <div className=""
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className=""
               <BookOpen className="h-8 w-8 text-blue-600" />
               Base de Conhecimento Avançada
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className=""
               Sistema completo com templates, aprovação, comentários, busca semântica e versionamento
             </p>
           </div>
@@ -158,12 +158,12 @@ export default function KnowledgeBase() {
       </div>
 
       {/* Advanced Search */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
+      <Card className=""
+        <CardContent className=""
+          <div className=""
+            <div className=""
+              <div className=""
+                <div className=""
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Pesquisar artigos... (busca semântica disponível)"
@@ -186,9 +186,9 @@ export default function KnowledgeBase() {
               </Button>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className=""
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-48 bg-white" data-testid="select-category">
+                <SelectTrigger className="w-full sm:w-48 bg-white" data-testid="select-category>
                   <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,7 +202,7 @@ export default function KnowledgeBase() {
               </Select>
 
               <Select value={selectedAccess} onValueChange={setSelectedAccess}>
-                <SelectTrigger className="w-full sm:w-48 bg-white" data-testid="select-access">
+                <SelectTrigger className="w-full sm:w-48 bg-white" data-testid="select-access>
                   <SelectValue placeholder="Acesso" />
                 </SelectTrigger>
                 <SelectContent>
@@ -213,19 +213,19 @@ export default function KnowledgeBase() {
                 </SelectContent>
               </Select>
 
-              <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700" data-testid="button-search">
+              <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700" data-testid="button-search>
                 <Search className="w-4 h-4 mr-2" />
                 Buscar
               </Button>
             </div>
 
             {semanticSearch && (
-              <div className="p-4 border rounded-lg bg-blue-50">
-                <div className="flex items-center gap-2 mb-2">
+              <div className=""
+                <div className=""
                   <Layers className="h-4 w-4 text-blue-600" />
                   <Label className="font-medium text-blue-900">Busca Semântica Ativa</Label>
                 </div>
-                <p className="text-sm text-blue-700">
+                <p className=""
                   A busca semântica encontra artigos por significado, não apenas palavras-chave exatas.
                 </p>
               </div>
@@ -235,33 +235,33 @@ export default function KnowledgeBase() {
       </Card>
 
       {/* Tabs para Funcionalidades Avançadas */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="articles" className="gap-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+        <TabsList className=""
+          <TabsTrigger value="articles" className=""
             <FileText className="h-4 w-4" />
             Artigos
           </TabsTrigger>
-          <TabsTrigger value="templates" className="gap-2">
+          <TabsTrigger value="templates" className=""
             <Layers className="h-4 w-4" />
             Templates
           </TabsTrigger>
-          <TabsTrigger value="approvals" className="gap-2">
+          <TabsTrigger value="approvals" className=""
             <CheckCircle className="h-4 w-4" />
             Aprovações
           </TabsTrigger>
-          <TabsTrigger value="versions" className="gap-2">
+          <TabsTrigger value="versions" className=""
             <Clock className="h-4 w-4" />
             Versões
           </TabsTrigger>
-          <TabsTrigger value="media" className="gap-2">
+          <TabsTrigger value="media" className=""
             <Upload className="h-4 w-4" />
             Mídia
           </TabsTrigger>
         </TabsList>
 
         {/* Tab: Artigos */}
-        <TabsContent value="articles">
-          <div className="space-y-4">
+        <TabsContent value="articles>
+          <div className=""
             {isLoading ? (
               Array.from({ length: 3 }).map((_, index) => (
                 <Card key={index}>
@@ -277,60 +277,60 @@ export default function KnowledgeBase() {
             ) : articles.length === 0 ? (
               <EmptyState />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className=""
                 {articles.map((article: Article) => (
                   <Card key={article.id} className="hover:shadow-lg transition-shadow" data-testid={"
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start gap-2">
+                    <CardHeader className=""
+                      <div className=""
                         <CardTitle className="text-lg line-clamp-2 flex-1">{article.title}</CardTitle>
-                        <div className="flex flex-col gap-1">
-                          <Badge variant={article.published ? "default" : "secondary"} className="text-xs">
+                        <div className=""
+                          <Badge variant={article.published ? "default" : "secondary"} className=""
                             {article.published ? 'Publicado' : 'Rascunho'}
                           </Badge>
                           {article.version && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className=""
                               v{article.version}
                             </Badge>
                           )}
                         </div>
                       </div>
-                      <CardDescription className="line-clamp-2">
+                      <CardDescription className=""
                         {article.summary || 'Sem descrição disponível'}
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CardContent className=""
+                      <div className=""
                         <Tag className="h-3 w-3" />
                         <span>{article.category}</span>
                       </div>
 
                       {article.tags && article.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
+                        <div className=""
                           {article.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
+                            <Badge key={tag} variant="outline" className=""
                               {tag}
                             </Badge>
                           ))}
                           {article.tags.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className=""
                               +{article.tags.length - 3}
                             </Badge>
                           )}
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center gap-4">
-                          <span className="flex items-center gap-1">
+                      <div className=""
+                        <div className=""
+                          <span className=""
                             <Eye className="h-3 w-3" />
                             {article.view_count || 0}
                           </span>
-                          <span className="flex items-center gap-1">
+                          <span className=""
                             <ThumbsUp className="h-3 w-3" />
                             {article.helpful_count || 0}
                           </span>
-                          <span className="flex items-center gap-1">
+                          <span className=""
                             <MessageSquare className="h-3 w-3" />
                             0
                           </span>
@@ -339,12 +339,12 @@ export default function KnowledgeBase() {
 
                       <Separator />
 
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1">
+                      <div className=""
+                        <Button size="sm" variant="outline" className=""
                           <Eye className="h-3 w-3 mr-1" />
                           Ver
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline>
                           <MessageSquare className="h-3 w-3" />
                         </Button>
                       </div>
@@ -357,9 +357,9 @@ export default function KnowledgeBase() {
         </TabsContent>
 
         {/* Tab: Templates */}
-        <TabsContent value="templates">
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <TabsContent value="templates>
+          <div className=""
+            <div className=""
               <div>
                 <h3 className="text-xl font-semibold">Templates Disponíveis</h3>
                 <p className="text-gray-600">Gerencie templates reutilizáveis para artigos</p>
@@ -367,10 +367,10 @@ export default function KnowledgeBase() {
               <TemplateCreateDialog />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Card className="hover:shadow-md transition-shadow">
+            <div className=""
+              <Card className=""
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className=""
                     <Layers className="h-5 w-5 text-blue-600" />
                     Template FAQ
                   </CardTitle>
@@ -379,7 +379,7 @@ export default function KnowledgeBase() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-between items-center">
+                  <div className=""
                     <Badge variant="outline">FAQ</Badge>
                     <Button size="sm" variant="outline">Usar Template</Button>
                   </div>
@@ -390,9 +390,9 @@ export default function KnowledgeBase() {
         </TabsContent>
 
         {/* Tab: Aprovações */}
-        <TabsContent value="approvals">
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <TabsContent value="approvals>
+          <div className=""
+            <div className=""
               <div>
                 <h3 className="text-xl font-semibold">Workflow de Aprovação</h3>
                 <p className="text-gray-600">Gerencie artigos pendentes de aprovação</p>
@@ -408,9 +408,9 @@ export default function KnowledgeBase() {
               </Button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className=""
               <Card>
-                <CardHeader className="pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -420,7 +420,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className="pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -430,7 +430,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className="pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -440,7 +440,7 @@ export default function KnowledgeBase() {
               </Card>
             </div>
 
-            <div className="text-center py-8">
+            <div className=""
               <CheckCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-gray-600">Nenhum artigo pendente de aprovação no momento</p>
             </div>
@@ -448,29 +448,29 @@ export default function KnowledgeBase() {
         </TabsContent>
 
         {/* Tab: Versões */}
-        <TabsContent value="versions">
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <TabsContent value="versions>
+          <div className=""
+            <div className=""
               <div>
                 <h3 className="text-xl font-semibold">Controle de Versões</h3>
                 <p className="text-gray-600">Histórico de alterações dos artigos</p>
               </div>
-              <Button variant="outline" className="gap-2" data-testid="button-view-history">
+              <Button variant="outline" className="gap-2" data-testid="button-view-history>
                 <Clock className="w-4 h-4" />
                 Ver Histórico
               </Button>
             </div>
 
-            <div className="space-y-4">
+            <div className=""
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Atividade Recente</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className=""
+                    <div className=""
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="flex-1">
+                      <div className=""
                         <p className="text-sm font-medium">Sistema inicializado</p>
                         <p className="text-xs text-gray-500">Controle de versões ativo</p>
                       </div>
@@ -484,9 +484,9 @@ export default function KnowledgeBase() {
         </TabsContent>
 
         {/* Tab: Mídia */}
-        <TabsContent value="media">
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <TabsContent value="media>
+          <div className=""
+            <div className=""
               <div>
                 <h3 className="text-xl font-semibold">Biblioteca de Mídia</h3>
                 <p className="text-gray-600">Gerencie imagens, vídeos e documentos</p>
@@ -494,9 +494,9 @@ export default function KnowledgeBase() {
               <MediaUploadDialog />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className=""
               <Card>
-                <CardHeader className="pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Imagens</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -506,7 +506,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className="pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Vídeos</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -516,7 +516,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className="pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Documentos</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -526,7 +526,7 @@ export default function KnowledgeBase() {
               </Card>
             </div>
 
-            <div className="text-center py-8">
+            <div className=""
               <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-gray-600">Nenhum arquivo de mídia enviado ainda</p>
             </div>

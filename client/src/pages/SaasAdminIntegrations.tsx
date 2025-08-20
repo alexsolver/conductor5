@@ -70,12 +70,12 @@ export default function SaasAdminIntegrations() {
   // Verificar se usuário é SaaS admin
   if (!user || user.role !== 'saas_admin') {
     return (
-      <div className="p-8 text-center">
+      <div className=""
         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className=""
           Acesso Negado
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className=""
           Esta página é restrita para administradores SaaS.
         </p>
       </div>
@@ -316,15 +316,15 @@ export default function SaasAdminIntegrations() {
   };
 
   return (
-    <div className="space-y-8 p-8">
+    <div className=""
       {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <div className="flex justify-between items-center">
+      <div className=""
+        <div className=""
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className=""
               Integrações de IA
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className=""
               Configurar e gerenciar integrações com provedores de IA
             </p>
           </div>
@@ -332,9 +332,9 @@ export default function SaasAdminIntegrations() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Integrações</CardTitle>
             <Plug className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -344,36 +344,36 @@ export default function SaasAdminIntegrations() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Conectadas</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {integrations.filter(i => i.status === 'connected').length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Com Erro</CardTitle>
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {integrations.filter(i => i.status === 'error').length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Desconectadas</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {integrations.filter(i => i.status === 'disconnected').length}
             </div>
           </CardContent>
@@ -381,15 +381,15 @@ export default function SaasAdminIntegrations() {
       </div>
 
       {/* Integrações Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=""
         {integrations.map((integration) => {
           const IconComponent = integration.icon || Plug; // Fallback para Plug se icon for undefined
           return (
-            <Card key={integration.id} className="hover:shadow-lg transition-shadow">
+            <Card key={integration.id} className=""
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
+                <div className=""
+                  <div className=""
+                    <div className=""
                       <IconComponent className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
@@ -404,18 +404,18 @@ export default function SaasAdminIntegrations() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className=""
                   {integration.description}
                 </p>
 
-                <div className="flex items-center justify-between mb-4">
+                <div className=""
                   <span className="text-sm font-medium">API Key:</span>
-                  <Badge variant={integration.apiKeyConfigured ? "default" : "secondary">
+                  <Badge variant={integration.apiKeyConfigured ? "default" : "secondary>
                     {integration.apiKeyConfigured ? "Configurada" : "Não configurada"
                   </Badge>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className=""
                   <Button 
                     size="sm" 
                     onClick={() => onConfigureIntegration(integration)}
@@ -437,7 +437,7 @@ export default function SaasAdminIntegrations() {
                 </div>
 
                 {integration.lastTested && (
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className=""
                     Último teste: {new Date(integration.lastTested).toLocaleDateString()}
                   </p>
                 )}
@@ -449,7 +449,7 @@ export default function SaasAdminIntegrations() {
 
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
@@ -457,7 +457,7 @@ export default function SaasAdminIntegrations() {
           </DialogHeader>
 
           <Form {...configForm}>
-            <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-4">
+            <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className=""
               <FormField
                 control={configForm.control}
                 name="apiKey"
@@ -493,7 +493,7 @@ export default function SaasAdminIntegrations() {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className=""
                 <FormField
                   control={configForm.control}
                   name="maxTokens"
@@ -540,12 +540,12 @@ export default function SaasAdminIntegrations() {
                 control={configForm.control}
                 name="enabled"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
+                  <FormItem className=""
+                    <div className=""
+                      <FormLabel className=""
                         Habilitar Integração
                       </FormLabel>
-                      <div className="text-sm text-muted-foreground">
+                      <div className=""
                         Permitir que esta integração seja usada no sistema
                       </div>
                     </div>
@@ -559,7 +559,7 @@ export default function SaasAdminIntegrations() {
                 )}
               />
 
-              <div className="flex justify-end space-x-2 pt-4">
+              <div className=""
                 <Button 
                   type="button" 
                   variant="outline" 

@@ -153,13 +153,13 @@ export default function CustomFieldsEditor({
     };
 
     return (
-      <Card className="border-2 border-blue-200">
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-sm">
+      <Card className="border-2 border-blue-200>
+        <CardHeader className="pb-3>
+          <div className="flex justify-between items-center>
+            <CardTitle className="text-sm>
               {isNew ? 'Novo Campo Customizado' : '[TRANSLATION_NEEDED]'}
             </CardTitle>
-            <div className="flex gap-2">
+            <div className="flex gap-2>
               <Button size="sm" onClick={saveField}>
                 <Save className="w-3 h-3 mr-1" />
                 Salvar
@@ -183,8 +183,8 @@ export default function CustomFieldsEditor({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <Label>Nome do Campo *</Label>
               <Input
@@ -203,7 +203,7 @@ export default function CustomFieldsEditor({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <Label>Tipo de Campo</Label>
               <Select
@@ -242,15 +242,15 @@ export default function CustomFieldsEditor({
             />
           </div>
 
-          <div className="flex gap-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex gap-4>
+            <div className="flex items-center space-x-2>
               <Switch
                 checked={localField.required || false}
                 onCheckedChange={(checked) => updateLocalField({ required: checked })}
               />
               <Label>Campo Obrigatório</Label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2>
               <Switch
                 checked={localField.hidden || false}
                 onCheckedChange={(checked) => updateLocalField({ hidden: checked })}
@@ -261,16 +261,16 @@ export default function CustomFieldsEditor({
 
           {(localField.type === 'select' || localField.type === 'multiselect') && (
             <div>
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-2>
                 <Label>Opções</Label>
                 <Button size="sm" variant="outline" onClick={addOption}>
                   <Plus className="w-3 h-3 mr-1" />
                   Adicionar Opção
                 </Button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2>
                 {(localField.options || []).map((option, index) => (
-                  <div key={index} className="flex gap-2">
+                  <div key={index} className="flex gap-2>
                     <Input
                       placeholder="Valor"
                       value={option.value}
@@ -300,26 +300,26 @@ export default function CustomFieldsEditor({
 
   if (readOnly) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4>
         <h3 className="text-lg font-semibold">Campos Customizados</h3>
         {fields.length === 0 ? (
           <p className="text-muted-foreground">Nenhum campo customizado definido.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3>
             {fields.map(field => (
               <Card key={field.id}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
+                <CardContent className="p-4>
+                  <div className="flex justify-between items-start>
                     <div>
                       <h4 className="font-medium">{field.label}</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground>
                         {fieldTypes.find(t => t.value === field.type)?.label} • {field.name}
                       </p>
                       {field.helpText && (
                         <p className="text-xs text-muted-foreground mt-1">{field.helpText}</p>
                       )}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1>
                       {field.required && <Badge>Obrigatório</Badge>}
                       {field.hidden && <Badge variant="outline">Oculto</Badge>}
                     </div>
@@ -334,31 +334,31 @@ export default function CustomFieldsEditor({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6>
+      <div className="flex justify-between items-center>
         <h3 className="text-lg font-semibold">Campos Customizados</h3>
         <Badge variant="outline">{fields.length} campos</Badge>
       </div>
 
       {/* Existing Fields */}
-      <div className="space-y-3">
+      <div className="space-y-3>
         {fields.map(field => (
           <Card key={field.id}>
-            <CardContent className="p-4">
+            <CardContent className="p-4>
               {editingField === field.id ? (
                 <FieldEditor field={field} />
               ) : (
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
+                <div className="flex justify-between items-start>
+                  <div className="flex-1>
                     <h4 className="font-medium">{field.label}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground>
                       {fieldTypes.find(t => t.value === field.type)?.label} • {field.name}
                     </p>
                     {field.helpText && (
                       <p className="text-xs text-muted-foreground mt-1">{field.helpText}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2>
                     {field.required && <Badge>Obrigatório</Badge>}
                     {field.hidden && <Badge variant="outline">Oculto</Badge>}
                     <Button

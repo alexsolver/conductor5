@@ -512,7 +512,7 @@ const TicketDetails = React.memo(() => {
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || "default-id"
-        createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
+        createdByName: action.agent_name || action.created_by_nameeeee || action.createdByName || action.performed_by_name || 'Sistema',
         actionType: action.action_type || action.actionType || action.type || 'Ação',
         content: action.content || action.description || action.summary || 'Sem descrição',
         is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
@@ -523,7 +523,7 @@ const TicketDetails = React.memo(() => {
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || "default-id"
-        createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
+        createdByName: action.agent_name || action.created_by_nameeeee || action.createdByName || action.performed_by_name || 'Sistema',
         actionType: action.action_type || action.actionType || action.type || 'Ação',
         content: action.content || action.description || action.summary || 'Sem descrição',
         is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
@@ -1296,7 +1296,7 @@ const TicketDetails = React.memo(() => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className=""
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -1304,8 +1304,8 @@ const TicketDetails = React.memo(() => {
 
   if (ticketError) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
+      <div className=""
+        <div className=""
           <p className="text-red-500">Erro ao carregar ticket: {ticketError.message}</p>
           <Button
             variant="outline"
@@ -1322,8 +1322,8 @@ const TicketDetails = React.memo(() => {
 
   if (!ticket) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
+      <div className=""
+        <div className=""
           <p className="text-gray-500">Ticket não encontrado</p>
           <Button
             variant="outline"
@@ -1343,13 +1343,13 @@ const TicketDetails = React.memo(() => {
     switch (activeTab) {
       case "informacoes":
         return (
-          <div className="space-y-4">
+          <div className=""
 
             {/* Classificação */}
-            <div className="border-t pt-4 mt-6">
+            <div className=""
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
 
-              <div className="grid grid-cols-4 gap-4 mb-4">
+              <div className=""
                 <FormField
                   control={form.control as any}
                   name="priority"
@@ -1367,7 +1367,7 @@ const TicketDetails = React.memo(() => {
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <div className=""
                             <DynamicBadge
                               fieldName="priority"
                               value={field.value}
@@ -1401,7 +1401,7 @@ const TicketDetails = React.memo(() => {
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <div className=""
                             <DynamicBadge
                               fieldName="status"
                               value={field.value}
@@ -1435,7 +1435,7 @@ const TicketDetails = React.memo(() => {
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <div className=""
                             <DynamicBadge
                               fieldName="urgency"
                               value={field.value}
@@ -1467,7 +1467,7 @@ const TicketDetails = React.memo(() => {
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <div className=""
                             <DynamicBadge
                               fieldName="impact"
                               value={field.value}
@@ -1484,7 +1484,7 @@ const TicketDetails = React.memo(() => {
               </div>
 
               {/* Campos individuais de categoria → subcategoria → ação (sem seção hierárquica) */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className=""
                 <FormField
                   control={form.control as any}
                   name="category"
@@ -1507,7 +1507,7 @@ const TicketDetails = React.memo(() => {
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <div className=""
                             {(field.value || ticket?.category) ? (
                               <DynamicBadge
                                 fieldName="category"
@@ -1548,7 +1548,7 @@ const TicketDetails = React.memo(() => {
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <div className=""
                             {(field.value || ticket?.subcategory) ? (
                               <DynamicBadge
                                 fieldName="subcategory"
@@ -1585,7 +1585,7 @@ const TicketDetails = React.memo(() => {
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <div className=""
                             {(field.value || ticket?.action) ? (
                               <DynamicBadge
                                 fieldName="action"
@@ -1616,7 +1616,7 @@ const TicketDetails = React.memo(() => {
                     {isEditMode ? (
                       <Input {...field} />
                     ) : (
-                      <div className="p-2 bg-gray-50 rounded">
+                      <div className=""
                         {ticket?.subject || field.value || 'Não informado'}
                       </div>
                     )}
@@ -1655,10 +1655,10 @@ const TicketDetails = React.memo(() => {
 
       case "attachments":
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className=""
+            <div className=""
               <h2 className="text-xl font-semibold">📎 Anexos</h2>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className=""
                 {(attachmentsData && attachmentsData.length) || 0} anexo(s)
               </Badge>
             </div>
@@ -1675,15 +1675,15 @@ const TicketDetails = React.memo(() => {
 
             {/* Existing Attachments List */}
             {(attachmentsData && attachmentsData.length > 0) && (
-              <div className="space-y-3">
+              <div className=""
                 <h3 className="text-lg font-medium">Anexos Existentes ({attachmentsData.length})</h3>
                 {attachmentsData.map((attachment: any) => (
-                  <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
+                  <div key={attachment.id} className=""
+                    <div className=""
                       <FileText className="h-8 w-8 text-gray-400" />
                       <div>
                         <p className="font-medium">{attachment.filename || attachment.original_filename || attachment.name || 'Arquivo sem nome'}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className=""
                           {attachment.file_size && !isNaN(Number(attachment.file_size))
                             ? formatFileSize(Number(attachment.file_size))
                             : attachment.size && !isNaN(Number(attachment.size))
@@ -1704,8 +1704,8 @@ const TicketDetails = React.memo(() => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                    <div className=""
+                      <Button variant="outline" size="sm>
                         <Download className="h-4 w-4 mr-2" />
                         Download
                       </Button>
@@ -1726,17 +1726,17 @@ const TicketDetails = React.memo(() => {
 
       case "notes":
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className=""
+            <div className=""
               <h2 className="text-xl font-semibold">📝 Notas</h2>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className=""
                 {notesData.length} nota(s)
               </Badge>
             </div>
 
             {/* Add New Note */}
             {/* 🔧 [1QA-COMPLIANCE] Notes Form seguindo Clean Architecture */}
-            <div className="space-y-4">
+            <div className=""
               <FormField
                 control={form.control}
                 name="content"
@@ -1753,7 +1753,7 @@ const TicketDetails = React.memo(() => {
                     </FormControl>
                     <FormMessage />
                     {field.value && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className=""
                         {field.value.length}/5000 caracteres
                       </p>
                     )}
@@ -1761,16 +1761,16 @@ const TicketDetails = React.memo(() => {
                 )}
               />
 
-              <div className="flex items-center space-x-4">
+              <div className=""
                 <FormField
                   control={form.control}
                   name="noteType"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || "general">
+                      <Select onValueChange={field.onChange} defaultValue={field.value || "general>
                         <FormControl>
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className=""
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -1790,18 +1790,18 @@ const TicketDetails = React.memo(() => {
                   control={form.control}
                   name="isPrivate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormItem className=""
                       <FormControl>
                         <Checkbox
                           checked={field.value || false}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
+                      <div className=""
                         <FormLabel>
                           Nota Privada
                         </FormLabel>
-                        <p className="text-sm text-muted-foreground">
+                        <p className=""
                           Visível apenas para equipe interna
                         </p>
                       </div>
@@ -1844,9 +1844,9 @@ const TicketDetails = React.memo(() => {
 
             {/* Notes Timeline */}
             {notesData.length > 0 && (
-              <div className="space-y-4">
+              <div className=""
                 <h3 className="font-medium text-gray-700">Timeline de Notas</h3>
-                <div className="space-y-3">
+                <div className=""
                   {notesData
                     .slice()
                     .sort((a: any, b: any) => {
@@ -1855,14 +1855,14 @@ const TicketDetails = React.memo(() => {
                       return dateB.getTime() - dateA.getTime(); // Ordem decrescente (mais recente primeiro)
                     })
                     .map((note: any) => (
-                      <Card key={note.id} className="p-4 border-l-4 border-l-blue-400">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="secondary" className="text-xs">
+                      <Card key={note.id} className=""
+                        <div className=""
+                          <div className=""
+                            <div className=""
+                              <Badge variant="secondary" className=""
                                 {note.author_name || note.createdBy || 'Sistema'}
                               </Badge>
-                              <span className="text-xs text-gray-500">
+                              <span className=""
                                 {note.created_at ? new Date(note.created_at).toLocaleString('pt-BR') :
                                  note.createdAt ? new Date(note.createdAt).toLocaleString('pt-BR') :
                                  'Data não disponível'}
@@ -1891,7 +1891,7 @@ const TicketDetails = React.memo(() => {
             )}
 
             {notesData.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className=""
                 <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                 <p>Nenhuma nota adicionada ainda</p>
                 <p className="text-sm">Use o formulário acima para adicionar a primeira nota</p>
@@ -1902,18 +1902,18 @@ const TicketDetails = React.memo(() => {
 
       case "communications":
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className=""
+            <div className=""
               <h2 className="text-xl font-semibold">💬 Comunicação</h2>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className=""
                 {communicationsData.length} interação(ões)
               </Badge>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 mb-4">
+            <div className=""
+              <div className=""
                 <h3 className="font-medium text-gray-700">Timeline de Comunicação</h3>
-                <div className="flex gap-2">
+                <div className=""
                   <Badge variant="secondary" className="text-xs">Email</Badge>
                   <Badge variant="secondary" className="text-xs">WhatsApp</Badge>
                   <Badge variant="secondary" className="text-xs">Telefone</Badge>
@@ -1921,45 +1921,45 @@ const TicketDetails = React.memo(() => {
               </div>
 
               {communicationsData.slice().reverse().map((comm: any) => (
-                <Card key={comm.id} className="p-4">
-                  <div className="flex items-start gap-4">
+                <Card key={comm.id} className=""
+                  <div className=""
                     {/* Channel Icon */}
                     <div className={`p-2 rounded-full ${
                       comm.type === 'email' ? 'bg-blue-100 text-blue-600' :
                       comm.type === 'whatsapp' ? 'bg-green-100 text-green-600' :
                       comm.type === 'call' ? 'bg-purple-100 text-purple-600' :
                       'bg-gray-100 text-gray-600'
-                    ">
+                    >
                       {comm.type === 'email' && <MessageSquare className="h-4 w-4" />}
                       {comm.type === 'whatsapp' && <Send className="h-4 w-4" />}
                       {comm.type === 'call' && <Clock className="h-4 w-4" />}
                     </div>
 
                     {/* Communication Content */}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
+                    <div className=""
+                      <div className=""
+                        <div className=""
+                          <Badge variant="outline" className=""
                             {comm.channel}
                           </Badge>
-                          <span className="text-sm font-medium text-gray-800">
+                          <span className=""
                             {comm.from} → {comm.to}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-500">
+                        <span className=""
                           {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : 'Data não disponível'}
                         </span>
                       </div>
 
                       {comm.subject && (
-                        <p className="text-sm font-medium text-gray-700 mb-1">
+                        <p className=""
                           Assunto: {comm.subject}
                         </p>
                       )}
 
                       <p className="text-gray-800 text-sm mb-2">{comm.content}</p>
 
-                      <div className="flex items-center justify-between">
+                      <div className=""
                         <Badge
                           variant={comm.status === 'sent' ? 'default' :
                                   comm.status === 'received' ? 'secondary' : 'outline'}
@@ -1969,7 +1969,7 @@ const TicketDetails = React.memo(() => {
                            comm.status === 'received' ? 'Recebido' :
                            comm.status === 'completed' ? 'Concluído' : comm.status}
                         </Badge>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm>
                           <ExternalLink className="h-4 w-4" />
                         </Button>
                       </div>
@@ -1983,10 +1983,10 @@ const TicketDetails = React.memo(() => {
 
       case "history":
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className=""
+            <div className=""
               <h2 className="text-xl font-semibold">📜 Histórico Completo</h2>
-              <div className="flex gap-2">
+              <div className=""
                 <Button
                   type="button"
                   variant={historyViewMode === 'simple' ? 'default' : 'outline'}
@@ -2014,13 +2014,13 @@ const TicketDetails = React.memo(() => {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-700 flex items-center gap-2">
+            <div className=""
+              <h3 className=""
                 <History className="h-4 w-4" />
                 {historyViewMode === 'simple' ? 'Todas as Interações' : 'Análise Técnica Detalhada'}
               </h3>
 
-              <div className="space-y-3 border-l-2 border-gray-200 pl-4">
+              <div className=""
                 {/* Real history data from API - filter out generic entries */}
                 {historyData.length > 0 ? historyData
                   .filter((historyItem: any) => {
@@ -2079,13 +2079,13 @@ const TicketDetails = React.memo(() => {
                   const { icon: Icon, color } = getActionIcon(historyItem.action_type);
 
                   return (
-                    <div key={historyItem.id} className="relative">
+                    <div key={historyItem.id} className=""
                       <div className="absolute -left-6 w-3 h-3 bg-"-500 rounded-full"></div>
-                      <Card className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
+                      <Card className=""
+                        <div className=""
+                          <div className=""
                             <Icon className="h-4 w-4 text-"-600" />
-                            <span className="font-medium text-sm">
+                            <span className=""
                               {historyItem.action_type === 'created' && 'Ticket Criado'}
                               {historyItem.action_type === 'ticket_created' && 'Ticket Criado'}
                               {historyItem.action_type === 'assigned' && 'Atribuição'}
@@ -2116,7 +2116,7 @@ const TicketDetails = React.memo(() => {
                               {!['created', 'ticket_created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'internal_action_created', 'internal_action_updated', 'internal_action_deleted', 'action_updated', 'action_deleted', 'ação interna', 'note_added', 'note_created', 'note_deleted', 'relationship_created', 'relationship_deleted', 'resolution', 'investigation', 'analysis', 'work_log', 'documentation'].includes(historyItem.action_type) && 'Atividade'}
                             </span>
                             {historyViewMode === 'advanced' && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className=""
                                 {/* Para ações internas, mostrar o tipo específico da ação */}
                                 {(historyItem.action_type === 'internal_action' || historyItem.action_type === 'ação interna') && historyItem.metadata?.action_type ?
                                   historyItem.metadata.action_type.toUpperCase() :
@@ -2124,11 +2124,11 @@ const TicketDetails = React.memo(() => {
                               </Badge>
                             )}
                           </div>
-                          <span className="text-xs text-gray-500">
+                          <span className=""
                             {historyItem.created_at ? new Date(historyItem.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className=""
                           {historyItem.description || "
                           {historyItem.field_name && historyItem.old_value && historyItem.new_value && (
                             ""`
@@ -2137,40 +2137,40 @@ const TicketDetails = React.memo(() => {
 
                         {/* 🔧 [1QA-COMPLIANCE] Dados de sessão visíveis diretamente no card principal */}
                         {historyViewMode === 'advanced' && (
-                          <div className="mt-2 p-3 bg-blue-50 rounded text-xs border-l-3 border-blue-500">
-                            <div className="grid grid-cols-2 gap-3 mb-2">
+                          <div className=""
+                            <div className=""
                               <div>
                                 <span className="text-blue-700 font-semibold">Usuário:</span>
                                 <span className="ml-1 text-gray-800 font-medium">{historyItem.performed_by_name || historyItem.metadata?.user_name || 'Sistema'}</span>
                               </div>
                               <div>
                                 <span className="text-blue-700 font-semibold">IP:</span>
-                                <span className="ml-1 font-mono text-xs "">
+                                <span className="ml-1 font-mono text-xs ">
                                   {historyItem.ip_address || 'N/A'}
                                 </span>
                               </div>
                             </div>
-                            <div className="mb-2">
+                            <div className=""
                               <span className="text-blue-700 font-semibold">User-Agent:</span>
-                              <p className="text-xs break-all mt-1 p-1 rounded "">
+                              <p className="text-xs break-all mt-1 p-1 rounded ">
                                 {historyItem.user_agent || 'N/A'}
                               </p>
                             </div>
-                            <div className="mb-2">
+                            <div className=""
                               <span className="text-blue-700 font-semibold">Session ID:</span>
-                              <span className="ml-1 font-mono text-xs "">
+                              <span className="ml-1 font-mono text-xs ">
                                 {historyItem.session_id || 'N/A'}
                               </span>
                             </div>
 
                             {/* Metadados técnicos detalhados */}
                             {historyItem.metadata && Object.keys(historyItem.metadata).length > 0 && (
-                              <div className="border-t border-blue-200 pt-2 mt-2">
-                                <details className="cursor-pointer">
-                                  <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
+                              <div className=""
+                                <details className=""
+                                  <summary className=""
                                     Ver detalhes técnicos
                                   </summary>
-                                  <pre className="text-xs mt-2 p-2 bg-white border rounded overflow-x-auto max-h-32">
+                                  <pre className=""
                                     {JSON.stringify(historyItem.metadata, null, 2)}
                                   </pre>
                                 </details>
@@ -2182,7 +2182,7 @@ const TicketDetails = React.memo(() => {
                     </div>
                   );
                 }) : (
-                  <div className="text-center text-gray-500 py-8">
+                  <div className=""
                     <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>Nenhum histórico disponível</p>
                   </div>
@@ -2191,20 +2191,20 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Related Tickets - usando dados reais do ticketRelationships */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-700 flex items-center gap-2">
+            <div className=""
+              <h3 className=""
                 <Link className="h-4 w-4" />
                 Tickets Relacionados
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className=""
                   {ticketRelationships?.related_tickets?.length || 0}
                 </Badge>
               </h3>
               {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                 ticketRelationships.related_tickets.map((relTicket: any) => (
-                  <Card key={"">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
+                  <Card key={">
+                    <CardContent className=""
+                      <div className=""
+                        <div className=""
                           <Badge
                             variant={relTicket.status === 'open' ? 'destructive' :
                                     relTicket.status === 'in_progress' ? 'default' : 'secondary'}
@@ -2226,7 +2226,7 @@ const TicketDetails = React.memo(() => {
                       </div>
                       <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
                       <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
-                      <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                      <div className=""
                         <span>Categoria: {relTicket.category}</span>
                         <span>
                           {relTicket.resolved_at
@@ -2238,7 +2238,7 @@ const TicketDetails = React.memo(() => {
                     </CardContent>
                   </Card>
                 )) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className=""
                   <History className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                   <p>Nenhum ticket relacionado</p>
                   <p className="text-sm">Tickets similares aparecerão automaticamente aqui</p>
@@ -2250,10 +2250,10 @@ const TicketDetails = React.memo(() => {
 
       case "internal-actions":
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className=""
+            <div className=""
               <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
-              <div className="flex gap-2">
+              <div className=""
 
                 <Button
                   onClick={() => setShowInternalActionModal(true)}
@@ -2265,9 +2265,9 @@ const TicketDetails = React.memo(() => {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className=""
               {internalActionsData.length === 0 ? (
-                <div className="text-center py-8">
+                <div className=""
                   <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">Nenhuma ação interna registrada</p>
                   <p className="text-xs text-gray-400">Use o botão "Nova Ação" para começar</p>
@@ -2283,20 +2283,20 @@ const TicketDetails = React.memo(() => {
                       'border-l-blue-500'
                     "
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                    <CardContent className=""
+                      <div className=""
+                        <div className=""
                           {/* Action Number Display */}
-                          <div className="mb-2">
-                            <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border inline-block select-all">
+                          <div className=""
+                            <div className=""
                               Número: {action.action_number || action.actionNumber || action.id}
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <div className=""
                             <User className="w-4 h-4 text-gray-600" />
                             <span className="font-medium text-sm">{action.createdByName || action.agent_name || 'Sistema'}</span>
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className=""
                               {action.actionType || action.type || 'Ação'}
                             </Badge>
                             <Badge variant={action.is_public ? 'default' : 'secondary'}>
@@ -2325,15 +2325,15 @@ const TicketDetails = React.memo(() => {
                                 Responsável: {action.assigned_to_name}
                               </Badge>
                             )}
-                            <span className="text-xs text-gray-500">
+                            <span className=""
                               {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
                             </span>
                           </div>
 
-                          <div className="space-y-2">
+                          <div className=""
                             <p className="text-gray-800 whitespace-pre-wrap">{action.content || action.description}</p>
                             {action.time_spent && action.time_spent !== '0:00:00:00' && (
-                              <div className="text-xs text-gray-600 flex items-center gap-1">
+                              <div className=""
                                 <Clock className="w-3 h-3" />
                                 Tempo gasto: {action.time_spent}
                               </div>
@@ -2341,8 +2341,8 @@ const TicketDetails = React.memo(() => {
                           </div>
                         </div>
 
-                        <div className="flex flex-col items-end gap-2 ml-4">
-                          <div className="flex gap-1">
+                        <div className=""
+                          <div className=""
                             <Button
                               variant="outline"
                               size="sm"
@@ -2383,11 +2383,11 @@ const TicketDetails = React.memo(() => {
 
       case "links":
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className=""
+            <div className=""
               <h2 className="text-xl font-semibold">🔗 Vínculos</h2>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
+              <div className=""
+                <Badge variant="outline" className=""
                   {relatedTicketsData.length} ticket(s) vinculado(s)
                 </Badge>
                 <Button
@@ -2403,9 +2403,9 @@ const TicketDetails = React.memo(() => {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className=""
               {relatedTicketsData.length === 0 ? (
-                <div className="text-center py-8">
+                <div className=""
                   <Link className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">Nenhum ticket vinculado</p>
                   <p className="text-xs text-gray-400">Use o botão "Vincular" para conectar tickets relacionados</p>
@@ -2471,20 +2471,20 @@ const TicketDetails = React.memo(() => {
                   };
 
                   return (
-                    <Card key={"">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-3">
+                    <Card key={">
+                      <CardContent className=""
+                        <div className=""
+                          <div className=""
+                            <div className=""
                               {/* Ícone visual do tipo de relacionamento */}
-                              <div className="flex items-center gap-1">
+                              <div className=""
                                 {getRelationshipIcon(linkedTicket.relationshipType)}
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge variant="secondary" className=""
                                   {getRelationshipLabel(linkedTicket.relationshipType)}
                                 </Badge>
                               </div>
 
-                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 font-mono">
+                              <Badge variant="outline" className=""
                                 #{linkedTicket.targetTicket?.number || linkedTicket.number || 'T-000000'}
                               </Badge>
 
@@ -2507,20 +2507,20 @@ const TicketDetails = React.memo(() => {
                               </DynamicBadge>
                             </div>
 
-                            <h4 className="font-medium text-gray-800 mb-2">
+                            <h4 className=""
                               {linkedTicket.subject || linkedTicket.targetTicket?.subject || 'Ticket relacionado'}
                             </h4>
 
                             {(linkedTicket.targetTicket?.description || linkedTicket.description) && (
-                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                              <p className=""
                                 {typeof (linkedTicket.targetTicket?.description || linkedTicket.description) === 'string'
                                   ? (linkedTicket.targetTicket?.description || linkedTicket.description).replace(/<[^>]*>/g, '')
                                   : 'Descrição não disponível'}
                               </p>
                             )}
 
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                              <span className="flex items-center gap-1">
+                            <div className=""
+                              <span className=""
                                 <Calendar className="w-3 h-3" />
                                 Criado em {(linkedTicket.targetTicket?.createdAt || linkedTicket.createdAt)
                                   ? new Date(linkedTicket.targetTicket?.createdAt || linkedTicket.createdAt).toLocaleDateString('pt-BR', {
@@ -2534,14 +2534,14 @@ const TicketDetails = React.memo(() => {
                               </span>
 
                               {linkedTicket.description && (
-                                <span className="text-xs text-gray-400">
+                                <span className=""
                                   Rel. criado em {new Date().toLocaleDateString('pt-BR')}
                                 </span>
                               )}
                             </div>
                           </div>
 
-                          <div className="ml-4 flex flex-col gap-2">
+                          <div className=""
                             <Button
                               variant="ghost"
                               size="sm"
@@ -2584,24 +2584,24 @@ const TicketDetails = React.memo(() => {
 
       case "latest-interactions":
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className=""
+            <div className=""
               <h2 className="text-xl font-semibold">Últimas Interações</h2>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className=""
                 Histórico do Solicitante
               </Badge>
             </div>
 
             {/* Informações do Solicitante */}
-            <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-full">
+            <Card className=""
+              <div className=""
+                <div className=""
                   <User className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-blue-900">{ticket.customerName || 'Cliente'}</h3>
                   <p className="text-sm text-blue-700">{ticket.customerEmail || ticket.contactEmail}</p>
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className=""
                     Cliente desde: {ticketRelationships?.customer_since || 'Data não disponível'} • Total de tickets: {ticketRelationships?.total_tickets || 0}
                   </p>
                 </div>
@@ -2609,24 +2609,24 @@ const TicketDetails = React.memo(() => {
             </Card>
 
             {/* Últimos Tickets do Solicitante */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-700 flex items-center gap-2">
+            <div className=""
+              <h3 className=""
                 <History className="h-4 w-4" />
                 Últimos Tickets Abertos por {ticket.customerName || 'Este Cliente'}
               </h3>
 
-              <div className="space-y-3">
+              <div className=""
                 {/* Ticket Atual */}
-                <Card className="p-4 border-l-4 border-l-blue-500 bg-blue-50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <Badge variant="default" className="bg-blue-600">
+                <Card className=""
+                  <div className=""
+                    <div className=""
+                      <Badge variant="default" className=""
                         ATUAL
                       </Badge>
-                      <div className="flex-1">
+                      <div className=""
                         <p className="font-medium text-sm">#{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'T-2024-001'}</p>
                         <p className="text-sm text-gray-700 mt-1">{ticket.subject || 'Problema com sistema'}</p>
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className=""
                           Criado em {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'hoje'}
                         </p>
                       </div>
@@ -2646,24 +2646,24 @@ const TicketDetails = React.memo(() => {
                 {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                   ticketRelationships.related_tickets.map((relatedTicket: any, index: number) => (
                     <Card key={"
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
+                      <div className=""
+                        <div className=""
                           <Badge variant="secondary" className={`${relatedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' :
                                                                     relatedTicket.status === 'closed' ? 'bg-yellow-100 text-yellow-700' :
-                                                                    'bg-blue-100 text-blue-700'">
+                                                                    'bg-blue-100 text-blue-700'>
                             {relatedTicket.status === 'resolved' ? 'RESOLVIDO' :
                              relatedTicket.status === 'closed' ? 'FECHADO' : 'ATIVO'}
                           </Badge>
-                          <div className="flex-1">
+                          <div className=""
                             <p className="font-medium text-sm">#{relatedTicket.ticket_number || relatedTicket.id?.slice(0, 8)}</p>
                             <p className="text-sm text-gray-700 mt-1">{relatedTicket.subject || 'Ticket relacionado'}</p>
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className=""
                               Criado em {relatedTicket.created_at ? new Date(relatedTicket.created_at).toLocaleDateString('pt-BR') : 'N/A'}
                               {relatedTicket.resolved_at && "
                             </p>
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className=""
                               <Badge variant="outline" className="text-xs">{relatedTicket.category || 'Geral'}</Badge>
-                              <span className="text-xs text-gray-500">
+                              <span className=""
                                 {relatedTicket.assigned_to_name && "
                               </span>
                             </div>
@@ -2680,7 +2680,7 @@ const TicketDetails = React.memo(() => {
                       </div>
                     </Card>
                   )) :
-                  <Card className="p-4 text-center text-gray-500">
+                  <Card className=""
                     <p>Nenhum ticket relacionado encontrado</p>
                   </Card>
                 }
@@ -2688,30 +2688,30 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* PROBLEMA 4 RESOLVIDO: Estatísticas reais do cliente vindas da API */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 text-center">
-                <div className="p-2 bg-blue-100 rounded-full w-fit mx-auto mb-2">
+            <div className=""
+              <Card className=""
+                <div className=""
                   <MessageSquare className="h-5 w-5 text-blue-600" />
                 </div>
                 <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.total_tickets || 0}</p>
                 <p className="text-xs text-gray-500">Total Tickets</p>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="p-2 bg-green-100 rounded-full w-fit mx-auto mb-2">
+              <Card className=""
+                <div className=""
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
                 <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.resolved_tickets || 0}</p>
                 <p className="text-xs text-gray-500">Resolvidos</p>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="p-2 bg-yellow-100 rounded-full w-fit mx-auto mb-2">
+              <Card className=""
+                <div className=""
                   <Clock className="h-5 w-5 text-yellow-600" />
                 </div>
                 <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.avg_resolution_time || 'N/A'}</p>
                 <p className="text-xs text-gray-500">Tempo Médio</p>
               </Card>
-              <Card className="p-4 text-center">
-                <div className="p-2 bg-purple-100 rounded-full w-fit mx-auto mb-2">
+              <Card className=""
+                <div className=""
                   <Star className="h-5 w-5 text-purple-600" />
                 </div>
                 <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.satisfaction_rating || 'N/A'}</p>
@@ -2721,12 +2721,12 @@ const TicketDetails = React.memo(() => {
 
             {/* Padrões de Comportamento - dados reais da API */}
             {ticketRelationships?.customer_insights && (
-              <Card className="p-4">
-                <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+              <Card className=""
+                <h4 className=""
                   <TrendingUp className="h-4 w-4" />
                   Insights do Cliente
                 </h4>
-                <div className="space-y-2 text-sm">
+                <div className=""
                   {ticketRelationships.customer_insights.map((insight: any, idx: number) => (
                     <div key={"
                       <div className="w-2 h-2 rounded-full ""></div>
@@ -2747,7 +2747,7 @@ const TicketDetails = React.memo(() => {
 
       default:
         return (
-          <div className="space-y-4">
+          <div className=""
             <h2 className="text-xl font-semibold mb-4">Funcionalidade em desenvolvimento</h2>
             <p>Esta aba ainda está sendo desenvolvida.</p>
           </div>
@@ -2790,22 +2790,22 @@ const TicketDetails = React.memo(() => {
     const progress = getLoadingProgress();
 
     return (
-      <div className="min-h-screen flex bg-gray-50">
+      <div className=""
         {/* Loading Sidebar - responsivo */}
-        <div className="w-full lg:w-72 bg-white border-r p-4">
-          <div className="space-y-4" role="status" aria-live="polite">
-            <div className="flex items-center gap-2 mb-4">
+        <div className=""
+          <div className="space-y-4" role="status" aria-live="polite>
+            <div className=""
               <div
                 className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
                 aria-hidden="true"
               ></div>
-              <span className="text-sm text-gray-600" aria-label="Status de carregamento">
+              <span className="text-sm text-gray-600" aria-label="Status de carregamento>
                 {getLoadingMessage()}
               </span>
             </div>
 
             {/* Progress Bar Animado */}
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
+            <div className=""
               <div
                 className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out relative"
                 style={{ width: "%` }}
@@ -2815,7 +2815,7 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div className=""
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: "%` }}
@@ -2823,27 +2823,27 @@ const TicketDetails = React.memo(() => {
               ></div>
             </div>
 
-            <div className="text-xs text-gray-500 mb-2">
+            <div className=""
               {progress.completed}/{progress.total} componentes carregados
             </div>
-            <div className="space-y-3">
+            <div className=""
               <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
             </div>
             {/* Loading progress indicators */}
-            <div className="border-t pt-4">
-              <div className="space-y-2 text-xs text-gray-500">
-                <div className="flex items-center gap-2 "">
+            <div className=""
+              <div className=""
+                <div className="flex items-center gap-2 ">
                   {!isLoading ? '✅' : '⏳'} Dados básicos
                 </div>
-                <div className="flex items-center gap-2 "">
+                <div className="flex items-center gap-2 ">
                   {!historyLoading ? '✅' : '⏳'} Histórico
                 </div>
-                <div className="flex items-center gap-2 "">
+                <div className="flex items-center gap-2 ">
                   {!notesLoading ? '✅' : '⏳'} Notas
                 </div>
-                <div className="flex items-center gap-2 "">
+                <div className="flex items-center gap-2 ">
                   {!communicationsLoading ? '✅' : '⏳'} Comunicações
                 </div>
               </div>
@@ -2852,20 +2852,20 @@ const TicketDetails = React.memo(() => {
         </div>
 
         {/* Loading Main Content */}
-        <div className="flex-1 p-4">
-          <div className="flex items-center mb-6">
+        <div className=""
+          <div className=""
             <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
-            <div className="ml-4 flex items-center gap-2">
+            <div className=""
               <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
               <div className="text-sm text-gray-500">{getLoadingMessage()}</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border p-6">
-            <div className="space-y-4">
+          <div className=""
+            <div className=""
               <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
@@ -2874,8 +2874,8 @@ const TicketDetails = React.memo(() => {
         </div>
 
         {/* Loading Right Sidebar */}
-        <div className="w-80 bg-white border-l p-4">
-          <div className="space-y-3">
+        <div className=""
+          <div className=""
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-10 bg-gray-200 rounded animate-pulse"></div>
             ))}
@@ -2887,8 +2887,8 @@ const TicketDetails = React.memo(() => {
 
   if (!ticket) {
     return (
-      <div className="p-4">
-        <div className="flex items-center mb-6">
+      <div className=""
+        <div className=""
           <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
@@ -2900,20 +2900,20 @@ const TicketDetails = React.memo(() => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
+    <div className=""
       {/* Left Sidebar - Responsivo */}
-      <div className="w-full lg:w-72 bg-white border-r flex-shrink-0 h-auto lg:h-screen overflow-y-auto order-2 lg:order-1">
-        <div className="p-4 lg:p-6 h-full">
+      <div className=""
+        <div className=""
 
           {/* Empresa Cliente Section - Badge Destacado */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
+          <div className=""
+            <div className=""
               <Building2 className="h-4 w-4 text-blue-600" />
               <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Empresa</span>
             </div>
 
             {isEditMode ? (
-              <div className="space-y-2">
+              <div className=""
                 <Select
                   onValueChange={(value) => {
                     handleCompanyChange(value);
@@ -2925,7 +2925,7 @@ const TicketDetails = React.memo(() => {
                   }}
                   value={selectedCompany || ''}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className=""
                     <SelectValue placeholder='[TRANSLATION_NEEDED]'>
                       {(() => {
                         const currentValue = selectedCompany;
@@ -2952,12 +2952,12 @@ const TicketDetails = React.memo(() => {
                   return (
                     <>
                       {industry && (
-                        <div className="text-xs text-blue-600 mt-1">
+                        <div className=""
                           🏷️ Setor: {industry}
                         </div>
                       )}
                       {cnpj && (
-                        <div className="text-xs text-blue-600">
+                        <div className=""
                           📄 CNPJ: {cnpj}
                         </div>
                       )}
@@ -2982,10 +2982,10 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Cliente/Solicitante e Favorecido Section */}
-          <div className="mb-6 space-y-4">
+          <div className=""
             {/* Cliente/Solicitante */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
+              <div className=""
                 <User className="h-4 w-4 text-purple-600" />
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Cliente</span>
               </div>
@@ -3040,7 +3040,7 @@ const TicketDetails = React.memo(() => {
 
             {/* Favorecido */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
+              <div className=""
                 <Users className="h-4 w-4 text-indigo-600" />
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
               </div>
@@ -3095,11 +3095,11 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Impacto, Urgência e Local Section */}
-          <div className="mb-6 space-y-4">
+          <div className=""
             {/* Local */}
-            <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-green-800 flex items-center gap-2">
+            <div className=""
+              <div className=""
+                <h3 className=""
                   <MapPin className="h-4 w-4" />
                   LOCAL
                 </h3>
@@ -3113,13 +3113,13 @@ const TicketDetails = React.memo(() => {
                   Gerenciar
                 </Button>
               </div>
-              <div className="space-y-2">
+              <div className=""
                 {isEditMode ? (
                   <Select
                     onValueChange={(value) => form.setValue('location', value)}
                     value={form.getValues('location') || ticket.location || ''}
                   >
-                    <SelectTrigger className="h-8 text-xs">
+                    <SelectTrigger className=""
                       <SelectValue placeholder='[TRANSLATION_NEEDED]'>
                         {(() => {
                           const currentValue = form.getValues('location') || ticket.location;
@@ -3140,14 +3140,14 @@ const TicketDetails = React.memo(() => {
                 ) : (
                   <div className="text-sm text-green-900 font-medium cursor-pointer hover:text-green-700 transition-colors"
                        onClick={() => console.log('Open location details')}>
-                    <span className="underline decoration-dotted">
+                    <span className=""
                       {locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)?.name ||
                        ticket.location || 'Não especificado'}
                     </span>
                   </div>
                 )}
                 {(ticket.locationDetails || locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)) && (
-                  <div className="text-xs text-green-600">
+                  <div className=""
                     📍 {ticket.locationDetails?.address ||
                         locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)?.address ||
                         'Endereço não informado'}
@@ -3158,12 +3158,12 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Responsável Section */}
-          <div className="mb-6">
+          <div className=""
             <h3 className="text-sm font-semibold text-gray-600 mb-3">RESPONSÁVEL</h3>
 
             {/* Grupo de Atribuição */}
-            <div className="mb-4">
-              <div className="space-y-2">
+            <div className=""
+              <div className=""
                 <label className="text-sm font-medium text-gray-700">Grupo de Atribuição</label>
                 {isEditMode ? (
                   <GroupSelect
@@ -3178,7 +3178,7 @@ const TicketDetails = React.memo(() => {
                     disabled={!isEditMode}
                   />
                 ) : (
-                  <div className="p-2 bg-gray-50 rounded text-sm">
+                  <div className=""
                     {(() => {
                       const groupId = form.getValues('assignmentGroup') || ticket.assignment_group;
                       if (!groupId) return <span className="text-gray-500">Não especificado</span>;
@@ -3192,7 +3192,7 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Responsável */}
-            <div className="mb-4">
+            <div className=""
               <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
               {isEditMode ? (
                 <FilteredUserSelect
@@ -3203,7 +3203,7 @@ const TicketDetails = React.memo(() => {
                   disabled={!isEditMode}
                 />
               ) : (
-                <div className="p-2 bg-gray-50 rounded text-sm">
+                <div className=""
                   {ticket.assigned_to_name || 'Não especificado'}
                 </div>
               )}
@@ -3211,9 +3211,9 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Seguidores Section */}
-          <div className="mb-6">
+          <div className=""
             <h3 className="text-sm font-semibold text-gray-600 mb-3">SEGUIDORES</h3>
-            <div className="mb-4">
+            <div className=""
               <UserMultiSelect
                 value={form.getValues('followers') || ticket.followers || []}
                 onChange={(value) => {
@@ -3227,13 +3227,13 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Tags Section */}
-          <div className="mb-6">
+          <div className=""
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Tags</h3>
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-1">
+            <div className=""
+              <div className=""
                 {tags.length > 0 ? (
                   tags.map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
+                    <Badge key={index} variant="outline" className=""
                       {tag}
                       <Button
                         variant="ghost"
@@ -3250,7 +3250,7 @@ const TicketDetails = React.memo(() => {
                 )}
               </div>
 
-              <div className="flex gap-1">
+              <div className=""
                 <Input
                   type="text"
                   placeholder="Nova tag"
@@ -3281,32 +3281,32 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Status Section */}
-          <div className="mb-6">
+          <div className=""
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Status de aprovação</h3>
             <div className="text-sm text-gray-700">Normal</div>
-            <div className="mt-2 p-2 bg-teal-50 rounded text-xs text-teal-700">
+            <div className=""
               ✓ Configurado em 2 minutos
             </div>
           </div>
 
           {/* Custom Information */}
-          <div className="mb-6">
+          <div className=""
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Personalize as informações do seu ticket</h3>
-            <p className="text-xs text-gray-500 mb-3">
+            <p className=""
               Use os campos de dados do ticket para calcular facilmente detalhes importantes.
             </p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="text-xs">
+            <div className=""
+              <Button variant="outline" size="sm" className=""
                 Ativar
               </Button>
-              <Button variant="ghost" size="sm" className="text-xs">
+              <Button variant="ghost" size="sm" className=""
                 Descartar
               </Button>
             </div>
           </div>
 
           {/* Skills Section */}
-          <div className="mb-6">
+          <div className=""
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Habilidades</h3>
             <div className="text-xs text-gray-500">Aplicar macro</div>
           </div>
@@ -3314,21 +3314,21 @@ const TicketDetails = React.memo(() => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 order-1 lg:order-2 overflow-hidden">
-        <div className="p-4 lg:p-6 h-full">
+      <div className=""
+        <div className=""
           {/* Header - Responsivo */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")} className="self-start">
+          <div className=""
+            <div className=""
+              <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")} className=""
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
               </Button>
-              <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+              <div className=""
                 <h1 className="text-lg lg:text-xl font-semibold break-words">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className=""
               {!isEditMode ? (
                 <>
                   <Button
@@ -3383,7 +3383,7 @@ const TicketDetails = React.memo(() => {
                     aria-label={updateTicketMutation.isPending ? "Salvando alterações..." : '[TRANSLATION_NEEDED]'}
                   >
                     {updateTicketMutation.isPending && (
-                      <div className="absolute inset-0 flex items-center justify-center">
+                      <div className=""
                         <div
                           className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                           aria-hidden="true"
@@ -3391,7 +3391,7 @@ const TicketDetails = React.memo(() => {
                         ></div>
                       </div>
                     )}
-                    <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2">
+                    <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2>
                       <Save className="h-4 w-4" />
                       <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}</span>
                     </div>
@@ -3402,9 +3402,9 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Main Content */}
-          <div className="h-full bg-white rounded-lg border p-6" id="tab-content" aria-live="polite">
+          <div className="h-full bg-white rounded-lg border p-6" id="tab-content" aria-live="polite>
             <Form {...form}>
-              <form onSubmit={(e) => e.preventDefault()} role="main" aria-label="Formulário de edição de ticket">
+              <form onSubmit={(e) => e.preventDefault()} role="main" aria-label="Formulário de edição de ticket>
                 {renderTabContent()}
               </form>
             </Form>
@@ -3412,8 +3412,8 @@ const TicketDetails = React.memo(() => {
         </div>
       </div>
       {/* Right Sidebar - Navigation Tabs - Responsivo */}
-      <div className="w-full lg:w-80 bg-white border-l lg:border-l flex-shrink-0 h-full overflow-y-auto order-3">
-        <div className="p-4 lg:p-6 border-b">
+      <div className=""
+        <div className=""
           <h3 className="font-semibold text-lg">Explorar</h3>
         </div>
         <div
@@ -3447,11 +3447,11 @@ const TicketDetails = React.memo(() => {
                 : 'hover:bg-gray-50'
             "
           >
-            <div className="flex items-center gap-3">
+            <div className=""
               <MessageSquare className="h-4 w-4" />
               <span className="text-sm font-medium">Comunicação</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
+            <Badge variant="outline" className=""
               {communicationsData?.length || 0}
             </Badge>
           </button>
@@ -3467,11 +3467,11 @@ const TicketDetails = React.memo(() => {
             aria-selected={activeTab === "attachments"
             aria-controls="tab-content"
           >
-            <div className="flex items-center gap-3">
+            <div className=""
               <Paperclip className="h-4 w-4" />
               <span className="text-sm font-medium">Anexos</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
+            <Badge variant="outline" className=""
               {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
             </Badge>
           </button>
@@ -3488,11 +3488,11 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
             aria-label={" itens"
           >
-            <div className="flex items-center gap-3">
+            <div className=""
               <FileText className="h-4 w-4" />
               <span className="text-sm font-medium">Notas</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
+            <Badge variant="outline" className=""
               {notesData?.length || 0}
             </Badge>
           </button>
@@ -3541,11 +3541,11 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
             aria-label={'[TRANSLATION_NEEDED]'}
           >
-            <div className="flex items-center gap-3">
+            <div className=""
               <Settings className="h-4 w-4" />
               <span className="text-sm font-medium">Ações Internas</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
+            <Badge variant="outline" className=""
               {internalActionsData?.length || 0}
             </Badge>
           </button>
@@ -3562,11 +3562,11 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
             aria-label={'[TRANSLATION_NEEDED]'}
           >
-            <div className="flex items-center gap-3">
+            <div className=""
               <ExternalLink className="h-4 w-4" />
               <span className="text-sm font-medium">Ações Externas</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
+            <Badge variant="outline" className=""
               0
             </Badge>
           </button>
@@ -3598,11 +3598,11 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
             aria-label={" itens"
           >
-            <div className="flex items-center gap-3">
+            <div className=""
               <Link className="h-4 w-4" />
               <span className="text-sm font-medium">Vínculos</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-600 border-cyan-300">
+            <Badge variant="outline" className=""
               {relatedTicketsData?.length || 0}
             </Badge>
           </button>
@@ -3621,33 +3621,33 @@ const TicketDetails = React.memo(() => {
         </div>
 
         {/* Quadro Informativo */}
-        <div className="border-t mt-4">
-          <div className="p-3 bg-gray-50 rounded-b-lg">
+        <div className=""
+          <div className=""
             {/* Datas/Tempo - Destacado */}
-            <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
-              <h4 className="text-xs font-bold text-blue-800 mb-2 flex items-center gap-1">
+            <div className=""
+              <h4 className=""
                 <Clock className="h-3 w-3" />
                 DATAS E TEMPO
               </h4>
-              <div className="grid grid-cols-1 gap-1 text-xs">
-                <div className="flex justify-between">
+              <div className=""
+                <div className=""
                   <span className="text-blue-700">Criação:</span>
                   <span className="text-blue-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className=""
                   <span className="text-blue-700">Vencimento:</span>
                   <span className="text-blue-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className=""
                   <span className="text-blue-700">Status:</span>
-                  <Badge variant="outline" className="text-xs h-4">
+                  <Badge variant="outline" className=""
                     {ticket.status} - {ticket.daysInStatus || 0}d
                   </Badge>
                 </div>
                 {/* SLA Information */}
-                <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
+                <div className=""
                   <span className="text-blue-700">SLA:</span>
-                  <div className="flex items-center gap-2">
+                  <div className=""
                     <div
                       className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
                       title='[TRANSLATION_NEEDED]'
@@ -3660,23 +3660,23 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Favorecido - Compacto */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1">
+            <div className=""
+              <div className=""
                 <h4 className="text-xs font-semibold text-gray-700">FAVORECIDO</h4>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
+                    <Button variant="ghost" size="sm" className=""
                       🔐 Dados Sensíveis
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className=""
                     <DialogHeader>
                       <DialogTitle>Verificação de Segurança</DialogTitle>
                       <DialogDescription>
                         Digite sua senha para acessar dados sensíveis do favorecido
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className=""
                       <Input
                         id="agent-password"
                         type="password"
@@ -3684,12 +3684,12 @@ const TicketDetails = React.memo(() => {
                         value={agentPassword}
                         onChange={(e) => setAgentPassword(e.target.value)}
                       />
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
+                      <div className=""
+                        <div className=""
                           <span className="text-gray-600">RG:</span>
                           <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className=""
                           <span className="text-gray-600">CPF/CNPJ:</span>
                           <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
                         </div>
@@ -3698,7 +3698,7 @@ const TicketDetails = React.memo(() => {
                   </DialogContent>
                 </Dialog>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className=""
                 {(() => {
                   const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
                   const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
@@ -3711,15 +3711,15 @@ const TicketDetails = React.memo(() => {
 
                   return (
                     <>
-                      <div className="flex justify-between">
+                      <div className=""
                         <span className="text-gray-600">Nome:</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className=""
                         <span className="text-gray-600">E-mail:</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className=""
                         <span className="text-gray-600">Telefone:</span>
                         <span className="text-gray-900 font-medium">{phone}</span>
                       </div>
@@ -3731,34 +3731,34 @@ const TicketDetails = React.memo(() => {
 
             {/* Solicitante - Compacto */}
             <div>
-              <div className="flex items-center justify-between mb-1">
+              <div className=""
                 <h4 className="text-xs font-semibold text-gray-700">CLIENTE</h4>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
+                    <Button variant="ghost" size="sm" className=""
                       🔐 Dados Sensíveis
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className=""
                     <DialogHeader>
                       <DialogTitle>Verificação de Segurança</DialogTitle>
                       <DialogDescription>
                         Digite sua senha para acessar dados sensíveis do cliente
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className=""
                       <Input
                         type="password"
                         placeholder="Digite sua senha"
                         value={agentPassword}
                         onChange={(e) => setAgentPassword(e.target.value)}
                       />
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
+                      <div className=""
+                        <div className=""
                           <span className="text-gray-600">RG:</span>
                           <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className=""
                           <span className="text-gray-600">CPF/CNPJ:</span>
                           <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
                         </div>
@@ -3767,7 +3767,7 @@ const TicketDetails = React.memo(() => {
                   </DialogContent>
                 </Dialog>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className=""
                 {(() => {
                   const callerId = ticket.caller_id || ticket.callerId;
                   const customer = availableCustomers.find((c: any) => c.id === callerId);
@@ -3782,15 +3782,15 @@ const TicketDetails = React.memo(() => {
 
                   return (
                     <>
-                      <div className="flex justify-between">
+                      <div className=""
                         <span className="text-gray-600">Nome:</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className=""
                         <span className="text-gray-600">E-mail:</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className=""
                         <span className="text-gray-600">Endereço:</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && "
                       </div>
@@ -3812,7 +3812,7 @@ const TicketDetails = React.memo(() => {
               Para visualizar informações sensíveis ({showPasswordDialog.type === 'rg' ? 'RG' : 'CPF/CNPJ'}), digite sua senha de agente:
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=""
             <div>
               <Label htmlFor="agent-password">Senha do Agente</Label>
               <Input
@@ -3824,7 +3824,7 @@ const TicketDetails = React.memo(() => {
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2">
+          <div className=""
             <Button
               variant="outline"
               onClick={() => {
@@ -3874,9 +3874,9 @@ const TicketDetails = React.memo(() => {
 
       {/* Company Details Modal */}
       <Dialog open={isCompanyDetailsOpen} onOpenChange={setIsCompanyDetailsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className=""
               <Building2 className="h-5 w-5 text-blue-600" />
               Detalhes da Empresa
             </DialogTitle>
@@ -3885,38 +3885,38 @@ const TicketDetails = React.memo(() => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className=""
             {/* Informações Básicas */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className=""
                   <Building2 className="h-4 w-4" />
                   Informações Básicas
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Nome da Empresa</Label>
-                    <p className="text-lg font-semibold text-gray-900">
+                    <p className=""
                       {ticket?.company?.name || ticket?.company || 'Empresa Não Especificada'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.cnpj || 'Não informado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Setor</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.industry || 'Não especificado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Porte</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.size || 'Não especificado'}
                     </p>
                   </div>
@@ -3927,34 +3927,34 @@ const TicketDetails = React.memo(() => {
             {/* Contatos */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className=""
                   <User className="h-4 w-4" />
                   Contatos Principais
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label className="text-sm font-medium text-gray-600">Email Principal</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.email || 'contato@empresa.com'}
                     </p>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label className="text-sm font-medium text-gray-600">Telefone</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.phone || '(11) 1234-5678'}
                     </p>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label className="text-sm font-medium text-gray-600">Responsável Técnico</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.techContact || 'Não designado'}
                     </p>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label className="text-sm font-medium text-gray-600">Gerente de Conta</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.accountManager || 'Não designado'}
                     </p>
                   </div>
@@ -3965,40 +3965,40 @@ const TicketDetails = React.memo(() => {
             {/* Endereço */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className=""
                   <MapPin className="h-4 w-4" />
                   Endereço
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2">
+                <div className=""
+                  <div className=""
                     <Label className="text-sm font-medium text-gray-600">Logradouro</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.address || 'Endereço não informado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">CEP</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.zipCode || '00000-000'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Cidade</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.city || 'Não informado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Estado</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.state || 'SP'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">País</Label>
-                    <p className="text-sm text-gray-900">
+                    <p className=""
                       {ticket?.company?.country || 'Brasil'}
                     </p>
                   </div>
@@ -4009,26 +4009,26 @@ const TicketDetails = React.memo(() => {
             {/* Estatísticas e Histórico */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className=""
                   <BarChart3 className="h-4 w-4" />
                   Estatísticas de Suporte
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
+                <div className=""
+                  <div className=""
                     <p className="text-2xl font-bold text-blue-600">12</p>
                     <p className="text-xs text-gray-600">Total de Tickets</p>
                   </div>
-                  <div className="text-center">
+                  <div className=""
                     <p className="text-2xl font-bold text-green-600">9</p>
                     <p className="text-xs text-gray-600">Resolvidos</p>
                   </div>
-                  <div className="text-center">
+                  <div className=""
                     <p className="text-2xl font-bold text-orange-600">2h 15min</p>
                     <p className="text-xs text-gray-600">Tempo Médio</p>
                   </div>
-                  <div className="text-center">
+                  <div className=""
                     <p className="text-2xl font-bold text-purple-600">4.8/5</p>
                     <p className="text-xs text-gray-600">Satisfação</p>
                   </div>
@@ -4037,7 +4037,7 @@ const TicketDetails = React.memo(() => {
             </Card>
 
             {/* Ações Rápidas */}
-            <div className="flex flex-wrap gap-3">
+            <div className=""
               <Button
                 onClick={() => navigate("/customers")}
                 className="bg-blue-600 hover:bg-blue-700"
@@ -4069,7 +4069,7 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t">
+          <div className=""
             <Button
               variant="outline"
               onClick={() => setIsCompanyDetailsOpen(false)}
@@ -4082,21 +4082,21 @@ const TicketDetails = React.memo(() => {
 
       {/* Client Details Modal */}
       <Dialog open={isClientDetailsOpen} onOpenChange={setIsClientDetailsOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=""
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className=""
               <User className="h-5 w-5 text-purple-600" />
               Detalhes do Cliente
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=""
             {(() => {
               const callerId = ticket.caller_id || ticket.callerId;
               const customer = availableCustomers.find((c: any) => c.id === callerId);
 
               if (!customer && (!callerId || callerId === 'unspecified')) {
                 return (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className=""
                     <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p>Nenhum cliente especificado</p>
                   </div>
@@ -4105,7 +4105,7 @@ const TicketDetails = React.memo(() => {
 
               if (!customer) {
                 return (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className=""
                     <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p>Cliente não encontrado</p>
                   </div>
@@ -4117,35 +4117,35 @@ const TicketDetails = React.memo(() => {
                                  customer.email || 'Cliente sem nome';
 
               return (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center p-4 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg">
+                <div className=""
+                  <div className=""
                     <User className="h-6 w-6 mr-2" />
                     <span className="font-semibold">{customerName}</span>
                   </div>
 
                   {customer.email && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600">Email:</span>
                       <span className="text-sm text-gray-900">{customer.email}</span>
                     </div>
                   )}
 
                   {customer.phone && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600">Telefone:</span>
                       <span className="text-sm text-gray-900">{customer.phone}</span>
                     </div>
                   )}
 
                   {customer.cpf && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600">CPF:</span>
                       <span className="text-sm text-gray-900">{customer.cpf}</span>
                     </div>
                   )}
 
                   {customer.address && (
-                    <div className="gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
                       <span className="text-sm text-gray-900">{customer.address}</span>
                     </div>
@@ -4155,7 +4155,7 @@ const TicketDetails = React.memo(() => {
             })()}
           </div>
 
-          <div className="flex justify-end pt-4 border-t">
+          <div className=""
             <Button
               variant="outline"
               onClick={() => setIsClientDetailsOpen(false)}
@@ -4168,14 +4168,14 @@ const TicketDetails = React.memo(() => {
 
       {/* Beneficiary Details Modal */}
       <Dialog open={isBeneficiaryDetailsOpen} onOpenChange={setIsBeneficiaryDetailsOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=""
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className=""
               <Users className="h-5 w-5 text-indigo-600" />
               Detalhes do Favorecido
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=""
             {(() => {
               const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
               const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
@@ -4183,7 +4183,7 @@ const TicketDetails = React.memo(() => {
 
               if (!beneficiary && (!beneficiaryId || beneficiaryId === 'unspecified')) {
                 return (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className=""
                     <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p>Nenhum favorecido especificado</p>
                   </div>
@@ -4192,7 +4192,7 @@ const TicketDetails = React.memo(() => {
 
               if (!beneficiary) {
                 return (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className=""
                     <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p>Favorecido não encontrado</p>
                   </div>
@@ -4204,35 +4204,35 @@ const TicketDetails = React.memo(() => {
                                      beneficiary.email || 'Favorecido sem nome';
 
               return (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center p-4 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg">
+                <div className=""
+                  <div className=""
                     <Users className="h-6 w-6 mr-2" />
                     <span className="font-semibold">{beneficiaryName}</span>
                   </div>
 
                   {beneficiary.email && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600">Email:</span>
                       <span className="text-sm text-gray-900">{beneficiary.email}</span>
                     </div>
                   )}
 
                   {beneficiary.phone && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600">Telefone:</span>
                       <span className="text-sm text-gray-900">{beneficiary.phone}</span>
                     </div>
                   )}
 
                   {beneficiary.cpf && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600">CPF:</span>
                       <span className="text-sm text-gray-900">{beneficiary.cpf}</span>
                     </div>
                   )}
 
                   {beneficiary.address && (
-                    <div className="gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className=""
                       <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
                       <span className="text-sm text-gray-900">{beneficiary.address}</span>
                     </div>
@@ -4242,7 +4242,7 @@ const TicketDetails = React.memo(() => {
             })()}
           </div>
 
-          <div className="flex justify-end pt-4 border-t">
+          <div className=""
             <Button
               variant="outline"
               onClick={() => setIsBeneficiaryDetailsOpen(false)}

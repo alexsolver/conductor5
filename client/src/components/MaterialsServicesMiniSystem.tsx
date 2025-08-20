@@ -383,16 +383,16 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
+    <div className="space-y-6>
+      <div className="flex items-center gap-2>
         <Package className="h-5 w-5 text-blue-600" />
         <h2 className="text-xl font-semibold">Materiais e Serviços</h2>
-        <div className="flex items-center gap-4 ml-4">
-          <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-lg">
+        <div className="flex items-center gap-4 ml-4>
+          <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-lg>
             <span className="text-sm font-medium text-blue-700">Planejados:</span>
             <span className="text-sm font-bold text-blue-800">{plannedMaterials.length}</span>
           </div>
-          <div className="flex items-center gap-1 px-3 py-1 bg-green-50 rounded-lg">
+          <div className="flex items-center gap-1 px-3 py-1 bg-green-50 rounded-lg>
             <span className="text-sm font-medium text-green-700">Consumidos:</span>
             <span className="text-sm font-bold text-green-800">{consumedMaterials.length}</span>
           </div>
@@ -400,53 +400,53 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       </div>
 
       {/* Cost Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-4 text-center border-blue-200 bg-blue-50">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4>
+        <Card className="p-4 text-center border-blue-200 bg-blue-50>
           <h3 className="text-sm font-semibold text-blue-800">Itens Planejados</h3>
           <div className="text-2xl font-bold text-blue-700 mt-2">{plannedMaterials.length}</div>
         </Card>
 
-        <Card className="p-4 text-center border-green-200 bg-green-50">
+        <Card className="p-4 text-center border-green-200 bg-green-50>
           <h3 className="text-sm font-semibold text-green-800">Itens Consumidos</h3>
           <div className="text-2xl font-bold text-green-700 mt-2">{consumedMaterials.length}</div>
         </Card>
 
-        <Card className="p-4 text-center border-purple-200 bg-purple-50">
+        <Card className="p-4 text-center border-purple-200 bg-purple-50>
           <h3 className="text-sm font-semibold text-purple-800">Custo Planejado</h3>
-          <div className="text-xl font-bold text-purple-700 mt-2">
+          <div className="text-xl font-bold text-purple-700 mt-2>
             R$ {parseFloat(costs.plannedCost || '0').toFixed(2) || '0,00'}
           </div>
         </Card>
 
-        <Card className="p-4 text-center border-orange-200 bg-orange-50">
+        <Card className="p-4 text-center border-orange-200 bg-orange-50>
           <h3 className="text-sm font-semibold text-orange-800">Custo Real</h3>
-          <div className="text-xl font-bold text-orange-700 mt-2">
+          <div className="text-xl font-bold text-orange-700 mt-2>
             R$ {parseFloat(costs.actualCost || '0').toFixed(2) || '0,00'}
           </div>
         </Card>
       </div>
 
       {/* Main Content with Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full>
+        <TabsList className="grid w-full grid-cols-2>
           <TabsTrigger value="planned">Planejar Item</TabsTrigger>
           <TabsTrigger value="consumed">Registrar Consumo</TabsTrigger>
         </TabsList>
 
 
 
-        <TabsContent value="planned" className="space-y-4">
-          <div className="flex flex-col space-y-4">
+        <TabsContent value="planned" className="space-y-4>
+          <div className="flex flex-col space-y-4>
             {/* Add Planned Material/Service Form */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2>
                   <Plus className="h-4 w-4" />
                   Adicionar Item Planejado
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <CardContent className="space-y-4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
                   <div>
                     <Label>Item</Label>
                     <Select value={selectedItem} onValueChange={setSelectedItem}>
@@ -456,7 +456,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       <SelectContent>
                         {(itemsData?.data?.items || []).map((item: any) => (
                           <SelectItem key={item.id} value={item.id}>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2>
                               {item.type === 'material' ? (
                                 <Package className="h-4 w-4 text-blue-500" />
                               ) : (
@@ -485,7 +485,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     />
                   </div>
 
-                  <div className="flex items-end">
+                  <div className="flex items-end>
                     <Button 
                       onClick={() => handleAddPlanned()}
                       disabled={!selectedItem || !quantity || addPlannedMutation.isPending}
@@ -510,14 +510,14 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
             {/* Planned Items Sub-tabs */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+              <div className="flex items-center justify-between mb-4>
+                <h3 className="text-lg font-semibold flex items-center gap-2>
                   <Calendar className="h-5 w-5" />
                   Itens Planejados ({plannedData?.data?.plannedItems?.length || 0})
                 </h3>
 
                 {/* Sub-tabs for Materials/Services */}
-                <div className="flex bg-muted rounded-lg p-1">
+                <div className="flex bg-muted rounded-lg p-1>
                   <Button
                     size="sm"
                     variant={plannedSubTab === 'all' ? 'default' : 'ghost'}
@@ -548,12 +548,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
               </div>
 
               {plannedLoading ? (
-                <div className="flex items-center justify-center p-8">
+                <div className="flex items-center justify-center p-8>
                   <Loader2 className="h-6 w-6 animate-spin mr-2" />
                   Carregando itens planejados...
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3>
                   {(plannedData?.data?.plannedItems || [])
                     .filter((item: any) => {
                       if (plannedSubTab === 'all') return true;
@@ -562,23 +562,23 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       return true;
                     })
                     .map((item: any) => (
-                    <div key={item.id} className="flex items-center justify-between p-4 border border-blue-200 rounded-lg bg-blue-50 hover:shadow-md transition-shadow">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                    <div key={item.id} className="flex items-center justify-between p-4 border border-blue-200 rounded-lg bg-blue-50 hover:shadow-md transition-shadow>
+                      <div className="flex-1>
+                        <div className="flex items-center gap-2 mb-2>
                           {item.itemType === 'material' ? (
                             <Package className="h-4 w-4 text-blue-500" />
                           ) : (
                             <Wrench className="h-4 w-4 text-green-500" />
                           )}
                           <h4 className="font-semibold text-blue-900">{item.itemName}</h4>
-                          <Badge variant="outline" className="text-xs bg-blue-200 text-blue-800">
+                          <Badge variant="outline" className="text-xs bg-blue-200 text-blue-800>
                             {item.itemType === 'material' ? 'Material' : 'Serviço'}
                           </Badge>
                         </div>
                         {item.itemDescription && (
                           <p className="text-xs text-blue-700 mb-2">{item.itemDescription}</p>
                         )}
-                        <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-3 gap-4 text-sm>
                           <div>
                             <span className="text-blue-600">Quantidade: <span className="font-medium text-blue-800">{item.plannedQuantity} {item.measurementUnit || 'UN'}</span></span>
                           </div>
@@ -586,13 +586,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                             <span className="text-blue-600">Valor Unit.: <span className="font-medium text-blue-800">R$ {item.unitPrice?.toFixed(2) || '0,00'}</span></span>
                           </div>
                           <div>
-                            <span className="text-blue-600 font-medium">
+                            <span className="text-blue-600 font-medium>
                               Total: R$ {item.totalCost?.toFixed(2) || '0,00'}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -615,7 +615,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   if (plannedSubTab === 'services') return item.itemType === 'service';
                   return true;
                 }).length === 0 && (
-                <div className="text-center p-8 text-muted-foreground">
+                <div className="text-center p-8 text-muted-foreground>
                   {plannedSubTab === 'all' ? (
                     <>
                       <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -639,19 +639,19 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
           </div>
         </TabsContent>
 
-        <TabsContent value="consumed" className="space-y-4">
+        <TabsContent value="consumed" className="space-y-4>
           <Card>
             <CardHeader>
               <CardTitle>Registrar Consumo Real</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-2">
+            <CardContent className="space-y-4>
+              <div className="grid grid-cols-3 gap-4>
+                <div className="col-span-2 space-y-2>
                   <Label htmlFor="consumed-item-select">Item</Label>
                   {availableItemsLoading ? (
                     <div className="text-center py-2">Carregando itens disponíveis...</div>
                   ) : Array.isArray(availableItemsData?.data) && availableItemsData.data.length === 0 ? (
-                    <div className="text-center py-4 text-gray-500">
+                    <div className="text-center py-4 text-gray-500>
                       <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p>Nenhum item planejado disponível para consumo</p>
                       <p className="text-sm">Adicione itens no planejamento primeiro</p>
@@ -704,17 +704,17 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
                           return (
                             <SelectItem key={"
-                              <div className="flex flex-col text-left w-full">
-                                <div className="flex items-center gap-2">
+                              <div className="flex flex-col text-left w-full>
+                                <div className="flex items-center gap-2>
                                   <span className="font-medium">{itemName}</span>
                                   <Badge variant="secondary" className="text-xs">{itemType}</Badge>
                                 </div>
                                 {itemDescription && (
-                                  <div className="text-xs text-gray-600 mb-1 line-clamp-1">
+                                  <div className="text-xs text-gray-600 mb-1 line-clamp-1>
                                     {itemDescription}
                                   </div>
                                 )}
-                                <div className="flex items-center gap-3 text-xs text-gray-500">
+                                <div className="flex items-center gap-3 text-xs text-gray-500>
                                   {itemSku && <span>SKU: {itemSku}</span>}
                                   <span>Disponível: {remainingQty}</span>
                                   {unitPrice > 0 && (
@@ -730,7 +730,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2>
                   <Label htmlFor="consumed-quantity">Quantidade</Label>
                   <Input
                     id="consumed-quantity"
@@ -752,15 +752,15 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
               </Button>
 
               {/* Lista de Itens Consumidos */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
+              <div className="mt-6>
+                <div className="flex items-center justify-between mb-4>
+                  <h3 className="text-lg font-semibold flex items-center gap-2>
                     <Calculator className="h-5 w-5 text-green-600" />
                     Itens Consumidos ({consumedMaterials.length})
                   </h3>
 
                   {/* Sub-tabs para Materiais/Serviços Consumidos */}
-                  <div className="flex bg-muted rounded-lg p-1">
+                  <div className="flex bg-muted rounded-lg p-1>
                     <Button
                       size="sm"
                       variant={consumedSubTab === 'all' ? 'default' : 'ghost'}
@@ -791,12 +791,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 </div>
 
                 {consumedLoading ? (
-                  <div className="flex items-center justify-center p-8">
+                  <div className="flex items-center justify-center p-8>
                     <Loader2 className="h-6 w-6 animate-spin mr-2" />
                     Carregando itens consumidos...
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3>
                     {consumedMaterials
                       .filter((item: any) => {
                         if (consumedSubTab === 'all') return true;
@@ -806,40 +806,40 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       })
                       .map((material: any, index: number) => (
                       <div key={"
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-1>
+                          <div className="flex items-center gap-2 mb-2>
                             {material.itemType === 'material' ? (
                               <Package className="h-4 w-4 text-green-500" />
                             ) : (
                               <Wrench className="h-4 w-4 text-green-500" />
                             )}
                             <h4 className="font-semibold text-green-900">{material.itemName}</h4>
-                            <Badge variant="outline" className="text-xs bg-green-200 text-green-800">
+                            <Badge variant="outline" className="text-xs bg-green-200 text-green-800>
                               {material.itemType === 'material' ? 'Material' : 'Serviço'}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div className="grid grid-cols-3 gap-4 text-sm>
                             <div>
                               <span className="text-green-600">Quantidade Usada: <span className="font-medium text-green-800">{material.quantityUsed || material.actualQuantity}</span></span>
                               {material.unitPrice && parseFloat(material.unitPrice) > 0 && (
-                                <div className="text-xs text-green-700 mt-1">
+                                <div className="text-xs text-green-700 mt-1>
                                   Preço Unitário: R$ {parseFloat(material.unitPrice).toFixed(2)}
                                 </div>
                               )}
                             </div>
                             <div>
-                              <span className="text-green-600 font-medium">
+                              <span className="text-green-600 font-medium>
                                 Custo Total: R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}
                               </span>
                             </div>
                             <div>
-                              <div className="text-xs text-green-700">
+                              <div className="text-xs text-green-700>
                                 Consumido em: {format(new Date(material.createdAt || material.consumedAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                               </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -869,7 +869,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     if (consumedSubTab === 'services') return item.itemType === 'service';
                     return true;
                   }).length === 0 && (
-                  <div className="text-center p-8 text-muted-foreground">
+                  <div className="text-center p-8 text-muted-foreground>
                     {consumedSubTab === 'all' ? (
                       <>
                         <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />

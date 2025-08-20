@@ -73,7 +73,7 @@ export const AccessibilityIndicator: React.FC<AccessibilityIndicatorProps> = ({
 // Screen reader only text component
 export const ScreenReaderOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <span className="sr-only">
+    <span className="sr-only>
       {children}
     </span>
   );

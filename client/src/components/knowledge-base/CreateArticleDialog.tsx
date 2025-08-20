@@ -173,9 +173,9 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="create-article-dialog">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="create-article-dialog>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <BookOpen className="h-5 w-5 text-blue-600" />
             Criar Novo Artigo
           </DialogTitle>
@@ -184,10 +184,10 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6>
           {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-sm font-medium">
+          <div className="space-y-2>
+            <Label htmlFor="title" className="text-sm font-medium>
               Título *
             </Label>
             <Input
@@ -200,12 +200,12 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           </div>
 
           {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="category" className="text-sm font-medium">
+          <div className="space-y-2>
+            <Label htmlFor="category" className="text-sm font-medium>
               Categoria *
             </Label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger data-testid="select-article-category">
+              <SelectTrigger data-testid="select-article-category>
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -219,12 +219,12 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           </div>
 
           {/* Access Level */}
-          <div className="space-y-2">
-            <Label htmlFor="access_level" className="text-sm font-medium">
+          <div className="space-y-2>
+            <Label htmlFor="access_level" className="text-sm font-medium>
               Nível de Acesso
             </Label>
             <Select value={access_level} onValueChange={(value: 'public' | 'private' | 'restricted') => setAccessLevel(value)}>
-              <SelectTrigger data-testid="select-access-level">
+              <SelectTrigger data-testid="select-access-level>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -238,8 +238,8 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           </div>
 
           {/* Content */}
-          <div className="space-y-2">
-            <Label htmlFor="content" className="text-sm font-medium">
+          <div className="space-y-2>
+            <Label htmlFor="content" className="text-sm font-medium>
               Conteúdo *
             </Label>
             <ModernRichTextEditor
@@ -251,11 +251,11 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           </div>
 
           {/* Tags */}
-          <div className="space-y-2">
-            <Label htmlFor="tags" className="text-sm font-medium">
+          <div className="space-y-2>
+            <Label htmlFor="tags" className="text-sm font-medium>
               Tags
             </Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2>
               <Input
                 placeholder="Adicionar tag..."
                 value={newTag}
@@ -263,12 +263,12 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
                 onKeyPress={handleKeyPress}
                 data-testid="input-new-tag"
               />
-              <Button type="button" onClick={addTag} size="sm" variant="outline" data-testid="button-add-tag">
+              <Button type="button" onClick={addTag} size="sm" variant="outline" data-testid="button-add-tag>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
             {tags && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2>
                 {tags.split(',').map((tag) => (
                   <Badge key={tag.trim()} variant="secondary" className="flex items-center gap-1" data-testid={"
                     {tag.trim()}
@@ -287,21 +287,21 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           </div>
 
           {/* Published */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <Switch
               id="published"
               checked={published}
               onCheckedChange={setPublished}
               data-testid="switch-published"
             />
-            <Label htmlFor="published" className="text-sm font-medium">
+            <Label htmlFor="published" className="text-sm font-medium>
               Publicar imediatamente
             </Label>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel">
+          <div className="flex justify-end gap-3 pt-4 border-t>
+            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel>
               Cancelar
             </Button>
             <Button

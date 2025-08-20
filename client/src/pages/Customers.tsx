@@ -174,7 +174,7 @@ export default function Customers() {
     }
 
     return (
-      <div className="flex items-center text-gray-600 dark:text-gray-400">
+      <div className=""
         <Building className="h-3 w-3 mr-1 flex-shrink-0" />
         <span className="text-sm truncate" title={String(displayText)}>
           {String(displayText)}
@@ -185,15 +185,15 @@ export default function Customers() {
 
   if (isLoading) {
     return (
-      <div className="p-4 space-y-6">
+      <div className=""
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
         <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
+          <CardContent className=""
+            <div className=""
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center space-x-4 animate-pulse">
+                <div key={i} className=""
                   <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
-                  <div className="flex-1 space-y-2">
+                  <div className=""
                     <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                     <div className="h-3 bg-gray-200 rounded w-1/3"></div>
                   </div>
@@ -215,32 +215,32 @@ export default function Customers() {
     const isPermissionError = errorType === 'PERMISSION_DENIED';
 
     return (
-      <div className="p-4 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className=""
+        <div className=""
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
         </div>
         <Card>
-          <CardContent className="p-8 text-center">
-            <div className="mb-4 "">
-              <h4 className="text-lg font-medium mb-2">
+          <CardContent className=""
+            <div className="mb-4 ">
+              <h4 className=""
                 {isSchemaError ? '🗄️ Problema de Esquema de Banco' :
                  isPermissionError ? '🔒 Problema de Permissão' :
                  '❌ Erro ao carregar clientes'}
               </h4>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className=""
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
 
               {/* Error Code Display */}
               {(error as any)?.code && (
-                <div className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono mb-2">
+                <div className=""
                   Código: {(error as any).code}
                 </div>
               )}
 
               {/* Technical Details */}
               {(error as any)?.details && (
-                <details className="text-left bg-gray-50 dark:bg-gray-800 p-3 rounded text-xs mt-3">
+                <details className=""
                   <summary className="cursor-pointer font-medium">Detalhes técnicos</summary>
                   <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify((error as any).details, null, 2)}</pre>
                 </details>
@@ -248,20 +248,20 @@ export default function Customers() {
 
               {/* Suggestions */}
               {(error as any)?.suggestion && (
-                <div className="text-sm text-blue-600 dark:text-blue-400 mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                <div className=""
                   💡 <strong>Sugestão:</strong> {(error as any).suggestion}
                 </div>
               )}
 
               {/* Schema-specific help */}
               {isSchemaError && (
-                <div className="text-sm text-purple-600 dark:text-purple-400 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
+                <div className=""
                   🔧 <strong>Para resolver:</strong> Execute as migrações de banco de dados ou consulte um administrador.
                 </div>
               )}
             </div>
 
-            <div className="flex gap-2 justify-center">
+            <div className=""
               <Button
                 onClick={() => window.location.reload()}
                 variant="outline"
@@ -290,14 +290,14 @@ export default function Customers() {
   }
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage your customer database and relationships ({total} registros)</p>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline">
+        <div className=""
+          <Button variant="outline>
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
@@ -312,7 +312,7 @@ export default function Customers() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className=""
           <Table>
             <TableHeader>
               <TableRow>
@@ -328,16 +328,16 @@ export default function Customers() {
             </TableHeader>
             <TableBody>
               {customers?.length > 0 ? customers.map((customer: any) => (
-                <TableRow key={customer.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <TableRow key={customer.id} className=""
                   <TableCell>
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-purple-500 text-white font-semibold text-sm">
+                    <Avatar className=""
+                      <AvatarFallback className=""
                         {getInitials(customer) || "U"
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                    <div className=""
                       {formatCustomerName(customer)}
                     </div>
                     {(() => {
@@ -345,13 +345,13 @@ export default function Customers() {
                       if (customerType === 'PJ') {
                         const companyName = getCustomerField(customer, 'companyName');
                         return (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className=""
                             🏢 {companyName || 'Pessoa Jurídica'}
                           </div>
                         );
                       } else if (customerType === 'PF') {
                         return (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className=""
                             👤 Pessoa Física
                           </div>
                         );
@@ -360,7 +360,7 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                    <div className=""
                       <Mail className="h-3 w-3 mr-1" />
                       <span className="truncate">{customer.email}</span>
                     </div>
@@ -373,7 +373,7 @@ export default function Customers() {
                                    customer.mobilePhone;
 
                       return phone ? (
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
+                        <div className=""
                           <Phone className="h-3 w-3 mr-1" />
                           <span>{String(phone)}</span>
                         </div>
@@ -397,7 +397,7 @@ export default function Customers() {
                       }
 
                       return (
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
+                        <div className=""
                           <Building className="h-3 w-3 mr-1 flex-shrink-0" />
                           <span className="text-sm truncate" title={String(displayText)}>
                             {displayText || '-'}
@@ -407,7 +407,7 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className=""
                       <Badge
                         variant={
                           customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true
@@ -437,18 +437,18 @@ export default function Customers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-gray-500">
+                    <span className=""
                       {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                     </span>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" className=""
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end>
                         <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>
                           <Edit className="h-3 w-3 mr-2" />
                           Editar
@@ -467,8 +467,8 @@ export default function Customers() {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <div className="text-gray-500">
+                  <TableCell colSpan={8} className=""
+                    <div className=""
                       <div className="text-lg font-medium mb-2">Nenhum cliente encontrado</div>
                       <p className="text-sm">Adicione seu primeiro cliente para começar.</p>
                     </div>

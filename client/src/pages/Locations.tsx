@@ -239,17 +239,17 @@ export default function Locations() {
   const stats = statsData?.data || {};
 
   return (
-    <div className="p-6 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className=""
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Módulo de Locais</h1>
           <p className="text-gray-600">Sistema geoespacial completo para gestão de localizações</p>
         </div>
-        <div className="flex gap-2">
+        <div className=""
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline>
                 <Upload className="h-4 w-4 mr-2" />
                 Importar KML/GeoJSON
               </Button>
@@ -258,7 +258,7 @@ export default function Locations() {
           
           <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline>
                 <Clock className="h-4 w-4 mr-2" />
                 Configurar Horários
               </Button>
@@ -278,7 +278,7 @@ export default function Locations() {
 
       {/* Create Location Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=""
             <DialogHeader>
               <DialogTitle>Criar Novo Local</DialogTitle>
               <DialogDescription>
@@ -286,7 +286,7 @@ export default function Locations() {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleCreateLocation)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(handleCreateLocation)} className=""
                 <FormField
                   control={form.control}
                   name="name"
@@ -315,7 +315,7 @@ export default function Locations() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={form.control}
                     name="locationType"
@@ -366,7 +366,7 @@ export default function Locations() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={form.control}
                     name="coordinates.lat"
@@ -408,7 +408,7 @@ export default function Locations() {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -423,20 +423,20 @@ export default function Locations() {
 
         {/* Sprint 2 - Location Management Dialog */}
         <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>Gerenciar Local: {selectedLocation?.name}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
+            <div className=""
               {/* Tags Management */}
               <div>
-                <h3 className="font-medium mb-2 flex items-center gap-2">
+                <h3 className=""
                   <Tag className="h-4 w-4" />
                   Tags
                 </h3>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className=""
                   {selectedLocation?.tags?.map((tag: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="gap-1">
+                    <Badge key={index} variant="secondary" className=""
                       {tag}
                       <button
                         onClick={() => {/* Remove tag */}}
@@ -447,7 +447,7 @@ export default function Locations() {
                     </Badge>
                   )) || <p className="text-sm text-muted-foreground">Nenhuma tag adicionada</p>}
                 </div>
-                <div className="flex gap-2">
+                <div className=""
                   <Input placeholder="Nova tag..." className="flex-1" />
                   <Button size="sm">Adicionar</Button>
                 </div>
@@ -455,23 +455,23 @@ export default function Locations() {
 
               {/* Attachments Management */}
               <div>
-                <h3 className="font-medium mb-2 flex items-center gap-2">
+                <h3 className=""
                   <Upload className="h-4 w-4" />
                   Anexos
                 </h3>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <div className=""
                   <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
+                  <p className=""
                     Arraste arquivos aqui ou clique para selecionar
                   </p>
                   <input type="file" multiple className="hidden" />
                 </div>
                 {selectedLocation?.attachments && selectedLocation.attachments.length > 0 && (
-                  <div className="mt-2 space-y-1">
+                  <div className=""
                     {selectedLocation.attachments.map((attachment: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div key={index} className=""
                         <span className="text-sm">{attachment.filename}</span>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -482,15 +482,15 @@ export default function Locations() {
 
               {/* Hierarchy Management */}
               <div>
-                <h3 className="font-medium mb-2 flex items-center gap-2">
+                <h3 className=""
                   <TreePine className="h-4 w-4" />
                   Hierarquia
                 </h3>
-                <div className="space-y-2">
+                <div className=""
                   <div>
                     <label className="text-sm text-gray-600">Local pai:</label>
-                    <Select value={selectedLocation?.parent_location_id || "none">
-                      <SelectTrigger className="w-full mt-1">
+                    <Select value={selectedLocation?.parent_location_id || "none>
+                      <SelectTrigger className=""
                         <SelectValue placeholder="Selecionar local pai" />
                       </SelectTrigger>
                       <SelectContent>
@@ -502,9 +502,9 @@ export default function Locations() {
                   {selectedLocation?.children && selectedLocation.children.length > 0 && (
                     <div>
                       <label className="text-sm text-gray-600">Locais filhos:</label>
-                      <div className="mt-1 space-y-1">
+                      <div className=""
                         {selectedLocation.children.map((child: any, index: number) => (
-                          <div key={index} className="text-sm p-2 bg-gray-50 rounded">
+                          <div key={index} className=""
                             {child.name}
                           </div>
                         ))}
@@ -514,7 +514,7 @@ export default function Locations() {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className=""
               <Button variant="outline" onClick={() => setIsManageDialogOpen(false)}>
                 Fechar
               </Button>
@@ -525,20 +525,20 @@ export default function Locations() {
 
       {/* Import KML/GeoJSON Dialog */}
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Importar Dados Geoespaciais</DialogTitle>
             <DialogDescription>
               Carregue arquivos KML ou GeoJSON para criar múltiplos locais automaticamente
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+          <div className=""
+            <div className=""
               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">
+              <p className=""
                 Arraste arquivos aqui ou clique para selecionar
               </p>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className=""
                 Formatos aceitos: .kml, .geojson, .json
               </p>
               <input 
@@ -554,25 +554,25 @@ export default function Locations() {
               </Button>
             </div>
             
-            <div className="space-y-2">
+            <div className=""
               <h4 className="font-medium">Opções de Importação</h4>
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2">
+              <div className=""
+                <label className=""
                   <input type="checkbox" defaultChecked />
                   <span className="text-sm">Preservar coordenadas originais</span>
                 </label>
-                <label className="flex items-center space-x-2">
+                <label className=""
                   <input type="checkbox" defaultChecked />
                   <span className="text-sm">Criar hierarquia automática</span>
                 </label>
-                <label className="flex items-center space-x-2">
+                <label className=""
                   <input type="checkbox" />
                   <span className="text-sm">Sobrescrever locais existentes</span>
                 </label>
               </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-4">
+          <div className=""
             <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
               Cancelar
             </Button>
@@ -586,18 +586,18 @@ export default function Locations() {
 
       {/* Schedule Configuration Dialog */}
       <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Configuração de Horários de Funcionamento</DialogTitle>
             <DialogDescription>
               Configure horários padrão para todos os locais ou específicos por tipo
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=""
             <div>
               <label className="text-sm font-medium">Aplicar configuração para:</label>
-              <Select defaultValue="all">
-                <SelectTrigger className="mt-1">
+              <Select defaultValue="all>
+                <SelectTrigger className=""
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -609,10 +609,10 @@ export default function Locations() {
               </Select>
             </div>
 
-            <div className="space-y-3">
+            <div className=""
               <h4 className="font-medium">Horários da Semana</h4>
               {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((day, index) => (
-                <div key={day} className="flex items-center gap-3">
+                <div key={day} className=""
                   <div className="w-16 text-sm">{day}</div>
                   <input type="checkbox" defaultChecked={index < 5} />
                   <Input placeholder="08:00" className="w-20 h-8" />
@@ -623,23 +623,23 @@ export default function Locations() {
               ))}
             </div>
 
-            <div className="space-y-2">
+            <div className=""
               <h4 className="font-medium">Configurações Especiais</h4>
-              <label className="flex items-center space-x-2">
+              <label className=""
                 <input type="checkbox" />
                 <span className="text-sm">Horário de verão automático</span>
               </label>
-              <label className="flex items-center space-x-2">
+              <label className=""
                 <input type="checkbox" />
                 <span className="text-sm">Fechar automaticamente em feriados</span>
               </label>
-              <label className="flex items-center space-x-2">
+              <label className=""
                 <input type="checkbox" />
                 <span className="text-sm">Notificar mudanças de horário</span>
               </label>
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-4">
+          <div className=""
             <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
               Cancelar
             </Button>
@@ -652,22 +652,22 @@ export default function Locations() {
       </Dialog>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Locais</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total_locations || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {stats.active_locations || 0} ativos
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Pontos</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -678,7 +678,7 @@ export default function Locations() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Áreas</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -689,7 +689,7 @@ export default function Locations() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Rotas</CardTitle>
             <Route className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -703,17 +703,17 @@ export default function Locations() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className=""
             <Filter className="h-5 w-5" />
             Filtros e Busca
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className=""
             {/* Basic Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
+            <div className=""
+              <div className=""
+                <div className=""
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder='[TRANSLATION_NEEDED]'
@@ -724,7 +724,7 @@ export default function Locations() {
                 </div>
               </div>
               <Select value={locationTypeFilter} onValueChange={setLocationTypeFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className=""
                   <SelectValue placeholder="Tipo de local" />
                 </SelectTrigger>
                 <SelectContent>
@@ -737,7 +737,7 @@ export default function Locations() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className=""
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -751,8 +751,8 @@ export default function Locations() {
             </div>
 
             {/* Sprint 2 - Advanced Filters */}
-            <div className="flex flex-wrap gap-4 p-3 bg-gray-50 rounded-md">
-              <div className="text-sm font-medium text-gray-600 flex items-center">
+            <div className=""
+              <div className=""
                 Filtros Avançados:
               </div>
               <Button
@@ -763,7 +763,7 @@ export default function Locations() {
                 <Star className="h-4 w-4 mr-2 "" />
                 {favoritesFilter ? 'Apenas Favoritos' : 'Mostrar Favoritos'}
               </Button>
-              <div className="flex items-center gap-2">
+              <div className=""
                 <Tag className="h-4 w-4 text-gray-400" />
                 <Input
                   placeholder='[TRANSLATION_NEEDED]'
@@ -799,17 +799,17 @@ export default function Locations() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
+            <div className=""
+              <div className=""
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Carregando locais...</p>
               </div>
             </div>
           ) : locations.length === 0 ? (
-            <div className="text-center py-8">
+            <div className=""
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum local encontrado</h3>
-              <p className="text-muted-foreground mb-4">
+              <p className=""
                 {searchTerm || locationTypeFilter || statusFilter
                   ? '[TRANSLATION_NEEDED]'
                   : "Comece criando seu primeiro local no sistema."
@@ -835,7 +835,7 @@ export default function Locations() {
                 {locations.map((location: any) => (
                   <TableRow key={location.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         {location.is_favorite && (
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         )}
@@ -843,20 +843,20 @@ export default function Locations() {
                         <div>
                           <div className="font-medium">{location.name}</div>
                           {location.description && (
-                            <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                            <div className=""
                               {location.description}
                             </div>
                           )}
                           {/* Sprint 2 - Display tags */}
                           {location.tags && location.tags.length > 0 && (
-                            <div className="flex gap-1 mt-1">
+                            <div className=""
                               {location.tags.slice(0, 2).map((tag: string, index: number) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
+                                <Badge key={index} variant="secondary" className=""
                                   {tag}
                                 </Badge>
                               ))}
                               {location.tags.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className=""
                                   +{location.tags.length - 2}
                                 </Badge>
                               )}
@@ -866,7 +866,7 @@ export default function Locations() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
+                      <Badge variant="outline>
                         {location.location_type === 'point' && 'Ponto'}
                         {location.location_type === 'segment' && 'Segmento'}
                         {location.location_type === 'area' && 'Área'}
@@ -883,15 +883,15 @@ export default function Locations() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm font-mono">
+                      <div className=""
                         {location.coordinates?.lat?.toFixed(6)}, {location.coordinates?.lng?.toFixed(6)}
                       </div>
                     </TableCell>
                     <TableCell>
                       {new Date(location.created_at).toLocaleDateString('pt-BR')}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <TableCell className=""
+                      <div className=""
                         <Button 
                           variant="ghost" 
                           size="sm"

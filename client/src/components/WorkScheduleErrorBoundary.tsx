@@ -29,11 +29,11 @@ export class WorkScheduleErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <Card className="m-4">
-          <CardContent className="p-6 text-center">
+        <Card className="m-4>
+          <CardContent className="p-6 text-center>
             <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
             <h3 className="text-lg font-medium mb-2">Erro nas Escalas de Trabalho</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4>
               Ocorreu um erro ao carregar as escalas. Tente recarregar a página.
             </p>
             <button 

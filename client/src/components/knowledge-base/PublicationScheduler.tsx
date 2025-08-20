@@ -123,13 +123,13 @@ export function PublicationScheduler({
   return (
     <Dialog open={schedulerOpen} onOpenChange={setSchedulerOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" data-testid="button-schedule-publication">
+        <Button variant="outline" data-testid="button-schedule-publication>
           <Calendar className="h-4 w-4 mr-2" />
           Agendar Publicação
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]>
         <DialogHeader>
           <DialogTitle>Agendar Publicação</DialogTitle>
           <DialogDescription>
@@ -137,11 +137,11 @@ export function PublicationScheduler({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-6>
           {/* Data e Hora */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base flex items-center">
+              <CardTitle className="text-base flex items-center>
                 <Clock className="h-4 w-4 mr-2" />
                 Data e Hora
               </CardTitle>
@@ -149,8 +149,8 @@ export function PublicationScheduler({
                 Quando o artigo deve ser publicado
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent className="space-y-4>
+              <div className="grid grid-cols-2 gap-4>
                 <div>
                   <Label htmlFor="schedule-date">Data</Label>
                   <Input
@@ -176,7 +176,7 @@ export function PublicationScheduler({
               </div>
               
               {scheduledDate && scheduledTime && (
-                <div className="p-2 bg-muted rounded text-sm">
+                <div className="p-2 bg-muted rounded text-sm>
                   <strong>Publicação agendada para:</strong><br />
                   {format(
                     new Date("
@@ -196,11 +196,11 @@ export function PublicationScheduler({
                 Opções para a publicação agendada
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
+            <CardContent className="space-y-4>
+              <div className="flex items-center justify-between>
+                <div className="space-y-0.5>
                   <Label>Publicar automaticamente</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground>
                     O artigo será publicado automaticamente na data agendada
                   </p>
                 </div>
@@ -211,10 +211,10 @@ export function PublicationScheduler({
                 />
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
+              <div className="flex items-center justify-between>
+                <div className="space-y-0.5>
                   <Label>Notificar usuários</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground>
                     Enviar notificação quando o artigo for publicado
                   </p>
                 </div>

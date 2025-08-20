@@ -145,7 +145,7 @@ const AgendaManager: React.FC = () => {
   const { data: schedulesData, isLoading: schedulesLoading } = useQuery({
     queryKey: ['/api/schedule/schedules', startDate, endDate],
     queryFn: async () => {
-      const response = await apiRequest('GET', "
+      const response = await apiRequest("GET", "/api/agenda"
       return await response.json();
     },
     enabled: !!startDate && !!endDate,
@@ -206,7 +206,7 @@ const AgendaManager: React.FC = () => {
   const { data: groupMembersData } = useQuery({
     queryKey: ['/api/user-management/groups', selectedGroup, 'members'],
     queryFn: async () => {
-      const response = await apiRequest('GET', "/members`);
+      const response = await apiRequest("GET", "/api/agenda"/members`);
       return await response.json();
     },
     enabled: selectedGroup !== 'todos' && !!selectedGroup,
@@ -241,7 +241,7 @@ const AgendaManager: React.FC = () => {
   const { data: internalActionsData, isLoading: internalActionsLoading } = useQuery({
     queryKey: ['/api/tickets/internal-actions/schedule', startDate, endDate],
     queryFn: async () => {
-      const response = await apiRequest('GET', "
+      const response = await apiRequest("GET", "/api/agenda"
       return await response.json();
     },
     enabled: !!startDate && !!endDate,
@@ -360,28 +360,28 @@ const AgendaManager: React.FC = () => {
   const isLoading = schedulesLoading || activityTypesLoading || agentsLoading || internalActionsLoading;
 
   return (
-    <div className="p-4 space-y-4 h-screen overflow-hidden flex flex-col">
+    <div className=""
       {/* Header */}
       <Card>
-        <CardHeader className="space-y-4">
-          <div className="flex justify-between items-center">
+        <CardHeader className=""
+          <div className=""
             <div>
-              <CardTitle className="text-2xl font-bold text-gray-900">
+              <CardTitle className=""
                 Agenda
               </CardTitle>
-              <p className="text-gray-600 mt-1">
+              <p className=""
                 {view === 'timeline' ? 'Linha do Tempo' : 'Agenda 14 Dias'} - {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
               </p>
             </div>
           </div>
 
           {/* Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className=""
             {/* Client Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
               <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className=""
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -402,7 +402,7 @@ const AgendaManager: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
               <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className=""
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -420,7 +420,7 @@ const AgendaManager: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Técnicos</label>
               <Select value={selectedAgents} onValueChange={setSelectedAgents}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className=""
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -453,8 +453,8 @@ const AgendaManager: React.FC = () => {
           </div>
 
           {/* Date Navigation and View Toggles */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
+          <div className=""
+            <div className=""
               <Button
                 variant="outline"
                 size="sm"
@@ -464,7 +464,7 @@ const AgendaManager: React.FC = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               
-              <span className="mx-4 text-sm font-medium">
+              <span className=""
                 {view === 'agenda' 
                   ? ")"
                   : format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
@@ -481,7 +481,7 @@ const AgendaManager: React.FC = () => {
               </Button>
             </div>
 
-            <div className="flex gap-2">
+            <div className=""
               <Button
                 variant={view === 'timeline' ? 'default' : 'outline'}
                 size="sm"
@@ -502,7 +502,7 @@ const AgendaManager: React.FC = () => {
       </Card>
 
       {/* Main Layout */}
-      <div className="flex-1 overflow-hidden">
+      <div className=""
         {view === 'timeline' ? (
           <TimelineScheduleGrid
             schedules={combinedAgendaItems as Schedule[]}

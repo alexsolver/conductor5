@@ -67,22 +67,22 @@ export function TemplateHierarchyManager({
 
   const renderHierarchyTree = (hierarchy: TemplateHierarchy) => {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4>
         {/* Pais */}
         {hierarchy.parents.length > 0 && (
           <div>
             <h4 className="font-medium text-sm text-gray-600 mb-2">Templates Pai</h4>
-            <div className="space-y-2">
+            <div className="space-y-2>
               {hierarchy.parents.map((parent, index) => (
-                <div key={parent.template.id} className="flex items-center gap-2">
+                <div key={parent.template.id} className="flex items-center gap-2>
                   <div className="w-4 h-0.5 bg-gray-300"></div>
-                  <Card className="flex-1 p-3">
-                    <div className="flex items-center justify-between">
+                  <Card className="flex-1 p-3>
+                    <div className="flex items-center justify-between>
                       <div>
                         <p className="font-medium">{parent.template.name}</p>
                         <p className="text-sm text-gray-500">Nível {index + 1}</p>
                       </div>
-                      <Badge variant="outline">
+                      <Badge variant="outline>
                         {parent.inheritanceRules.overrideMode}
                       </Badge>
                     </div>
@@ -96,8 +96,8 @@ export function TemplateHierarchyManager({
         {/* Template Atual */}
         <div>
           <h4 className="font-medium text-sm text-gray-600 mb-2">Template Atual</h4>
-          <Card className="p-4 border-blue-200 bg-blue-50">
-            <div className="flex items-center gap-2">
+          <Card className="p-4 border-blue-200 bg-blue-50>
+            <div className="flex items-center gap-2>
               <Tree className="w-4 h-4 text-blue-600" />
               <span className="font-medium">Template Selecionado</span>
               <Badge>Nível {hierarchy.level}</Badge>
@@ -109,22 +109,22 @@ export function TemplateHierarchyManager({
         {hierarchy.children.length > 0 && (
           <div>
             <h4 className="font-medium text-sm text-gray-600 mb-2">Templates Filhos</h4>
-            <div className="space-y-2">
+            <div className="space-y-2>
               {hierarchy.children.map((child) => (
-                <div key={child.template.id} className="flex items-center gap-2">
+                <div key={child.template.id} className="flex items-center gap-2>
                   <div className="w-4 h-0.5 bg-gray-300"></div>
                   <Card 
                     className="flex-1 p-3 cursor-pointer hover:bg-gray-50"
                     onClick={() => onTemplateSelect?.(child.template.id)}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between>
                       <div>
                         <p className="font-medium">{child.template.name}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500>
                           Herda de: {child.template.parentName}
                         </p>
                       </div>
-                      <Badge variant="secondary">
+                      <Badge variant="secondary>
                         {child.inheritanceRules.overrideMode}
                       </Badge>
                     </div>
@@ -139,17 +139,17 @@ export function TemplateHierarchyManager({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between>
+        <div className="flex items-center gap-2>
           <Tree className="w-5 h-5" />
           <h3 className="text-lg font-semibold">Hierarquia de Templates</h3>
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm">
+            <Button size="sm>
               <Plus className="w-4 h-4 mr-1" />
               Criar Template Hierárquico
             </Button>
@@ -168,7 +168,7 @@ export function TemplateHierarchyManager({
       </div>
 
       {/* Seletor de Categoria */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4>
         <div>
           <Label htmlFor="category">Categoria</Label>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -193,21 +193,21 @@ export function TemplateHierarchyManager({
             <CardTitle className="text-base">Templates da Categoria</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2>
               {categoryTemplates.data.map((template: any) => (
                 <div
                   key={template.id}
                   className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
                   onClick={() => onTemplateSelect?.(template.id)}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3>
                     <Link className="w-4 h-4 text-gray-400" />
                     <div>
                       <p className="font-medium">{template.name}</p>
                       <p className="text-sm text-gray-500">{template.description}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2>
                     {template.metadata?.isHierarchical && (
                       <Badge variant="outline">Hierárquico</Badge>
                     )}
@@ -257,7 +257,7 @@ function CreateHierarchicalTemplateForm({ onSubmit, categories, parentTemplates 
   });
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4>
       <div>
         <Label htmlFor="name">Nome do Template</Label>
         <Input
@@ -326,7 +326,7 @@ function CreateHierarchicalTemplateForm({ onSubmit, categories, parentTemplates 
         </Select>
       </div>
 
-      <Button type="submit" className="w-full">
+      <Button type="submit" className="w-full>
         <Plus className="w-4 h-4 mr-2" />
         Criar Template Hierárquico
       </Button>

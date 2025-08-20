@@ -183,8 +183,8 @@ export default function ReportEdit() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
+      <div className=""
+        <div className=""
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p>Carregando relatório...</p>
         </div>
@@ -194,9 +194,9 @@ export default function ReportEdit() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
+      <div className=""
         <Card>
-          <CardContent className="p-6 text-center">
+          <CardContent className=""
             <p className="text-red-600">Erro ao carregar relatório: {error.message}</p>
             <Button
               onClick={() => setLocation("/reports")}
@@ -211,10 +211,10 @@ export default function ReportEdit() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-7xl">
+    <div className=""
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className=""
+        <div className=""
           <Button
             variant="ghost"
             onClick={() => setLocation("/reports")}
@@ -224,15 +224,15 @@ export default function ReportEdit() {
             Voltar aos Relatórios
           </Button>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className=""
               Editar Relatório
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className=""
               {reportData?.data?.name || '[TRANSLATION_NEEDED]'}
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className=""
           <Button
             variant="outline"
             onClick={() => setActiveTab("preview")}
@@ -274,32 +274,32 @@ export default function ReportEdit() {
           <CardTitle>Tipo de Relatório</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className=""
             <Card className={reportType === 'standard' ? 'ring-2 ring-primary' : 'opacity-50'}>
-              <CardContent className="p-6 text-center">
+              <CardContent className=""
                 <BarChart3 className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="font-semibold mb-2">Relatório Padrão</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className=""
                   Seleção simples de fonte de dados e campos básicos
                 </p>
               </CardContent>
             </Card>
 
             <Card className={reportType === 'advanced' ? 'ring-2 ring-primary' : 'opacity-50'}>
-              <CardContent className="p-6 text-center">
+              <CardContent className=""
                 <Database className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="font-semibold mb-2">Query Builder Avançado</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className=""
                   Construção completa com filtros, períodos, joins e SQL
                 </p>
               </CardContent>
             </Card>
 
             <Card className={reportType === 'wysiwyg' ? 'ring-2 ring-primary' : 'opacity-50'}>
-              <CardContent className="p-6 text-center">
+              <CardContent className=""
                 <Palette className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="font-semibold mb-2">WYSIWYG Designer</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className=""
                   Designer visual para relatórios e PDFs personalizados
                 </p>
               </CardContent>
@@ -310,12 +310,12 @@ export default function ReportEdit() {
 
       {/* Main Configuration Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="basic" data-testid="tab-basic">
+        <TabsList className=""
+          <TabsTrigger value="basic" data-testid="tab-basic>
             <Settings className="w-4 h-4 mr-2" />
             Configurações Básicas
           </TabsTrigger>
-          <TabsTrigger value="builder" data-testid="tab-builder">
+          <TabsTrigger value="builder" data-testid="tab-builder>
             {reportType === 'wysiwyg' ? (
               <>
                 <Palette className="w-4 h-4 mr-2" />
@@ -333,26 +333,26 @@ export default function ReportEdit() {
               </>
             )}
           </TabsTrigger>
-          <TabsTrigger value="schedule" data-testid="tab-schedule">
+          <TabsTrigger value="schedule" data-testid="tab-schedule>
             <TrendingUp className="w-4 h-4 mr-2" />
             Agendamento
           </TabsTrigger>
-          <TabsTrigger value="preview" data-testid="tab-preview">
+          <TabsTrigger value="preview" data-testid="tab-preview>
             <Eye className="w-4 h-4 mr-2" />
             Preview
           </TabsTrigger>
         </TabsList>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleUpdateReport)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleUpdateReport)} className=""
             {/* Basic Configuration Tab */}
-            <TabsContent value="basic" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TabsContent value="basic" className=""
+              <div className=""
                 <Card>
                   <CardHeader>
                     <CardTitle>Informações Básicas</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className=""
                     <FormField
                       control={form.control}
                       name="name"
@@ -398,7 +398,7 @@ export default function ReportEdit() {
                           <FormLabel>Categoria</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-category">
+                              <SelectTrigger data-testid="select-category>
                                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
@@ -422,7 +422,7 @@ export default function ReportEdit() {
                   <CardHeader>
                     <CardTitle>Configurações de Acesso</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className=""
                     <FormField
                       control={form.control}
                       name="accessLevel"
@@ -431,7 +431,7 @@ export default function ReportEdit() {
                           <FormLabel>Nível de Acesso</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-access-level">
+                              <SelectTrigger data-testid="select-access-level>
                                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
@@ -457,7 +457,7 @@ export default function ReportEdit() {
                               <FormLabel>Fonte de Dados *</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-data-source">
+                                  <SelectTrigger data-testid="select-data-source>
                                     <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                   </SelectTrigger>
                                 </FormControl>
@@ -482,7 +482,7 @@ export default function ReportEdit() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Tipo de Visualização</FormLabel>
-                              <div className="grid grid-cols-2 gap-2 mt-2">
+                              <div className=""
                                 {[
                                   { value: 'table', icon: Grid, label: 'Tabela' },
                                   { value: 'bar', icon: BarChart3, label: 'Barras' },
@@ -496,7 +496,7 @@ export default function ReportEdit() {
                                     "
                                     onClick={() => field.onChange(type.value)}
                                   >
-                                    <CardContent className="p-3 text-center">
+                                    <CardContent className=""
                                       <type.icon className="w-6 h-6 mx-auto mb-1" />
                                       <div className="text-xs">{type.label}</div>
                                     </CardContent>
@@ -515,14 +515,14 @@ export default function ReportEdit() {
             </TabsContent>
 
             {/* Builder Tab */}
-            <TabsContent value="builder" className="space-y-6">
+            <TabsContent value="builder" className=""
               {reportType === 'wysiwyg' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>WYSIWYG Designer - Canvas A4 Profissional</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="min-h-[800px]">
+                    <div className=""
                       <AdvancedWYSIWYGDesigner 
                         onSave={handleWysiwygSave}
                         initialDesign={wysiwygDesign}
@@ -538,7 +538,7 @@ export default function ReportEdit() {
                     <CardTitle>Query Builder Avançado</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="min-h-[600px]">
+                    <div className=""
                       <AdvancedQueryBuilder 
                         onQueryChange={handleQueryChange}
                         onExecute={handleQueryChange}
@@ -555,15 +555,15 @@ export default function ReportEdit() {
                     <CardTitle>Configuração Padrão</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                        <div className="flex items-start gap-2">
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <CheckCircle2 className="w-5 h-5 text-blue-500 mt-0.5" />
                           <div>
-                            <h5 className="font-medium text-blue-800 dark:text-blue-200">
+                            <h5 className=""
                               Configuração Básica
                             </h5>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                            <p className=""
                               Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba '[TRANSLATION_NEEDED]'.
                             </p>
                           </div>
@@ -576,20 +576,20 @@ export default function ReportEdit() {
             </TabsContent>
 
             {/* Schedule Tab */}
-            <TabsContent value="schedule" className="space-y-6">
+            <TabsContent value="schedule" className=""
               <Card>
                 <CardHeader>
                   <CardTitle>Agendamento e Automação</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className=""
                   <FormField
                     control={form.control}
                     name="schedulingEnabled"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
+                      <FormItem className=""
+                        <div className=""
                           <FormLabel className="text-base">Habilitar Agendamento</FormLabel>
-                          <div className="text-sm text-muted-foreground">
+                          <div className=""
                             Execute este relatório automaticamente
                           </div>
                         </div>
@@ -615,7 +615,7 @@ export default function ReportEdit() {
                             <FormLabel>Tipo de Agendamento</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger data-testid="select-schedule-type">
+                                <SelectTrigger data-testid="select-schedule-type>
                                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                 </SelectTrigger>
                               </FormControl>
@@ -656,20 +656,20 @@ export default function ReportEdit() {
             </TabsContent>
 
             {/* Preview Tab */}
-            <TabsContent value="preview" className="space-y-6">
+            <TabsContent value="preview" className=""
               <Card>
                 <CardHeader>
                   <CardTitle>Preview do Relatório</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-muted/50 p-6 rounded-lg">
-                    <div className="space-y-4">
+                  <div className=""
+                    <div className=""
                       <div>
                         <h4 className="font-semibold text-lg">{form.watch('name') || 'Nome do Relatório'}</h4>
                         <p className="text-muted-foreground">{form.watch('description') || 'Sem descrição'}</p>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className=""
                         <div>
                           <span className="font-medium">Tipo:</span>
                           <div className="capitalize">{reportType}</div>
@@ -691,7 +691,7 @@ export default function ReportEdit() {
                       {reportType === 'wysiwyg' && wysiwygDesign.elements?.length > 0 && (
                         <div>
                           <span className="font-medium">WYSIWYG Elements:</span>
-                          <div className="text-sm text-muted-foreground">
+                          <div className=""
                             {wysiwygDesign.elements.length} elementos configurados
                           </div>
                         </div>
@@ -700,7 +700,7 @@ export default function ReportEdit() {
                       {reportType === 'advanced' && query.dataSource && (
                         <div>
                           <span className="font-medium">Query Configuration:</span>
-                          <div className="text-sm text-muted-foreground">
+                          <div className=""
                             Fonte: {query.dataSource}, Tabelas: {query.selectedTables?.length || 0}
                           </div>
                         </div>

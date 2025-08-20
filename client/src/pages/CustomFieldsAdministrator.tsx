@@ -209,16 +209,16 @@ export default function CustomFieldsAdministrator() {
   const renderFieldsList = () => {
     if (isLoading) {
       return (
-        <div className="space-y-4">
+        <div className=""
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 space-y-2">
+            <Card key={i} className=""
+              <CardContent className=""
+                <div className=""
+                  <div className=""
                     <div className="h-4 bg-gray-200 rounded w-1/3"></div>
                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className=""
                     <div className="h-8 w-8 bg-gray-200 rounded"></div>
                     <div className="h-8 w-8 bg-gray-200 rounded"></div>
                   </div>
@@ -231,15 +231,15 @@ export default function CustomFieldsAdministrator() {
     }
 
     return (
-      <div className="space-y-4">
+      <div className=""
         {moduleFields.length === 0 ? (
-          <Card className="border-dashed border-2 border-gray-200">
-            <CardContent className="text-center py-12">
+          <Card className=""
+            <CardContent className=""
               <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-600 mb-2">
+              <h3 className=""
                 Nenhum campo customizado encontrado
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className=""
                 Este módulo ainda não possui campos personalizados configurados.
               </p>
               <Button
@@ -253,43 +253,43 @@ export default function CustomFieldsAdministrator() {
           </Card>
         ) : (
           moduleFields.map((field: CustomFieldMetadata, index: number) => (
-            <Card key={field.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex items-center gap-2 text-gray-400">
+            <Card key={field.id} className=""
+              <CardContent className=""
+                <div className=""
+                  <div className=""
+                    <div className=""
+                      <div className=""
                         <GripVertical className="w-4 h-4 cursor-move" />
-                        <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
+                        <span className=""
                           #{index + 1}
                         </span>
                       </div>
                       <h3 className="font-semibold text-gray-900 text-lg">{field.fieldLabel}</h3>
-                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                      <Badge variant="secondary" className=""
                         {FIELD_TYPE_CONFIG[field.fieldType as FieldType]?.label}
                       </Badge>
                       {field.isRequired && (
-                        <Badge variant="destructive" className="text-xs">
+                        <Badge variant="destructive" className=""
                           Obrigatório
                         </Badge>
                       )}
                     </div>
                     
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600 flex items-center gap-2">
+                    <div className=""
+                      <p className=""
                         <span className="font-medium">Campo técnico:</span>
-                        <code className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">
+                        <code className=""
                           {field.fieldName}
                         </code>
                       </p>
                       
                       {field.fieldOptions?.helpText && (
-                        <p className="text-sm text-gray-500 italic">
+                        <p className=""
                           "{field.fieldOptions.helpText}"
                         </p>
                       )}
                       
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <div className=""
                         <span>Criado: {new Date(field.createdAt).toLocaleDateString('pt-BR')}</span>
                         <span>•</span>
                         <span>Ordem: {field.displayOrder}</span>
@@ -297,7 +297,7 @@ export default function CustomFieldsAdministrator() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className=""
                     <Button
                       variant="ghost"
                       size="sm"
@@ -328,7 +328,7 @@ export default function CustomFieldsAdministrator() {
 
   // Breadcrumb component
   const Breadcrumb = () => (
-    <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
+    <nav className=""
       <Home className="w-4 h-4" />
       <ChevronRight className="w-4 h-4" />
       <span>Administração</span>
@@ -338,33 +338,33 @@ export default function CustomFieldsAdministrator() {
   );
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className=""
       <Breadcrumb />
       
-      <div className="flex items-center justify-between">
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Administrador de Campos Customizados</h1>
-          <p className="text-gray-600 mt-2">
+          <p className=""
             Configure campos personalizados para diferentes módulos do sistema
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className=""
           <Settings className="w-5 h-5 text-gray-400" />
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className=""
             Beta
           </Badge>
         </div>
       </div>
 
-      <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-purple-50">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Label htmlFor="module-select" className="text-sm font-medium text-gray-700">
+      <Card className=""
+        <CardContent className=""
+          <div className=""
+            <div className=""
+              <Label htmlFor="module-select" className=""
                 Módulo:
               </Label>
               <Select value={selectedModule} onValueChange={(value: ModuleType) => setSelectedModule(value)}>
-                <SelectTrigger className="w-56 bg-white border-gray-200">
+                <SelectTrigger className=""
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -377,7 +377,7 @@ export default function CustomFieldsAdministrator() {
               </Select>
               
               {isLoading && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className=""
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Carregando campos...
                 </div>
@@ -386,12 +386,12 @@ export default function CustomFieldsAdministrator() {
 
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Button className=""
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Campo
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className=""
                 <DialogHeader>
                   <DialogTitle>Criar Novo Campo Customizado</DialogTitle>
                   <DialogDescription>
@@ -416,39 +416,39 @@ export default function CustomFieldsAdministrator() {
           <TabsTrigger value="statistics">Estatísticas</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="fields" className="space-y-4">
+        <TabsContent value="fields" className=""
           {renderFieldsList()}
         </TabsContent>
 
-        <TabsContent value="statistics">
-          <div className="grid gap-6">
+        <TabsContent value="statistics>
+          <div className=""
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className=""
                   <Package className="w-5 h-5" />
                   Estatísticas do Módulo - {MODULE_TYPES.find(m => m.value === selectedModule)?.label}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                <div className=""
+                  <div className=""
                     <div className="text-3xl font-bold text-blue-600">{moduleFields.length}</div>
                     <div className="text-sm text-blue-700 mt-1">Total de Campos</div>
                   </div>
-                  <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg">
-                    <div className="text-3xl font-bold text-red-600">
+                  <div className=""
+                    <div className=""
                       {moduleFields.filter((f: CustomFieldMetadata) => f.isRequired).length}
                     </div>
                     <div className="text-sm text-red-700 mt-1">Campos Obrigatórios</div>
                   </div>
-                  <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                    <div className="text-3xl font-bold text-green-600">
+                  <div className=""
+                    <div className=""
                       {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'text').length}
                     </div>
                     <div className="text-sm text-green-700 mt-1">Campos de Texto</div>
                   </div>
-                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                    <div className="text-3xl font-bold text-purple-600">
+                  <div className=""
+                    <div className=""
                       {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'select').length}
                     </div>
                     <div className="text-sm text-purple-700 mt-1">Campos de Seleção</div>
@@ -462,19 +462,19 @@ export default function CustomFieldsAdministrator() {
                 <CardTitle>Distribuição por Tipo de Campo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className=""
                   {Object.entries(FIELD_TYPE_CONFIG).map(([type, config]) => {
                     const count = moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === type).length;
                     const percentage = moduleFields.length > 0 ? (count / moduleFields.length) * 100 : 0;
                     
                     return (
-                      <div key={type} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                      <div key={type} className=""
+                        <div className=""
                           <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                           <span className="font-medium">{config.label}</span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div className=""
+                          <div className=""
                             <div 
                               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                               style={{ width: "%` }}
@@ -495,7 +495,7 @@ export default function CustomFieldsAdministrator() {
       {/* Edit Field Dialog */}
       {editingField && (
         <Dialog open={!!editingField} onOpenChange={() => setEditingField(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>Editar Campo: {editingField.fieldLabel}</DialogTitle>
               <DialogDescription>
@@ -515,9 +515,9 @@ export default function CustomFieldsAdministrator() {
       {/* Delete Confirmation Dialog */}
       {fieldToDelete && (
         <Dialog open={!!fieldToDelete} onOpenChange={() => setFieldToDelete(null)}>
-          <DialogContent className="max-w-md">
+          <DialogContent className=""
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-red-600">
+              <DialogTitle className=""
                 <AlertCircle className="w-5 h-5" />
                 Confirmar Exclusão
               </DialogTitle>
@@ -526,7 +526,7 @@ export default function CustomFieldsAdministrator() {
                 Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex justify-end gap-3 mt-6">
+            <div className=""
               <Button variant="outline" onClick={() => setFieldToDelete(null)}>
                 Cancelar
               </Button>
@@ -573,9 +573,9 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
+        <div className=""
           <Label htmlFor="fieldName">Nome do Campo (Técnico)</Label>
           <Input
             id="fieldName"
@@ -585,7 +585,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
             required
           />
         </div>
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="fieldLabel">Label (Exibição)</Label>
           <Input
             id="fieldLabel"
@@ -597,7 +597,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className=""
         <Label htmlFor="fieldType">Tipo de Campo</Label>
         <Select value={formData.fieldType} onValueChange={(value: FieldType) => setFormData({ ...formData, fieldType: value })}>
           <SelectTrigger>
@@ -616,7 +616,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
         </Select>
       </div>
 
-      <div className="space-y-2">
+      <div className=""
         <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
         <Textarea
           id="helpText"
@@ -627,18 +627,18 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
         />
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className=""
         <Checkbox
           id="isRequired"
           checked={formData.isRequired}
           onCheckedChange={(checked) => setFormData({ ...formData, isRequired: !!checked })}
         />
-        <Label htmlFor="isRequired" className="text-sm">
+        <Label htmlFor="isRequired" className=""
           Campo obrigatório
         </Label>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t">
+      <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
@@ -676,9 +676,9 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
+        <div className=""
           <Label htmlFor="fieldName">Nome do Campo (Técnico)</Label>
           <Input
             id="fieldName"
@@ -689,7 +689,7 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           />
           <p className="text-xs text-gray-500">O nome técnico não pode ser alterado</p>
         </div>
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="fieldLabel">Label (Exibição)</Label>
           <Input
             id="fieldLabel"
@@ -700,7 +700,7 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className=""
         <Label htmlFor="fieldType">Tipo de Campo</Label>
         <Select value={formData.fieldType} onValueChange={(value: FieldType) => setFormData({ ...formData, fieldType: value })}>
           <SelectTrigger>
@@ -719,7 +719,7 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
         </Select>
       </div>
 
-      <div className="space-y-2">
+      <div className=""
         <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
         <Textarea
           id="helpText"
@@ -729,18 +729,18 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
         />
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className=""
         <Checkbox
           id="isRequired"
           checked={formData.isRequired}
           onCheckedChange={(checked) => setFormData({ ...formData, isRequired: !!checked })}
         />
-        <Label htmlFor="isRequired" className="text-sm">
+        <Label htmlFor="isRequired" className=""
           Campo obrigatório
         </Label>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t">
+      <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>

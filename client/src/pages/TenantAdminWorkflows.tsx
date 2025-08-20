@@ -18,15 +18,15 @@ export default function TenantAdminWorkflows() {
   // Localization temporarily disabled
 
   return (
-    <div className="space-y-8 p-8">
+    <div className=""
         {/* Header */}
-        <div className="border-b border-gray-200 pb-4">
-          <div className="flex justify-between items-center">
+        <div className=""
+          <div className=""
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className=""
                 Gestão de Workflows
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className=""
                 Configurar workflows automatizados e regras de negócio
               </p>
             </div>
@@ -37,17 +37,17 @@ export default function TenantAdminWorkflows() {
                   Novo Workflow
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className=""
                 <DialogHeader>
                   <DialogTitle>Criar Novo Workflow</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                <div className=""
+                  <div className=""
+                    <div className=""
                       <Label htmlFor="name">Nome do Workflow</Label>
                       <Input id="name" placeholder="Ex: Escalação Automática" />
                     </div>
-                    <div className="space-y-2">
+                    <div className=""
                       <Label htmlFor="trigger">Gatilho</Label>
                       <Select>
                         <SelectTrigger>
@@ -62,15 +62,15 @@ export default function TenantAdminWorkflows() {
                       </Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="conditions">Condições</Label>
                     <Textarea id="conditions" placeholder="Descreva as condições que ativam este workflow" />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="actions">Ações</Label>
                     <Textarea id="actions" placeholder='[TRANSLATION_NEEDED]' />
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className=""
                     <Switch id="active" />
                     <Label htmlFor="active">Ativo</Label>
                   </div>
@@ -82,68 +82,68 @@ export default function TenantAdminWorkflows() {
         </div>
 
         {/* Workflow Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className=""
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">Workflows Ativos</CardTitle>
               <Workflow className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">
+              <p className=""
                 3 novos este mês
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">Execuções Hoje</CardTitle>
               <PlayCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">847</div>
-              <p className="text-xs text-muted-foreground">
+              <p className=""
                 +12% desde ontem
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">98.5%</div>
-              <p className="text-xs text-muted-foreground">
+              <p className=""
                 +0.3% esta semana
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">SLA Compliance</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">94.2%</div>
-              <p className="text-xs text-muted-foreground">
+              <p className=""
                 Meta: 95%
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="workflows" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="workflows" className=""
+          <TabsList className=""
             <TabsTrigger value="workflows">Workflows</TabsTrigger>
             <TabsTrigger value="slas">SLAs</TabsTrigger>
             <TabsTrigger value="automation">Automação</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="workflows" className="space-y-6">
+          <TabsContent value="workflows" className=""
             <Card>
               <CardHeader>
                 <CardTitle>Workflows Configurados</CardTitle>
@@ -208,17 +208,17 @@ export default function TenantAdminWorkflows() {
                         <TableCell>{workflow.successRate}%</TableCell>
                         <TableCell>{workflow.lastRun}</TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="sm">
+                          <div className=""
+                            <Button variant="ghost" size="sm>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm>
                               {workflow.status === 'Ativo' ? 
                                 <PauseCircle className="h-4 w-4" /> : 
                                 <PlayCircle className="h-4 w-4" />
                               }
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-red-600">
+                            <Button variant="ghost" size="sm" className=""
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -231,13 +231,13 @@ export default function TenantAdminWorkflows() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="slas" className="space-y-6">
+          <TabsContent value="slas" className=""
             <Card>
               <CardHeader>
                 <CardTitle>Níveis de Serviço (SLAs)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
+                <div className=""
                   {[
                     {
                       priority: 'Crítico',
@@ -272,11 +272,11 @@ export default function TenantAdminWorkflows() {
                       color: 'green'
                     }
                   ].map((sla, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-4">
+                    <div key={index} className=""
+                      <div className=""
                         <div>
                           <h3 className="font-semibold text-lg">{sla.priority}</h3>
-                          <div className="text-sm text-gray-600 mt-1">
+                          <div className=""
                             Resposta: {sla.responseTime} | Resolução: {sla.resolutionTime}
                           </div>
                         </div>
@@ -284,13 +284,13 @@ export default function TenantAdminWorkflows() {
                           {sla.currentCompliance >= sla.target ? 'Atendido' : 'Abaixo da Meta'}
                         </Badge>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
+                      <div className=""
+                        <div className=""
                           <span>Compliance atual</span>
                           <span className="font-medium">{sla.currentCompliance}%</span>
                         </div>
                         <Progress value={sla.currentCompliance} className="h-2" />
-                        <div className="flex justify-between text-xs text-gray-500">
+                        <div className=""
                           <span>Meta: {sla.target}%</span>
                           <span>{sla.currentCompliance >= sla.target ? 
                             "%": 
@@ -305,13 +305,13 @@ export default function TenantAdminWorkflows() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="automation" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TabsContent value="automation" className=""
+            <div className=""
               <Card>
                 <CardHeader>
                   <CardTitle>Regras de Automação</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className=""
                   {[
                     {
                       name: 'Auto-assign por skill',
@@ -338,15 +338,15 @@ export default function TenantAdminWorkflows() {
                       triggers: 89
                     }
                   ].map((rule, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
+                    <div key={index} className=""
+                      <div className=""
                         <div className="font-medium">{rule.name}</div>
                         <div className="text-sm text-gray-500">{rule.description}</div>
                         <div className="text-xs text-gray-400 mt-1">{rule.triggers} execuções hoje</div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         <Switch checked={rule.active} />
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -359,7 +359,7 @@ export default function TenantAdminWorkflows() {
                 <CardHeader>
                   <CardTitle>Triggers Disponíveis</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className=""
                   {[
                     { trigger: 'Ticket criado', count: 145, icon: '📝' },
                     { trigger: 'Status alterado', count: 89, icon: '🔄' },
@@ -368,8 +368,8 @@ export default function TenantAdminWorkflows() {
                     { trigger: 'Tempo limite SLA', count: 12, icon: '⏰' },
                     { trigger: 'Atribuição mudou', count: 34, icon: '👤' }
                   ].map((trigger, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <div className="flex items-center gap-2">
+                    <div key={index} className=""
+                      <div className=""
                         <span className="text-lg">{trigger.icon}</span>
                         <span className="text-sm font-medium">{trigger.trigger}</span>
                       </div>
@@ -385,7 +385,7 @@ export default function TenantAdminWorkflows() {
                 <CardTitle>Histórico de Execuções</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className=""
                   {[
                     {
                       workflow: 'Escalação Automática',
@@ -416,8 +416,8 @@ export default function TenantAdminWorkflows() {
                       action: 'Ticket fechado automaticamente'
                     }
                   ].map((execution, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
+                    <div key={index} className=""
+                      <div className=""
                         <div className={`w-2 h-2 rounded-full ${
                           execution.status === 'Sucesso' ? 'bg-green-500' : 'bg-red-500'
                         "} />
@@ -426,7 +426,7 @@ export default function TenantAdminWorkflows() {
                           <div className="text-sm text-gray-500">{execution.ticket} • {execution.action}</div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className=""
                         <Badge variant={execution.status === 'Sucesso' ? 'default' : 'destructive'}>
                           {execution.status}
                         </Badge>

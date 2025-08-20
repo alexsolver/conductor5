@@ -244,9 +244,9 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className="flex items-center space-x-2>
             <User className="h-5 w-5" />
             <span>Editar Dados do Membro</span>
           </DialogTitle>
@@ -256,21 +256,21 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         </DialogHeader>
 
         {memberLoading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mr-2"></div>
             <span>Carregando dados do membro...</span>
           </div>
         ) : (
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6>
             {/* Personal Information */}
             <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
+              <CardTitle className="text-lg flex items-center space-x-2>
                 <User className="h-4 w-4" />
                 <span>Informações Pessoais</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="firstName">Nome</Label>
                 <Input
@@ -289,7 +289,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <div className="relative">
+                <div className="relative>
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="email"
@@ -301,14 +301,14 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   />
                 </div>
                 {!canEditEmail && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1>
                     Apenas administradores podem alterar emails de usuários
                   </p>
                 )}
               </div>
               <div>
                 <Label htmlFor="phone">Telefone</Label>
-                <div className="relative">
+                <div className="relative>
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="phone"
@@ -320,7 +320,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="cellPhone">Celular</Label>
-                <div className="relative">
+                <div className="relative>
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="cellPhone"
@@ -385,16 +385,16 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
           {/* Professional Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
+              <CardTitle className="text-lg flex items-center space-x-2>
                 <Briefcase className="h-4 w-4" />
                 <span>Informações Profissionais</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4>
               {/* TIPO DE EMPREGO - Campo Fundamental */}
-              <div className="col-span-full">
-                <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
-                  <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300">
+              <div className="col-span-full>
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700>
+                  <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300>
                     <Briefcase className="w-4 h-4" />
                     Tipo de Emprego
                   </Label>
@@ -402,7 +402,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                     value={form.watch('employmentType')} 
                     onValueChange={(value) => form.setValue('employmentType', value)}
                   >
-                    <SelectTrigger className="mt-2 border-purple-300 dark:border-purple-600">
+                    <SelectTrigger className="mt-2 border-purple-300 dark:border-purple-600>
                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
@@ -410,7 +410,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                       <SelectItem value="autonomo">Autônomo/Prestador de Serviços</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-purple-600 dark:text-purple-400 mt-2">
+                  <p className="text-sm text-purple-600 dark:text-purple-400 mt-2>
                     {form.watch('employmentType') === 'clt' 
                       ? "🕒 CLT: Sistema de Ponto Eletrônico com controle de jornada completo"
                       : "📋 Autônomo: Registro de Jornada para atividades e projetos"
@@ -446,7 +446,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="employeeCode">Código do Funcionário</Label>
-                <div className="relative">
+                <div className="relative>
                   <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="employeeCode"
@@ -458,7 +458,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="pis">PIS</Label>
-                <div className="relative">
+                <div className="relative>
                   <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="pis"
@@ -470,7 +470,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
               <div>
                 <Label htmlFor="admissionDate">Data de Admissão</Label>
-                <div className="relative">
+                <div className="relative>
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="admissionDate"
@@ -510,12 +510,12 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
           {/* Address Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
+              <CardTitle className="text-lg flex items-center space-x-2>
                 <MapPin className="h-4 w-4" />
                 <span>Endereço</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="cep">CEP</Label>
                 <Input
@@ -595,14 +595,14 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
           {Array.isArray(groupsData?.groups) && groupsData.groups.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center space-x-2">
+                <CardTitle className="text-lg flex items-center space-x-2>
                   <Building className="h-4 w-4" />
                   <span>Grupos</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Label>Grupos Associados</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2>
                   {groupsData.groups.map((group: any) => {
                     const isSelected = form.watch('groupIds')?.includes(group.id);
                     return (
@@ -621,10 +621,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                           form.setValue('groupIds', newGroups);
                         }}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between>
                           <span className="text-sm font-medium">{group.name}</span>
                           {isSelected && (
-                            <Badge variant="default" className="text-xs">
+                            <Badge variant="default" className="text-xs>
                               Selecionado
                             </Badge>
                           )}

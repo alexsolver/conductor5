@@ -130,7 +130,7 @@ export function PersonSelector({
           disabled={disabled}
         >
           {selectedPerson ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2>
               {getPersonIcon(selectedPerson.type)}
               <span className="truncate">{selectedPerson.fullName}</span>
               {getPersonBadge(selectedPerson.type)}
@@ -141,7 +141,7 @@ export function PersonSelector({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0">
+      <PopoverContent className="w-[400px] p-0>
         <Command>
           <CommandInput placeholder='[TRANSLATION_NEEDED]' />
           <CommandEmpty>
@@ -171,9 +171,9 @@ export function PersonSelector({
                               value === person.id ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex items-center gap-2 flex-1>
                             <User className="h-4 w-4 text-blue-600" />
-                            <div className="flex flex-col">
+                            <div className="flex flex-col>
                               <span className="font-medium">{person.fullName}</span>
                               <span className="text-sm text-muted-foreground">{person.email}</span>
                             </div>
@@ -199,9 +199,9 @@ export function PersonSelector({
                               value === person.id ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex items-center gap-2 flex-1>
                             <Users className="h-4 w-4 text-green-600" />
-                            <div className="flex flex-col">
+                            <div className="flex flex-col>
                               <span className="font-medium">{person.fullName}</span>
                               <span className="text-sm text-muted-foreground">{person.email}</span>
                             </div>

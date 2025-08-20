@@ -56,8 +56,8 @@ export function CustomFieldsWrapper({
     if (!hasDesignPermission) return null;
 
     return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <div className="flex flex-col gap-2">
+      <div className="fixed bottom-6 right-6 z-50>
+        <div className="flex flex-col gap-2>
           {/* Custom Fields Toggle */}
           {hasCustomFields && !isDesignMode && (
             <Button
@@ -100,14 +100,14 @@ export function CustomFieldsWrapper({
     if (!hasCustomFields || isDesignMode) return null;
 
     return (
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg>
+        <div className="flex items-center justify-between>
+          <div className="flex items-center gap-2>
             <Layout className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">
+            <span className="text-sm font-medium text-blue-900>
               Campos Personalizados Ativos
             </span>
-            <Badge variant="secondary">
+            <Badge variant="secondary>
               {customFields.length} {customFields.length === 1 ? 'campo' : 'campos'}
             </Badge>
           </div>
@@ -140,10 +140,10 @@ export function CustomFieldsWrapper({
     if (hasCustomFields || !hasDesignPermission || isDesignMode) return null;
 
     return (
-      <div className="mb-4 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
-        <div className="text-center">
+      <div className="mb-4 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg>
+        <div className="text-center>
           <Plus className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2>
             Nenhum campo personalizado configurado para {moduleType}
           </p>
           <Button
@@ -188,15 +188,15 @@ export function CustomFieldsWrapper({
       
       {/* Custom Fields Section */}
       {hasCustomFields && showCustomFields && (
-        <div className="mt-6">
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+        <div className="mt-6>
+          <div className="border-t border-gray-200 pt-6>
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2>
               <Layout className="h-5 w-5 text-blue-600" />
               Campos Personalizados
             </h3>
             
             {isLoading ? (
-              <div className="space-y-4">
+              <div className="space-y-4>
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
                 ))}
@@ -217,16 +217,16 @@ export function CustomFieldsWrapper({
       
       {/* Always visible design mode hint for demonstration */}
       {!isDesignMode && hasDesignPermission && (
-        <div className="fixed bottom-6 left-6 z-50">
-          <div className="bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-4 shadow-lg max-w-sm">
-            <div className="flex items-start gap-2 mb-3">
+        <div className="fixed bottom-6 left-6 z-50>
+          <div className="bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-4 shadow-lg max-w-sm>
+            <div className="flex items-start gap-2 mb-3>
               <Settings className="h-4 w-4 text-purple-600 mt-0.5" />
-              <div className="text-sm">
+              <div className="text-sm>
                 <p className="font-medium text-purple-900">🎯 Sistema Drag & Drop Ativo</p>
                 <p className="text-purple-700">Clique no botão '[TRANSLATION_NEEDED]' (canto inferior direito) para arrastar campos personalizados para o formulário</p>
               </div>
             </div>
-            <div className="border-t border-purple-200 pt-3">
+            <div className="border-t border-purple-200 pt-3>
               <Button
                 variant="outline" 
                 size="sm"

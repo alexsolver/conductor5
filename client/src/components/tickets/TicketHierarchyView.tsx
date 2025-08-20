@@ -69,14 +69,14 @@ export default function TicketHierarchyView({
     };
 
     return (
-      <div key={ticket.id} className="space-y-2">
-        <Card className=""">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
+      <div key={ticket.id} className="space-y-2>
+        <Card className="">
+          <CardContent className="p-4>
+            <div className="flex items-center justify-between>
+              <div className="flex items-center space-x-3>
+                <div className="flex items-center space-x-2>
                   {ticket.hierarchyLevel > 0 && (
-                    <div className="flex items-center text-gray-400">
+                    <div className="flex items-center text-gray-400>
                       {Array.from({ length: ticket.hierarchyLevel }).map((_, i) => (
                         <ChevronRight key={i} className="h-4 w-4" />
                       ))}
@@ -85,9 +85,9 @@ export default function TicketHierarchyView({
                   <GitBranch className="h-4 w-4 text-gray-500" />
                 </div>
                 
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-medium text-sm">
+                <div className="flex-1>
+                  <div className="flex items-center space-x-2 mb-1>
+                    <span className="font-medium text-sm>
                       {ticket.number || ticket.id.slice(0, 8)}
                     </span>
                     <Badge 
@@ -103,13 +103,13 @@ export default function TicketHierarchyView({
                       {ticket.status}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2>
                     {ticket.subject}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 {onViewTicket && ticket.id !== ticketId && (
                   <Button
                     variant="ghost"
@@ -137,7 +137,7 @@ export default function TicketHierarchyView({
 
         {/* Render children */}
         {children.length > 0 && (
-          <div className="ml-6 space-y-2">
+          <div className="ml-6 space-y-2>
             {children.map(child => {
               const grandChildren = hierarchy.filter(t => t.parentTicketId === child.id);
               return renderTicketNode(child, grandChildren);
@@ -155,13 +155,13 @@ export default function TicketHierarchyView({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2">
+    <div className="space-y-4>
+      <div className="flex items-center space-x-2>
         <GitBranch className="h-5 w-5 text-gray-500" />
         <h3 className="text-lg font-semibold">Hierarquia de Chamados</h3>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2>
         {rootTickets.map(root => {
           const children = buildTree(root.id);
           return renderTicketNode(root, children);

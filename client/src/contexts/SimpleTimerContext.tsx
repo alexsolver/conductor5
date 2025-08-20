@@ -71,7 +71,7 @@ export function SimpleTimerProvider({ children }: { children: React.ReactNode })
 
       console.log('📝 [SIMPLE-TIMER] Updating action with:', updateData);
 
-      const response = await fetch("
+      const response = await fetch("/api/timer/status"
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

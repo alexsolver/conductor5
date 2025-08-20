@@ -117,15 +117,15 @@ export function KnowledgeBaseWidget() {
 
   if (isLoading) {
     return (
-      <Card className="w-full">
+      <Card className="w-full>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <BookOpen className="h-5 w-5" />
             Base de Conhecimento
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
+          <div className="animate-pulse space-y-4>
             <div className="h-4 bg-gray-200 rounded w-3/4"></div>
             <div className="h-4 bg-gray-200 rounded w-1/2"></div>
             <div className="h-4 bg-gray-200 rounded w-2/3"></div>
@@ -137,15 +137,15 @@ export function KnowledgeBaseWidget() {
 
   if (error || !metrics) {
     return (
-      <Card className="w-full border-red-200">
+      <Card className="w-full border-red-200>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
+          <CardTitle className="flex items-center gap-2 text-red-600>
             <BookOpen className="h-5 w-5" />
             Base de Conhecimento
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-500 text-sm">
+          <p className="text-red-500 text-sm>
             Erro ao carregar métricas da base de conhecimento
           </p>
         </CardContent>
@@ -167,11 +167,11 @@ export function KnowledgeBaseWidget() {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+    <Card className="w-full>
+      <CardHeader className="pb-4>
+        <div className="flex items-center justify-between>
           <div>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <BookOpen className="h-5 w-5 text-blue-600" />
               Base de Conhecimento
             </CardTitle>
@@ -179,7 +179,7 @@ export function KnowledgeBaseWidget() {
               {metrics.totalArticles} artigos • {metrics.totalViews.toLocaleString()} visualizações
             </CardDescription>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1>
             <Button
               variant={viewMode === 'overview' ? 'default' : 'ghost'}
               size="sm"
@@ -205,25 +205,25 @@ export function KnowledgeBaseWidget() {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6>
         {viewMode === 'overview' && (
           <>
             {/* Key Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4>
+              <div className="text-center>
                 <div className="text-2xl font-bold text-blue-600">{metrics.publishedArticles}</div>
                 <div className="text-sm text-gray-500">Publicados</div>
               </div>
-              <div className="text-center">
+              <div className="text-center>
                 <div className="text-2xl font-bold text-yellow-600">{metrics.draftArticles}</div>
                 <div className="text-sm text-gray-500">Rascunhos</div>
               </div>
-              <div className="text-center">
+              <div className="text-center>
                 <div className="text-2xl font-bold text-green-600">{metrics.avgRating}</div>
                 <div className="text-sm text-gray-500">Avaliação</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+              <div className="text-center>
+                <div className="text-2xl font-bold text-purple-600>
                   {metrics.weeklyGrowth}%
                 </div>
                 <div className="text-sm text-gray-500">Crescimento</div>
@@ -231,8 +231,8 @@ export function KnowledgeBaseWidget() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg>
                 <Eye className="h-8 w-8 text-blue-600" />
                 <div>
                   <div className="font-semibold">{metrics.totalViews.toLocaleString()}</div>
@@ -240,7 +240,7 @@ export function KnowledgeBaseWidget() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg>
                 <MessageSquare className="h-8 w-8 text-green-600" />
                 <div>
                   <div className="font-semibold">{metrics.totalComments}</div>
@@ -248,7 +248,7 @@ export function KnowledgeBaseWidget() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg>
                 <Clock className="h-8 w-8 text-yellow-600" />
                 <div>
                   <div className="font-semibold">{metrics.pendingApprovalArticles}</div>
@@ -263,15 +263,15 @@ export function KnowledgeBaseWidget() {
           <>
             {/* Top Categories */}
             <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <h4 className="font-semibold mb-3 flex items-center gap-2>
                 <BarChart3 className="h-4 w-4" />
                 Categorias Mais Populares
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-2>
                 {metrics.topCategories.map((category, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded>
                     <span className="font-medium">{category.name}</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2>
                       <Badge variant="secondary">{category.count} artigos</Badge>
                       <Badge 
                         variant={category.growth > 0 ? "default" : "secondary"
@@ -288,23 +288,23 @@ export function KnowledgeBaseWidget() {
 
             {/* Popular Articles */}
             <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <h4 className="font-semibold mb-3 flex items-center gap-2>
                 <Star className="h-4 w-4" />
                 Artigos Mais Populares
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-2>
                 {metrics.popularArticles.map((article) => (
-                  <div key={article.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                    <div className="flex-1">
+                  <div key={article.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded>
+                    <div className="flex-1>
                       <div className="font-medium text-sm">{article.title}</div>
                       <div className="text-xs text-gray-500">{article.category}</div>
                     </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-3 text-sm>
+                      <div className="flex items-center gap-1>
                         <Eye className="h-3 w-3" />
                         {article.views}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1>
                         <Star className="h-3 w-3 text-yellow-500" />
                         {article.rating}
                       </div>
@@ -319,19 +319,19 @@ export function KnowledgeBaseWidget() {
 
         {viewMode === 'activity' && (
           <div>
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
+            <h4 className="font-semibold mb-3 flex items-center gap-2>
               <Clock className="h-4 w-4" />
               Atividade Recente
             </h4>
-            <div className="space-y-3">
+            <div className="space-y-3>
               {metrics.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="mt-0.5">
+                <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg>
+                  <div className="mt-0.5>
                     {getActivityIcon(activity.type)}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1>
                     <div className="font-medium text-sm">{activity.title}</div>
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-gray-600>
                       por {activity.author} • {activity.timestamp}
                     </div>
                   </div>
@@ -342,15 +342,15 @@ export function KnowledgeBaseWidget() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2 border-t">
+        <div className="flex gap-2 pt-2 border-t>
           <Button size="sm" className="flex-1" asChild>
-            <a href="/knowledge-base">
+            <a href="/knowledge-base>
               <BookOpen className="h-4 w-4 mr-2" />
               Ver Todos
             </a>
           </Button>
           <Button size="sm" variant="outline" asChild>
-            <a href="/knowledge-base/create">
+            <a href="/knowledge-base/create>
               <Plus className="h-4 w-4 mr-2" />
               Criar Artigo
             </a>
@@ -393,15 +393,15 @@ export function KnowledgeBaseWidget() {
 
   if (isLoading) {
     return (
-      <Card data-testid="kb-widget-loading">
+      <Card data-testid="kb-widget-loading>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <BookOpen className="h-5 w-5" />
             Base de Conhecimento
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <div className="space-y-2>
             <div className="h-4 bg-muted rounded animate-pulse" />
             <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
             <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
@@ -413,15 +413,15 @@ export function KnowledgeBaseWidget() {
 
   if (error || !widgetData) {
     return (
-      <Card data-testid="kb-widget-error">
+      <Card data-testid="kb-widget-error>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <BookOpen className="h-5 w-5" />
             Base de Conhecimento
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground>
             Erro ao carregar dados da base de conhecimento
           </p>
         </CardContent>
@@ -432,9 +432,9 @@ export function KnowledgeBaseWidget() {
   const data: KnowledgeBaseWidgetData = widgetData;
 
   return (
-    <Card data-testid="kb-widget">
+    <Card data-testid="kb-widget>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2>
           <BookOpen className="h-5 w-5 text-blue-600" />
           Base de Conhecimento
         </CardTitle>
@@ -442,17 +442,17 @@ export function KnowledgeBaseWidget() {
           Estatísticas e atividade recente
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4>
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600" data-testid="total-articles">
+        <div className="grid grid-cols-2 gap-4>
+          <div className="text-center>
+            <div className="text-2xl font-bold text-blue-600" data-testid="total-articles>
               {data.totalArticles}
             </div>
             <div className="text-xs text-muted-foreground">Total de Artigos</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600" data-testid="published-articles">
+          <div className="text-center>
+            <div className="text-2xl font-bold text-green-600" data-testid="published-articles>
               {data.publishedArticles}
             </div>
             <div className="text-xs text-muted-foreground">Publicados</div>
@@ -460,41 +460,41 @@ export function KnowledgeBaseWidget() {
         </div>
 
         {/* Status Summary */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
+        <div className="space-y-2>
+          <div className="flex justify-between items-center>
             <span className="text-sm">Rascunhos</span>
-            <Badge variant="secondary" data-testid="draft-count">
+            <Badge variant="secondary" data-testid="draft-count>
               {data.draftArticles}
             </Badge>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center>
             <span className="text-sm">Aguardando Aprovação</span>
-            <Badge variant="outline" data-testid="pending-count">
+            <Badge variant="outline" data-testid="pending-count>
               {data.pendingApprovalArticles}
             </Badge>
           </div>
         </div>
 
         {/* Weekly Stats */}
-        <div className="border-t pt-4">
-          <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
+        <div className="border-t pt-4>
+          <h4 className="text-sm font-medium mb-2 flex items-center gap-1>
             <TrendingUp className="h-4 w-4" />
             Esta Semana
           </h4>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-1">
+          <div className="grid grid-cols-2 gap-2 text-xs>
+            <div className="flex items-center gap-1>
               <Users className="h-3 w-3 text-muted-foreground" />
               <span>{data.weeklyStats.articlesCreated} criados</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1>
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span>{data.weeklyStats.articlesUpdated} atualizados</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1>
               <BarChart3 className="h-3 w-3 text-muted-foreground" />
               <span>{data.weeklyStats.totalViews} visualizações</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1>
               <BookOpen className="h-3 w-3 text-muted-foreground" />
               <span>Média: {data.weeklyStats.averageRating}/5</span>
             </div>
@@ -503,15 +503,15 @@ export function KnowledgeBaseWidget() {
 
         {/* Top Articles */}
         {data.topViewedArticles.length > 0 && (
-          <div className="border-t pt-4">
+          <div className="border-t pt-4>
             <h4 className="text-sm font-medium mb-2">Mais Visualizados</h4>
-            <div className="space-y-1">
+            <div className="space-y-1>
               {data.topViewedArticles.slice(0, 3).map((article, index) => (
-                <div key={article.id} className="flex justify-between items-center text-xs">
+                <div key={article.id} className="flex justify-between items-center text-xs>
                   <span className="truncate flex-1" title={article.title}>
                     {index + 1}. {article.title}
                   </span>
-                  <span className="text-muted-foreground ml-2">
+                  <span className="text-muted-foreground ml-2>
                     {article.viewCount} views
                   </span>
                 </div>

@@ -56,8 +56,8 @@ const ClientesMultiSelect = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
+    <div className="space-y-2>
+      <div className="relative>
         <Input
           placeholder='[TRANSLATION_NEEDED]'
           value={searchTerm}
@@ -65,7 +65,7 @@ const ClientesMultiSelect = ({
           onFocus={() => setIsOpen(true)}
         />
         {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto>
             {filteredClientes.map((cliente) => (
               <div
                 key={cliente.id}
@@ -77,14 +77,14 @@ const ClientesMultiSelect = ({
                   readOnly
                   className="mr-2"
                 />
-                <div className="flex-1">
+                <div className="flex-1>
                   <div className="font-medium">{cliente.nome}</div>
                   <div className="text-sm text-gray-500">{cliente.email}</div>
                 </div>
               </div>
             ))}
             {filteredClientes.length === 0 && (
-              <div className="p-2 text-gray-500 text-center">
+              <div className="p-2 text-gray-500 text-center>
                 Nenhum cliente encontrado
               </div>
             )}
@@ -94,9 +94,9 @@ const ClientesMultiSelect = ({
 
       {/* Selected clientes */}
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2>
           {value.map((clienteId) => (
-            <Badge key={clienteId} variant="secondary" className="flex items-center gap-1">
+            <Badge key={clienteId} variant="secondary" className="flex items-center gap-1>
               {getClienteNome(clienteId)}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -107,7 +107,7 @@ const ClientesMultiSelect = ({
         </div>
       )}
 
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-gray-500>
         {value.length} cliente(s) selecionado(s)
       </div>
 
@@ -157,8 +157,8 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
   };
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
+    <div className="space-y-2>
+      <div className="relative>
         <Input
           placeholder='[TRANSLATION_NEEDED]'
           value={searchTerm}
@@ -166,7 +166,7 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
           onFocus={() => setIsOpen(true)}
         />
         {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto>
             {filteredRegioes.map((regiao) => (
               <div
                 key={regiao.id}
@@ -178,7 +178,7 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
                   readOnly
                   className="mr-2"
                 />
-                <div className="flex-1">
+                <div className="flex-1>
                   <div className="font-medium">{regiao.nome}</div>
                   {regiao.descricao && (
                     <div className="text-sm text-gray-500">{regiao.descricao}</div>
@@ -187,7 +187,7 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
               </div>
             ))}
             {filteredRegioes.length === 0 && (
-              <div className="p-2 text-gray-500 text-center">
+              <div className="p-2 text-gray-500 text-center>
                 Nenhuma região encontrada
               </div>
             )}
@@ -197,9 +197,9 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
 
       {/* Selected regioes */}
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2>
           {value.map((regiaoId) => (
-            <Badge key={regiaoId} variant="secondary" className="flex items-center gap-1">
+            <Badge key={regiaoId} variant="secondary" className="flex items-center gap-1>
               {getRegiaoNome(regiaoId)}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -210,7 +210,7 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
         </div>
       )}
 
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-gray-500>
         {value.length} região(ões) selecionada(s)
       </div>
 
@@ -408,20 +408,20 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
   };
 
   return (
-    <form onSubmit={handleHookFormSubmit(handleSubmit)} className="space-y-6">
+    <form onSubmit={handleHookFormSubmit(handleSubmit)} className="space-y-6>
       {/* Identificação */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Route className="h-5 w-5" />
             Identificação
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
+        <CardContent className="space-y-4>
+          <div className="flex items-center justify-between>
+            <div className="space-y-0.5>
               <Label htmlFor="ativo">Status</Label>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground>
                 Rota dinâmica ativa no sistema
               </div>
             </div>
@@ -432,7 +432,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <Label htmlFor="nome">Nome da Rota *</Label>
               <Input
@@ -445,7 +445,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
               {errors.nome && (
                 <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
               )}
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 mt-1>
                 {watchedValues.nome?.length || 0}/100 caracteres
               </div>
             </div>
@@ -462,7 +462,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
               {errors.idRota && (
                 <p className="text-sm text-red-500 mt-1">{errors.idRota.message}</p>
               )}
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 mt-1>
                 {watchedValues.idRota?.length || 0}/100 caracteres
               </div>
             </div>
@@ -473,15 +473,15 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       {/* Relacionamentos */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Users className="h-5 w-5" />
             Relacionamentos
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4>
           <div>
             <Label>Clientes Vinculados (Multi-seleção)</Label>
-            <div className="text-sm text-muted-foreground mb-2">
+            <div className="text-sm text-muted-foreground mb-2>
               Selecione os clientes que serão atendidos por esta rota
             </div>
             <ClientesMultiSelect
@@ -492,7 +492,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
 
           <div>
             <Label>Regiões Atendidas (Multi-seleção)</Label>
-            <div className="text-sm text-muted-foreground mb-2">
+            <div className="text-sm text-muted-foreground mb-2>
               Selecione as regiões que serão cobertas por esta rota
             </div>
             <RegioesMultiSelect
@@ -506,20 +506,20 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       {/* Planejamento da Rota */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Calendar className="h-5 w-5" />
             Planejamento da Rota
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4>
           <div>
             <Label>Dias da Semana da Rota (Seleção Múltipla)</Label>
-            <div className="text-sm text-muted-foreground mb-3">
+            <div className="text-sm text-muted-foreground mb-3>
               Selecione os dias da semana em que esta rota será executada
             </div>
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-2>
               {diasSemanaOptions.map((dia) => (
-                <div key={dia.value} className="text-center">
+                <div key={dia.value} className="text-center>
                   <Button
                     type="button"
                     variant={watchedValues.diasSemana?.includes(dia.value) ? "default" : "outline"
@@ -529,14 +529,14 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
                   >
                     {dia.label}
                   </Button>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500 mt-1>
                     {dia.fullName}
                   </div>
                 </div>
               ))}
             </div>
             {watchedValues.diasSemana?.length > 0 && (
-              <div className="mt-2 text-sm text-green-600">
+              <div className="mt-2 text-sm text-green-600>
                 {watchedValues.diasSemana.length} dia(s) selecionado(s)
               </div>
             )}
@@ -544,7 +544,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
 
           <div>
             <Label htmlFor="previsaoDias">Previsão de Dias da Rota Dinâmica *</Label>
-            <div className="text-sm text-muted-foreground mb-2">
+            <div className="text-sm text-muted-foreground mb-2>
               Número de dias para execução da rota (1 a 30 dias)
             </div>
             <Input
@@ -558,7 +558,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
             {errors.previsaoDias && (
               <p className="text-sm text-red-500 mt-1">{errors.previsaoDias.message}</p>
             )}
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-gray-500 mt-1>
               Valor atual: {watchedValues.previsaoDias || 1} dia(s)
             </div>
           </div>
@@ -566,7 +566,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       </Card>
 
       {/* Actions */}
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onClose}>
           Cancelar
         </Button>

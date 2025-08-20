@@ -123,18 +123,18 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
       {...(isDropped ? {} : listeners)}
       {...attributes}
     >
-      <div className="p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-1">
+      <div className="p-3>
+        <div className="flex items-center justify-between>
+          <div className="flex items-center gap-2 flex-1>
             {!isDropped && (
               <GripVertical className="h-4 w-4 text-gray-400" />
             )}
             <IconComponent className="h-4 w-4" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
+            <div className="flex-1 min-w-0>
+              <p className="text-sm font-medium truncate>
                 {field.label}
               </p>
-              <p className="text-xs opacity-75">
+              <p className="text-xs opacity-75>
                 {field.type}
               </p>
             </div>
@@ -153,7 +153,7 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
         </div>
 
         {/* Field Type Badge */}
-        <div className="mt-2">
+        <div className="mt-2>
           <Badge 
             variant="outline" 
             className="text-xs"
@@ -165,7 +165,7 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
 
       {/* Drag Indicator */}
       {!isDropped && (
-        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity>
           <div className="w-2 h-2 bg-current rounded-full"></div>
         </div>
       )}

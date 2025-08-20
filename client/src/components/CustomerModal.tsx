@@ -483,8 +483,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="customer-modal-description">
-          <div id="customer-modal-description" className="sr-only">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="customer-modal-description>
+          <div id="customer-modal-description" className="sr-only>
             Formulário para criar ou editar informações de cliente
           </div>
           <DialogHeader>
@@ -494,32 +494,32 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <Tabs defaultValue="dados-basicos" className="w-full">
-                <TabsList className="w-full h-auto p-1">
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full">
-                    <TabsTrigger value="dados-basicos" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
+              <Tabs defaultValue="dados-basicos" className="w-full>
+                <TabsList className="w-full h-auto p-1>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 w-full>
+                    <TabsTrigger value="dados-basicos" className="flex items-center gap-2 text-xs lg:text-sm p-2>
                       <User className="h-3 w-3 lg:h-4 lg:w-4" />
                       Dados Básicos
                     </TabsTrigger>
-                    <TabsTrigger value="hierarquia" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                    <TabsTrigger value="hierarquia" className="flex items-center gap-2 text-xs lg:text-sm p-2>
                       <Star className="h-3 w-3 lg:h-4 lg:w-4" />
                       Hierarquia
                     </TabsTrigger>
-                    <TabsTrigger value="empresas" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                    <TabsTrigger value="empresas" className="flex items-center gap-2 text-xs lg:text-sm p-2>
                       <Building className="h-3 w-3 lg:h-4 lg:w-4" />
                       Empresas
                     </TabsTrigger>
-                    <TabsTrigger value="locais" className="flex items-center gap-2 text-xs lg:text-sm p-2">
+                    <TabsTrigger value="locais" className="flex items-center gap-2 text-xs lg:text-sm p-2>
                       <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
                       Locais
                     </TabsTrigger>
                   </div>
                 </TabsList>
 
-                <TabsContent value="dados-basicos" className="space-y-4">
+                <TabsContent value="dados-basicos" className="space-y-4>
                   {/* Tipo de Cliente e Status */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <FormField
                       control={form.control}
                       name="customerType"
@@ -567,7 +567,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   {/* Campos condicionais baseados no tipo */}
                   {form.watch('customerType') === 'PF' && (
                     <>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4>
                         <FormField
                           control={form.control}
                           name="firstName"
@@ -657,7 +657,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <FormField
                       control={form.control}
                       name="description"
@@ -686,7 +686,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <FormField
                       control={form.control}
                       name="contactPerson"
@@ -715,7 +715,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-4>
                     <FormField
                       control={form.control}
                       name="phone"
@@ -760,8 +760,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   
                 </TabsContent>
 
-                <TabsContent value="hierarquia" className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
+                <TabsContent value="hierarquia" className="space-y-4>
+                  <div className="grid grid-cols-3 gap-4>
                     <FormField
                       control={form.control}
                       name="supervisor"
@@ -803,18 +803,18 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  <div className="border-t pt-4">
+                  <div className="border-t pt-4>
                     <h3 className="text-lg font-medium mb-4">Configurações Técnicas</h3>
 
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-3 gap-6>
                       <FormField
                         control={form.control}
                         name="verified"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
+                            <div className="space-y-0.5>
                               <FormLabel className="text-base">Verificado</FormLabel>
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-sm text-muted-foreground>
                                 Cliente tem email verificado
                               </div>
                             </div>
@@ -832,10 +832,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         control={form.control}
                         name="active"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
+                            <div className="space-y-0.5>
                               <FormLabel className="text-base">Ativo</FormLabel>
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-sm text-muted-foreground>
                                 Cliente está ativo no sistema
                               </div>
                             </div>
@@ -853,10 +853,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         control={form.control}
                         name="suspended"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
+                            <div className="space-y-0.5>
                               <FormLabel className="text-base">Suspenso</FormLabel>
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-sm text-muted-foreground>
                                 Cliente temporariamente suspenso
                               </div>
                             </div>
@@ -871,7 +871,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="grid grid-cols-2 gap-4 mt-4>
                       <FormField
                         control={form.control}
                         name="externalId"
@@ -921,16 +921,16 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   </div>
                 </TabsContent>
 
-                <TabsContent value="locais" className="space-y-4">
-                  <div className="text-center py-8">
+                <TabsContent value="locais" className="space-y-4>
+                  <div className="text-center py-8>
                     <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-600 mb-2">
+                    <h3 className="text-lg font-medium text-gray-600 mb-2>
                       Gerenciar Localizações
                     </h3>
-                    <p className="text-gray-500 mb-6">
+                    <p className="text-gray-500 mb-6>
                       Associe este cliente a uma ou mais localizações do sistema.
                     </p>
-                    <div className="flex gap-3 justify-center">
+                    <div className="flex gap-3 justify-center>
                       <Button
                         type="button"
                         onClick={handleLocationManagerOpen}
@@ -951,25 +951,25 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                       </Button>
                     </div>
                     {!customer?.id && (
-                      <p className="text-sm text-amber-600 mt-4">
+                      <p className="text-sm text-amber-600 mt-4>
                         💡 Salve o cliente primeiro para gerenciar localizações
                       </p>
                     )}
                   </div>
                 </TabsContent>
 
-                 <TabsContent value="empresas" className="space-y-4">
+                 <TabsContent value="empresas" className="space-y-4>
                     {/* Empresas associadas */}
                     {customer?.id && (
-                      <div className="space-y-4">
+                      <div className="space-y-4>
                         <FormItem>
-                          <FormLabel className="text-base font-semibold flex items-center gap-2">
+                          <FormLabel className="text-base font-semibold flex items-center gap-2>
                             <Building className="h-4 w-4" />
                             Empresas Associadas
                           </FormLabel>
 
                           {/* Lista de empresas associadas */}
-                          <div className="mt-2 space-y-2">
+                          <div className="mt-2 space-y-2>
                             {Array.isArray(companies) && companies.length > 0 ? (
                               companies.map((membership: any, index: number) => {
                                 // Garantir ID único e válido para cada empresa
@@ -979,12 +979,12 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                 const uniqueKey = "
 
                                 return (
-                                  <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium">
+                                  <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border>
+                                    <div className="flex items-center gap-2>
+                                      <span className="font-medium>
                                         {membership.display_name || membership.company_name || membership.name || "
                                       </span>
-                                      <Badge variant={membership.is_primary ? "default" : "secondary">
+                                      <Badge variant={membership.is_primary ? "default" : "secondary>
                                         {membership.role || 'member'}
                                       </Badge>
                                       {membership.is_primary && (
@@ -1005,16 +1005,16 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                 );
                               })
                             ) : (
-                              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border">
+                              <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg border>
                                 Nenhuma empresa associada
                               </div>
                             )}
                           </div>
                         </FormItem>{/* Adicionar nova empresa */}
-                        <div className="mt-4 space-y-2">
+                        <div className="mt-4 space-y-2>
                           <FormLabel className="text-sm font-medium">Adicionar Empresa</FormLabel>
-                          <div className="flex gap-2">
-                            <FormItem className="flex-1">
+                          <div className="flex gap-2>
+                            <FormItem className="flex-1>
                               <Select 
                                 onValueChange={(value) => {
                                   setSelectedCompanyId(value);
@@ -1094,15 +1094,15 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     )}
 
                     {!customer?.id && (
-                      <div className="text-center py-8">
+                      <div className="text-center py-8>
                         <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-600 mb-2">
+                        <h3 className="text-lg font-medium text-gray-600 mb-2>
                           Gerenciar Empresas
                         </h3>
-                        <p className="text-gray-500 mb-4">
+                        <p className="text-gray-500 mb-4>
                           Associe este cliente a empresas do sistema após salvá-lo.
                         </p>
-                        <p className="text-sm text-amber-600">
+                        <p className="text-sm text-amber-600>
                           💡 Salve o cliente primeiro para gerenciar empresas
                         </p>
                       </div>
@@ -1110,7 +1110,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   </TabsContent>
               </Tabs>
 
-              <div className="flex justify-end gap-3 pt-6 border-t">
+              <div className="flex justify-end gap-3 pt-6 border-t>
                 <Button type="button" variant="outline" onClick={onClose}>
                   Cancelar
                 </Button>

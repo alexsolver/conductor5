@@ -134,7 +134,7 @@ export default function AssetManagement() {
 
   // Generate QR Code mutation
   const generateQRMutation = useMutation({
-    mutationFn: (assetId: string) => apiRequest('POST', "/qr-code`),
+    mutationFn: (assetId: string) => apiRequest('POST', "/api/assets/qr-code"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/assets'] });
       toast({ title: 'QR Code gerado com sucesso!' });
@@ -175,14 +175,14 @@ export default function AssetManagement() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">Controle de Ativos</h1>
           <p className="text-muted-foreground">Gestão completa de ativos com geolocalização e QR codes</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className=""
           <Dialog open={isCreateAssetOpen} onOpenChange={setIsCreateAssetOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -190,7 +190,7 @@ export default function AssetManagement() {
                 Novo Ativo
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className=""
               <DialogHeader>
                 <DialogTitle>Criar Novo Ativo</DialogTitle>
                 <DialogDescription>
@@ -209,26 +209,26 @@ export default function AssetManagement() {
                   acquisitionCost: formData.get('acquisitionCost'),
                   warrantyExpiry: formData.get('warrantyExpiry')
                 });
-              }} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+              }} className=""
+                <div className=""
+                  <div className=""
                     <Label htmlFor="name">Nome do Ativo *</Label>
                     <Input name="name" required placeholder="Ex: Compressor Industrial" />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="code">Código *</Label>
                     <Input name="code" required placeholder="Ex: COMP-001" />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="serialNumber">Número de Série</Label>
                     <Input name="serialNumber" placeholder="Ex: SN123456789" />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="status">Status</Label>
-                    <Select name="status" defaultValue="active">
+                    <Select name="status" defaultValue="active>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -242,10 +242,10 @@ export default function AssetManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="assetLevel">Nível do Ativo</Label>
-                    <Select name="assetLevel" defaultValue="machine">
+                    <Select name="assetLevel" defaultValue="machine>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -256,18 +256,18 @@ export default function AssetManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="acquisitionCost">Custo de Aquisição</Label>
                     <Input name="acquisitionCost" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="warrantyExpiry">Data de Vencimento da Garantia</Label>
                   <Input name="warrantyExpiry" type="date" />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateAssetOpen(false)}>
                     Cancelar
                   </Button>
@@ -281,7 +281,7 @@ export default function AssetManagement() {
 
           <Dialog open={isMaintenanceOpen} onOpenChange={setIsMaintenanceOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline>
                 <Wrench className="w-4 h-4 mr-2" />
                 Agendar Manutenção
               </Button>
@@ -303,8 +303,8 @@ export default function AssetManagement() {
                   scheduledDate: formData.get('scheduledDate'),
                   description: formData.get('description')
                 });
-              }} className="space-y-4">
-                <div className="space-y-2">
+              }} className=""
+                <div className=""
                   <Label htmlFor="assetId">Ativo</Label>
                   <Select name="assetId" required>
                     <SelectTrigger>
@@ -320,8 +320,8 @@ export default function AssetManagement() {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="type">Tipo de Manutenção</Label>
                     <Select name="type" required>
                       <SelectTrigger>
@@ -334,9 +334,9 @@ export default function AssetManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="priority">Prioridade</Label>
-                    <Select name="priority" defaultValue="medium">
+                    <Select name="priority" defaultValue="medium>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -350,17 +350,17 @@ export default function AssetManagement() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="scheduledDate">Data Agendada</Label>
                   <Input name="scheduledDate" type="datetime-local" required />
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="description">Descrição</Label>
                   <Textarea name="description" required placeholder="Descreva os trabalhos a serem realizados..." />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsMaintenanceOpen(false)}>
                     Cancelar
                   </Button>
@@ -375,56 +375,56 @@ export default function AssetManagement() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
             <Package2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalAssets || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {stats?.activeAssets || 0} ativos ativos
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Em Manutenção</CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.maintenanceAssets || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {stats?.scheduledMaintenance || 0} agendadas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Taxa de Conclusão</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.maintenanceCompletionRate || 0}%</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {stats?.completedMaintenance || 0} concluídas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">QR Codes</CardTitle>
             <QrCode className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {assets.filter((a: Asset) => a.qrCode).length}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               ativos com QR Code
             </p>
           </CardContent>
@@ -432,7 +432,7 @@ export default function AssetManagement() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="assets" className="space-y-4">
+      <Tabs defaultValue="assets" className=""
         <TabsList>
           <TabsTrigger value="assets">Ativos</TabsTrigger>
           <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
@@ -440,10 +440,10 @@ export default function AssetManagement() {
           <TabsTrigger value="meters">Medidores</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="assets" className="space-y-4">
+        <TabsContent value="assets" className=""
           {/* Filters */}
-          <div className="flex gap-4">
-            <div className="relative flex-1">
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -453,7 +453,7 @@ export default function AssetManagement() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className=""
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -467,27 +467,27 @@ export default function AssetManagement() {
           </div>
 
           {/* Assets List */}
-          <div className="grid gap-4">
+          <div className=""
             {assetsLoading ? (
               <div className="text-center py-8">Carregando ativos...</div>
             ) : filteredAssets.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 Nenhum ativo encontrado
               </div>
             ) : (
               filteredAssets.map((asset: Asset) => (
                 <Card key={asset.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <h3 className="font-semibold">{asset.name}</h3>
                           {getStatusBadge(asset.status)}
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className=""
                           Código: {asset.code} | Série: {asset.serialNumber || 'N/A'}
                         </p>
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className=""
                           <span>Nível: {asset.assetLevel}</span>
                           {asset.acquisitionCost && (
                             <span>Custo: R$ {parseFloat(asset.acquisitionCost).toFixed(2)}</span>
@@ -495,7 +495,7 @@ export default function AssetManagement() {
                         </div>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className=""
                         {!asset.qrCode && (
                           <Button
                             variant="outline"
@@ -528,35 +528,35 @@ export default function AssetManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="maintenance" className="space-y-4">
-          <div className="grid gap-4">
+        <TabsContent value="maintenance" className=""
+          <div className=""
             {maintenance.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 Nenhuma manutenção agendada
               </div>
             ) : (
               maintenance.map((m) => (
                 <Card key={m.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <h3 className="font-semibold">{m.description}</h3>
                           {getPriorityBadge(m.priority)}
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className=""
                           Tipo: {m.type} | Status: {m.status}
                         </p>
                         {m.scheduledDate && (
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className=""
                             <Calendar className="w-4 h-4" />
                             {new Date(m.scheduledDate).toLocaleDateString('pt-BR')}
                           </div>
                         )}
                       </div>
                       
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                      <div className=""
+                        <Button variant="outline" size="sm>
                           <Settings className="w-4 h-4 mr-1" />
                           Gerenciar
                         </Button>
@@ -569,7 +569,7 @@ export default function AssetManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="hierarchy" className="space-y-4">
+        <TabsContent value="hierarchy" className=""
           <Card>
             <CardHeader>
               <CardTitle>Hierarquia de Ativos</CardTitle>
@@ -579,13 +579,13 @@ export default function AssetManagement() {
             </CardHeader>
             <CardContent>
               {hierarchy.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className=""
                   Nenhuma hierarquia configurada
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className=""
                   {/* Tree view would be implemented here */}
-                  <p className="text-sm text-muted-foreground">
+                  <p className=""
                     Hierarquia carregada com {hierarchy.length} nós raiz
                   </p>
                 </div>
@@ -594,7 +594,7 @@ export default function AssetManagement() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="meters" className="space-y-4">
+        <TabsContent value="meters" className=""
           <Card>
             <CardHeader>
               <CardTitle>Medidores de Ativos</CardTitle>
@@ -603,7 +603,7 @@ export default function AssetManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 <Gauge className="w-12 h-12 mx-auto mb-4" />
                 <p>Módulo de medidores em desenvolvimento</p>
               </div>

@@ -92,7 +92,7 @@ export default function DragDropDemo() {
         }}
         className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
       >
-        <div className="flex items-center gap-2">
+        <div className=""
           <IconComponent className="h-4 w-4 text-blue-600" />
           <span className="text-sm font-medium">{field.label}</span>
         </div>
@@ -132,9 +132,9 @@ export default function DragDropDemo() {
         {fieldsInZone.length === 0 ? (
           <p className="text-sm text-gray-400 italic">Arraste campos aqui</p>
         ) : (
-          <div className="space-y-2">
+          <div className=""
             {fieldsInZone.map((field) => (
-              <div key={field.id} className="flex items-center justify-between p-2 bg-white border rounded">
+              <div key={field.id} className=""
                 <span className="text-sm">{field.label}</span>
                 <Button
                   variant="ghost"
@@ -153,10 +153,10 @@ export default function DragDropDemo() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className=""
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
+      <div className=""
+        <div className=""
           <Button variant="outline" onClick={() => setLocation('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
@@ -167,13 +167,13 @@ export default function DragDropDemo() {
           </div>
         </div>
         
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
+        <div className=""
+          <div className=""
             <Layout className="h-5 w-5 text-blue-600" />
             <span className="font-medium text-blue-900">Sistema Ativo</span>
             <Badge variant="secondary">{droppedFields.length} campos adicionados</Badge>
           </div>
-          <p className="text-sm text-blue-700 mt-1">
+          <p className=""
             Arraste campos da paleta (direita) para as seções do formulário (esquerda)
           </p>
         </div>
@@ -184,17 +184,17 @@ export default function DragDropDemo() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className=""
           {/* Main Content Area - Form with Drop Zones */}
-          <div className="lg:col-span-3">
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Formulário de Demonstração</CardTitle>
-                <p className="text-sm text-gray-600">
+                <p className=""
                   Arraste campos da paleta para as seções abaixo
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className=""
                 {dropZones.map((zone) => (
                   <DropZone key={zone.id} zone={zone} />
                 ))}
@@ -203,18 +203,18 @@ export default function DragDropDemo() {
           </div>
 
           {/* Sidebar - Fields Palette */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-6">
+          <div className=""
+            <Card className=""
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className=""
                   <Layout className="h-5 w-5" />
                   Paleta de Campos
                 </CardTitle>
-                <p className="text-sm text-gray-600">
+                <p className=""
                   Arraste para adicionar ao formulário
                 </p>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className=""
                 {availableFields.map((field) => (
                   <DraggableField key={field.id} field={field} />
                 ))}
@@ -226,10 +226,10 @@ export default function DragDropDemo() {
         {/* Drag Overlay */}
         <DragOverlay>
           {activeId ? (
-            <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-lg">
-              <div className="flex items-center gap-2">
+            <div className=""
+              <div className=""
                 <Layout className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium">
+                <span className=""
                   {availableFields.find(f => f.id === activeId)?.label}
                 </span>
               </div>

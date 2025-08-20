@@ -92,8 +92,8 @@ export function TranslationCompletionPanel() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-2">
+        <CardContent className="p-6>
+          <div className="flex items-center space-x-2>
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Analisando traduções...</span>
           </div>
@@ -105,14 +105,14 @@ export function TranslationCompletionPanel() {
   if (!completionReport) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center">
+        <CardContent className="p-6>
+          <div className="text-center>
             <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
             <h3 className="font-semibold mb-2">Dados Indisponíveis</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4>
               Não foi possível carregar o relatório de completude das traduções.
             </p>
-            <Button onClick={() => refetch()} variant="outline">
+            <Button onClick={() => refetch()} variant="outline>
               <RefreshCw className="h-4 w-4 mr-2" />
               Tentar Novamente
             </Button>
@@ -123,15 +123,15 @@ export function TranslationCompletionPanel() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6>
+      <div className="flex items-center justify-between>
         <div>
           <h2 className="text-2xl font-bold">Completude das Traduções</h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600>
             Análise automática e completude de traduções para todos os módulos
           </p>
         </div>
-        <div className="space-x-2">
+        <div className="space-x-2>
           <Button
             variant="outline"
             onClick={() => refetch()}
@@ -151,9 +151,9 @@ export function TranslationCompletionPanel() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2>
             <CardTitle className="text-sm font-medium">Total de Chaves</CardTitle>
           </CardHeader>
           <CardContent>
@@ -163,11 +163,11 @@ export function TranslationCompletionPanel() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2>
             <CardTitle className="text-sm font-medium">Idiomas Suportados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold>
               {completionReport.summary?.languageStats ? 
                 Object.keys(completionReport.summary.languageStats).length : 0
               }
@@ -177,11 +177,11 @@ export function TranslationCompletionPanel() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2>
             <CardTitle className="text-sm font-medium">Completude Média</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold>
               {completionReport.summary?.languageStats ? 
                 Math.round(
                   Object.values(completionReport.summary.languageStats)
@@ -197,7 +197,7 @@ export function TranslationCompletionPanel() {
       {/* Languages Status */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Globe className="h-5 w-5" />
             Status dos Idiomas
           </CardTitle>
@@ -205,23 +205,23 @@ export function TranslationCompletionPanel() {
             Completude das traduções por idioma
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4>
           {completionReport.summary?.languageStats && 
             Object.entries(completionReport.summary.languageStats).map(([language, stats]: [string, TranslationStats]) => (
-              <div key={language} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+              <div key={language} className="space-y-2>
+                <div className="flex items-center justify-between>
+                  <div className="flex items-center gap-2>
                     <Badge variant={stats.completeness >= 90 ? 'default' : 'destructive'}>
                       {language}
                     </Badge>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500>
                       {stats.existingKeys} de {stats.existingKeys + stats.missingKeys} chaves
                     </span>
                   </div>
                   <span className={`font-medium ${
                     stats.completeness >= 90 ? 'text-green-600' : 
                     stats.completeness >= 70 ? 'text-yellow-600' : 'text-red-600'
-                  ">
+                  >
                     {stats.completeness.toFixed(1)}%
                   </span>
                 </div>
@@ -241,16 +241,16 @@ export function TranslationCompletionPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-4>
             {completionReport.gaps?.map((gap: any) => (
-              <div key={gap.language} className="space-y-2">
+              <div key={gap.language} className="space-y-2>
                 <h4 className="font-medium">{gap.language}</h4>
                 {Object.entries(gap.moduleGaps).length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2>
                     {Object.entries(gap.moduleGaps).map(([module, missingKeys]: [string, any]) => (
-                      <Badge key={module} variant="outline" className="justify-between">
+                      <Badge key={module} variant="outline" className="justify-between>
                         {module}
-                        <span className="ml-2 text-xs bg-red-100 text-red-800 px-1 rounded">
+                        <span className="ml-2 text-xs bg-red-100 text-red-800 px-1 rounded>
                           {missingKeys.length}
                         </span>
                       </Badge>

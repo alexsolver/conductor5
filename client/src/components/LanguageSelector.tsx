@@ -52,13 +52,13 @@ export function LanguageSelector({
         <Tooltip>
           <TooltipTrigger asChild>
             <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-10 h-10 border-0 bg-transparent hover:bg-muted "">
+              <SelectTrigger className="w-10 h-10 border-0 bg-transparent hover:bg-muted ">
                 <Globe className="h-4 w-4" />
               </SelectTrigger>
-              <SelectContent align="end">
+              <SelectContent align="end>
                 {supportedLanguages.map((language) => (
                   <SelectItem key={language.code} value={language.code}>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2>
                       {showFlag && <span className="text-lg">{language.flag}</span>}
                       <span>{language.name}</span>
                     </div>
@@ -78,15 +78,15 @@ export function LanguageSelector({
   if (variant === 'compact') {
     return (
       <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
-        <SelectTrigger className="w-16 h-8 text-xs "">
+        <SelectTrigger className="w-16 h-8 text-xs ">
           <SelectValue>
             {showFlag ? currentLanguage.flag : currentLanguage.code.toUpperCase()}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent align="end">
+        <SelectContent align="end>
           {supportedLanguages.map((language) => (
             <SelectItem key={language.code} value={language.code}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2>
                 {showFlag && <span>{language.flag}</span>}
                 <span className="text-xs">{language.name}</span>
               </div>
@@ -99,11 +99,11 @@ export function LanguageSelector({
 
   return (
     <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
-      <SelectTrigger className="w-48 "">
-        <div className="flex items-center gap-2">
+      <SelectTrigger className="w-48 ">
+        <div className="flex items-center gap-2>
           <Globe className="h-4 w-4" />
           <SelectValue>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2>
               {showFlag && <span>{currentLanguage.flag}</span>}
               <span>{currentLanguage.name}</span>
             </div>
@@ -113,7 +113,7 @@ export function LanguageSelector({
       <SelectContent>
         {supportedLanguages.map((language) => (
           <SelectItem key={language.code} value={language.code}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2>
               {showFlag && <span className="text-lg">{language.flag}</span>}
               <span>{language.name}</span>
             </div>

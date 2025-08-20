@@ -42,9 +42,9 @@ export const DateField: React.FC<DateTimeFieldProps> = ({
   const formatDisplay = properties.format || 'dd/MM/yyyy'
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -68,7 +68,7 @@ export const DateField: React.FC<DateTimeFieldProps> = ({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0" align="start>
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -129,16 +129,16 @@ export const DateTimeField: React.FC<DateTimeFieldProps> = ({
     : ''
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
         <Badge variant="outline" className="text-xs">data e hora</Badge>
       </div>
       
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2>
         {/* Seletor de Data */}
         <Popover>
           <PopoverTrigger asChild>
@@ -157,7 +157,7 @@ export const DateTimeField: React.FC<DateTimeFieldProps> = ({
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0" align="start>
             <Calendar
               mode="single"
               selected={selectedDateTime}
@@ -169,7 +169,7 @@ export const DateTimeField: React.FC<DateTimeFieldProps> = ({
         </Popover>
 
         {/* Seletor de Hora */}
-        <div className="relative">
+        <div className="relative>
           <Input
             type="time"
             value={timeValue}
@@ -183,7 +183,7 @@ export const DateTimeField: React.FC<DateTimeFieldProps> = ({
       
       {/* Preview do valor selecionado */}
       {selectedDateTime && (
-        <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+        <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded>
           <strong>Selecionado:</strong> {format(selectedDateTime, formatDisplay, { locale: ptBR })}
         </div>
       )}
@@ -204,16 +204,16 @@ export const TimeField: React.FC<DateTimeFieldProps> = ({
   const { properties = {} } = field
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
         <Badge variant="outline" className="text-xs">horário</Badge>
       </div>
       
-      <div className="relative">
+      <div className="relative>
         <Input
           type="time"
           value={value}

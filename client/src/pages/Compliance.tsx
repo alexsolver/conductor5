@@ -228,20 +228,20 @@ export default function Compliance() {
   const multitenancyCategories = groupByCategory(multitenancyItems);
 
   return (
-      <div className="p-4 space-y-6">
+      <div className=""
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-xl p-6 text-white">
+        <div className=""
           <h1 className="text-3xl font-bold mb-2">Compliance</h1>
-          <p className="text-blue-100">
+          <p className=""
             Verificação de conformidade arquitetural e requisitos técnicos
           </p>
         </div>
 
         {/* Progress Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className=""
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className=""
                 <Layers className="h-5 w-5" />
                 Clear Architecture
               </CardTitle>
@@ -250,13 +250,13 @@ export default function Compliance() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+              <div className=""
+                <div className=""
                   <span>Progresso Geral</span>
                   <span>{clearArchProgress}%</span>
                 </div>
                 <Progress value={clearArchProgress} className="h-3" />
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className=""
                   <span>{clearArchitectureItems.filter(i => i.status === "implemented").length} implementados</span>
                   <span>{clearArchitectureItems.length} total</span>
                 </div>
@@ -266,7 +266,7 @@ export default function Compliance() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className=""
                 <Database className="h-5 w-5" />
                 Multitenancy
               </CardTitle>
@@ -275,13 +275,13 @@ export default function Compliance() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+              <div className=""
+                <div className=""
                   <span>Progresso Geral</span>
                   <span>{multitenancyProgress}%</span>
                 </div>
                 <Progress value={multitenancyProgress} className="h-3" />
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className=""
                   <span>{multitenancyItems.filter(i => i.status === "implemented").length} implementados</span>
                   <span>{multitenancyItems.length} total</span>
                 </div>
@@ -293,7 +293,7 @@ export default function Compliance() {
         {/* Clear Architecture Section */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className=""
               <Layers className="h-6 w-6" />
               1. Clear Architecture
             </CardTitle>
@@ -302,28 +302,28 @@ export default function Compliance() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
+            <div className=""
               {Object.entries(clearArchCategories).map(([category, items]) => {
                 const categoryProgress = calculateProgress(items);
                 return (
-                  <div key={category} className="space-y-3">
-                    <div className="flex items-center gap-3">
+                  <div key={category} className=""
+                    <div className=""
                       {getCategoryIcon(category)}
                       <h3 className="text-lg font-semibold">{category}</h3>
-                      <div className="ml-auto flex items-center gap-2">
+                      <div className=""
                         <span className="text-sm text-muted-foreground">{categoryProgress}%</span>
                         <Progress value={categoryProgress} className="w-24 h-2" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div className=""
                       {items.map((item, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          <div className="flex items-center gap-3 flex-1">
+                          <div className=""
                             {getStatusIcon(item.status)}
-                            <div className="flex-1">
+                            <div className=""
                               <p className="text-sm font-medium">{item.name}</p>
                               {item.description && (
                                 <p className="text-xs text-muted-foreground">{item.description}</p>
@@ -344,7 +344,7 @@ export default function Compliance() {
         {/* Multitenancy Requirements Section */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className=""
               <Database className="h-6 w-6" />
               2. Requisitos - Multitenancy
             </CardTitle>
@@ -353,28 +353,28 @@ export default function Compliance() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
+            <div className=""
               {Object.entries(multitenancyCategories).map(([category, items]) => {
                 const categoryProgress = calculateProgress(items);
                 return (
-                  <div key={category} className="space-y-3">
-                    <div className="flex items-center gap-3">
+                  <div key={category} className=""
+                    <div className=""
                       {getCategoryIcon(category)}
                       <h3 className="text-lg font-semibold">{category}</h3>
-                      <div className="ml-auto flex items-center gap-2">
+                      <div className=""
                         <span className="text-sm text-muted-foreground">{categoryProgress}%</span>
                         <Progress value={categoryProgress} className="w-24 h-2" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div className=""
                       {items.map((item, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          <div className="flex items-center gap-3 flex-1">
+                          <div className=""
                             {getStatusIcon(item.status)}
-                            <div className="flex-1">
+                            <div className=""
                               <p className="text-sm font-medium">{item.name}</p>
                               {item.description && (
                                 <p className="text-xs text-muted-foreground">{item.description}</p>

@@ -78,7 +78,7 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2">
+              <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
                 {field.isRequired && <span className="text-red-500">*</span>}
@@ -108,7 +108,7 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2">
+              <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
                 {field.isRequired && <span className="text-red-500">*</span>}
@@ -139,7 +139,7 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2">
+              <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
                 {field.isRequired && <span className="text-red-500">*</span>}
@@ -179,7 +179,7 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2">
+              <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
                 {field.isRequired && <span className="text-red-500">*</span>}
@@ -218,7 +218,7 @@ const renderFieldByType = (
           name={fieldKey}
           render={({ field: formField }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2">
+              <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
                 {field.isRequired && <span className="text-red-500">*</span>}
@@ -238,7 +238,7 @@ const renderFieldByType = (
                       }
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0>
                     <Calendar
                       mode="single"
                       selected={formField.value ? new Date(formField.value) : undefined}
@@ -263,7 +263,7 @@ const renderFieldByType = (
           control={form.control}
           name={fieldKey}
           render={({ field: formField }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0>
               <FormControl>
                 <Checkbox
                   checked={formField.value}
@@ -274,8 +274,8 @@ const renderFieldByType = (
                   disabled={isReadOnly}
                 />
               </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="flex items-center gap-2">
+              <div className="space-y-1 leading-none>
+                <FormLabel className="flex items-center gap-2>
                   <IconComponent className="h-4 w-4" />
                   {field.label}
                   {field.isRequired && <span className="text-red-500">*</span>}
@@ -289,10 +289,10 @@ const renderFieldByType = (
 
     default:
       return (
-        <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-          <div className="flex items-center gap-2 text-gray-500">
+        <div className="p-4 border border-dashed border-gray-300 rounded-lg>
+          <div className="flex items-center gap-2 text-gray-500>
             <IconComponent className="h-4 w-4" />
-            <span className="text-sm">
+            <span className="text-sm>
               Campo personalizado: {field.label} ({field.fieldType})
             </span>
           </div>
@@ -329,10 +329,10 @@ export function DynamicFormRenderer({
 
   if (fields.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500 "">
+      <div className="p-8 text-center text-gray-500 ">
         <Type className="h-8 w-8 mx-auto mb-2 text-gray-400" />
         <p>Nenhum campo personalizado configurado</p>
-        <p className="text-sm mt-1">
+        <p className="text-sm mt-1>
           Use o editor de layout para adicionar campos personalizados
         </p>
       </div>
@@ -340,7 +340,7 @@ export function DynamicFormRenderer({
   }
 
   return (
-    <div className="space-y-6 "">
+    <div className="space-y-6 ">
       {Object.entries(groupedFields).map(([sectionId, sectionFields]) => {
         // Sort fields by position
         const sortedFields = sectionFields
@@ -352,15 +352,15 @@ export function DynamicFormRenderer({
         return (
           <Card key={sectionId}>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between>
                 <span>{getSectionTitle(sectionId)}</span>
-                <Badge variant="secondary">
+                <Badge variant="secondary>
                   {sortedFields.length} {sortedFields.length === 1 ? 'campo' : 'campos'}
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
                 {sortedFields.map((field) => (
                   <div key={field.id}>
                     {renderFieldByType(field, form, onFieldChange, isReadOnly)}

@@ -24,17 +24,17 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-4 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className=""
+        <div className=""
           <div>
             <div className="h-8 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
             <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className=""
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
+            <Card key={i} className=""
+              <CardHeader className=""
                 <div className="h-4 bg-gray-200 rounded w-24"></div>
               </CardHeader>
               <CardContent>
@@ -75,8 +75,8 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">'[TRANSLATION_NEEDED]'</h1>
           <p className="text-gray-600 dark:text-gray-400">'[TRANSLATION_NEEDED]'</p>
@@ -84,11 +84,11 @@ export default function Dashboard() {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className=""
         {metrics.map((metric) => (
-          <Card key={metric.title} className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <Card key={metric.title} className=""
+            <CardHeader className=""
+              <CardTitle className=""
                 {metric.title}
               </CardTitle>
               <metric.icon className="h-4 w-4 text-purple-600" />
@@ -102,26 +102,26 @@ export default function Dashboard() {
       </div>
 
       {/* Activity Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className=""
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className=""
               {activity?.slice(0, 5).map((item: any, index: number) => (
-                <div key={index} className="flex items-center space-x-3 text-sm">
+                <div key={index} className=""
                   <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  <div className="flex-1">
+                  <div className=""
                     <span className="font-medium">{item.action}</span>
                     <span className="text-gray-600 dark:text-gray-400"> by {item.user?.firstName || 'User'}</span>
                   </div>
-                  <span className="text-gray-500 text-xs">
+                  <span className=""
                     {new Date(item.createdAt).toLocaleTimeString()}
                   </span>
                 </div>
               )) || (
-                <div className="text-center text-gray-500 py-8">
+                <div className=""
                   No recent activity
                 </div>
               )}
@@ -134,16 +134,16 @@ export default function Dashboard() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <div className=""
+              <button className=""
                 <div className="font-medium">Create New Ticket</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Start a new support ticket</div>
               </button>
-              <button className="w-full text-left p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              <button className=""
                 <div className="font-medium">Add Customer</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Register a new customer</div>
               </button>
-              <button className="w-full text-left p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              <button className=""
                 <div className="font-medium">View Reports</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Check detailed analytics</div>
               </button>

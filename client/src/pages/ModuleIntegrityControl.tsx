@@ -193,8 +193,8 @@ export default function ModuleIntegrityControl() {
 
   if (modulesLoading || checksLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
+      <div className=""
+        <div className=""
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p>Carregando Sistema de Controle de Integridade...</p>
         </div>
@@ -203,18 +203,18 @@ export default function ModuleIntegrityControl() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className=""
             Controle de Integridade de Módulos
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className=""
             Sistema avançado de prevenção de regressões e controle de qualidade
           </p>
         </div>
-        <div className="flex space-x-2">
+        <div className=""
           <Button
             onClick={() => createBackupMutation.mutate()}
             disabled={createBackupMutation.isPending}
@@ -242,59 +242,59 @@ export default function ModuleIntegrityControl() {
       </div>
 
       {/* Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Módulos Saudáveis</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className=""
               {modules.filter(m => m.status === 'healthy').length}
             </div>
-            <p className="text-xs text-green-600">
+            <p className=""
               de {modules.length} módulos
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Avisos</CardTitle>
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className=""
               {modules.filter(m => m.status === 'warning').length}
             </div>
-            <p className="text-xs text-yellow-600">
+            <p className=""
               requerem atenção
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Erros Críticos</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className=""
               {modules.filter(m => m.status === 'error').length}
             </div>
-            <p className="text-xs text-red-600">
+            <p className=""
               correção urgente
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Integridade Geral</CardTitle>
             <Activity className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className=""
               {Math.round(modules.reduce((acc, m) => acc + m.healthScore, 0) / modules.length)}%
             </div>
             <Progress 
@@ -305,8 +305,8 @@ export default function ModuleIntegrityControl() {
         </Card>
       </div>
 
-      <Tabs defaultValue="modules" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="modules" className=""
+        <TabsList className=""
           <TabsTrigger value="modules">Módulos</TabsTrigger>
           <TabsTrigger value="checks">Verificações</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoramento</TabsTrigger>
@@ -314,30 +314,30 @@ export default function ModuleIntegrityControl() {
         </TabsList>
 
         {/* Modules Tab */}
-        <TabsContent value="modules" className="space-y-4">
-          <div className="grid gap-4">
+        <TabsContent value="modules" className=""
+          <div className=""
             {modules.map((module) => {
               const ModuleIcon = moduleIcons[module.name as keyof typeof moduleIcons] || FileCode;
               const isExpanded = expandedModules.has(module.name);
 
               return (
-                <Card key={module.name} className="overflow-hidden">
+                <Card key={module.name} className=""
                   <Collapsible>
                     <CollapsibleTrigger asChild>
                       <CardHeader 
                         className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         onClick={() => toggleModuleExpansion(module.name)}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
+                        <div className=""
+                          <div className=""
                             <ModuleIcon className="h-8 w-8 text-blue-600" />
                             <div>
-                              <CardTitle className="flex items-center space-x-2">
+                              <CardTitle className=""
                                 <span>{module.name}</span>
                                 <Badge 
                                   variant={module.status === 'healthy' ? 'default' : 
                                           module.status === 'warning' ? 'secondary' : 'destructive'}
-                                  className="""
+                                  className=""
                                 >
                                   {getStatusIcon(module.status)}
                                   <span className="ml-1">{module.status}</span>
@@ -346,8 +346,8 @@ export default function ModuleIntegrityControl() {
                               <CardDescription>{module.description}</CardDescription>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-4">
-                            <div className="text-right">
+                          <div className=""
+                            <div className=""
                               <div className="text-lg font-bold">{module.healthScore}%</div>
                               <div className="text-sm text-gray-500">Integridade</div>
                             </div>
@@ -361,23 +361,23 @@ export default function ModuleIntegrityControl() {
                     </CollapsibleTrigger>
 
                     <CollapsibleContent>
-                      <CardContent className="pt-0">
+                      <CardContent className=""
                         <Separator className="mb-4" />
                         
                         {/* Module Statistics */}
-                        <div className="grid grid-cols-3 gap-4 mb-4">
-                          <div className="text-center">
+                        <div className=""
+                          <div className=""
                             <div className="text-2xl font-bold text-blue-600">{module.files.length}</div>
                             <div className="text-sm text-gray-500">Arquivos</div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600">
+                          <div className=""
+                            <div className=""
                               {module.tests.unit + module.tests.integration + module.tests.e2e}
                             </div>
                             <div className="text-sm text-gray-500">Testes</div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-purple-600">
+                          <div className=""
+                            <div className=""
                               {module.files.reduce((acc, f) => acc + f.dependencies.length, 0)}
                             </div>
                             <div className="text-sm text-gray-500">Dependências</div>
@@ -385,36 +385,36 @@ export default function ModuleIntegrityControl() {
                         </div>
 
                         {/* Files List */}
-                        <div className="space-y-2">
+                        <div className=""
                           <h4 className="font-semibold">Arquivos do Módulo</h4>
-                          <ScrollArea className="h-64">
+                          <ScrollArea className=""
                             {module.files.map((file, index) => (
-                              <div key={index} className="p-3 border rounded mb-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
+                              <div key={index} className=""
+                                <div className=""
+                                  <div className=""
                                     <FileCode className="h-4 w-4" />
                                     <span className="text-sm font-mono">{file.path}</span>
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge variant="outline" className=""
                                       {file.type}
                                     </Badge>
                                   </div>
-                                  <div className="flex items-center space-x-2">
+                                  <div className=""
                                     {getStatusIcon(file.integrity)}
-                                    <span className="text-xs text-gray-500">
+                                    <span className=""
                                       {new Date(file.lastModified).toLocaleDateString()}
                                     </span>
                                   </div>
                                 </div>
                                 
                                 {file.issues && file.issues.length > 0 && (
-                                  <div className="mt-3 space-y-2">
+                                  <div className=""
                                     {file.issues.map((issue, issueIndex) => (
                                       <div key={issueIndex} className={cn(
                                         "p-3 rounded-lg border-l-4",
                                         issue.type === 'error' ? "bg-red-50 border-red-400 dark:bg-red-900/20" : "bg-yellow-50 border-yellow-400 dark:bg-yellow-900/20"
                                       )}>
-                                        <div className="flex items-start justify-between">
-                                          <div className="flex-1">
+                                        <div className=""
+                                          <div className=""
                                             <h5 className={cn(
                                               "text-sm font-medium",
                                               issue.type === 'error' ? "text-red-800 dark:text-red-200" : "text-yellow-800 dark:text-yellow-200"
@@ -428,11 +428,11 @@ export default function ModuleIntegrityControl() {
                                             )}>
                                               <strong>Problema:</strong> {issue.problemFound}
                                             </p>
-                                            <div className="mt-2">
-                                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                            <div className=""
+                                              <p className=""
                                                 <strong>Prompt para correção:</strong>
                                               </p>
-                                              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap max-h-20 overflow-y-auto">
+                                              <div className=""
                                                 {issue.correctionPrompt}
                                               </div>
                                               <Button
@@ -455,7 +455,7 @@ export default function ModuleIntegrityControl() {
                           </ScrollArea>
                         </div>
 
-                        <div className="flex justify-end space-x-2 mt-4">
+                        <div className=""
                           <Button
                             variant="outline"
                             size="sm"
@@ -479,7 +479,7 @@ export default function ModuleIntegrityControl() {
         </TabsContent>
 
         {/* Checks Tab */}
-        <TabsContent value="checks" className="space-y-4">
+        <TabsContent value="checks" className=""
           <Card>
             <CardHeader>
               <CardTitle>Histórico de Verificações</CardTitle>
@@ -488,19 +488,19 @@ export default function ModuleIntegrityControl() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-96">
+              <ScrollArea className=""
                 {checks.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className=""
                     Nenhuma verificação encontrada. Execute uma verificação para começar.
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className=""
                     {checks.map((check) => (
-                      <Card key={check.id} className="border-l-4 border-l-blue-500">
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
+                      <Card key={check.id} className=""
+                        <CardHeader className=""
+                          <div className=""
                             <div>
-                              <CardTitle className="text-lg">
+                              <CardTitle className=""
                                 Verificação {check.type}
                               </CardTitle>
                               <CardDescription>
@@ -516,32 +516,32 @@ export default function ModuleIntegrityControl() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <div className="grid grid-cols-4 gap-4 mb-4">
-                            <div className="text-center">
+                          <div className=""
+                            <div className=""
                               <div className="text-lg font-bold">{check.summary.totalTests}</div>
                               <div className="text-sm text-gray-500">Total</div>
                             </div>
-                            <div className="text-center">
+                            <div className=""
                               <div className="text-lg font-bold text-green-600">{check.summary.passedTests}</div>
                               <div className="text-sm text-gray-500">Passou</div>
                             </div>
-                            <div className="text-center">
+                            <div className=""
                               <div className="text-lg font-bold text-red-600">{check.summary.failedTests}</div>
                               <div className="text-sm text-gray-500">Falhou</div>
                             </div>
-                            <div className="text-center">
+                            <div className=""
                               <div className="text-lg font-bold text-yellow-600">{check.summary.warnings}</div>
                               <div className="text-sm text-gray-500">Avisos</div>
                             </div>
                           </div>
                           
                           {check.modules.length > 0 && (
-                            <div className="space-y-2">
+                            <div className=""
                               <h5 className="font-semibold text-sm">Resultados por Módulo</h5>
                               {check.modules.map((module, index) => (
-                                <div key={index} className="flex items-center justify-between text-sm">
+                                <div key={index} className=""
                                   <span>{module.name}</span>
-                                  <div className="flex space-x-2">
+                                  <div className=""
                                     <span className="text-green-600">✓ {module.passed}</span>
                                     <span className="text-red-600">✗ {module.failed}</span>
                                     <span className="text-yellow-600">⚠ {module.warnings}</span>
@@ -561,8 +561,8 @@ export default function ModuleIntegrityControl() {
         </TabsContent>
 
         {/* Monitoring Tab */}
-        <TabsContent value="monitoring" className="space-y-4">
-          <div className="grid gap-4">
+        <TabsContent value="monitoring" className=""
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Monitoramento em Tempo Real</CardTitle>
@@ -571,7 +571,7 @@ export default function ModuleIntegrityControl() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className=""
                   <Alert>
                     <Activity className="h-4 w-4" />
                     <AlertTitle>Sistema Ativo</AlertTitle>
@@ -580,14 +580,14 @@ export default function ModuleIntegrityControl() {
                     </AlertDescription>
                   </Alert>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className=""
                     <div>
                       <h4 className="font-semibold mb-2">Performance dos Módulos</h4>
-                      <div className="space-y-2">
+                      <div className=""
                         {modules.map((module) => (
-                          <div key={module.name} className="flex items-center justify-between">
+                          <div key={module.name} className=""
                             <span className="text-sm">{module.name}</span>
-                            <div className="flex items-center space-x-2">
+                            <div className=""
                               <Progress value={module.healthScore} className="w-20" />
                               <span className="text-xs">{module.healthScore}%</span>
                             </div>
@@ -598,8 +598,8 @@ export default function ModuleIntegrityControl() {
                     
                     <div>
                       <h4 className="font-semibold mb-2">Alertas Recentes</h4>
-                      <div className="space-y-2">
-                        <div className="text-sm text-gray-500">
+                      <div className=""
+                        <div className=""
                           Nenhum alerta crítico nas últimas 24 horas
                         </div>
                       </div>
@@ -612,7 +612,7 @@ export default function ModuleIntegrityControl() {
         </TabsContent>
 
         {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-4">
+        <TabsContent value="settings" className=""
           <Card>
             <CardHeader>
               <CardTitle>Configurações do Sistema</CardTitle>
@@ -621,7 +621,7 @@ export default function ModuleIntegrityControl() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className=""
                 <Alert>
                   <Shield className="h-4 w-4" />
                   <AlertTitle>Proteção Ativa</AlertTitle>
@@ -630,22 +630,22 @@ export default function ModuleIntegrityControl() {
                   </AlertDescription>
                 </Alert>
                 
-                <div className="grid gap-4">
+                <div className=""
                   <div>
                     <h4 className="font-semibold">Verificações Automáticas</h4>
-                    <p className="text-sm text-gray-500 mb-2">
+                    <p className=""
                       Configure quando e como as verificações devem ser executadas
                     </p>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-2">
+                    <div className=""
+                      <label className=""
                         <input type="checkbox" defaultChecked />
                         <span className="text-sm">Verificação antes de cada commit</span>
                       </label>
-                      <label className="flex items-center space-x-2">
+                      <label className=""
                         <input type="checkbox" defaultChecked />
                         <span className="text-sm">Verificação diária automática</span>
                       </label>
-                      <label className="flex items-center space-x-2">
+                      <label className=""
                         <input type="checkbox" defaultChecked />
                         <span className="text-sm">Alertas em tempo real</span>
                       </label>
@@ -654,15 +654,15 @@ export default function ModuleIntegrityControl() {
                   
                   <div>
                     <h4 className="font-semibold">Backup Automático</h4>
-                    <p className="text-sm text-gray-500 mb-2">
+                    <p className=""
                       Configurações de backup para proteção de dados
                     </p>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-2">
+                    <div className=""
+                      <label className=""
                         <input type="checkbox" defaultChecked />
                         <span className="text-sm">Backup antes de modificações críticas</span>
                       </label>
-                      <label className="flex items-center space-x-2">
+                      <label className=""
                         <input type="checkbox" defaultChecked />
                         <span className="text-sm">Backup diário automático</span>
                       </label>

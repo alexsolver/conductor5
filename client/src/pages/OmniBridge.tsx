@@ -795,8 +795,8 @@ export default function OmniBridge() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
+      <div className=""
+        <div className=""
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Carregando OmniBridge...</p>
         </div>
@@ -805,15 +805,15 @@ export default function OmniBridge() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold tracking-tight">OmniBridge</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Central de comunicação unificada - Email, WhatsApp, Telegram e mais
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className=""
           <Button
             variant="outline"
             size="sm"
@@ -823,45 +823,45 @@ export default function OmniBridge() {
             <Settings className="h-4 w-4 mr-2" />
             {loading ? 'Sincronizando...' : 'Sincronizar Integrações'}
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm>
             <Settings className="h-4 w-4 mr-2" />
             Configurações
           </Button>
-          <Button size="sm">
+          <Button size="sm>
             <Plus className="h-4 w-4 mr-2" />
             Nova Regra
           </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="channels" className="flex items-center gap-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+        <TabsList className=""
+          <TabsTrigger value="channels" className=""
             <Settings className="h-4 w-4" />
             Canais
           </TabsTrigger>
-          <TabsTrigger value="inbox" className="flex items-center gap-2">
+          <TabsTrigger value="inbox" className=""
             <MessageSquare className="h-4 w-4" />
             Inbox
           </TabsTrigger>
-          <TabsTrigger value="automation" className="flex items-center gap-2">
+          <TabsTrigger value="automation" className=""
             <Zap className="h-4 w-4" />
             Automação
           </TabsTrigger>
-          <TabsTrigger value="chatbots" className="flex items-center gap-2">
+          <TabsTrigger value="chatbots" className=""
             <Bot className="h-4 w-4" />
             Chatbots
           </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
+          <TabsTrigger value="templates" className=""
             <FileText className="h-4 w-4" />
             Templates
           </TabsTrigger>
         </TabsList>
 
         {/* Inbox Tab */}
-        <TabsContent value="inbox" className="space-y-4">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative flex-1">
+        <TabsContent value="inbox" className=""
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -871,7 +871,7 @@ export default function OmniBridge() {
               />
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className=""
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -883,7 +883,7 @@ export default function OmniBridge() {
               </SelectContent>
             </Select>
             <Select value={filterChannel} onValueChange={setFilterChannel}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className=""
                 <SelectValue placeholder="Canal" />
               </SelectTrigger>
               <SelectContent>
@@ -896,13 +896,13 @@ export default function OmniBridge() {
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          <div className=""
+            <div className=""
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className=""
                     <span>Mensagens ({filteredMessages.length})</span>
-                    <div className="flex items-center gap-2">
+                    <div className=""
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -933,15 +933,15 @@ export default function OmniBridge() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-96">
+                  <ScrollArea className=""
                     {filteredMessages.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
+                      <div className=""
                         <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Nenhuma mensagem encontrada</p>
                         <p className="text-sm">Configure seus canais para começar a receber mensagens</p>
                       </div>
                     ) : (
-                      <div className="space-y-3">
+                      <div className=""
                         {filteredMessages.map((message) => (
                           <div
                             key={message.id}
@@ -950,9 +950,9 @@ export default function OmniBridge() {
                             } ${message.status === 'unread' ? 'border-l-4 border-l-primary' : ''"
                             onClick={() => setSelectedMessage(message)}
                           >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1">
+                            <div className=""
+                              <div className=""
+                                <div className=""
                                   {message.channelType === 'email' && <Mail className="h-4 w-4" />}
                                   {message.channelType === 'whatsapp' && <MessageSquare className="h-4 w-4" />}
                                   {message.channelType === 'telegram' && <MessageCircle className="h-4 w-4" />}
@@ -966,7 +966,7 @@ export default function OmniBridge() {
                                   {message.priority}
                                 </Badge>
                               </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className=""
                                 <span>{message.timestamp}</span>
                                 {message.attachments && message.attachments > 0 && (
                                   <Badge variant="outline">{message.attachments} anexos</Badge>
@@ -987,13 +987,13 @@ export default function OmniBridge() {
                             {message.subject && (
                               <h4 className="font-medium mb-1">{message.subject}</h4>
                             )}
-                            <p className="text-sm text-muted-foreground line-clamp-2">
+                            <p className=""
                               {message.content}
                             </p>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="flex items-center gap-1">
+                            <div className=""
+                              <div className=""
                                 {message.tags?.map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
+                                  <Badge key={tag} variant="outline" className=""
                                     <Tag className="h-3 w-3 mr-1" />
                                     {tag}
                                   </Badge>
@@ -1030,15 +1030,15 @@ export default function OmniBridge() {
                 </CardHeader>
                 <CardContent>
                   {selectedMessage ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           {selectedMessage.channelType === 'email' && <Mail className="h-4 w-4" />}
                           {selectedMessage.channelType === 'whatsapp' && <MessageSquare className="h-4 w-4" />}
                           {selectedMessage.channelType === 'telegram' && <MessageCircle className="h-4 w-4" />}
                           <span className="font-medium">{selectedMessage.from}</span>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </div>
@@ -1055,18 +1055,18 @@ export default function OmniBridge() {
                         <p className="text-sm mt-1 whitespace-pre-wrap">{selectedMessage.content}</p>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         <Badge variant="secondary" className={getPriorityColor(selectedMessage.priority)}>
                           {selectedMessage.priority}
                         </Badge>
-                        <Badge variant="outline">
+                        <Badge variant="outline>
                           {selectedMessage.status}
                         </Badge>
                       </div>
 
                       <Separator />
 
-                      <div className="space-y-2">
+                      <div className=""
                         <Button 
                           className="w-full" 
                           size="sm"
@@ -1078,7 +1078,7 @@ export default function OmniBridge() {
                           <Reply className="h-4 w-4 mr-2" />
                           Responder
                         </Button>
-                        <div className="flex gap-2">
+                        <div className=""
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -1102,7 +1102,7 @@ export default function OmniBridge() {
                             Arquivar
                           </Button>
                         </div>
-                        <div className="flex gap-2">
+                        <div className=""
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -1134,7 +1134,7 @@ export default function OmniBridge() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
+                    <div className=""
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>Selecione uma mensagem para ver os detalhes</p>
                     </div>
@@ -1146,7 +1146,7 @@ export default function OmniBridge() {
         </TabsContent>
 
         {/* Channels Tab */}
-        <TabsContent value="channels" className="space-y-4">
+        <TabsContent value="channels" className=""
           <Card>
             <CardHeader>
               <CardTitle>Canais de Comunicação</CardTitle>
@@ -1156,10 +1156,10 @@ export default function OmniBridge() {
             </CardHeader>
             <CardContent>
               {channels.length === 0 ? (
-                <div className="text-center py-12">
+                <div className=""
                   <Settings className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <h3 className="text-lg font-medium mb-2">Nenhum canal configurado</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <p className=""
                     Configure seus canais de comunicação no Workspace Admin para que eles apareçam aqui.
                   </p>
                   <Button
@@ -1171,19 +1171,19 @@ export default function OmniBridge() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className=""
                   {channels.map((channel) => (
-                  <Card key={channel.id} className="relative">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                  <Card key={channel.id} className=""
+                    <CardHeader className=""
+                      <div className=""
+                        <div className=""
                           {/* Use the actual icon if available, otherwise fallback */}
                           {channel.icon ? (
-                            <div className="p-2 rounded-lg bg-primary/10">
+                            <div className=""
                               <img src={channel.icon} alt={channel.name} className="h-5 w-5 text-primary" />
                             </div>
                           ) : (
-                            <div className="p-2 rounded-lg bg-primary/10">
+                            <div className=""
                               {React.createElement(getChannelIcon(channel.id), { className: "h-5 w-5 text-primary" })}
                             </div>
                           )}
@@ -1198,25 +1198,25 @@ export default function OmniBridge() {
                         />
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground mb-3">
+                    <CardContent className=""
+                      <p className=""
                         {channel.description}
                       </p>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
+                      <div className=""
+                        <div className=""
                           <span>Status:</span>
                           <Badge variant="outline" className={getStatusColor(channel.status)}>
                             {channel.status}
                           </Badge>
                         </div>
 
-                        <div className="flex items-center justify-between text-sm">
+                        <div className=""
                           <span>Mensagens:</span>
                           <span className="font-medium">{channel.messageCount}</span>
                         </div>
 
-                        <div className="flex items-center justify-between text-sm">
+                        <div className=""
                           <span>Última atividade:</span>
                           <span className="text-muted-foreground">{channel.lastActivity || '[TRANSLATION_NEEDED]'}</span>
                         </div>
@@ -1224,7 +1224,7 @@ export default function OmniBridge() {
 
                       <Separator className="my-3" />
 
-                      <div className="flex gap-2">
+                      <div className=""
                         <Button
                           variant="outline"
                           size="sm"
@@ -1234,7 +1234,7 @@ export default function OmniBridge() {
                           <Settings className="h-4 w-4 mr-2" />
                           Configurar
                         </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button variant="outline" size="sm" className=""
                           <Activity className="h-4 w-4 mr-2" />
                           Logs
                         </Button>
@@ -1249,13 +1249,13 @@ export default function OmniBridge() {
         </TabsContent>
 
         {/* Automation Tab */}
-        <TabsContent value="automation" className="space-y-4">
+        <TabsContent value="automation" className=""
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className=""
                 <span>Regras de Automação</span>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
+                <div className=""
+                  <Button variant="outline" size="sm>
                     <FileText className="h-4 w-4 mr-2" />
                     Templates
                   </Button>
@@ -1271,30 +1271,30 @@ export default function OmniBridge() {
             </CardHeader>
             <CardContent>
               {automationRules.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className=""
                   <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Nenhuma regra de automação configurada</p>
                   <p className="text-sm">Crie sua primeira regra para automatizar o atendimento</p>
-                  <div className="mt-4 space-y-2">
-                    <Button onClick={() => setShowCreateRuleModal(true)} variant="outline">
+                  <div className=""
+                    <Button onClick={() => setShowCreateRuleModal(true)} variant="outline>
                       <Plus className="h-4 w-4 mr-2" />
                       Criar Primeira Regra
                     </Button>
-                    <div className="text-xs text-muted-foreground">
+                    <div className=""
                       Use templates prontos para começar rapidamente
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className=""
                   {/* Rules List */}
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className=""
                     {automationRules.map((rule) => (
-                      <Card key={rule.id} className="relative">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg "">
+                      <Card key={rule.id} className=""
+                        <CardHeader className=""
+                          <div className=""
+                            <div className=""
+                              <div className="p-2 rounded-lg ">
                                 <Workflow className="h-5 w-5 "" />
                               </div>
                               <div>
@@ -1302,25 +1302,25 @@ export default function OmniBridge() {
                                 <p className="text-sm text-muted-foreground">{rule.description}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className=""
                               <Switch
                                 checked={rule.isEnabled}
                                 onCheckedChange={(enabled) => handleToggleAutomationRule(rule.id, enabled)}
                               />
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="space-y-3">
+                        <CardContent className=""
+                          <div className=""
                             {/* Triggers */}
                             <div>
                               <Label className="text-xs font-medium text-muted-foreground">GATILHOS</Label>
-                              <div className="flex flex-wrap gap-1 mt-1">
+                              <div className=""
                                 {rule.triggers && rule.triggers.map((trigger, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
+                                  <Badge key={index} variant="outline" className=""
                                     {trigger.type === 'keyword' && 'Palavras-chave'}
                                     {trigger.type === 'new_message' && 'Nova mensagem'}
                                     {trigger.type === 'channel_specific' && 'Canal específico'}
@@ -1336,9 +1336,9 @@ export default function OmniBridge() {
                             {/* Actions */}
                             <div>
                               <Label className="text-xs font-medium text-muted-foreground">AÇÕES</Label>
-                              <div className="flex flex-wrap gap-1 mt-1">
+                              <div className=""
                                 {rule.actions && rule.actions.map((action, index) => (
-                                  <Badge key={index} variant="secondary" className="text-xs">
+                                  <Badge key={index} variant="secondary" className=""
                                     {action.type === 'auto_reply' && 'Resposta automática'}
                                     {action.type === 'forward_message' && 'Encaminhar'}
                                     {action.type === 'create_ticket' && '[TRANSLATION_NEEDED]'}
@@ -1354,21 +1354,21 @@ export default function OmniBridge() {
                             </div>
 
                             {/* Stats */}
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center gap-4">
-                                <span className="text-muted-foreground">
+                            <div className=""
+                              <div className=""
+                                <span className=""
                                   Prioridade: <span className="font-medium">{rule.priority}</span>
                                 </span>
-                                <span className="text-muted-foreground">
+                                <span className=""
                                   Execuções: <span className="font-medium">{rule.executionStats?.totalExecutions || 0}</span>
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm">
+                              <div className=""
+                                <Button variant="outline" size="sm>
                                   <Settings className="h-4 w-4 mr-2" />
                                   Editar
                                 </Button>
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm>
                                   <Activity className="h-4 w-4 mr-2" />
                                   Logs
                                 </Button>
@@ -1386,12 +1386,12 @@ export default function OmniBridge() {
         </TabsContent>
 
         {/* Templates Tab */}
-        <TabsContent value="templates" className="space-y-4">
+        <TabsContent value="templates" className=""
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className=""
                 <span>Templates de Resposta</span>
-                <Button size="sm">
+                <Button size="sm>
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Template
                 </Button>
@@ -1401,11 +1401,11 @@ export default function OmniBridge() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum template configurado</p>
                 <p className="text-sm">Crie templates para agilizar suas respostas</p>
-                <Button className="mt-4" variant="outline">
+                <Button className="mt-4" variant="outline>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Primeiro Template
                 </Button>
@@ -1415,14 +1415,14 @@ export default function OmniBridge() {
         </TabsContent>
 
         {/* Chatbots Tab */}
-        <TabsContent value="chatbots" className="space-y-4">
+        <TabsContent value="chatbots" className=""
           <ChatbotKanban />
         </TabsContent>
       </Tabs>
 
       {/* Modal de Resposta */}
       <Dialog open={showReplyModal} onOpenChange={setShowReplyModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Responder Mensagem</DialogTitle>
             <DialogDescription>
@@ -1430,8 +1430,8 @@ export default function OmniBridge() {
               {selectedMessage?.subject && "
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="border rounded p-3 bg-muted">
+          <div className=""
+            <div className=""
               <p className="text-sm text-muted-foreground">Mensagem original:</p>
               <p className="text-sm mt-1">{selectedMessage?.content}</p>
             </div>
@@ -1441,7 +1441,7 @@ export default function OmniBridge() {
               onChange={(e) => setReplyContent(e.target.value)}
               rows={6}
             />
-            <div className="flex justify-end gap-2">
+            <div className=""
               <Button variant="outline" onClick={() => setShowReplyModal(false)}>
                 Cancelar
               </Button>
@@ -1465,15 +1465,15 @@ export default function OmniBridge() {
 
       {/* Modal de Encaminhamento */}
       <Dialog open={showForwardModal} onOpenChange={setShowForwardModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Encaminhar Mensagem</DialogTitle>
             <DialogDescription>
               Encaminhando mensagem de: {selectedMessage?.from}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="border rounded p-3 bg-muted">
+          <div className=""
+            <div className=""
               <p className="text-sm text-muted-foreground">Mensagem original:</p>
               <p className="text-sm mt-1">{selectedMessage?.content}</p>
             </div>
@@ -1496,7 +1496,7 @@ export default function OmniBridge() {
                 rows={4}
               />
             </div>
-            <div className="flex justify-end gap-2">
+            <div className=""
               <Button variant="outline" onClick={() => setShowForwardModal(false)}>
                 Cancelar
               </Button>
@@ -1522,14 +1522,14 @@ export default function OmniBridge() {
 
       {/* Modal de Criar Regra de Automação */}
       <Dialog open={showCreateRuleModal} onOpenChange={setShowCreateRuleModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Nova Regra de Automação</DialogTitle>
             <DialogDescription>
               Configure uma nova regra para automatizar o processamento de mensagens
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=""
             <div>
               <Label htmlFor="rule-name">Nome da Regra</Label>
               <Input
@@ -1549,7 +1549,7 @@ export default function OmniBridge() {
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className=""
               <div>
                 <Label htmlFor="trigger-type">Gatilho</Label>
                 <Select 
@@ -1599,7 +1599,7 @@ export default function OmniBridge() {
                 onChange={(e) => setNewRuleData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
               />
             </div>
-            <div className="flex justify-end gap-2">
+            <div className=""
               <Button variant="outline" onClick={() => setShowCreateRuleModal(false)}>
                 Cancelar
               </Button>

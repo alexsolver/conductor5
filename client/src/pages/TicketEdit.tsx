@@ -376,7 +376,7 @@ export default function TicketEdit() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className=""
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -384,11 +384,11 @@ export default function TicketEdit() {
 
   if (!ticket) {
     return (
-      <div className="flex flex-col items-center justify-center h-96">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+      <div className=""
+        <h2 className=""
           Ticket não encontrado
         </h2>
-        <Button onClick={() => navigate("/tickets")} variant="outline">
+        <Button onClick={() => navigate("/tickets")} variant="outline>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar para Tickets
         </Button>
@@ -399,10 +399,10 @@ export default function TicketEdit() {
   console.log("🎫 TicketEdit renderizando com ticket:", ticket?.id, "isLinkingModalOpen:", isLinkingModalOpen);
 
   return (
-      <div className="space-y-6">
+      <div className=""
         {/* Header */}
-        <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className=""
+        <div className=""
           <Button
             variant="outline"
             size="sm"
@@ -412,16 +412,16 @@ export default function TicketEdit() {
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            <h1 className=""
               Editar Ticket #{ticket.number || ticket.id?.slice(-8)}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className=""
               {ticket.subject || ticket.short_description}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className=""
           <Button
             variant="outline"
             size="sm"
@@ -447,9 +447,9 @@ export default function TicketEdit() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className=""
         {/* Main Form */}
-        <div className="lg:col-span-2">
+        <div className=""
           <Card>
             <CardHeader>
               <CardTitle>Detalhes do Ticket</CardTitle>
@@ -459,7 +459,7 @@ export default function TicketEdit() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className=""
                   {/* Wrap form content in CustomFieldsWrapper to provide form context */}
                   <CustomFieldsWrapper
                     moduleType="tickets"
@@ -470,8 +470,8 @@ export default function TicketEdit() {
                       console.log(" alterado:`, value);
                     }}
                   >
-                  <Tabs defaultValue="basic" className="w-full">
-                    <TabsList className="grid w-full grid-cols-6">
+                  <Tabs defaultValue="basic" className=""
+                    <TabsList className=""
                       <TabsTrigger value="basic">Básico</TabsTrigger>
                       <TabsTrigger value="template">Template/Ambiente</TabsTrigger>
                       <TabsTrigger value="assignment">Atribuição</TabsTrigger>
@@ -481,11 +481,11 @@ export default function TicketEdit() {
                     </TabsList>
 
                     {/* Tab 1: Basic Information */}
-                    <TabsContent value="basic" className="space-y-4">
+                    <TabsContent value="basic" className=""
                       {/* Classificação */}
-                      <div className="border-t pt-4 mt-6">
+                      <div className=""
                         <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className=""
                           <FormField
                             control={form.control}
                             name="priority"
@@ -560,8 +560,8 @@ export default function TicketEdit() {
                     </TabsContent>
 
                     {/* Tab 2: Template/Environment */}
-                    <TabsContent value="template" className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <TabsContent value="template" className=""
+                      <div className=""
                         {/* Environment Section */}
                         <div>
                           <FormField
@@ -628,7 +628,7 @@ export default function TicketEdit() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className=""
                         {/* Caller Name/Responsible */}
                         <div>
                           <FormField
@@ -669,7 +669,7 @@ export default function TicketEdit() {
                         </div>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className=""
                         {/* URL Field */}
                         <FormField
                           control={form.control}
@@ -701,7 +701,7 @@ export default function TicketEdit() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className=""
                         {/* Call Number */}
                         <div>
                           <FormField
@@ -781,10 +781,10 @@ export default function TicketEdit() {
                     </TabsContent>
 
                     {/* Tab 3: Assignment */}
-                    <TabsContent value="assignment" className="space-y-4">
+                    <TabsContent value="assignment" className=""
                       {/* Company Selection */}
-                      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <label className="block text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
+                      <div className=""
+                        <label className=""
                           <Building2 className="h-4 w-4" />
                           Empresa Cliente
                         </label>
@@ -809,7 +809,7 @@ export default function TicketEdit() {
                           ))}
                         </select>
                         {selectedCompanyId && (
-                          <p className="text-xs text-blue-600 mt-1">
+                          <p className=""
                             Clientes filtrados por esta empresa: {filteredCustomers.length}
                           </p>
                         )}
@@ -924,7 +924,7 @@ export default function TicketEdit() {
                         )}
                       />
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className=""
                         {/* Publication Priority */}
                         <FormField
                           control={form.control}
@@ -1010,8 +1010,8 @@ export default function TicketEdit() {
                         control={form.control}
                         name="closeToPublish"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
-                            <div className="space-y-0.5">
+                          <FormItem className=""
+                            <div className=""
                               <FormLabel>Pronto para publicar?</FormLabel>
                               <FormDescription>
                                 Marque se este ticket está pronto para ser publicado.
@@ -1029,7 +1029,7 @@ export default function TicketEdit() {
                     </TabsContent>
 
                     {/* Tab 4: Classification */}
-                    <TabsContent value="classification" className="space-y-4">
+                    <TabsContent value="classification" className=""
                       <FormField
                         control={form.control}
                         name="category"
@@ -1074,7 +1074,7 @@ export default function TicketEdit() {
                     </TabsContent>
 
                     {/* Tab 5: Details */}
-                    <TabsContent value="details" className="space-y-4">
+                    <TabsContent value="details" className=""
                       <FormField
                         control={form.control}
                         name="businessImpact"
@@ -1119,11 +1119,11 @@ export default function TicketEdit() {
                     </TabsContent>
 
                     {/* Tab 6: People */}
-                    <TabsContent value="people" className="space-y-4">
+                    <TabsContent value="people" className=""
                     </TabsContent>
                   </Tabs>
 
-                  <Button type="submit">
+                  <Button type="submit>
                     <Save className="w-4 h-4 mr-2" />
                     Salvar
                   </Button>
@@ -1134,7 +1134,7 @@ export default function TicketEdit() {
             </Card>
           </div>
           {/* Right Sidebar */}
-          <div className="lg:col-span-1">
+          <div className=""
             {/* Ticket Relationships */}
             <Card>
               <CardHeader>
@@ -1149,14 +1149,14 @@ export default function TicketEdit() {
             </Card>
 
             {/* Actions */}
-            <Card className="mt-6">
+            <Card className=""
               <CardHeader>
                 <CardTitle>Ações</CardTitle>
                 <CardDescription>
                   Gerencie anexos, histórico e outras ações
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 <Button
                   variant="secondary"
                   className="w-full justify-start"

@@ -129,7 +129,7 @@ export const ResponsiveTicketsTable = ({
     <div className="rounded-md border overflow-hidden" role="region" aria-label='[TRANSLATION_NEEDED]'>
       <Table>
         <TableHeader>
-          <TableRow role="row">
+          <TableRow role="row>
             <TableHead className="w-20" scope="col">Número</TableHead>
             <TableHead scope="col">Assunto</TableHead>
             <TableHead className="hidden lg:table-cell" scope="col">Empresa</TableHead>
@@ -137,7 +137,7 @@ export const ResponsiveTicketsTable = ({
             <TableHead className="hidden lg:table-cell" scope="col">Categoria</TableHead>
             <TableHead className="hidden lg:table-cell" scope="col">Status</TableHead>
             <TableHead className="hidden sm:table-cell" scope="col">Prioridade</TableHead>
-            <TableHead className="w-12" scope="col">
+            <TableHead className="w-12" scope="col>
               <span className="sr-only">Ações</span>
             </TableHead>
           </TableRow>
@@ -147,8 +147,8 @@ export const ResponsiveTicketsTable = ({
             Array.from({ length: 5 }).map((_, i) => <TicketRowSkeleton key={i} />)
           ) : tickets.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8">
-                <div className="text-gray-500">
+              <TableCell colSpan={8} className="text-center py-8>
+                <div className="text-gray-500>
                   <p>Nenhum ticket encontrado</p>
                   <p className="text-sm mt-1">Tente ajustar os filtros de busca</p>
                 </div>
@@ -162,8 +162,8 @@ export const ResponsiveTicketsTable = ({
                 role="row"
                 aria-label={"
               >
-                  <TableCell className="font-mono text-sm">
-                    <div className="flex items-center gap-2">
+                  <TableCell className="font-mono text-sm>
+                    <div className="flex items-center gap-2>
                       {ticketsWithRelationships.has(ticket.id) && (
                         <Button
                           variant="ghost"
@@ -189,8 +189,8 @@ export const ResponsiveTicketsTable = ({
                     </div>
                   </TableCell>
 
-                  <TableCell className="max-w-0">
-                    <div className="truncate">
+                  <TableCell className="max-w-0>
+                    <div className="truncate>
                       <Link
                         href={"
                         className="font-medium text-gray-900 hover:text-blue-600 transition-colors block"
@@ -201,15 +201,15 @@ export const ResponsiveTicketsTable = ({
                     </div>
                   </TableCell>
 
-                  <TableCell className="hidden lg:table-cell text-sm text-gray-600">
+                  <TableCell className="hidden lg:table-cell text-sm text-gray-600>
                     {ticket.company_name || 'N/A'}
                   </TableCell>
 
-                  <TableCell className="hidden md:table-cell text-sm text-gray-600">
+                  <TableCell className="hidden md:table-cell text-sm text-gray-600>
                     {ticket.caller_name || 'N/A'}
                   </TableCell>
 
-                  <TableCell className="hidden lg:table-cell">
+                  <TableCell className="hidden lg:table-cell>
                     <OptimizedBadge
                       fieldName="category"
                       value={ticket.category || ''}
@@ -217,7 +217,7 @@ export const ResponsiveTicketsTable = ({
                     />
                   </TableCell>
 
-                  <TableCell className="hidden lg:table-cell">
+                  <TableCell className="hidden lg:table-cell>
                     <OptimizedBadge
                       fieldName="status"
                       value={ticket.status}
@@ -225,7 +225,7 @@ export const ResponsiveTicketsTable = ({
                     />
                   </TableCell>
 
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell className="hidden sm:table-cell>
                     <OptimizedBadge
                       fieldName="priority"
                       value={ticket.priority}
@@ -244,18 +244,18 @@ export const ResponsiveTicketsTable = ({
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end>
                         <DropdownMenuItem asChild>
                           <Link href={"
                             <Eye className="h-4 w-4" />
                             Ver Detalhes
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(ticket)} className="flex items-center gap-2">
+                        <DropdownMenuItem onClick={() => onEdit(ticket)} className="flex items-center gap-2>
                           <Edit className="h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="flex items-center gap-2 text-red-600">
+                        <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="flex items-center gap-2 text-red-600>
                           <Trash2 className="h-4 w-4" />
                           Excluir
                         </DropdownMenuItem>
@@ -267,7 +267,7 @@ export const ResponsiveTicketsTable = ({
               /* Expanded relationships - using RelatedTicketsExpansion component for real data */
               currentExpandedTickets.has(ticket.id) && (
                 <TableRow key={"
-                  <TableCell colSpan={9} className="p-0">
+                  <TableCell colSpan={9} className="p-0>
                     <RelatedTicketsExpansion ticketId={ticket.id} />
                   </TableCell>
                 </TableRow>

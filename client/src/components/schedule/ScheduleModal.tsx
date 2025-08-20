@@ -194,18 +194,18 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center">
+          <DialogTitle className="flex items-center>
             <CalendarIcon className="h-5 w-5 mr-2" />
             {schedule ? '[TRANSLATION_NEEDED]' : 'Novo Agendamento'}
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4>
             {/* Título e Descrição */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4>
               <FormField
                 control={form.control}
                 name="title"
@@ -240,7 +240,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
             </div>
 
             {/* Agente e Cliente */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4>
               <FormField
                 control={form.control}
                 name="agentId"
@@ -309,7 +309,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <SelectContent>
                       {activityTypes?.map((type) => (
                         <SelectItem key={type.id} value={type.id}>
-                          <div className="flex items-center">
+                          <div className="flex items-center>
                             <div 
                               className="w-3 h-3 rounded-full mr-2"
                               style={{ backgroundColor: type.color }}
@@ -326,7 +326,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
             />
 
             {/* Data e Horário */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4>
               <FormField
                 control={form.control}
                 name="date"
@@ -352,7 +352,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0" align="start>
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -405,7 +405,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
             </div>
 
             {/* Status e Prioridade */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4>
               <FormField
                 control={form.control}
                 name="status"
@@ -471,7 +471,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
             />
 
             {/* Notas */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4>
               <FormField
                 control={form.control}
                 name="internalNotes"
@@ -510,12 +510,12 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
             </div>
 
             {/* Botões */}
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex justify-end space-x-2 pt-4>
               <Button type="button" variant="outline" onClick={onClose}>
                 <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>
-              <Button type="submit">
+              <Button type="submit>
                 <Save className="h-4 w-4 mr-2" />
                 {schedule ? 'Atualizar' : '[TRANSLATION_NEEDED]'} Agendamento
               </Button>

@@ -347,10 +347,10 @@ export function LeafletMap({
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4>
       {/* Search Controls */}
-      <div className="flex gap-2">
-        <div className="flex-1">
+      <div className="flex gap-2>
+        <div className="flex-1>
           <Input
             placeholder='[TRANSLATION_NEEDED]'
             value={searchQuery}
@@ -385,7 +385,7 @@ export function LeafletMap({
       </div>
 
       {/* Map Container */}
-      <div className="relative border rounded-lg overflow-hidden">
+      <div className="relative border rounded-lg overflow-hidden>
         <div
           key={mapKey}
           ref={mapRef}
@@ -394,8 +394,8 @@ export function LeafletMap({
         />
         
         {/* Instructions overlay */}
-        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000]">
-          <p className="text-sm text-gray-700 flex items-center font-medium">
+        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000]>
+          <p className="text-sm text-gray-700 flex items-center font-medium>
             <MapPin className="h-4 w-4 mr-2 text-red-500" />
             Clique no mapa para selecionar uma localização
           </p>

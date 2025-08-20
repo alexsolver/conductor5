@@ -371,9 +371,9 @@ export default function InternalActionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <MessageSquare className="w-5 h-5" />
             {editAction ? '[TRANSLATION_NEEDED]' : 'Nova Ação Interna'}
           </DialogTitle>
@@ -385,19 +385,19 @@ export default function InternalActionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6>
 
           <Card>
-            <CardContent className="p-6">
-              <div className="space-y-6">
+            <CardContent className="p-6>
+              <div className="space-y-6>
 
                 {/* Campos Obrigatórios */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4>
                   {/* Tipo de Ação */}
                   <div>
                     <Label htmlFor="action-type">Tipo de Ação *</Label>
                     <Select value={formData.action_type} onValueChange={(value) => setFormData(prev => ({ ...prev, action_type: value }))}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1>
                         <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
@@ -418,7 +418,7 @@ export default function InternalActionModal({
                   <div>
                     <Label htmlFor="agent">Agente Responsável *</Label>
                     <Select value={formData.agent_id} onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1>
                         <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
@@ -434,11 +434,11 @@ export default function InternalActionModal({
                 </div>
 
                 {/* Status e Prioridade */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4>
                   <div>
                     <Label htmlFor="status">Status</Label>
                     <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -452,7 +452,7 @@ export default function InternalActionModal({
                   <div>
                     <Label htmlFor="priority">Prioridade</Label>
                     <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -467,9 +467,9 @@ export default function InternalActionModal({
 
                 {/* Título */}
                 <div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between>
                     <Label htmlFor="title">Título</Label>
-                    <span className="text-xs "">
+                    <span className="text-xs ">
                       {formData.title.length}/255
                     </span>
                   </div>
@@ -488,9 +488,9 @@ export default function InternalActionModal({
 
                 {/* Descrição */}
                 <div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between>
                     <Label htmlFor="description">Descrição</Label>
-                    <span className="text-xs "">
+                    <span className="text-xs ">
                       {formData.description.length}/1000
                     </span>
                   </div>
@@ -556,12 +556,12 @@ export default function InternalActionModal({
                 </div>
 
                 {/* Datas Previstas */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
+                <div className="space-y-2>
+                  <Label className="flex items-center gap-2>
                     <Calendar className="w-4 h-4" />
                     Datas Previstas
                   </Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <Label htmlFor="planned-start-time">Data/Hora Início Previsto</Label>
                       <Input
@@ -624,7 +624,7 @@ export default function InternalActionModal({
                   </div>
                   {formData.planned_start_time && formData.planned_end_time && 
                    new Date(formData.planned_end_time) <= new Date(formData.planned_start_time) && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-red-600 flex items-center gap-1>
                       <AlertCircle className="w-4 h-4" />
                       A data de fim deve ser posterior à data de início
                     </p>
@@ -632,12 +632,12 @@ export default function InternalActionModal({
                 </div>
 
                 {/* Datas Realizadas e Tempo */}
-                <div className="space-y-4">
-                  <Label className="flex items-center gap-2">
+                <div className="space-y-4>
+                  <Label className="flex items-center gap-2>
                     <Clock className="w-4 h-4" />
                     Execução e Tempo
                   </Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <Label htmlFor="start-time">Data/Hora Início Realizado</Label>
                       <Input
@@ -664,7 +664,7 @@ export default function InternalActionModal({
                   </div>
                   {formData.start_time && formData.end_time && 
                    new Date(formData.end_time) <= new Date(formData.start_time) && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-red-600 flex items-center gap-1>
                       <AlertCircle className="w-4 h-4" />
                       A data de fim realizado deve ser posterior à data de início realizado
                     </p>
@@ -673,12 +673,12 @@ export default function InternalActionModal({
 
                 {/* File Upload */}
                 <div>
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2>
                     <Paperclip className="w-4 h-4" />
                     Adicionar Arquivos
                   </Label>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center gap-2">
+                  <div className="mt-2 space-y-2>
+                    <div className="flex items-center gap-2>
                       <Button
                         type="button"
                         variant="outline"
@@ -699,10 +699,10 @@ export default function InternalActionModal({
                     </div>
 
                     {formData.attachments.length > 0 && (
-                      <div className="space-y-1">
+                      <div className="space-y-1>
                         {formData.attachments.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
-                            <div className="flex items-center gap-2">
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border>
+                            <div className="flex items-center gap-2>
                               <FileText className="w-4 h-4 text-gray-500" />
                               <span className="text-sm">{file.name}</span>
                               <span className="text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
@@ -724,14 +724,14 @@ export default function InternalActionModal({
                 </div>
 
                 {/* Submit Section */}
-                <div className="flex items-center justify-between border-t pt-4">
-                  <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-between border-t pt-4>
+                  <div className="flex items-center space-x-2>
                     <Switch
                       id="public-action"
                       checked={isPublic}
                       onCheckedChange={setIsPublic}
                     />
-                    <Label htmlFor="public-action" className="flex items-center gap-2 text-sm">
+                    <Label htmlFor="public-action" className="flex items-center gap-2 text-sm>
                       {isPublic ? (
                         <>
                           <Eye className="w-4 h-4 text-green-600" />
@@ -746,7 +746,7 @@ export default function InternalActionModal({
                     </Label>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2>
                     <Button
                       type="button"
                       variant="outline"

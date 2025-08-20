@@ -68,16 +68,16 @@ export function ActivityFeed() {
 
   if (isLoading) {
     return (
-      <Card className="gradient-card">
+      <Card className="gradient-card>
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-4>
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-start space-x-3 animate-pulse">
+              <div key={i} className="flex items-start space-x-3 animate-pulse>
                 <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1>
                   <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
                   <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
                 </div>
@@ -90,39 +90,39 @@ export function ActivityFeed() {
   }
 
   return (
-    <Card className="gradient-card">
+    <Card className="gradient-card>
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-4>
           {activities?.map((activity) => (
-            <div key={activity.id} className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-medium">
+            <div key={activity.id} className="flex items-start space-x-3>
+              <div className="flex-shrink-0>
+                <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center>
+                  <span className="text-white text-xs font-medium>
                     {getUserInitials(activity.user)}
                   </span>
                 </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-gray-900 dark:text-white">
+              <div className="min-w-0 flex-1>
+                <p className="text-sm text-gray-900 dark:text-white>
                   {getActivityMessage(activity)}
                   {activity.details?.subject && (
-                    <span className="font-medium text-purple-600 ml-1">
+                    <span className="font-medium text-purple-600 ml-1>
                       #{activity.entityId.slice(-4)}
                     </span>
                   )}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400>
                   {formatTimeAgo(activity.createdAt)}
                 </p>
               </div>
             </div>
           ))}
           
-          <div className="pt-2">
-            <button className="text-sm font-medium gradient-text hover:underline flex items-center">
+          <div className="pt-2>
+            <button className="text-sm font-medium gradient-text hover:underline flex items-center>
               View all activity
               <ArrowRight className="ml-1 h-3 w-3" />
             </button>

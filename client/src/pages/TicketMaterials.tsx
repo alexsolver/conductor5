@@ -104,7 +104,7 @@ export default function TicketMaterials() {
   const { data: consumedItems, isLoading: loadingConsumed } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items', Date.now()],
     queryFn: async () => {
-      const response = await fetch(`/api/materials-services/tickets/" + ticketId + "/consumed-items", {
+      const response = await fetch(`/api/materials-services/tickets/" + ticketId + "/consumed-items", { headers: { "Content-Type": "application/json"ation/json" }
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -332,12 +332,12 @@ export default function TicketMaterials() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className=""
+      <div className=""
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className=""
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className=""
               <Package className="w-8 h-8 text-blue-600" />
               Materiais e Serviços
             </h1>
@@ -347,13 +347,13 @@ export default function TicketMaterials() {
 
         {/* Cost Summary Cards */}
         {(costsSummary as any)?.data?.summary && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className=""
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Custo Planejado</h3>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className=""
                       {formatCurrency((costsSummary as any).data.summary.totalPlannedCost)}
                     </p>
                   </div>
@@ -363,11 +363,11 @@ export default function TicketMaterials() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Custo Real</h3>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className=""
                       {formatCurrency((costsSummary as any).data.summary.totalActualCost)}
                     </p>
                   </div>
@@ -377,13 +377,13 @@ export default function TicketMaterials() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Variação</h3>
                     <p className={`text-2xl font-bold ${
                       parseFloat((costsSummary as any).data.summary.costVariance) >= 0 ? 'text-red-600' : 'text-green-600'
-                    ">
+                    >
                       {formatCurrency((costsSummary as any).data.summary.costVariance)}
                     </p>
                   </div>
@@ -393,11 +393,11 @@ export default function TicketMaterials() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Total de Itens</h3>
-                    <p className="text-2xl font-bold text-purple-600">
+                    <p className=""
                       {(costsSummary as any).data.summary.totalItemsCount}
                     </p>
                   </div>
@@ -411,17 +411,17 @@ export default function TicketMaterials() {
         {/* Main Content Tabs */}
         <Card>
           <CardHeader>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="planned" className="flex items-center gap-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+              <TabsList className=""
+                <TabsTrigger value="planned" className=""
                   <Calendar className="w-4 h-4" />
                   Planejados
                 </TabsTrigger>
-                <TabsTrigger value="consumed" className="flex items-center gap-2">
+                <TabsTrigger value="consumed" className=""
                   <CheckCircle className="w-4 h-4" />
                   Consumidos
                 </TabsTrigger>
-                <TabsTrigger value="add" className="flex items-center gap-2">
+                <TabsTrigger value="add" className=""
                   <Plus className="w-4 h-4" />
                   Adicionar
                 </TabsTrigger>
@@ -432,18 +432,18 @@ export default function TicketMaterials() {
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               {/* Planned Items Tab */}
-              <TabsContent value="planned" className="space-y-4">
-                <div className="flex items-center justify-between">
+              <TabsContent value="planned" className=""
+                <div className=""
                   <h3 className="text-lg font-semibold">Itens Planejados</h3>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                  <Badge variant="outline" className=""
                     {(plannedItems as any)?.data?.plannedItems?.length || 0} itens
                   </Badge>
                 </div>
 
                 {/* Sub-tabs for Material/Service Separation */}
-                <Card className="mb-6">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-center space-x-4">
+                <Card className=""
+                  <CardContent className=""
+                    <div className=""
                       <button
                         onClick={() => setPlannedSubTab('all')}
                         className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
@@ -453,9 +453,9 @@ export default function TicketMaterials() {
                         "
                       >
                         <Package className="w-6 h-6" />
-                        <div className="text-left">
+                        <div className=""
                           <div>Todos os Itens</div>
-                          <div className="text-xs opacity-75">
+                          <div className=""
                             {(plannedItems as any)?.data?.plannedItems?.length || 0} total
                           </div>
                         </div>
@@ -470,9 +470,9 @@ export default function TicketMaterials() {
                         "
                       >
                         <Box className="w-6 h-6" />
-                        <div className="text-left">
+                        <div className=""
                           <div>Materiais</div>
-                          <div className="text-xs opacity-75">
+                          <div className=""
                             {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'material').length || 0} materiais
                           </div>
                         </div>
@@ -487,9 +487,9 @@ export default function TicketMaterials() {
                         "
                       >
                         <Wrench className="w-6 h-6" />
-                        <div className="text-left">
+                        <div className=""
                           <div>Serviços</div>
-                          <div className="text-xs opacity-75">
+                          <div className=""
                             {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'service').length || 0} serviços
                           </div>
                         </div>
@@ -499,7 +499,7 @@ export default function TicketMaterials() {
                 </Card>
 
                 {loadingPlanned ? (
-                  <div className="text-center py-8">
+                  <div className=""
                     <Clock className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
                     <p>Carregando itens planejados...</p>
                   </div>
@@ -516,35 +516,35 @@ export default function TicketMaterials() {
                     
                     if (filteredItems.length > 0) {
                       return (
-                        <div className="space-y-4">
+                        <div className=""
                           {filteredItems.map((item: TicketMaterial) => (
                       <Card key={item.id} className={`group hover:shadow-lg transition-all duration-300 border-l-4 ${
                         item.itemType === 'material' 
                           ? 'border-l-green-500 bg-gradient-to-r from-green-50/30 to-white hover:from-green-50/50' 
                           : 'border-l-purple-500 bg-gradient-to-r from-purple-50/30 to-white hover:from-purple-50/50'
-                      ">
-                        <CardContent className="p-5">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-3 flex-1">
-                              <div className="flex items-center gap-3 flex-wrap">
+                      >
+                        <CardContent className=""
+                          <div className=""
+                            <div className=""
+                              <div className=""
                                 <div className={`p-2 rounded-lg ${
                                   item.itemType === 'material' ? 'bg-green-100' : 'bg-purple-100'
-                                ">
+                                >
                                   {item.itemType === 'material' ? (
                                     <Box className="w-5 h-5 text-green-600" />
                                   ) : (
                                     <Wrench className="w-5 h-5 text-purple-600" />
                                   )}
                                 </div>
-                                <div className="flex-1">
+                                <div className=""
                                   <h4 className="font-bold text-lg text-gray-800">{item.itemName || 'Item não encontrado'}</h4>
-                                  <div className="flex items-center gap-2 mt-1">
+                                  <div className=""
                                     <Badge variant="outline" className="text-xs">{item.itemCode || 'N/A'}</Badge>
                                     <Badge className={`text-xs ${
                                       item.itemType === 'material' 
                                         ? 'bg-green-100 text-green-800 border-green-200' 
                                         : 'bg-purple-100 text-purple-800 border-purple-200'
-                                    ">
+                                    >
                                       {item.itemType === 'material' ? 'Material' : 'Serviço'}
                                     </Badge>
                                     {getStatusBadge(item.status)}
@@ -552,28 +552,28 @@ export default function TicketMaterials() {
                                   </div>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50/50 rounded-lg">
-                                <div className="text-center">
+                              <div className=""
+                                <div className=""
                                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Quantidade</p>
                                   <p className="text-lg font-bold text-gray-800">{item.plannedQuantity} {item.measurementUnit || 'UN'}</p>
                                 </div>
-                                <div className="text-center">
+                                <div className=""
                                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Preço Unitário</p>
                                   <p className="text-lg font-bold text-blue-600">{formatCurrency(item.unitPriceAtPlanning)}</p>
                                 </div>
-                                <div className="text-center">
+                                <div className=""
                                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Custo Estimado</p>
                                   <p className="text-lg font-bold text-green-600">{formatCurrency(item.estimatedCost)}</p>
                                 </div>
                               </div>
                               {item.notes && (
-                                <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200">
+                                <div className=""
                                   <p className="text-sm text-gray-700"><strong>Observações:</strong> {item.notes}</p>
                                 </div>
                               )}
                             </div>
-                            <div className="flex flex-col items-end gap-3 ml-4">
-                              <div className="text-right text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+                            <div className=""
+                              <div className=""
                                 <p className="font-medium">Planejado em</p>
                                 <p className="font-semibold">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</p>
                               </div>
@@ -600,11 +600,11 @@ export default function TicketMaterials() {
                       );
                     } else {
                       return (
-                        <div className="text-center py-12">
+                        <div className=""
                           <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
                             plannedSubTab === 'material' ? 'bg-green-100' :
                             plannedSubTab === 'service' ? 'bg-purple-100' : 'bg-gray-100'
-                          ">
+                          >
                             {plannedSubTab === 'material' ? (
                               <Box className="w-12 h-12 text-green-400" />
                             ) : plannedSubTab === 'service' ? (
@@ -613,12 +613,12 @@ export default function TicketMaterials() {
                               <Package className="w-12 h-12 text-gray-400" />
                             )}
                           </div>
-                          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                          <h3 className=""
                             {plannedSubTab === 'all' ? 'Nenhum Item Planejado' :
                              plannedSubTab === 'material' ? 'Nenhum Material Planejado' :
                              'Nenhum Serviço Planejado'}
                           </h3>
-                          <p className="text-gray-500 mb-6">
+                          <p className=""
                             {plannedSubTab === 'all' ? 'Adicione materiais e serviços para começar o planejamento.' :
                              plannedSubTab === 'material' ? 'Adicione materiais necessários para este ticket.' :
                              'Adicione serviços necessários para este ticket.'}
@@ -642,27 +642,27 @@ export default function TicketMaterials() {
               </TabsContent>
 
               {/* Consumed Items Tab */}
-              <TabsContent value="consumed" className="space-y-4">
-                <div className="flex items-center justify-between">
+              <TabsContent value="consumed" className=""
+                <div className=""
                   <h3 className="text-lg font-semibold">Itens Consumidos</h3>
-                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                  <Badge variant="outline" className=""
                     {(consumedItems as any)?.data?.consumedItems?.length || 0} itens
                   </Badge>
                 </div>
 
                 {loadingConsumed ? (
-                  <div className="text-center py-8">
+                  <div className=""
                     <Clock className="w-8 h-8 animate-spin mx-auto mb-2 text-green-500" />
                     <p>Carregando consumos...</p>
                   </div>
                 ) : (consumedItems as any)?.data?.consumedItems?.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className=""
                     {(consumedItems as any).data.consumedItems.map((item: TicketMaterial) => (
-                      <Card key={item.id} className="border-l-4 "">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
+                      <Card key={item.id} className="border-l-4 ">
+                        <CardContent className=""
+                          <div className=""
+                            <div className=""
+                              <div className=""
                                 {item.itemType === 'material' ? (
                                   <Box className="w-4 h-4 text-blue-600" />
                                 ) : (
@@ -670,19 +670,19 @@ export default function TicketMaterials() {
                                 )}
                                 <h4 className="font-semibold">{item.itemName || 'Item não encontrado'}</h4>
                                 <Badge variant="outline">{item.itemCode || 'N/A'}</Badge>
-                                <Badge className=""">
+                                <Badge className="">
                                   {item.itemType === 'material' ? 'Material' : 'Serviço'}
                                 </Badge>
                                 {getStatusBadge('consumed')}
                               </div>
-                              <div className="text-sm text-gray-600 space-y-1">
+                              <div className=""
                                 <p><strong>Quantidade Consumida:</strong> {item.actualQuantity} {item.measurementUnit || 'UN'}</p>
                                 <p><strong>Preço Unitário:</strong> {formatCurrency(item.unitPriceAtConsumption || '0')}</p>
                                 <p><strong>Custo Total:</strong> {formatCurrency(item.totalCost || '0')}</p>
                                 {item.notes && <p><strong>Observações:</strong> {item.notes}</p>}
                               </div>
                             </div>
-                            <div className="text-right text-sm text-gray-500">
+                            <div className=""
                               <p>Consumido em</p>
                               <p>{item.consumedAt ? new Date(item.consumedAt).toLocaleDateString('pt-BR') : 'N/A'}</p>
                             </div>
@@ -692,7 +692,7 @@ export default function TicketMaterials() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className=""
                     <CheckCircle className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                     <p>Nenhum consumo registrado</p>
                   </div>
@@ -700,17 +700,17 @@ export default function TicketMaterials() {
               </TabsContent>
 
               {/* Add Items Tab */}
-              <TabsContent value="add" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <TabsContent value="add" className=""
+                <div className=""
                   {/* Add Planned Item */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className=""
                         <Calendar className="w-5 h-5" />
                         Adicionar Item Planejado
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className=""
                       <div>
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
@@ -759,12 +759,12 @@ export default function TicketMaterials() {
                   {/* Add Consumed Item */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className=""
                         <CheckCircle className="w-5 h-5" />
                         Registrar Consumo
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className=""
                       <div>
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>

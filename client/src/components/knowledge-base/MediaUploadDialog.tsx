@@ -88,17 +88,17 @@ export function MediaUploadDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2" data-testid="button-upload-media">
+        <Button className="gap-2" data-testid="button-upload-media>
           <Upload className="h-4 w-4" />
           Fazer Upload
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md>
         <DialogHeader>
           <DialogTitle>Upload de Mídia</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-4>
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
               dragActive 
@@ -111,10 +111,10 @@ export function MediaUploadDialog({
             onDrop={handleDrop}
           >
             <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-lg font-medium mb-2">
+            <p className="text-lg font-medium mb-2>
               Arraste arquivos aqui ou clique para selecionar
             </p>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 mb-4>
               Suporta imagens, vídeos e documentos (máx. 10MB)
             </p>
             <input
@@ -135,9 +135,9 @@ export function MediaUploadDialog({
             </Button>
           </div>
 
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500>
             <p>Formatos aceitos:</p>
-            <ul className="list-disc list-inside mt-1">
+            <ul className="list-disc list-inside mt-1>
               <li>Imagens: JPG, PNG, GIF, WebP</li>
               <li>Vídeos: MP4, WebM, MOV</li>
               <li>Documentos: PDF, DOC, DOCX</li>

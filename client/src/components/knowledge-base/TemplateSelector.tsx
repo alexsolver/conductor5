@@ -122,19 +122,19 @@ export function TemplateSelector({
   };
 
   return (
-    <div className="space-y-4" data-testid="template-selector">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4" data-testid="template-selector>
+      <div className="flex items-center justify-between>
         <Label className="text-sm font-medium">Templates</Label>
         
         <Dialog open={newTemplateOpen} onOpenChange={setNewTemplateOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" data-testid="button-create-template">
+            <Button variant="outline" size="sm" data-testid="button-create-template>
               <Plus className="h-4 w-4 mr-2" />
               Novo Template
             </Button>
           </DialogTrigger>
           
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px]>
             <DialogHeader>
               <DialogTitle>Criar Novo Template</DialogTitle>
               <DialogDescription>
@@ -142,7 +142,7 @@ export function TemplateSelector({
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4">
+            <div className="space-y-4>
               <div>
                 <Label htmlFor="template-name">Nome *</Label>
                 <Input
@@ -168,7 +168,7 @@ export function TemplateSelector({
               <div>
                 <Label htmlFor="template-category">Categoria</Label>
                 <Select value={newTemplateCategory} onValueChange={setNewTemplateCategory}>
-                  <SelectTrigger data-testid="select-template-category">
+                  <SelectTrigger data-testid="select-template-category>
                     <SelectValue placeholder="Selecionar categoria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -217,8 +217,8 @@ export function TemplateSelector({
         <div className="text-sm text-muted-foreground">Carregando templates...</div>
       ) : templates.length === 0 ? (
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
+          <CardContent className="pt-6>
+            <div className="text-center text-muted-foreground>
               <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Nenhum template disponível</p>
             </div>
@@ -227,7 +227,7 @@ export function TemplateSelector({
       ) : (
         <>
           <Select value={selectedTemplate} onValueChange={handleSelectTemplate}>
-            <SelectTrigger data-testid="select-template">
+            <SelectTrigger data-testid="select-template>
               <SelectValue placeholder="Selecionar template..." />
             </SelectTrigger>
             <SelectContent>
@@ -235,7 +235,7 @@ export function TemplateSelector({
                 <SelectItem key={template.id} value={template.id}>
                   {template.name}
                   {template.description && (
-                    <span className="text-muted-foreground ml-2">
+                    <span className="text-muted-foreground ml-2>
                       - {template.description}
                     </span>
                   )}
@@ -250,7 +250,7 @@ export function TemplateSelector({
                 <CardTitle className="text-sm">Preview do Template</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-xs text-muted-foreground whitespace-pre-wrap max-h-32 overflow-y-auto">
+                <div className="text-xs text-muted-foreground whitespace-pre-wrap max-h-32 overflow-y-auto>
                   {templates.find(t => t.id === selectedTemplate)?.content}
                 </div>
               </CardContent>

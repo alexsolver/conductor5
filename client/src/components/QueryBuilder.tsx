@@ -110,8 +110,8 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
   };
 
   return (
-    <div className="space-y-4 "">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 ">
+      <div className="flex items-center justify-between>
         <h4 className="font-medium">Regras de Aplicação</h4>
         <Button
           type="button"
@@ -126,19 +126,19 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
       </div>
 
       {value.rules.length === 0 ? (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center>
           <Filter className="w-8 h-8 mx-auto mb-2 text-gray-400" />
           <p className="text-gray-500">Nenhuma regra configurada</p>
           <p className="text-sm text-gray-400">Clique em "Adicionar Regra" para começar</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3>
           {value.rules.map((rule, index) => (
-            <div key={index} className="border rounded-lg p-4 bg-gray-50">
-              <div className="grid grid-cols-12 gap-3 items-center">
+            <div key={index} className="border rounded-lg p-4 bg-gray-50>
+              <div className="grid grid-cols-12 gap-3 items-center>
                 {/* Operador lógico (exceto primeira regra) */}
                 {index > 0 && (
-                  <div className="col-span-1">
+                  <div className="col-span-1>
                     <Select
                       value={rule.logicalOperator || 'AND'}
                       onValueChange={(val) => updateRule(index, { ...rule, logicalOperator: val as LogicalOperator })}
@@ -155,7 +155,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                 )}
 
                 {/* Campo */}
-                <div className={index > 0 ? "col-span-3" : "col-span-4">
+                <div className={index > 0 ? "col-span-3" : "col-span-4>
                   <Select
                     value={rule.field}
                     onValueChange={(val) => updateRule(index, { ...rule, field: val as TicketField })}
@@ -174,7 +174,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                 </div>
 
                 {/* Operador */}
-                <div className="col-span-3">
+                <div className="col-span-3>
                   <Select
                     value={rule.operator}
                     onValueChange={(val) => updateRule(index, { ...rule, operator: val as QueryOperator })}
@@ -193,7 +193,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                 </div>
 
                 {/* Valor */}
-                <div className="col-span-4">
+                <div className="col-span-4>
                   <Input
                     value={typeof rule.value === 'string' ? rule.value : ''}
                     onChange={(e) => updateRule(index, { ...rule, value: e.target.value })}
@@ -203,7 +203,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                 </div>
 
                 {/* Botão remover */}
-                <div className="col-span-1">
+                <div className="col-span-1>
                   <Button
                     type="button"
                     variant="outline"
@@ -221,14 +221,14 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
       )}
 
       {value.rules.length > 1 && (
-        <div className="border-t pt-4">
-          <div className="flex items-center space-x-4">
+        <div className="border-t pt-4>
+          <div className="flex items-center space-x-4>
             <span className="text-sm font-medium">Operador lógico global:</span>
             <Select
               value={value.logicalOperator}
               onValueChange={(val) => onChange({ ...value, logicalOperator: val as LogicalOperator })}
             >
-              <SelectTrigger className="w-20" data-testid="select-global-logical-operator">
+              <SelectTrigger className="w-20" data-testid="select-global-logical-operator>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

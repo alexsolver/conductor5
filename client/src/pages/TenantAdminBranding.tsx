@@ -122,12 +122,12 @@ export default function TenantAdminBranding() {
   // Verificar se usuário é tenant admin ou superior
   if (!user || !['tenant_admin', 'saas_admin'].includes(user.role)) {
     return (
-      <div className="p-8 text-center">
+      <div className=""
         <Palette className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className=""
           Acesso Negado
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className=""
           Esta página é restrita para administradores de workspace.
         </p>
       </div>
@@ -199,9 +199,9 @@ export default function TenantAdminBranding() {
   };
 
   const ColorPicker = ({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) => (
-    <div className="space-y-2">
+    <div className=""
       <Label>{label}</Label>
-      <div className="flex items-center space-x-2">
+      <div className=""
         <input
           type="color"
           value={value}
@@ -219,19 +219,19 @@ export default function TenantAdminBranding() {
   );
 
   return (
-    <div className="space-y-6 p-4">
+    <div className=""
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className=""
             Branding & Personalização
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className=""
             Configure a aparência visual e identidade do seu workspace
           </p>
         </div>
         
-        <div className="flex space-x-2">
+        <div className=""
           <Button
             variant="outline"
             onClick={() => setPreviewMode(!previewMode)}
@@ -259,14 +259,14 @@ export default function TenantAdminBranding() {
 
       {/* Preview Banner */}
       {previewMode && (
-        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
+        <Card className=""
+          <CardContent className=""
+            <div className=""
               <Monitor className="w-5 h-5 text-yellow-600" />
-              <span className="font-medium text-yellow-800 dark:text-yellow-200">
+              <span className=""
                 Modo Preview Ativo
               </span>
-              <Badge variant="outline" className="text-yellow-600 border-yellow-300">
+              <Badge variant="outline" className=""
                 As alterações não foram salvas
               </Badge>
             </div>
@@ -274,42 +274,42 @@ export default function TenantAdminBranding() {
         </Card>
       )}
 
-      <Tabs defaultValue="visual" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="visual">
+      <Tabs defaultValue="visual" className=""
+        <TabsList className=""
+          <TabsTrigger value="visual>
             <Paintbrush className="w-4 h-4 mr-2" />
             Visual
           </TabsTrigger>
-          <TabsTrigger value="logos">
+          <TabsTrigger value="logos>
             <Image className="w-4 h-4 mr-2" />
             Logos
           </TabsTrigger>
-          <TabsTrigger value="typography">
+          <TabsTrigger value="typography>
             <Type className="w-4 h-4 mr-2" />
             Tipografia
           </TabsTrigger>
-          <TabsTrigger value="customization">
+          <TabsTrigger value="customization>
             <Settings className="w-4 h-4 mr-2" />
             Personalização
           </TabsTrigger>
-          <TabsTrigger value="advanced">
+          <TabsTrigger value="advanced>
             <Globe className="w-4 h-4 mr-2" />
             Avançado
           </TabsTrigger>
         </TabsList>
 
         {/* Visual Tab */}
-        <TabsContent value="visual" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="visual" className=""
+          <div className=""
             {/* Paleta de Cores */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className=""
                   <Palette className="w-5 h-5 mr-2" />
                   Paleta de Cores
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 <ColorPicker
                   label="Cor Primária"
                   value={settings.colors.primary}
@@ -346,13 +346,13 @@ export default function TenantAdminBranding() {
             {/* Layout e Estilo */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className=""
                   <Monitor className="w-5 h-5 mr-2" />
                   Layout e Estilo
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className=""
+                <div className=""
                   <Label>Estilo da Sidebar</Label>
                   <select
                     value={settings.layout.sidebarStyle}
@@ -366,7 +366,7 @@ export default function TenantAdminBranding() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label>Estilo do Cabeçalho</Label>
                   <select
                     value={settings.layout.headerStyle}
@@ -380,7 +380,7 @@ export default function TenantAdminBranding() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label>Raio de Borda</Label>
                   <select
                     value={settings.layout.borderRadius}
@@ -395,7 +395,7 @@ export default function TenantAdminBranding() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label>Espaçamento</Label>
                   <select
                     value={settings.layout.spacing}
@@ -418,9 +418,9 @@ export default function TenantAdminBranding() {
               <CardTitle>Preview da Paleta de Cores</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-7 gap-4">
+              <div className=""
                 {Object.entries(settings.colors).map(([key, color]) => (
-                  <div key={key} className="text-center">
+                  <div key={key} className=""
                     <div
                       className="w-16 h-16 rounded-lg border mx-auto mb-2"
                       style={{ backgroundColor: color }}
@@ -435,14 +435,14 @@ export default function TenantAdminBranding() {
         </TabsContent>
 
         {/* Logos Tab */}
-        <TabsContent value="logos" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="logos" className=""
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Logo Principal</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className=""
+                <div className=""
                   <Label>URL do Logo (Tema Claro)</Label>
                   <Input
                     value={settings.logo.url}
@@ -450,7 +450,7 @@ export default function TenantAdminBranding() {
                     placeholder="https://exemplo.com/logo.png"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label>URL do Logo (Tema Escuro)</Label>
                   <Input
                     value={settings.logo.darkUrl}
@@ -458,7 +458,7 @@ export default function TenantAdminBranding() {
                     placeholder="https://exemplo.com/logo-dark.png"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label>Favicon</Label>
                   <Input
                     value={settings.logo.favicon}
@@ -466,7 +466,7 @@ export default function TenantAdminBranding() {
                     placeholder="https://exemplo.com/favicon.ico"
                   />
                 </div>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className=""
                   <Upload className="w-4 h-4 mr-2" />
                   Upload de Imagem
                 </Button>
@@ -477,9 +477,9 @@ export default function TenantAdminBranding() {
               <CardHeader>
                 <CardTitle>Preview dos Logos</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 {settings.logo.url && (
-                  <div className="p-4 border rounded-lg bg-white">
+                  <div className=""
                     <p className="text-sm text-gray-600 mb-2">Tema Claro:</p>
                     <img 
                       src={settings.logo.url} 
@@ -492,7 +492,7 @@ export default function TenantAdminBranding() {
                   </div>
                 )}
                 {settings.logo.darkUrl && (
-                  <div className="p-4 border rounded-lg bg-gray-900">
+                  <div className=""
                     <p className="text-sm text-gray-300 mb-2">Tema Escuro:</p>
                     <img 
                       src={settings.logo.darkUrl} 
@@ -505,7 +505,7 @@ export default function TenantAdminBranding() {
                   </div>
                 )}
                 {!settings.logo.url && !settings.logo.darkUrl && (
-                  <div className="text-center text-gray-500 py-8">
+                  <div className=""
                     <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>Nenhum logo configurado</p>
                   </div>
@@ -516,17 +516,17 @@ export default function TenantAdminBranding() {
         </TabsContent>
 
         {/* Typography Tab */}
-        <TabsContent value="typography" className="space-y-4">
+        <TabsContent value="typography" className=""
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className=""
                 <Type className="w-5 h-5 mr-2" />
                 Configurações de Tipografia
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
+            <CardContent className=""
+              <div className=""
+                <div className=""
                   <Label>Fonte Principal</Label>
                   <select
                     value={settings.typography.fontFamily}
@@ -542,7 +542,7 @@ export default function TenantAdminBranding() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label>Fonte dos Títulos</Label>
                   <select
                     value={settings.typography.headingFont}
@@ -558,7 +558,7 @@ export default function TenantAdminBranding() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label>Tamanho Base</Label>
                   <select
                     value={settings.typography.fontSize}
@@ -575,7 +575,7 @@ export default function TenantAdminBranding() {
 
               <Separator />
 
-              <div className="space-y-4">
+              <div className=""
                 <h3 className="text-lg font-semibold">Preview da Tipografia</h3>
                 <div 
                   className="p-6 border rounded-lg"
@@ -596,11 +596,11 @@ export default function TenantAdminBranding() {
                   >
                     Subtítulo
                   </h2>
-                  <p className="mb-4">
+                  <p className=""
                     Este é um exemplo de texto normal usando as configurações de tipografia selecionadas. 
                     Você pode ver como ficará a aparência geral do texto na interface.
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className=""
                     Texto menor para labels e descrições secundárias.
                   </p>
                 </div>
@@ -610,14 +610,14 @@ export default function TenantAdminBranding() {
         </TabsContent>
 
         {/* Customization Tab */}
-        <TabsContent value="customization" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="customization" className=""
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Informações da Empresa</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className=""
+                <div className=""
                   <Label>Nome da Empresa</Label>
                   <Input
                     value={settings.customization.companyName}
@@ -625,7 +625,7 @@ export default function TenantAdminBranding() {
                     placeholder="Minha Empresa"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label>Mensagem de Boas-vindas</Label>
                   <Textarea
                     value={settings.customization.welcomeMessage}
@@ -634,7 +634,7 @@ export default function TenantAdminBranding() {
                     rows={3}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label>Texto do Rodapé</Label>
                   <Input
                     value={settings.customization.footerText}
@@ -649,8 +649,8 @@ export default function TenantAdminBranding() {
               <CardHeader>
                 <CardTitle>Contato e Suporte</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className=""
+                <div className=""
                   <Label>Email de Suporte</Label>
                   <Input
                     type="email"
@@ -659,7 +659,7 @@ export default function TenantAdminBranding() {
                     placeholder="suporte@minhaempresa.com"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label>URL de Ajuda</Label>
                   <Input
                     value={settings.customization.helpUrl}
@@ -667,7 +667,7 @@ export default function TenantAdminBranding() {
                     placeholder="https://ajuda.minhaempresa.com"
                   />
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className=""
                   <Switch
                     checked={settings.customization.showPoweredBy}
                     onCheckedChange={(checked) => updateSetting('customization.showPoweredBy', checked)}
@@ -680,14 +680,14 @@ export default function TenantAdminBranding() {
         </TabsContent>
 
         {/* Advanced Tab */}
-        <TabsContent value="advanced" className="space-y-4">
+        <TabsContent value="advanced" className=""
           <Card>
             <CardHeader>
               <CardTitle>Configurações de Tema</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
+            <CardContent className=""
+              <div className=""
+                <div className=""
                   <Label>Tema Padrão</Label>
                   <select
                     value={settings.themes.defaultTheme}
@@ -699,7 +699,7 @@ export default function TenantAdminBranding() {
                     <option value="system">Sistema</option>
                   </select>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className=""
                   <Switch
                     checked={settings.themes.allowUserThemeSwitch}
                     onCheckedChange={(checked) => updateSetting('themes.allowUserThemeSwitch', checked)}
@@ -715,7 +715,7 @@ export default function TenantAdminBranding() {
               <CardTitle>CSS Customizado</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className=""
                 <Label>CSS Personalizado</Label>
                 <Textarea
                   value={settings.themes.customCss}
@@ -727,7 +727,7 @@ export default function TenantAdminBranding() {
                   rows={10}
                   className="font-mono text-sm"
                 />
-                <p className="text-sm text-gray-500">
+                <p className=""
                   Adicione CSS personalizado para customizações avançadas. Use com cuidado.
                 </p>
               </div>

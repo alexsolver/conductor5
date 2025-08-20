@@ -97,7 +97,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
   const getTypeBadge = (type: string) => {
     const typeConfig = contractTypes.find(t => t.value === type);
     return (
-      <Badge variant="secondary">
+      <Badge variant="secondary>
         {typeConfig?.label || type}
       </Badge>
     );
@@ -107,14 +107,14 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild data-testid={"
         {children || (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm>
             <Eye className="h-4 w-4" />
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" data-testid="dialog-view-contract">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" data-testid="dialog-view-contract>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2" data-testid="title-view-contract">
+          <DialogTitle className="flex items-center gap-2" data-testid="title-view-contract>
             <FileText className="h-5 w-5" />
             Detalhes do Contrato
           </DialogTitle>
@@ -124,24 +124,24 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8>
             <div className="text-muted-foreground">Carregando dados do contrato...</div>
           </div>
         ) : contractData ? (
-          <div className="space-y-6">
+          <div className="space-y-6>
             {/* Header Information */}
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start>
                   <div>
-                    <CardTitle className="text-xl" data-testid="contract-title">
+                    <CardTitle className="text-xl" data-testid="contract-title>
                       {contractData.title}
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1" data-testid="contract-number">
+                    <p className="text-sm text-muted-foreground mt-1" data-testid="contract-number>
                       Número: {contractData.contractNumber}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2>
                     {getStatusBadge(contractData.status)}
                     {getPriorityBadge(contractData.priority)}
                     {getTypeBadge(contractData.contractType)}
@@ -150,39 +150,39 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
               </CardHeader>
               {contractData.description && (
                 <CardContent>
-                  <p className="text-sm text-muted-foreground" data-testid="contract-description">
+                  <p className="text-sm text-muted-foreground" data-testid="contract-description>
                     {contractData.description}
                   </p>
                 </CardContent>
               )}
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
               {/* Financial Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2>
                     <DollarSign className="h-4 w-4" />
                     Informações Financeiras
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <CardContent className="space-y-4>
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <p className="text-sm font-medium">Valor Total</p>
-                      <p className="text-lg font-bold text-blue-600" data-testid="contract-total-value">
+                      <p className="text-lg font-bold text-blue-600" data-testid="contract-total-value>
                         {formatCurrency(contractData.totalValue, contractData.currency)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">Valor Mensal</p>
-                      <p className="text-lg font-bold text-green-600" data-testid="contract-monthly-value">
+                      <p className="text-lg font-bold text-green-600" data-testid="contract-monthly-value>
                         {formatCurrency(contractData.monthlyValue, contractData.currency)}
                       </p>
                     </div>
                   </div>
                   <Separator />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <p className="text-sm font-medium">Moeda</p>
                       <p data-testid="contract-currency">{contractData.currency}</p>
@@ -200,13 +200,13 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
               {/* Timeline Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2>
                     <Calendar className="h-4 w-4" />
                     Cronograma
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <CardContent className="space-y-4>
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <p className="text-sm font-medium">Data de Início</p>
                       <p data-testid="contract-start-date">{formatDate(contractData.startDate)}</p>
@@ -217,16 +217,16 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                     </div>
                   </div>
                   <Separator />
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-2>
+                    <div className="flex items-center gap-2>
                       <Clock className="h-4 w-4" />
                       <span className="text-sm font-medium">Renovação Automática:</span>
-                      <Badge variant={contractData.autoRenewal ? "default" : "secondary">
+                      <Badge variant={contractData.autoRenewal ? "default" : "secondary>
                         {contractData.autoRenewal ? "Sim" : "Não"
                       </Badge>
                     </div>
                     {contractData.autoRenewal && contractData.renewalPeriodMonths && (
-                      <p className="text-sm text-muted-foreground ml-6">
+                      <p className="text-sm text-muted-foreground ml-6>
                         Período: {contractData.renewalPeriodMonths} meses
                       </p>
                     )}
@@ -237,12 +237,12 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
               {/* Management Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2>
                     <Users className="h-4 w-4" />
                     Gestão
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4>
                   {contractData.managerId && (
                     <div>
                       <p className="text-sm font-medium">Gerente Responsável</p>
@@ -262,7 +262,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                     </div>
                   )}
                   {contractData.locationId && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2>
                       <MapPin className="h-4 w-4" />
                       <div>
                         <p className="text-sm font-medium">Localização</p>
@@ -277,14 +277,14 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
               {contractData.termsConditions && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2>
                       <FileText className="h-4 w-4" />
                       Termos e Condições
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                      <p className="text-sm whitespace-pre-wrap" data-testid="contract-terms">
+                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg>
+                      <p className="text-sm whitespace-pre-wrap" data-testid="contract-terms>
                         {contractData.termsConditions}
                       </p>
                     </div>
@@ -299,16 +299,16 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                 <CardTitle>Informações de Auditoria</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-sm>
                   <div>
                     <p className="font-medium">Criado em:</p>
-                    <p data-testid="contract-created-at">
+                    <p data-testid="contract-created-at>
                       {contractData.createdAt ? formatDate(contractData.createdAt) : 'N/A'}
                     </p>
                   </div>
                   <div>
                     <p className="font-medium">Última atualização:</p>
-                    <p data-testid="contract-updated-at">
+                    <p data-testid="contract-updated-at>
                       {contractData.updatedAt ? formatDate(contractData.updatedAt) : 'N/A'}
                     </p>
                   </div>
@@ -317,7 +317,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
             </Card>
           </div>
         ) : (
-          <div className="text-center py-8">
+          <div className="text-center py-8>
             <p className="text-muted-foreground">Contrato não encontrado</p>
           </div>
         )}

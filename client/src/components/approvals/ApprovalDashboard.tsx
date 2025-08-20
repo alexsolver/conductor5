@@ -32,10 +32,10 @@ export function ApprovalDashboard() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="dashboard-loading">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="dashboard-loading>
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="animate-pulse" data-testid={"
-            <CardHeader className="pb-2">
+          <Card key={i} className="animate-pulse" data-testid="skeleton-card-
+            <CardHeader className="pb-2>
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
             </CardHeader>
             <CardContent>
@@ -122,21 +122,21 @@ export function ApprovalDashboard() {
   };
 
   return (
-    <div className="space-y-6" data-testid="approval-dashboard">
+    <div className="space-y-6" data-testid="approval-dashboard>
       {/* Main Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="metrics-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="metrics-grid>
         {stats.map((stat, index) => (
           <Card key={index} data-testid={stat.testId}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400>
                 {stat.title}
               </CardTitle>
-              <div className="p-2 rounded-lg "">
+              <div className="p-2 rounded-lg ">
                 <stat.icon className="h-4 w-4" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid={"
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="skeleton-card-
                 {stat.value}
                 {stat.total && (
                   <span className="text-sm text-gray-500 ml-1">/ {stat.total}</span>
@@ -155,49 +155,49 @@ export function ApprovalDashboard() {
       </div>
 
       {/* SLA Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="performance-section">
-        <Card data-testid="sla-performance-card">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="performance-section>
+        <Card data-testid="sla-performance-card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <TrendingUp className="h-5 w-5" />
               Performance SLA
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center" data-testid="sla-compliance">
+            <div className="space-y-4>
+              <div className="flex justify-between items-center" data-testid="sla-compliance>
                 <span className="text-sm text-gray-600 dark:text-gray-400">Compliance Geral</span>
-                <Badge variant={metrics?.slaCompliance && metrics.slaCompliance > 90 ? "default" : "destructive">
+                <Badge variant={metrics?.slaCompliance && metrics.slaCompliance > 90 ? "default" : "destructive>
                   {Math.round(metrics?.slaCompliance || 0)}%
                 </Badge>
               </div>
               <Progress value={metrics?.slaCompliance || 0} className="h-2" />
               
-              <div className="text-xs text-gray-500 dark:text-gray-400" data-testid="sla-details">
+              <div className="text-xs text-gray-500 dark:text-gray-400" data-testid="sla-details>
                 Baseado nas últimas 30 aprovações completadas
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card data-testid="recent-activity-card">
+        <Card data-testid="recent-activity-card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <Clock className="h-5 w-5" />
               Atividade Recente
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3" data-testid="activity-list">
-              <div className="flex items-center justify-between text-sm">
+            <div className="space-y-3" data-testid="activity-list>
+              <div className="flex items-center justify-between text-sm>
                 <span>Ticket #TK-2024-001 aprovado</span>
                 <Badge variant="secondary">2h atrás</Badge>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-sm>
                 <span>Material #MT-2024-005 rejeitado</span>
                 <Badge variant="destructive">4h atrás</Badge>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-sm>
                 <span>Regra "Alto Valor" criada</span>
                 <Badge variant="secondary">1d atrás</Badge>
               </div>
@@ -207,12 +207,12 @@ export function ApprovalDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <Card data-testid="quick-actions-card">
+      <Card data-testid="quick-actions-card>
         <CardHeader>
           <CardTitle>Ações Rápidas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3" data-testid="quick-actions">
+          <div className="flex flex-wrap gap-3" data-testid="quick-actions>
             <button 
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               data-testid="button-create-rule"

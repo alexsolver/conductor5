@@ -166,11 +166,11 @@ export default function BulkScheduleAssignment() {
   const usersWithConflicts = existingSchedules.map((schedule: any) => schedule.userId);
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 space-y-6>
+      <div className="flex justify-between items-center>
         <div>
           <h2 className="text-2xl font-bold">Atribuição em Lote de Escalas</h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground>
             Aplique um template de escala para múltiplos funcionários de uma vez
           </p>
         </div>
@@ -180,12 +180,12 @@ export default function BulkScheduleAssignment() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
             {/* Seleção de Template */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2>
                   <Clock className="h-5 w-5" />
                   Template de Escala
                 </CardTitle>
@@ -214,9 +214,9 @@ export default function BulkScheduleAssignment() {
                           ) : (
                             templates.map((template: any) => (
                               <SelectItem key={template.id} value={template.id}>
-                                <div className="flex flex-col">
+                                <div className="flex flex-col>
                                   <span className="font-medium">{template.name}</span>
-                                  <span className="text-sm text-muted-foreground">
+                                  <span className="text-sm text-muted-foreground>
                                     {template.scheduleType} • {template.description || 'Sem descrição'}
                                   </span>
                                 </div>
@@ -234,7 +234,7 @@ export default function BulkScheduleAssignment() {
                   control={form.control}
                   name="startDate"
                   render={({ field }) => (
-                    <FormItem className="mt-4">
+                    <FormItem className="mt-4>
                       <FormLabel>Data de Início</FormLabel>
                       <FormControl>
                         <Input 
@@ -250,9 +250,9 @@ export default function BulkScheduleAssignment() {
                 />
 
                 {selectedTemplate && (
-                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                  <div className="mt-4 p-3 bg-muted rounded-lg>
                     <h4 className="font-medium mb-2">Detalhes do Template</h4>
-                    <div className="space-y-1 text-sm">
+                    <div className="space-y-1 text-sm>
                       <p><strong>Tipo:</strong> {selectedTemplate.scheduleType}</p>
                       <p><strong>Dias por semana:</strong> {selectedTemplate.workDaysPerWeek}</p>
                       <p><strong>Horas por dia:</strong> {selectedTemplate.hoursPerDay}</p>
@@ -266,7 +266,7 @@ export default function BulkScheduleAssignment() {
             {/* Seleção de Funcionários */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2>
                   <Users className="h-5 w-5" />
                   Funcionários ({selectedUsers.length} selecionados)
                 </CardTitle>
@@ -275,7 +275,7 @@ export default function BulkScheduleAssignment() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2 mb-4">
+                <div className="flex gap-2 mb-4>
                   <Button
                     type="button"
                     variant="outline"
@@ -296,7 +296,7 @@ export default function BulkScheduleAssignment() {
                   </Button>
                 </div>
 
-                <div className="max-h-64 overflow-y-auto space-y-2">
+                <div className="max-h-64 overflow-y-auto space-y-2>
                   {loadingUsers ? (
                     <p className="text-sm text-muted-foreground">Carregando funcionários...</p>
                   ) : availableUsers.length === 0 ? (
@@ -320,13 +320,13 @@ export default function BulkScheduleAssignment() {
                             }
                             disabled={previewMode}
                           />
-                          <label htmlFor={user.id} className="flex-1 cursor-pointer">
-                            <div className="flex items-center justify-between">
+                          <label htmlFor={user.id} className="flex-1 cursor-pointer>
+                            <div className="flex items-center justify-between>
                               <div>
-                                <p className="text-sm font-medium">
+                                <p className="text-sm font-medium>
                                   {displayName}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground>
                                   {user.email} • {user.role || 'Funcionário'}
                                 </p>
                               </div>
@@ -342,7 +342,7 @@ export default function BulkScheduleAssignment() {
                 </div>
 
                 {usersWithConflicts.length > 0 && selectedUsers.some(id => usersWithConflicts.includes(id)) && (
-                  <Alert className="mt-4">
+                  <Alert className="mt-4>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       Alguns funcionários selecionados já possuem escalas ativas. 
@@ -358,7 +358,7 @@ export default function BulkScheduleAssignment() {
           {previewMode && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2>
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   Confirmação da Atribuição
                 </CardTitle>
@@ -367,14 +367,14 @@ export default function BulkScheduleAssignment() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4>
                   <div>
                     <p className="text-sm font-medium">Template</p>
                     <p className="text-sm text-muted-foreground">{selectedTemplate?.name}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Data de Início</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground>
                       {new Date(form.watch('startDate')).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
@@ -384,7 +384,7 @@ export default function BulkScheduleAssignment() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2>
                   <Button
                     type="button"
                     variant="outline"
@@ -405,7 +405,7 @@ export default function BulkScheduleAssignment() {
 
           {/* Botões de Ação */}
           {!previewMode && (
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2>
               <Button type="submit" disabled={selectedUsers.length === 0 || !form.watch('templateId')}>
                 Visualizar Atribuição
               </Button>

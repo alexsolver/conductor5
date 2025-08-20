@@ -88,9 +88,9 @@ export function FilteredUserSelect({
         <SelectItem value="__none__">Nenhum responsável</SelectItem>
         {usersToShow.map((user: any) => (
           <SelectItem key={user.id} value={user.id}>
-            <div className="flex flex-col">
+            <div className="flex flex-col>
               <span>{user.name}</span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500>
                 {user.email} {user.role && "
               </span>
             </div>

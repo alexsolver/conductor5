@@ -195,12 +195,12 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
     }));
 
     return (
-      <div className="p-4 bg-gray-50 rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="p-4 bg-gray-50 rounded-lg>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
           {nodes.map(node => (
-            <Card key={node.id} className="p-3">
+            <Card key={node.id} className="p-3>
               <div className="text-sm font-medium">{node.name}</div>
-              <Badge variant="outline" className="text-xs mt-1">
+              <Badge variant="outline" className="text-xs mt-1>
                 {node.type}
               </Badge>
               
@@ -219,20 +219,20 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
   };
 
   return (
-    <div className="w-full h-full">
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
+    <div className="w-full h-full>
+      <div className="p-4 border-b>
+        <div className="flex items-center justify-between>
           <div>
-            <h2 className="text-lg font-semibold flex items-center">
+            <h2 className="text-lg font-semibold flex items-center>
               <GitBranch className="h-5 w-5 mr-2" />
               Dependências de Campos
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1>
               Configure quando campos devem aparecer, desaparecer ou mudar comportamento
             </p>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <Button
               variant="outline"
               onClick={() => setShowVisualization(!showVisualization)}
@@ -250,44 +250,44 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
       </div>
 
       {showVisualization && (
-        <div className="p-4 border-b">
+        <div className="p-4 border-b>
           <h3 className="text-md font-medium mb-3">Mapa de Dependências</h3>
           {renderDependencyGraph()}
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
-        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4">
-          <TabsTrigger value="dependencies">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full>
+        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4>
+          <TabsTrigger value="dependencies>
             Dependências ({dependencies.length})
           </TabsTrigger>
-          <TabsTrigger value="test">
+          <TabsTrigger value="test>
             Testar Dependências
           </TabsTrigger>
         </TabsList>
 
-        <div className="p-4">
-          <TabsContent value="dependencies" className="space-y-4">
+        <div className="p-4>
+          <TabsContent value="dependencies" className="space-y-4>
             {/* Lista de Dependências */}
-            <div className="space-y-3">
+            <div className="space-y-3>
               {dependencies.map((dependency) => {
                 const errors = validateDependency(dependency);
                 
                 return (
-                  <Card key={dependency.id} className=""">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                  <Card key={dependency.id} className="">
+                    <CardContent className="p-4>
+                      <div className="flex items-center justify-between>
+                        <div className="flex items-center space-x-3>
                           <Switch
                             checked={dependency.enabled}
                             onCheckedChange={() => handleToggleDependency(dependency.id)}
                           />
                           
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2>
                             {getDependencyIcon(dependency.action.type)}
                             <div>
                               <h4 className="font-medium">{dependency.name}</h4>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500>
                                 Se <strong>{getFieldName(dependency.sourceFieldId)}</strong> {' '}
                                 {conditionOperators.find(op => op.value === dependency.condition.operator)?.label.toLowerCase()} {' '}
                                 <strong>{dependency.condition.value}</strong>, então {' '}
@@ -298,15 +298,15 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                           </div>
 
                           {errors.length > 0 && (
-                            <Badge variant="destructive">
+                            <Badge variant="destructive>
                               <AlertTriangle className="h-3 w-3 mr-1" />
                               {errors.length} erro(s)
                             </Badge>
                           )}
                         </div>
 
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline">
+                        <div className="flex items-center space-x-2>
+                          <Badge variant="outline>
                             Prioridade: {dependency.priority}
                           </Badge>
                           
@@ -347,11 +347,11 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
             {editingDependency && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">
+                  <CardTitle className="text-base>
                     {editingDependency.id.includes('new-') ? 'Nova' : '[TRANSLATION_NEEDED]'} Dependência
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4>
                   <div>
                     <Label>Nome da Dependência</Label>
                     <Input
@@ -363,7 +363,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <Label>Campo de Origem (SE)</Label>
                       <Select
@@ -411,7 +411,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <Label>Condição</Label>
                       <Select
@@ -512,12 +512,12 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                       })}
                       min="0"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 mt-1>
                       Menor número = maior prioridade
                     </p>
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-2>
                     <Button
                       variant="outline"
                       onClick={() => setEditingDependency(null)}
@@ -533,14 +533,14 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
             )}
           </TabsContent>
 
-          <TabsContent value="test" className="space-y-4">
+          <TabsContent value="test" className="space-y-4>
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Testar Dependências</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600">
+                <div className="space-y-4>
+                  <p className="text-sm text-gray-600>
                     Simule valores para os campos e veja como as dependências afetam o formulário.
                   </p>
                   

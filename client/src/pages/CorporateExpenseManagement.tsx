@@ -118,14 +118,14 @@ function CreateExpenseReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button data-testid="button-create-expense-report" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+        <Button data-testid="button-create-expense-report" className=""
           <Plus className="h-4 w-4 mr-2" />
           Novo Relatório de Despesas
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className=""
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <DialogTitle className=""
             Criar Novo Relatório de Despesas
           </DialogTitle>
           <DialogDescription>
@@ -134,7 +134,7 @@ function CreateExpenseReportDialog() {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className=""
             <FormField
               control={form.control}
               name="title"
@@ -171,7 +171,7 @@ function CreateExpenseReportDialog() {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className=""
               <FormField
                 control={form.control}
                 name="departmentId"
@@ -180,7 +180,7 @@ function CreateExpenseReportDialog() {
                     <FormLabel>Departamento</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-department">
+                        <SelectTrigger data-testid="select-department>
                           <SelectValue placeholder="Selecionar..." />
                         </SelectTrigger>
                       </FormControl>
@@ -205,7 +205,7 @@ function CreateExpenseReportDialog() {
                     <FormLabel>Centro de Custo</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-cost-center">
+                        <SelectTrigger data-testid="select-cost-center>
                           <SelectValue placeholder="Selecionar..." />
                         </SelectTrigger>
                       </FormControl>
@@ -230,7 +230,7 @@ function CreateExpenseReportDialog() {
                   <FormLabel>Projeto (Opcional)</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-project">
+                      <SelectTrigger data-testid="select-project>
                         <SelectValue placeholder="Associar a um projeto..." />
                       </SelectTrigger>
                     </FormControl>
@@ -245,7 +245,7 @@ function CreateExpenseReportDialog() {
               )}
             />
 
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className=""
               <Button 
                 type="button" 
                 variant="outline" 
@@ -286,11 +286,11 @@ function DashboardMetrics() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className=""
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
-            <CardContent className="p-6">
-              <div className="animate-pulse">
+            <CardContent className=""
+              <div className=""
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-8 bg-gray-200 rounded"></div>
               </div>
@@ -310,14 +310,14 @@ function DashboardMetrics() {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-        <CardContent className="p-6">
-          <div className="flex items-center">
+    <div className=""
+      <Card className=""
+        <CardContent className=""
+          <div className=""
             <FileText className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
+            <div className=""
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total de Relatórios</p>
-              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100" data-testid="metric-total-reports">
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100" data-testid="metric-total-reports>
                 {defaultMetrics.totalReports}
               </p>
             </div>
@@ -325,13 +325,13 @@ function DashboardMetrics() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20">
-        <CardContent className="p-6">
-          <div className="flex items-center">
+      <Card className=""
+        <CardContent className=""
+          <div className=""
             <Clock className="h-8 w-8 text-yellow-600" />
-            <div className="ml-4">
+            <div className=""
               <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">Pendentes</p>
-              <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100" data-testid="metric-pending-approvals">
+              <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100" data-testid="metric-pending-approvals>
                 {defaultMetrics.pendingApprovals}
               </p>
             </div>
@@ -339,13 +339,13 @@ function DashboardMetrics() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-        <CardContent className="p-6">
-          <div className="flex items-center">
+      <Card className=""
+        <CardContent className=""
+          <div className=""
             <DollarSign className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
+            <div className=""
               <p className="text-sm font-medium text-green-700 dark:text-green-300">Valor Total</p>
-              <p className="text-2xl font-bold text-green-900 dark:text-green-100" data-testid="metric-total-amount">
+              <p className="text-2xl font-bold text-green-900 dark:text-green-100" data-testid="metric-total-amount>
                 R$ {(defaultMetrics.totalAmount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
@@ -353,13 +353,13 @@ function DashboardMetrics() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
-        <CardContent className="p-6">
-          <div className="flex items-center">
+      <Card className=""
+        <CardContent className=""
+          <div className=""
             <CheckCircle className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
+            <div className=""
               <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Tempo Médio</p>
-              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100" data-testid="metric-avg-processing-time">
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100" data-testid="metric-avg-processing-time>
                 {defaultMetrics.averageProcessingTime || 0}h
               </p>
             </div>
@@ -396,8 +396,8 @@ function ExpenseReportsList() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center py-8">
+        <CardContent className=""
+          <div className=""
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
             <span className="ml-2 text-gray-600">Carregando relatórios...</span>
           </div>
@@ -409,12 +409,12 @@ function ExpenseReportsList() {
   if (error) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center py-8">
+        <CardContent className=""
+          <div className=""
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Erro ao Carregar</h3>
             <p className="text-gray-600 mb-4">Não foi possível carregar os relatórios de despesas.</p>
-            <Button onClick={() => window.location.reload()} variant="outline">
+            <Button onClick={() => window.location.reload()} variant="outline>
               Tentar Novamente
             </Button>
           </div>
@@ -433,7 +433,7 @@ function ExpenseReportsList() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className=""
           <div>
             <CardTitle className="text-lg font-semibold">Relatórios de Despesas</CardTitle>
             <CardDescription>
@@ -441,8 +441,8 @@ function ExpenseReportsList() {
             </CardDescription>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="relative">
+          <div className=""
+            <div className=""
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -454,7 +454,7 @@ function ExpenseReportsList() {
             </div>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[150px]" data-testid="select-status-filter">
+              <SelectTrigger className="w-full sm:w-[150px]" data-testid="select-status-filter>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -473,10 +473,10 @@ function ExpenseReportsList() {
 
       <CardContent>
         {filteredReports.length === 0 ? (
-          <div className="text-center py-8">
+          <div className=""
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum relatório encontrado</h3>
-            <p className="text-gray-600 mb-4">
+            <p className=""
               {searchTerm || statusFilter !== 'all' 
                 ? 'Tente ajustar os filtros de busca.' 
                 : 'Comece criando seu primeiro relatório de despesas.'}
@@ -484,38 +484,38 @@ function ExpenseReportsList() {
             <CreateExpenseReportDialog />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className=""
             {filteredReports.map((report) => (
               <div 
                 key={report.id} 
                 className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                 data-testid={"
               >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 mb-1">
+                <div className=""
+                  <div className=""
+                    <h4 className=""
                       {report.title || 'Relatório sem título'}
                     </h4>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className=""
                       {report.reportNumber || "
                     </p>
                     {report.description && (
                       <p className="text-sm text-gray-700 mb-2">{report.description}</p>
                     )}
                   </div>
-                  <div className="flex flex-col items-end gap-2">
+                  <div className=""
                     {getStatusBadge(report.status || 'draft')}
-                    <span className="text-lg font-semibold text-green-600">
+                    <span className=""
                       R$ {(report.totalAmount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-sm text-gray-500">
+                <div className=""
                   <span>
                     Criado em {new Date(report.createdAt || new Date()).toLocaleDateString('pt-BR')}
                   </span>
-                  <div className="flex gap-2">
+                  <div className=""
                     <Button size="sm" variant="outline" data-testid={"
                       <Eye className="h-3 w-3 mr-1" />
                       Ver
@@ -540,18 +540,18 @@ function ExpenseReportsList() {
 // Main Component
 export default function CorporateExpenseManagement() {
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
+    <div className=""
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className=""
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h1 className=""
             Gestão de Despesas Corporativas
           </h1>
-          <p className="text-slate-600 dark:text-slate-300 mt-2">
+          <p className=""
             Sistema completo de aprovação e gerenciamento de despesas empresariais seguindo 1qa.md
           </p>
         </div>
-        <div className="flex space-x-2">
+        <div className=""
           <CreateExpenseReportDialog />
         </div>
       </div>
@@ -560,38 +560,38 @@ export default function CorporateExpenseManagement() {
       <DashboardMetrics />
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="reports" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="reports" data-testid="tab-reports">
+      <Tabs defaultValue="reports" className=""
+        <TabsList className=""
+          <TabsTrigger value="reports" data-testid="tab-reports>
             <FileText className="h-4 w-4 mr-2" />
             Relatórios
           </TabsTrigger>
-          <TabsTrigger value="approvals" data-testid="tab-approvals">
+          <TabsTrigger value="approvals" data-testid="tab-approvals>
             <Clock className="h-4 w-4 mr-2" />
             Aprovações
           </TabsTrigger>
-          <TabsTrigger value="policies" data-testid="tab-policies">
+          <TabsTrigger value="policies" data-testid="tab-policies>
             <AlertTriangle className="h-4 w-4 mr-2" />
             Políticas
           </TabsTrigger>
-          <TabsTrigger value="cards" data-testid="tab-cards">
+          <TabsTrigger value="cards" data-testid="tab-cards>
             <CreditCard className="h-4 w-4 mr-2" />
             Cartões
           </TabsTrigger>
-          <TabsTrigger value="analytics" data-testid="tab-analytics">
+          <TabsTrigger value="analytics" data-testid="tab-analytics>
             <BarChart3 className="h-4 w-4 mr-2" />
             Analytics
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="reports">
+        <TabsContent value="reports>
           <ExpenseReportsList />
         </TabsContent>
 
-        <TabsContent value="approvals">
+        <TabsContent value="approvals>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className=""
                 <Clock className="h-5 w-5 text-yellow-600" />
                 Fluxo de Aprovações
               </CardTitle>
@@ -600,13 +600,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
+              <div className=""
                 <Clock className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Sistema de Aprovações</h3>
-                <p className="text-gray-600 mb-4">
+                <p className=""
                   Workflow hierárquico com SLA, escalonamento e audit trail completo
                 </p>
-                <Button className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700">
+                <Button className=""
                   Configurar Regras de Aprovação
                 </Button>
               </div>
@@ -614,10 +614,10 @@ export default function CorporateExpenseManagement() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="policies">
+        <TabsContent value="policies>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className=""
                 <AlertTriangle className="h-5 w-5 text-red-600" />
                 Policy Engine
               </CardTitle>
@@ -626,13 +626,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
+              <div className=""
                 <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Configuração de Políticas</h3>
-                <p className="text-gray-600 mb-4">
+                <p className=""
                   Sistema avançado de regras com limites, blacklists e compliance
                 </p>
-                <Button className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700">
+                <Button className=""
                   Abrir Query Builder
                 </Button>
               </div>
@@ -640,10 +640,10 @@ export default function CorporateExpenseManagement() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="cards">
+        <TabsContent value="cards>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className=""
                 <CreditCard className="h-5 w-5 text-purple-600" />
                 Cartões Corporativos
               </CardTitle>
@@ -652,13 +652,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
+              <div className=""
                 <CreditCard className="h-12 w-12 text-purple-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Gestão de Cartões</h3>
-                <p className="text-gray-600 mb-4">
+                <p className=""
                   Matching inteligente, reconciliação automática e controle de gastos
                 </p>
-                <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                <Button className=""
                   Configurar Integração
                 </Button>
               </div>
@@ -666,10 +666,10 @@ export default function CorporateExpenseManagement() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics">
+        <TabsContent value="analytics>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className=""
                 <BarChart3 className="h-5 w-5 text-green-600" />
                 Analytics & Compliance
               </CardTitle>
@@ -678,13 +678,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
+              <div className=""
                 <BarChart3 className="h-12 w-12 text-green-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Business Intelligence</h3>
-                <p className="text-gray-600 mb-4">
+                <p className=""
                   Dashboards executivos, detecção de fraudes e análise de padrões
                 </p>
-                <Button className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700">
+                <Button className=""
                   Ver Relatórios
                 </Button>
               </div>

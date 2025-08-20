@@ -34,7 +34,7 @@ export function TicketViewSelector({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+      <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg>
         <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
         <div className="h-8 w-40 bg-gray-200 rounded animate-pulse"></div>
       </div>
@@ -42,22 +42,22 @@ export function TicketViewSelector({
   }
 
   return (
-    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg>
+      <div className="flex items-center gap-4>
+        <div className="flex items-center gap-2>
           <Eye className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300>
             Visualização:
           </span>
         </div>
 
         <Select value={currentViewId || 'default'} onValueChange={onViewChange}>
-          <SelectTrigger className="w-64">
+          <SelectTrigger className="w-64>
             <SelectValue>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2>
                 <span>{currentView.name}</span>
                 {currentView.is_public && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs>
                     <Users className="h-3 w-3 mr-1" />
                     Pública
                   </Badge>
@@ -73,16 +73,16 @@ export function TicketViewSelector({
             ) : (
               ticketViews.map((view: any) => (
                 <SelectItem key={view.id} value={view.id}>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2>
                     <span>{view.name}</span>
                     {view.is_public && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs>
                         <Users className="h-3 w-3 mr-1" />
                         Pública
                       </Badge>
                     )}
                     {view.is_default && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs>
                         Padrão
                       </Badge>
                     )}
@@ -94,16 +94,16 @@ export function TicketViewSelector({
         </Select>
 
         {currentView.description && (
-          <span className="text-sm text-gray-500 italic">
+          <span className="text-sm text-gray-500 italic>
             {currentView.description}
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2>
         <Dialog open={isNewViewModalOpen} onOpenChange={setIsNewViewModalOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm>
               <Plus className="h-4 w-4 mr-2" />
               Nova Visualização
             </Button>
@@ -112,7 +112,7 @@ export function TicketViewSelector({
             <DialogHeader>
               <DialogTitle>Criar Nova Visualização</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4>
               <div>
                 <label className="text-sm font-medium">Nome da Visualização</label>
                 <Input placeholder='[TRANSLATION_NEEDED]' />
@@ -121,7 +121,7 @@ export function TicketViewSelector({
                 <label className="text-sm font-medium">Descrição (opcional)</label>
                 <Input placeholder="Descrição da visualização..." />
               </div>
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-2>
                 <Button variant="outline" onClick={() => setIsNewViewModalOpen(false)}>
                   Cancelar
                 </Button>
@@ -135,35 +135,35 @@ export function TicketViewSelector({
 
         <Dialog open={isManageViewsOpen} onOpenChange={setIsManageViewsOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm>
               <Settings className="h-4 w-4 mr-2" />
               Gerenciar
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2>
                 <Settings className="h-5 w-5" />
                 Gerenciar Visualizações
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4>
               {ticketViews.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500>
                   <Filter className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>Nenhuma visualização personalizada criada ainda.</p>
                   <p className="text-sm">Clique em "Nova Visualização" para criar sua primeira visualização.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3>
                   {ticketViews.map((view: any) => (
-                    <div key={view.id} className="border rounded-lg p-4 flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
+                    <div key={view.id} className="border rounded-lg p-4 flex items-center justify-between>
+                      <div className="flex-1>
+                        <div className="flex items-center gap-3>
                           <h3 className="font-medium">{view.name}</h3>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2>
                             {view.is_public && (
-                              <Badge variant="secondary">
+                              <Badge variant="secondary>
                                 <Users className="h-3 w-3 mr-1" />
                                 Pública
                               </Badge>
@@ -177,8 +177,8 @@ export function TicketViewSelector({
                           <p className="text-sm text-gray-500 mt-1">{view.description}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
+                      <div className="flex items-center gap-2>
+                        <Button variant="outline" size="sm>
                           Editar
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => onViewChange(view.id)}>

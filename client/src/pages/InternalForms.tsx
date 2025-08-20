@@ -58,21 +58,21 @@ export default function InternalForms() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Formulários de Ações Internas</h1>
           <p className="text-gray-600 dark:text-gray-400">Crie e gerencie formulários para automação de processos internos</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+            <Button className=""
               <Plus className="h-4 w-4 mr-2" />
               Novo Formulário
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>Criar Novo Formulário</DialogTitle>
             </DialogHeader>
@@ -82,10 +82,10 @@ export default function InternalForms() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className=""
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Formulários</p>
                 <p className="text-2xl font-bold">{forms.length}</p>
@@ -96,8 +96,8 @@ export default function InternalForms() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Formulários Ativos</p>
                 <p className="text-2xl font-bold">{forms.filter((f: any) => f.isActive).length}</p>
@@ -108,8 +108,8 @@ export default function InternalForms() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Categorias</p>
                 <p className="text-2xl font-bold">{categories.length}</p>
@@ -120,8 +120,8 @@ export default function InternalForms() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Submissões Hoje</p>
                 <p className="text-2xl font-bold">0</p>
@@ -134,9 +134,9 @@ export default function InternalForms() {
 
       {/* Search and Filters */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex gap-4">
-            <div className="relative flex-1">
+        <CardContent className=""
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Pesquisar formulários..."
@@ -162,11 +162,11 @@ export default function InternalForms() {
       </Card>
 
       {/* Forms Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=""
         {filteredForms.map((form: any) => (
-          <Card key={form.id} className="hover:shadow-lg transition-shadow">
+          <Card key={form.id} className=""
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className=""
                 <CardTitle className="text-lg">{form.name}</CardTitle>
                 <Badge
                   variant={form.isActive ? "default" : "secondary"
@@ -179,19 +179,19 @@ export default function InternalForms() {
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400 mb-4">{form.description}</p>
               
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+              <div className=""
                 <span>Categoria: {form.category}</span>
                 <span>{form.fields.length} campos</span>
               </div>
 
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
+              <div className=""
+                <Button variant="outline" size="sm" className=""
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className=""
                   Visualizar
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm>
                   <BarChart3 className="h-4 w-4" />
                 </Button>
               </div>
@@ -202,12 +202,12 @@ export default function InternalForms() {
 
       {filteredForms.length === 0 && (
         <Card>
-          <CardContent className="p-12 text-center">
+          <CardContent className=""
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+            <h3 className=""
               Nenhum formulário encontrado
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className=""
               {searchTerm || selectedCategory !== "all" 
                 ? "Tente ajustar os filtros de busca"
                 : "Comece criando seu primeiro formulário de ação interna"

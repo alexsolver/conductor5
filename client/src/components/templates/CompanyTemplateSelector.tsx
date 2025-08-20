@@ -44,7 +44,7 @@ export default function CompanyTemplateSelector({
   const { data: statsResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', "/stats`);
+      const response = await apiRequest('GET', "/api/templates/stats");
       return response.json();
     },
     enabled: showStats
@@ -109,8 +109,8 @@ export default function CompanyTemplateSelector({
 
   if (companiesLoading) {
     return (
-      <Card className="animate-pulse">
-        <CardContent className="p-4">
+      <Card className="animate-pulse>
+        <CardContent className="p-4>
           <div className="h-4 bg-gray-200 rounded mb-2"></div>
           <div className="h-8 bg-gray-200 rounded"></div>
         </CardContent>
@@ -119,31 +119,31 @@ export default function CompanyTemplateSelector({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       {/* Company Selector */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="pb-3>
+          <CardTitle className="text-lg flex items-center gap-2>
             {selectedCompanyInfo.icon}
             Selecionar Cliente
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-4>
             <Select value={selectedCompany} onValueChange={onCompanyChange}>
               <SelectTrigger>
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  <div className="flex items-center gap-2">
+                <SelectItem value="all>
+                  <div className="flex items-center gap-2>
                     <Globe className="w-4 h-4" />
                     <span>Todos os Clientes (Templates Globais)</span>
                   </div>
                 </SelectItem>
                 {companies.map((company) => (
                   <SelectItem key={company.id} value={company.id}>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2>
                       <Building2 className="w-4 h-4" />
                       <span>{company.displayName || company.name}</span>
                     </div>
@@ -153,17 +153,17 @@ export default function CompanyTemplateSelector({
             </Select>
 
             {/* Selected Company Info */}
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
+            <div className="p-4 bg-gray-50 rounded-lg>
+              <div className="flex items-start justify-between>
+                <div className="flex-1>
                   <h4 className="font-medium">{selectedCompanyInfo.name}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-muted-foreground mt-1>
                     {selectedCompanyInfo.description}
                   </p>
                 </div>
                 
                 {selectedCompany !== 'all' && (
-                  <div className="flex gap-2 ml-4">
+                  <div className="flex gap-2 ml-4>
                     {(() => {
                       const company = companies.find(c => c.id === selectedCompany);
                       if (!company) return null;
@@ -190,37 +190,37 @@ export default function CompanyTemplateSelector({
       {/* Template Stats for Selected Company */}
       {showStats && stats && Object.keys(stats).length > 0 && (
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3>
             <CardTitle className="text-lg">Estatísticas de Templates</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4>
+              <div className="text-center>
                 <p className="text-2xl font-bold text-blue-600">{stats.total_templates || 0}</p>
                 <p className="text-sm text-muted-foreground">Total</p>
               </div>
-              <div className="text-center">
+              <div className="text-center>
                 <p className="text-2xl font-bold text-green-600">{stats.active_templates || 0}</p>
                 <p className="text-sm text-muted-foreground">Ativos</p>
               </div>
-              <div className="text-center">
+              <div className="text-center>
                 <p className="text-2xl font-bold text-orange-600">{Math.round(stats.avg_usage || 0)}</p>
                 <p className="text-sm text-muted-foreground">Uso Médio</p>
               </div>
-              <div className="text-center">
+              <div className="text-center>
                 <p className="text-2xl font-bold text-purple-600">{stats.max_usage || 0}</p>
                 <p className="text-sm text-muted-foreground">Mais Usado</p>
               </div>
             </div>
 
             {stats.templates_by_category && stats.templates_by_category.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm font-medium text-muted-foreground mb-2">
+              <div className="mt-4 pt-4 border-t>
+                <p className="text-sm font-medium text-muted-foreground mb-2>
                   Categorias Disponíveis
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2>
                   {stats.templates_by_category.map((category: any, index: number) => (
-                    <Badge key={category.category} variant="outline">
+                    <Badge key={category.category} variant="outline>
                       {category.category} ({category.count})
                     </Badge>
                   ))}

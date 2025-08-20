@@ -25,7 +25,7 @@ const Avatar: React.FC<AvatarProps> = ({
   };
 
   return (
-    <div className="${sizeClasses[size]} rounded-full overflow-hidden "">
+    <div className="${sizeClasses[size]} rounded-full overflow-hidden ">
       {children}
     </div>
   );

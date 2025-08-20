@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (!response.ok) {
-          console.warn("
+          console.warn("Auth warning: Response not OK");
           return null;
         }
 
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('✅ [AUTH-QUERY] Auth check successful');
         return userData || null;
       } catch (error) {
-        console.warn('⚠️ [AUTH-QUERY] Auth query error:', error.message);
+        console.warn('⚠️ [AUTH-QUERY] Auth query error:', (error as Error).message);
         return null;
       }
     },
@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       toast({
         title: 'Login Successful',
-        description: "!`,
+        description: "Welcome back!",
       });
     },
     onError: (error: Error) => {
@@ -215,12 +215,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.tenant) {
         toast({
           title: 'Workspace Criado com Sucesso',
-          description: "" foi criado e você é o administrador.`,
+          description: "Seu workspace foi criado e você é o administrador.",
         });
       } else {
         toast({
           title: 'Registro Realizado com Sucesso',
-          description: "!`,
+          description: "Sua conta foi criada com sucesso!",
         });
       }
     },

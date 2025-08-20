@@ -401,7 +401,7 @@ export default function Beneficiaries() {
   // Early return for loading state
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className=""
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
         <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
       </div>
@@ -410,16 +410,16 @@ export default function Beneficiaries() {
 
   const BeneficiaryForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className=""
+        <Tabs defaultValue="basic" className=""
+          <TabsList className=""
             <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
             <TabsTrigger value="contact">Contato</TabsTrigger>
             <TabsTrigger value="additional">Informações Adicionais</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="basic" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="basic" className=""
+            <div className=""
               <FormField
                 control={form.control}
                 name="firstName"
@@ -464,8 +464,8 @@ export default function Beneficiaries() {
 
             {/* Clientes Associados - Many-to-Many */}
             {editingBeneficiary && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+              <div className=""
+                <div className=""
                   <Label className="text-sm font-medium">Clientes Associados</Label>
                   <Button
                     type="button"
@@ -479,13 +479,13 @@ export default function Beneficiaries() {
                 </div>
                 
                 {/* Lista de clientes associados */}
-                <div className="space-y-2">
+                <div className=""
                   {beneficiaryCustomers.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Nenhum cliente associado</p>
                   ) : (
                     beneficiaryCustomers.map((customer: any) => (
-                      <div key={customer.id} className="flex items-center justify-between p-2 border rounded-md">
-                        <span className="text-sm">
+                      <div key={customer.id} className=""
+                        <span className=""
                           {customer.first_name} {customer.last_name} - {customer.email}
                         </span>
                         <Button
@@ -503,8 +503,8 @@ export default function Beneficiaries() {
 
                 {/* Seletor de cliente modal */}
                 {showCustomerSelector && (
-                  <div className="border rounded-md p-3 bg-muted/50">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className=""
+                    <div className=""
                       <Label className="text-sm">Selecionar Cliente:</Label>
                       <Button
                         type="button"
@@ -563,7 +563,7 @@ export default function Beneficiaries() {
               />
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className=""
               <FormField
                 control={form.control}
                 name="birthDate"
@@ -596,10 +596,10 @@ export default function Beneficiaries() {
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
+                <FormItem className=""
+                  <div className=""
                     <FormLabel className="text-base">Ativo</FormLabel>
-                    <div className="text-sm text-muted-foreground">
+                    <div className=""
                       O favorecido está ativo no sistema
                     </div>
                   </div>
@@ -614,8 +614,8 @@ export default function Beneficiaries() {
             />
           </TabsContent>
 
-          <TabsContent value="contact" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="contact" className=""
+            <div className=""
               <FormField
                 control={form.control}
                 name="phone"
@@ -644,7 +644,7 @@ export default function Beneficiaries() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className=""
               <FormField
                 control={form.control}
                 name="contactPerson"
@@ -674,8 +674,8 @@ export default function Beneficiaries() {
             </div>
           </TabsContent>
 
-          <TabsContent value="additional" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="additional" className=""
+            <div className=""
               <FormField
                 control={form.control}
                 name="rg"
@@ -706,7 +706,7 @@ export default function Beneficiaries() {
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end space-x-2">
+        <div className=""
           <Button
             type="button"
             variant="outline"
@@ -730,12 +730,12 @@ export default function Beneficiaries() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Favorecidos</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Gerencie os favorecidos do sistema
           </p>
         </div>
@@ -751,7 +751,7 @@ export default function Beneficiaries() {
               Novo Favorecido
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>
                 {editingBeneficiary ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'} Favorecido
@@ -768,9 +768,9 @@ export default function Beneficiaries() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -779,29 +779,29 @@ export default function Beneficiaries() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Ativos</CardTitle>
             <UserCheck className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className=""
               {beneficiaries.filter((b: Beneficiary) => (b.isActive ?? b.is_active)).length}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Inativos</CardTitle>
             <User className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-600">
+            <div className=""
               {beneficiaries.filter((b: Beneficiary) => !b.isActive).length}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Esta Página</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -812,8 +812,8 @@ export default function Beneficiaries() {
       </div>
 
       {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
+      <div className=""
+        <div className=""
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder='[TRANSLATION_NEEDED]'
@@ -829,7 +829,7 @@ export default function Beneficiaries() {
         <CardHeader>
           <CardTitle>Favorecidos ({filteredBeneficiaries.length})</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className=""
           <Table>
             <TableHeader>
               <TableRow>
@@ -849,26 +849,26 @@ export default function Beneficiaries() {
                     <div>
                       <div className="font-medium">{beneficiary.fullName || beneficiary.full_name}</div>
                       {(beneficiary.contactPerson || beneficiary.contact_person) && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className=""
                           Contato: {beneficiary.contactPerson || beneficiary.contact_person}
                         </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center">
+                    <div className=""
                       <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
                       {beneficiary.email}
                     </div>
                   </TableCell>
                   <TableCell>
                     {(beneficiary.phone || beneficiary.cellPhone || beneficiary.cell_phone) ? (
-                      <div className="flex items-center">
+                      <div className=""
                         <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
                         <div>
                           {beneficiary.phone && <div>{beneficiary.phone}</div>}
                           {(beneficiary.cellPhone || beneficiary.cell_phone) && (
-                            <div className="text-sm text-muted-foreground">
+                            <div className=""
                               {beneficiary.cellPhone || beneficiary.cell_phone}
                             </div>
                           )}
@@ -879,7 +879,7 @@ export default function Beneficiaries() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={(beneficiary.isActive ?? beneficiary.is_active) ? "default" : "secondary">
+                    <Badge variant={(beneficiary.isActive ?? beneficiary.is_active) ? "default" : "secondary>
                       {(beneficiary.isActive ?? beneficiary.is_active) ? "Ativo" : "Inativo"
                     </Badge>
                   </TableCell>
@@ -891,14 +891,14 @@ export default function Beneficiaries() {
                   <TableCell>
                     {new Date(beneficiary.createdAt || beneficiary.created_at).toLocaleDateString('pt-BR')}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className=""
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className=""
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end>
                         <DropdownMenuItem onClick={() => handleEdit(beneficiary)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar
@@ -919,12 +919,12 @@ export default function Beneficiaries() {
           </Table>
 
           {filteredBeneficiaries.length === 0 && (
-            <div className="text-center py-12">
+            <div className=""
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              <h3 className=""
                 Nenhum favorecido encontrado
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className=""
                 {searchTerm ? 'Tente ajustar sua busca.' : 'Comece criando seu primeiro favorecido.'}
               </p>
             </div>
@@ -932,11 +932,11 @@ export default function Beneficiaries() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-6 border-t">
-              <div className="text-sm text-muted-foreground">
+            <div className=""
+              <div className=""
                 Mostrando {startIndex + 1}-{Math.min(endIndex, filteredBeneficiaries.length)} de {filteredBeneficiaries.length} favorecidos
               </div>
-              <div className="flex items-center space-x-2">
+              <div className=""
                 <Button
                   variant="outline"
                   size="sm"
@@ -946,7 +946,7 @@ export default function Beneficiaries() {
                   <ChevronLeft className="h-4 w-4" />
                   Anterior
                 </Button>
-                <div className="flex items-center space-x-1">
+                <div className=""
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <Button
                       key={page}

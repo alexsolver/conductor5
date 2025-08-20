@@ -196,13 +196,13 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
 
 // ✅ 1QA.MD COMPLIANCE: Zendesk-style navigation breadcrumbs
 const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
-  <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+  <div className=""
     <Home className="w-4 h-4" />
     <span>Home</span>
     <ChevronRight className="w-4 h-4" />
     <span>Analytics</span>
     <ChevronRight className="w-4 h-4" />
-    <span className="font-medium text-gray-900 dark:text-gray-100">
+    <span className=""
       {currentView === "templates" ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
     </span>
   </div>
@@ -210,54 +210,54 @@ const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
 
 // ✅ 1QA.MD COMPLIANCE: Zendesk-style template showcase
 const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (template: any) => void }) => (
-  <div className="space-y-8">
+  <div className=""
     {/* Featured Templates */}
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className=""
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Featured Templates</h2>
           <p className="text-gray-600 dark:text-gray-400">Get started quickly with our most popular dashboards</p>
         </div>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm>
           <BookOpen className="w-4 h-4 mr-2" />
           View All
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=""
         {ZENDESK_DASHBOARD_TEMPLATES.filter(t => t.featured).map((template) => (
           <Card 
             key={template.id}
             className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-blue-200"
             onClick={() => onSelectTemplate(template)}
           >
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between">
-                <div className={"p-3 rounded-lg " + template.color + " text-white">
+            <CardHeader className=""
+              <div className=""
+                <div className={"p-3 rounded-lg " + template.color + " text-white>
                   <template.icon className="w-6 h-6" />
                 </div>
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className=""
                   {template.popularity}
                 </Badge>
               </div>
-              <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
+              <CardTitle className=""
                 {template.name}
               </CardTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className=""
                 {template.description}
               </p>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between text-sm text-gray-500">
+            <CardContent className=""
+              <div className=""
                 <span>{template.widgets} widgets</span>
                 <span>{template.estimatedTime}</span>
               </div>
-              <div className="flex items-center mt-4 space-x-2">
-                <Button size="sm" className="flex-1">
+              <div className=""
+                <Button size="sm" className=""
                   <PlayCircle className="w-4 h-4 mr-2" />
                   Use Template
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm>
                   <Eye className="w-4 h-4" />
                 </Button>
               </div>
@@ -270,13 +270,13 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
     {/* Categories */}
     <div>
       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Browse by Category</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className=""
         {["Support", "Performance", '[TRANSLATION_NEEDED]', "Compliance"].map((category) => (
-          <Card key={category} className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-4 text-center">
+          <Card key={category} className=""
+            <CardContent className=""
               <Folder className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <h4 className="font-medium">{category}</h4>
-              <p className="text-sm text-gray-500">
+              <p className=""
                 {ZENDESK_DASHBOARD_TEMPLATES.filter(t => t.category === category).length} templates
               </p>
             </CardContent>
@@ -440,20 +440,20 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
   };
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500 bg-white dark:bg-gray-800">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3 flex-1">
+    <Card className=""
+      <CardHeader className=""
+        <div className=""
+          <div className=""
             {/* Status & Type Icons */}
-            <div className="flex flex-col space-y-2">
+            <div className=""
               {getStatusIcon()}
-              <div className="p-2 bg-blue-50 dark:bg-blue-900 rounded-lg">
+              <div className=""
                 <Grid className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
             
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-1">
+            <div className=""
+              <div className=""
                 <CardTitle 
                   className="text-lg group-hover:text-blue-600 transition-colors truncate cursor-pointer"
                   onClick={handleOpenDashboard}
@@ -469,23 +469,23 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
               </div>
               
               {dashboard.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                <p className=""
                   {dashboard.description}
                 </p>
               )}
               
               {/* Owner & Collaborators */}
-              <div className="flex items-center space-x-2 mb-2">
+              <div className=""
                 {dashboard.owner && (
-                  <div className="flex items-center space-x-1">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white font-medium">
+                  <div className=""
+                    <div className=""
                       {dashboard.owner.name.charAt(0)}
                     </div>
                     <span className="text-xs text-gray-500">{dashboard.owner.name}</span>
                   </div>
                 )}
                 {dashboard.collaborators && dashboard.collaborators.length > 0 && (
-                  <span className="text-xs text-gray-400">
+                  <span className=""
                     +{dashboard.collaborators.length} collaborators
                   </span>
                 )}
@@ -493,14 +493,14 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
               
               {/* Tags */}
               {dashboard.tags && dashboard.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
+                <div className=""
                   {dashboard.tags.slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
+                    <Badge key={tag} variant="secondary" className=""
                       {tag}
                     </Badge>
                   ))}
                   {dashboard.tags.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className=""
                       +{dashboard.tags.length - 3}
                     </Badge>
                   )}
@@ -508,7 +508,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
               )}
               
               {/* Status Badges */}
-              <div className="flex items-center space-x-2">
+              <div className=""
                 <Badge 
                   variant={dashboard.status === "active" ? "default" : "secondary"
                   className="text-xs"
@@ -516,7 +516,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
                   {dashboard.status}
                 </Badge>
                 {dashboard.isRealTime && (
-                  <Badge variant="outline" className="text-xs text-green-600">
+                  <Badge variant="outline" className=""
                     <RefreshCw className="w-3 h-3 mr-1" />
                     Live
                   </Badge>
@@ -534,11 +534,11 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
           {/* Actions Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="sm" className=""
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className=""
               <DropdownMenuItem onClick={handleOpenDashboard}>
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Open Dashboard
@@ -582,19 +582,19 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0">
+      <CardContent className=""
         {/* Metrics Row */}
-        <div className="grid grid-cols-3 gap-4 text-sm mb-4">
-          <div className="text-center">
+        <div className=""
+          <div className=""
             <div className="font-semibold text-gray-900 dark:text-gray-100">{dashboard.widgetCount}</div>
             <div className="text-gray-500">Widgets</div>
           </div>
-          <div className="text-center">
+          <div className=""
             <div className="font-semibold text-gray-900 dark:text-gray-100">{dashboard.viewCount}</div>
             <div className="text-gray-500">Views</div>
           </div>
-          <div className="text-center">
-            <div className="font-semibold text-gray-900 dark:text-gray-100">
+          <div className=""
+            <div className=""
               {dashboard.refreshInterval}s
             </div>
             <div className="text-gray-500">Refresh</div>
@@ -603,12 +603,12 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
 
         {/* Insights */}
         {dashboard.insights && (
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-4">
-            <div className="flex items-center justify-between mb-2">
+          <div className=""
+            <div className=""
               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Dashboard Insights</span>
               <TrendingUp className="w-4 h-4 text-green-500" />
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className=""
               <div>
                 <span className="text-gray-500">Performance: </span>
                 <span className="font-medium text-green-600">{dashboard.insights.performance}%</span>
@@ -622,9 +622,9 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
         )}
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Button size="sm" onClick={handleOpenDashboard} className="bg-blue-600 hover:bg-blue-700">
+        <div className=""
+          <div className=""
+            <Button size="sm" onClick={handleOpenDashboard} className=""
               <ArrowUpRight className="w-3 h-3 mr-1" />
               Open
             </Button>
@@ -634,7 +634,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
             </Button>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className=""
             <Button
               variant="ghost"
               size="sm"
@@ -648,7 +648,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
                 <Star className="w-4 h-4 text-gray-400" />
               )}
             </Button>
-            <span className="text-xs text-gray-500">
+            <span className=""
               {dashboard.lastViewedAt ? 
                 "Updated " + new Date(dashboard.lastViewedAt).toLocaleDateString() + "" : 
                 'Never viewed'
@@ -804,26 +804,26 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
           Create Dashboard
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className=""
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className=""
             <BarChart3 className="w-5 h-5 text-blue-600" />
             <span>Create New Dashboard</span>
           </DialogTitle>
         </DialogHeader>
 
         {/* Zendesk-style Step Progress */}
-        <div className="flex items-center justify-between mb-6 px-4">
+        <div className=""
           {steps.map((step, index) => (
-            <div key={index} className="flex items-center">
+            <div key={index} className=""
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                 index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-              }Enter dashboard title">
+              }Enter dashboard title>
                 <step.icon className="w-5 h-5" />
               </div>
               <span className="ml-2 text-sm font-medium"
                 index <= currentStep ? 'text-blue-600' : 'text-gray-500'
-              }Enter dashboard title">
+              }Enter dashboard title>
                 {step.title}
               </span>
               {index < steps.length - 1 && (
@@ -836,17 +836,17 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className=""
             
             {/* Step 0: Template Selection */}
             {currentStep === 0 && (
-              <div className="space-y-6">
-                <div className="text-center">
+              <div className=""
+                <div className=""
                   <h3 className="text-lg font-semibold mb-2">Choose a Template</h3>
                   <p className="text-gray-600">Start with a pre-built template or create from scratch</p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className=""
                   {/* Blank Template */}
                   <Card 
                     className={`cursor-pointer transition-all ${
@@ -854,8 +854,8 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                     }Enter dashboard title"
                     onClick={() => setSelectedTemplate({ id: "blank", name: "Blank Dashboard" })}
                   >
-                    <CardContent className="p-6 text-center">
-                      <div className="w-12 h-12 bg-gray-200 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                    <CardContent className=""
+                      <div className=""
                         <Plus className="w-6 h-6 text-gray-500" />
                       </div>
                       <h4 className="font-semibold mb-1">Blank Dashboard</h4>
@@ -872,15 +872,15 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       }Enter dashboard title"
                       onClick={() => setSelectedTemplate(template)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-start space-x-3">
-                          <div className={"p-2 rounded-lg " + template.color + " text-white flex-shrink-0">
+                      <CardContent className=""
+                        <div className=""
+                          <div className={"p-2 rounded-lg " + template.color + " text-white flex-shrink-0>
                             <template.icon className="w-5 h-5" />
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className=""
                             <h4 className="font-semibold text-sm mb-1 truncate">{template.name}</h4>
                             <p className="text-xs text-gray-600 line-clamp-2">{template.description}</p>
-                            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                            <div className=""
                               <span>{template.widgets} widgets</span>
                               <Badge variant="secondary" className="text-xs">{template.popularity}</Badge>
                             </div>
@@ -895,7 +895,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
 
             {/* Step 1: Basic Info */}
             {currentStep === 1 && (
-              <div className="space-y-4">
+              <div className=""
                 <FormField
                   control={form.control}
                   name="name"
@@ -952,9 +952,9 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
 
             {/* Step 2: Configuration */}
             {currentStep === 2 && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
+              <div className=""
+                <div className=""
+                  <div className=""
                     <h4 className="font-semibold">Layout & Appearance</h4>
                     
                     <FormField
@@ -984,10 +984,10 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       control={form.control}
                       name="isPublic"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
+                        <FormItem className=""
+                          <div className=""
                             <FormLabel>Public Dashboard</FormLabel>
-                            <div className="text-sm text-gray-600">
+                            <div className=""
                               Allow public access via shareable link
                             </div>
                           </div>
@@ -1002,17 +1002,17 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                     />
                   </div>
 
-                  <div className="space-y-4">
+                  <div className=""
                     <h4 className="font-semibold">Real-time Settings</h4>
                     
                     <FormField
                       control={form.control}
                       name="isRealTime"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
+                        <FormItem className=""
+                          <div className=""
                             <FormLabel>Real-time Updates</FormLabel>
-                            <div className="text-sm text-gray-600">
+                            <div className=""
                               Enable automatic data refresh
                             </div>
                           </div>
@@ -1034,7 +1034,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                           <FormItem>
                             <FormLabel>Refresh Interval (seconds)</FormLabel>
                             <FormControl>
-                              <div className="space-y-2">
+                              <div className=""
                                 <Slider
                                   value={[field.value]}
                                   onValueChange={([value]) => field.onChange(value)}
@@ -1042,7 +1042,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                                   max={300}
                                   step={5}
                                 />
-                                <div className="text-sm text-gray-500 text-center">
+                                <div className=""
                                   Every {field.value} seconds
                                 </div>
                               </div>
@@ -1057,7 +1057,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6 border-t">
+            <div className=""
               <Button
                 type="button"
                 variant="outline"
@@ -1199,24 +1199,24 @@ export default function Dashboards() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className=""
       {/* ✅ 1QA.MD COMPLIANCE: Zendesk-style header */}
-      <div className="bg-white dark:bg-gray-800 border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4">
+      <div className=""
+        <div className=""
+          <div className=""
             <ZendeskBreadcrumbs currentView={activeView} />
             
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+            <div className=""
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-3">
+                <h1 className=""
                   <BarChart3 className="w-8 h-8 text-blue-600" />
                   <span>Dashboards</span>
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                <p className=""
                   Create and manage interactive dashboards with real-time insights
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className=""
                 <Button variant="outline" onClick={() => setActiveView("templates")}>
                   <BookOpen className="w-4 h-4 mr-2" />
                   Browse Templates
@@ -1225,7 +1225,7 @@ export default function Dashboards() {
                   <RefreshCw className={"w-4 h-4 mr-2 " + isLoading ? 'animate-spin' : '' + ""} />
                   Refresh
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline>
                   <HelpCircle className="w-4 h-4 mr-2" />
                   Help
                 </Button>
@@ -1236,37 +1236,37 @@ export default function Dashboards() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=""
         {/* ✅ 1QA.MD COMPLIANCE: Zendesk-style navigation tabs */}
-        <Tabs value={activeView} onValueChange={setActiveView} className="mb-8">
-          <TabsList className="grid w-full grid-cols-3 lg:w-96">
-            <TabsTrigger value="dashboards" className="flex items-center space-x-2">
+        <Tabs value={activeView} onValueChange={setActiveView} className=""
+          <TabsList className=""
+            <TabsTrigger value="dashboards" className=""
               <Grid className="w-4 h-4" />
               <span>My Dashboards</span>
             </TabsTrigger>
-            <TabsTrigger value="templates" className="flex items-center space-x-2">
+            <TabsTrigger value="templates" className=""
               <BookOpen className="w-4 h-4" />
               <span>Templates</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center space-x-2">
+            <TabsTrigger value="insights" className=""
               <TrendingUp className="w-4 h-4" />
               <span>Insights</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Templates View */}
-          <TabsContent value="templates" className="mt-6">
+          <TabsContent value="templates" className=""
             <ZendeskTemplateShowcase onSelectTemplate={(template) => {
               console.log('[TRANSLATION_NEEDED]', template);
             }} />
           </TabsContent>
 
           {/* Insights View */}
-          <TabsContent value="insights" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <TabsContent value="insights" className=""
+            <div className=""
               <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                <CardContent className=""
+                  <div className=""
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Dashboards</p>
                       <p className="text-3xl font-bold text-gray-900">{dashboards.length}</p>
@@ -1278,11 +1278,11 @@ export default function Dashboards() {
               </Card>
               
               <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                <CardContent className=""
+                  <div className=""
                     <div>
                       <p className="text-sm font-medium text-gray-600">Active Dashboards</p>
-                      <p className="text-3xl font-bold text-gray-900">
+                      <p className=""
                         {dashboards.filter(d => d.status === "active").length}
                       </p>
                       <p className="text-sm text-green-600">Live data</p>
@@ -1293,11 +1293,11 @@ export default function Dashboards() {
               </Card>
               
               <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                <CardContent className=""
+                  <div className=""
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Views</p>
-                      <p className="text-3xl font-bold text-gray-900">
+                      <p className=""
                         {dashboards.reduce((acc: number, d: Dashboard) => acc + d.viewCount, 0)}
                       </p>
                       <p className="text-sm text-green-600">From API</p>
@@ -1308,11 +1308,11 @@ export default function Dashboards() {
               </Card>
               
               <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                <CardContent className=""
+                  <div className=""
                     <div>
                       <p className="text-sm font-medium text-gray-600">Avg. Performance</p>
-                      <p className="text-3xl font-bold text-gray-900">
+                      <p className=""
                         {dashboards.length > 0 ? 
                           Math.round(dashboards.reduce((acc, d) => acc + (d.insights?.performance || 0), 0) / dashboards.length) 
                           : 0}%
@@ -1330,14 +1330,14 @@ export default function Dashboards() {
                 <CardTitle>Dashboard Performance Insights</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className=""
                   {dashboards.slice(0, 5).map((dashboard: Dashboard) => (
-                    <div key={dashboard.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
+                    <div key={dashboard.id} className=""
+                      <div className=""
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="font-medium">{dashboard.name}</span>
                       </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <div className=""
                         <span>{dashboard.viewCount} views</span>
                         <span>{dashboard.insights?.performance || 'N/A'}% performance</span>
                         <Badge variant="outline">{dashboard.status}</Badge>
@@ -1345,7 +1345,7 @@ export default function Dashboards() {
                     </div>
                   ))}
                   {dashboards.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className=""
                       No dashboards available. Create your first dashboard to see insights.
                     </div>
                   )}
@@ -1355,12 +1355,12 @@ export default function Dashboards() {
           </TabsContent>
 
           {/* Dashboards View */}
-          <TabsContent value="dashboards" className="mt-6">
+          <TabsContent value="dashboards" className=""
             {/* ✅ 1QA.MD COMPLIANCE: FIXED Working filters and search */}
-            <div className="space-y-6">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
+            <div className=""
+              <div className=""
+                <div className=""
+                  <div className=""
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
                       placeholder={"Enter
@@ -1370,9 +1370,9 @@ export default function Dashboards() {
                     />
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
+                <div className=""
                   <Select value={layoutFilter} onValueChange={setLayoutFilter}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className=""
                       <Filter className="w-4 h-4 mr-2" />
                       <SelectValue placeholder="Layout" />
                     </SelectTrigger>
@@ -1386,7 +1386,7 @@ export default function Dashboards() {
                   </Select>
                   
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className=""
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1397,7 +1397,7 @@ export default function Dashboards() {
                     </SelectContent>
                   </Select>
                   
-                  <div className="flex items-center border rounded-lg">
+                  <div className=""
                     <Button 
                       variant={viewMode === "grid" ? "default" : "ghost"} 
                       size="sm"
@@ -1418,36 +1418,36 @@ export default function Dashboards() {
 
               {/* ✅ 1QA.MD COMPLIANCE: FIXED Working filter tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-5 lg:w-[500px]">
+                <TabsList className=""
                   <TabsTrigger value="all">All ({dashboards.length})</TabsTrigger>
-                  <TabsTrigger value="favorites">
+                  <TabsTrigger value="favorites>
                     Favorites ({dashboards.filter(d => d.isFavorite).length})
                   </TabsTrigger>
-                  <TabsTrigger value="mine">
+                  <TabsTrigger value="mine>
                     Mine ({dashboards.filter(d => d.createdBy === "user1").length})
                   </TabsTrigger>
-                  <TabsTrigger value="public">
+                  <TabsTrigger value="public>
                     Public ({dashboards.filter(d => d.isPublic).length})
                   </TabsTrigger>
-                  <TabsTrigger value="realtime">
+                  <TabsTrigger value="realtime>
                     Live ({dashboards.filter(d => d.isRealTime).length})
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value={activeTab} className="mt-6">
+                <TabsContent value={activeTab} className=""
                   {isLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className=""
                       {[...Array(6)].map((_, i) => (
                         <div key={i} className="h-80 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
                       ))}
                     </div>
                   ) : error ? (
-                    <div className="text-center py-16">
+                    <div className=""
                       <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      <h3 className=""
                         Error loading dashboards
                       </h3>
-                      <p className="text-gray-500 dark:text-gray-400 mb-6">
+                      <p className=""
                         {error instanceof Error ? error.message : "Failed to load dashboards"
                       </p>
                       <Button onClick={handleRefresh}>
@@ -1469,19 +1469,19 @@ export default function Dashboards() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-16">
+                    <div className=""
                       <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      <h3 className=""
                         No dashboards found
                       </h3>
-                      <p className="text-gray-500 dark:text-gray-400 mb-6">
+                      <p className=""
                         {searchTerm || layoutFilter !== "all" || activeTab !== "all"
                           ? "Try adjusting your search criteria"
                           : "Get started by creating your first dashboard"
                         }
                       </p>
                       {(!searchTerm && layoutFilter === "all" && activeTab === "all") && (
-                        <div className="space-x-3">
+                        <div className=""
                           <ZendeskCreateDashboardDialog onSuccess={handleRefresh} />
                           <Button variant="outline" onClick={() => setActiveView("templates")}>
                             Browse Templates

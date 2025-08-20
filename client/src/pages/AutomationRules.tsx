@@ -318,15 +318,15 @@ export default function AutomationRules() {
   // Early return se houver erro crítico
   if (loadingError || rulesError) {
     return (
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
+      <div className=""
+        <div className=""
+          <div className=""
             <AlertTriangle className="h-12 w-12 mx-auto text-red-500 mb-4" />
             <h3 className="text-lg font-semibold mb-2">Erro ao Carregar Página</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className=""
               {loadingError || rulesError?.message || 'Não foi possível carregar as regras de automação'}
             </p>
-            <div className="flex gap-2 justify-center">
+            <div className=""
               <Button 
                 onClick={() => {
                   setLoadingError(null);
@@ -343,11 +343,11 @@ export default function AutomationRules() {
               </Button>
             </div>
             {process.env.NODE_ENV === 'development' && (
-              <details className="mt-4 text-left">
-                <summary className="cursor-pointer text-sm text-muted-foreground">
+              <details className=""
+                <summary className=""
                   Detalhes do Erro (Dev)
                 </summary>
-                <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-auto">
+                <pre className=""
                   {JSON.stringify(rulesError || loadingError, null, 2)}
                 </pre>
               </details>
@@ -365,11 +365,11 @@ export default function AutomationRules() {
   });
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
+    <div className=""
+      <div className=""
         <div>
           <h2 className="text-3xl font-bold tracking-tight">🤖 Regras de Automação</h2>
-          <p className="text-muted-foreground">
+          <p className=""
             Configure regras inteligentes para automatizar o roteamento e resposta de mensagens
           </p>
         </div>
@@ -382,14 +382,14 @@ export default function AutomationRules() {
             </Button>
           </DialogTrigger>
           
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>🤖 Criar Regra de Automação</DialogTitle>
             </DialogHeader>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={form.handleSubmit(handleSubmit)} className=""
+                <div className=""
                   <FormField
                     control={form.control}
                     name="name"
@@ -444,8 +444,8 @@ export default function AutomationRules() {
                   control={form.control}
                   name="enabled"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
+                    <FormItem className=""
+                      <div className=""
                         <FormLabel className="text-base">Regra Ativa</FormLabel>
                         <FormDescription>
                           A regra será executada automaticamente quando ativa
@@ -462,8 +462,8 @@ export default function AutomationRules() {
                 />
 
                 {/* Condições */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className=""
+                  <div className=""
                     <Label className="text-base font-medium">🎯 Condições (IF)</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addCondition}>
                       <Plus className="mr-2 h-4 w-4" />
@@ -472,14 +472,14 @@ export default function AutomationRules() {
                   </div>
 
                   {(form.watch('conditions') || []).map((_, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 p-4 border rounded-lg bg-blue-50">
-                      <div className="col-span-3">
+                    <div key={index} className=""
+                      <div className=""
                         <Label className="text-xs">Campo</Label>
                         <Select
                           value={form.watch(".field`)}
                           onValueChange={(value) => form.setValue(".field`, value)}
                         >
-                          <SelectTrigger className="h-8">
+                          <SelectTrigger className=""
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -493,13 +493,13 @@ export default function AutomationRules() {
                         </Select>
                       </div>
 
-                      <div className="col-span-3">
+                      <div className=""
                         <Label className="text-xs">Operador</Label>
                         <Select
                           value={form.watch(".operator`)}
                           onValueChange={(value) => form.setValue(".operator`, value)}
                         >
-                          <SelectTrigger className="h-8">
+                          <SelectTrigger className=""
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -514,7 +514,7 @@ export default function AutomationRules() {
                         </Select>
                       </div>
 
-                      <div className="col-span-4">
+                      <div className=""
                         <Label className="text-xs">Valor</Label>
                         <Input
                           className="h-8"
@@ -524,13 +524,13 @@ export default function AutomationRules() {
                         />
                       </div>
 
-                      <div className="col-span-2">
+                      <div className=""
                         <Label className="text-xs">Lógica</Label>
                         <Select
                           value={form.watch(".logicalOperator`) || 'AND'}
                           onValueChange={(value) => form.setValue(".logicalOperator`, value)}
                         >
-                          <SelectTrigger className="h-8">
+                          <SelectTrigger className=""
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -544,8 +544,8 @@ export default function AutomationRules() {
                 </div>
 
                 {/* Ações */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className=""
+                  <div className=""
                     <Label className="text-base font-medium">⚡ Ações (THEN)</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addAction}>
                       <Plus className="mr-2 h-4 w-4" />
@@ -554,14 +554,14 @@ export default function AutomationRules() {
                   </div>
 
                   {(form.watch('actions') || []).map((_, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 p-4 border rounded-lg bg-green-50">
-                      <div className="col-span-4">
+                    <div key={index} className=""
+                      <div className=""
                         <Label className="text-xs">Tipo de Ação</Label>
                         <Select
                           value={form.watch(".type`)}
                           onValueChange={(value) => form.setValue(".type`, value)}
                         >
-                          <SelectTrigger className="h-8">
+                          <SelectTrigger className=""
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -575,7 +575,7 @@ export default function AutomationRules() {
                         </Select>
                       </div>
 
-                      <div className="col-span-4">
+                      <div className=""
                         <Label className="text-xs">Destino</Label>
                         <Input
                           className="h-8"
@@ -585,7 +585,7 @@ export default function AutomationRules() {
                         />
                       </div>
 
-                      <div className="col-span-4">
+                      <div className=""
                         <Label className="text-xs">Parâmetros (JSON)</Label>
                         <Input
                           className="h-8"
@@ -605,7 +605,7 @@ export default function AutomationRules() {
                   ))}
                 </div>
 
-                <div className="flex gap-2">
+                <div className=""
                   <Button type="submit" disabled={createRuleMutation.isPending}>
                     {createRuleMutation.isPending ? '🔄 Criando...' : '✅ Criar Regra'}
                   </Button>
@@ -620,54 +620,54 @@ export default function AutomationRules() {
       </div>
 
       {/* Métricas */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Regras</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.rulesCount || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {metrics.enabledRulesCount || 0} ativas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Regras Executadas</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.rulesExecuted || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               Total executadas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Ações Disparadas</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.actionsTriggered || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               Ações executadas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.successRate || 100}%</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {metrics.avgExecutionTime || 0}ms média
             </p>
           </CardContent>
@@ -677,30 +677,30 @@ export default function AutomationRules() {
       {/* Lista de Regras */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className=""
             <Settings className="h-5 w-5" />
             Regras Configuradas
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
+            <div className=""
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="mt-4 text-muted-foreground">Carregando regras de automação...</p>
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className=""
                 Conectando com o serviço de automação...
               </p>
             </div>
           ) : rules.length === 0 ? (
-            <div className="text-center py-8">
+            <div className=""
               <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Nenhuma regra de automação configurada</p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className=""
                 Crie sua primeira regra para automatizar o processamento de mensagens
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className=""
               {Array.isArray(safeRules) && safeRules.length > 0 ? (
                 safeRules.map((rule: any, index: number) => {
                   // Validação tripla para cada regra
@@ -726,9 +726,9 @@ export default function AutomationRules() {
                   };
                   
                   return (
-                    <div key={displayRule.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
+                    <div key={displayRule.id} className=""
+                      <div className=""
+                        <div className=""
                           {displayRule.enabled ? (
                             <Play className="h-4 w-4 text-green-600" />
                           ) : (
@@ -737,17 +737,17 @@ export default function AutomationRules() {
                           <div>
                             <p className="font-medium">{displayRule.name}</p>
                             <p className="text-sm text-muted-foreground">{displayRule.description}</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Badge variant="outline" className="text-xs">
+                            <div className=""
+                              <Badge variant="outline" className=""
                                 Prioridade {displayRule.priority}
                               </Badge>
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className=""
                                 {displayRule.conditionsCount} condições
                               </Badge>
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className=""
                                 {displayRule.actionsCount} ações
                               </Badge>
-                              <Badge variant={displayRule.enabled ? 'default' : 'secondary'} className="text-xs">
+                              <Badge variant={displayRule.enabled ? 'default' : 'secondary'} className=""
                                 {displayRule.enabled ? 'Ativa' : 'Inativa'}
                               </Badge>
                             </div>
@@ -755,7 +755,7 @@ export default function AutomationRules() {
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2">
+                      <div className=""
                         <Button
                           variant="outline"
                           size="sm"
@@ -780,7 +780,7 @@ export default function AutomationRules() {
                   );
                 })
               ) : (
-                <div className="text-center py-4">
+                <div className=""
                   <p className="text-muted-foreground">Nenhuma regra processada com segurança</p>
                 </div>
               )}
@@ -792,12 +792,12 @@ export default function AutomationRules() {
       {/* Dialog de Teste */}
       {selectedRule && (
         <Dialog open={!!selectedRule} onOpenChange={() => setSelectedRule(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>🧪 Testar Regra: {selectedRule.name || 'Regra'}</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-4">
+            <div className=""
               <div>
                 <Label>Dados de Teste (JSON)</Label>
                 <Textarea
@@ -806,12 +806,12 @@ export default function AutomationRules() {
                   placeholder='{"message": "suporte", "sender": "João", "hour": 14}'
                   className="h-32 font-mono text-sm"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className=""
                   Configure os dados que serão usados para testar a regra
                 </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className=""
                 <Button
                   onClick={() => handleTestRule(selectedRule.id)}
                   disabled={testRuleMutation.isPending}

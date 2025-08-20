@@ -115,15 +115,15 @@ const DraggableField = ({ field }: { field: TemplateField }) => {
       ref={drag}
       className={`flex items-center gap-2 p-3 border rounded-lg cursor-move hover:shadow-md transition-shadow ${
         isDragging ? 'opacity-50' : ''
-      } ${field.section === 'custom' ? 'bg-purple-50 border-purple-200' : 'bg-white'"
+      } ${field.section === 'custom' ? 'bg-purple-50 border-purple-200' : "bg-white"
     >
       <FieldIcon className="w-4 h-4 "" />
-      <div className="flex-1">
-        <div className="text-sm font-medium "">
+      <div className="flex-1>
+        <div className="text-sm font-medium ">
           {field.label}
           {field.section === 'custom' && <span className="ml-1 text-xs text-purple-500">(Customizado)</span>}
         </div>
-        <div className="text-xs "">
+        <div className="text-xs ">
           {FIELD_TYPES[field.type as keyof typeof FIELD_TYPES]?.label}
         </div>
       </div>
@@ -160,7 +160,7 @@ const DroppedField = ({
         );
       case 'checkbox':
         return (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <input type="checkbox" disabled />
             <label className="text-sm">{field.label}</label>
           </div>
@@ -171,16 +171,16 @@ const DroppedField = ({
   };
 
   return (
-    <div className="group relative border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+    <div className="group relative border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors>
       {/* Cabeçalho do campo */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between mb-3>
+        <div className="flex items-center gap-2>
           <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
           <FieldIcon className="w-4 h-4 text-gray-600" />
           <span className="text-sm font-medium text-gray-700">{field.label}</span>
           {field.required && <Badge variant="destructive" className="text-xs">*</Badge>}
         </div>
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1>
           <Button variant="ghost" size="sm" onClick={onEdit}>
             <Type className="w-3 h-3" />
           </Button>
@@ -191,8 +191,8 @@ const DroppedField = ({
       </div>
 
       {/* Preview do campo */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">
+      <div className="space-y-2>
+        <label className="text-sm font-medium text-gray-700>
           {field.label}
           {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -234,12 +234,12 @@ const TabDropZone = ({
       "
     >
       {fields.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-gray-500">
+        <div className="flex flex-col items-center justify-center h-full text-gray-500>
           <Plus className="w-8 h-8 mb-2" />
           <p className="text-sm">Arraste campos aqui para adicionar à aba {tabId}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
           {fields.map((field) => (
             <DroppedField
               key={field.id}
@@ -350,16 +350,16 @@ export default function TemplateCanvasEditor({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="h-full flex bg-gray-100">
+      <div className="h-full flex bg-gray-100>
         {/* Sidebar com paleta de campos */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          <div className="p-6 border-b border-gray-200">
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col>
+          <div className="p-6 border-b border-gray-200>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Paleta de Campos</h2>
 
             {/* Informações do template */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-6>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1>
                   Nome do Template
                 </label>
                 <Input
@@ -370,7 +370,7 @@ export default function TemplateCanvasEditor({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1>
                   Descrição
                 </label>
                 <Textarea
@@ -382,7 +382,7 @@ export default function TemplateCanvasEditor({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1>
                   Categoria
                 </label>
                 <Input
@@ -397,11 +397,11 @@ export default function TemplateCanvasEditor({
           </div>
 
           {/* Lista de campos disponíveis */}
-          <ScrollArea className="flex-1 p-6">
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 p-6>
+            <div className="space-y-6>
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-3">Campos do Sistema</h3>
-                <div className="space-y-2">
+                <div className="space-y-2>
                   {availableFields.map((field) => (
                     <DraggableField key={field.id} field={field} />
                   ))}
@@ -411,7 +411,7 @@ export default function TemplateCanvasEditor({
               {customFields.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3">Campos Customizados</h3>
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     {customFields.map((field) => (
                       <DraggableField key={field.id} field={field} />
                     ))}
@@ -422,12 +422,12 @@ export default function TemplateCanvasEditor({
           </ScrollArea>
 
           {/* Ações */}
-          <div className="p-6 border-t border-gray-200 space-y-2">
-            <Button onClick={handleSave} className="w-full">
+          <div className="p-6 border-t border-gray-200 space-y-2>
+            <Button onClick={handleSave} className="w-full>
               <Save className="w-4 h-4 mr-2" />
               Salvar Template
             </Button>
-            <Button onClick={handlePreview} variant="outline" className="w-full">
+            <Button onClick={handlePreview} variant="outline" className="w-full>
               <Eye className="w-4 h-4 mr-2" />
               Visualizar
             </Button>
@@ -435,15 +435,15 @@ export default function TemplateCanvasEditor({
         </div>
 
         {/* Canvas principal */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col>
           {/* Header do canvas */}
-          <div className="bg-white border-b border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-white border-b border-gray-200 p-6>
+            <div className="flex items-center justify-between>
               <div>
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-2xl font-semibold text-gray-900>
                   {templateName || 'Novo Template de Ticket'}
                 </h1>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1>
                   {templateDescription || 'Configure os campos do seu template arrastando-os para as abas correspondentes'}
                 </p>
               </div>
@@ -451,28 +451,28 @@ export default function TemplateCanvasEditor({
           </div>
 
           {/* Área das abas */}
-          <div className="flex-1 p-6">
-            <Card className="h-full">
+          <div className="flex-1 p-6>
+            <Card className="h-full>
               <CardHeader>
                 <CardTitle>Configuração do Template</CardTitle>
               </CardHeader>
-              <CardContent className="h-full">
-                <Tabs defaultValue="opening" className="h-full flex flex-col">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="opening" className="flex items-center gap-2">
+              <CardContent className="h-full>
+                <Tabs defaultValue="opening" className="h-full flex flex-col>
+                  <TabsList className="grid w-full grid-cols-2>
+                    <TabsTrigger value="opening" className="flex items-center gap-2>
                       <Plus className="w-4 h-4" />
                       Template de Abertura
                     </TabsTrigger>
-                    <TabsTrigger value="editing" className="flex items-center gap-2">
+                    <TabsTrigger value="editing" className="flex items-center gap-2>
                       <Users className="w-4 h-4" />
                       Template de Edição
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="opening" className="flex-1">
-                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <TabsContent value="opening" className="flex-1>
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg>
                       <h4 className="font-medium text-blue-800 mb-2">Template de Abertura</h4>
-                      <p className="text-sm text-blue-600">
+                      <p className="text-sm text-blue-600>
                         Configure os campos que aparecerão quando um novo ticket for criado. 
                         Estes campos são preenchidos pelo usuário que está abrindo o chamado.
                       </p>
@@ -486,10 +486,10 @@ export default function TemplateCanvasEditor({
                     />
                   </TabsContent>
 
-                  <TabsContent value="editing" className="flex-1">
-                    <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <TabsContent value="editing" className="flex-1>
+                    <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg>
                       <h4 className="font-medium text-green-800 mb-2">Template de Edição</h4>
-                      <p className="text-sm text-green-600">
+                      <p className="text-sm text-green-600>
                         Configure os campos que aparecerão quando o ticket for atribuído a um técnico. 
                         Estes campos são preenchidos durante o processo de atribuição e resolução.
                       </p>

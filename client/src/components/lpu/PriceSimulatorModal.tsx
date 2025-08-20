@@ -139,21 +139,21 @@ export default function PriceSimulatorModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center">
+          <DialogTitle className="flex items-center>
             <Calculator className="mr-2 h-5 w-5" />
             Simulador de Preços
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6>
           {/* Configuração da Simulação */}
           <Card>
             <CardHeader>
               <CardTitle>Parâmetros da Simulação</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4>
               <div>
                 <Label>Lista de Preços</Label>
                 <Select 
@@ -212,7 +212,7 @@ export default function PriceSimulatorModal({
                 </Select>
               </div>
 
-              <Button onClick={runSimulation} className="w-full">
+              <Button onClick={runSimulation} className="w-full>
                 <Calculator className="mr-2 h-4 w-4" />
                 Simular Preço
               </Button>
@@ -222,39 +222,39 @@ export default function PriceSimulatorModal({
           {/* Resultado da Simulação */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center>
                 <TrendingUp className="mr-2 h-4 w-4" />
                 Resultado da Simulação
               </CardTitle>
             </CardHeader>
             <CardContent>
               {simulationResult ? (
-                <div className="space-y-4">
+                <div className="space-y-4>
                   {/* Resumo dos Preços */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="text-center p-3 bg-gray-50 rounded-lg>
                       <div className="text-sm text-muted-foreground">Preço Original</div>
                       <div className="text-lg font-bold">R$ {simulationResult.originalPrice.toFixed(2)}</div>
                     </div>
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg>
                       <div className="text-sm text-muted-foreground">Preço Final</div>
                       <div className="text-lg font-bold text-blue-600">R$ {simulationResult.finalPrice.toFixed(2)}</div>
                     </div>
                   </div>
 
                   {/* Ajuste Total */}
-                  <div className="text-center p-3 border rounded-lg">
+                  <div className="text-center p-3 border rounded-lg>
                     <div className="text-sm text-muted-foreground">Ajuste Total</div>
-                    <div className="text-lg font-bold "">
+                    <div className="text-lg font-bold ">
                       {simulationResult.totalAdjustment >= 0 ? '+' : ''}R$ {simulationResult.totalAdjustment.toFixed(2)}
-                      <span className="text-sm ml-2">
+                      <span className="text-sm ml-2>
                         ({simulationResult.adjustmentPercentage >= 0 ? '+' : ''}{simulationResult.adjustmentPercentage.toFixed(2)}%)
                       </span>
                     </div>
                   </div>
 
                   {/* Valor Total */}
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                  <div className="text-center p-3 bg-green-50 rounded-lg>
                     <div className="text-sm text-muted-foreground">Valor Total ({simulation.quantity} unidades)</div>
                     <div className="text-xl font-bold text-green-600">R$ {simulationResult.totalValue.toFixed(2)}</div>
                   </div>
@@ -265,21 +265,21 @@ export default function PriceSimulatorModal({
                   <div>
                     <h4 className="font-medium mb-3">Regras Aplicadas</h4>
                     {simulationResult.appliedRules.length === 0 ? (
-                      <div className="text-center py-4 text-muted-foreground">
+                      <div className="text-center py-4 text-muted-foreground>
                         <Info className="w-8 h-8 mx-auto mb-2" />
                         Nenhuma regra foi aplicada
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2>
                         {simulationResult.appliedRules.map((rule: any, index: number) => (
-                          <div key={index} className="flex items-center justify-between p-2 border rounded">
-                            <div className="flex items-center">
+                          <div key={index} className="flex items-center justify-between p-2 border rounded>
+                            <div className="flex items-center>
                               <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
                               <span className="text-sm font-medium">{rule.ruleName}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-2>
                               <Badge variant="outline">{rule.ruleType}</Badge>
-                              <span className="text-sm font-medium "">
+                              <span className="text-sm font-medium ">
                                 {rule.adjustmentType === 'percentage' ? 
                                   "%` :
                                   "
@@ -293,7 +293,7 @@ export default function PriceSimulatorModal({
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground>
                   <Calculator className="w-12 h-12 mx-auto mb-4" />
                   <p>Configure os parâmetros e clique em "Simular Preço" para ver o resultado</p>
                 </div>
@@ -302,7 +302,7 @@ export default function PriceSimulatorModal({
           </Card>
         </div>
 
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex justify-end pt-4 border-t>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>

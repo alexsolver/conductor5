@@ -40,30 +40,30 @@ const features = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className=""
       {/* Hero Section */}
-      <div className="relative">
+      <div className=""
         <div className="absolute inset-0 gradient-primary opacity-10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-8">
-              <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center mr-4">
+        <div className=""
+          <div className=""
+            <div className=""
+              <div className=""
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-5xl font-bold gradient-text">Conductor</h1>
             </div>
             
-            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className=""
               Customer Support
               <span className="gradient-text block">Reimagined</span>
             </h2>
             
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+            <p className=""
               The comprehensive SaaS platform that transforms how you handle customer support. 
               Multi-tenant architecture, enterprise-grade security, and beautiful gradient design.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className=""
               <Button 
                 size="lg" 
                 className="gradient-primary text-white hover:opacity-90 px-8 py-3"
@@ -84,30 +84,30 @@ export default function Landing() {
       </div>
 
       {/* Features Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-16">
-          <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+      <div className=""
+        <div className=""
+          <h3 className=""
             Everything you need for world-class support
           </h3>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className=""
             From ticket management to advanced analytics, Conductor provides all the tools 
             your team needs to deliver exceptional customer experiences.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className=""
           {features.map((feature, index) => (
-            <Card key={index} className="gradient-card hover:shadow-lg transition-shadow border-0">
+            <Card key={index} className=""
               <CardHeader>
-                <div className="w-12 h-12 gradient-primary rounded-lg flex items-center justify-center mb-4">
+                <div className=""
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+                <CardTitle className=""
                   {feature.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className=""
                   {feature.description}
                 </p>
               </CardContent>
@@ -117,13 +117,13 @@ export default function Landing() {
       </div>
 
       {/* CTA Section */}
-      <div className="gradient-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <h3 className="text-3xl font-bold text-white mb-4">
+      <div className=""
+        <div className=""
+          <div className=""
+            <h3 className=""
               Ready to transform your customer support?
             </h3>
-            <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
+            <p className=""
               Join thousands of teams already using Conductor to deliver 
               exceptional customer experiences at scale.
             </p>
@@ -140,16 +140,16 @@ export default function Landing() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center mr-3">
+      <footer className=""
+        <div className=""
+          <div className=""
+            <div className=""
+              <div className=""
                 <Zap className="w-4 h-4 text-white" />
               </div>
               <span className="text-white font-semibold">Conductor</span>
             </div>
-            <p className="text-gray-400 text-sm">
+            <p className=""
               © 2025 Conductor. All rights reserved.
             </p>
           </div>

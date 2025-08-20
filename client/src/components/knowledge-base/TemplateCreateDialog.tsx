@@ -64,16 +64,16 @@ export function TemplateCreateDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2" data-testid="button-create-template">
+        <Button className="gap-2" data-testid="button-create-template>
           <Layers className="h-4 w-4" />
           Criar Template
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md>
         <DialogHeader>
           <DialogTitle>Criar Novo Template</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4>
           <div>
             <Label htmlFor="name">Nome do Template</Label>
             <Input
@@ -100,7 +100,7 @@ export function TemplateCreateDialog({
           <div>
             <Label htmlFor="category">Categoria</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-              <SelectTrigger data-testid="select-template-category">
+              <SelectTrigger data-testid="select-template-category>
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -124,11 +124,11 @@ export function TemplateCreateDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2>
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading} data-testid="button-submit-template">
+            <Button type="submit" disabled={isLoading} data-testid="button-submit-template>
               {isLoading ? "Criando..." : '[TRANSLATION_NEEDED]'}
             </Button>
           </div>

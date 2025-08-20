@@ -148,7 +148,7 @@ export function SlaLed({
   // LED simples (apenas círculo colorido)
   if (!showText) {
     return (
-      <div className="flex items-center space-x-1 "">
+      <div className="flex items-center space-x-1 ">
         <div 
           className="${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ""
           title={"% decorrido)"
@@ -164,16 +164,16 @@ export function SlaLed({
     <div className="flex items-center space-x-2 "" data-testid={"
       <div className="${sizeClasses[size]} " rounded-full shadow-sm" />
       
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2>
         <IconComponent className="w-4 h-4 "" />
         
-        <div className="text-sm">
-          <Badge variant={config.badge as any} className="text-xs">
+        <div className="text-sm>
+          <Badge variant={config.badge as any} className="text-xs>
             {config.label}
           </Badge>
           
           {slaExpirationDate && (
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-gray-500 mt-1>
               <div>Tempo restante: {formatTimeRemaining(slaExpirationDate)}</div>
               <div>Progresso: {slaElapsedPercent.toFixed(1)}%</div>
             </div>
@@ -205,14 +205,14 @@ export function SlaProgressBar({
   
   return (
     <div className="space-y-1 "" data-testid={"
-      <div className="flex justify-between items-center text-xs">
+      <div className="flex justify-between items-center text-xs>
         <span className={config.text}>SLA Progress</span>
         {showPercentage && (
           <span className={config.text}>{slaElapsedPercent.toFixed(1)}%</span>
         )}
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-gray-200 rounded-full h-2>
         <div 
           className="h-2 rounded-full transition-all duration-300 ""
           style={{ width: "%` }}

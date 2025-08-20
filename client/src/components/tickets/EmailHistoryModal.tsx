@@ -135,9 +135,9 @@ export default function EmailHistoryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <Mail className="w-5 h-5" />
             Histórico de E-mails
           </DialogTitle>
@@ -147,41 +147,41 @@ export default function EmailHistoryModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="history" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2>
+            <TabsTrigger value="history" className="flex items-center gap-2>
               <Mail className="w-4 h-4" />
               Histórico ({emails.length})
             </TabsTrigger>
-            <TabsTrigger value="compose" className="flex items-center gap-2">
+            <TabsTrigger value="compose" className="flex items-center gap-2>
               <Send className="w-4 h-4" />
               Enviar E-mail
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="history" className="space-y-4">
+          <TabsContent value="history" className="space-y-4>
             {emailsLoading ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8>
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-sm text-gray-500">Carregando e-mails...</p>
               </div>
             ) : emails.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12>
                 <Mail className="mx-auto h-12 w-12 text-gray-400" />
                 <p className="mt-2 text-sm text-gray-500">Nenhum e-mail encontrado</p>
                 <p className="text-xs text-gray-400">As comunicações aparecerão aqui conforme chegarem</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4>
                 {emails.map((email: EmailMessage) => (
                   <Card key={email.id} className={`border-l-4 ${
                     email.direction === 'inbound' 
                       ? 'border-l-blue-500 bg-blue-50' 
                       : 'border-l-green-500 bg-green-50'
-                  ">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                  >
+                    <CardHeader className="pb-3>
+                      <div className="flex items-start justify-between>
+                        <div className="space-y-1>
+                          <div className="flex items-center gap-2>
                             {email.direction === 'inbound' ? (
                               <ArrowRight className="w-4 h-4 text-blue-600" />
                             ) : (
@@ -190,12 +190,12 @@ export default function EmailHistoryModal({
                             <Badge variant={email.direction === 'inbound' ? 'default' : 'secondary'}>
                               {email.direction === 'inbound' ? 'Recebido' : 'Enviado'}
                             </Badge>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500>
                               {new Date(email.createdAt).toLocaleString()}
                             </span>
                           </div>
                           <h4 className="font-medium">{email.subject}</h4>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-gray-600>
                             <p><strong>De:</strong> {email.from}</p>
                             <p><strong>Para:</strong> {email.to.join(', ')}</p>
                             {email.cc && email.cc.length > 0 && (
@@ -203,7 +203,7 @@ export default function EmailHistoryModal({
                             )}
                           </div>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2>
                           {email.direction === 'inbound' && (
                             <Button
                               size="sm"
@@ -215,7 +215,7 @@ export default function EmailHistoryModal({
                             </Button>
                           )}
                           {email.attachments && email.attachments.length > 0 && (
-                            <Badge variant="outline" className="flex items-center gap-1">
+                            <Badge variant="outline" className="flex items-center gap-1>
                               <Paperclip className="w-3 h-3" />
                               {email.attachments.length}
                             </Badge>
@@ -223,7 +223,7 @@ export default function EmailHistoryModal({
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0">
+                    <CardContent className="pt-0>
                       <div 
                         className="prose max-w-none text-sm"
                         dangerouslySetInnerHTML={{ 
@@ -231,14 +231,14 @@ export default function EmailHistoryModal({
                         }}
                       />
                       {email.attachments && email.attachments.length > 0 && (
-                        <div className="mt-3 pt-3 border-t">
+                        <div className="mt-3 pt-3 border-t>
                           <p className="text-xs font-medium text-gray-700 mb-2">Anexos:</p>
-                          <div className="space-y-1">
+                          <div className="space-y-1>
                             {email.attachments.map((attachment) => (
-                              <div key={attachment.id} className="flex items-center gap-2 text-xs">
+                              <div key={attachment.id} className="flex items-center gap-2 text-xs>
                                 <Paperclip className="w-3 h-3 text-gray-500" />
                                 <span>{attachment.filename}</span>
-                                <span className="text-gray-500">
+                                <span className="text-gray-500>
                                   ({Math.round(attachment.size / 1024)}KB)
                                 </span>
                               </div>
@@ -253,15 +253,15 @@ export default function EmailHistoryModal({
             )}
           </TabsContent>
 
-          <TabsContent value="compose" className="space-y-4">
+          <TabsContent value="compose" className="space-y-4>
             <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
+              <CardContent className="p-6>
+                <div className="space-y-4>
                   {templates.length > 0 && (
                     <div>
                       <label className="text-sm font-medium">Template de E-mail</label>
                       <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
-                        <SelectTrigger className="mt-2">
+                        <SelectTrigger className="mt-2>
                           <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
@@ -307,7 +307,7 @@ export default function EmailHistoryModal({
                     />
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="flex justify-end>
                     <Button
                       onClick={handleSendEmail}
                       disabled={sendEmailMutation.isPending}

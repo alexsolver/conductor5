@@ -233,8 +233,8 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 
   if (previewMode) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6>
+        <div className="flex items-center justify-between>
           <h3 className="text-lg font-semibold">Query Preview</h3>
           <Button variant="outline" onClick={() => setPreviewMode(false)}>
             <Eye className="h-4 w-4 mr-2" />
@@ -248,14 +248,14 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
+      <div className="space-y-6>
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Query Builder</h3>
             <p className="text-sm text-gray-600">Build your report by selecting data, metrics, and filters</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <Button variant="outline" onClick={() => setPreviewMode(true)}>
               <Eye className="h-4 w-4 mr-2" />
               Preview
@@ -267,9 +267,9 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6>
           {/* Data Source Selection */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1>
             <Card>
               <CardHeader>
                 <Collapsible 
@@ -277,8 +277,8 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                   onOpenChange={() => toggleSection('dataSource')}
                 >
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between cursor-pointer">
-                      <CardTitle className="text-base flex items-center">
+                    <div className="flex items-center justify-between cursor-pointer>
+                      <CardTitle className="text-base flex items-center>
                         <Database className="h-4 w-4 mr-2" />
                         Data Source
                       </CardTitle>
@@ -289,7 +289,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4 space-y-3>
                       {Object.entries(ZENDESK_DATA_SCHEMA).map(([key, source]) => {
                         const SourceIcon = source.icon;
                         return (
@@ -305,7 +305,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                               setQuery(prev => ({ ...prev, dataSource: key }));
                             }}
                           >
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3>
                               <SourceIcon className="h-5 w-5 "" />
                               <div>
                                 <div className="font-medium text-gray-900">{source.name}</div>
@@ -322,12 +322,12 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
             </Card>
 
             {/* Available Fields */}
-            <Card className="mt-4">
+            <Card className="mt-4>
               <CardHeader>
                 <CardTitle className="text-base">Available Fields</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2 max-h-96 overflow-y-auto">
+              <CardContent className="pt-0>
+                <div className="space-y-2 max-h-96 overflow-y-auto>
                   {currentDataSource?.fields.map((field) => {
                     const FieldIcon = field.icon;
                     return (
@@ -335,11 +335,11 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                         key={field.id} 
                         className="group flex items-center justify-between p-2 rounded hover:bg-gray-50 border border-transparent hover:border-gray-200"
                       >
-                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0>
                           <FieldIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="text-sm font-medium text-gray-900 truncate">
+                              <span className="text-sm font-medium text-gray-900 truncate>
                                 {field.name}
                               </span>
                             </TooltipTrigger>
@@ -347,11 +347,11 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                               <p>{field.name} ({field.type})</p>
                             </TooltipContent>
                           </Tooltip>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs>
                             {field.type}
                           </Badge>
                         </div>
-                        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100">
+                        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button 
@@ -398,7 +398,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
           </div>
 
           {/* Query Builder */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6>
             {/* Metrics Section */}
             <Card>
               <CardHeader>
@@ -407,8 +407,8 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                   onOpenChange={() => toggleSection('metrics')}
                 >
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between cursor-pointer">
-                      <CardTitle className="text-base flex items-center">
+                    <div className="flex items-center justify-between cursor-pointer>
+                      <CardTitle className="text-base flex items-center>
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Metrics ({query?.metrics?.length || 0})
                       </CardTitle>
@@ -419,15 +419,15 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-4">
+                    <div className="mt-4>
                       {(!query?.metrics || query.metrics.length === 0) ? (
-                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg>
                           <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">No metrics selected</p>
                           <p className="text-xs text-gray-500">Drag fields here or click the chart icon</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-3>
                           {query?.metrics?.map((metric) => (
                             <MetricCard 
                               key={metric.id} 
@@ -459,8 +459,8 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                   onOpenChange={() => toggleSection('attributes')}
                 >
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between cursor-pointer">
-                      <CardTitle className="text-base flex items-center">
+                    <div className="flex items-center justify-between cursor-pointer>
+                      <CardTitle className="text-base flex items-center>
                         <Database className="h-4 w-4 mr-2" />
                         Attributes ({query?.attributes?.length || 0})
                       </CardTitle>
@@ -471,15 +471,15 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-4">
+                    <div className="mt-4>
                       {(!query?.attributes || query.attributes.length === 0) ? (
-                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg>
                           <Database className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">No attributes selected</p>
                           <p className="text-xs text-gray-500">Add fields to group and break down your data</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-3>
                           {query?.attributes?.map((attribute) => (
                             <AttributeCard 
                               key={attribute.id} 
@@ -503,8 +503,8 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                   onOpenChange={() => toggleSection('filters')}
                 >
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between cursor-pointer">
-                      <CardTitle className="text-base flex items-center">
+                    <div className="flex items-center justify-between cursor-pointer>
+                      <CardTitle className="text-base flex items-center>
                         <Filter className="h-4 w-4 mr-2" />
                         Filters ({query?.filters?.length || 0})
                       </CardTitle>
@@ -515,15 +515,15 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-4">
+                    <div className="mt-4>
                       {(!query?.filters || query.filters.length === 0) ? (
-                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg>
                           <Filter className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">No filters applied</p>
                           <p className="text-xs text-gray-500">Add filters to narrow down your data</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-3>
                           {query?.filters?.map((filter) => (
                             <FilterCard 
                               key={filter.id} 
@@ -549,15 +549,15 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 // Metric Card Component
 function MetricCard({ metric, onRemove, onUpdate }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-      <div className="flex items-center space-x-3">
+    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg>
+      <div className="flex items-center space-x-3>
         <BarChart3 className="h-4 w-4 text-blue-600" />
         <div>
           <div className="font-medium text-gray-900">{metric.label}</div>
           <div className="text-sm text-gray-500">{metric.fieldName}</div>
         </div>
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2>
         <Select 
           value={metric.aggregation} 
           onValueChange={(value) => onUpdate({ 
@@ -565,7 +565,7 @@ function MetricCard({ metric, onRemove, onUpdate }) {
             label: ")` 
           })}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-32>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -587,8 +587,8 @@ function MetricCard({ metric, onRemove, onUpdate }) {
 // Attribute Card Component
 function AttributeCard({ attribute, onRemove }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-      <div className="flex items-center space-x-3">
+    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg>
+      <div className="flex items-center space-x-3>
         <Database className="h-4 w-4 text-green-600" />
         <div>
           <div className="font-medium text-gray-900">{attribute.fieldName}</div>
@@ -607,9 +607,9 @@ function FilterCard({ filter, onRemove, onUpdate }) {
   const operators = FILTER_OPERATORS[filter.fieldType] || FILTER_OPERATORS.text;
 
   return (
-    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-3">
+    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg>
+      <div className="flex items-center justify-between mb-3>
+        <div className="flex items-center space-x-3>
           <Filter className="h-4 w-4 text-orange-600" />
           <span className="font-medium text-gray-900">{filter.fieldName}</span>
         </div>
@@ -617,7 +617,7 @@ function FilterCard({ filter, onRemove, onUpdate }) {
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3>
         <Select 
           value={filter.operator} 
           onValueChange={(value) => onUpdate({ operator: value })}
@@ -648,13 +648,13 @@ function QueryPreview({ query, dataSchema }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center">
+        <CardTitle className="flex items-center>
           <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
           Query Summary
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-4>
           <div>
             <Label className="text-sm font-medium">Data Source</Label>
             <p className="text-sm text-gray-600">{dataSchema[query.dataSource]?.name}</p>
@@ -663,7 +663,7 @@ function QueryPreview({ query, dataSchema }) {
           {query?.metrics?.length > 0 && (
             <div>
               <Label className="text-sm font-medium">Metrics ({query?.metrics?.length || 0})</Label>
-              <div className="mt-1 space-y-1">
+              <div className="mt-1 space-y-1>
                 {query?.metrics?.map((metric) => (
                   <Badge key={metric.id} variant="secondary">{metric.label}</Badge>
                 ))}
@@ -674,7 +674,7 @@ function QueryPreview({ query, dataSchema }) {
           {query?.attributes?.length > 0 && (
             <div>
               <Label className="text-sm font-medium">Attributes ({query?.attributes?.length || 0})</Label>
-              <div className="mt-1 space-y-1">
+              <div className="mt-1 space-y-1>
                 {query?.attributes?.map((attr) => (
                   <Badge key={attr.id} variant="outline">{attr.fieldName}</Badge>
                 ))}
@@ -685,9 +685,9 @@ function QueryPreview({ query, dataSchema }) {
           {query?.filters?.length > 0 && (
             <div>
               <Label className="text-sm font-medium">Filters ({query?.filters?.length || 0})</Label>
-              <div className="mt-1 space-y-1">
+              <div className="mt-1 space-y-1>
                 {query?.filters?.map((filter) => (
-                  <div key={filter.id} className="text-sm text-gray-600">
+                  <div key={filter.id} className="text-sm text-gray-600>
                     {filter.fieldName} {filter.operator} {filter.value}
                   </div>
                 ))}

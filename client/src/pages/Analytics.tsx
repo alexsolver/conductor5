@@ -102,24 +102,24 @@ export default function Analytics() {
   }
 
   return (
-    <div className="p-4">
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className=""
+      <div className=""
+        <div className=""
           {/* Page Header */}
-          <Card className="gradient-card mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <Card className=""
+            <CardContent className=""
+              <div className=""
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h1 className=""
                     Analytics
                   </h1>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <p className=""
                     Detailed insights into your support performance and trends
                   </p>
                 </div>
-                <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-                  <Select defaultValue="30days">
-                    <SelectTrigger className="w-40">
+                <div className=""
+                  <Select defaultValue="30days>
+                    <SelectTrigger className=""
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -129,11 +129,11 @@ export default function Analytics() {
                       <SelectItem value="1year">Last year</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button variant="outline">
+                  <Button variant="outline>
                     <Filter className="w-4 h-4 mr-2" />
                     Filter
                   </Button>
-                  <Button className="gradient-primary text-white">
+                  <Button className=""
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
@@ -143,8 +143,8 @@ export default function Analytics() {
           </Card>
 
           {/* Analytics Tabs */}
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="overview" className=""
+            <TabsList className=""
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="performance">Performance</TabsTrigger>
               <TabsTrigger value="channels">Channels</TabsTrigger>
@@ -152,22 +152,22 @@ export default function Analytics() {
             </TabsList>
 
             {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
+            <TabsContent value="overview" className=""
               {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="metric-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+              <div className=""
+                <Card className=""
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <MessageCircle className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className="ml-4 flex-1">
+                      <div className=""
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Tickets</p>
-                        <div className="flex items-baseline">
+                        <div className=""
                           <p className="text-2xl font-semibold text-gray-900 dark:text-white">1,247</p>
-                          <p className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                          <p className=""
                             <TrendingUp className="w-3 h-3 mr-1" />
                             8.2%
                           </p>
@@ -177,19 +177,19 @@ export default function Analytics() {
                   </CardContent>
                 </Card>
 
-                <Card className="metric-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 gradient-success rounded-lg flex items-center justify-center">
+                <Card className=""
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <Clock className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className="ml-4 flex-1">
+                      <div className=""
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Response Time</p>
-                        <div className="flex items-baseline">
+                        <div className=""
                           <p className="text-2xl font-semibold text-gray-900 dark:text-white">2.3h</p>
-                          <p className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                          <p className=""
                             <TrendingDown className="w-3 h-3 mr-1" />
                             12%
                           </p>
@@ -199,19 +199,19 @@ export default function Analytics() {
                   </CardContent>
                 </Card>
 
-                <Card className="metric-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 gradient-warning rounded-lg flex items-center justify-center">
+                <Card className=""
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <Star className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className="ml-4 flex-1">
+                      <div className=""
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">CSAT Score</p>
-                        <div className="flex items-baseline">
+                        <div className=""
                           <p className="text-2xl font-semibold text-gray-900 dark:text-white">94%</p>
-                          <p className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                          <p className=""
                             <TrendingUp className="w-3 h-3 mr-1" />
                             2.1%
                           </p>
@@ -221,19 +221,19 @@ export default function Analytics() {
                   </CardContent>
                 </Card>
 
-                <Card className="metric-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 gradient-secondary rounded-lg flex items-center justify-center">
+                <Card className=""
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <Users className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className="ml-4 flex-1">
+                      <div className=""
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Resolution Rate</p>
-                        <div className="flex items-baseline">
+                        <div className=""
                           <p className="text-2xl font-semibold text-gray-900 dark:text-white">87%</p>
-                          <p className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                          <p className=""
                             <TrendingUp className="w-3 h-3 mr-1" />
                             3.5%
                           </p>
@@ -245,17 +245,17 @@ export default function Analytics() {
               </div>
 
               {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="gradient-card">
+              <div className=""
+                <Card className=""
                   <CardHeader>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className=""
                       <BarChart3 className="w-5 h-5 mr-2" />
                       Ticket Volume Trends
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-64 chart-gradient rounded-lg flex items-center justify-center">
-                      <div className="text-center">
+                    <div className=""
+                      <div className=""
                         <Activity className="h-16 w-16 text-purple-400 mb-4 mx-auto" />
                         <p className="text-sm text-gray-600 dark:text-gray-400">Volume trend visualization</p>
                         <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Monthly ticket volume over time</p>
@@ -264,26 +264,26 @@ export default function Analytics() {
                   </CardContent>
                 </Card>
 
-                <Card className="gradient-card">
+                <Card className=""
                   <CardHeader>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className=""
                       <PieChart className="w-5 h-5 mr-2" />
                       Channel Distribution
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className=""
                       {channelData.map((channel) => (
-                        <div key={channel.name} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-3 h-3 rounded-full "" />
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div key={channel.name} className=""
+                          <div className=""
+                            <div className="w-3 h-3 rounded-full" />
+                            <span className=""
                               {channel.name}
                             </span>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className=""
                             <Progress value={channel.value} className="w-20 h-2" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400 w-10 text-right">
+                            <span className=""
                               {channel.value}%
                             </span>
                           </div>
@@ -296,33 +296,33 @@ export default function Analytics() {
             </TabsContent>
 
             {/* Performance Tab */}
-            <TabsContent value="performance" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="gradient-card">
+            <TabsContent value="performance" className=""
+              <div className=""
+                <Card className=""
                   <CardHeader>
                     <CardTitle>Agent Performance</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className=""
                       {agentPerformance.map((agent, index) => (
-                        <div key={agent.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs font-medium">
+                        <div key={agent.name} className=""
+                          <div className=""
+                            <div className=""
+                              <span className=""
                                 {agent.name.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">
+                              <p className=""
                                 {agent.name}
                               </p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <p className=""
                                 {agent.resolved} resolved • {agent.avgTime} avg time
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <Badge variant={agent.satisfaction > 95 ? "default" : "secondary">
+                          <div className=""
+                            <Badge variant={agent.satisfaction > 95 ? "default" : "secondary>
                               {agent.satisfaction}% CSAT
                             </Badge>
                           </div>
@@ -332,26 +332,26 @@ export default function Analytics() {
                   </CardContent>
                 </Card>
 
-                <Card className="gradient-card">
+                <Card className=""
                   <CardHeader>
                     <CardTitle>Top Issues</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className=""
                       {topIssues.map((issue, index) => (
-                        <div key={issue.issue} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                        <div key={issue.issue} className=""
+                          <div className=""
+                            <div className=""
+                              <span className=""
                                 {index + 1}
                               </span>
                             </div>
-                            <span className="font-medium text-gray-900 dark:text-white">
+                            <span className=""
                               {issue.issue}
                             </span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className=""
+                            <span className=""
                               {issue.count}
                             </span>
                             {issue.trend === "up" ? (
@@ -369,23 +369,23 @@ export default function Analytics() {
             </TabsContent>
 
             {/* Channels Tab */}
-            <TabsContent value="channels" className="space-y-6">
-              <Card className="gradient-card">
+            <TabsContent value="channels" className=""
+              <Card className=""
                 <CardHeader>
                   <CardTitle>Channel Performance</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className=""
                     {channelData.map((channel) => (
-                      <div key={channel.name} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
+                      <div key={channel.name} className=""
+                        <div className=""
                           <h4 className="font-medium text-gray-900 dark:text-white">{channel.name}</h4>
-                          <div className="w-3 h-3 rounded-full "" />
+                          <div className="w-3 h-3 rounded-full" />
                         </div>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        <p className=""
                           {channel.value}%
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className=""
                           of total volume
                         </p>
                       </div>
@@ -396,14 +396,14 @@ export default function Analytics() {
             </TabsContent>
 
             {/* Trends Tab */}
-            <TabsContent value="trends" className="space-y-6">
-              <Card className="gradient-card">
+            <TabsContent value="trends" className=""
+              <Card className=""
                 <CardHeader>
                   <CardTitle>Satisfaction Trends</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 chart-gradient rounded-lg flex items-center justify-center">
-                    <div className="text-center">
+                  <div className=""
+                    <div className=""
                       <TrendingUp className="h-16 w-16 text-purple-400 mb-4 mx-auto" />
                       <p className="text-sm text-gray-600 dark:text-gray-400">Satisfaction trend chart</p>
                       <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Customer satisfaction over time</p>

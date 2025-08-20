@@ -290,10 +290,10 @@ function TicketAdvancedConfiguration() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className=""
       {/* Header with navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className=""
+        <div className=""
           <Button 
             variant="ghost" 
             size="sm" 
@@ -305,10 +305,10 @@ function TicketAdvancedConfiguration() {
           </Button>
           <div className="h-6 w-px bg-gray-300" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className=""
               Configurações Avançadas
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className=""
               Customização detalhada de campos, opções e regras de negócio
             </p>
           </div>
@@ -316,32 +316,32 @@ function TicketAdvancedConfiguration() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="field-management" className="flex items-center space-x-2">
+        <TabsList className=""
+          <TabsTrigger value="field-management" className=""
             <Settings2 className="w-4 h-4" />
             <span>Gerenciar Campos</span>
           </TabsTrigger>
-          <TabsTrigger value="field-options" className="flex items-center space-x-2">
+          <TabsTrigger value="field-options" className=""
             <Layers3 className="w-4 h-4" />
             <span>Opções de Campos</span>
           </TabsTrigger>
-          <TabsTrigger value="sla-management" className="flex items-center space-x-2">
+          <TabsTrigger value="sla-management" className=""
             <Clock className="w-4 h-4" />
             <span>Configuração SLA</span>
           </TabsTrigger>
-          <TabsTrigger value="validation-rules" className="flex items-center space-x-2">
+          <TabsTrigger value="validation-rules" className=""
             <CheckCircle2 className="w-4 h-4" />
             <span>Regras de Validação</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Field Management Tab */}
-        <TabsContent value="field-management" className="space-y-6">
+        <TabsContent value="field-management" className=""
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className=""
                 <div>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className=""
                     <Settings2 className="w-5 h-5" />
                     <span>Gerenciamento de Campos</span>
                   </CardTitle>
@@ -378,7 +378,7 @@ function TicketAdvancedConfiguration() {
                       </TableCell>
                       <TableCell>
                         {field.isRequired ? (
-                          <Badge className="bg-red-100 text-red-800">
+                          <Badge className=""
                             <AlertCircle className="w-3 h-3 mr-1" />
                             Obrigatório
                           </Badge>
@@ -395,7 +395,7 @@ function TicketAdvancedConfiguration() {
                       </TableCell>
                       <TableCell>{field.displayOrder}</TableCell>
                       <TableCell>
-                        <div className="flex space-x-2">
+                        <div className=""
                           <Button
                             variant="outline"
                             size="sm"
@@ -423,12 +423,12 @@ function TicketAdvancedConfiguration() {
         </TabsContent>
 
         {/* Field Options Tab */}
-        <TabsContent value="field-options" className="space-y-6">
+        <TabsContent value="field-options" className=""
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className=""
                 <div>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className=""
                     <Layers3 className="w-5 h-5" />
                     <span>Opções de Campos</span>
                   </CardTitle>
@@ -439,12 +439,12 @@ function TicketAdvancedConfiguration() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className=""
                 {fieldConfigurations
                   .filter(field => field.fieldType === 'select' || field.fieldType === 'multiselect')
                   .map((field: FieldConfiguration) => (
-                    <div key={field.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
+                    <div key={field.id} className=""
+                      <div className=""
                         <div>
                           <h4 className="font-semibold">{field.displayLabel} ({field.fieldName})</h4>
                           <p className="text-sm text-gray-600">Tipo: {field.fieldType}</p>
@@ -459,13 +459,13 @@ function TicketAdvancedConfiguration() {
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div className=""
                         {fieldOptions
                           .filter(option => option.fieldConfigId === field.id)
                           .sort((a, b) => a.sortOrder - b.sortOrder)
                           .map((option: FieldOption) => (
-                            <div key={option.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
-                              <div className="flex items-center space-x-2">
+                            <div key={option.id} className=""
+                              <div className=""
                                 <div 
                                   className="w-3 h-3 rounded-full"
                                   style={{ backgroundColor: option.colorHex }}
@@ -475,7 +475,7 @@ function TicketAdvancedConfiguration() {
                                   <Badge variant="secondary" className="text-xs">Padrão</Badge>
                                 )}
                                 {option.slaHours && (
-                                  <Badge variant="outline" className="text-xs">
+                                  <Badge variant="outline" className=""
                                     <Clock className="w-3 h-3 mr-1" />
                                     {option.slaHours}h
                                   </Badge>
@@ -499,12 +499,12 @@ function TicketAdvancedConfiguration() {
         </TabsContent>
 
         {/* SLA Management Tab */}
-        <TabsContent value="sla-management" className="space-y-6">
+        <TabsContent value="sla-management" className=""
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className=""
                 <div>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className=""
                     <Clock className="w-5 h-5" />
                     <span>Configuração de SLA</span>
                   </CardTitle>
@@ -570,10 +570,10 @@ function TicketAdvancedConfiguration() {
         </TabsContent>
 
         {/* Validation Rules Tab */}
-        <TabsContent value="validation-rules" className="space-y-6">
+        <TabsContent value="validation-rules" className=""
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className=""
                 <CheckCircle2 className="w-5 h-5" />
                 <span>Regras de Validação</span>
               </CardTitle>
@@ -582,10 +582,10 @@ function TicketAdvancedConfiguration() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
+              <div className=""
+                <div className=""
                   <h4 className="font-medium text-blue-900 mb-2">Validações Disponíveis:</h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
+                  <ul className=""
                     <li>• Validação de formato de email</li>
                     <li>• Validação de números de telefone</li>
                     <li>• Validação de CPF/CNPJ</li>
@@ -595,7 +595,7 @@ function TicketAdvancedConfiguration() {
                   </ul>
                 </div>
                 
-                <div className="text-center py-8 text-gray-500">
+                <div className=""
                   <CheckCircle2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>As regras de validação são configuradas individualmente em cada campo.</p>
                   <p className="text-sm mt-2">Vá para a aba "Gerenciar Campos" para configurar validações específicas.</p>
@@ -608,7 +608,7 @@ function TicketAdvancedConfiguration() {
 
       {/* Dialog for Creating/Editing */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>
               {editingItem?.type === 'field' && (editingItem.id ? 'Editar Campo' : 'Novo Campo')}
@@ -620,8 +620,8 @@ function TicketAdvancedConfiguration() {
           {/* Field Form */}
           {editingItem?.type === 'field' && (
             <Form {...fieldForm}>
-              <form onSubmit={fieldForm.handleSubmit(onFieldSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={fieldForm.handleSubmit(onFieldSubmit)} className=""
+                <div className=""
                   <FormField
                     control={fieldForm.control}
                     name="fieldName"
@@ -650,7 +650,7 @@ function TicketAdvancedConfiguration() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={fieldForm.control}
                     name="fieldType"
@@ -723,13 +723,13 @@ function TicketAdvancedConfiguration() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={fieldForm.control}
                     name="isRequired"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
+                      <FormItem className=""
+                        <div className=""
                           <FormLabel>Campo Obrigatório</FormLabel>
                         </div>
                         <FormControl>
@@ -745,8 +745,8 @@ function TicketAdvancedConfiguration() {
                     control={fieldForm.control}
                     name="isSystem"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
+                      <FormItem className=""
+                        <div className=""
                           <FormLabel>Campo do Sistema</FormLabel>
                         </div>
                         <FormControl>
@@ -760,7 +760,7 @@ function TicketAdvancedConfiguration() {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -775,8 +775,8 @@ function TicketAdvancedConfiguration() {
           {/* Option Form */}
           {editingItem?.type === 'option' && (
             <Form {...optionForm}>
-              <form onSubmit={optionForm.handleSubmit(onOptionSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={optionForm.handleSubmit(onOptionSubmit)} className=""
+                <div className=""
                   <FormField
                     control={optionForm.control}
                     name="optionValue"
@@ -805,7 +805,7 @@ function TicketAdvancedConfiguration() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={optionForm.control}
                     name="colorHex"
@@ -848,13 +848,13 @@ function TicketAdvancedConfiguration() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={optionForm.control}
                     name="isDefault"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
+                      <FormItem className=""
+                        <div className=""
                           <FormLabel>Opção Padrão</FormLabel>
                         </div>
                         <FormControl>
@@ -870,8 +870,8 @@ function TicketAdvancedConfiguration() {
                     control={optionForm.control}
                     name="isActive"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
+                      <FormItem className=""
+                        <div className=""
                           <FormLabel>Opção Ativa</FormLabel>
                         </div>
                         <FormControl>
@@ -885,7 +885,7 @@ function TicketAdvancedConfiguration() {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -900,7 +900,7 @@ function TicketAdvancedConfiguration() {
           {/* SLA Form */}
           {editingItem?.type === 'sla' && (
             <Form {...slaForm}>
-              <form onSubmit={slaForm.handleSubmit(onSLASubmit)} className="space-y-4">
+              <form onSubmit={slaForm.handleSubmit(onSLASubmit)} className=""
                 <FormField
                   control={slaForm.control}
                   name="priority"
@@ -925,7 +925,7 @@ function TicketAdvancedConfiguration() {
                   )}
                 />
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className=""
                   <FormField
                     control={slaForm.control}
                     name="responseTimeHours"
@@ -967,13 +967,13 @@ function TicketAdvancedConfiguration() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={slaForm.control}
                     name="businessHoursOnly"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
+                      <FormItem className=""
+                        <div className=""
                           <FormLabel>Apenas Horário Comercial</FormLabel>
                         </div>
                         <FormControl>
@@ -989,8 +989,8 @@ function TicketAdvancedConfiguration() {
                     control={slaForm.control}
                     name="notificationEnabled"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
+                      <FormItem className=""
+                        <div className=""
                           <FormLabel>Notificações Ativas</FormLabel>
                         </div>
                         <FormControl>
@@ -1004,7 +1004,7 @@ function TicketAdvancedConfiguration() {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>

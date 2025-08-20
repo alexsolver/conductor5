@@ -158,18 +158,18 @@ export default function Reports() {
   // Zendesk-style Explore Landing
   if (activeView === "explore") {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className=""
         {/* Zendesk-style Header */}
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-4">
+        <div className=""
+          <div className=""
+            <div className=""
+              <div className=""
                 <h1 className="text-2xl font-bold text-gray-900">Explore</h1>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                <Badge variant="secondary" className=""
                   Data Analytics
                 </Badge>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className=""
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -187,11 +187,11 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className=""
           {/* Quick Start Section - Zendesk Style */}
           {showQuickStart && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
+            <div className=""
+              <div className=""
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">Quick start</h2>
                   <p className="text-gray-600 mt-1">Get insights in minutes with pre-built reports</p>
@@ -205,25 +205,25 @@ export default function Reports() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className=""
                 {ZENDESK_QUICK_TEMPLATES.map((template) => (
                   <Card 
                     key={template.id}
                     className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200"
                     onClick={() => handleCreateFromTemplate(template.id)}
                   >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="p-3 rounded-lg " text-white mb-4">
+                    <CardContent className=""
+                      <div className=""
+                        <div className="p-3 rounded-lg " text-white mb-4>
                           <template.icon className="h-6 w-6" />
                         </div>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className=""
                           {template.estimatedTime}
                         </Badge>
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
                       <p className="text-sm text-gray-600 mb-3">{template.description}</p>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className=""
                         {template.category}
                       </Badge>
                     </CardContent>
@@ -234,27 +234,27 @@ export default function Reports() {
           )}
 
           {/* Data Sources Section - Zendesk Style */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className=""
+            <div className=""
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Data sources</h2>
                 <p className="text-gray-600 mt-1">Choose your data to start building</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm>
                 <Settings className="h-4 w-4 mr-2" />
                 Manage Sources
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className=""
               {ZENDESK_DATA_SOURCES.map((source) => (
                 <Card 
                   key={source.id}
                   className="hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => setLocation("
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
+                  <CardContent className=""
+                    <div className=""
                       <source.icon className="h-8 w-8 " mr-3" />
                       <div>
                         <h3 className="font-semibold text-gray-900">{source.name}</h3>
@@ -270,7 +270,7 @@ export default function Reports() {
 
           {/* Recent Activity - Zendesk Style */}
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className=""
               <h2 className="text-xl font-semibold text-gray-900">Recent activity</h2>
               <Button 
                 variant="outline" 
@@ -281,12 +281,12 @@ export default function Reports() {
               </Button>
             </div>
 
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-6">
+            <div className=""
+              <div className=""
                 {filteredReports.slice(0, 5).map((report, index) => (
-                  <div key={report.id} className="flex items-center justify-between py-4 border-b last:border-b-0">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-2 bg-gray-100 rounded">
+                  <div key={report.id} className=""
+                    <div className=""
+                      <div className=""
                         {report.chartType === 'bar' && <BarChart3 className="h-4 w-4" />}
                         {report.chartType === 'line' && <LineChart className="h-4 w-4" />}
                         {report.chartType === 'pie' && <PieChart className="h-4 w-4" />}
@@ -297,7 +297,7 @@ export default function Reports() {
                         <p className="text-sm text-gray-500">{report.description}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className=""
                       <Badge variant={report.status === 'active' ? 'default' : 'secondary'}>
                         {report.status}
                       </Badge>
@@ -313,7 +313,7 @@ export default function Reports() {
                 ))}
 
                 {filteredReports.length === 0 && (
-                  <div className="text-center py-8">
+                  <div className=""
                     <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No reports yet</h3>
                     <p className="text-gray-600 mb-4">Create your first report to get started</p>
@@ -333,12 +333,12 @@ export default function Reports() {
 
   // Reports Library View - Zendesk Style
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className=""
       {/* Header with Zendesk-style navigation */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-6">
+      <div className=""
+        <div className=""
+          <div className=""
+            <div className=""
               <Button 
                 variant="ghost" 
                 onClick={() => setActiveView("explore")}
@@ -349,15 +349,15 @@ export default function Reports() {
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <Tabs value={activeView} onValueChange={setActiveView}>
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className=""
                   <TabsTrigger value="reports">Reports</TabsTrigger>
                   <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
 
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
+            <div className=""
+              <div className=""
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'outline'}
                   size="sm"
@@ -382,11 +382,11 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=""
         {/* Filters and Search - Zendesk Style */}
-        <div className="flex flex-col lg:flex-row gap-6 mb-8">
-          <div className="flex-1">
-            <div className="relative">
+        <div className=""
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -396,9 +396,9 @@ export default function Reports() {
               />
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className=""
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className=""
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -421,7 +421,7 @@ export default function Reports() {
 
         {/* Reports Grid/List - Zendesk Style */}
         {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className=""
             {filteredReports.map((report) => (
               <ReportCardZendeskStyle 
                 key={report.id} 
@@ -432,8 +432,8 @@ export default function Reports() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
+          <div className=""
+            <div className=""
               {filteredReports.map((report) => (
                 <ReportListItemZendeskStyle 
                   key={report.id} 
@@ -447,7 +447,7 @@ export default function Reports() {
         )}
 
         {filteredReports.length === 0 && (
-          <div className="text-center py-12">
+          <div className=""
             <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No reports found</h3>
             <p className="text-gray-600 mb-6">Try adjusting your search or create a new report</p>
@@ -477,25 +477,25 @@ function ReportCardZendeskStyle({ report, onView, onEdit }) {
   const ChartIcon = getChartIcon(report.chartType);
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
+    <Card className=""
+      <CardHeader className=""
+        <div className=""
+          <div className=""
+            <div className=""
               <ChartIcon className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="min-w-0 flex-1">
+            <div className=""
               <h3 className="font-semibold text-gray-900 truncate">{report.name}</h3>
               <p className="text-sm text-gray-500 truncate">{report.description}</p>
             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
+              <Button variant="ghost" size="sm" className=""
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end>
               <DropdownMenuItem onClick={onView}>
                 <Eye className="h-4 w-4 mr-2" />
                 View
@@ -516,22 +516,22 @@ function ReportCardZendeskStyle({ report, onView, onEdit }) {
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+      <CardContent className=""
+        <div className=""
+          <div className=""
             <Badge variant={report.status === 'active' ? 'default' : 'secondary'}>
               {report.status}
             </Badge>
             {report.isFavorite && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
           </div>
-          <div className="flex items-center space-x-1">
+          <div className=""
             <Button variant="ghost" size="sm" onClick={onView}>
               <Play className="h-4 w-4" />
             </Button>
           </div>
         </div>
         {report.lastExecutedAt && (
-          <p className="text-xs text-gray-500 mt-2">
+          <p className=""
             Last run: {new Date(report.lastExecutedAt).toLocaleDateString()}
           </p>
         )}
@@ -555,38 +555,38 @@ function ReportListItemZendeskStyle({ report, onView, onEdit }) {
   const ChartIcon = getChartIcon(report.chartType);
 
   return (
-    <div className="flex items-center justify-between py-4 border-b last:border-b-0 hover:bg-gray-50 rounded px-4 -mx-4">
-      <div className="flex items-center space-x-4 flex-1 min-w-0">
-        <div className="p-2 bg-blue-50 rounded-lg">
+    <div className=""
+      <div className=""
+        <div className=""
           <ChartIcon className="h-5 w-5 text-blue-600" />
         </div>
-        <div className="min-w-0 flex-1">
+        <div className=""
           <h3 className="font-medium text-gray-900 truncate">{report.name}</h3>
           <p className="text-sm text-gray-500 truncate">{report.description}</p>
-          <div className="flex items-center space-x-4 mt-1">
-            <Badge variant={report.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+          <div className=""
+            <Badge variant={report.status === 'active' ? 'default' : 'secondary'} className=""
               {report.status}
             </Badge>
             {report.lastExecutedAt && (
-              <span className="text-xs text-gray-500">
+              <span className=""
                 Last run: {new Date(report.lastExecutedAt).toLocaleDateString()}
               </span>
             )}
           </div>
         </div>
       </div>
-      <div className="flex items-center space-x-2">
+      <div className=""
         {report.isFavorite && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
         <Button variant="ghost" size="sm" onClick={onView}>
           <Play className="h-4 w-4" />
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm>
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end>
             <DropdownMenuItem onClick={onView}>
               <Eye className="h-4 w-4 mr-2" />
               View

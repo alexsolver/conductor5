@@ -220,14 +220,14 @@ export default function LPUManagement() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">LPU - Lista de Preços Unificada</h1>
           <p className="text-muted-foreground">Gestão completa de precificação com workflow de aprovação</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className=""
           <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -235,7 +235,7 @@ export default function LPUManagement() {
                 Nova Lista
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className=""
               <DialogHeader>
                 <DialogTitle>Criar Nova Lista de Preços</DialogTitle>
                 <DialogDescription>
@@ -255,26 +255,26 @@ export default function LPUManagement() {
                   validTo: formData.get('validTo'),
                   notes: formData.get('notes')
                 });
-              }} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+              }} className=""
+                <div className=""
+                  <div className=""
                     <Label htmlFor="name">Nome da Lista *</Label>
                     <Input name="name" required placeholder="Ex: Lista Comercial 2025" />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="code">Código *</Label>
                     <Input name="code" required placeholder="Ex: LC2025" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="version">Versão</Label>
                     <Input name="version" defaultValue="1.0" placeholder="1.0" />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="currency">Moeda</Label>
-                    <Select name="currency" defaultValue="BRL">
+                    <Select name="currency" defaultValue="BRL>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -285,29 +285,29 @@ export default function LPUManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="automaticMargin">Margem Automática (%)</Label>
                     <Input name="automaticMargin" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="validFrom">Válido De *</Label>
                     <Input name="validFrom" type="date" required />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="validTo">Válido Até</Label>
                     <Input name="validTo" type="date" />
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="notes">Observações</Label>
                   <Textarea name="notes" placeholder='[TRANSLATION_NEEDED]' />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateListOpen(false)}>
                     Cancelar
                   </Button>
@@ -321,7 +321,7 @@ export default function LPUManagement() {
 
           <Dialog open={isCreateRuleOpen} onOpenChange={setIsCreateRuleOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline>
                 <Settings className="w-4 h-4 mr-2" />
                 Nova Regra
               </Button>
@@ -345,14 +345,14 @@ export default function LPUManagement() {
                   validFrom: formData.get('validFrom'),
                   validTo: formData.get('validTo')
                 });
-              }} className="space-y-4">
-                <div className="space-y-2">
+              }} className=""
+                <div className=""
                   <Label htmlFor="name">Nome da Regra *</Label>
                   <Input name="name" required placeholder="Ex: Desconto por Volume" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="type">Tipo de Regra</Label>
                     <Select name="type" required>
                       <SelectTrigger>
@@ -366,35 +366,35 @@ export default function LPUManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="priority">Prioridade</Label>
                     <Input name="priority" type="number" defaultValue="0" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="conditions">Condição</Label>
                     <Input name="conditions" placeholder="Ex: categoria=eletrônicos" />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="action">Percentual (%)</Label>
                     <Input name="action" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="validFrom">Válido De</Label>
                     <Input name="validFrom" type="date" />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="validTo">Válido Até</Label>
                     <Input name="validTo" type="date" />
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateRuleOpen(false)}>
                     Cancelar
                   </Button>
@@ -409,54 +409,54 @@ export default function LPUManagement() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalLists || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {stats?.activeLists || 0} listas ativas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.pendingApproval || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               aguardando análise
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.approvalRate || 0}%</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {stats?.approvedVersions || 0} aprovadas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Regras Ativas</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.activeRules || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               regras configuradas
             </p>
           </CardContent>
@@ -464,7 +464,7 @@ export default function LPUManagement() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="lists" className="space-y-4">
+      <Tabs defaultValue="lists" className=""
         <TabsList>
           <TabsTrigger value="lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="versions">Versionamento</TabsTrigger>
@@ -472,10 +472,10 @@ export default function LPUManagement() {
           <TabsTrigger value="dynamic">Precificação Dinâmica</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="lists" className="space-y-4">
+        <TabsContent value="lists" className=""
           {/* Filters */}
-          <div className="flex gap-4">
-            <div className="relative flex-1">
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -485,7 +485,7 @@ export default function LPUManagement() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className=""
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -497,29 +497,29 @@ export default function LPUManagement() {
           </div>
 
           {/* Price Lists */}
-          <div className="grid gap-4">
+          <div className=""
             {listsLoading ? (
               <div className="text-center py-8">Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 Nenhuma lista encontrada
               </div>
             ) : (
               filteredPriceLists.map((list: PriceList) => (
                 <Card key={list.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <h3 className="font-semibold">{list.name}</h3>
                           <Badge variant={list.isActive ? 'default' : 'outline'}>
                             {list.isActive ? 'Ativa' : 'Inativa'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className=""
                           Código: {list.code} | Versão: {list.version} | Moeda: {list.currency}
                         </p>
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className=""
                           <span>Válido: {new Date(list.validFrom).toLocaleDateString('pt-BR')}</span>
                           {list.validTo && (
                             <span>até {new Date(list.validTo).toLocaleDateString('pt-BR')}</span>
@@ -530,7 +530,7 @@ export default function LPUManagement() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className=""
                         <Button
                           variant="outline"
                           size="sm"
@@ -540,7 +540,7 @@ export default function LPUManagement() {
                           Versões
                         </Button>
 
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm>
                           <DollarSign className="w-4 h-4 mr-1" />
                           Itens
                         </Button>
@@ -553,7 +553,7 @@ export default function LPUManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="versions" className="space-y-4">
+        <TabsContent value="versions" className=""
           {selectedList ? (
             <Card>
               <CardHeader>
@@ -564,7 +564,7 @@ export default function LPUManagement() {
               </CardHeader>
               <CardContent>
                 {versions.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className=""
                     Nenhuma versão encontrada
                   </div>
                 ) : (
@@ -597,7 +597,7 @@ export default function LPUManagement() {
                             {version.baseMargin ? "%` : '-'}
                           </TableCell>
                           <TableCell>
-                            <div className="flex gap-2">
+                            <div className=""
                               {version.status === 'draft' && (
                                 <Button
                                   variant="outline"
@@ -631,9 +631,9 @@ export default function LPUManagement() {
             </Card>
           ) : (
             <Card>
-              <CardContent className="p-8 text-center">
+              <CardContent className=""
                 <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">
+                <p className=""
                   Selecione uma lista de preços para visualizar suas versões
                 </p>
               </CardContent>
@@ -641,30 +641,30 @@ export default function LPUManagement() {
           )}
         </TabsContent>
 
-        <TabsContent value="rules" className="space-y-4">
-          <div className="grid gap-4">
+        <TabsContent value="rules" className=""
+          <div className=""
             {pricingRules.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 Nenhuma regra configurada
               </div>
             ) : (
               pricingRules.map((rule) => (
                 <Card key={rule.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <h3 className="font-semibold">{rule.name}</h3>
                           {getRuleTypeBadge(rule.type)}
                           <Badge variant={rule.active ? 'default' : 'outline'}>
                             {rule.active ? 'Ativa' : 'Inativa'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className=""
                           Prioridade: {rule.priority} | Tipo: {rule.type}
                         </p>
                         {rule.validFrom && (
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className=""
                             <Calendar className="w-4 h-4" />
                             Válido: {new Date(rule.validFrom).toLocaleDateString('pt-BR')}
                             {rule.validTo && "
@@ -672,8 +672,8 @@ export default function LPUManagement() {
                         )}
                       </div>
 
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                      <div className=""
+                        <Button variant="outline" size="sm>
                           <Settings className="w-4 h-4 mr-1" />
                           Configurar
                         </Button>
@@ -686,7 +686,7 @@ export default function LPUManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="dynamic" className="space-y-4">
+        <TabsContent value="dynamic" className=""
           <Card>
             <CardHeader>
               <CardTitle>Precificação Dinâmica</CardTitle>
@@ -695,10 +695,10 @@ export default function LPUManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 <TrendingUp className="w-12 h-12 mx-auto mb-4" />
                 <p>Módulo de precificação dinâmica em desenvolvimento</p>
-                <p className="text-sm mt-2">
+                <p className=""
                   Fatores: demanda, sazonalidade, estoque, concorrência
                 </p>
               </div>

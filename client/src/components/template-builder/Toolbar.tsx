@@ -73,15 +73,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   isDirty
 }) => {
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shadow-sm">
+    <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shadow-sm>
       {/* Left Section - File Operations */}
-      <div className="flex items-center space-x-2">
-        <div className="flex items-center space-x-1">
+      <div className="flex items-center space-x-2>
+        <div className="flex items-center space-x-1>
           <Button
             variant="ghost"
             size="sm"
             onClick={onSave}
-            className="""
+            className=""
           >
             <Save className="h-4 w-4 mr-1" />
             Salvar
@@ -110,7 +110,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <Separator orientation="vertical" className="h-6" />
 
         {/* Undo/Redo */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1>
           <Button
             variant="ghost"
             size="sm"
@@ -133,7 +133,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <Separator orientation="vertical" className="h-6" />
 
         {/* Clipboard Operations */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1>
           <Button
             variant="ghost"
             size="sm"
@@ -173,8 +173,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       </div>
 
       {/* Center Section - Alignment */}
-      <div className="flex items-center space-x-1">
-        <div className="flex items-center space-x-1 bg-gray-50 rounded-md p-1">
+      <div className="flex items-center space-x-1>
+        <div className="flex items-center space-x-1 bg-gray-50 rounded-md p-1>
           <Button
             variant="ghost"
             size="sm"
@@ -208,9 +208,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       </div>
 
       {/* Right Section - View & Settings */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2>
         {/* Zoom Controls */}
-        <div className="flex items-center space-x-1 bg-gray-50 rounded-md p-1">
+        <div className="flex items-center space-x-1 bg-gray-50 rounded-md p-1>
           <Button
             variant="ghost"
             size="sm"
@@ -220,7 +220,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <ZoomOut className="h-4 w-4" />
           </Button>
           
-          <span className="text-sm font-medium px-2 min-w-[60px] text-center">
+          <span className="text-sm font-medium px-2 min-w-[60px] text-center>
             {Math.round(zoom * 100)}%
           </span>
           
@@ -237,7 +237,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <Separator orientation="vertical" className="h-6" />
 
         {/* View Options */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1>
           <Button
             variant="ghost"
             size="sm"

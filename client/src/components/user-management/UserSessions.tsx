@@ -74,7 +74,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
 
   const terminateSessionMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      return apiRequest("/terminate`, {
+      return apiRequest("POST", "/api/sessions/terminate", {
         method: "POST"
       });
     },
@@ -163,44 +163,44 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
   const uniqueUsers = new Set(activeSessions.map(s => s.userId)).size;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       <div>
         <h3 className="text-lg font-medium">{t("userManagement.userSessions", "Sessões de Usuários")}</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground>
           {t("userManagement.userSessionsDesc", "Monitore e gerencie sessões ativas dos usuários")}
         </p>
       </div>
 
       {/* Statistics */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="pt-6>
+            <div className="text-2xl font-bold text-green-600>
               {activeSessions.length}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground>
               {t("userManagement.activeSessions", "Sessões Ativas")}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">
+          <CardContent className="pt-6>
+            <div className="text-2xl font-bold text-blue-600>
               {uniqueUsers}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground>
               {t("userManagement.uniqueUsers", "Usuários Únicos")}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-orange-600">
+          <CardContent className="pt-6>
+            <div className="text-2xl font-bold text-orange-600>
               {filteredSessions.filter(s => 
                 new Date(s.lastActivity) > new Date(Date.now() - 5 * 60 * 1000)
               ).length}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground>
               {t("userManagement.recentActivity", "Atividade Recente (5min)")}
             </p>
           </CardContent>
@@ -210,13 +210,13 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
       {/* Search and Filter */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">
+          <CardTitle className="text-base>
             {t("userManagement.sessionManagement", "Gerenciamento de Sessões")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-2">
-            <div className="relative flex-1">
+          <div className="flex items-center space-x-2>
+            <div className="relative flex-1>
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t("userManagement.searchSessions", "Buscar por usuário, IP ou localização...")}
@@ -239,7 +239,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8>
               {t("common.loading", "Carregando...")}
             </div>
           ) : (
@@ -259,22 +259,22 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                 {filteredSessions.map((session) => (
                   <TableRow key={session.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2>
                         <div>
-                          <div className="font-medium">
+                          <div className="font-medium>
                             {session.user 
                               ? "
                               : t("userManagement.unknownUser", "Usuário desconhecido")
                             }
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground>
                             {session.user?.email}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2>
                         {getDeviceIcon(session.userAgent)}
                         <div>
                           <div className="text-sm">{getDeviceInfo(session.userAgent)}</div>
@@ -282,24 +282,24 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-1>
                         <MapPin className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm">
+                        <span className="text-sm>
                           {session.location || t("userManagement.unknownLocation", "Localização desconhecida")}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm font-mono">
+                    <TableCell className="text-sm font-mono>
                       {session.ipAddress || '-'}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-1>
                         <Wifi className={`h-3 w-3 ${
                           new Date(session.lastActivity) > new Date(Date.now() - 5 * 60 * 1000)
                             ? 'text-green-500'
                             : 'text-gray-400'
                         "} />
-                        <span className="text-sm">
+                        <span className="text-sm>
                           {formatDistanceToNow(new Date(session.lastActivity), { 
                             addSuffix: true, 
                             locale: ptBR 
@@ -308,21 +308,21 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-1>
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm">
+                        <span className="text-sm>
                           {formatDistanceToNow(new Date(session.createdAt), { locale: ptBR })}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button variant="ghost" className="h-8 w-8 p-0>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end>
                           <DropdownMenuItem 
                             onClick={() => terminateSessionMutation.mutate(session.id)}
                             className="text-destructive"
@@ -347,9 +347,9 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
           )}
 
           {filteredSessions.length === 0 && !isLoading && (
-            <div className="text-center py-8">
+            <div className="text-center py-8>
               <Monitor className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground>
                 {searchTerm 
                   ? t("userManagement.noSessionsMatch", "Nenhuma sessão encontrada com os filtros aplicados")
                   : t("userManagement.noActiveSessions", "Nenhuma sessão ativa no momento")

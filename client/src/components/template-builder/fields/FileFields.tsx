@@ -160,9 +160,9 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -182,10 +182,10 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
         onClick={() => !disabled && fileInputRef.current?.click()}
       >
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600>
           <span className="font-medium">Clique para fazer upload</span> ou arraste arquivos aqui
         </div>
-        <div className="text-xs text-gray-500 mt-1">
+        <div className="text-xs text-gray-500 mt-1>
           {acceptedTypes} • Máx. {properties.maxSize}MB
           {multiple && ' • Múltiplos arquivos'}
         </div>
@@ -203,10 +203,10 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
 
       {/* Lista de Arquivos */}
       {files.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2>
           {(multiple ? files : [files]).map((file: FileInfo, index: number) => (
-            <div key={index} className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
-              <div className="flex-shrink-0">
+            <div key={index} className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50>
+              <div className="flex-shrink-0>
                 {file.error ? (
                   <AlertCircle className="w-5 h-5 text-red-500" />
                 ) : file.progress === 100 ? (
@@ -216,8 +216,8 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
                 )}
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0>
+                <div className="flex items-center justify-between>
                   <p className="text-sm font-medium truncate">{file.name}</p>
                   {!disabled && (
                     <Button
@@ -343,9 +343,9 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -365,10 +365,10 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
         onClick={() => !disabled && fileInputRef.current?.click()}
       >
         <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600>
           <span className="font-medium">Clique para fazer upload</span> ou arraste imagens aqui
         </div>
-        <div className="text-xs text-gray-500 mt-1">
+        <div className="text-xs text-gray-500 mt-1>
           {acceptedTypes} • Máx. {properties.maxSize}MB
           {multiple && ' • Múltiplas imagens'}
         </div>
@@ -386,10 +386,10 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
 
       {/* Preview das Imagens */}
       {images.length > 0 && (
-        <div className="grid gap-4 "">
+        <div className="grid gap-4 ">
           {(multiple ? images : [images]).map((image: FileInfo, index: number) => (
-            <div key={index} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden border bg-gray-100">
+            <div key={index} className="relative group>
+              <div className="aspect-square rounded-lg overflow-hidden border bg-gray-100>
                 {image.url && !image.error ? (
                   <img
                     src={image.url}
@@ -397,7 +397,7 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center>
                     <AlertCircle className="w-8 h-8 text-red-500" />
                   </div>
                 )}
@@ -414,7 +414,7 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
                 </Button>
               )}
               
-              <div className="mt-2">
+              <div className="mt-2>
                 <p className="text-xs font-medium truncate">{image.name}</p>
                 {image.error && (
                   <p className="text-xs text-red-500">{image.error}</p>

@@ -261,19 +261,19 @@ export function SupplierManagement() {
 
   if (isLoadingSuppliers) {
     return (
-      <div className="container mx-auto p-6">
+      <div className=""
         <div className="text-center">Carregando fornecedores...</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">Gestão de Fornecedores</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Gerencie fornecedores, contratos e relacionamentos comerciais
           </p>
         </div>
@@ -284,56 +284,56 @@ export function SupplierManagement() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Fornecedores</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{supplierStats.totalSuppliers}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {supplierStats.activeSuppliers} ativos
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Fornecedores Preferenciais</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{supplierStats.preferredSuppliers}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               Classificação especial
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{supplierStats.totalOrders}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               Este ano
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {supplierStats.averageRating ? supplierStats.averageRating.toFixed(1) : '0.0'}/5
             </div>
-            <div className="flex mt-1">
+            <div className=""
               {renderStarRating(Math.round(supplierStats.averageRating || 0))}
             </div>
           </CardContent>
@@ -341,9 +341,9 @@ export function SupplierManagement() {
       </div>
 
       {/* Filters and Search */}
-      <div className="flex gap-4 items-center">
-        <div className="flex-1">
-          <div className="relative">
+      <div className=""
+        <div className=""
+          <div className=""
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder='[TRANSLATION_NEEDED]'
@@ -354,7 +354,7 @@ export function SupplierManagement() {
           </div>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className=""
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -375,30 +375,30 @@ export function SupplierManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className=""
             {filteredSuppliers.map((supplier) => (
               <div
                 key={supplier.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className=""
+                  <div className=""
                     <Building2 className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className=""
                       <h3 className="font-semibold">{supplier.name}</h3>
                       {supplier.isPreferred && (
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       )}
                     </div>
                     <p className="text-sm text-gray-600">{supplier.code} • {supplier.documentNumber}</p>
-                    <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm text-gray-500 flex items-center gap-1">
+                    <div className=""
+                      <span className=""
                         <Mail className="h-3 w-3" />
                         {supplier.email}
                       </span>
-                      <span className="text-sm text-gray-500 flex items-center gap-1">
+                      <span className=""
                         <Phone className="h-3 w-3" />
                         {supplier.phone}
                       </span>
@@ -406,9 +406,9 @@ export function SupplierManagement() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="flex items-center gap-1">
+                <div className=""
+                  <div className=""
+                    <div className=""
                       {renderStarRating(supplier.rating)}
                     </div>
                     <Badge className={getStatusColor(supplier.status)}>
@@ -416,7 +416,7 @@ export function SupplierManagement() {
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className=""
                     <Button
                       variant="ghost"
                       size="sm"
@@ -454,7 +454,7 @@ export function SupplierManagement() {
             ))}
 
             {filteredSuppliers.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className=""
                 Nenhum fornecedor encontrado
               </div>
             )}
@@ -464,7 +464,7 @@ export function SupplierManagement() {
 
       {/* Create Supplier Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Novo Fornecedor</DialogTitle>
             <DialogDescription>
@@ -476,72 +476,72 @@ export function SupplierManagement() {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             handleCreateSupplier(formData);
-          }} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+          }} className=""
+            <div className=""
+              <div className=""
                 <Label htmlFor="name">Nome da Empresa *</Label>
                 <Input id="name" name="name" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="code">Código do Fornecedor *</Label>
                 <Input id="code" name="code" placeholder="FOR001" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="tradeName">Nome Fantasia *</Label>
                 <Input id="tradeName" name="tradeName" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="documentNumber">CNPJ</Label>
                 <Input id="documentNumber" name="documentNumber" placeholder="00.000.000/0000-00" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="email">Email *</Label>
                 <Input id="email" name="email" type="email" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="phone">Telefone</Label>
                 <Input id="phone" name="phone" placeholder="(11) 9999-9999" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="address">Endereço</Label>
                 <Input id="address" name="address" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="city">Cidade</Label>
                 <Input id="city" name="city" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="state">Estado</Label>
                 <Input id="state" name="state" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="postalCode">CEP</Label>
                 <Input id="postalCode" name="postalCode" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="contactPerson">Pessoa de Contato</Label>
                 <Input id="contactPerson" name="contactPerson" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="contactEmail">Email do Contato</Label>
                 <Input id="contactEmail" name="contactEmail" type="email" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="paymentTerms">Condições de Pagamento</Label>
                 <Input id="paymentTerms" name="paymentTerms" placeholder="30 dias" />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="deliveryTerms">Prazo de Entrega</Label>
                 <Input id="deliveryTerms" name="deliveryTerms" placeholder="5 dias úteis" />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className=""
               <Label htmlFor="notes">Observações</Label>
               <Textarea id="notes" name="notes" rows={3} />
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className=""
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancelar
               </Button>
@@ -555,7 +555,7 @@ export function SupplierManagement() {
 
       {/* Edit Supplier Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Editar Fornecedor</DialogTitle>
             <DialogDescription>
@@ -568,33 +568,33 @@ export function SupplierManagement() {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               handleEditSupplier(formData);
-            }} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+            }} className=""
+              <div className=""
+                <div className=""
                   <Label htmlFor="edit-name">Nome da Empresa *</Label>
                   <Input id="edit-name" name="name" defaultValue={selectedSupplier.name} required />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="edit-code">Código do Fornecedor *</Label>
                   <Input id="edit-code" name="code" defaultValue={selectedSupplier.code} required />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="edit-tradeName">Nome Fantasia *</Label>
                   <Input id="edit-tradeName" name="tradeName" defaultValue={selectedSupplier.tradeName} required />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="edit-documentNumber">CNPJ</Label>
                   <Input id="edit-documentNumber" name="documentNumber" defaultValue={selectedSupplier.documentNumber} />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="edit-email">Email *</Label>
                   <Input id="edit-email" name="email" type="email" defaultValue={selectedSupplier.email} required />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="edit-phone">Telefone</Label>
                   <Input id="edit-phone" name="phone" defaultValue={selectedSupplier.phone} />
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="edit-status">Status</Label>
                   <Select name="status" defaultValue={selectedSupplier.status}>
                     <SelectTrigger>
@@ -607,9 +607,9 @@ export function SupplierManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="edit-isPreferred">Fornecedor Preferencial</Label>
-                  <Select name="isPreferred" defaultValue={selectedSupplier?.isPreferred?.toString() || "false">
+                  <Select name="isPreferred" defaultValue={selectedSupplier?.isPreferred?.toString() || "false>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -621,7 +621,7 @@ export function SupplierManagement() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className=""
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                   Cancelar
                 </Button>

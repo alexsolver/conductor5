@@ -176,13 +176,13 @@ export default function TenantAdminGeral() {
   // Cards de estatísticas do dashboard
   const StatCard = ({ title, value, icon: Icon, trend }: any) => (
     <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
+      <CardContent className=""
+        <div className=""
           <div>
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
             <p className="text-2xl font-bold">{value}</p>
             {trend && (
-              <p className="text-xs text-muted-foreground">
+              <p className=""
                 <span className="text-green-600">+{trend}%</span> vs mês anterior
               </p>
             )}
@@ -195,8 +195,8 @@ export default function TenantAdminGeral() {
 
   if (analyticsLoading || teamStatsLoading || usersLoading || brandingLoading) {
     return (
-      <div className="p-4">
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className=""
+        <div className=""
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </div>
@@ -204,25 +204,25 @@ export default function TenantAdminGeral() {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Geral</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Dashboard e configurações gerais do workspace
           </p>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="branding">Branding & Personalização</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-6">
+        <TabsContent value="dashboard" className=""
           {/* Estatísticas principais */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className=""
             <StatCard
               title='[TRANSLATION_NEEDED]'
               value={(analytics as any)?.totalCustomers || 0}
@@ -250,22 +250,22 @@ export default function TenantAdminGeral() {
           </div>
 
           {/* Seção de atividade recente */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Atividade da Equipe</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className=""
+                  <div className=""
                     <span className="text-sm text-muted-foreground">Membros ativos hoje</span>
                     <Badge variant="secondary">{(teamStats as any)?.activeToday || 0}</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className=""
                     <span className="text-sm text-muted-foreground">Performance média</span>
                     <Badge variant="outline">{(teamStats as any)?.averagePerformance || 0}%</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className=""
                     <span className="text-sm text-muted-foreground">Novos membros (mês)</span>
                     <Badge variant="default">{(teamStats as any)?.newMembersThisMonth || 0}</Badge>
                   </div>
@@ -278,16 +278,16 @@ export default function TenantAdminGeral() {
                 <CardTitle>Resumo de Tickets</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className=""
+                  <div className=""
                     <span className="text-sm text-muted-foreground">Abertos</span>
                     <Badge variant="destructive">{(analytics as any)?.openTickets || 0}</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className=""
                     <span className="text-sm text-muted-foreground">Em progresso</span>
                     <Badge variant="default">{(analytics as any)?.inProgressTickets || 0}</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className=""
                     <span className="text-sm text-muted-foreground">Resolvidos (mês)</span>
                     <Badge variant="secondary">{(analytics as any)?.resolvedThisMonth || 0}</Badge>
                   </div>
@@ -297,19 +297,19 @@ export default function TenantAdminGeral() {
           </div>
         </TabsContent>
 
-        <TabsContent value="branding" className="space-y-6">
+        <TabsContent value="branding" className=""
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
+            <form onSubmit={form.handleSubmit(onSubmit)} className=""
+              <div className=""
                 {/* Informações da Empresa */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className=""
                       <Building className="h-5 w-5" />
                       Informações da Empresa
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className=""
                     <FormField
                       control={form.control}
                       name="companyName"
@@ -363,12 +363,12 @@ export default function TenantAdminGeral() {
                 {/* Configurações Visuais */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className=""
                       <Palette className="h-5 w-5" />
                       Configurações Visuais
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className=""
                     <FormField
                       control={form.control}
                       name="logoUrl"
@@ -376,12 +376,12 @@ export default function TenantAdminGeral() {
                         <FormItem>
                           <FormLabel>URL do Logo</FormLabel>
                           <FormControl>
-                            <div className="flex gap-2">
+                            <div className=""
                               <Input 
                                 placeholder="https://exemplo.com/logo.png"
                                 {...field}
                               />
-                              <Button type="button" variant="outline" size="icon">
+                              <Button type="button" variant="outline" size="icon>
                                 <Upload className="h-4 w-4" />
                               </Button>
                             </div>
@@ -391,7 +391,7 @@ export default function TenantAdminGeral() {
                       )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className=""
                       <FormField
                         control={form.control}
                         name="primaryColor"
@@ -399,7 +399,7 @@ export default function TenantAdminGeral() {
                           <FormItem>
                             <FormLabel>Cor Primária</FormLabel>
                             <FormControl>
-                              <div className="flex gap-2">
+                              <div className=""
                                 <Input type="color" {...field} className="w-16 h-10" />
                                 <Input {...field} placeholder="#3b82f6" />
                               </div>
@@ -416,7 +416,7 @@ export default function TenantAdminGeral() {
                           <FormItem>
                             <FormLabel>Cor Secundária</FormLabel>
                             <FormControl>
-                              <div className="flex gap-2">
+                              <div className=""
                                 <Input type="color" {...field} className="w-16 h-10" />
                                 <Input {...field} placeholder="#64748b" />
                               </div>
@@ -432,12 +432,12 @@ export default function TenantAdminGeral() {
                 {/* Informações de Contato */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className=""
                       <Mail className="h-5 w-5" />
                       Informações de Contato
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className=""
                     <FormField
                       control={form.control}
                       name="supportEmail"
@@ -495,12 +495,12 @@ export default function TenantAdminGeral() {
                 {/* Configurações Regionais */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className=""
                       <Globe className="h-5 w-5" />
                       Configurações Regionais
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className=""
                     <FormField
                       control={form.control}
                       name="timezone"
@@ -551,7 +551,7 @@ export default function TenantAdminGeral() {
                 </Card>
               </div>
 
-              <div className="flex justify-end">
+              <div className=""
                 <Button
                   type="submit"
                   disabled={updateBrandingMutation.isPending}

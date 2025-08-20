@@ -217,8 +217,8 @@ export default function TicketDetail() {
 
   if (isTicketLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse">
+      <div className=""
+        <div className=""
           <div className="h-8 bg-gray-200 rounded-md w-1/3 mb-4"></div>
           <div className="h-64 bg-gray-200 rounded-md"></div>
         </div>
@@ -230,8 +230,8 @@ export default function TicketDetail() {
     console.log('❌ [TICKET-DETAIL] Error loading ticket:', ticketError);
     if (ticketError.message?.includes('401')) {
       return (
-        <div className="container mx-auto p-6">
-          <div className="text-center">
+        <div className=""
+          <div className=""
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Sessão expirada</h1>
             <p className="text-gray-600 mb-4">Faça login novamente para continuar</p>
             <Button onClick={() => console.log('Auth redirect blocked per 1qa.md')}>
@@ -245,8 +245,8 @@ export default function TicketDetail() {
 
   if (!ticket) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center">
+      <div className=""
+        <div className=""
           <h1 className="text-2xl font-bold text-gray-900 mb-4">'[TRANSLATION_NEEDED]'</h1>
           <Button onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -258,19 +258,19 @@ export default function TicketDetail() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className=""
+        <div className=""
           <Button variant="ghost" onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             '[TRANSLATION_NEEDED]'
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className=""
               #{ticket.number} - {ticket.subject}
             </h1>
-            <div className="flex items-center space-x-2 mt-2">
+            <div className=""
               <DynamicBadge 
                 fieldName="status" 
                 value={ticket.status}
@@ -304,20 +304,20 @@ export default function TicketDetail() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className=""
         {/* Left Column - Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className=""
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className=""
                 <FileText className="h-5 w-5 mr-2" />
                 '[TRANSLATION_NEEDED]'
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                <p className="text-gray-700 whitespace-pre-wrap">
+              <div className=""
+                <p className=""
                   {ticket.description || t('tickets.messages.no_description')}
                 </p>
               </div>
@@ -325,26 +325,26 @@ export default function TicketDetail() {
           </Card>
 
           {/* Tabs for detailed content */}
-          <Tabs defaultValue="attachments" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="attachments" className="flex items-center">
+          <Tabs defaultValue="attachments" className=""
+            <TabsList className=""
+              <TabsTrigger value="attachments" className=""
                 <Paperclip className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]' ({attachments?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="communications" className="flex items-center">
+              <TabsTrigger value="communications" className=""
                 <MessageSquare className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]' ({communications?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="notes">
+              <TabsTrigger value="notes>
                 '[TRANSLATION_NEEDED]' ({notes?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center">
+              <TabsTrigger value="history" className=""
                 <History className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]'
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="attachments" className="space-y-4">
+            <TabsContent value="attachments" className=""
               {/* Upload Component */}
               <Card>
                 <CardHeader>
@@ -367,19 +367,19 @@ export default function TicketDetail() {
                   {isAttachmentsLoading ? (
                     <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : attachments && attachments.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className=""
                       {attachments.map((attachment) => (
                         <div 
                           key={attachment.id}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
                         >
-                          <div className="flex items-center space-x-3">
+                          <div className=""
                             <Paperclip className="h-5 w-5 text-gray-400" />
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className=""
                                 {attachment.originalName}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className=""
                                 {formatFileSize(attachment.fileSize)} • 
                                 {t('tickets.uploaded_by', { name: attachment.uploadedByName })} • 
                                 {formatDate(attachment.createdAt)}
@@ -397,7 +397,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className=""
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -405,7 +405,7 @@ export default function TicketDetail() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="communications">
+            <TabsContent value="communications>
               <Card>
                 <CardHeader>
                   <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
@@ -414,14 +414,14 @@ export default function TicketDetail() {
                   {isCommunicationsLoading ? (
                     <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : communications && communications.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className=""
                       {communications.map((comm) => (
-                        <div key={comm.id} className="border-l-4 border-blue-400 pl-4 py-2">
-                          <div className="flex justify-between items-start mb-2">
+                        <div key={comm.id} className=""
+                          <div className=""
                             <Badge variant={comm.direction === 'inbound' ? 'default' : 'secondary'}>
                               {comm.type} - {comm.direction}
                             </Badge>
-                            <span className="text-sm text-gray-500">
+                            <span className=""
                               {formatDate(comm.createdAt)}
                             </span>
                           </div>
@@ -431,7 +431,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className=""
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -439,7 +439,7 @@ export default function TicketDetail() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="notes">
+            <TabsContent value="notes>
               <Card>
                 <CardHeader>
                   <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
@@ -448,14 +448,14 @@ export default function TicketDetail() {
                   {isNotesLoading ? (
                     <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : notes && notes.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className=""
                       {notes.map((note) => (
-                        <div key={note.id} className="border rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
+                        <div key={note.id} className=""
+                          <div className=""
                             <Badge variant={note.isInternal ? 'destructive' : 'default'}>
                               {note.isInternal ? t('tickets.note_internal') : t('tickets.note_public')}
                             </Badge>
-                            <span className="text-sm text-gray-500">
+                            <span className=""
                               {formatDate(note.createdAt)}
                             </span>
                           </div>
@@ -465,7 +465,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className=""
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -473,7 +473,7 @@ export default function TicketDetail() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="history">
+            <TabsContent value="history>
               <Card>
                 <CardHeader>
                   <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
@@ -482,14 +482,14 @@ export default function TicketDetail() {
                   {isHistoryLoading ? (
                     <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : history && history.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className=""
                       {history.map((entry) => (
-                        <div key={entry.id} className="border-l-2 border-gray-200 pl-4 py-2">
-                          <div className="flex justify-between items-start">
+                        <div key={entry.id} className=""
+                          <div className=""
                             <div>
                               <p className="font-medium text-gray-900">{entry.description}</p>
                               {entry.fieldName && (
-                                <p className="text-sm text-gray-600">
+                                <p className=""
                                   '[TRANSLATION_NEEDED]': {entry.fieldName}
                                   {entry.oldValue && entry.newValue && (
                                     <span> • {entry.oldValue} → {entry.newValue}</span>
@@ -498,7 +498,7 @@ export default function TicketDetail() {
                               )}
                               <p className="text-sm text-gray-500">'[TRANSLATION_NEEDED]': {entry.performedByName}</p>
                             </div>
-                            <span className="text-sm text-gray-500">
+                            <span className=""
                               {formatDate(entry.createdAt)}
                             </span>
                           </div>
@@ -506,7 +506,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className=""
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -517,29 +517,29 @@ export default function TicketDetail() {
         </div>
 
         {/* Right Column - Sidebar Info */}
-        <div className="space-y-6">
+        <div className=""
           <Card>
             <CardHeader>
               <CardTitle>Informações do Ticket</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center text-sm">
+            <CardContent className=""
+              <div className=""
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                 <span className="text-gray-500">Criado:</span>
                 <span className="ml-2 font-medium">{formatDate(ticket.createdAt)}</span>
               </div>
               
-              <div className="flex items-center text-sm">
+              <div className=""
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                 <span className="text-gray-500">Atualizado:</span>
                 <span className="ml-2 font-medium">{formatDate(ticket.updatedAt)}</span>
               </div>
 
               {ticket.assignedToId && (
-                <div className="flex items-center text-sm">
+                <div className=""
                   <User className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-gray-500">Responsável:</span>
-                  <span className="ml-2 font-medium">
+                  <span className=""
                     {assignedUser?.firstName && assignedUser?.lastName 
                       ? "
                       : assignedUser?.email || ticket.assignedToId
@@ -549,20 +549,20 @@ export default function TicketDetail() {
               )}
 
               {ticket.companyId && (
-                <div className="flex items-center text-sm">
+                <div className=""
                   <Building className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-gray-500">Empresa:</span>
-                  <span className="ml-2 font-medium">
+                  <span className=""
                     {(ticket as any)?.company_name || (ticket as any)?.company_display_name || company?.name || ticket.companyId}
                   </span>
                 </div>
               )}
 
               {ticket.locationId && (
-                <div className="flex items-center text-sm">
+                <div className=""
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-gray-500">Local:</span>
-                  <span className="ml-2 font-medium">
+                  <span className=""
                     {location?.name || location?.address || ticket.locationId}
                   </span>
                 </div>

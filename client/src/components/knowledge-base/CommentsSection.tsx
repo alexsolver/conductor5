@@ -102,16 +102,16 @@ export function CommentsSection({
   };
 
   const renderComment = (comment: Comment, isReply = false) => (
-    <Card key={comment.id} className=""">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Avatar className="h-8 w-8">
+    <Card key={comment.id} className="">
+      <CardHeader className="pb-3>
+        <div className="flex items-center justify-between>
+          <div className="flex items-center space-x-2>
+            <Avatar className="h-8 w-8>
               <AvatarFallback>{getInitials(comment.authorName)}</AvatarFallback>
             </Avatar>
             <div>
               <p className="text-sm font-medium">{comment.authorName}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground>
                 {formatDistanceToNow(new Date(comment.createdAt), { 
                   addSuffix: true, 
                   locale: ptBR 
@@ -135,13 +135,13 @@ export function CommentsSection({
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0">
+      <CardContent className="pt-0>
         <p className="text-sm whitespace-pre-wrap" data-testid={"
           {comment.content}
         </p>
         
         {replyingTo === comment.id && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2>
             <Textarea
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
@@ -149,7 +149,7 @@ export function CommentsSection({
               rows={3}
               data-testid={"
             />
-            <div className="flex space-x-2">
+            <div className="flex space-x-2>
               <Button
                 size="sm"
                 onClick={() => handleReply(comment.id)}
@@ -182,12 +182,12 @@ export function CommentsSection({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center">
+      <div className="space-y-4>
+        <h3 className="text-lg font-semibold flex items-center>
           <MessageCircle className="h-5 w-5 mr-2" />
           Comentários
         </h3>
-        <div className="text-center text-muted-foreground">
+        <div className="text-center text-muted-foreground>
           Carregando comentários...
         </div>
       </div>
@@ -195,16 +195,16 @@ export function CommentsSection({
   }
 
   return (
-    <div className="space-y-4" data-testid="comments-section">
-      <h3 className="text-lg font-semibold flex items-center">
+    <div className="space-y-4" data-testid="comments-section>
+      <h3 className="text-lg font-semibold flex items-center>
         <MessageCircle className="h-5 w-5 mr-2" />
         Comentários ({comments.length})
       </h3>
 
       {/* Formulário para novo comentário */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
+        <CardContent className="pt-6>
+          <div className="space-y-4>
             <Textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -225,11 +225,11 @@ export function CommentsSection({
       </Card>
 
       {/* Lista de comentários */}
-      <div className="space-y-4">
+      <div className="space-y-4>
         {comments.length === 0 ? (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center text-muted-foreground">
+            <CardContent className="pt-6>
+              <div className="text-center text-muted-foreground>
                 <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Seja o primeiro a comentar</p>
               </div>

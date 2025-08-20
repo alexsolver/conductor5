@@ -38,8 +38,8 @@ export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidge
 
   if (isLoading) {
     return (
-      <Card className="h-full">
-        <CardContent className="flex items-center justify-center h-full">
+      <Card className="h-full>
+        <CardContent className="flex items-center justify-center h-full>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
         </CardContent>
       </Card>
@@ -48,9 +48,9 @@ export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidge
 
   if (error || !kpiValue) {
     return (
-      <Card className="h-full border-red-200">
-        <CardContent className="flex items-center justify-center h-full text-red-500">
-          <div className="text-center">
+      <Card className="h-full border-red-200>
+        <CardContent className="flex items-center justify-center h-full text-red-500>
+          <div className="text-center>
             <AlertCircle className="w-8 h-8 mx-auto mb-2" />
             <p className="text-sm">Erro ao carregar</p>
             <p className="text-xs text-gray-400">{card.kpi.name}</p>
@@ -63,9 +63,9 @@ export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidge
   return (
     <Card className="h-full hover:shadow-md transition-shadow cursor-pointer" 
           onClick={() => handleCardClick(card)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center justify-between">
-          <div className="flex items-center">
+      <CardHeader className="pb-2>
+        <CardTitle className="text-sm font-medium flex items-center justify-between>
+          <div className="flex items-center>
             {card.layout.icon && <span className="mr-2">{card.layout.icon}</span>}
             {card.layout.title}
           </div>
@@ -86,15 +86,15 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
   switch (card.card_type) {
     case 'kpi_simple':
       return (
-        <div className="space-y-2">
-          <div className="flex items-baseline">
-            <span className="text-2xl font-bold text-gray-900">
+        <div className="space-y-2>
+          <div className="flex items-baseline>
+            <span className="text-2xl font-bold text-gray-900>
               {formatValue(kpiValue.value, card.kpi.format)}
             </span>
             <span className="ml-2 text-sm text-gray-500">{card.kpi.unit}</span>
           </div>
           {renderTrendIndicator(kpiValue, card)}
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400>
             Atualizado: {new Date(kpiValue.timestamp).toLocaleTimeString('pt-BR')}
           </p>
         </div>
@@ -102,13 +102,13 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
       
     case 'metric_comparative':
       return (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
+        <div className="space-y-3>
+          <div className="flex justify-between items-center>
             <span className="text-lg font-semibold">{formatValue(kpiValue.value, card.kpi.format)}</span>
             {card.targets && renderTargetComparison(kpiValue.value, card.targets)}
           </div>
           {kpiValue.comparison && (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600>
               <span>vs. período anterior: </span>
               <span className={kpiValue.comparison.change >= 0 ? 'text-green-600' : 'text-red-600'}>
                 {kpiValue.comparison.change > 0 && '+'}{kpiValue.comparison.change.toFixed(1)}%
@@ -120,15 +120,15 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
       
     case 'table':
       return (
-        <div className="space-y-2">
+        <div className="space-y-2>
           {kpiValue.data?.slice(0, 5).map((item: any, index: number) => (
-            <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+            <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0>
               <span className="text-sm text-gray-700 truncate">{item.name || item.title}</span>
               <span className="text-sm font-medium">{item.value}</span>
             </div>
           ))}
           {kpiValue.data?.length > 5 && (
-            <p className="text-xs text-gray-400 text-center pt-2">
+            <p className="text-xs text-gray-400 text-center pt-2>
               +{kpiValue.data.length - 5} itens adicionais
             </p>
           )}
@@ -137,7 +137,7 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
       
     case 'gauge':
       return (
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2>
           {renderGaugeVisualization(kpiValue.value, card.targets)}
           <div className="text-lg font-bold">{formatValue(kpiValue.value, card.kpi.format)}</div>
           <div className="text-xs text-gray-500">{card.kpi.unit}</div>
@@ -146,7 +146,7 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
       
     default:
       return (
-        <div className="text-center text-gray-500">
+        <div className="text-center text-gray-500>
           <p className="text-sm">Tipo de visualização não implementado</p>
           <p className="text-xs">{card.card_type}</p>
         </div>
@@ -199,7 +199,7 @@ function renderTrendIndicator(kpiValue: any, card: GovernedCard) {
   const isGoodDirection = card.kpi.direction === 'up' ? isPositive : !isPositive;
   
   return (
-    <div className="flex items-center text-sm "">
+    <div className="flex items-center text-sm ">
       {isPositive ? (
         <TrendingUp className="w-4 h-4 mr-1" />
       ) : kpiValue.change < 0 ? (
@@ -224,8 +224,8 @@ function renderTargetComparison(value: number, targets: any) {
   };
   
   return (
-    <div className="flex items-center">
-      <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+    <div className="flex items-center>
+      <div className="w-16 bg-gray-200 rounded-full h-2 mr-2>
         <div 
           className="h-2 rounded-full transition-all"
           style={{ 
@@ -246,8 +246,8 @@ function renderGaugeVisualization(value: number, targets: any) {
   const angle = (Math.min(percentage, 100) / 100) * 180; // Semi-circle gauge
   
   return (
-    <div className="relative w-20 h-10 mx-auto">
-      <svg viewBox="0 0 100 50" className="w-full h-full">
+    <div className="relative w-20 h-10 mx-auto>
+      <svg viewBox="0 0 100 50" className="w-full h-full>
         {/* Background arc */}
         <path
           d="M 10 45 A 40 40 0 0 1 90 45"

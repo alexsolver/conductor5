@@ -338,13 +338,13 @@ export default function Companies() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className=""
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className=""
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="space-y-3">
+            <Card key={i} className=""
+              <CardContent className=""
+                <div className=""
                   <div className="h-6 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                   <div className="h-4 bg-gray-200 rounded w-full"></div>
@@ -358,34 +358,34 @@ export default function Companies() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className=""
             Empresas
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className=""
             Gerencie empresas e suas informações
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+            <Button className=""
               <Plus className="w-4 h-4 mr-2" />
               Nova Empresa
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl" aria-describedby="create-company-description">
-            <div id="create-company-description" className="sr-only">
+          <DialogContent className="max-w-2xl" aria-describedby="create-company-description>
+            <div id="create-company-description" className=""
               Formulário para criar uma nova empresa cliente com informações básicas
             </div>
             <DialogHeader>
               <DialogTitle>Criar Nova Empresa</DialogTitle>
             </DialogHeader>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(handleCreateCompany)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={createForm.handleSubmit(handleCreateCompany)} className=""
+                <div className=""
                   <FormField
                     control={createForm.control}
                     name="name"
@@ -428,7 +428,7 @@ export default function Companies() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={createForm.control}
                     name="industry"
@@ -468,7 +468,7 @@ export default function Companies() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={createForm.control}
                     name="email"
@@ -511,7 +511,7 @@ export default function Companies() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={createForm.control}
                     name="subscriptionTier"
@@ -558,7 +558,7 @@ export default function Companies() {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -581,8 +581,8 @@ export default function Companies() {
       </div>
 
       {/* Busca */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className=""
+        <div className=""
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder='[TRANSLATION_NEEDED]'
@@ -591,41 +591,41 @@ export default function Companies() {
             className="pl-10"
           />
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="outline" className=""
           {filteredCompanies.length} empresa{filteredCompanies.length !== 1 ? 's' : ''}
         </Badge>
       </div>
 
       {/* Lista de empresas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=""
         {filteredCompanies.map((company: Company) => (
-          <Card key={company.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
+          <Card key={company.id} className=""
+            <CardHeader className=""
+              <div className=""
                 
-                <div className="flex items-center space-x-3">
+                <div className=""
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       company.status === 'inactive' ? 'bg-gray-100' : 'bg-blue-100'
-                    ">
+                    >
                       <Building2 className={`w-5 h-5 ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-blue-600'
                       "} />
                     </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
+                  <div className=""
+                    <div className=""
                       <p className={`text-sm font-medium truncate ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-gray-900'
-                      ">
+                      >
                         {company.name}
                       </p>
                       {(company.name?.toLowerCase().includes('default') || 
                     company.displayName?.toLowerCase().includes('default')) && (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                        <Badge variant="outline" className=""
                           Padrão
                         </Badge>
                       )}
                       {company.status === 'inactive' && (
-                        <Badge variant="outline" className="text-xs px-2 py-0 text-gray-500 border-gray-300">
+                        <Badge variant="outline" className=""
                           Inativa
                         </Badge>
                       )}
@@ -633,55 +633,55 @@ export default function Companies() {
                     {company.description && (
                       <p className={`text-sm truncate ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-gray-500'
-                      ">
+                      >
                         {company.description}
                       </p>
                     )}
                   </div>
                 </div>
                 
-                <div className="flex flex-col gap-1">
+                <div className=""
                   <Badge className={getStatusColor(company.status)}>
                     {company.status === 'active' ? 'Ativo' : 
                      company.status === 'inactive' ? 'Inativo' : 'Suspenso'}
                   </Badge>
                   {(company.name?.toLowerCase().includes('default') || 
                     company.displayName?.toLowerCase().includes('default')) && (
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                    <Badge variant="outline" className=""
                       Padrão
                     </Badge>
                   )}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className=""
               {company.description && (
-                <p className="text-sm text-gray-600 line-clamp-2">
+                <p className=""
                   {company.description}
                 </p>
               )}
 
-              <div className="space-y-2">
+              <div className=""
                 {company.industry && (
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className=""
                     <Building2 className="w-4 h-4 mr-2" />
                     {company.industry}
                   </div>
                 )}
                 {company.email && (
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className=""
                     <Mail className="w-4 h-4 mr-2" />
                     {company.email}
                   </div>
                 )}
                 {company.phone && (
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className=""
                     <Phone className="w-4 h-4 mr-2" />
                     {company.phone}
                   </div>
                 )}
                 {company.website && (
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className=""
                     <Globe className="w-4 h-4 mr-2" />
                     <a 
                       href={company.website} 
@@ -702,8 +702,8 @@ export default function Companies() {
               />
 
               {/* Company Footer with Actions */}
-              <div className="flex justify-between items-center pt-3 border-t mt-3">
-                <div className="flex items-center text-xs text-gray-400">
+              <div className=""
+                <div className=""
                   <Calendar className="w-3 h-3 mr-1" />
                   {(() => {
                     // Check multiple possible date fields
@@ -714,7 +714,7 @@ export default function Companies() {
                     return 'Cadastrada recentemente';
                   })()}
                 </div>
-                <div className="flex justify-end space-x-2">
+                <div className=""
                   <Button
                     variant="outline"
                     size="sm"
@@ -827,12 +827,12 @@ export default function Companies() {
       </div>
 
       {filteredCompanies.length === 0 && !isLoading && (
-        <div className="text-center py-12">
+        <div className=""
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className=""
             Nenhuma empresa encontrada
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className=""
             {searchTerm ? 'Tente ajustar sua busca.' : 'Comece criando sua primeira empresa cliente.'}
           </p>
           {!searchTerm && (
@@ -849,16 +849,16 @@ export default function Companies() {
 
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl" aria-describedby="edit-company-description">
-          <div id="edit-company-description" className="sr-only">
+        <DialogContent className="max-w-2xl" aria-describedby="edit-company-description>
+          <div id="edit-company-description" className=""
             Formulário para editar informações da empresa cliente selecionada
           </div>
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleUpdateCompany)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={editForm.handleSubmit(handleUpdateCompany)} className=""
+              <div className=""
                 <FormField
                   control={editForm.control}
                   name="name"
@@ -901,7 +901,7 @@ export default function Companies() {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className=""
                 <FormField
                   control={editForm.control}
                   name="industry"
@@ -941,7 +941,7 @@ export default function Companies() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className=""
                 <FormField
                   control={editForm.control}
                   name="email"
@@ -984,7 +984,7 @@ export default function Companies() {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className=""
                 <FormField
                   control={editForm.control}
                   name="subscriptionTier"
@@ -1031,7 +1031,7 @@ export default function Companies() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-4">
+              <div className=""
                 <Button 
                   type="button" 
                   variant="outline" 

@@ -354,12 +354,12 @@ export default function TimecardApprovalSettings() {
 
   if (settingsLoading || groupsLoading || usersLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-2 mb-6">
+      <div className=""
+        <div className=""
           <Settings className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Configurações de Aprovação do Timecard</h1>
         </div>
-        <div className="flex justify-center items-center h-64">
+        <div className=""
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </div>
@@ -367,20 +367,20 @@ export default function TimecardApprovalSettings() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center gap-2 mb-6">
+    <div className=""
+      <div className=""
         <Settings className="h-6 w-6" />
         <h1 className="text-2xl font-bold">Configurações de Aprovação do Timecard</h1>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+        <TabsList className=""
           <TabsTrigger value="settings">Configurações Gerais</TabsTrigger>
           <TabsTrigger value="groups">Grupos de Aprovação</TabsTrigger>
           <TabsTrigger value="tickets">Integração com Tickets</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="settings" className="space-y-6">
+        <TabsContent value="settings" className=""
           <Card>
             <CardHeader>
               <CardTitle>Modelo de Aprovação</CardTitle>
@@ -388,8 +388,8 @@ export default function TimecardApprovalSettings() {
                 Defina como os registros de ponto devem ser aprovados
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
+            <CardContent className=""
+              <div className=""
                 <Label>Tipo de Aprovação</Label>
                 <Select
                   value={currentSettings.approvalType}
@@ -399,10 +399,10 @@ export default function TimecardApprovalSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="automatic">
+                    <SelectItem value="automatic>
                       Automática (após registros completos)
                     </SelectItem>
-                    <SelectItem value="manual">
+                    <SelectItem value="manual>
                       Manual (todos os registros ou tipos específicos)
                     </SelectItem>
                   </SelectContent>
@@ -410,8 +410,8 @@ export default function TimecardApprovalSettings() {
               </div>
 
               {currentSettings.approvalType === 'automatic' && (
-                <div className="space-y-4 border-l-4 border-blue-500 pl-4">
-                  <div className="flex items-center space-x-2">
+                <div className=""
+                  <div className=""
                     <Switch
                       checked={currentSettings.autoApproveComplete}
                       onCheckedChange={(checked) => handleSettingsChange('autoApproveComplete', checked)}
@@ -419,7 +419,7 @@ export default function TimecardApprovalSettings() {
                     <Label>Aprovar automaticamente registros completos</Label>
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className=""
                     <Label>Aprovar automaticamente após (horas)</Label>
                     <Input
                       type="number"
@@ -433,16 +433,16 @@ export default function TimecardApprovalSettings() {
               )}
 
               {currentSettings.approvalType === 'manual' && (
-                <div className="space-y-4 border-l-4 border-orange-500 pl-4">
+                <div className=""
                   <Label>Requer aprovação para:</Label>
-                  <div className="space-y-2">
+                  <div className=""
                     {[
                       { value: 'all', label: '[TRANSLATION_NEEDED]' },
                       { value: 'inconsistencies', label: 'Inconsistências' },
                       { value: 'overtime', label: 'Horas extras' },
                       { value: 'absences', label: 'Faltas/atrasos' }
                     ].map(option => (
-                      <div key={option.value} className="flex items-center space-x-2">
+                      <div key={option.value} className=""
                         <input
                           type="checkbox"
                           id={option.value}
@@ -471,8 +471,8 @@ export default function TimecardApprovalSettings() {
                 Defina quem pode aprovar os registros de ponto
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
+            <CardContent className=""
+              <div className=""
                 <Label>Grupo de Aprovação</Label>
                 <Select
                   value={currentSettings.approvalGroupId || ''}
@@ -492,7 +492,7 @@ export default function TimecardApprovalSettings() {
                 </Select>
               </div>
 
-              <div className="space-y-4">
+              <div className=""
                 <Label>Aprovadores Individuais</Label>
                 <Select
                   onValueChange={(userId) => {
@@ -516,11 +516,11 @@ export default function TimecardApprovalSettings() {
                 </Select>
 
                 {currentSettings.defaultApprovers.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className=""
                     {currentSettings.defaultApprovers.map(userId => {
                       const user = users.find(u => u.id === userId);
                       return user ? (
-                        <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                        <Badge key={userId} variant="secondary" className=""
                           {user.firstName} {user.lastName}
                           <button
                             onClick={() => {
@@ -543,8 +543,8 @@ export default function TimecardApprovalSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="groups" className="space-y-6">
-          <div className="flex justify-between items-center">
+        <TabsContent value="groups" className=""
+          <div className=""
             <h3 className="text-lg font-semibold">Grupos de Aprovação</h3>
             <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
               <DialogTrigger asChild>
@@ -565,8 +565,8 @@ export default function TimecardApprovalSettings() {
                     }
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label htmlFor="groupName">Nome do Grupo</Label>
                     <Input
                       id="groupName"
@@ -575,7 +575,7 @@ export default function TimecardApprovalSettings() {
                       placeholder="Ex: Supervisores de Produção"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className=""
                     <Label htmlFor="groupDescription">Descrição (opcional)</Label>
                     <Textarea
                       id="groupDescription"
@@ -584,7 +584,7 @@ export default function TimecardApprovalSettings() {
                       placeholder="Descrição do grupo..."
                     />
                   </div>
-                  <div className="flex justify-end gap-2">
+                  <div className=""
                     <Button variant="outline" onClick={() => {
                       setShowGroupDialog(false);
                       setSelectedGroup(null);
@@ -609,7 +609,7 @@ export default function TimecardApprovalSettings() {
 
             {/* Members Management Dialog */}
             <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className=""
                 <DialogHeader>
                   <DialogTitle>
                     Gerenciar Membros - {selectedGroup?.name}
@@ -618,22 +618,22 @@ export default function TimecardApprovalSettings() {
                     Selecione os funcionários que farão parte deste grupo de aprovação.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className=""
                   {membersLoading ? (
                     <div className="text-center py-4">Carregando membros...</div>
                   ) : (
-                    <div className="max-h-96 overflow-y-auto space-y-2">
+                    <div className=""
                       {users.map(user => (
-                        <div key={user.id} className="flex items-center space-x-3 p-3 rounded border">
+                        <div key={user.id} className=""
                           <Checkbox
                             checked={selectedUsers.includes(user.id)}
                             onCheckedChange={(checked) => handleUserToggle(user.id, !!checked)}
                           />
-                          <div className="flex-1">
-                            <div className="font-medium">
+                          <div className=""
+                            <div className=""
                               {user.firstName} {user.lastName}
                             </div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className=""
                               {user.email} • {user.role}
                             </div>
                           </div>
@@ -642,11 +642,11 @@ export default function TimecardApprovalSettings() {
                     </div>
                   )}
                   
-                  <div className="border-t pt-4">
-                    <div className="text-sm text-muted-foreground mb-2">
+                  <div className=""
+                    <div className=""
                       {selectedUsers.length} de {users.length} funcionários selecionados
                     </div>
-                    <div className="flex justify-end gap-2">
+                    <div className=""
                       <Button 
                         variant="outline" 
                         onClick={() => {
@@ -670,13 +670,13 @@ export default function TimecardApprovalSettings() {
             </Dialog>
           </div>
 
-          <div className="grid gap-4">
+          <div className=""
             {groups.length === 0 ? (
               <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
+                <CardContent className=""
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Nenhum grupo criado</h3>
-                  <p className="text-muted-foreground text-center mb-4">
+                  <p className=""
                     Crie grupos para organizar seus aprovadores de timecard.
                   </p>
                   <Button onClick={() => setShowGroupDialog(true)}>
@@ -688,9 +688,9 @@ export default function TimecardApprovalSettings() {
             ) : (
               groups.map(group => (
                 <Card key={group.id}>
-                  <CardContent className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
                         <Users className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -698,15 +698,15 @@ export default function TimecardApprovalSettings() {
                         {group.description && (
                           <p className="text-sm text-muted-foreground">{group.description}</p>
                         )}
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className=""
                           <Badge variant="outline">{groupMemberCounts[group.id] || 0} membros</Badge>
-                          <Badge variant={group.isActive ? "default" : "secondary">
+                          <Badge variant={group.isActive ? "default" : "secondary>
                             {group.isActive ? "Ativo" : "Inativo"
                           </Badge>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className=""
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -744,7 +744,7 @@ export default function TimecardApprovalSettings() {
           </div>
         </TabsContent>
 
-        <TabsContent value="tickets" className="space-y-6">
+        <TabsContent value="tickets" className=""
           <Card>
             <CardHeader>
               <CardTitle>Integração com Sistema de Tickets</CardTitle>
@@ -752,8 +752,8 @@ export default function TimecardApprovalSettings() {
                 Configure a criação automática de tickets para aprovações
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center space-x-2">
+            <CardContent className=""
+              <div className=""
                 <Switch
                   checked={currentSettings.createAutoTickets}
                   onCheckedChange={(checked) => handleSettingsChange('createAutoTickets', checked)}
@@ -762,8 +762,8 @@ export default function TimecardApprovalSettings() {
               </div>
 
               {currentSettings.createAutoTickets && (
-                <div className="space-y-4 border-l-4 border-green-500 pl-4">
-                  <div className="space-y-2">
+                <div className=""
+                  <div className=""
                     <Label>Recorrência dos tickets</Label>
                     <Select
                       value={currentSettings.ticketRecurrence}
@@ -781,7 +781,7 @@ export default function TimecardApprovalSettings() {
                   </div>
 
                   {currentSettings.ticketRecurrence === 'weekly' && (
-                    <div className="space-y-2">
+                    <div>
                       <Label>Dia da semana</Label>
                       <Select
                         value={currentSettings.ticketDay.toString()}
@@ -803,7 +803,7 @@ export default function TimecardApprovalSettings() {
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div>
                     <Label>Horário de criação</Label>
                     <Input
                       type="time"
@@ -820,3 +820,5 @@ export default function TimecardApprovalSettings() {
     </div>
   );
 }
+
+export default TimecardApprovalSettings;

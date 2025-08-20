@@ -223,10 +223,10 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4>
       {/* Search Controls */}
-      <div className="flex gap-2">
-        <div className="flex-1">
+      <div className="flex gap-2>
+        <div className="flex-1>
           <Input
             placeholder="Digite um endereço completo..."
             value={searchQuery}
@@ -286,9 +286,9 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
           
           <Marker position={[selectedLat, selectedLng]}>
             <Popup>
-              <div className="text-center">
+              <div className="text-center>
                 <p className="font-medium">Localização Selecionada</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600>
                   Lat: {selectedLat.toFixed(6)}<br />
                   Lng: {selectedLng.toFixed(6)}
                 </p>
@@ -301,7 +301,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         </MapContainer>
         
         {/* Map Controls Overlay */}
-        <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+        <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2>
           <Button
             type="button"
             variant="outline"
@@ -324,26 +324,26 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       </div>
 
       {/* Location Info */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4>
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2>
           Localização Selecionada
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-gray-600 dark:text-gray-400>
           Latitude: {selectedLat.toFixed(6)} | Longitude: {selectedLng.toFixed(6)}
         </p>
         {searchResult && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1>
             <span className="font-medium">Encontrado:</span> {String(searchResult)}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center gap-2 mt-2>
           <span className="text-xs text-gray-500">Zoom: {zoomLevel}</span>
           <span className="text-xs text-gray-500">|</span>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500>
             Centro: {mapCenter[0].toFixed(2)}, {mapCenter[1].toFixed(2)}
           </span>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 mt-1>
           💡 Clique no mapa para selecionar uma localização ou use a busca acima
         </p>
       </div>

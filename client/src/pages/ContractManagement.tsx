@@ -168,15 +168,15 @@ export default function ContractManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className=""
+      <div className=""
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className=""
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className=""
               Gestão de Contratos
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className=""
               Gerencie todo o ciclo de vida dos contratos empresariais
             </p>
           </div>
@@ -206,62 +206,62 @@ export default function ContractManagement() {
 
         {/* Métricas do Dashboard */}
         {dashboardMetrics?.data && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div className=""
+            <Card className=""
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Contratos Ativos</CardTitle>
                 <FileText className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600" data-testid="metric-active-contracts">
+                <div className="text-2xl font-bold text-green-600" data-testid="metric-active-contracts>
                   {(dashboardMetrics as any)?.data?.totalActive || 0}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className=""
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
                 <FileText className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-600" data-testid="metric-draft-contracts">
+                <div className="text-2xl font-bold text-gray-600" data-testid="metric-draft-contracts>
                   {(dashboardMetrics as any)?.data?.totalDraft || 0}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className=""
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Vencendo em 30 dias</CardTitle>
                 <Calendar className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600" data-testid="metric-expiring-contracts">
+                <div className="text-2xl font-bold text-orange-600" data-testid="metric-expiring-contracts>
                   {(dashboardMetrics as any)?.data?.totalExpiringSoon || 0}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className=""
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
                 <DollarSign className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600" data-testid="metric-monthly-revenue">
+                <div className="text-2xl font-bold text-blue-600" data-testid="metric-monthly-revenue>
                   {formatCurrency((dashboardMetrics as any)?.data?.monthlyRevenue || 0)}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className=""
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
                 <DollarSign className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-600" data-testid="metric-total-revenue">
+                <div className="text-2xl font-bold text-purple-600" data-testid="metric-total-revenue>
                   {formatCurrency((dashboardMetrics as any)?.data?.totalRevenue || 0)}
                 </div>
               </CardContent>
@@ -270,16 +270,16 @@ export default function ContractManagement() {
         )}
 
         {/* Filtros */}
-        <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+        <Card className=""
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className=""
               <Filter className="h-5 w-5" />
               Filtros
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
+            <div className=""
+              <div className=""
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder='[TRANSLATION_NEEDED]'
@@ -294,7 +294,7 @@ export default function ContractManagement() {
                 value={filters.status || 'all'} 
                 onValueChange={(value) => setFilters({ ...filters, status: value === 'all' ? undefined : value })}
               >
-                <SelectTrigger data-testid="select-status-filter">
+                <SelectTrigger data-testid="select-status-filter>
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -311,7 +311,7 @@ export default function ContractManagement() {
                 value={filters.contractType || 'all'} 
                 onValueChange={(value) => setFilters({ ...filters, contractType: value === 'all' ? undefined : value })}
               >
-                <SelectTrigger data-testid="select-type-filter">
+                <SelectTrigger data-testid="select-type-filter>
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -328,7 +328,7 @@ export default function ContractManagement() {
                 value={filters.priority || 'all'} 
                 onValueChange={(value) => setFilters({ ...filters, priority: value === 'all' ? undefined : value })}
               >
-                <SelectTrigger data-testid="select-priority-filter">
+                <SelectTrigger data-testid="select-priority-filter>
                   <SelectValue placeholder="Prioridade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -345,32 +345,32 @@ export default function ContractManagement() {
         </Card>
 
         {/* Lista de Contratos */}
-        <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+        <Card className=""
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className=""
               <span>Contratos ({total})</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex justify-center items-center py-8">
+              <div className=""
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               </div>
             ) : contracts.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 Nenhum contrato encontrado
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className=""
                 {contracts.map((contract: Contract) => (
                   <div 
                     key={contract.id} 
                     className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     data-testid={"
                   >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           <h3 className="font-semibold text-lg" data-testid={"
                             {contract.title}
                           </h3>
@@ -379,7 +379,7 @@ export default function ContractManagement() {
                           </span>
                         </div>
                         
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <div className=""
                           {getStatusBadge(contract.status)}
                           {getTypeBadge(contract.contractType)}
                           {getPriorityBadge(contract.priority)}
@@ -389,7 +389,7 @@ export default function ContractManagement() {
                           {contract.description || 'Sem descrição'}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                        <div className=""
                           <span data-testid={"
                             {new Date(contract.startDate).toLocaleDateString('pt-BR')} - {new Date(contract.endDate).toLocaleDateString('pt-BR')}
                           </span>
@@ -404,7 +404,7 @@ export default function ContractManagement() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         <ContractViewDialog contractId={contract.id}>
                           <Button 
                             variant="outline" 

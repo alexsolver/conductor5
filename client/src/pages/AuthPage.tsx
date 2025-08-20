@@ -35,8 +35,8 @@ export default function AuthPage() {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
+      <form onSubmit={handleSubmit} className=""
+        <div className=""
           <Label htmlFor="login-email">Email</Label>
           <Input
             id="login-email"
@@ -48,7 +48,7 @@ export default function AuthPage() {
             disabled={loginMutation.isPending}
           />
         </div>
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="login-password">Password</Label>
           <Input
             id="login-password"
@@ -100,9 +100,9 @@ export default function AuthPage() {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+      <form onSubmit={handleSubmit} className=""
+        <div className=""
+          <div className=""
             <Label htmlFor="register-firstName">First Name</Label>
             <Input
               id="register-firstName"
@@ -113,7 +113,7 @@ export default function AuthPage() {
               disabled={registerMutation.isPending}
             />
           </div>
-          <div className="space-y-2">
+          <div className=""
             <Label htmlFor="register-lastName">Last Name</Label>
             <Input
               id="register-lastName"
@@ -125,7 +125,7 @@ export default function AuthPage() {
             />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="register-email">Email</Label>
           <Input
             id="register-email"
@@ -137,7 +137,7 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           />
         </div>
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="register-company">Nome da Empresa</Label>
           <Input
             id="register-company"
@@ -149,7 +149,7 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           />
         </div>
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="register-workspace">Nome do Workspace</Label>
           <Input
             id="register-workspace"
@@ -160,11 +160,11 @@ export default function AuthPage() {
             required
             disabled={registerMutation.isPending}
           />
-          <p className="text-xs text-gray-500">
+          <p className=""
             Será usado como URL do seu workspace (ex: acme-support.conductor.com)
           </p>
         </div>
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="register-password">Password</Label>
           <Input
             id="register-password"
@@ -197,8 +197,8 @@ export default function AuthPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        <div className="flex items-center space-x-2">
+      <div className=""
+        <div className=""
           <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
           <span className="text-lg text-slate-600 dark:text-slate-300">Loading...</span>
         </div>
@@ -207,21 +207,21 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      <div className="w-full max-w-4xl grid lg:grid-cols-2 gap-8 items-center">
+    <div className=""
+      <div className=""
         {/* Left side - Authentication Form */}
-        <div className="space-y-6">
-          <div className="text-center lg:text-left">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+        <div className=""
+          <div className=""
+            <h1 className=""
               Welcome to Conductor
             </h1>
-            <p className="text-slate-600 dark:text-slate-300 mt-2">
+            <p className=""
               Your comprehensive customer support platform
             </p>
           </div>
 
-          <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-            <CardHeader className="text-center">
+          <Card className=""
+            <CardHeader className=""
               <CardTitle className="text-2xl">Get Started</CardTitle>
               <CardDescription>
                 Sign in to your account or create a new one
@@ -229,16 +229,16 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsList className=""
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="login" className="space-y-4">
+                <TabsContent value="login" className=""
                   <LoginForm />
                 </TabsContent>
 
-                <TabsContent value="register" className="space-y-4">
+                <TabsContent value="register" className=""
                   <RegisterForm />
                 </TabsContent>
               </Tabs>
@@ -247,38 +247,38 @@ export default function AuthPage() {
         </div>
 
         {/* Right side - Hero Section */}
-        <div className="hidden lg:block space-y-6">
-          <div className="text-center">
-            <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+        <div className=""
+          <div className=""
+            <div className=""
               <img 
                 src="/conductor-logo.svg" 
                 alt="Conductor Logo" 
                 className="w-28 h-28 object-contain"
               />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+            <h2 className=""
               Streamline Your Support Operations
             </h2>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mt-0.5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-purple-600" fill="currentColor">
+          <div className=""
+            <div className=""
+              <div className=""
+                <svg viewBox="0 0 24 24" className="w-5 h-5 text-purple-600" fill="currentColor>
                   <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </div>
               <div>
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200">Ticket Management</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                <p className=""
                   Create, assign, and track support tickets with ease
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mt-0.5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-600" fill="currentColor">
+            <div className=""
+              <div className=""
+                <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-600" fill="currentColor>
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
                   <path d="m22 21-3-3m0 0-3-3m3 3 3-3m-3 3-3 3"/>
@@ -286,7 +286,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200">Customer Database</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                <p className=""
                   Maintain detailed customer profiles and history
                 </p>
               </div>
@@ -294,15 +294,15 @@ export default function AuthPage() {
 
 
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mt-0.5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-orange-600" fill="currentColor">
+            <div className=""
+              <div className=""
+                <svg viewBox="0 0 24 24" className="w-5 h-5 text-orange-600" fill="currentColor>
                   <path d="M16 4v12l-4-2-4 2V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2z"/>
                 </svg>
               </div>
               <div>
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200">Analytics Dashboard</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                <p className=""
                   Monitor performance with detailed insights
                 </p>
               </div>

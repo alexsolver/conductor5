@@ -27,7 +27,7 @@ export function TicketDescriptionEditor({
   }
 
   return (
-    <div className="ticket-description-editor">
+    <div className="ticket-description-editor>
       <ModernRichTextEditor
         value={content}
         onChange={onChange}

@@ -279,19 +279,19 @@ export default function ActivityPlanner() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="button-create-asset" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+          <Button data-testid="button-create-asset" className=""
             <Plus className="w-4 h-4 mr-2" />
             Novo Ativo
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Criar Novo Ativo</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createAssetMutation.mutate(data))} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit((data) => createAssetMutation.mutate(data))} className=""
+              <div className=""
                 <FormField
                   control={form.control}
                   name="tag"
@@ -328,7 +328,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Localização</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-asset-location">
+                          <SelectTrigger data-testid="select-asset-location>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -351,7 +351,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Categoria</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-asset-category">
+                          <SelectTrigger data-testid="select-asset-category>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -374,7 +374,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Criticidade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-asset-criticality">
+                          <SelectTrigger data-testid="select-asset-criticality>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -489,7 +489,7 @@ export default function ActivityPlanner() {
                 )}
               />
 
-              <div className="flex justify-end space-x-2">
+              <div className=""
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
@@ -550,19 +550,19 @@ export default function ActivityPlanner() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="button-create-plan" className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
+          <Button data-testid="button-create-plan" className=""
             <Plus className="w-4 h-4 mr-2" />
             Novo Plano
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Criar Plano de Manutenção</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createPlanMutation.mutate(data))} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit((data) => createPlanMutation.mutate(data))} className=""
+              <div className=""
                 <FormField
                   control={form.control}
                   name="name"
@@ -585,7 +585,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Ativo</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-plan-asset">
+                          <SelectTrigger data-testid="select-plan-asset>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -608,7 +608,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Tipo de Gatilho</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-plan-trigger">
+                          <SelectTrigger data-testid="select-plan-trigger>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -645,7 +645,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Prioridade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-plan-priority">
+                          <SelectTrigger data-testid="select-plan-priority>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -713,10 +713,10 @@ export default function ActivityPlanner() {
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
+                  <FormItem className=""
+                    <div className=""
                       <FormLabel className="text-base">Plano Ativo</FormLabel>
-                      <div className="text-sm text-muted-foreground">
+                      <div className=""
                         Ativar agendamento automático de manutenções
                       </div>
                     </div>
@@ -731,7 +731,7 @@ export default function ActivityPlanner() {
                 )}
               />
 
-              <div className="flex justify-end space-x-2">
+              <div className=""
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
@@ -793,19 +793,19 @@ export default function ActivityPlanner() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="button-create-workorder" className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
+          <Button data-testid="button-create-workorder" className=""
             <Plus className="w-4 h-4 mr-2" />
             Nova OS
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Criar Ordem de Serviço</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createWorkOrderMutation.mutate(data))} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit((data) => createWorkOrderMutation.mutate(data))} className=""
+              <div className=""
                 <FormField
                   control={form.control}
                   name="title"
@@ -828,7 +828,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Ativo</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-wo-asset">
+                          <SelectTrigger data-testid="select-wo-asset>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -851,7 +851,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Tipo de Manutenção</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-wo-type">
+                          <SelectTrigger data-testid="select-wo-type>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -874,7 +874,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Prioridade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-wo-priority">
+                          <SelectTrigger data-testid="select-wo-priority>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -932,7 +932,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Técnico Responsável</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-wo-technician">
+                          <SelectTrigger data-testid="select-wo-technician>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -955,7 +955,7 @@ export default function ActivityPlanner() {
                       <FormLabel>Plano de Manutenção (Opcional)</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-wo-plan">
+                          <SelectTrigger data-testid="select-wo-plan>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -1000,7 +1000,7 @@ export default function ActivityPlanner() {
                 )}
               />
 
-              <div className="flex justify-end space-x-2">
+              <div className=""
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
@@ -1025,10 +1025,10 @@ export default function ActivityPlanner() {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className=""
+        <div className=""
           <h3 className="text-lg font-semibold">Alocação de Técnicos</h3>
-          <div className="flex space-x-2">
+          <div className=""
             <Input 
               type="date" 
               value={selectedDate}
@@ -1036,17 +1036,17 @@ export default function ActivityPlanner() {
               data-testid="input-allocation-date"
               className="w-40"
             />
-            <Button variant="outline" size="sm" data-testid="button-refresh-allocation">
+            <Button variant="outline" size="sm" data-testid="button-refresh-allocation>
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className=""
           {(technicians as any)?.data?.map((tech: Technician) => (
-            <Card key={tech.id} className="hover:shadow-md transition-shadow" data-testid={"
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+            <Card key={tech.id} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
+              <CardHeader className=""
+                <div className=""
                   <div>
                     <CardTitle className="text-sm">{tech.name}</CardTitle>
                     <p className="text-xs text-muted-foreground">{tech.email}</p>
@@ -1057,36 +1057,36 @@ export default function ActivityPlanner() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className=""
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">Habilidades:</p>
-                  <div className="flex flex-wrap gap-1">
+                  <div className=""
                     {tech.skills?.map((skill, idx) => (
                       <Badge key={idx} variant="outline" className="text-xs">{skill}</Badge>
                     ))}
                   </div>
                 </div>
                 
-                <div className="space-y-2">
+                <div className=""
                   <p className="text-xs font-medium text-muted-foreground">OS do Dia:</p>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
+                  <div className=""
+                    <div className=""
                       <span>OS-001 (09:00-11:00)</span>
                       <Badge variant="outline" className="text-xs">Em Andamento</Badge>
                     </div>
-                    <div className="flex justify-between text-xs">
+                    <div className=""
                       <span>OS-002 (14:00-16:00)</span>
                       <Badge variant="secondary" className="text-xs">Agendada</Badge>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" className="flex-1" data-testid={"
+                <div className=""
+                  <Button size="sm" variant="outline" className="flex-1" data-testid={"asset-card-
                     <Eye className="w-3 h-3 mr-1" />
                     Ver
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1" data-testid={"
+                  <Button size="sm" variant="outline" className="flex-1" data-testid={"asset-card-
                     <Calendar className="w-3 h-3 mr-1" />
                     Alocar
                   </Button>
@@ -1105,12 +1105,12 @@ export default function ActivityPlanner() {
     const [selectedWeek, setSelectedWeek] = useState(new Date().toISOString().split('T')[0]);
 
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className=""
+        <div className=""
           <h3 className="text-lg font-semibold">Cronograma de Manutenções</h3>
-          <div className="flex space-x-2">
+          <div className=""
             <Select value={viewMode} onValueChange={(value: 'calendar' | 'list') => setViewMode(value)}>
-              <SelectTrigger className="w-32" data-testid="select-schedule-view">
+              <SelectTrigger className="w-32" data-testid="select-schedule-view>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1125,7 +1125,7 @@ export default function ActivityPlanner() {
               data-testid="input-schedule-week"
               className="w-40"
             />
-            <Button data-testid="button-schedule-maintenance" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+            <Button data-testid="button-schedule-maintenance" className=""
               <CalendarDays className="w-4 h-4 mr-2" />
               Agendar
             </Button>
@@ -1133,8 +1133,8 @@ export default function ActivityPlanner() {
         </div>
 
         {viewMode === 'calendar' ? (
-          <div className="bg-white dark:bg-gray-900 rounded-lg border p-4">
-            <div className="grid grid-cols-8 gap-2 mb-4">
+          <div className=""
+            <div className=""
               <div className="font-medium text-center text-sm">Horário</div>
               {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => (
                 <div key={day} className="font-medium text-center text-sm">{day}</div>
@@ -1142,22 +1142,22 @@ export default function ActivityPlanner() {
             </div>
             
             {Array.from({ length: 12 }, (_, hour) => (
-              <div key={hour} className="grid grid-cols-8 gap-2 h-12 border-b border-gray-100 dark:border-gray-800">
+              <div key={hour} className=""
                 <div className="text-xs text-center py-2">{(hour + 8).toString().padStart(2, '0')}:00</div>
                 {Array.from({ length: 7 }, (_, day) => (
                   <div 
                     key={day} 
                     className="border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                    data-testid={"
+                    data-testid={"asset-card-
                   >
                     {/* Sample maintenance blocks */}
                     {(day === 1 && hour === 2) && (
-                      <div className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs p-1 rounded m-1">
+                      <div className=""
                         OS-001
                       </div>
                     )}
                     {(day === 3 && hour === 4) && (
-                      <div className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs p-1 rounded m-1">
+                      <div className=""
                         OS-002
                       </div>
                     )}
@@ -1167,28 +1167,28 @@ export default function ActivityPlanner() {
             ))}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className=""
             {[1, 2, 3].map(i => (
-              <Card key={i} className="hover:shadow-md transition-shadow" data-testid={"
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
+              <Card key={i} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
+                <CardContent className=""
+                  <div className=""
+                    <div className=""
+                      <div className=""
                         <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">OS-00{i}</Badge>
                         <span className="font-medium">Manutenção Preventiva - Equipamento {i}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className=""
                         📍 Localização: Setor {i} | 👨‍🔧 Técnico: João Silva
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className=""
                         ⏰ {new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString()} às 09:00 - 11:00
                       </p>
                     </div>
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" data-testid={"
+                    <div className=""
+                      <Button size="sm" variant="outline" data-testid={"asset-card-
                         <Edit className="w-3 h-3" />
                       </Button>
-                      <Button size="sm" variant="outline" data-testid={"
+                      <Button size="sm" variant="outline" data-testid={"asset-card-
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
@@ -1244,13 +1244,13 @@ export default function ActivityPlanner() {
     };
 
     return (
-      <div className="flex items-center space-x-2">
+      <div className=""
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               size="sm" 
               variant="outline" 
-              data-testid={"
+              data-testid={"asset-card-
               disabled={updateWorkOrderMutation.isPending}
             >
               <div className="w-2 h-2 rounded-full " mr-2"></div>
@@ -1262,7 +1262,7 @@ export default function ActivityPlanner() {
               <MoreHorizontal className="w-3 h-3 ml-1" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end>
             {workOrder.status === 'draft' && (
               <DropdownMenuItem onClick={() => handleStatusChange('scheduled')}>
                 <Calendar className="w-3 h-3 mr-2" />
@@ -1300,56 +1300,56 @@ export default function ActivityPlanner() {
   }
 
   const renderDashboard = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <div className=""
+      <Card className=""
+        <CardHeader className=""
           <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
           <Settings className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-blue-600">
+          <div className=""
             {(assetStats as any)?.data?.total || 0}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className=""
             {(assetStats as any)?.data?.needingMaintenance || 0} precisam manutenção
           </p>
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card className=""
+        <CardHeader className=""
           <CardTitle className="text-sm font-medium">Planos Ativos</CardTitle>
           <Calendar className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-green-600">0</div>
-          <p className="text-xs text-muted-foreground">
+          <p className=""
             0 aguardando geração
           </p>
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card className=""
+        <CardHeader className=""
           <CardTitle className="text-sm font-medium">OS em Andamento</CardTitle>
           <Wrench className="h-4 w-4 text-orange-600" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-orange-600">0</div>
-          <p className="text-xs text-muted-foreground">
+          <p className=""
             0 atrasadas
           </p>
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card className=""
+        <CardHeader className=""
           <CardTitle className="text-sm font-medium">Eficiência</CardTitle>
           <CheckCircle className="h-4 w-4 text-purple-600" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-purple-600">95%</div>
-          <p className="text-xs text-muted-foreground">
+          <p className=""
             SLA cumprido
           </p>
         </CardContent>
@@ -1358,10 +1358,10 @@ export default function ActivityPlanner() {
   );
 
   const renderAssets = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
+    <div className=""
+      <div className=""
+        <div className=""
+          <div className=""
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder='[TRANSLATION_NEEDED]'
@@ -1371,33 +1371,33 @@ export default function ActivityPlanner() {
               data-testid="input-search-assets"
             />
           </div>
-          <Button variant="outline" size="sm" data-testid="button-filter-assets">
+          <Button variant="outline" size="sm" data-testid="button-filter-assets>
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" data-testid="button-export-assets">
+        <div className=""
+          <Button variant="outline" size="sm" data-testid="button-export-assets>
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
-          <Button size="sm" data-testid="button-create-asset">
+          <Button size="sm" data-testid="button-create-asset>
             <Plus className="h-4 w-4 mr-2" />
             Novo Ativo
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className=""
         {loadingAssets ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className=""
               <CardHeader>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                 <div className="h-3 bg-gray-200 rounded w-1/2"></div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className=""
                   <div className="h-3 bg-gray-200 rounded"></div>
                   <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                 </div>
@@ -1406,9 +1406,9 @@ export default function ActivityPlanner() {
           ))
         ) : assets?.data && Array.isArray(assets.data) && assets.data.length > 0 ? (
           assets.data.map((asset: Asset) => (
-            <Card key={asset.id} className="hover:shadow-md transition-shadow" data-testid={"
+            <Card key={asset.id} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className=""
                   <div>
                     <CardTitle className="text-lg">{asset.tag}</CardTitle>
                     <CardDescription>{asset.name}</CardDescription>
@@ -1419,13 +1419,13 @@ export default function ActivityPlanner() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
+                <div className=""
+                  <div className=""
                     <MapPin className="h-4 w-4 mr-2" />
                     Status: {asset.status}
                   </div>
                   {asset.nextMaintenanceDate && (
-                    <div className="flex items-center text-sm text-muted-foreground">
+                    <div className=""
                       <Clock className="h-4 w-4 mr-2" />
                       Próxima manutenção: {new Date(asset.nextMaintenanceDate).toLocaleDateString()}
                     </div>
@@ -1435,15 +1435,15 @@ export default function ActivityPlanner() {
             </Card>
           ))
         ) : (
-          <div className="col-span-full text-center py-8">
+          <div className=""
             <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className=""
               Nenhum ativo encontrado
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
+            <p className=""
               Comece criando seu primeiro ativo para gerenciar manutenções.
             </p>
-            <Button data-testid="button-create-first-asset">
+            <Button data-testid="button-create-first-asset>
               <Plus className="h-4 w-4 mr-2" />
               Criar Primeiro Ativo
             </Button>
@@ -1454,20 +1454,20 @@ export default function ActivityPlanner() {
   );
 
   const renderMaintenancePlans = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <h2 className="text-2xl font-bold">Planos de Manutenção</h2>
         <CreateMaintenancePlanDialog onSuccess={() => {}} />
       </div>
       
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center py-8">
+        <CardContent className=""
+          <div className=""
             <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className=""
               Nenhum plano de manutenção
             </h3>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className=""
               Configure planos preventivos para automatizar a manutenção dos seus ativos.
             </p>
           </div>
@@ -1477,20 +1477,20 @@ export default function ActivityPlanner() {
   );
 
   const renderWorkOrders = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <h2 className="text-2xl font-bold">Ordens de Serviço</h2>
         <CreateWorkOrderDialog onSuccess={() => {}} />
       </div>
 
-      <div className="grid gap-6">
+      <div className=""
         {workOrders?.data && Array.isArray(workOrders.data) && workOrders.data.length > 0 ? (
           workOrders.data.map((workOrder: WorkOrder) => (
-            <Card key={workOrder.id} className="hover:shadow-md transition-shadow" data-testid={"
+            <Card key={workOrder.id} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3">
+                <div className=""
+                  <div className=""
+                    <div className=""
                       <Badge 
                         variant={workOrder.priority === 'high' || workOrder.priority === 'critical' ? 'destructive' : 'default'}
                         className="text-xs"
@@ -1513,7 +1513,7 @@ export default function ActivityPlanner() {
                       </Badge>
                     </div>
                     <CardTitle className="text-lg">{workOrder.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">
+                    <CardDescription className=""
                       {workOrder.description}
                     </CardDescription>
                   </div>
@@ -1521,23 +1521,23 @@ export default function ActivityPlanner() {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="flex items-center space-x-2">
+              <CardContent className=""
+                <div className=""
+                  <div className=""
                     <Settings className="h-4 w-4 text-gray-500" />
                     <span className="text-muted-foreground">Ativo:</span>
                     <span className="font-medium">Ativo-{workOrder.assetId}</span>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className=""
                     <User className="h-4 w-4 text-gray-500" />
                     <span className="text-muted-foreground">Técnico:</span>
-                    <span className="font-medium">
+                    <span className=""
                       {workOrder.assignedTechnicianId ? 'Atribuído' : 'Não atribuído'}
                     </span>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className=""
                     <Clock className="h-4 w-4 text-gray-500" />
                     <span className="text-muted-foreground">Duração:</span>
                     <span className="font-medium">{workOrder.estimatedDuration}h</span>
@@ -1545,21 +1545,21 @@ export default function ActivityPlanner() {
                 </div>
 
                 {workOrder.scheduledStart && (
-                  <div className="flex items-center space-x-2 text-sm">
+                  <div className=""
                     <Calendar className="h-4 w-4 text-gray-500" />
                     <span className="text-muted-foreground">Agendado:</span>
-                    <span className="font-medium">
+                    <span className=""
                       {new Date(workOrder.scheduledStart).toLocaleString()}
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-end space-x-2">
-                  <Button size="sm" variant="outline" data-testid={"
+                <div className=""
+                  <Button size="sm" variant="outline" data-testid={"asset-card-
                     <Eye className="w-3 h-3 mr-1" />
                     Ver Detalhes
                   </Button>
-                  <Button size="sm" variant="outline" data-testid={"
+                  <Button size="sm" variant="outline" data-testid={"asset-card-
                     <Edit className="w-3 h-3 mr-1" />
                     Editar
                   </Button>
@@ -1569,13 +1569,13 @@ export default function ActivityPlanner() {
           ))
         ) : (
           <Card>
-            <CardContent className="p-6">
-              <div className="text-center py-8">
+            <CardContent className=""
+              <div className=""
                 <Wrench className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className=""
                   Nenhuma ordem de serviço
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className=""
                   Crie ordens de serviço para gerenciar trabalhos de manutenção.
                 </p>
               </div>
@@ -1587,15 +1587,15 @@ export default function ActivityPlanner() {
   );
 
   const renderAnalytics = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <h2 className="text-2xl font-bold">Analytics & Relatórios</h2>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" data-testid="button-export-analytics">
+        <div className=""
+          <Button variant="outline" size="sm" data-testid="button-export-analytics>
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
-          <Button variant="outline" size="sm" data-testid="button-refresh-analytics">
+          <Button variant="outline" size="sm" data-testid="button-refresh-analytics>
             <RefreshCw className="h-4 w-4 mr-2" />
             Atualizar
           </Button>
@@ -1603,54 +1603,54 @@ export default function ActivityPlanner() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className=""
+        <Card className=""
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">MTBF Médio</CardTitle>
             <BarChart3 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">127h</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               +12% vs mês anterior
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className=""
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">MTTR Médio</CardTitle>
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">2.4h</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               -18% vs mês anterior
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className=""
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Disponibilidade</CardTitle>
             <CheckCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">98.7%</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               +2.1% vs mês anterior
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className=""
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Custos Total</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">R$ 24.7k</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               -8% vs mês anterior
             </p>
           </CardContent>
@@ -1658,15 +1658,15 @@ export default function ActivityPlanner() {
       </div>
 
       {/* Charts and Reports */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className=""
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Tendência de Manutenções</CardTitle>
             <CardDescription>Preventivas vs Corretivas (últimos 6 meses)</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded">
-              <div className="text-center">
+            <div className=""
+              <div className=""
                 <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-500">Gráfico de tendências</p>
                 <p className="text-xs text-gray-400">Dados simulados para demonstração</p>
@@ -1681,9 +1681,9 @@ export default function ActivityPlanner() {
             <CardDescription>Ativos por nível de criticidade</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+            <div className=""
+              <div className=""
+                <div className=""
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                   <span className="text-sm">Crítica</span>
                 </div>
@@ -1691,8 +1691,8 @@ export default function ActivityPlanner() {
               </div>
               <Progress value={24} className="h-2" />
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+              <div className=""
+                <div className=""
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                   <span className="text-sm">Alta</span>
                 </div>
@@ -1700,8 +1700,8 @@ export default function ActivityPlanner() {
               </div>
               <Progress value={38} className="h-2" />
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+              <div className=""
+                <div className=""
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                   <span className="text-sm">Média</span>
                 </div>
@@ -1709,8 +1709,8 @@ export default function ActivityPlanner() {
               </div>
               <Progress value={26} className="h-2" />
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+              <div className=""
+                <div className=""
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   <span className="text-sm">Baixa</span>
                 </div>
@@ -1744,7 +1744,7 @@ export default function ActivityPlanner() {
               <TableRow>
                 <TableCell className="font-medium">EQ-001 - Compressor Principal</TableCell>
                 <TableCell>
-                  <div className="flex items-center space-x-2">
+                  <div className=""
                     <span>99.2%</span>
                     <Badge variant="outline" className="bg-green-50 text-green-700">Excelente</Badge>
                   </div>
@@ -1759,7 +1759,7 @@ export default function ActivityPlanner() {
               <TableRow>
                 <TableCell className="font-medium">EQ-002 - Bomba Hidráulica</TableCell>
                 <TableCell>
-                  <div className="flex items-center space-x-2">
+                  <div className=""
                     <span>97.8%</span>
                     <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Bom</Badge>
                   </div>
@@ -1774,7 +1774,7 @@ export default function ActivityPlanner() {
               <TableRow>
                 <TableCell className="font-medium">EQ-003 - Motor Elétrico</TableCell>
                 <TableCell>
-                  <div className="flex items-center space-x-2">
+                  <div className=""
                     <span>94.5%</span>
                     <Badge variant="outline" className="bg-orange-50 text-orange-700">Regular</Badge>
                   </div>
@@ -1794,66 +1794,66 @@ export default function ActivityPlanner() {
   );
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+    <div className=""
+      <div className=""
+        <h1 className=""
           Planejador de Atividades
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className=""
           Gerencie ativos, planos de manutenção e ordens de serviço de forma integrada
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:grid-cols-7">
-          <TabsTrigger value="dashboard" data-testid="tab-dashboard">
+        <TabsList className=""
+          <TabsTrigger value="dashboard" data-testid="tab-dashboard>
             Dashboard
           </TabsTrigger>
-          <TabsTrigger value="assets" data-testid="tab-assets">
+          <TabsTrigger value="assets" data-testid="tab-assets>
             Ativos
           </TabsTrigger>
-          <TabsTrigger value="plans" data-testid="tab-plans">
+          <TabsTrigger value="plans" data-testid="tab-plans>
             Planos
           </TabsTrigger>
-          <TabsTrigger value="workorders" data-testid="tab-workorders">
+          <TabsTrigger value="workorders" data-testid="tab-workorders>
             OS
           </TabsTrigger>
-          <TabsTrigger value="technicians" data-testid="tab-technicians">
+          <TabsTrigger value="technicians" data-testid="tab-technicians>
             Técnicos
           </TabsTrigger>
-          <TabsTrigger value="scheduler" data-testid="tab-scheduler">
+          <TabsTrigger value="scheduler" data-testid="tab-scheduler>
             Agenda
           </TabsTrigger>
-          <TabsTrigger value="analytics" data-testid="tab-analytics">
+          <TabsTrigger value="analytics" data-testid="tab-analytics>
             Analytics
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="mt-6">
+        <TabsContent value="dashboard" className=""
           {renderDashboard()}
         </TabsContent>
 
-        <TabsContent value="assets" className="mt-6">
+        <TabsContent value="assets" className=""
           {renderAssets()}
         </TabsContent>
 
-        <TabsContent value="plans" className="mt-6">
+        <TabsContent value="plans" className=""
           {renderMaintenancePlans()}
         </TabsContent>
 
-        <TabsContent value="workorders" className="mt-6">
+        <TabsContent value="workorders" className=""
           {renderWorkOrders()}
         </TabsContent>
 
-        <TabsContent value="technicians" className="mt-6">
+        <TabsContent value="technicians" className=""
           <TechnicianAllocationPanel />
         </TabsContent>
 
-        <TabsContent value="scheduler" className="mt-6">
+        <TabsContent value="scheduler" className=""
           <MaintenanceScheduler />
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-6">
+        <TabsContent value="analytics" className=""
           {renderAnalytics()}
         </TabsContent>
       </Tabs>

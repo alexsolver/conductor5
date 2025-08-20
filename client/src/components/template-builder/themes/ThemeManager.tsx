@@ -468,29 +468,29 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
   };
 
   return (
-    <div className="w-full h-full">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold flex items-center">
+    <div className="w-full h-full>
+      <div className="p-4 border-b>
+        <h2 className="text-lg font-semibold flex items-center>
           <Palette className="h-5 w-5 mr-2" />
           Gerenciador de Temas
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 mt-1>
           Personalize a aparência do seu template
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
-        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full>
+        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4>
           <TabsTrigger value="themes">Temas</TabsTrigger>
           <TabsTrigger value="customize">Personalizar</TabsTrigger>
           <TabsTrigger value="export">Importar/Exportar</TabsTrigger>
         </TabsList>
 
-        <div className="p-4">
-          <TabsContent value="themes" className="space-y-4">
+        <div className="p-4>
+          <TabsContent value="themes" className="space-y-4>
             <div>
               <Label>Temas Disponíveis</Label>
-              <div className="grid grid-cols-1 gap-3 mt-2">
+              <div className="grid grid-cols-1 gap-3 mt-2>
                 {themes.map((theme) => (
                   <Card 
                     key={theme.id}
@@ -501,24 +501,24 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                     "
                     onClick={() => handleThemeSelect(theme)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
+                    <CardContent className="p-4>
+                      <div className="flex items-center justify-between>
                         <div>
-                          <h4 className="font-medium flex items-center">
+                          <h4 className="font-medium flex items-center>
                             {theme.name}
                             {theme.isCustom && (
-                              <Badge variant="secondary" className="ml-2 text-xs">
+                              <Badge variant="secondary" className="ml-2 text-xs>
                                 Personalizado
                               </Badge>
                             )}
                           </h4>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-sm text-gray-500 mt-1>
                             {theme.description}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1>
                           {/* Preview de cores */}
-                          <div className="flex space-x-1">
+                          <div className="flex space-x-1>
                             <div 
                               className="w-4 h-4 rounded-full border"
                               style={{ backgroundColor: theme.colors.primary }}
@@ -555,7 +555,7 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
 
             <div>
               <Label>Criar Novo Tema</Label>
-              <div className="flex space-x-2 mt-2">
+              <div className="flex space-x-2 mt-2>
                 <Input
                   placeholder="Nome do tema"
                   value={newThemeName}
@@ -568,12 +568,12 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
             </div>
           </TabsContent>
 
-          <TabsContent value="customize" className="space-y-4">
+          <TabsContent value="customize" className="space-y-4>
             {editingTheme ? (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
+              <div className="space-y-6>
+                <div className="flex items-center justify-between>
                   <h3 className="text-lg font-medium">Editando: {editingTheme.name}</h3>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2>
                     <Button
                       variant="outline"
                       onClick={() => setEditingTheme(null)}
@@ -587,19 +587,19 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                   </div>
                 </div>
 
-                <Tabs defaultValue="colors">
+                <Tabs defaultValue="colors>
                   <TabsList>
                     <TabsTrigger value="colors">Cores</TabsTrigger>
                     <TabsTrigger value="typography">Tipografia</TabsTrigger>
                     <TabsTrigger value="spacing">Espaçamento</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="colors" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <TabsContent value="colors" className="space-y-4>
+                    <div className="grid grid-cols-2 gap-4>
                       {Object.entries(editingTheme.colors).map(([key, value]) => (
                         <div key={key}>
                           <Label className="capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
-                          <div className="flex space-x-2 mt-1">
+                          <div className="flex space-x-2 mt-1>
                             <Input
                               type="color"
                               value={value}
@@ -617,7 +617,7 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="typography" className="space-y-4">
+                  <TabsContent value="typography" className="space-y-4>
                     <div>
                       <Label>Família da Fonte</Label>
                       <Select
@@ -640,8 +640,8 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="spacing" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <TabsContent value="spacing" className="space-y-4>
+                    <div className="grid grid-cols-2 gap-4>
                       {Object.entries(editingTheme.spacing).map(([key, value]) => (
                         <div key={key}>
                           <Label className="uppercase">{key}</Label>
@@ -660,17 +660,17 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                 </Tabs>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500>
                 <Brush className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Selecione um tema para personalizar</p>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="export" className="space-y-4">
+          <TabsContent value="export" className="space-y-4>
             <div>
               <Label>Exportar Tema Atual</Label>
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-gray-500 mb-2>
                 Baixe o tema atual como arquivo JSON
               </p>
               <Button onClick={() => handleExportTheme(currentTheme)}>
@@ -683,17 +683,17 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
 
             <div>
               <Label>Importar Tema</Label>
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-gray-500 mb-2>
                 Carregue um arquivo de tema JSON
               </p>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 <Input
                   type="file"
                   accept=".json"
                   onChange={handleImportTheme}
                   className="cursor-pointer"
                 />
-                <Button variant="outline">
+                <Button variant="outline>
                   <Upload className="h-4 w-4 mr-2" />
                   Importar
                 </Button>

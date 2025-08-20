@@ -146,9 +146,9 @@ export function ApprovalRulesManager() {
 
   if (isLoading) {
     return (
-      <Card data-testid="rules-loading">
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
+      <Card data-testid="rules-loading>
+        <CardContent className="p-6>
+          <div className="animate-pulse space-y-4>
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
@@ -159,24 +159,24 @@ export function ApprovalRulesManager() {
   }
 
   return (
-    <div className="space-y-6" data-testid="approval-rules-manager">
-      <Card data-testid="rules-header">
+    <div className="space-y-6" data-testid="approval-rules-manager>
+      <Card data-testid="rules-header>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between>
             <CardTitle>Regras de Aprovação</CardTitle>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2" data-testid="button-create-rule">
+                <Button className="flex items-center gap-2" data-testid="button-create-rule>
                   <Plus className="h-4 w-4" />
                   Nova Regra
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl" data-testid="create-rule-dialog">
+              <DialogContent className="max-w-2xl" data-testid="create-rule-dialog>
                 <DialogHeader>
                   <DialogTitle>Criar Nova Regra de Aprovação</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4 mt-4>
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <label className="text-sm font-medium">Nome da Regra</label>
                       <Input
@@ -215,7 +215,7 @@ export function ApprovalRulesManager() {
                     className="mb-4"
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <div>
                       <label className="text-sm font-medium">Prioridade</label>
                       <Input
@@ -226,7 +226,7 @@ export function ApprovalRulesManager() {
                         data-testid="input-priority"
                       />
                     </div>
-                    <div className="flex items-center space-x-2 mt-6">
+                    <div className="flex items-center space-x-2 mt-6>
                       <Switch
                         checked={newRule.isActive}
                         onCheckedChange={(checked) => setNewRule(prev => ({ ...prev, isActive: checked }))}
@@ -236,7 +236,7 @@ export function ApprovalRulesManager() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-2>
                     <Button 
                       variant="outline" 
                       onClick={() => setIsCreateDialogOpen(false)}
@@ -259,9 +259,9 @@ export function ApprovalRulesManager() {
         </CardHeader>
       </Card>
 
-      <Card data-testid="rules-table-card">
-        <CardContent className="p-0">
-          <Table data-testid="rules-table">
+      <Card data-testid="rules-table-card>
+        <CardContent className="p-0>
+          <Table data-testid="rules-table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
@@ -275,7 +275,7 @@ export function ApprovalRulesManager() {
             <TableBody>
               {rules?.data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-rules-message">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-rules-message>
                     Nenhuma regra de aprovação encontrada. Crie sua primeira regra!
                   </TableCell>
                 </TableRow>
@@ -286,12 +286,12 @@ export function ApprovalRulesManager() {
                       {rule.name}
                     </TableCell>
                     <TableCell data-testid={"
-                      <Badge variant="secondary">
+                      <Badge variant="secondary>
                         {moduleTypes.find(t => t.value === rule.moduleType)?.label || rule.moduleType}
                       </Badge>
                     </TableCell>
                     <TableCell data-testid={"
-                      <Badge variant={rule.isActive ? "default" : "secondary">
+                      <Badge variant={rule.isActive ? "default" : "secondary>
                         {rule.isActive ? 'Ativa' : 'Inativa'}
                       </Badge>
                     </TableCell>
@@ -340,12 +340,12 @@ export function ApprovalRulesManager() {
       {/* Edit Dialog */}
       {editingRule && (
         <Dialog open={!!editingRule} onOpenChange={() => setEditingRule(null)}>
-          <DialogContent className="max-w-2xl" data-testid="edit-rule-dialog">
+          <DialogContent className="max-w-2xl" data-testid="edit-rule-dialog>
             <DialogHeader>
               <DialogTitle>Editar Regra de Aprovação</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4 mt-4>
+              <div className="grid grid-cols-2 gap-4>
                 <div>
                   <label className="text-sm font-medium">Nome da Regra</label>
                   <Input
@@ -366,7 +366,7 @@ export function ApprovalRulesManager() {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 <Switch
                   checked={editingRule.isActive}
                   onCheckedChange={(checked) => setEditingRule(prev => prev ? { ...prev, isActive: checked } : null)}
@@ -375,7 +375,7 @@ export function ApprovalRulesManager() {
                 <label className="text-sm font-medium">Regra Ativa</label>
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2>
                 <Button 
                   variant="outline" 
                   onClick={() => setEditingRule(null)}

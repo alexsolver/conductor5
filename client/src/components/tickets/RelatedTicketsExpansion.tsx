@@ -44,12 +44,12 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
 
   if (isLoading) {
     return (
-      <div className="p-4 bg-gray-50 border-t">
-        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+      <div className="p-4 bg-gray-50 border-t>
+        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2>
           <Link2 className="h-4 w-4" />
           Tickets Vinculados
         </h4>
-        <div className="text-center py-4 text-gray-500 text-sm">
+        <div className="text-center py-4 text-gray-500 text-sm>
           Carregando tickets vinculados...
         </div>
       </div>
@@ -59,12 +59,12 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
   if (error) {
     console.error('🔗 [RELATED-TICKETS] Error fetching relationships:', error);
     return (
-      <div className="p-4 bg-gray-50 border-t">
-        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+      <div className="p-4 bg-gray-50 border-t>
+        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2>
           <Link2 className="h-4 w-4" />
           Tickets Vinculados
         </h4>
-        <div className="text-center py-4 text-red-500 text-sm">
+        <div className="text-center py-4 text-red-500 text-sm>
           Erro ao carregar tickets vinculados: {error.message}
         </div>
       </div>
@@ -105,14 +105,14 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
   });
 
   return (
-    <div className="p-4 bg-gray-50 border-t">
-      <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+    <div className="p-4 bg-gray-50 border-t>
+      <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2>
         <Link2 className="h-4 w-4" />
         Tickets Vinculados ({relationships.length})
       </h4>
 
       {relationships.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-2>
           {relationships.map((rel: RelatedTicket, index: number) => {
             console.log('🔗 [RELATED-TICKETS] Processing relationship item:', rel);
 
@@ -216,8 +216,8 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                 key={"
                 className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
               >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded whitespace-nowrap">
+                <div className="flex items-center gap-2 min-w-0 flex-1>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded whitespace-nowrap>
                     {getRelationshipLabel(relationshipType)}
                   </span>
                   <Link
@@ -230,7 +230,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                     {ticketSubject}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2>
                   <OptimizedBadge
                     fieldName="status"
                     value={ticketStatus}
@@ -256,7 +256,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
           }).filter(Boolean)}
         </div>
       ) : (
-        <div className="text-center py-4 text-gray-500 text-sm">
+        <div className="text-center py-4 text-gray-500 text-sm>
           Nenhum ticket vinculado encontrado
         </div>
       )}

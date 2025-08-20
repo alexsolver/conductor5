@@ -43,8 +43,8 @@ const ColorPicker = ({
   ];
 
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-5 gap-2">
+    <div className="space-y-2>
+      <div className="grid grid-cols-5 gap-2>
         {coresPredefinidas.map((cor) => (
           <button
             key={cor.cor}
@@ -84,8 +84,8 @@ const FaixasCepManager = ({ faixas = [], onChange }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+    <div className="space-y-4>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2>
         <Input
           placeholder="CEP Início"
           value={novaFaixa.cepInicio}
@@ -101,7 +101,7 @@ const FaixasCepManager = ({ faixas = [], onChange }) => {
           value={novaFaixa.grupo}
           onChange={(e) => setNovaFaixa({ ...novaFaixa, grupo: e.target.value })}
         />
-        <Button type="button" onClick={adicionarFaixa} size="sm">
+        <Button type="button" onClick={adicionarFaixa} size="sm>
           <Plus className="h-4 w-4 mr-1" />
           Adicionar
         </Button>
@@ -166,8 +166,8 @@ const CoordenadasManager = ({ coordenadas = [], onChange }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="h-96 border rounded-lg">
+    <div className="space-y-4>
+      <div className="h-96 border rounded-lg>
         <LeafletMapSelector
           initialLat={-23.5505}
           initialLng={-46.6333}
@@ -208,7 +208,7 @@ const CoordenadasManager = ({ coordenadas = [], onChange }) => {
             </TableBody>
           </Table>
           {coordenadas.length < 3 && (
-            <p className="text-sm text-amber-600 mt-2">
+            <p className="text-sm text-amber-600 mt-2>
               Adicione pelo menos 3 coordenadas para formar um polígono válido
             </p>
           )}
@@ -221,8 +221,8 @@ const CoordenadasManager = ({ coordenadas = [], onChange }) => {
 // Componente para configurar raio
 const RaioManager = ({ coordenadaCentral, raioMetros, onCoordenadaChange, onRaioChange }) => {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
         <div>
           <label className="block text-sm font-medium mb-2">Raio (metros)</label>
           <Input
@@ -237,7 +237,7 @@ const RaioManager = ({ coordenadaCentral, raioMetros, onCoordenadaChange, onRaio
         <div>
           <label className="block text-sm font-medium mb-2">Coordenada Central</label>
           {coordenadaCentral ? (
-            <div className="text-sm">
+            <div className="text-sm>
               <p>Lat: {coordenadaCentral.lat.toFixed(6)}</p>
               <p>Lng: {coordenadaCentral.lng.toFixed(6)}</p>
             </div>
@@ -247,7 +247,7 @@ const RaioManager = ({ coordenadaCentral, raioMetros, onCoordenadaChange, onRaio
         </div>
       </div>
 
-      <div className="h-96 border rounded-lg">
+      <div className="h-96 border rounded-lg>
         <LeafletMapSelector
           initialLat={coordenadaCentral?.lat || -23.5505}
           initialLng={coordenadaCentral?.lng || -46.6333}
@@ -315,13 +315,13 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+    <div className="space-y-4>
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center>
         <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 mb-4>
           Arraste e solte um arquivo aqui ou clique para selecionar
         </p>
-        <p className="text-xs text-gray-500 mb-4">
+        <p className="text-xs text-gray-500 mb-4>
           Formatos suportados: KML, SHP, GeoJSON
         </p>
         <Button
@@ -412,7 +412,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
 
       case 'linha':
         return (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500>
             <Route className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>Funcionalidade de linha em desenvolvimento</p>
           </div>
@@ -420,7 +420,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
 
       case 'shape':
         return (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500>
             <Map className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>Editor de shapes em desenvolvimento</p>
           </div>
@@ -443,27 +443,27 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-6">
+    <div className="max-w-6xl mx-auto p-6>
+      <div className="mb-6>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Nova Área</h2>
         <p className="text-gray-600 dark:text-gray-400">Configure uma nova área geográfica com integração de mapa</p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
           {/* Identificação */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2>
                 <Map className="h-5 w-5" />
                 Identificação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
+            <CardContent className="space-y-4>
+              <div className="flex items-center justify-between>
+                <div className="space-y-0.5>
                   <label htmlFor="ativo" className="text-sm font-medium">Status</label>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground>
                     Área ativa no sistema
                   </div>
                 </div>
@@ -483,7 +483,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
                 <FormField
                   control={form.control}
                   name="nome"
@@ -535,12 +535,12 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
           {/* Classificação */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2>
                 <Palette className="h-5 w-5" />
                 Classificação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6>
               {/* Tipo de Área */}
               <FormField
                 control={form.control}
@@ -559,7 +559,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                           const Icon = tipo.icon;
                           return (
                             <SelectItem key={tipo.value} value={tipo.value}>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2>
                                 <Icon className="h-4 w-4" />
                                 {tipo.label}
                               </div>
@@ -576,12 +576,12 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
               {/* Cor no Mapa */}
               <div>
                 <label className="block text-sm font-medium mb-2">Cor no Mapa</label>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4>
                   <div 
                     className="w-10 h-10 rounded-full border-2 border-gray-300"
                     style={{ backgroundColor: corMapa }}
                   />
-                  <div className="flex-1">
+                  <div className="flex-1>
                     <ColorPicker 
                       value={corMapa}
                       onChange={(cor) => setValue('corMapa', cor)}
@@ -594,7 +594,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
 
               {/* Configuração específica do tipo */}
               <div>
-                <h4 className="text-sm font-medium mb-4">
+                <h4 className="text-sm font-medium mb-4>
                   Configuração: {tiposArea.find(t => t.value === tipoArea)?.label}
                 </h4>
                 {renderTipoAreaContent()}
@@ -609,12 +609,12 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                 <CardTitle>Preview da Área</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
+                <div className="bg-gray-100 rounded-lg p-4 text-center>
                   <Map className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600>
                     Visualização da área será exibida aqui em tempo real
                   </p>
-                  <Badge style={{ backgroundColor: corMapa, color: 'white' }} className="mt-2">
+                  <Badge style={{ backgroundColor: corMapa, color: 'white' }} className="mt-2>
                     {tiposArea.find(t => t.value === tipoArea)?.label}
                   </Badge>
                 </div>
@@ -623,7 +623,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
           )}
 
           {/* Botões de Ação */}
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex justify-end space-x-4 pt-4>
             <Button
               type="button"
               variant="outline"

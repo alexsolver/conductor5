@@ -174,17 +174,17 @@ export function WorkflowConfigurationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <Settings className="h-5 w-5" />
             Configurar Workflow de Aprovação
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6>
           {/* Workflow Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <Label htmlFor="name">Nome do Workflow *</Label>
               <Input
@@ -227,7 +227,7 @@ export function WorkflowConfigurationDialog({
             />
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <Switch
               id="enabled"
               checked={currentTemplate.enabled}
@@ -237,23 +237,23 @@ export function WorkflowConfigurationDialog({
           </div>
 
           {/* Workflow Steps */}
-          <div className="space-y-4">
+          <div className="space-y-4>
             <h3 className="text-lg font-semibold">Passos do Workflow</h3>
 
             {/* Existing Steps */}
             {currentTemplate.steps.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2>
                 {currentTemplate.steps.map((step, index) => (
-                  <div key={step.id} className="flex items-center space-x-2 p-3 border rounded-lg">
+                  <div key={step.id} className="flex items-center space-x-2 p-3 border rounded-lg>
                     <span className="font-mono text-sm text-gray-500">#{index + 1}</span>
                     <ArrowRight className="h-4 w-4 text-gray-400" />
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
+                    <div className="flex-1>
+                      <div className="flex items-center space-x-2>
                         <Badge variant="outline">{stepTypes.find(t => t.value === step.type)?.label}</Badge>
                         <span className="font-medium">{step.name}</span>
                         {step.required && <Badge variant="secondary">Obrigatório</Badge>}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600>
                         {assigneeTypes.find(t => t.value === step.assigneeType)?.label}
                         {step.assigneeId && "
                       </div>
@@ -272,10 +272,10 @@ export function WorkflowConfigurationDialog({
             )}
 
             {/* Add New Step */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 space-y-4>
               <h4 className="font-medium">Adicionar Novo Passo</h4>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
                 <div>
                   <Label htmlFor="step-name">Nome do Passo</Label>
                   <Input
@@ -325,8 +325,8 @@ export function WorkflowConfigurationDialog({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between>
+                <div className="flex items-center space-x-2>
                   <Switch
                     id="step-required"
                     checked={newStep.required}
@@ -335,7 +335,7 @@ export function WorkflowConfigurationDialog({
                   <Label htmlFor="step-required">Passo obrigatório</Label>
                 </div>
 
-                <Button type="button" onClick={addStep} variant="outline" size="sm">
+                <Button type="button" onClick={addStep} variant="outline" size="sm>
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Passo
                 </Button>
@@ -344,7 +344,7 @@ export function WorkflowConfigurationDialog({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-2 pt-4 border-t">
+          <div className="flex justify-end space-x-2 pt-4 border-t>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

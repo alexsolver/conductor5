@@ -174,7 +174,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className=""
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -183,11 +183,11 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
   // ✅ 1QA.MD COMPLIANCE: Show error state for failed real data loading
   if (!widgetData && !isLoading) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500">
-        <div className="text-center">
+      <div className=""
+        <div className=""
           <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
           <p className="text-sm">Erro ao carregar dados</p>
-          <p className="text-xs text-gray-400">
+          <p className=""
             Fonte: {widget.config.dataSource}
           </p>
         </div>
@@ -200,15 +200,15 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
   switch (widget.type) {
     case 'metric':
       return (
-        <div className="h-full flex flex-col items-center justify-center">
-          <div className="text-3xl font-bold text-purple-600 mb-2">
+        <div className=""
+          <div className=""
             {widgetData?.value || '0'}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className=""
             {widgetData?.label || widget.name}
           </div>
           {widgetData?.change && (
-            <div className="text-xs mt-1 "">
+            <div className="text-xs mt-1 ">
               {widgetData.change >= 0 ? '↗' : '↘'} {Math.abs(widgetData.change)}%
             </div>
           )}
@@ -217,9 +217,9 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
     
     case 'chart':
       return (
-        <div className="h-full flex flex-col">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
+        <div className=""
+          <div className=""
+            <div className=""
               <BarChart3 className="w-16 h-16 text-purple-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-gray-800">{widgetData?.value || '0'}</div>
               <div className="text-sm text-gray-600">{widgetData?.label || 'Chart Data'}</div>
@@ -230,20 +230,20 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
 
     case 'table':
       return (
-        <div className="h-full">
+        <div className=""
           {widgetData?.data && Array.isArray(widgetData.data) ? (
-            <div className="text-center">
+            <div className=""
               <Table className="w-12 h-12 text-purple-600 mx-auto mb-2" />
-              <div className="text-sm text-gray-600">
+              <div className=""
                 {widgetData.data.length} records
               </div>
-              <div className="text-xs text-gray-400">
+              <div className=""
                 {widgetData.lastUpdated || 'Recently updated'}
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              <div className="text-center">
+            <div className=""
+              <div className=""
                 <Table className="w-12 h-12 mx-auto mb-2" />
                 <p className="text-sm">Data Table</p>
                 <p className="text-xs text-gray-400">Loading data...</p>
@@ -255,15 +255,15 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
 
     default:
       return (
-        <div className="h-full flex items-center justify-center text-gray-500">
-          <div className="text-center">
+        <div className=""
+          <div className=""
             <IconComponent className="w-12 h-12 mx-auto mb-2" />
-            <p className="text-sm">
+            <p className=""
               {widget.type === 'gauge' && 'Progress Gauge'}
               {widget.type === 'text' && 'Text Content'}
               {widget.type === 'image' && 'Image Display'}
             </p>
-            <p className="text-xs text-gray-400">
+            <p className=""
               Data source: {widget.config.dataSource}
             </p>
           </div>
@@ -294,8 +294,8 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
   };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className=""
+      <div className=""
         <div>
           <label className="text-sm font-medium">Widget Name</label>
           <Input
@@ -312,7 +312,7 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             value={widgetConfig.type} 
             onValueChange={(value: any) => setWidgetConfig(prev => ({ ...prev, type: value }))}
           >
-            <SelectTrigger data-testid="select-widget-type">
+            <SelectTrigger data-testid="select-widget-type>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -335,7 +335,7 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
               config: { ...prev.config, dataSource: value }
             }))}
           >
-            <SelectTrigger data-testid="select-widget-datasource">
+            <SelectTrigger data-testid="select-widget-datasource>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -348,8 +348,8 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
           </Select>
         </div>
 
-        <div className="flex items-end">
-          <Button onClick={handleSave} disabled={!widgetConfig.name.trim()} data-testid="button-save-widget">
+        <div className=""
+          <Button onClick={handleSave} disabled={!widgetConfig.name.trim()} data-testid="button-save-widget>
             <CheckCircle className="w-4 h-4 mr-2" />
             Add Widget
           </Button>
@@ -552,10 +552,10 @@ function DashboardView() {
   // Early returns after all hooks are called
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-6">
+      <div className=""
+        <div className=""
           <div className="h-8 bg-gray-200 rounded w-64"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className=""
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-64 bg-gray-200 rounded"></div>
             ))}
@@ -567,12 +567,12 @@ function DashboardView() {
 
   if (error || !dashboardResponse) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+      <div className=""
+        <div className=""
+          <h3 className=""
             Dashboard not found
           </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
+          <p className=""
             The dashboard you're looking for doesn't exist or you don't have permission to view it.
           </p>
           <Button onClick={() => setLocation('/dashboards')}>
@@ -648,12 +648,12 @@ function DashboardView() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className=""
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+      <div className=""
+        <div className=""
+          <div className=""
+            <div className=""
               <Button
                 variant="ghost"
                 size="sm"
@@ -664,24 +664,24 @@ function DashboardView() {
                 Back
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <h1 className=""
                   {dashboard.name}
                 </h1>
                 {dashboard.description && (
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  <p className=""
                     {dashboard.description}
                   </p>
                 )}
-                <div className="flex items-center space-x-2 mt-2">
+                <div className=""
                   <Badge variant="outline">{dashboard.layoutType}</Badge>
                   {dashboard.isRealTime && (
-                    <Badge variant="outline" className="text-green-600">
+                    <Badge variant="outline" className=""
                       <RefreshCw className="w-3 h-3 mr-1" />
                       Real-time
                     </Badge>
                   )}
                   {dashboard.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
+                    <Badge key={tag} variant="secondary" className=""
                       {tag}
                     </Badge>
                   ))}
@@ -689,7 +689,7 @@ function DashboardView() {
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className=""
               {isEditMode ? (
                 // Edit mode buttons - following 1qa.md patterns
                 <>
@@ -767,11 +767,11 @@ function DashboardView() {
       </div>
 
       {/* Dashboard Canvas */}
-      <div className="container mx-auto p-6">
+      <div className=""
         {isEditMode && showWidgetDesigner && (
-          <Card className="mb-6">
+          <Card className=""
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className=""
                 <span>Widget Designer</span>
                 <Button
                   variant="ghost"
@@ -790,10 +790,10 @@ function DashboardView() {
         )}
 
         {/* 🎯 SISTEMA DE GOVERNANÇA ATIVO - Cards Governados */}
-        <div className="grid grid-cols-12 gap-4">
+        <div className=""
           {isEditMode && showWidgetDesigner && (
-            <div className="col-span-12 mb-4">
-              <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
+            <div className=""
+              <div className=""
                 🎯 Sistema de Governança Ativo: Cards são gerenciados pelas 4 camadas de governança
               </div>
             </div>
@@ -819,8 +819,8 @@ function DashboardView() {
                   data-testid={"
                 >
                   {isEditMode && (
-                    <div className="bg-purple-50 border-b border-purple-200 p-2 text-xs text-purple-700">
-                      <div className="flex justify-between items-center">
+                    <div className=""
+                      <div className=""
                         <span>🎯 Governança: {governedCard.card_type}</span>
                         <Button
                           variant="ghost"
@@ -833,7 +833,7 @@ function DashboardView() {
                       </div>
                     </div>
                   )}
-                  <div className="p-4">
+                  <div className=""
                     {/* ✅ WIDGET GOVERNADO: Usando GovernedWidgetRenderer */}
                     <GovernedWidgetRenderer 
                       card={governedCard} 
@@ -844,12 +844,12 @@ function DashboardView() {
                 </div>
               ))
             ) : (
-              <div className="col-span-12 text-center py-12">
+              <div className=""
                 <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className=""
                   {isEditMode ? "Empty Dashboard" : "No widgets configured"
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                <p className=""
                   {isEditMode 
                     ? "Start building your dashboard by adding widgets" 
                     : "This dashboard doesn't have any widgets yet. Add some widgets to get started."

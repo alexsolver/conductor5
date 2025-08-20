@@ -95,7 +95,7 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       <Label className="text-sm font-medium">Horários por Dia da Semana</Label>
       
       {dayOrder.map((day) => {
@@ -103,9 +103,9 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
         const schedule = weeklySchedule[day as keyof WeeklySchedule];
         
         return (
-          <Card key={day} className=""">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+          <Card key={day} className="">
+            <CardHeader className="pb-3>
+              <div className="flex items-center justify-between>
                 <CardTitle className="text-sm">{dayNames[day as keyof typeof dayNames]}</CardTitle>
                 <Switch
                   checked={isWorkDay}
@@ -115,8 +115,8 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
             </CardHeader>
             
             {isWorkDay && schedule && (
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+              <CardContent className="space-y-3>
+                <div className="grid grid-cols-2 gap-3>
                   <div>
                     <Label className="text-xs">Entrada</Label>
                     <Input
@@ -137,7 +137,7 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3>
                   <div>
                     <Label className="text-xs">Início Pausa</Label>
                     <Input

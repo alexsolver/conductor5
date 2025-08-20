@@ -103,14 +103,14 @@ export function ApprovalWorkflow({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between>
+        <div className="flex items-center gap-2>
           <CheckCircle className="w-5 h-5 text-blue-600" />
           <h3 className="text-lg font-semibold">Workflow de Aprovação</h3>
         </div>
-        <Badge variant="outline">
+        <Badge variant="outline>
           {pendingApprovals?.data?.length || 0} pendentes
         </Badge>
       </div>
@@ -122,33 +122,33 @@ export function ApprovalWorkflow({
         </CardHeader>
         <CardContent>
           {pendingApprovals?.data?.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-4>
               {pendingApprovals.data.map((request: ApprovalRequest) => (
                 <div
                   key={request.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4>
                     {getStatusIcon(request.status)}
                     <div>
                       <p className="font-medium">{request.templateName}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500>
                         Versão {request.version} • {request.changeDescription}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1>
                         <User className="w-3 h-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500>
                           Solicitado por {request.requestedBy}
                         </span>
                         <Calendar className="w-3 h-3 text-gray-400 ml-2" />
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500>
                           {format(new Date(request.requestedAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                         </span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2>
                     {getStatusBadge(request.status)}
                     {request.status === 'pending' && (
                       <Dialog>
@@ -160,7 +160,7 @@ export function ApprovalWorkflow({
                             Revisar
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+                        <DialogContent className="max-w-2xl>
                           <DialogHeader>
                             <DialogTitle>Aprovar Template</DialogTitle>
                           </DialogHeader>
@@ -181,7 +181,7 @@ export function ApprovalWorkflow({
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500>
               <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p>Nenhuma aprovação pendente</p>
             </div>
@@ -196,23 +196,23 @@ export function ApprovalWorkflow({
             <CardTitle className="text-base">Histórico de Aprovações</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-3>
               {approvalHistory.data.map((item: any) => (
-                <div key={item.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                <div key={item.id} className="flex items-start gap-3 p-3 border rounded-lg>
                   {getStatusIcon(item.status)}
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1>
+                    <div className="flex items-center justify-between mb-2>
                       <span className="font-medium">Versão {item.version}</span>
                       {getStatusBadge(item.status)}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{item.changeDescription}</p>
                     {item.approvalNotes && (
-                      <div className="bg-gray-50 p-2 rounded text-sm">
+                      <div className="bg-gray-50 p-2 rounded text-sm>
                         <MessageSquare className="w-3 h-3 inline mr-1" />
                         {item.approvalNotes}
                       </div>
                     )}
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500>
                       <span>Por: {item.approvedBy || item.requestedBy}</span>
                       <span>
                         {format(new Date(item.approvedAt || item.requestedAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
@@ -249,15 +249,15 @@ function ApprovalDialog({
   isLoading
 }: ApprovalDialogProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       {/* Informações da Solicitação */}
-      <div className="space-y-4">
+      <div className="space-y-4>
         <div>
           <Label className="text-sm font-medium">Template</Label>
           <p className="text-sm text-gray-600">{request.templateName}</p>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4>
           <div>
             <Label className="text-sm font-medium">Versão</Label>
             <p className="text-sm text-gray-600">{request.version}</p>
@@ -277,7 +277,7 @@ function ApprovalDialog({
       <Separator />
 
       {/* Ação de Aprovação */}
-      <div className="space-y-4">
+      <div className="space-y-4>
         <div>
           <Label htmlFor="approval-action">Decisão</Label>
           <Select value={approvalAction} onValueChange={(value: 'approve' | 'reject') => setApprovalAction(value)}>
@@ -285,14 +285,14 @@ function ApprovalDialog({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="approve">
-                <div className="flex items-center gap-2">
+              <SelectItem value="approve>
+                <div className="flex items-center gap-2>
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   Aprovar
                 </div>
               </SelectItem>
-              <SelectItem value="reject">
-                <div className="flex items-center gap-2">
+              <SelectItem value="reject>
+                <div className="flex items-center gap-2>
                   <XCircle className="w-4 h-4 text-red-600" />
                   Rejeitar
                 </div>
@@ -302,7 +302,7 @@ function ApprovalDialog({
         </div>
 
         <div>
-          <Label htmlFor="approval-notes">
+          <Label htmlFor="approval-notes>
             Comentários {approvalAction === 'reject' ? '(obrigatório)' : '(opcional)'}
           </Label>
           <Textarea
@@ -320,7 +320,7 @@ function ApprovalDialog({
       </div>
 
       {/* Ações */}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3>
         <Button variant="outline" disabled={isLoading}>
           Cancelar
         </Button>

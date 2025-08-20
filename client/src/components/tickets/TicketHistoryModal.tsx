@@ -136,18 +136,18 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
     if (!entry.oldValue && !entry.newValue) return null;
 
     return (
-      <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
-        <div className="flex items-center gap-2">
+      <div className="mt-2 p-2 bg-gray-50 rounded text-xs>
+        <div className="flex items-center gap-2>
           <span className="font-medium">{entry.fieldName}:</span>
           {entry.oldValue && (
             <>
-              <span className="px-2 py-1 bg-red-100 text-red-800 rounded">
+              <span className="px-2 py-1 bg-red-100 text-red-800 rounded>
                 {entry.oldValue}
               </span>
               <ArrowRight className="w-3 h-3 text-gray-500" />
             </>
           )}
-          <span className="px-2 py-1 bg-green-100 text-green-800 rounded">
+          <span className="px-2 py-1 bg-green-100 text-green-800 rounded>
             {entry.newValue || 'Removido'}
           </span>
         </div>
@@ -157,9 +157,9 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <History className="w-5 h-5" />
             Linha do Tempo Detalhada
           </DialogTitle>
@@ -168,10 +168,10 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6>
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex-1 min-w-64">
+          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg>
+            <div className="flex-1 min-w-64>
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
@@ -179,7 +179,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
               />
             </div>
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -200,7 +200,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
               </SelectContent>
             </Select>
             <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-32>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -213,16 +213,16 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
           </div>
 
           {/* History Timeline */}
-          <div className="space-y-4">
+          <div className="space-y-4>
             {isLoading ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12>
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-sm text-gray-500">Carregando histórico...</p>
               </div>
             ) : filteredHistory.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12>
                 <History className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-gray-500>
                   {searchTerm || filter !== "all" || timeFilter !== "all" 
                     ? '[TRANSLATION_NEEDED]'
                     : '[TRANSLATION_NEEDED]'
@@ -230,33 +230,33 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                 </p>
               </div>
             ) : (
-              <div className="relative">
+              <div className="relative>
                 {/* Timeline line */}
                 <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
-                <div className="space-y-6">
+                <div className="space-y-6>
                   {filteredHistory.map((entry: HistoryEntry, index: number) => (
-                    <div key={entry.id} className="relative flex items-start">
+                    <div key={entry.id} className="relative flex items-start>
                       {/* Timeline dot */}
-                      <div className="absolute left-4 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center "">
+                      <div className="absolute left-4 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ">
                         {getActionIcon(entry.type).icon({ className: "w-4 h-4" })}
                       </div>
 
                       {/* Content */}
-                      <div className="ml-12 flex-1">
+                      <div className="ml-12 flex-1>
                         <Card className={`border-l-4 ${
                           entry.isPublic 
                             ? 'border-l-green-500 bg-green-50' 
                             : 'border-l-gray-400 bg-gray-50'
-                        ">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-2">
+                        >
+                          <CardContent className="p-4>
+                            <div className="flex items-start justify-between mb-2>
                               <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge variant="outline" className="text-xs">
+                                <div className="flex items-center gap-2 mb-1>
+                                  <Badge variant="outline" className="text-xs>
                                     {entry.type.replace('_', ' ').toUpperCase()}
                                   </Badge>
-                                  <Badge variant={entry.actorType === 'system' ? 'secondary' : 'default'} className="text-xs">
+                                  <Badge variant={entry.actorType === 'system' ? 'secondary' : 'default'} className="text-xs>
                                     {entry.actorType === 'system' ? (
                                       <>
                                         <Bot className="w-3 h-3 mr-1" />
@@ -269,13 +269,13 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                                       </>
                                     )}
                                   </Badge>
-                                  <Badge variant={entry.isPublic ? 'default' : 'secondary'} className="text-xs">
+                                  <Badge variant={entry.isPublic ? 'default' : 'secondary'} className="text-xs>
                                     {entry.isPublic ? 'Público' : 'Privado'}
                                   </Badge>
                                 </div>
                                 <p className="font-medium text-sm">{entry.action}</p>
                               </div>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500>
                                 {new Date(entry.createdAt).toLocaleString()}
                               </span>
                             </div>
@@ -287,13 +287,13 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
 
                             {/* Metadata */}
                             {entry.metadata && Object.keys(entry.metadata).length > 0 && (
-                              <div className="mt-3 pt-2 border-t border-gray-200">
-                                <details className="text-xs">
-                                  <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+                              <div className="mt-3 pt-2 border-t border-gray-200>
+                                <details className="text-xs>
+                                  <summary className="cursor-pointer text-gray-500 hover:text-gray-700>
                                     Detalhes adicionais
                                   </summary>
-                                  <div className="mt-2 p-2 bg-gray-100 rounded">
-                                    <pre className="text-xs overflow-x-auto">
+                                  <div className="mt-2 p-2 bg-gray-100 rounded>
+                                    <pre className="text-xs overflow-x-auto>
                                       {JSON.stringify(entry.metadata, null, 2)}
                                     </pre>
                                   </div>
@@ -312,12 +312,12 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
 
           {/* Summary */}
           {!isLoading && filteredHistory.length > 0 && (
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-blue-900">
+            <div className="bg-blue-50 p-4 rounded-lg>
+              <div className="flex items-center justify-between text-sm>
+                <span className="font-medium text-blue-900>
                   Total de ações: {filteredHistory.length}
                 </span>
-                <div className="flex gap-4 text-blue-700">
+                <div className="flex gap-4 text-blue-700>
                   <span>Públicas: {filteredHistory.filter(e => e.isPublic).length}</span>
                   <span>Privadas: {filteredHistory.filter(e => !e.isPublic).length}</span>
                   <span>Sistema: {filteredHistory.filter(e => e.actorType === 'system').length}</span>

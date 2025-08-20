@@ -63,7 +63,7 @@ const useFormField = () => {
   return {
     id,
     name: fieldContext.name,
-    formItemId: "-form-item`,
+    formItemId: "-form-item",
     formDescriptionId: "-form-item-description`,
     formMessageId: "-form-item-message`,
     ...fieldState,

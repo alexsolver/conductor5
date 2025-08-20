@@ -136,9 +136,9 @@ export default function AttachmentsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <Upload className="w-5 h-5" />
             Anexos do Ticket
           </DialogTitle>
@@ -147,14 +147,14 @@ export default function AttachmentsModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6>
           {/* Upload Section */}
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-            <div className="text-center">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6>
+            <div className="text-center>
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
-              <div className="mt-4">
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <span className="mt-2 block text-sm font-medium text-gray-900">
+              <div className="mt-4>
+                <label htmlFor="file-upload" className="cursor-pointer>
+                  <span className="mt-2 block text-sm font-medium text-gray-900>
                     Clique para selecionar ou arraste arquivos aqui
                   </span>
                   <Input
@@ -164,21 +164,21 @@ export default function AttachmentsModal({
                     onChange={handleFileSelect}
                   />
                 </label>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500>
                   Máximo 30MB por arquivo
                 </p>
               </div>
             </div>
 
             {selectedFile && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg>
+                <div className="flex items-center justify-between>
+                  <div className="flex items-center space-x-2>
                     <FileIcon className="w-5 h-5 text-blue-500" />
                     <span className="text-sm font-medium">{selectedFile.name}</span>
                     <Badge variant="outline">{formatFileSize(selectedFile.size)}</Badge>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2>
                     <Button
                       size="sm"
                       onClick={handleUpload}
@@ -200,31 +200,31 @@ export default function AttachmentsModal({
           </div>
 
           {/* Attachments List */}
-          <div className="space-y-4">
+          <div className="space-y-4>
             <h3 className="text-lg font-medium">Arquivos Anexados ({attachments.length})</h3>
             
             {isLoading ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8>
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-sm text-gray-500">Carregando anexos...</p>
               </div>
             ) : attachments.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-8>
                 <FileIcon className="mx-auto h-12 w-12 text-gray-400" />
                 <p className="mt-2 text-sm text-gray-500">Nenhum arquivo anexado</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2>
                 {attachments.map((attachment: Attachment) => (
                   <div
                     key={attachment.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3>
                       <FileIcon className="w-6 h-6 text-blue-500" />
                       <div>
                         <p className="font-medium">{attachment.filename}</p>
-                        <div className="flex items-center space-x-2 text-xs text-gray-500">
+                        <div className="flex items-center space-x-2 text-xs text-gray-500>
                           <Badge variant={attachment.source === 'email' ? 'default' : 'secondary'}>
                             {attachment.source === 'email' ? 'Email' : 'Upload'}
                           </Badge>
@@ -236,7 +236,7 @@ export default function AttachmentsModal({
                         </div>
                       </div>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2>
                       <Button
                         size="sm"
                         variant="outline"

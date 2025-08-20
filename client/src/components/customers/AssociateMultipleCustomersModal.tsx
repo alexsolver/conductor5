@@ -252,9 +252,9 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <Users className="w-5 h-5" />
             Associar Múltiplos Clientes
           </DialogTitle>
@@ -264,10 +264,10 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 space-y-4 overflow-hidden">
+        <div className="flex-1 space-y-4 overflow-hidden>
           {/* Search and filters */}
-          <div className="space-y-3">
-            <div className="relative">
+          <div className="space-y-3>
+            <div className="relative>
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -281,34 +281,34 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           </div>
 
           {/* Customer selection */}
-          <div className="border rounded-lg">
-            <div className="flex items-center justify-between p-3 border-b bg-gray-50">
-              <div className="flex items-center space-x-2">
+          <div className="border rounded-lg>
+            <div className="flex items-center justify-between p-3 border-b bg-gray-50>
+              <div className="flex items-center space-x-2>
                 <Checkbox
                   checked={allAvailableSelected}
                   onCheckedChange={handleSelectAll}
                 />
-                <Label className="text-sm font-medium">
+                <Label className="text-sm font-medium>
                   Selecionar todos disponíveis ({availableCustomers.length} de {filteredCustomers.length})
                 </Label>
               </div>
-              <Badge variant="outline">
+              <Badge variant="outline>
                 {selectedCustomerIds.length} selecionados
               </Badge>
             </div>
 
-            <ScrollArea className="h-64">
+            <ScrollArea className="h-64>
               {isLoading ? (
-                <div className="flex items-center justify-center p-8">
+                <div className="flex items-center justify-center p-8>
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : filteredCustomers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 text-gray-500">
+                <div className="flex flex-col items-center justify-center p-8 text-gray-500>
                   <Building2 className="w-12 h-12 mb-2" />
                   <p>Nenhum cliente encontrado</p>
                 </div>
               ) : (
-                <div className="space-y-1 p-2">
+                <div className="space-y-1 p-2>
                   {filteredCustomers.map((customer) => {
                     const isSelected = selectedCustomerIds.includes(customer.id);
                     const displayName = customer.customerType === 'PJ' 
@@ -328,7 +328,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                         onClick={() => handleCustomerToggle(customer.id, customer.isAssociated || false)}
                       >
                         {customer.isAssociated ? (
-                          <div className="flex items-center justify-center w-4 h-4 rounded bg-green-500 text-white">
+                          <div className="flex items-center justify-center w-4 h-4 rounded bg-green-500 text-white>
                             <Check className="w-3 h-3" />
                           </div>
                         ) : (
@@ -337,16 +337,16 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                             onChange={() => {}} // Controlled by parent div click
                           />
                         )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0>
+                          <div className="flex items-center gap-2>
                             <p className={`font-medium text-sm truncate ${
                               customer.isAssociated ? 'text-green-700' : ''
-                            ">
+                            >
                               {displayName || customer.email}
                             </p>
 
                             {customer.isAssociated && (
-                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300>
                                 <UserCheck className="w-3 h-3 mr-1" />
                                 Associado
                               </Badge>
@@ -360,18 +360,18 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                             </Badge>
 
                             {customer.status !== 'Ativo' && (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="destructive" className="text-xs>
                                 {customer.status}
                               </Badge>
                             )}
                           </div>
                           <p className={`text-xs truncate ${
                             customer.isAssociated ? 'text-green-600' : 'text-gray-500'
-                          ">
+                          >
                             {customer.email}
                           </p>
                           {customer.isAssociated && (
-                            <p className="text-xs text-green-600 mt-1">
+                            <p className="text-xs text-green-600 mt-1>
                               ✓ Cliente já está associado à empresa
                             </p>
                           )}
@@ -386,14 +386,14 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
           {/* Messages */}
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {success && (
-            <Alert className="border-green-200 bg-green-50">
+            <Alert className="border-green-200 bg-green-50>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">{success}</AlertDescription>
             </Alert>
@@ -410,7 +410,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             className="min-w-[120px]"
           >
             {isSubmitting ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 Associando...
               </div>

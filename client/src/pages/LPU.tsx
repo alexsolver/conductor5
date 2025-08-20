@@ -374,10 +374,10 @@ export default function LPU() {
 
   // Error display component
   const ErrorDisplay = ({ error, title }: { error: any, title: string }) => (
-    <Card className="border-red-200 bg-red-50">
-      <CardContent className="p-4">
+    <Card className=""
+      <CardContent className=""
         <h3 className="text-red-800 font-medium">{title}</h3>
-        <p className="text-red-600 text-sm mt-1">
+        <p className=""
           {error?.message || '[TRANSLATION_NEEDED]'}
         </p>
       </CardContent>
@@ -387,10 +387,10 @@ export default function LPU() {
   // Improved loading state
   if (priceListsLoading || statsLoading || rulesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
+      <div className=""
+        <div className=""
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <div className="space-y-2">
+          <div className=""
             <p className="text-lg font-medium text-gray-900">Carregando Sistema LPU</p>
             <p className="text-sm text-gray-600">Preparando listas de preços e regras...</p>
           </div>
@@ -403,17 +403,17 @@ export default function LPU() {
   if (priceListsError || statsError || rulesError) {
     const errorMessage = (priceListsError as any)?.message || (statsError as any)?.message || (rulesError as any)?.message;
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4 max-w-md">
+      <div className=""
+        <div className=""
           <div className="text-red-500 text-4xl">⚠️</div>
-          <div className="space-y-2">
+          <div className=""
             <h3 className="text-lg font-semibold text-gray-900">Erro no Sistema LPU</h3>
-            <p className="text-sm text-gray-600">
+            <p className=""
               {errorMessage || '[TRANSLATION_NEEDED]'}
             </p>
           </div>
-          <div className="flex gap-2 justify-center">
-            <Button onClick={() => window.location.reload()} variant="outline">
+          <div className=""
+            <Button onClick={() => window.location.reload()} variant="outline>
               Recarregar Página
             </Button>
             <Button onClick={() => {
@@ -430,8 +430,8 @@ export default function LPU() {
   }
 
   return (
-    <div className="space-y-6 pl-[9px] pr-[9px]">
-      <div className="flex items-center justify-between">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">LPU - Lista de Preços Unitários</h1>
           <p className="text-muted-foreground">Sistema completo de gestão de listas de preços e regras de precificação</p>
@@ -440,8 +440,8 @@ export default function LPU() {
 
       {/* Error States - Removed as the main error handling is done above */}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+        <TabsList className=""
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="price-lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="pricing-rules">Regras de Precificação</TabsTrigger>
@@ -451,64 +451,64 @@ export default function LPU() {
           <TabsTrigger value="analytics">Análises</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className=""
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div className=""
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className=""
                   {stats?.totalLists || 0}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className=""
                   {stats?.activeLists || 0} listas ativas
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Regras Ativas</CardTitle>
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className=""
                   {pricingRules.filter(r => r.isActive).length}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className=""
                   {pricingRules.length} regras totais
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className=""
                   {"%"
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className=""
                   {stats?.approvedVersions || 0} aprovadas
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className=""
                   {stats?.pendingApproval || 0}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className=""
                   aguardando análise
                 </p>
               </CardContent>
@@ -522,7 +522,7 @@ export default function LPU() {
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
+              <div className=""
                 <Button
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="h-20 flex-col hover:scale-105 transition-transform"
@@ -584,9 +584,9 @@ export default function LPU() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="price-lists" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="relative w-72">
+        <TabsContent value="price-lists" className=""
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -601,28 +601,28 @@ export default function LPU() {
             </Button>
           </div>
 
-          <div className="grid gap-4">
+          <div className=""
             {priceListsLoading ? (
               <div className="text-center py-8">Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 {priceLists.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
               </div>
             ) : (
               filteredPriceLists.map((list: PriceList) => (
-                <Card key={list.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="flex-1">
+                <Card key={list.id} className=""
+                  <CardHeader className=""
+                    <div className=""
                       <CardTitle className="text-base">{list.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
+                      <p className=""
                         Código: {list.code} • Versão: {list.version} • {list.currency}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className=""
                         Válida de {new Date(list.validFrom).toLocaleDateString()}
                         {list.validTo && "
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className=""
                       <Badge
                         variant={list.isActive ? "default" : "secondary"
                         className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
@@ -696,9 +696,9 @@ export default function LPU() {
           </div>
         </TabsContent>
 
-        <TabsContent value="pricing-rules" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="relative w-72">
+        <TabsContent value="pricing-rules" className=""
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -713,23 +713,23 @@ export default function LPU() {
             </Button>
           </div>
 
-          <div className="grid gap-4">
+          <div className=""
             {rulesLoading ? (
               <div className="text-center py-8">Carregando regras...</div>
             ) : filteredPricingRules.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className=""
                 {pricingRules.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
               </div>
             ) : (
               filteredPricingRules.map((rule: PricingRule) => (
-                <Card key={rule.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="flex-1">
+                <Card key={rule.id} className=""
+                  <CardHeader className=""
+                    <div className=""
                       <CardTitle className="text-base">{rule.name}</CardTitle>
                       {rule.description && (
                         <p className="text-sm text-muted-foreground">{rule.description}</p>
                       )}
-                      <div className="flex items-center space-x-2 mt-2">
+                      <div className=""
                         <Badge variant="outline" className="capitalize">{rule.ruleType}</Badge>
                         <Badge variant="secondary">Prioridade: {rule.priority}</Badge>
                         <Badge
@@ -740,7 +740,7 @@ export default function LPU() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className=""
                       <Button variant="outline" size="sm" onClick={() => handleEditPricingRule(rule)}>
                         <Edit className="mr-1 h-3 w-3" />
                         Editar
@@ -757,15 +757,15 @@ export default function LPU() {
           </div>
         </TabsContent>
 
-        <TabsContent value="associations" className="space-y-6">
-          <div className="flex justify-between items-center">
+        <TabsContent value="associations" className=""
+          <div className=""
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Associação de Regras</h2>
               <p className="text-gray-600">Associe regras de precificação às listas de preços</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className=""
             {/* Lista de Preços */}
             <Card>
               <CardHeader>
@@ -773,7 +773,7 @@ export default function LPU() {
                 <CardDescription>Selecione uma lista para gerenciar suas regras</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className=""
                   {priceLists.map((list) => (
                     <div
                       key={list.id}
@@ -784,12 +784,12 @@ export default function LPU() {
                       "
                       onClick={() => setSelectedPriceListForRules(list.id)}
                     >
-                      <div className="flex justify-between items-center">
+                      <div className=""
                         <div>
                           <h4 className="font-medium">{list.name}</h4>
                           <p className="text-sm text-gray-500">{list.code}</p>
                         </div>
-                        <Badge variant={list.isActive ? "default" : "secondary">
+                        <Badge variant={list.isActive ? "default" : "secondary>
                           {list.isActive ? "Ativa" : "Inativa"
                         </Badge>
                       </div>
@@ -806,15 +806,15 @@ export default function LPU() {
                 <CardDescription>Regras disponíveis para associação</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className=""
                   {pricingRules.map((rule) => (
-                    <div key={rule.id} className="p-3 border rounded-lg">
-                      <div className="flex justify-between items-center">
+                    <div key={rule.id} className=""
+                      <div className=""
                         <div>
                           <h4 className="font-medium">{rule.name}</h4>
                           <p className="text-sm text-gray-500">{rule.ruleType} • Prioridade: {rule.priority}</p>
                         </div>
-                        <Badge variant={rule.isActive ? "default" : "secondary">
+                        <Badge variant={rule.isActive ? "default" : "secondary>
                           {rule.isActive ? "Ativa" : "Inativa"
                         </Badge>
                       </div>
@@ -835,8 +835,8 @@ export default function LPU() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="text-sm text-gray-600">
+                <div className=""
+                  <div className=""
                     Lista selecionada: <strong>{priceLists.find(l => l.id === selectedPriceListForRules)?.name}</strong>
                   </div>
                   <Button
@@ -852,14 +852,14 @@ export default function LPU() {
           )}
         </TabsContent>
 
-        <TabsContent value="advanced-config" className="space-y-4">
-          <div className="flex items-center justify-between">
+        <TabsContent value="advanced-config" className=""
+          <div className=""
             <div>
               <h2 className="text-2xl font-bold">Configurações Avançadas</h2>
               <p className="text-muted-foreground">Configurações detalhadas de margens, fatores sazonais e simulações</p>
             </div>
-            <div className="flex space-x-2">
-              <Button onClick={() => setIsPriceSimulatorOpen(true)} variant="outline">
+            <div className=""
+              <Button onClick={() => setIsPriceSimulatorOpen(true)} variant="outline>
                 <Calculator className="mr-2 h-4 w-4" />
                 Simulador
               </Button>
@@ -880,9 +880,9 @@ export default function LPU() {
             />
           ) : (
             <Card>
-              <CardContent className="p-8 text-center">
+              <CardContent className=""
                 <Settings className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">
+                <p className=""
                   Selecione uma lista de preços para configurar margens avançadas
                 </p>
                 <Button 
@@ -896,8 +896,8 @@ export default function LPU() {
           )}
         </TabsContent>
 
-        <TabsContent value="versions" className="space-y-4">
-          <div className="flex items-center justify-between">
+        <TabsContent value="versions" className=""
+          <div className=""
             <div>
               <h2 className="text-2xl font-bold">Controle de Versões</h2>
               <p className="text-muted-foreground">Gerenciar versões e histórico de listas de preços</p>
@@ -908,18 +908,18 @@ export default function LPU() {
             </Button>
           </div>
 
-          <div className="grid gap-4">
+          <div className=""
             {priceLists.map((list: PriceList) => (
-              <Card key={list.id} className="hover:shadow-md transition-shadow">
+              <Card key={list.id} className=""
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className=""
                     <div>
                       <CardTitle className="text-lg">{list.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
+                      <p className=""
                         Versão Atual: {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className=""
                       <Badge variant="outline">v{list.version}</Badge>
                       <Button variant="outline" size="sm" onClick={() => {
                         setSelectedPriceList(list);
@@ -932,21 +932,21 @@ export default function LPU() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
+                  <div className=""
+                    <div className=""
                       <span className="text-muted-foreground">Última modificação:</span>
                       <span>{new Date(list.updatedAt).toLocaleString()}</span>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm">
+                    <div className=""
                       <span className="text-muted-foreground">Status:</span>
-                      <Badge variant={list.isActive ? "default" : "secondary">
+                      <Badge variant={list.isActive ? "default" : "secondary>
                         {list.isActive ? "Ativa" : "Inativa"
                       </Badge>
                     </div>
 
-                    <div className="border-t pt-3">
-                      <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className=""
+                      <div className=""
                         <div>
                           <div className="text-2xl font-bold text-blue-600">1</div>
                           <div className="text-xs text-muted-foreground">Versões</div>
@@ -962,7 +962,7 @@ export default function LPU() {
                       </div>
                     </div>
 
-                    <div className="flex space-x-2">
+                    <div className=""
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => {
                         const newVersion = (parseFloat(list.version) + 0.1).toFixed(1);
                         duplicatePriceListMutation.mutate(list.id);
@@ -984,7 +984,7 @@ export default function LPU() {
           </div>
 
           {priceLists.length === 0 && (
-            <div className="text-center py-12">
+            <div className=""
               <History className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-medium">Nenhuma lista de preços encontrada</h3>
               <p className="text-muted-foreground mb-4">Crie sua primeira lista para começar o controle de versões</p>
@@ -996,14 +996,14 @@ export default function LPU() {
           )}
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="flex items-center justify-between">
+        <TabsContent value="analytics" className=""
+          <div className=""
             <div>
               <h2 className="text-2xl font-bold">Análises e Relatórios</h2>
               <p className="text-muted-foreground">Insights detalhados sobre precificação e performance</p>
             </div>
-            <div className="flex space-x-2">
-              <Button variant="outline">
+            <div className=""
+              <Button variant="outline>
                 <Download className="mr-2 h-4 w-4" />
                 Exportar Dados
               </Button>
@@ -1015,17 +1015,17 @@ export default function LPU() {
           </div>
 
           {/* Métricas Principais */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className=""
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Margem Média</p>
                     <p className="text-2xl font-bold text-green-600">18.5%</p>
                   </div>
                   <Percent className="h-8 w-8 text-green-600" />
                 </div>
-                <div className="flex items-center mt-2 text-sm">
+                <div className=""
                   <ArrowUp className="h-4 w-4 text-green-600 mr-1" />
                   <span className="text-green-600">+2.3%</span>
                   <span className="text-muted-foreground ml-1">vs mês anterior</span>
@@ -1034,15 +1034,15 @@ export default function LPU() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Regras Aplicadas</p>
                     <p className="text-2xl font-bold text-blue-600">{pricingRules.filter(r => r.isActive).length}</p>
                   </div>
                   <Calculator className="h-8 w-8 text-blue-600" />
                 </div>
-                <div className="flex items-center mt-2 text-sm">
+                <div className=""
                   <span className="text-blue-600">{Math.round((pricingRules.filter(r => r.isActive).length / pricingRules.length) * 100)}%</span>
                   <span className="text-muted-foreground ml-1">das regras estão ativas</span>
                 </div>
@@ -1050,15 +1050,15 @@ export default function LPU() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Itens com Preços</p>
                     <p className="text-2xl font-bold text-purple-600">{priceListItems.length}</p>
                   </div>
                   <Package className="h-8 w-8 text-purple-600" />
                 </div>
-                <div className="flex items-center mt-2 text-sm">
+                <div className=""
                   <span className="text-purple-600">100%</span>
                   <span className="text-muted-foreground ml-1">cobertura de preços</span>
                 </div>
@@ -1066,15 +1066,15 @@ export default function LPU() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Valor Médio</p>
                     <p className="text-2xl font-bold text-orange-600">R$ 125,50</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-orange-600" />
                 </div>
-                <div className="flex items-center mt-2 text-sm">
+                <div className=""
                   <ArrowUp className="h-4 w-4 text-orange-600 mr-1" />
                   <span className="text-orange-600">+5.2%</span>
                   <span className="text-muted-foreground ml-1">vs mês anterior</span>
@@ -1084,24 +1084,24 @@ export default function LPU() {
           </div>
 
           {/* Gráficos e Análises */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Performance das Listas</CardTitle>
                 <CardDescription>Comparativo de utilização e eficiência</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className=""
                   {priceLists.slice(0, 5).map((list: PriceList, index) => (
-                    <div key={list.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-3">
+                    <div key={list.id} className=""
+                      <div className=""
                         <div className="w-3 h-3 rounded-full "" />
                         <div>
                           <p className="font-medium text-sm">{list.name}</p>
                           <p className="text-xs text-muted-foreground">v{list.version}</p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className=""
                         <p className="text-sm font-medium">{Math.floor(Math.random() * 100) + 50}%</p>
                         <p className="text-sm text-muted-foreground">utilização</p>
                       </div>
@@ -1117,47 +1117,47 @@ export default function LPU() {
                 <CardDescription>Evolução dos preços ao longo do tempo</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="p-3 border rounded-lg">
+                <div className=""
+                  <div className=""
+                    <div className=""
                       <div className="text-lg font-bold text-green-600">+12%</div>
                       <div className="text-xs text-muted-foreground">Últimos 30 dias</div>
                     </div>
-                    <div className="p-3 border rounded-lg">
+                    <div className=""
                       <div className="text-lg font-bold text-blue-600">+8%</div>
                       <div className="text-xs text-muted-foreground">Últimos 90 dias</div>
                     </div>
-                    <div className="p-3 border rounded-lg">
+                    <div className=""
                       <div className="text-lg font-bold text-purple-600">+15%</div>
                       <div className="text-xs text-muted-foreground">Último ano</div>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
+                  <div className=""
+                    <div className=""
                       <span className="text-sm">Materiais</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className=""
+                        <div className=""
                           <div className="bg-green-600 h-2 rounded-full" style={{ width: '75%' }}></div>
                         </div>
                         <span className="text-sm font-medium">75%</span>
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
+                    <div className=""
                       <span className="text-sm">Serviços</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className=""
+                        <div className=""
                           <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
                         </div>
                         <span className="text-sm font-medium">60%</span>
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
+                    <div className=""
                       <span className="text-sm">Mão de Obra</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className=""
+                        <div className=""
                           <div className="bg-purple-600 h-2 rounded-full" style={{ width: '85%' }}></div>
                         </div>
                         <span className="text-sm font-medium">85%</span>
@@ -1176,18 +1176,18 @@ export default function LPU() {
               <CardDescription>Gere relatórios específicos para suas necessidades</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button variant="outline" className="h-20 flex-col">
+              <div className=""
+                <Button variant="outline" className=""
                   <BarChart3 className="h-6 w-6 mb-2" />
                   Relatório de Margens
                 </Button>
 
-                <Button variant="outline" className="h-20 flex-col">
+                <Button variant="outline" className=""
                   <TrendingUp className="h-6 w-6 mb-2" />
                   Análise de Tendências
                 </Button>
 
-                <Button variant="outline" className="h-20 flex-col">
+                <Button variant="outline" className=""
                   <Target className="h-6 w-6 mb-2" />
                   Performance por Cliente
                 </Button>
@@ -1199,7 +1199,7 @@ export default function LPU() {
 
       {/* Create Price List Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Nova Lista de Preços</DialogTitle>
             <DialogDescription>
@@ -1216,7 +1216,7 @@ export default function LPU() {
 
       {/* Edit Price List Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Editar Lista de Preços</DialogTitle>
             <DialogDescription>
@@ -1279,7 +1279,7 @@ export default function LPU() {
 
       {/* View Items Dialog */}
       <Dialog open={isItemsDialogOpen} onOpenChange={setIsItemsDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Itens da Lista: {selectedPriceList?.name}</DialogTitle>
             <DialogDescription>
@@ -1300,7 +1300,7 @@ export default function LPU() {
 
       {/* Approval Workflow Dialog */}
       <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Workflow de Aprovação</DialogTitle>
             <DialogDescription>
@@ -1316,7 +1316,7 @@ export default function LPU() {
 
       {/* Version History Dialog */}
       <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>
               {selectedPriceList ? "
@@ -1347,7 +1347,7 @@ export default function LPU() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={confirmDelete} className=""
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1445,8 +1445,8 @@ function PriceListForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
         <div>
           <Label htmlFor="name">Nome da Lista</Label>
           <Input
@@ -1468,7 +1468,7 @@ function PriceListForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className=""
         <div>
           <Label htmlFor="validFrom">Válida a partir de</Label>
           <Input
@@ -1490,7 +1490,7 @@ function PriceListForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className=""
         <div>
           <Label htmlFor="currency">Moeda</Label>
           <Select
@@ -1559,8 +1559,8 @@ function PriceListForm({
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className=""
+        <div className=""
           <input
             type="checkbox"
             id="isActive"
@@ -1570,7 +1570,7 @@ function PriceListForm({
           <Label htmlFor="isActive">Lista Ativa</Label>
         </div>
 
-        <div className="flex gap-2">
+        <div className=""
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -1613,8 +1613,8 @@ function PricingRuleForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
         <div>
           <Label htmlFor="name">Nome da Regra</Label>
           <Input
@@ -1664,8 +1664,8 @@ function PricingRuleForm({
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className=""
+        <div className=""
           <input
             type="checkbox"
             id="isActive"
@@ -1675,7 +1675,7 @@ function PricingRuleForm({
           <Label htmlFor="isActive">Regra Ativa</Label>
         </div>
 
-        <div className="flex gap-2">
+        <div className=""
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -1781,15 +1781,15 @@ function PriceListItemsView({
   if (!priceList) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h3 className="text-lg font-semibold">{priceList.name}</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className=""
             {items.length} itens • Versão {priceList.version} • {priceList.currency}
           </p>
         </div>
-        <div className="flex space-x-2">
+        <div className=""
           <Button onClick={() => setIsAddItemDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Item
@@ -1804,7 +1804,7 @@ function PriceListItemsView({
       {isLoading || catalogLoading ? (
         <div className="text-center py-8">Carregando itens...</div>
       ) : items.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
+        <div className=""
           <Package className="w-12 h-12 mx-auto mb-4" />
           <p>Nenhum item encontrado nesta lista</p>
           <p className="text-sm mt-2">Adicione itens para começar a usar a lista de preços</p>
@@ -1814,7 +1814,7 @@ function PriceListItemsView({
           </Button>
         </div>
       ) : (
-        <div className="border rounded-lg">
+        <div className=""
           <Table>
             <TableHeader>
               <TableRow>
@@ -1855,7 +1855,7 @@ function PriceListItemsView({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex space-x-1">
+                    <div className=""
                       <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -1923,7 +1923,7 @@ function PriceListItemsView({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => itemToDelete && deleteItemMutation.mutate(itemToDelete.id)} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={() => itemToDelete && deleteItemMutation.mutate(itemToDelete.id)} className=""
               Remover
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1948,23 +1948,23 @@ function ApprovalWorkflowComponent({
   const pendingApprovals = priceLists.filter(list => !list.isActive);
 
   return (
-    <div className="space-y-4">
-      <div className="border rounded-lg">
-        <div className="p-4 border-b bg-gray-50">
+    <div className=""
+      <div className=""
+        <div className=""
           <h3 className="font-medium">Itens Pendentes de Aprovação</h3>
           <p className="text-sm text-muted-foreground">{pendingApprovals.length} itens aguardando aprovação</p>
         </div>
 
-        <div className="max-h-96 overflow-y-auto">
+        <div className=""
           {pendingApprovals.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className=""
               <CheckCircle className="w-12 h-12 mx-auto mb-4" />
               <p>Nenhum item pendente de aprovação</p>
             </div>
           ) : (
-            <div className="space-y-2 p-4">
+            <div className=""
               {pendingApprovals.map((list) => (
-                <div key={list.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                <div key={list.id} className=""
                   <input
                     type="checkbox"
                     checked={selectedForApproval.includes(list.id)}
@@ -1976,9 +1976,9 @@ function ApprovalWorkflowComponent({
                       }
                     }}
                   />
-                  <div className="flex-1">
+                  <div className=""
                     <p className="font-medium">{list.name}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className=""
                       Versão {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -1991,7 +1991,7 @@ function ApprovalWorkflowComponent({
       </div>
 
       {selectedForApproval.length > 0 && (
-        <div className="space-y-4">
+        <div className=""
           <div>
             <Label htmlFor="approvalNotes">Observações da Aprovação</Label>
             <Textarea
@@ -2003,7 +2003,7 @@ function ApprovalWorkflowComponent({
             />
           </div>
 
-          <div className="flex space-x-2">
+          <div className=""
             <Button
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() => {
@@ -2035,7 +2035,7 @@ function ApprovalWorkflowComponent({
         </div>
       )}
 
-      <div className="flex justify-end">
+      <div className=""
         <Button variant="outline" onClick={onClose}>
           Fechar
         </Button>
@@ -2054,7 +2054,7 @@ function VersionHistoryComponent({
 }) {
   if (!priceList) {
     return (
-      <div className="text-center py-8">
+      <div className=""
         <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="text-muted-foreground">Selecione uma lista de preços para ver o histórico</p>
         <Button className="mt-4" onClick={onClose}> Fechar</Button>
@@ -2088,29 +2088,29 @@ function VersionHistoryComponent({
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className=""
+      <div className=""
         <div>
           <h3 className="text-lg font-semibold">{priceList.name}</h3>
           <p className="text-sm text-muted-foreground">Histórico completo de versões</p>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className=""
         {versionHistory.map((version, index) => (
-          <div key={index} className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-3">
-                <Badge variant={index === 0 ? "default" : "secondary">
+          <div key={index} className=""
+            <div className=""
+              <div className=""
+                <Badge variant={index === 0 ? "default" : "secondary>
                   v{version.version}
                 </Badge>
                 <span className="text-sm font-medium">{version.user}</span>
-                <span className="text-sm text-muted-foreground">
+                <span className=""
                   {new Date(version.date).toLocaleString()}
                 </span>
               </div>
 
-              <div className="flex space-x-2">
+              <div className=""
                 {index === 0 && <Badge variant="default">Atual</Badge>}
                 {index > 0 && (
                   <Button variant="outline" size="sm" disabled={index === 0}>
@@ -2124,7 +2124,7 @@ function VersionHistoryComponent({
             <p className="text-sm text-gray-700">{version.changes}</p>
 
             {index < versionHistory.length - 1 && (
-              <div className="flex justify-center mt-3">
+              <div className=""
                 <div className="w-px h-4 bg-gray-300"></div>
               </div>
             )}
@@ -2132,7 +2132,7 @@ function VersionHistoryComponent({
         ))}
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className=""
         <Button variant="outline" onClick={onClose}>
           Fechar
         </Button>
@@ -2180,7 +2180,7 @@ function PriceListItemForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className=""
       {!initialData && (
         <div>
           <Label htmlFor="itemId">Item do Catálogo</Label>
@@ -2217,14 +2217,14 @@ function PriceListItemForm({
             </SelectContent>
           </Select>
           {selectedItem && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className=""
               {selectedItem.description}
             </p>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className=""
         <div>
           <Label htmlFor="unitPrice">Preço Unitário ({currency})</Label>
           <Input
@@ -2251,7 +2251,7 @@ function PriceListItemForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className=""
         <div>
           <Label htmlFor="hourlyRate">Taxa Horária ({currency})</Label>
           <Input
@@ -2278,8 +2278,8 @@ function PriceListItemForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className=""
+        <div className=""
           <input
             type="checkbox"
             id="isActive"
@@ -2289,7 +2289,7 @@ function PriceListItemForm({
           <Label htmlFor="isActive">Item Ativo</Label>
         </div>
 
-        <div className="flex gap-2">
+        <div className=""
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar

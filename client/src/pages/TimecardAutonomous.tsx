@@ -83,8 +83,8 @@ export default function TimecardAutonomous() {
 
   if (employmentLoading || statusLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
+      <div className="p-4"
+        <div className="p-4"
           <Clock className="mx-auto h-8 w-8 animate-spin text-blue-500" />
           <p className="mt-2 text-sm text-gray-500">Carregando controle de jornada...</p>
         </div>
@@ -97,36 +97,36 @@ export default function TimecardAutonomous() {
   const isOnBreak = currentStatus === 'on_break';
 
   return (
-    <div className="space-y-6">
+    <div className="p-4"
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="p-4"
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">{terminology.pageTitle}</h1>
-          <p className="text-sm text-gray-500">
+          <p className="p-4"
             Sistema de {terminology.recordLabel.toLowerCase()} para profissionais autônomos
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-mono text-gray-900">
+        <div className="p-4"
+          <div className="p-4"
             {format(currentTime, 'HH:mm:ss')}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="p-4"
             {format(currentTime, 'EEEE, dd \'de\' MMMM \'de\' yyyy', { locale: ptBR })}
           </div>
         </div>
       </div>
 
       {/* Status Card */}
-      <Card className="border-l-4 border-l-blue-500">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
+      <Card className="p-4"
+        <CardHeader className="p-4"
+          <CardTitle className="p-4"
             <Clock className="h-5 w-5" />
             Status Atual da Jornada
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="p-4"
+            <div className="p-4"
               <Badge 
                 variant={isWorking ? 'default' : isOnBreak ? 'secondary' : 'outline'}
                 className={`${
@@ -139,13 +139,13 @@ export default function TimecardAutonomous() {
                  isOnBreak ? terminology.statusLabels.onBreak :
                  terminology.statusLabels.offline}
               </Badge>
-              <span className="text-sm text-gray-600">
+              <span className="p-4"
                 {timecardStatus?.lastAction && 
                   "
                 }
               </span>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="p-4"
               {timecardStatus?.todayTotalTime && 
                 "
               }
@@ -157,13 +157,13 @@ export default function TimecardAutonomous() {
       {/* Action Buttons */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="p-4"
             <Play className="h-5 w-5" />
             {terminology.entryExitLabel}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4"
             <Button
               onClick={() => handleClockAction('clock_in')}
               disabled={isWorking || clockActionMutation.isPending}
@@ -208,38 +208,38 @@ export default function TimecardAutonomous() {
       {/* Today's Records */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="p-4"
             <Calendar className="h-5 w-5" />
             Registros de Hoje
           </CardTitle>
         </CardHeader>
         <CardContent>
           {todayRecords?.records?.length > 0 ? (
-            <div className="space-y-2">
+            <div className="p-4"
               {todayRecords.records.map((record: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
+                <div key={index} className="p-4"
+                  <div className="p-4"
                     <div className={`w-3 h-3 rounded-full ${
                       record.type === 'clock_in' ? 'bg-green-500' :
                       record.type === 'clock_out' ? 'bg-red-500' :
                       record.type === 'break_start' ? 'bg-yellow-500' :
                       'bg-blue-500'
                     " />
-                    <span className="font-medium">
+                    <span className="p-4"
                       {record.type === 'clock_in' ? terminology.actionLabels.clockIn :
                        record.type === 'clock_out' ? terminology.actionLabels.clockOut :
                        record.type === 'break_start' ? terminology.actionLabels.break :
                        terminology.actionLabels.return}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="p-4"
                     {format(new Date(record.timestamp), 'HH:mm:ss')}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="p-4"
               <Calendar className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2">Nenhum registro encontrado hoje</p>
               <p className="text-sm">Registre seu primeiro {terminology.actionLabels.clockIn.toLowerCase()}</p>
@@ -249,25 +249,25 @@ export default function TimecardAutonomous() {
       </Card>
 
       {/* Quick Access */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
+      <div className="p-4"
+        <Card className="p-4"
+          <CardContent className="p-4"
             <FileText className="mx-auto h-8 w-8 text-blue-500 mb-2" />
             <h3 className="font-medium">{terminology.reportLabel}</h3>
             <p className="text-sm text-gray-500">Visualizar registros mensais</p>
           </CardContent>
         </Card>
         
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
+        <Card className="p-4"
+          <CardContent className="p-4"
             <Clock className="mx-auto h-8 w-8 text-purple-500 mb-2" />
             <h3 className="font-medium">{terminology.timeControlLabel}</h3>
             <p className="text-sm text-gray-500">Acompanhar horas trabalhadas</p>
           </CardContent>
         </Card>
         
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
+        <Card className="p-4"
+          <CardContent className="p-4"
             <CheckCircle className="mx-auto h-8 w-8 text-green-500 mb-2" />
             <h3 className="font-medium">{terminology.approvalLabel}</h3>
             <p className="text-sm text-gray-500">Status de validação</p>

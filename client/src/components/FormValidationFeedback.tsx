@@ -88,7 +88,7 @@ export const AccessibleFormField: React.FC<{
       >
         {label}
         {required && (
-          <span className="text-red-500 ml-1" aria-label="obrigatório">
+          <span className="text-red-500 ml-1" aria-label="obrigatório>
             *
           </span>
         )}

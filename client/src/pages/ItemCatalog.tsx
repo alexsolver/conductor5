@@ -610,11 +610,11 @@ export default function ItemCatalog() {
   };
 
   const renderCatalogView = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Catálogo de Itens</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className=""
             {items.length} {items.length === 1 ? 'item encontrado' : 'itens encontrados'}
             {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && ' (filtrado)'}
           </p>
@@ -630,9 +630,9 @@ export default function ItemCatalog() {
       </div>
 
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
+        <CardContent className=""
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -642,9 +642,9 @@ export default function ItemCatalog() {
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className=""
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className=""
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -655,7 +655,7 @@ export default function ItemCatalog() {
               </Select>
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className=""
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -666,7 +666,7 @@ export default function ItemCatalog() {
               </Select>
 
               <Select value={hierarchyFilter} onValueChange={setHierarchyFilter}>
-                <SelectTrigger className="w-36">
+                <SelectTrigger className=""
                   <SelectValue placeholder="Hierarquia" />
                 </SelectTrigger>
                 <SelectContent>
@@ -677,7 +677,7 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center">
+              <div className=""
                 <Button
                   variant={isBulkMode ? "default" : "outline"
                   onClick={() => setIsBulkMode(!isBulkMode)}
@@ -685,7 +685,7 @@ export default function ItemCatalog() {
                 >
                   <div className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
                     isBulkMode ? 'bg-primary border-primary' : 'border-input'
-                  ">
+                  >
                     {isBulkMode && <div className="h-2 w-2 bg-primary-foreground rounded-sm" />}
                   </div>
                   Lote ({selectedItems.size})
@@ -697,21 +697,21 @@ export default function ItemCatalog() {
       </Card>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className=""
           {loading ? (
-            <div className="flex justify-center py-8">
+            <div className=""
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <span className="ml-2">Carregando itens...</span>
             </div>
           ) : items.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-gray-500 mb-4">
+            <div className=""
+              <div className=""
                 {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
                   ? '[TRANSLATION_NEEDED]'
                   : '[TRANSLATION_NEEDED]'}
               </div>
               {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
-                <Button onClick={() => window.location.reload()} variant="outline">
+                <Button onClick={() => window.location.reload()} variant="outline>
                   Recarregar página
                 </Button>
               )}
@@ -722,7 +722,7 @@ export default function ItemCatalog() {
                 <TableHeader>
                   <TableRow>
                     {isBulkMode && (
-                      <TableHead className="w-12">
+                      <TableHead className=""
                         <Checkbox
                           checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                           onCheckedChange={handleSelectAll}
@@ -761,7 +761,7 @@ export default function ItemCatalog() {
                         className="font-medium cursor-pointer hover:text-blue-600"
                         onClick={() => handleItemClick(item)}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className=""
                           {item.type === 'material' ?
                             <Package className="h-4 w-4 text-blue-600" /> :
                             <Wrench className="h-4 w-4 text-green-600" />
@@ -769,7 +769,7 @@ export default function ItemCatalog() {
                           <div>
                             <div className="font-medium">{item.name}</div>
                             {item.description && (
-                              <div className="text-sm text-gray-500 truncate max-w-64">
+                              <div className=""
                                 {item.description}
                               </div>
                             )}
@@ -783,24 +783,24 @@ export default function ItemCatalog() {
                         </Badge>
                       </TableCell>
 
-                      <TableCell className="text-sm font-mono">
+                      <TableCell className=""
                         {item.integrationCode || '-'}
                       </TableCell>
 
-                      <TableCell className="text-sm">
+                      <TableCell className=""
                         {item.measurementUnit}
                       </TableCell>
 
                       <TableCell>
-                        <div className="flex items-center gap-1">
+                        <div className=""
                           {item.isParent && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className=""
                               <Layers className="h-3 w-3 mr-1" />
                               Pai ({item.childrenCount || 0})
                             </Badge>
                           )}
                           {item.parentId && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className=""
                               <ChevronRight className="h-3 w-3 mr-1" />
                               Filho
                             </Badge>
@@ -813,7 +813,7 @@ export default function ItemCatalog() {
 
                       <TableCell>
                         {(item.companiesCount || 0) > 0 ? (
-                          <div className="flex items-center gap-1">
+                          <div className=""
                             <Building className="h-3 w-3 text-blue-600" />
                             <span className="text-sm">{item.companiesCount}</span>
                           </div>
@@ -824,7 +824,7 @@ export default function ItemCatalog() {
 
                       <TableCell>
                         {(item.suppliersCount || 0) > 0 ? (
-                          <div className="flex items-center gap-1">
+                          <div className=""
                             <Truck className="h-3 w-3 text-amber-600" />
                             <span className="text-sm">{item.suppliersCount}</span>
                           </div>
@@ -834,13 +834,13 @@ export default function ItemCatalog() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge variant={item.active ? "default" : "secondary">
+                        <Badge variant={item.active ? "default" : "secondary>
                           {item.active ? "Ativo" : "Inativo"
                         </Badge>
                       </TableCell>
 
                       <TableCell>
-                        <div className="flex items-center gap-1">
+                        <div className=""
                           <Button
                             variant="ghost"
                             size="sm"
@@ -898,11 +898,11 @@ export default function ItemCatalog() {
               </Table>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between p-4 border-t">
-                  <div className="text-sm text-gray-500">
+                <div className=""
+                  <div className=""
                     Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} de {filteredItems.length} itens
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className=""
                     <Button
                       variant="outline"
                       size="sm"
@@ -911,7 +911,7 @@ export default function ItemCatalog() {
                     >
                       Anterior
                     </Button>
-                    <span className="text-sm">
+                    <span className=""
                       Página {currentPage} de {totalPages}
                     </span>
                     <Button
@@ -936,9 +936,9 @@ export default function ItemCatalog() {
     if (!selectedItem) return null;
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className=""
+        <div className=""
+          <div className=""
             <Button
               variant="ghost"
               size="sm"
@@ -948,23 +948,23 @@ export default function ItemCatalog() {
               Voltar ao Catálogo
             </Button>
             <div className="h-6 w-px bg-gray-300" />
-            <div className="flex items-center gap-3">
+            <div className=""
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              ">
+              >
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
                 <h1 className="text-2xl font-bold">{selectedItem.name}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant={selectedItem.active ? "default" : "secondary">
+                <div className=""
+                  <Badge variant={selectedItem.active ? "default" : "secondary>
                     {selectedItem.active ? "Ativo" : "Inativo"
                   </Badge>
-                  <Badge variant="outline">
+                  <Badge variant="outline>
                     {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
                   </Badge>
                   {selectedItem.isParent && (
-                    <Badge variant="outline">
+                    <Badge variant="outline>
                       <Layers className="h-3 w-3 mr-1" />
                       Item Pai
                     </Badge>
@@ -974,7 +974,7 @@ export default function ItemCatalog() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className=""
             <Button
               variant="outline"
               onClick={() => handleEditItem(selectedItem)}
@@ -985,14 +985,14 @@ export default function ItemCatalog() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className=""
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Informações Gerais</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className=""
+                <div className=""
                   {selectedItem.integrationCode && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Código de Integração</label>
@@ -1035,17 +1035,17 @@ export default function ItemCatalog() {
               <CardHeader>
                 <CardTitle>Vínculos</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+              <CardContent className=""
+                <div className=""
+                  <div className=""
                     <Building className="h-4 w-4 text-blue-600" />
                     <span className="text-sm">Empresas</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.companiesCount || 0}</Badge>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className=""
+                  <div className=""
                     <Truck className="h-4 w-4 text-amber-600" />
                     <span className="text-sm">Fornecedores</span>
                   </div>
@@ -1053,8 +1053,8 @@ export default function ItemCatalog() {
                 </div>
 
                 {selectedItem.isParent && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className=""
+                    <div className=""
                       <Layers className="h-4 w-4 text-purple-600" />
                       <span className="text-sm">Itens Filhos</span>
                     </div>
@@ -1067,30 +1067,30 @@ export default function ItemCatalog() {
         </div>
 
         <Card>
-          <CardContent className="p-6">
-            <Tabs defaultValue="hierarchy" className="w-full">
+          <CardContent className=""
+            <Tabs defaultValue="hierarchy" className=""
               <TabsList>
                 <TabsTrigger value="hierarchy">Hierarquia Pai-Filho</TabsTrigger>
                 <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                 <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="hierarchy" className="space-y-4 mt-6">
-                <div className="text-center py-8">
+              <TabsContent value="hierarchy" className=""
+                <div className=""
                   <Layers className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">Funcionalidade de vínculos pai-filho será implementada</p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="companies" className="space-y-4 mt-6">
-                <div className="text-center py-8">
+              <TabsContent value="companies" className=""
+                <div className=""
                   <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">Lista de empresas vinculadas será implementada</p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="suppliers" className="space-y-4 mt-6">
-                <div className="text-center py-8">
+              <TabsContent value="suppliers" className=""
+                <div className=""
                   <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">Lista de fornecedores será implementada</p>
                 </div>
@@ -1108,9 +1108,9 @@ export default function ItemCatalog() {
     const itemLinks = itemLinksData || { customers: [], suppliers: [] };
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className=""
+        <div className=""
+          <div className=""
             <Button
               variant="ghost"
               size="sm"
@@ -1120,10 +1120,10 @@ export default function ItemCatalog() {
               Cancelar Edição
             </Button>
             <div className="h-6 w-px bg-gray-300" />
-            <div className="flex items-center gap-3">
+            <div className=""
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              ">
+              >
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
@@ -1135,13 +1135,13 @@ export default function ItemCatalog() {
         </div>
 
         <Form {...itemForm}>
-          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-6">
+          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className=""
             <Card>
               <CardHeader>
                 <CardTitle>Informações Básicas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className=""
+                <div className=""
                   <FormField
                     control={itemForm.control}
                     name="name"
@@ -1234,8 +1234,8 @@ export default function ItemCatalog() {
                   control={itemForm.control}
                   name="active"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
+                    <FormItem className=""
+                      <div className=""
                         <FormLabel className="text-base">Status Ativo</FormLabel>
                         <FormDescription>
                           Item disponível para uso
@@ -1251,7 +1251,7 @@ export default function ItemCatalog() {
                   )}
                 />
 
-                <div className="flex justify-end gap-2">
+                <div className=""
                   <Button type="submit" disabled={updateItemMutation.isPending}>
                     {updateItemMutation.isPending ? (
                       <>
@@ -1273,12 +1273,12 @@ export default function ItemCatalog() {
               <CardHeader>
                 <CardTitle>Vínculos Hierárquicos</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 {/* Campos para itens filhos com seleção múltipla */}
-                <div className="space-y-4">
+                <div className=""
                   <div>
                     <label className="text-sm font-medium">Itens Filhos</label>
-                    <div className="mt-2">
+                    <div className=""
                       <Select
                         value=""
                         onValueChange={(value) => {
@@ -1310,17 +1310,17 @@ export default function ItemCatalog() {
                     </div>
 
                     {/* Lista dos itens filhos selecionados */}
-                    <div className="mt-2 space-y-1">
+                    <div className=""
                       {(itemForm.watch("childrenIds") || []).map((childId) => {
                         const child = items.find(item => item.id === childId);
                         if (!child) return null;
 
                         return (
-                          <div key={childId} className="flex items-center justify-between bg-blue-50 border border-blue-200 p-2 rounded">
-                            <div className="flex items-center gap-2">
+                          <div key={childId} className=""
+                            <div className=""
                               <ChevronRight className="h-3 w-3 text-blue-600" />
                               <span className="text-sm font-medium">{child.name}</span>
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className=""
                                 {child.type === 'material' ? 'Material' : 'Serviço'}
                               </Badge>
                             </div>
@@ -1342,7 +1342,7 @@ export default function ItemCatalog() {
                       })}
                     </div>
 
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className=""
                       Selecione itens que serão filhos deste item. Os vínculos serão salvos automaticamente.
                     </p>
                   </div>
@@ -1354,15 +1354,15 @@ export default function ItemCatalog() {
               <CardHeader>
                 <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <Tabs defaultValue="companies" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+              <CardContent className=""
+                <Tabs defaultValue="companies" className=""
+                  <TabsList className=""
                     <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                     <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="companies" className="space-y-4 mt-6">
-                    <div className="flex items-center justify-between">
+                  <TabsContent value="companies" className=""
+                    <div className=""
                       <h3 className="text-lg font-medium">Empresas Vinculadas</h3>
                       <Select
                         onValueChange={async (companyId) => {
@@ -1410,9 +1410,9 @@ export default function ItemCatalog() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className=""
                       {itemLinks?.customers?.map((company: any) => (
-                        <div key={company.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                        <div key={company.id} className=""
                           <span>{company.name}</span>
                           <Button
                             variant="outline"
@@ -1449,15 +1449,15 @@ export default function ItemCatalog() {
                       ))}
 
                       {(!itemLinks?.customers || itemLinks.customers.length === 0) && (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className=""
                           Nenhuma empresa vinculada
                         </div>
                       )}
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="suppliers" className="space-y-4 mt-6">
-                    <div className="flex items-center justify-between">
+                  <TabsContent value="suppliers" className=""
+                    <div className=""
                       <h3 className="text-lg font-medium">Fornecedores Vinculados</h3>
                       <Select
                         onValueChange={async (supplierId) => {
@@ -1505,9 +1505,9 @@ export default function ItemCatalog() {
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className=""
                       {itemLinks?.suppliers?.map((supplier: any) => (
-                        <div key={supplier.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                        <div key={supplier.id} className=""
                           <span>{supplier.name}</span>
                           <Button
                             variant="outline"
@@ -1544,7 +1544,7 @@ export default function ItemCatalog() {
                       ))}
 
                       {(!itemLinks?.suppliers || itemLinks.suppliers.length === 0) && (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className=""
                           Nenhum fornecedor vinculado
                         </div>
                       )}
@@ -1560,8 +1560,8 @@ export default function ItemCatalog() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center space-x-2 text-sm text-gray-500">
+    <div className=""
+      <div className=""
         <span>Gestão</span>
         <ChevronRight className="h-4 w-4" />
         <span className="font-medium text-gray-900">Catálogo de Itens</span>
@@ -1583,7 +1583,7 @@ export default function ItemCatalog() {
           itemForm.reset();
         }
       }}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Criar Novo Item</DialogTitle>
             <DialogDescription>
@@ -1592,8 +1592,8 @@ export default function ItemCatalog() {
           </DialogHeader>
 
           <Form {...itemForm}>
-            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className=""
+              <div className=""
                 <FormField
                   control={itemForm.control}
                   name="name"
@@ -1686,8 +1686,8 @@ export default function ItemCatalog() {
                 control={itemForm.control}
                 name="active"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
+                  <FormItem className=""
+                    <div className=""
                       <FormLabel className="text-base">Status Ativo</FormLabel>
                       <FormDescription>
                         Item disponível para uso
@@ -1703,7 +1703,7 @@ export default function ItemCatalog() {
                 )}
               />
 
-              <div className="flex justify-end space-x-2 pt-4">
+              <div className=""
                 <Button
                   type="button"
                   variant="outline"

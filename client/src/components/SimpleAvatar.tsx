@@ -58,7 +58,7 @@ const SimpleAvatar: React.FC<SimpleAvatarProps> = ({
   const initials = getInitials(name);
 
   return (
-    <Avatar className="${sizeClasses[size]} "">
+    <Avatar className="${sizeClasses[size]} ">
       {imageUrl && (
         <AvatarImage 
           src={imageUrl} 
@@ -71,7 +71,7 @@ const SimpleAvatar: React.FC<SimpleAvatarProps> = ({
           }}
         />
       )}
-      <AvatarFallback className="bg-blue-500 text-white font-medium">
+      <AvatarFallback className="bg-blue-500 text-white font-medium>
         {initials}
       </AvatarFallback>
     </Avatar>

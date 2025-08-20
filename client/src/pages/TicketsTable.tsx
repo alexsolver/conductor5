@@ -88,9 +88,9 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
   }
 
   return (
-    <div className="border rounded-md">
+    <div className=""
       {!disabled && (
-        <div className="flex flex-wrap gap-1 p-2 border-b bg-gray-50">
+        <div className=""
           <Button
             type="button"
             variant="ghost"
@@ -154,7 +154,7 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
           </Button>
         </div>
       )}
-      <div className="min-h-[100px] p-3">
+      <div className=""
         <EditorContent
           editor={editor}
           className="prose prose-sm max-w-none focus:outline-none"
@@ -504,7 +504,7 @@ const TicketsTable = React.memo(() => {
       if (searchTerm) params.append('search', searchTerm);
 
       const response = await apiRequest("GET", "/api/tickets"
-      if (!response.ok) throw new Error('Failed to fetch tickets');
+      ); if (!response.ok) throw new Error("Failed to fetch tickets");
       return response.json();
     },
     staleTime: 2 * 60 * 1000, // 2 minutos
@@ -995,7 +995,7 @@ const TicketsTable = React.memo(() => {
         case 'created':
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <div className="text-sm">
+              <div className=""
                 {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
                   ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
                       day: '2-digit',
@@ -1005,7 +1005,7 @@ const TicketsTable = React.memo(() => {
                   : 'N/A'
                 }
               </div>
-              <div className="text-xs text-gray-500">
+              <div className=""
                 {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
                   ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleTimeString('pt-BR', {
                       hour: '2-digit',
@@ -1018,7 +1018,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'description':
           return (
-            <TableCell className="max-w-xs truncate">
+            <TableCell className=""
               {ticket.description?.substring(0, 100) || '-'}
             </TableCell>
           );
@@ -1629,9 +1629,9 @@ const TicketsTable = React.memo(() => {
                 description: errorText,
                 variant: "destructive",
               });
-            })} className="space-y-6">
+            })} className=""
         {/* Basic Information */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-medium">Basic Information</h3>
 
           <FormField
@@ -1652,7 +1652,7 @@ const TicketsTable = React.memo(() => {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className=""
             <FormField
               control={form.control}
               name="category"
@@ -1689,10 +1689,10 @@ const TicketsTable = React.memo(() => {
         </div>
 
         {/* Priority & Impact */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-medium">Priority & Impact</h3>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className=""
             <FormField
               control={form.control}
               name="priority"
@@ -1753,10 +1753,10 @@ const TicketsTable = React.memo(() => {
         </div>
 
         {/* Assignment */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-medium">Assignment</h3>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className=""
             <FormField
               control={form.control}
               name="callerId"
@@ -1894,7 +1894,7 @@ const TicketsTable = React.memo(() => {
         </div>
 
         {/* Business Impact */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
 
           <FormField
@@ -1915,7 +1915,7 @@ const TicketsTable = React.memo(() => {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className=""
             <FormField
               control={form.control}
               name="symptoms"
@@ -1969,7 +1969,7 @@ const TicketsTable = React.memo(() => {
 
 
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
+        <div className=""
           <Button
             type="button"
             variant="outline"
@@ -2004,12 +2004,12 @@ const TicketsTable = React.memo(() => {
         cursor: isResizing ? 'col-resize' : 'default'
       }}>
         {/* Header */}
-        <div className="flex justify-between items-center ml-[20px] mr-[20px]">
+        <div className=""
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
             <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
           </div>
-          <div className="flex gap-3">
+          <div className=""
             <Button
               onClick={() => setIsNewTicketModalOpen(true)}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
@@ -2020,14 +2020,14 @@ const TicketsTable = React.memo(() => {
           </div>
         </div>
       {/* Seletor de Visualizações */}
-      <Card className="mb-6">
-        <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[3px] pb-[3px]">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+      <Card className=""
+        <CardHeader className=""
+          <div className=""
+            <CardTitle className=""
               <Filter className="h-5 w-5" />
               Visualizações de Tickets
             </CardTitle>
-            <div className="flex gap-2">
+            <div className=""
               <Button variant="outline" size="sm" onClick={() => setIsNewViewDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Visualização
@@ -2039,9 +2039,9 @@ const TicketsTable = React.memo(() => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 pt-[0px] pb-[0px]">
-          <div className="flex items-center gap-4 pt-[10px] pb-[10px]">
-            <div className="flex items-center gap-2">
+        <CardContent className=""
+          <div className=""
+            <div className=""
               <span className="text-sm font-medium">Visualização Ativa:</span>
               <select
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
@@ -2065,12 +2065,12 @@ const TicketsTable = React.memo(() => {
       </Card>
       {/* Filters */}
       <Card>
-        <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[0px] pb-[0px]">
+        <CardHeader className=""
           <CardTitle className="text-lg">Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
+          <div className=""
+            <div className=""
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -2106,9 +2106,9 @@ const TicketsTable = React.memo(() => {
       {/* Tickets Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className=""
             <span>Tickets ({pagination.total})</span>
-            <span className="text-sm font-normal text-gray-500">
+            <span className=""
               Page {currentPage} of {pagination.totalPages}
             </span>
           </CardTitle>
@@ -2132,7 +2132,7 @@ const TicketsTable = React.memo(() => {
       </Card>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <Button
           variant="outline"
           onClick={() => setCurrentPage(currentPage - 1)}
@@ -2153,7 +2153,7 @@ const TicketsTable = React.memo(() => {
 
       {/* Modals */}
       <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Novo Ticket</DialogTitle>
           </DialogHeader>
@@ -2163,16 +2163,16 @@ const TicketsTable = React.memo(() => {
 
       {/* Modal para criar nova visualização */}
       <Dialog open={isNewViewDialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>{editingView ? 'Editar Visualização' : 'Criar Nova Visualização'}</DialogTitle>
             <DialogDescription>
               Configure sua visualização personalizada de tickets
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 py-4">
+          <div className=""
             {/* Nome da visualização */}
-            <div className="space-y-2">
+            <div className=""
               <Label htmlFor="name">Nome da Visualização</Label>
               <Input
                 type="text"
@@ -2184,7 +2184,7 @@ const TicketsTable = React.memo(() => {
             </div>
 
             {/* Descrição */}
-            <div className="space-y-2">
+            <div className=""
               <Label htmlFor="description">Descrição</Label>
               <Textarea
                 id="description"
@@ -2196,11 +2196,11 @@ const TicketsTable = React.memo(() => {
             </div>
 
             {/* Seleção de colunas */}
-            <div className="space-y-3">
+            <div className=""
               <Label>Colunas Visíveis</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
+              <div className=""
                 {availableColumns.map((column) => (
-                  <div key={column.id} className="flex items-center space-x-2">
+                  <div key={column.id} className=""
                     <input
                       type="checkbox"
                       id={"
@@ -2223,9 +2223,9 @@ const TicketsTable = React.memo(() => {
             </div>
 
             {/* Opções adicionais */}
-            <div className="space-y-3">
+            <div className=""
               <Label>Opções</Label>
-              <div className="flex items-center space-x-2">
+              <div className=""
                 <input
                   type="checkbox"
                   id="public"
@@ -2233,14 +2233,14 @@ const TicketsTable = React.memo(() => {
                   checked={isPublicView}
                   onChange={() => setIsPublicView(!isPublicView)}
                 />
-                <label htmlFor="public" className="text-sm font-medium text-gray-700 cursor-pointer">
+                <label htmlFor="public" className=""
                   Tornar esta visualização pública (visível para outros usuários)
                 </label>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t">
+          <div className=""
             <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
               Cancelar
             </Button>
@@ -2253,21 +2253,21 @@ const TicketsTable = React.memo(() => {
 
       {/* Modal para gerenciar visualizações */}
       <Dialog open={isManageViewsOpen} onOpenChange={() => setIsManageViewsOpen((open) => !open)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Gerenciar Visualizações</DialogTitle>
             <DialogDescription>
               Gerencie e personalize suas visualizações de tickets.
             </DialogDescription>
           </DialogHeader>
-          <div className="divide-y divide-gray-200">
+          <div className=""
             {ticketViews.map((view: any) => (
-              <div key={view.id} className="py-4 flex items-center justify-between">
+              <div key={view.id} className=""
                 <div>
                   <h3 className="text-lg font-medium">{view.name}</h3>
                   <p className="text-sm text-gray-500">{view.description || "Sem descrição"}</p>
                 </div>
-                <div className="flex space-x-2">
+                <div className=""
                   <Button variant="outline" size="sm" onClick={() => handleEditView(view)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Editar
@@ -2285,17 +2285,17 @@ const TicketsTable = React.memo(() => {
 
       {/* Modal de Filtros Avançados */}
       <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Filtros Avançados</DialogTitle>
             <DialogDescription>
               Configure filtros detalhados para refinar sua busca de tickets
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className=""
+            <div className=""
               {/* Filtro por Status */}
-              <div className="space-y-2">
+              <div className=""
                 <Label>Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
@@ -2312,7 +2312,7 @@ const TicketsTable = React.memo(() => {
               </div>
 
               {/* Filtro por Prioridade */}
-              <div className="space-y-2">
+              <div className=""
                 <Label>Prioridade</Label>
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                   <SelectTrigger>
@@ -2329,7 +2329,7 @@ const TicketsTable = React.memo(() => {
               </div>
 
               {/* Filtro por Empresa */}
-              <div className="space-y-2">
+              <div className=""
                 <Label>Empresa</Label>
                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                   <SelectTrigger>
@@ -2347,7 +2347,7 @@ const TicketsTable = React.memo(() => {
               </div>
 
               {/* Filtro por Categoria */}
-              <div className="space-y-2">
+              <div className=""
                 <Label>Categoria</Label>
                 <Select value="" onValueChange={() => {}}>
                   <SelectTrigger>
@@ -2364,7 +2364,7 @@ const TicketsTable = React.memo(() => {
               </div>
 
               {/* Filtro por Responsável */}
-              <div className="space-y-2">
+              <div className=""
                 <Label>Responsável</Label>
                 <Select value="" onValueChange={() => {}}>
                   <SelectTrigger>
@@ -2380,9 +2380,9 @@ const TicketsTable = React.memo(() => {
               </div>
 
               {/* Filtro por Data de Criação */}
-              <div className="space-y-2">
+              <div className=""
                 <Label>Data de Criação</Label>
-                <div className="flex gap-2">
+                <div className=""
                   <Input
                     type="date"
                     placeholder="De"
@@ -2397,7 +2397,7 @@ const TicketsTable = React.memo(() => {
               </div>
             </div>
           </div>
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className=""
             <Button variant="outline" onClick={() => setIsAdvancedFiltersOpen(false)}>
               Cancelar
             </Button>

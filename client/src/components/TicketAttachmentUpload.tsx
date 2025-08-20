@@ -147,7 +147,7 @@ export function TicketAttachmentUpload({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       {/* Upload Area */}
       <Card 
         className={`border-2 border-dashed transition-colors ${
@@ -159,7 +159,7 @@ export function TicketAttachmentUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <CardContent className="p-6 text-center">
+        <CardContent className="p-6 text-center>
           <input
             type="file"
             multiple
@@ -169,10 +169,10 @@ export function TicketAttachmentUpload({
             accept="*/*"
           />
           
-          <div className="flex flex-col items-center space-y-3">
+          <div className="flex flex-col items-center space-y-3>
             <Paperclip className="h-8 w-8 text-gray-400" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-900>
                 Drop files here or{' '}
                 <label 
                   htmlFor="file-upload" 
@@ -181,7 +181,7 @@ export function TicketAttachmentUpload({
                   browse
                 </label>
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1>
                 Maximum file size: 10MB
               </p>
             </div>
@@ -190,8 +190,8 @@ export function TicketAttachmentUpload({
       </Card>
 
       {/* Description Field */}
-      <div className="space-y-2">
-        <Label htmlFor="attachment-description" className="text-sm font-medium text-gray-900">
+      <div className="space-y-2>
+        <Label htmlFor="attachment-description" className="text-sm font-medium text-gray-900>
           Descrição do anexo (opcional)
         </Label>
         <Textarea
@@ -202,21 +202,21 @@ export function TicketAttachmentUpload({
           className="min-h-[80px]"
           maxLength={500}
         />
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500>
           {description.length}/500 caracteres
         </p>
       </div>
 
       {/* Selected Files */}
       {selectedFiles.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2>
           <h4 className="text-sm font-medium text-gray-900">Selected Files:</h4>
           {selectedFiles.map((file, index) => (
             <div 
               key={"
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3>
                 {file.preview ? (
                   <img 
                     src={file.preview} 
@@ -227,10 +227,10 @@ export function TicketAttachmentUpload({
                   <File className="h-6 w-6 text-gray-400" />
                 )}
                 <div>
-                  <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                  <p className="text-sm font-medium text-gray-900 truncate max-w-xs>
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500>
                     {formatFileSize(file.size)}
                   </p>
                 </div>
@@ -248,7 +248,7 @@ export function TicketAttachmentUpload({
           ))}
           
           {/* Upload Button */}
-          <div className="flex justify-end space-x-2 pt-2">
+          <div className="flex justify-end space-x-2 pt-2>
             <Button
               variant="outline"
               onClick={() => setSelectedFiles([])}

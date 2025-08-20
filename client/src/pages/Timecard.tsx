@@ -387,28 +387,28 @@ export default function Timecard() {
       (monthlyReport?.records ? calculateMonthlyTotals(monthlyReport.records) : null);
 
     return (
-      <Card className="border-2">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 border-b">
-          <div className="flex justify-between items-start">
+      <Card className="p-4"
+        <CardHeader className="p-4"
+          <div className="p-4"
             <div>
-              <CardTitle className="flex items-center gap-2 text-lg">
+              <CardTitle className="p-4"
                 <FileText className="h-6 w-6" />
                 ESPELHO DE PONTO ELETRÔNICO
               </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="p-4"
                 {format(new Date(), 'MMMM yyyy', { locale: ptBR }).toUpperCase()}
               </p>
             </div>
-            <div className="text-right text-xs text-gray-500">
+            <div className="p-4"
               <div>Portaria MTE 671/2021</div>
               <div>Sistema CLT Compliant</div>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-4"
           {/* Cabeçalho com informações do funcionário */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="p-4"
+            <div className="p-4"
               <div>
                 <strong>Funcionário:</strong> {userInfo?.firstName} {userInfo?.lastName}<br/>
                 <strong>Matrícula:</strong> {userInfo?.id?.slice(-8) || 'N/A'}<br/>
@@ -423,21 +423,21 @@ export default function Timecard() {
           </div>
 
           {monthlyLoading ? (
-            <div className="text-center py-8">
+            <div className="p-4"
               <div className="animate-pulse">Carregando espelho de ponto...</div>
             </div>
           ) : monthlyError ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="p-4"
               <div>📄 Carregando espelho de ponto...</div>
               <div className="text-sm mt-2">Aguarde enquanto os dados são processados</div>
             </div>
           ) : monthlyReport?.records && monthlyReport.records.length > 0 ? (
             <>
               {/* Tabela de registros */}
-              <div className="overflow-x-auto mb-6">
-                <table className="w-full border-collapse border border-gray-300 text-sm">
+              <div className="p-4"
+                <table className="p-4"
                   <thead>
-                    <tr className="bg-gray-100">
+                    <tr className="p-4"
                       <th className="border border-gray-300 px-3 py-2">Data</th>
                       <th className="border border-gray-300 px-3 py-2">Dia</th>
                       <th className="border border-gray-300 px-3 py-2">1ª Entrada</th>
@@ -457,33 +457,33 @@ export default function Timecard() {
                         
                         return (
                           <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                            <td className="border border-gray-300 px-3 py-2">
+                            <td className="p-4"
                               {formatDate(record.date)}
                             </td>
-                            <td className="border border-gray-300 px-3 py-2 capitalize">
+                            <td className="p-4"
                               {dayName.slice(0, 3)}
                             </td>
-                            <td className="border border-gray-300 px-3 py-2 font-mono">
+                            <td className="p-4"
                               {record.checkIn ? formatTime(record.checkIn) : '--:--'}
                             </td>
-                            <td className="border border-gray-300 px-3 py-2 font-mono">
+                            <td className="p-4"
                               {record.breakStart ? formatTime(record.breakStart) : '--:--'}
                             </td>
-                            <td className="border border-gray-300 px-3 py-2 font-mono">
+                            <td className="p-4"
                               {record.breakEnd ? formatTime(record.breakEnd) : '--:--'}
                             </td>
-                            <td className="border border-gray-300 px-3 py-2 font-mono">
+                            <td className="p-4"
                               {record.checkOut ? formatTime(record.checkOut) : '--:--'}
                             </td>
-                            <td className="border border-gray-300 px-3 py-2 font-mono text-center">
+                            <td className="p-4"
                               {record.totalHours ? record.totalHours + "h" : "0:00"
                             </td>
-                            <td className="border border-gray-300 px-3 py-2 text-center">
+                            <td className="p-4"
                               <span className={`px-2 py-1 text-xs rounded ${
                                 record.status === 'approved' ? 'bg-green-100 text-green-800' :
                                 record.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                 'bg-gray-100 text-gray-800'
-                              ">
+                              >
                                 {record.status === 'approved' ? 'OK' : 
                                  record.status === 'pending' ? 'Pend' : 
                                  'Proc'}
@@ -498,25 +498,25 @@ export default function Timecard() {
 
               {/* Resumo mensal */}
               {monthlyTotals && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-blue-50 rounded-lg">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       {typeof monthlyTotals.totalHours === 'string' ? monthlyTotals.totalHours : monthlyTotals.totalHours.toFixed(1)}h
                     </div>
                     <div className="text-sm text-gray-600">Total de Horas</div>
                   </div>
-                  <div className="text-center">
+                  <div className="p-4"
                     <div className="text-2xl font-bold text-green-600">{monthlyTotals.totalDays || monthlyTotals.workingDays || 0}</div>
                     <div className="text-sm text-gray-600">Dias Trabalhados</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">
+                  <div className="p-4"
+                    <div className="p-4"
                       {typeof monthlyTotals.overtimeHours === 'string' ? monthlyTotals.overtimeHours : monthlyTotals.overtimeHours.toFixed(1)}h
                     </div>
                     <div className="text-sm text-gray-600">Horas Extras</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="p-4"
+                    <div className="p-4"
                       {monthlyTotals.averageHoursPerDay || '0.0'}h
                     </div>
                     <div className="text-sm text-gray-600">Média/Dia</div>
@@ -525,25 +525,25 @@ export default function Timecard() {
               )}
 
               {/* Observações e assinaturas */}
-              <div className="mt-6 space-y-4 text-xs">
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <div className="p-4"
+                <div className="p-4"
                   <strong>Observações:</strong>
-                  <ul className="list-disc ml-4 mt-1">
+                  <ul className="p-4"
                     <li>Registros realizados através de sistema eletrônico CLT-compliant</li>
                     <li>Integridade garantida por hash SHA-256 conforme Portaria MTE 671/2021</li>
                     <li>Todos os horários estão em fuso horário UTC-3 (Brasília)</li>
                   </ul>
                 </div>
                 
-                <div className="flex justify-between pt-4 border-t">
-                  <div className="text-center">
-                    <div className="border-t border-gray-400 pt-1 w-48">
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <strong>Funcionário</strong><br/>
                       {userInfo?.firstName} {userInfo?.lastName}
                     </div>
                   </div>
-                  <div className="text-center">
-                    <div className="border-t border-gray-400 pt-1 w-48">
+                  <div className="p-4"
+                    <div className="p-4"
                       <strong>Responsável RH</strong><br/>
                       Sistema Automatizado CLT
                     </div>
@@ -552,10 +552,10 @@ export default function Timecard() {
               </div>
             </>
           ) : (
-            <div className="text-center text-gray-500 py-12">
+            <div className="p-4"
               <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <div className="font-medium">Nenhum registro para este período</div>
-              <div className="text-sm mt-1">
+              <div className="p-4"
                 Os registros de ponto aparecerão aqui após serem processados
               </div>
             </div>
@@ -571,8 +571,8 @@ export default function Timecard() {
   const availableActions = getAvailableActions(status, currentStatus?.todayRecords);
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4"
+      <div className="p-4"
         <h1 className="text-2xl font-bold">Registro de Ponto</h1>
         {getStatusBadge(status)}
       </div>
@@ -580,37 +580,37 @@ export default function Timecard() {
       {/* Card Principal - Registrar Ponto */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="p-4"
             <Clock className="h-5 w-5" />
             Registro de Ponto
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center">
-            <div className="text-3xl font-mono">
+        <CardContent className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               {format(new Date(), 'HH:mm:ss', { locale: ptBR })}
             </div>
-            <div className="text-gray-500">
+            <div className="p-4"
               {format(new Date(), 'dd/MM/yyyy', { locale: ptBR })}
             </div>
           </div>
 
           {location && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="p-4"
               <MapPin className="h-4 w-4" />
               Localização capturada: {location.coords.latitude.toFixed(6)}, {location.coords.longitude.toFixed(6)}
             </div>
           )}
 
           {locationError && (
-            <div className="flex items-center gap-2 text-sm text-yellow-600">
+            <div className="p-4"
               <AlertTriangle className="h-4 w-4" />
               {locationError}
             </div>
           )}
 
           {/* Botões de Ação */}
-          <div className="space-y-2">
+          <div className="p-4"
             {availableActions.map((action, index) => (
               <Button
                 key={action.type}
@@ -629,26 +629,26 @@ export default function Timecard() {
       {/* Registros de Hoje */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="p-4"
             <Calendar className="h-5 w-5" />
             Registros de Hoje
           </CardTitle>
         </CardHeader>
         <CardContent>
           {statusLoading ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="p-4"
               <div className="animate-pulse">Carregando registros...</div>
             </div>
           ) : statusError ? (
-            <div className="text-center text-red-500 py-8">
-              <div className="flex items-center justify-center gap-2">
+            <div className="p-4"
+              <div className="p-4"
                 <AlertTriangle className="h-4 w-4" />
                 Erro ao carregar registros
               </div>
               <div className="text-sm mt-2">Tente recarregar a página</div>
             </div>
           ) : (statusData?.todayRecords?.length > 0 || currentStatus?.todayRecords?.length > 0) ? (
-            <div className="space-y-3">
+            <div className="p-4"
               {(statusData?.todayRecords || currentStatus?.todayRecords || [])
                 .sort((a, b) => {
                   // Ordenar por data de criação, mais recente primeiro
@@ -657,35 +657,35 @@ export default function Timecard() {
                   return dateB.getTime() - dateA.getTime();
                 })
                 .map((record: TimeRecord) => (
-                <div key={record.id} className="flex justify-between items-center py-3 border-b">
+                <div key={record.id} className="p-4"
                   <div>
-                    <div className="font-medium">
+                    <div className="p-4"
                       {record.checkIn && record.checkOut ? 'Entrada/Saída Completa' : 
                        record.checkIn ? 'Entrada Registrada' :
                        record.checkOut ? 'Saída Registrada' : 'Registro'}
                     </div>
-                    <div className="text-sm text-gray-500 flex gap-2">
+                    <div className="p-4"
                       <span>Status: {record.status === 'pending' ? 'Aguardando aprovação' : record.status || 'pending'}</span>
                       {record.totalHours && <span>• {record.totalHours}h</span>}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="p-4"
                     {record.checkIn && record.checkOut ? (
                       <div>
-                        <div className="font-mono text-sm">
+                        <div className="p-4"
                           Entrada: {formatTime(record.checkIn)}
                         </div>
-                        <div className="font-mono text-sm">
+                        <div className="p-4"
                           Saída: {formatTime(record.checkOut)}
                         </div>
                       </div>
                     ) : (
-                      <div className="font-mono">
+                      <div className="p-4"
                         {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt || '')}
                       </div>
                     )}
                     {record.location && (
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="p-4"
                         <MapPin className="h-3 w-3 inline mr-1" />
                         Geo localizado
                       </div>
@@ -695,10 +695,10 @@ export default function Timecard() {
               ))}
             </div>
           ) : (
-            <div className="text-center text-gray-500 py-8">
+            <div className="p-4"
               <div className="mb-2">📝</div>
               <div className="font-medium">Nenhum registro para hoje</div>
-              <div className="text-sm mt-1">
+              <div className="p-4"
                 Registre seu primeiro ponto do dia usando o botão acima
               </div>
             </div>
@@ -707,13 +707,13 @@ export default function Timecard() {
       </Card>
 
       {/* Status e Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="p-4"
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-4"
             <CardTitle className="text-sm font-medium">Horas Trabalhadas Hoje</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="p-4"
               {calculateTodayHours(currentStatus?.todayRecords || [])}
             </div>
             <p className="text-xs text-gray-500">Meta: 8h</p>
@@ -721,11 +721,11 @@ export default function Timecard() {
         </Card>
         
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-4"
             <CardTitle className="text-sm font-medium">Total de Horas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="p-4"
               {currentStatus?.timesheet?.totalHours?.toFixed(1) || '0'}h
             </div>
             <p className="text-xs text-gray-500">Registradas hoje</p>
@@ -733,11 +733,11 @@ export default function Timecard() {
         </Card>
         
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-4"
             <CardTitle className="text-sm font-medium">Status CLT</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="p-4"
               {(currentStatus?.todayRecords?.length || 0) > 0 ? 'OK' : 'Pendente'}
             </div>
             <p className="text-xs text-gray-500">Conformidade</p>
@@ -748,32 +748,32 @@ export default function Timecard() {
       {/* Espelho de Ponto Eletrônico */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="p-4"
             <FileText className="h-5 w-5" />
             Espelho de Ponto Eletrônico
           </CardTitle>
-          <div className="text-sm text-gray-600">
+          <div className="p-4"
             {format(new Date(), 'MMMM yyyy', { locale: ptBR }).toUpperCase()} - Portaria MTE 671/2021 Sistema CLT Compliant
           </div>
         </CardHeader>
         <CardContent>
           {mirrorLoading ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="p-4"
               <div className="animate-pulse">Carregando espelho de ponto...</div>
             </div>
           ) : mirrorError ? (
-            <div className="text-center text-red-500 py-8">
-              <div className="flex items-center justify-center gap-2">
+            <div className="p-4"
+              <div className="p-4"
                 <AlertTriangle className="h-4 w-4" />
                 Erro ao carregar espelho de ponto
               </div>
               <div className="text-sm mt-2">Tente recarregar a página</div>
             </div>
           ) : mirrorData?.records && mirrorData.records.length > 0 ? (
-            <div className="space-y-4">
+            <div className="p-4"
               {/* Cabeçalho do Relatório */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="p-4"
+                <div className="p-4"
                   <div>
                     <strong>Funcionário:</strong> {userInfo?.firstName || 'Alex'} {userInfo?.lastName || 'Silva'}<br/>
                     <strong>Matrícula:</strong> {userInfo?.id?.slice(-8) || '55440001'}<br/>
@@ -788,10 +788,10 @@ export default function Timecard() {
               </div>
 
               {/* Tabela de Registros */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-300 text-sm">
+              <div className="p-4"
+                <table className="p-4"
                   <thead>
-                    <tr className="bg-gray-100">
+                    <tr className="p-4"
                       <th className="border border-gray-300 px-2 py-2 text-left">Data</th>
                       <th className="border border-gray-300 px-2 py-2 text-left">Dia</th>
                       <th className="border border-gray-300 px-2 py-2 text-center">1ª Entrada</th>
@@ -810,7 +810,7 @@ export default function Timecard() {
                         return dateA.getTime() - dateB.getTime();
                       })
                       .map((record: any, index: number) => (
-                        <tr key={index} className="hover:bg-gray-50 "">
+                        <tr key={index} className="hover:bg-gray-50 ">
                           <td className="border border-gray-300 px-2 py-2 font-medium">{record.date}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center">{record.dayOfWeek}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstEntry || '--:--'}</td>
@@ -818,14 +818,14 @@ export default function Timecard() {
                           <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondEntry || '--:--'}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondExit || '--:--'}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center font-mono font-semibold">{record.totalHours}</td>
-                          <td className="border border-gray-300 px-2 py-2 text-center">
+                          <td className="p-4"
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                               record.status === 'Aprovado' ? 'bg-green-100 text-green-800' :
                               record.status === 'Inconsistente' ? 'bg-red-100 text-red-800' :
                               record.status === 'Pendente' ? 'bg-yellow-100 text-yellow-800' :
                               record.status === 'Em andamento' ? 'bg-blue-100 text-blue-800' :
                               'bg-gray-100 text-gray-800'
-                            ">
+                            >
                               {record.status === 'Aprovado' ? 'OK' :
                                record.status === 'Inconsistente' ? 'INC' :
                                record.status === 'Pendente' ? 'PEN' : 
@@ -840,20 +840,20 @@ export default function Timecard() {
 
               {/* Resumo do Período */}
               {mirrorData.summary && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-blue-50 rounded-lg text-sm">
-                  <div className="text-center">
+                <div className="p-4"
+                  <div className="p-4"
                     <div className="text-xl font-bold text-blue-600">{mirrorData.summary.totalHours || '0.0'}h</div>
                     <div className="text-gray-600">Total de Horas</div>
                   </div>
-                  <div className="text-center">
+                  <div className="p-4"
                     <div className="text-xl font-bold text-green-600">{mirrorData.summary.workingDays || 0}</div>
                     <div className="text-gray-600">Dias Trabalhados</div>
                   </div>
-                  <div className="text-center">
+                  <div className="p-4"
                     <div className="text-xl font-bold text-orange-600">{mirrorData.summary.overtimeHours || '0.0'}h</div>
                     <div className="text-gray-600">Horas Extras</div>
                   </div>
-                  <div className="text-center">
+                  <div className="p-4"
                     <div className="text-xl font-bold text-purple-600">{mirrorData.summary.averageHoursPerDay || '0.0'}h</div>
                     <div className="text-gray-600">Média Diária</div>
                   </div>
@@ -861,10 +861,10 @@ export default function Timecard() {
               )}
             </div>
           ) : (
-            <div className="text-center text-gray-500 py-12">
+            <div className="p-4"
               <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <div className="font-medium">Nenhum registro para este período</div>
-              <div className="text-sm mt-1">
+              <div className="p-4"
                 Os registros de ponto aparecerão aqui após serem processados
               </div>
             </div>
@@ -873,9 +873,9 @@ export default function Timecard() {
       </Card>
 
       {/* Ações Rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="p-4"
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/timecard-reports'}>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-4"
             <FileText className="h-8 w-8 mx-auto mb-2 text-blue-500" />
             <div className="font-medium">Espelho de Ponto</div>
             <div className="text-sm text-gray-500">Ver registros mensais</div>
@@ -883,7 +883,7 @@ export default function Timecard() {
         </Card>
 
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/clt-compliance'}>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-4"
             <Clock className="h-8 w-8 mx-auto mb-2 text-green-500" />
             <div className="font-medium">Banco de Horas</div>
             <div className="text-sm text-gray-500">Saldo e movimentações</div>
@@ -891,7 +891,7 @@ export default function Timecard() {
         </Card>
 
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/timecard-reports'}>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-4"
             <BarChart3 className="h-8 w-8 mx-auto mb-2 text-purple-500" />
             <div className="font-medium">Relatórios</div>
             <div className="text-sm text-gray-500">Análises e compliance</div>

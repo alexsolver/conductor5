@@ -49,12 +49,12 @@ export function UserManagement() {
   const userStats = stats?.stats;
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6">
-        <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">
+    <div className="p-4"
+        <div className="p-4"
+          <h2 className="p-4"
             {t("userManagement.title", "Gestão de Usuários")}
           </h2>
-          <div className="flex items-center space-x-2">
+          <div className="p-4"
             <Button onClick={() => setShowInviteUser(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
               {t("userManagement.inviteUser", "Convidar Usuário")}
@@ -67,70 +67,70 @@ export function UserManagement() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="p-4"
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 {t("userManagement.stats.totalUsers", "Total de Usuários")}
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="p-4"
                 {statsLoading ? "..." : userStats?.totalUsers || 0}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="p-4"
                 {t("userManagement.stats.totalUsersDesc", "Usuários registrados")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 {t("userManagement.stats.activeUsers", "Usuários Ativos")}
               </CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="p-4"
                 {statsLoading ? "..." : userStats?.activeUsers || 0}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="p-4"
                 {t("userManagement.stats.activeUsersDesc", "Contas ativas")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 {t("userManagement.stats.pendingInvitations", "Convites Pendentes")}
               </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="p-4"
                 {statsLoading ? "..." : userStats?.pendingInvitations || 0}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="p-4"
                 {t("userManagement.stats.pendingInvitationsDesc", "Aguardando resposta")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 {t("userManagement.stats.activeSessions", "Sessões Ativas")}
               </CardTitle>
               <Monitor className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="p-4"
                 {statsLoading ? "..." : userStats?.activeSessions || 0}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="p-4"
                 {t("userManagement.stats.activeSessionsDesc", "Usuários conectados")}
               </p>
             </CardContent>
@@ -149,9 +149,9 @@ export function UserManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
+              <div className="p-4"
                 {Object.entries(userStats.roleDistribution).map(([role, count]) => (
-                  <Badge key={role} variant="secondary" className="px-3 py-1">
+                  <Badge key={role} variant="secondary" className="p-4"
                     {role}: {count}
                   </Badge>
                 ))}
@@ -161,55 +161,55 @@ export function UserManagement() {
         )}
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="users" className="space-y-4">
+        <Tabs defaultValue="users" className="p-4"
           <TabsList>
-            <TabsTrigger value="users">
+            <TabsTrigger value="users>
               <Users className="mr-2 h-4 w-4" />
               {t("userManagement.tabs.users", "Usuários")}
             </TabsTrigger>
-            <TabsTrigger value="groups">
+            <TabsTrigger value="groups>
               <Users className="mr-2 h-4 w-4" />
               {t("userManagement.tabs.groups", "Grupos")}
             </TabsTrigger>
-            <TabsTrigger value="roles">
+            <TabsTrigger value="roles>
               <Shield className="mr-2 h-4 w-4" />
               {t("userManagement.tabs.roles", "Papéis")}
             </TabsTrigger>
-            <TabsTrigger value="invitations">
+            <TabsTrigger value="invitations>
               <UserPlus className="mr-2 h-4 w-4" />
               {t("userManagement.tabs.invitations", "Convites")}
             </TabsTrigger>
-            <TabsTrigger value="sessions">
+            <TabsTrigger value="sessions>
               <Monitor className="mr-2 h-4 w-4" />
               {t("userManagement.tabs.sessions", "Sessões")}
             </TabsTrigger>
-            <TabsTrigger value="activity">
+            <TabsTrigger value="activity>
               <Activity className="mr-2 h-4 w-4" />
               {t("userManagement.tabs.activity", "Atividade")}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="users" className="space-y-4">
+          <TabsContent value="users" className="p-4"
             <UserList />
           </TabsContent>
 
-          <TabsContent value="groups" className="space-y-4">
+          <TabsContent value="groups" className="p-4"
             <UserGroups />
           </TabsContent>
 
-          <TabsContent value="roles" className="space-y-4">
+          <TabsContent value="roles" className="p-4"
             <CustomRoles />
           </TabsContent>
 
-          <TabsContent value="invitations" className="space-y-4">
+          <TabsContent value="invitations" className="p-4"
             <UserInvitations />
           </TabsContent>
 
-          <TabsContent value="sessions" className="space-y-4">
+          <TabsContent value="sessions" className="p-4"
             <UserSessions />
           </TabsContent>
 
-          <TabsContent value="activity" className="space-y-4">
+          <TabsContent value="activity" className="p-4"
             <UserActivity />
           </TabsContent>
         </Tabs>

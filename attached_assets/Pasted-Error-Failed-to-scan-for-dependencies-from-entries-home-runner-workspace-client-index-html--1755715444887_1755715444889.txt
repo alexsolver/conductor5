@@ -1,0 +1,600 @@
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] Expected ">" but found "\">\n        <div className=\""
+
+    client/src/components/LocalizationSettings.tsx:50:33:
+      50 │       <div className="space-y-4 "">
+         │                                  ~~
+         ╵                                  >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/approvals/ApprovalDashboard.tsx:37:64:
+      37 │           <Card key={i} className="animate-pulse" data-testid={"
+         ╵                                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/approvals/ApprovalGroupsManager.tsx:77:28:
+      77 │           'Authorization': "
+         ╵                             ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/approvals/ApprovalInstances.tsx:76:25:
+      76 │       return apiRequest("
+         ╵                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/approvals/UnifiedApprovalConfigurator.tsx:136:28:
+      136 │           'Authorization': "
+          ╵                             ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/layout/Header.tsx:122:19:
+      122 │                   "
+          ╵                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/layout/Sidebar.tsx:217:48:
+      217 │       const response = await apiRequest('GET', "
+          ╵                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/templates/CompanyTemplateSelector.tsx:47:57:
+      47 │       const response = await apiRequest('GET', "/stats`);
+         ╵                                                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/templates/TemplateAnalytics.tsx:41:57:
+      41 │       const response = await apiRequest('GET', "/stats`);
+         ╵                                                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/templates/TemplateCanvasEditor.tsx:118:85:
+      118 │ ...on === 'custom' ? 'bg-purple-50 border-purple-200' : 'bg-white'"
+          ╵                                                                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/ui/form.tsx:66:29:
+      66 │     formItemId: "-form-item`,
+         ╵                              ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/ui/progress.tsx:19:33:
+      19 │       style={{ transform: "%)` }}
+         ╵                                  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/CreateUserDialog.tsx:444:37:
+      444 │                                 id={"
+          ╵                                      ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/CustomRoles.tsx:153:25:
+      153 │       apiRequest('PUT', "
+          ╵                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/InviteUserDialog.tsx:193:31:
+      193 │                           id={"
+          ╵                                ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/UserActivity.tsx:229:33:
+      229 │                               ? "
+          ╵                                  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/UserGroups.tsx:111:32:
+      111 │           name: member.name || "
+          ╵                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/UserInvitations.tsx:56:36:
+      56 │       return apiRequest("/resend`, {
+         ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/UserList.tsx:102:38:
+      102 │       const endpoint = tenantAdmin ? "
+          ╵                                       ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/components/user-management/UserSessions.tsx:77:39:
+      77 │       return apiRequest("/terminate`, {
+         ╵                                        ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/contexts/SimpleTimerContext.tsx:74:36:
+      74 │       const response = await fetch("
+         ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/hooks/useAuth.tsx:65:24:
+      65 │           console.warn("
+         ╵                         ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/AbsenceManagement.tsx:143:49:
+      143 │       return await apiRequest('PUT', "/approve`);
+          ╵                                                  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ActivityPlanner.tsx:1047:92:
+      1047 │ ...d} className="hover:shadow-md transition-shadow" data-testid={"
+           ╵                                                                   ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/AgendaManager.tsx:148:48:
+      148 │       const response = await apiRequest('GET', "
+          ╵                                                 ^
+
+
+✘ [ERROR] Expected ">" but found "\" />\n                            <span className=\""
+
+    client/src/pages/Analytics.tsx:279:66:
+      279 │ ...                       <div className="w-3 h-3 rounded-full "" />
+          │                                                                 ~~~~
+          ╵                                                                 >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/AssetManagement.tsx:137:68:
+      137 │ ...mutationFn: (assetId: string) => apiRequest('POST', "/qr-code`),
+          ╵                                                                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Beneficiaries.tsx:148:36:
+      148 │       const response = await fetch("
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CLTCompliance.tsx:89:57:
+      89 │         description: " registros corrigidos com sucesso`,
+         ╵                                                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CertificateManager.tsx:43:28:
+      43 │           'Authorization': "
+         ╵                             ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Companies.tsx:151:25:
+      151 │       apiRequest('PUT', "
+          ╵                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ComplianceManagement.tsx:201:72:
+      201 │ ...tionFn: (alertId: string) => apiRequest('POST', "/acknowledge`),
+          ╵                                                                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ContractManagement.tsx:97:36:
+      97 │       const response = await fetch("
+         ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CorporateExpenseManagement.tsx:387:48:
+      387 │       const response = await apiRequest('GET', "
+          ╵                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CustomFieldsAdministrator.tsx:100:36:
+      100 │       const response = await fetch("
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CustomerItemMappings.tsx:84:48:
+      84 │       const response = await apiRequest('GET', "
+         ╵                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Customers.tsx:138:14:
+      138 │       return "
+          ╵               ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Dashboard.tsx:65:17:
+      65 │       value: "h`,
+         ╵                  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/DashboardView.tsx:107:40:
+      107 │                 title: ticket.title || "
+          ╵                                         ^
+
+
+✘ [ERROR] Unterminated regular expression
+
+    client/src/pages/Dashboards.tsx:238:22:
+      238 │                 </div>
+          ╵                       ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/DragDropDemo.tsx:65:15:
+      65 │           id: "
+         ╵                ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/GdprCompliancePage.tsx:819:28:
+      819 │           'Authorization': "
+          ╵                             ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/HolidayCalendar.tsx:113:36:
+      113 │       const response = await fetch("
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/HourBank.tsx:63:48:
+      63 │       const response = await apiRequest('GET', "
+         ╵                                                 ^
+
+
+✘ [ERROR] Expected "}" but found "style"
+
+    client/src/pages/InternalForms.tsx:173:18:
+      173 │                   style={{ backgroundColor: form.isActive ? getCa...
+          │                   ~~~~~
+          ╵                   }
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ItemCatalog.tsx:218:19:
+      218 │       const url = "
+          ╵                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/KnowledgeBase.tsx:86:19:
+      86 │       const url = "
+         ╵                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/LPU.tsx:142:57:
+      142 │       const response = await apiRequest('GET', "/items`);
+          ╵                                                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/LocationsNew.tsx:249:58:
+      249 │     const statsKey = "Stats` as keyof typeof statsQueries;
+          ╵                                                           ^
+
+
+✘ [ERROR] Expected ">" but found "\"\n                                >\n                                  {getStatusIcon(module.status)}\n                                  <span className=\""
+
+    client/src/pages/ModuleIntegrityControl.tsx:340:46:
+      340 │                                   className="""
+          │                                               ^
+          ╵                                               >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/NotificationsPage.tsx:143:23:
+      143 │       }).toString()", {
+          ╵                        ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/OmniBridge.tsx:190:36:
+      190 │           'Authorization': token ? "
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ProductivityReports.tsx:60:48:
+      60 │       const response = await apiRequest('GET', "
+         ╵                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ReportCreate.tsx:194:15:
+      194 │               "
+          ╵                ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ReportEdit.tsx:58:38:
+      58 │     queryFn: () => apiRequest("GET", "
+         ╵                                       ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Reports.tsx:147:17:
+      147 │     setLocation("
+          ╵                  ^
+
+
+✘ [ERROR] Expected "}" but found "."
+
+    client/src/pages/SaasAdmin.tsx:296:31:
+      296 │                           {user.isActive ? 'Ativo' : 'Inativo'}
+          │                                ^
+          ╵                                }
+
+
+✘ [ERROR] Expected ">" but found "\" />\n                        <div>\n                          <div className=\""
+
+    client/src/pages/SaasAdminDisasterRecovery.tsx:250:62:
+      250 │                         <div className="w-3 h-3 rounded-full "" />
+          │                                                               ~~~~
+          ╵                                                               >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/SaasAdminIntegrations.tsx:118:28:
+      118 │       const url = "/config`;
+          ╵                             ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/SaasAdminPerformance.tsx:238:27:
+      238 │                       "} />
+          ╵                            ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/SlaManagement.tsx:269:13:
+      269 │       fetch("
+          ╵              ^
+
+
+✘ [ERROR] Unterminated regular expression
+
+    client/src/pages/StockManagement.tsx:200:17:
+      200 │         </Button>
+          ╵                  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/SupplierManagement.tsx:130:48:
+      130 │       const response = await apiRequest('PUT', "
+          ╵                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TeamManagement.tsx:176:100:
+      176 │ ...lastName || ''.toLowerCase().includes(searchTerm.toLowerCase());
+          ╵                                                                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TechnicalSkills.tsx:745:1:
+      745 │ }
+          ╵  ^
+
+
+✘ [ERROR] Expected ";" but found ")"
+
+    client/src/pages/TemplateSelector.tsx:203:66:
+      203 │   const [customName, setCustomName] = useState(" (Personalizado)"));
+          │                                                                   ^
+          ╵                                                                   ;
+
+
+✘ [ERROR] Expected "}" but found "."
+
+    client/src/pages/TenantAdmin.tsx:416:29:
+      416 │                         {user.isActive ? "Ativo" : "Inativo"}
+          │                              ^
+          ╵                              }
+
+
+✘ [ERROR] Expected "}" but found "icon"
+
+    client/src/pages/TenantAdminGeral.tsx:247:14:
+      247 │               icon={TrendingUp}
+          │               ~~~~
+          ╵               }
+
+
+✘ [ERROR] Expected "}" but found ")"
+
+    client/src/pages/TenantAdminIntegrations.tsx:722:84:
+      722 │ ...�� [CONFIG-LOAD] Buscando configuração para: ${integration.id);
+          │                                                                 ^
+          ╵                                                                 }
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TenantAdminWorkflows.tsx:423:29:
+      423 │                         "} />
+          ╵                              ^
+
+
+✘ [ERROR] Expected "}" but found "A"
+
+    client/src/pages/TicketConfiguration.tsx:493:55:
+      493 │ ...nfiguração salva com sucesso"A opção foi atualizada no sis...
+          │                                 ^
+          ╵                                 }
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TicketDetails.tsx:514:26:
+      514 │         id: action.id || "
+          ╵                           ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TicketMaterials.tsx:107:103:
+      107 │ ...i/materials-services/tickets/" + ticketId + "/consumed-items", {
+          ╵                                                                    ^
+
+
+✘ [ERROR] Unexpected "const"
+
+    client/src/pages/TicketsTable.tsx:506:29:
+      506 │       const response = await const response = await apiRequest("G...
+          ╵                              ~~~~~
+
+
+✘ [ERROR] Unterminated regular expression
+
+    client/src/pages/Timecard.tsx:480:33:
+      480 │                             </td>
+          ╵                                  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TimecardApprovalSettings.tsx:822:1:
+      822 │ }
+          ╵  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TimecardApprovals.tsx:319:16:
+      319 │               ">
+          ╵                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TimecardAutonomous.tsx:136:17:
+      136 │                 "
+          ╵                  ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TimecardReports.tsx:463:30:
+      463 │                             ">
+          ╵                               ^
+
+
+✘ [ERROR] Unexpected ")"
+
+    client/src/pages/TranslationManager.tsx:166:51:
+      166 │     if (confirm("Confirma a exclusão do backup?"))) {
+          ╵                                                   ^
+
+
+✘ [ERROR] Expected "}" but found "onClick"
+
+    client/src/pages/UserProfile.tsx:395:14:
+      395 │               onClick={() => setIsEditing(!isEditing)}
+          │               ~~~~~~~
+          ╵               }
+
+
+✘ [ERROR] Expected "}" but found "size"
+
+    client/src/pages/WorkSchedules.tsx:136:12:
+      136 │             size="sm"
+          │             ~~~~
+          ╵             }
+
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/esbuild/lib/main.js:924:7)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/home/runner/workspace/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/home/runner/workspace/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)

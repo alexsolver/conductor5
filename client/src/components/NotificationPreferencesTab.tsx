@@ -364,8 +364,8 @@ export default function NotificationPreferencesTab() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="animate-pulse">
+      <div className="space-y-4>
+        <div className="animate-pulse>
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
@@ -376,11 +376,11 @@ export default function NotificationPreferencesTab() {
   if (!preferences) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8">
+        <CardContent className="pt-6>
+          <div className="text-center py-8>
             <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">Erro ao carregar preferências de notificação</p>
-            <Button onClick={() => refetch()} className="mt-4">
+            <Button onClick={() => refetch()} className="mt-4>
               Tentar Novamente
             </Button>
           </div>
@@ -390,14 +390,14 @@ export default function NotificationPreferencesTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       {/* Header with Save and Reset Buttons */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center>
         <div>
           <h2 className="text-2xl font-bold">Preferências de Notificação</h2>
           <p className="text-gray-600">Configure como deseja receber suas notificações</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2>
           <Button 
             variant="outline"
             onClick={handleResetToDefaults} 
@@ -423,7 +423,7 @@ export default function NotificationPreferencesTab() {
       {/* Global Channel Controls */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Sliders className="h-5 w-5" />
             Controles Globais de Canais
           </CardTitle>
@@ -431,8 +431,8 @@ export default function NotificationPreferencesTab() {
             Ativar/desativar canais específicos para todas as notificações
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <CardContent className="space-y-4>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3>
             {NOTIFICATION_CHANNELS.map((channel) => {
               const IconComponent = channel.icon;
               const isEnabled = preferences?.preferences?.globalSettings?.globalChannels?.[channel.id] ?? true;
@@ -449,9 +449,9 @@ export default function NotificationPreferencesTab() {
                   data-testid={"
                 >
                   <IconComponent className="h-5 w-5 "" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm "">
+                  <div className="flex-1>
+                    <div className="flex items-center gap-2>
+                      <span className="font-medium text-sm ">
                         {channel.name}
                       </span>
                       <Switch
@@ -461,7 +461,7 @@ export default function NotificationPreferencesTab() {
                         data-testid={"
                       />
                     </div>
-                    <p className="text-xs "">
+                    <p className="text-xs ">
                       {channel.description}
                     </p>
                   </div>
@@ -475,7 +475,7 @@ export default function NotificationPreferencesTab() {
       {/* Global Settings */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Settings className="h-5 h-5" />
             Configurações Gerais
           </CardTitle>
@@ -483,8 +483,8 @@ export default function NotificationPreferencesTab() {
             Configurações globais de notificação
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+        <CardContent className="space-y-4>
+          <div className="flex items-center justify-between>
             <div>
               <Label>Não Perturbe</Label>
               <p className="text-sm text-gray-600">Suspender todas as notificações temporariamente</p>
@@ -498,8 +498,8 @@ export default function NotificationPreferencesTab() {
 
           <Separator />
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between>
+            <div className="flex items-center gap-2>
               <Volume2 className="h-4 w-4" />
               <div>
                 <Label>Som Habilitado</Label>
@@ -513,8 +513,8 @@ export default function NotificationPreferencesTab() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between>
+            <div className="flex items-center gap-2>
               <Vibrate className="h-4 w-4" />
               <div>
                 <Label>Vibração Habilitada</Label>
@@ -530,7 +530,7 @@ export default function NotificationPreferencesTab() {
 
           <Separator />
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between>
             <div>
               <Label>Resumo por Email</Label>
               <p className="text-sm text-gray-600">Receber resumo das notificações por email</p>
@@ -543,7 +543,7 @@ export default function NotificationPreferencesTab() {
           </div>
 
           {preferences?.preferences?.globalSettings?.emailDigest && (
-            <div className="flex items-center justify-between pl-4">
+            <div className="flex items-center justify-between pl-4>
               <Label>Frequência do Resumo</Label>
               <Select
                 value={preferences?.preferences?.globalSettings?.digestFrequency || 'daily'}
@@ -563,7 +563,7 @@ export default function NotificationPreferencesTab() {
                   setIsModified(true);
                 }}
               >
-                <SelectTrigger className="w-32" data-testid="select-digest-frequency">
+                <SelectTrigger className="w-32" data-testid="select-digest-frequency>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -580,7 +580,7 @@ export default function NotificationPreferencesTab() {
       {/* Delivery Window */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Clock className="h-5 w-5" />
             Janela de Entrega
           </CardTitle>
@@ -588,8 +588,8 @@ export default function NotificationPreferencesTab() {
             Configure o horário para receber notificações
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-4>
+          <div className="grid grid-cols-2 gap-4>
             <div>
               <Label>Horário Inicial</Label>
               <Input
@@ -613,7 +613,7 @@ export default function NotificationPreferencesTab() {
       </Card>
 
       {/* Notification Types */}
-      <div className="space-y-4">
+      <div className="space-y-4>
         <h3 className="text-lg font-semibold">Tipos de Notificação</h3>
         
         {NOTIFICATION_TYPES.map((type) => {
@@ -623,11 +623,11 @@ export default function NotificationPreferencesTab() {
 
           return (
             <Card key={type.id}>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
+              <CardContent className="pt-6>
+                <div className="space-y-4>
+                  <div className="flex items-center justify-between>
+                    <div className="flex-1>
+                      <div className="flex items-center gap-3>
                         <h4 className="font-medium">{type.name}</h4>
                         <Badge variant={
                           type.priority === 'critical' ? 'destructive' :
@@ -649,9 +649,9 @@ export default function NotificationPreferencesTab() {
                   </div>
 
                   {isEnabled && (
-                    <div className="border-t pt-4">
+                    <div className="border-t pt-4>
                       <Label className="text-sm font-medium">Canais de Entrega</Label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2>
                         {NOTIFICATION_CHANNELS.map((channel) => {
                           const isSelected = selectedChannels.includes(channel.id);
                           const IconComponent = channel.icon;
@@ -668,7 +668,7 @@ export default function NotificationPreferencesTab() {
                               data-testid={"
                             >
                               <IconComponent className="h-4 w-4" />
-                              <div className="flex-1">
+                              <div className="flex-1>
                                 <span className="text-sm font-medium">{channel.name}</span>
                                 <p className="text-xs text-gray-500">{channel.description}</p>
                               </div>
@@ -689,7 +689,7 @@ export default function NotificationPreferencesTab() {
       </div>
 
       {/* Action Buttons at Bottom */}
-      <div className="flex justify-center gap-4 pt-4">
+      <div className="flex justify-center gap-4 pt-4>
         <Button 
           variant="outline"
           onClick={handleResetToDefaults} 

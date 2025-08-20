@@ -139,11 +139,11 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   };
 
   return (
-    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm>
       {/* Header with Search */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="relative w-64">
+      <div className="p-4 border-b border-gray-200>
+        <div className="flex items-center justify-between>
+          <div className="relative w-64>
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               type="text"
@@ -155,18 +155,18 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
           </div>
 
           {/* Fixed to hourly view for 14 days */}
-          <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+          <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg>
             Visualização por hora - 14 dias
           </div>
         </div>
       </div>
 
       {/* Timeline Grid */}
-      <div className="border rounded-lg bg-white overflow-hidden">
+      <div className="border rounded-lg bg-white overflow-hidden>
         {/* Header with time slots */}
-        <div className="flex border-b bg-gray-50">
+        <div className="flex border-b bg-gray-50>
           {/* Left sidebar space */}
-          <div className="w-64 flex-shrink-0 border-r bg-gray-100 p-4">
+          <div className="w-64 flex-shrink-0 border-r bg-gray-100 p-4>
             <div className="text-sm font-medium text-gray-700">Técnicos</div>
           </div>
 
@@ -176,7 +176,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             className="flex-1 overflow-x-auto"
             onScroll={syncScrollToContent}
           >
-            <div className="flex">
+            <div className="flex>
               {/* Group time slots by day */}
               {days.map((day, dayIndex) => {
                 const dayTimeSlots = timeSlots.filter(slot => 
@@ -189,7 +189,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                 const cellWidth = 32; // Fixed 32px width for better text readability
 
                 return (
-                  <div key={dayIndex} className="border-r">
+                  <div key={dayIndex} className="border-r>
                     {/* Day header */}
                     <div 
                       className="bg-gray-200 border-b text-center py-1 text-xs font-semibold text-gray-700"
@@ -198,14 +198,14 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                       {format(day, 'eee. dd/MM', { locale: ptBR })}
                     </div>
                     {/* Time slots for this day */}
-                    <div className="flex">
+                    <div className="flex>
                       {dayTimeSlots.map((timeSlot, slotIndex) => (
                         <div 
                           key={slotIndex} 
                           className={`flex-shrink-0 px-1 py-2 text-center border-r last:border-r-0"
                           style={{ width: "px` }}
                         >
-                          <div className="text-xs font-medium text-gray-900">
+                          <div className="text-xs font-medium text-gray-900>
                             {formatTimeSlot(timeSlot)}
                           </div>
                         </div>
@@ -219,17 +219,17 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
         </div>
 
         {/* Content area */}
-        <div className="flex">
+        <div className="flex>
           {/* Left sidebar with agent list */}
-          <div className="w-64 flex-shrink-0 border-r bg-gray-50">
+          <div className="w-64 flex-shrink-0 border-r bg-gray-50>
             {filteredAgents.map((agent) => {
               const agentName = agent.name || "
 
               return (
-                <div key={agent.id} className="border-b">
+                <div key={agent.id} className="border-b>
                   {/* Planned row */}
-                  <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between">
-                    <div className="text-sm flex-1 flex items-center gap-2">
+                  <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between>
+                    <div className="text-sm flex-1 flex items-center gap-2>
                       <SimpleAvatar 
                         src={agent.profileImageUrl} 
                         name={agentName} 
@@ -243,8 +243,8 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                   </div>
 
                   {/* Actual row */}
-                  <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between">
-                    <div className="text-sm flex-1 flex items-center gap-2">
+                  <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between>
+                    <div className="text-sm flex-1 flex items-center gap-2>
                       <SimpleAvatar 
                         src={agent.profileImageUrl} 
                         name={agentName} 
@@ -267,7 +267,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             className="flex-1 overflow-x-auto"
             onScroll={syncScrollToHeader}
           >
-            <div className="flex">
+            <div className="flex>
               {/* Group content by day to match header structure */}
               {days.map((day, dayIndex) => {
                 const dayTimeSlots = timeSlots.filter(slot => 
@@ -279,7 +279,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                 const cellWidth = 32; // Fixed 32px width for better text readability
 
                 return (
-                  <div key={dayIndex} className="flex border-r">
+                  <div key={dayIndex} className="flex border-r>
                     {dayTimeSlots.map((timeSlot, timeIndex) => (
                       <div 
                         key={timeIndex} 
@@ -291,7 +291,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                           const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
 
                           return (
-                            <div key={agent.id} className="border-b">
+                            <div key={agent.id} className="border-b>
                               {/* Planned row */}
                               <div 
                                 className="h-10 relative border-b border-gray-100 cursor-pointer bg-white hover:bg-gray-50"

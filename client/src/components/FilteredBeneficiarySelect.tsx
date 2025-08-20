@@ -140,9 +140,9 @@ export function FilteredBeneficiarySelect({
                                      beneficiary.email || 'Favorecido sem nome';
               return (
                 <SelectItem key={beneficiary.id} value={beneficiary.id}>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col>
                     <span>{beneficiaryName}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500>
                       {beneficiary.email} {beneficiary.cpfCnpj && "
                     </span>
                   </div>

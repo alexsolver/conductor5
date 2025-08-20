@@ -96,8 +96,8 @@ export default function MarginConfigurationPanel({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6>
+      <div className="flex items-center justify-between>
         <h3 className="text-lg font-semibold">Configuração de Margens</h3>
         <Button onClick={handleSave}>
           <Settings className="mr-2 h-4 w-4" />
@@ -105,38 +105,38 @@ export default function MarginConfigurationPanel({
         </Button>
       </div>
 
-      <Tabs defaultValue="categories" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="categories" className="space-y-4>
+        <TabsList className="grid w-full grid-cols-3>
           <TabsTrigger value="categories">Margens por Categoria</TabsTrigger>
           <TabsTrigger value="seasonal">Fatores Sazonais</TabsTrigger>
           <TabsTrigger value="demand">Fatores de Demanda</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="categories" className="space-y-4">
+        <TabsContent value="categories" className="space-y-4>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center">
+              <CardTitle className="flex items-center justify-between>
+                <span className="flex items-center>
                   <Percent className="mr-2 h-4 w-4" />
                   Margens por Categoria
                 </span>
-                <Button onClick={addMarginCategory} size="sm">
+                <Button onClick={addMarginCategory} size="sm>
                   <Plus className="mr-1 h-3 w-3" />
                   Adicionar Categoria
                 </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-4>
                 {margins.map((margin, index) => (
-                  <div key={index} className="p-4 border rounded-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                  <div key={index} className="p-4 border rounded-lg space-y-3>
+                    <div className="flex items-center justify-between>
+                      <div className="flex items-center space-x-2>
                         <Select
                           value={margin.category}
                           onValueChange={(value) => updateMargin(index, 'category', value)}
                         >
-                          <SelectTrigger className="w-48">
+                          <SelectTrigger className="w-48>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                           <SelectContent>
@@ -148,7 +148,7 @@ export default function MarginConfigurationPanel({
                           </SelectContent>
                         </Select>
                         
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2>
                           <Switch
                             checked={margin.dynamicMargin}
                             onCheckedChange={(checked) => updateMargin(index, 'dynamicMargin', checked)}
@@ -166,7 +166,7 @@ export default function MarginConfigurationPanel({
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-4>
                       <div>
                         <Label className="text-sm">Margem Base (%)</Label>
                         <Input
@@ -197,8 +197,8 @@ export default function MarginConfigurationPanel({
                     </div>
 
                     {margin.dynamicMargin && (
-                      <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
-                        <p className="text-sm text-blue-700">
+                      <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400>
+                        <p className="text-sm text-blue-700>
                           <TrendingUp className="inline w-4 h-4 mr-1" />
                           Margem dinâmica ativada - será ajustada automaticamente baseada em fatores sazonais e de demanda
                         </p>
@@ -211,18 +211,18 @@ export default function MarginConfigurationPanel({
           </Card>
         </TabsContent>
 
-        <TabsContent value="seasonal" className="space-y-4">
+        <TabsContent value="seasonal" className="space-y-4>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center>
                 <Target className="mr-2 h-4 w-4" />
                 Fatores Sazonais
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4>
                 {seasonalFactors.map((factor, index) => (
-                  <div key={index} className="space-y-2">
+                  <div key={index} className="space-y-2>
                     <Label className="text-sm font-medium">{factor.month}</Label>
                     <Input
                       type="number"
@@ -231,7 +231,7 @@ export default function MarginConfigurationPanel({
                       onChange={(e) => updateSeasonalFactor(index, parseFloat(e.target.value))}
                       className="text-center"
                     />
-                    <div className="text-center">
+                    <div className="text-center>
                       <Badge 
                         variant={factor.factor > 1 ? "default" : factor.factor < 1 ? "destructive" : "secondary"
                         className="text-xs"
@@ -245,30 +245,30 @@ export default function MarginConfigurationPanel({
               
               <Separator className="my-4" />
               
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground>
                 <p><strong>Exemplo:</strong> Fator 1.2 = +20% na margem, Fator 0.9 = -10% na margem</p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="demand" className="space-y-4">
+        <TabsContent value="demand" className="space-y-4>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center>
                 <TrendingUp className="mr-2 h-4 w-4" />
                 Fatores de Demanda
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-4>
                 {demandFactors.map((demand, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg>
+                    <div className="flex-1>
                       <div className="font-medium">{demand.level}</div>
                       <div className="text-sm text-muted-foreground">{demand.description}</div>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3>
                       <Input
                         type="number"
                         step="0.01"

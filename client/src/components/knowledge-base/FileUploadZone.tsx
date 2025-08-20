@@ -126,7 +126,7 @@ export function FileUploadZone({
   };
 
   return (
-    <div className="space-y-4 "">
+    <div className="space-y-4 ">
       {/* Drop Zone */}
       <div
         {...getRootProps()}
@@ -140,37 +140,37 @@ export function FileUploadZone({
       >
         <input {...getInputProps()} />
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-gray-600 mb-2>
           {isDragActive
             ? 'Solte os arquivos aqui...'
             : 'Arraste arquivos aqui ou clique para selecionar'
           }
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500>
           Máximo {maxFiles} arquivos • Até {maxFileSize}MB cada
         </p>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 mt-1>
           Formatos: PDF, DOC, DOCX, TXT, Imagens
         </p>
       </div>
 
       {/* File List */}
       {uploadedFiles.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3>
           <h4 className="text-sm font-medium text-gray-700">Arquivos Anexados</h4>
           {uploadedFiles.map((file) => (
             <div
               key={file.id}
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
             >
-              <div className="flex items-center space-x-3 flex-1">
+              <div className="flex items-center space-x-3 flex-1>
                 <File className="h-5 w-5 text-gray-500" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                <div className="flex-1 min-w-0>
+                  <p className="text-sm font-medium text-gray-900 truncate>
                     {file.name}
                   </p>
-                  <div className="flex items-center space-x-2">
-                    <p className="text-xs text-gray-500">
+                  <div className="flex items-center space-x-2>
+                    <p className="text-xs text-gray-500>
                       {formatFileSize(file.size)}
                     </p>
                     <Badge 
@@ -191,7 +191,7 @@ export function FileUploadZone({
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 {file.status === 'completed' && (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 )}

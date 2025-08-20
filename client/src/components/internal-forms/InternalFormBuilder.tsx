@@ -77,15 +77,15 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
           {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle>Informações Básicas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4>
               <FormField
                 control={form.control}
                 name="name"
@@ -144,9 +144,9 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
           {/* Fields */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between>
                 <CardTitle>Campos do Formulário</CardTitle>
-                <Button type="button" onClick={addField} size="sm">
+                <Button type="button" onClick={addField} size="sm>
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Campo
                 </Button>
@@ -154,14 +154,14 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
             </CardHeader>
             <CardContent>
               {fields.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
+                <p className="text-gray-500 text-center py-8>
                   Nenhum campo adicionado. Clique em "Adicionar Campo" para começar.
                 </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4>
                   {fields.map((field) => (
-                    <div key={field.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
+                    <div key={field.id} className="border rounded-lg p-4>
+                      <div className="flex items-center justify-between mb-4>
                         <Badge variant="outline">{field.type}</Badge>
                         <Button
                           type="button"
@@ -173,7 +173,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4>
                         <div>
                           <label className="text-sm font-medium">Nome do Campo</label>
                           <Input
@@ -204,18 +204,18 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
               <CardTitle>Ações do Formulário</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-gray-500 text-center py-8>
                 As ações serão executadas quando o formulário for submetido.
               </p>
             </CardContent>
           </Card>
 
           {/* Submit */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-end space-x-4>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit">
+            <Button type="submit>
               Criar Formulário
             </Button>
           </div>

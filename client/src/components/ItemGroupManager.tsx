@@ -186,11 +186,11 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
   );
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2>
       {/* Create Group Dialog */}
       <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
         <DialogTrigger asChild>
-          <Button size="sm" variant="outline" className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="flex items-center gap-2>
             <Folder className="w-4 h-4" />
             Criar Grupo
           </Button>
@@ -203,7 +203,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4>
             <div>
               <label className="text-sm font-medium mb-1 block">Nome do Grupo</label>
               <Input
@@ -225,7 +225,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
             
             <div>
               <label className="text-sm font-medium mb-1 block">Cor</label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2>
                 <input
                   type="color"
                   value={groupColor}
@@ -252,7 +252,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       {selectedItems.length > 0 && (
         <Dialog open={isAssignGroupOpen} onOpenChange={setIsAssignGroupOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="flex items-center gap-2>
               <Users className="w-4 h-4" />
               Atribuir ao Grupo ({selectedItems.length})
             </Button>
@@ -265,14 +265,14 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <div className="space-y-2 max-h-60 overflow-y-auto>
               {itemGroups?.data?.map((group: ItemGroup) => (
                 <div
                   key={group.id}
                   className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                   onClick={() => handleAssignToGroup(group.id)}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3>
                     <div 
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: group.color }}
@@ -284,14 +284,14 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                       )}
                     </div>
                   </div>
-                  <Badge variant="secondary">
+                  <Badge variant="secondary>
                     {group.item_count} itens
                   </Badge>
                 </div>
               ))}
               
               {!itemGroups?.data?.length && (
-                <div className="text-center py-6 text-gray-500">
+                <div className="text-center py-6 text-gray-500>
                   <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   Nenhum grupo encontrado. Crie um grupo primeiro.
                 </div>
@@ -311,12 +311,12 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       {selectedItems.length >= 2 && (
         <Dialog open={isCreateHierarchyOpen} onOpenChange={setIsCreateHierarchyOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="flex items-center gap-2>
               <Layers className="w-4 h-4" />
               Criar Hierarquia
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl>
             <DialogHeader>
               <DialogTitle>Criar Hierarquia Pai/Filho</DialogTitle>
               <DialogDescription>
@@ -324,12 +324,12 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4">
+            <div className="space-y-4>
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium mb-2 block>
                   Selecione o Item Pai (Kit/Conjunto)
                 </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2>
                   {selectedItems.map((item) => (
                     <div
                       key={item.id}
@@ -346,14 +346,14 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                         readOnly
                         className="text-blue-600"
                       />
-                      <div className="flex-1">
+                      <div className="flex-1>
                         <div className="font-medium text-sm">{item.name}</div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
+                        <div className="flex items-center gap-2>
+                          <Badge variant="outline" className="text-xs>
                             {item.type}
                           </Badge>
                           {item.hasChildren && (
-                            <span className="text-xs text-amber-600 font-semibold">
+                            <span className="text-xs text-amber-600 font-semibold>
                               (Já possui {item.childrenCount} filhos)
                             </span>
                           )}
@@ -366,10 +366,10 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
 
               {selectedParentItem && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label className="text-sm font-medium mb-2 block>
                     Selecione os Itens Filhos
                   </label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                  <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2>
                     {availableChildItems.map((item) => (
                       <div
                         key={item.id}
@@ -385,16 +385,16 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                             }
                           }}
                         />
-                        <div className="flex-1">
+                        <div className="flex-1>
                           <div className="font-medium text-sm">{item.name}</div>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs>
                             {item.type}
                           </Badge>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">
+                  <div className="text-xs text-gray-500 mt-2>
                     {selectedChildItems.length} itens selecionados como filhos
                   </div>
                 </div>

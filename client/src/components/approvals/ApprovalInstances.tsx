@@ -73,7 +73,7 @@ export function ApprovalInstances() {
       params.append('page', currentPage.toString());
       params.append('limit', '20');
       
-      return apiRequest("
+      return apiRequest("GET", "/api/approvals/instances"
     }
   });
 
@@ -159,9 +159,9 @@ export function ApprovalInstances() {
 
   if (isLoading) {
     return (
-      <Card data-testid="instances-loading">
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
+      <Card data-testid="instances-loading>
+        <CardContent className="p-6>
+          <div className="animate-pulse space-y-4>
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
@@ -172,17 +172,17 @@ export function ApprovalInstances() {
   }
 
   return (
-    <div className="space-y-6" data-testid="approval-instances">
+    <div className="space-y-6" data-testid="approval-instances>
       {/* Filters */}
-      <Card data-testid="instances-filters">
+      <Card data-testid="instances-filters>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Filter className="h-5 w-5" />
             Filtros
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
             <div>
               <label className="text-sm font-medium">Status</label>
               <Select
@@ -239,17 +239,17 @@ export function ApprovalInstances() {
       </Card>
 
       {/* Instances Table */}
-      <Card data-testid="instances-table-card">
+      <Card data-testid="instances-table-card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between>
             <CardTitle>Instâncias de Aprovação</CardTitle>
-            <Badge variant="secondary" data-testid="instances-count">
+            <Badge variant="secondary" data-testid="instances-count>
               {instancesData?.total || 0} instâncias
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table data-testid="instances-table">
+        <CardContent className="p-0>
+          <Table data-testid="instances-table>
             <TableHeader>
               <TableRow>
                 <TableHead>Entidade</TableHead>
@@ -263,7 +263,7 @@ export function ApprovalInstances() {
             <TableBody>
               {instancesData?.data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-instances-message">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-instances-message>
                     Nenhuma instância de aprovação encontrada.
                   </TableCell>
                 </TableRow>
@@ -279,24 +279,24 @@ export function ApprovalInstances() {
                     <TableCell data-testid={"
                       <div>
                         <div className="font-medium">{instance.rule?.name || 'N/A'}</div>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs>
                           {instance.rule?.moduleType || instance.entityType}
                         </Badge>
                       </div>
                     </TableCell>
                     <TableCell data-testid={"
                       <Badge className={getStatusColor(instance.status)}>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1>
                           {getStatusIcon(instance.status)}
                           {getStatusText(instance.status)}
                         </span>
                       </Badge>
                     </TableCell>
                     <TableCell data-testid={"
-                      <div className="text-sm "">
+                      <div className="text-sm ">
                         {formatTimeRemaining(instance.slaDeadline)}
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-gray-400>
                         {new Date(instance.slaDeadline).toLocaleDateString('pt-BR')}
                       </div>
                     </TableCell>
@@ -350,7 +350,7 @@ export function ApprovalInstances() {
 
       {/* Pagination */}
       {instancesData && instancesData.totalPages > 1 && (
-        <div className="flex justify-center gap-2" data-testid="pagination">
+        <div className="flex justify-center gap-2" data-testid="pagination>
           <Button
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -359,7 +359,7 @@ export function ApprovalInstances() {
           >
             Anterior
           </Button>
-          <span className="flex items-center px-4 text-sm text-gray-600" data-testid="page-info">
+          <span className="flex items-center px-4 text-sm text-gray-600" data-testid="page-info>
             Página {currentPage} de {instancesData.totalPages}
           </span>
           <Button
@@ -376,14 +376,14 @@ export function ApprovalInstances() {
       {/* Decision Dialog */}
       {decisionDialog && (
         <Dialog open={!!decisionDialog} onOpenChange={() => setDecisionDialog(null)}>
-          <DialogContent data-testid="decision-dialog">
+          <DialogContent data-testid="decision-dialog>
             <DialogHeader>
               <DialogTitle>Processar Aprovação</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4">
+            <div className="space-y-4 mt-4>
               <div>
                 <label className="text-sm font-medium">Decisão</label>
-                <Select value={decision} onValueChange={(value: any) => setDecision(value)} data-testid="select-decision">
+                <Select value={decision} onValueChange={(value: any) => setDecision(value)} data-testid="select-decision>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -417,7 +417,7 @@ export function ApprovalInstances() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2>
                 <Button 
                   variant="outline" 
                   onClick={() => setDecisionDialog(null)}
@@ -441,32 +441,32 @@ export function ApprovalInstances() {
       {/* View Instance Dialog */}
       {selectedInstance && (
         <Dialog open={!!selectedInstance} onOpenChange={() => setSelectedInstance(null)}>
-          <DialogContent className="max-w-2xl" data-testid="view-instance-dialog">
+          <DialogContent className="max-w-2xl" data-testid="view-instance-dialog>
             <DialogHeader>
               <DialogTitle>Detalhes da Instância</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4 mt-4>
+              <div className="grid grid-cols-2 gap-4>
                 <div>
                   <label className="text-sm font-medium text-gray-500">ID</label>
                   <p className="font-mono text-sm" data-testid="view-instance-id">{selectedInstance.id}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Status</label>
-                  <Badge className={getStatusColor(selectedInstance.status)} data-testid="view-instance-status">
+                  <Badge className={getStatusColor(selectedInstance.status)} data-testid="view-instance-status>
                     {getStatusText(selectedInstance.status)}
                   </Badge>
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Entidade</label>
                   <p data-testid="view-instance-entity">{selectedInstance.entityType}: {selectedInstance.entityId}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">SLA</label>
-                  <p className={isOverdue(selectedInstance.slaDeadline) ? 'text-red-600 font-medium' : ''} data-testid="view-instance-sla">
+                  <p className={isOverdue(selectedInstance.slaDeadline) ? 'text-red-600 font-medium' : ''} data-testid="view-instance-sla>
                     {formatTimeRemaining(selectedInstance.slaDeadline)}
                   </p>
                 </div>

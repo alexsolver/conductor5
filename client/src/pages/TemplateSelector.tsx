@@ -172,9 +172,9 @@ const templates: Template[] = [
 // Color Picker Component
 function ColorPicker({ color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
   return (
-    <div className="space-y-2">
+    <div className=""
       <Label className="text-sm font-medium">{label}</Label>
-      <div className="flex items-center gap-3">
+      <div className=""
         <input
           type="color"
           value={color}
@@ -232,26 +232,26 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-2">
+        <Button variant="outline" size="sm" className=""
           <Brush className="w-4 h-4 mr-2" />
           Personalizar
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className=""
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className=""
             <Palette className="w-5 h-5" />
             Personalizar Tema: {template.name}
           </DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="colors" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="colors" className=""
+          <TabsList className=""
             <TabsTrigger value="colors">Cores Personalizadas</TabsTrigger>
             <TabsTrigger value="presets">Paletas Prontas</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="colors" className="space-y-6">
+          <TabsContent value="colors" className=""
             <div>
               <Label className="text-sm font-medium mb-3 block">Nome do Tema</Label>
               <Input
@@ -261,8 +261,8 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
+            <div className=""
+              <div className=""
                 <h4 className="font-medium">Editar Cores</h4>
                 <ColorPicker
                   color={customColors.primary}
@@ -286,7 +286,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                 />
               </div>
               
-              <div className="space-y-4">
+              <div className=""
                 <h4 className="font-medium">Pré-visualização</h4>
                 <div 
                   className="h-32 rounded-lg relative overflow-hidden"
@@ -295,17 +295,17 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                   }}
                 >
                   <div className="absolute inset-0 bg-black/20"></div>
-                  <div className="absolute top-4 left-4 text-white">
+                  <div className=""
                     {template.icon}
                   </div>
-                  <div className="absolute bottom-4 left-4 text-white text-sm font-medium">
+                  <div className=""
                     {customName}
                   </div>
                 </div>
                 
-                <div className="space-y-2">
+                <div className=""
                   <h5 className="text-sm font-medium">Paleta de Cores</h5>
-                  <div className="flex gap-2">
+                  <div className=""
                     <div 
                       className="w-8 h-8 rounded border-2 border-white shadow-md"
                       style={{ backgroundColor: customColors.primary }}
@@ -331,7 +331,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
               </div>
             </div>
             
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className=""
               <Button variant="outline" onClick={() => setCustomColors(template.colors)}>
                 Resetar
               </Button>
@@ -341,23 +341,23 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
             </div>
           </TabsContent>
           
-          <TabsContent value="presets" className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+          <TabsContent value="presets" className=""
+            <p className=""
               Escolha uma paleta de cores pré-definida para aplicar rapidamente ao seu template.
             </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className=""
               {presetPalettes.map((palette, index) => (
                 <Card 
                   key={index}
                   className="cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => setCustomColors(palette.colors)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
+                  <CardContent className=""
+                    <div className=""
                       <h5 className="font-medium">{palette.name}</h5>
                     </div>
-                    <div className="flex gap-2 mb-3">
+                    <div className=""
                       <div 
                         className="w-6 h-6 rounded border border-gray-300"
                         style={{ backgroundColor: palette.colors.primary }}
@@ -386,7 +386,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
               ))}
             </div>
             
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className=""
               <Button variant="outline" onClick={() => setCustomColors(template.colors)}>
                 Resetar para Original
               </Button>
@@ -494,21 +494,21 @@ export function TemplateSelector() {
   const allTemplates = [...templates, ...customTemplates];
 
   return (
-    <div className="p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className=""
+      <div className=""
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+        <div className=""
+          <h1 className=""
             Personalizar Aparência
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className=""
             Escolha um dos temas profissionais abaixo para personalizar a aparência do seu sistema. 
             Cada tema inclui esquema de cores, layout e componentes otimizados.
           </p>
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className=""
           {allTemplates.map((template) => (
             <Card 
               key={template.id}
@@ -527,38 +527,38 @@ export function TemplateSelector() {
                 style={{ background: template.preview }}
               >
                 <div className="absolute inset-0 bg-black/20"></div>
-                <div className="absolute top-4 left-4 text-white">
+                <div className=""
                   {template.icon}
                 </div>
-                <div className="absolute top-4 right-4">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <div className=""
+                  <Badge variant="secondary" className=""
                     {template.style}
                   </Badge>
                 </div>
                 {selectedTemplate === template.id && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                  <div className=""
+                    <div className=""
                       <Check className="w-8 h-8 text-white" />
                     </div>
                   </div>
                 )}
               </div>
 
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between">
+              <CardHeader className=""
+                <CardTitle className=""
                   {template.name}
                   {hoveredTemplate === template.id && (
                     <Sparkles className="w-5 h-5 text-yellow-500" />
                   )}
                 </CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className=""
                   {template.description}
                 </p>
               </CardHeader>
 
-              <CardContent className="pt-0">
+              <CardContent className=""
                 {/* Color Palette */}
-                <div className="flex gap-2 mb-4">
+                <div className=""
                   <div 
                     className="w-8 h-8 rounded-full border-2 border-white shadow-md"
                     style={{ backgroundColor: template.colors.primary }}
@@ -582,9 +582,9 @@ export function TemplateSelector() {
                 </div>
 
                 {/* Features */}
-                <div className="space-y-2">
+                <div className=""
                   {template.features.map((feature, index) => (
-                    <div key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <div key={index} className=""
                       <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
                       {feature}
                     </div>
@@ -592,7 +592,7 @@ export function TemplateSelector() {
                 </div>
 
                 {/* Apply Button */}
-                <div className="flex gap-2 mt-4">
+                <div className=""
                   <Button 
                     className="flex-1" 
                     variant={selectedTemplate === template.id ? "default" : "outline"
@@ -624,7 +624,7 @@ export function TemplateSelector() {
         </div>
 
         {/* Action Buttons */}
-        <div className="text-center space-x-4">
+        <div className=""
           <Button 
             size="lg" 
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -651,36 +651,36 @@ export function TemplateSelector() {
 
         {/* Theme Info */}
         {selectedTemplate && (
-          <div className="mt-12 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg">
+          <div className=""
             <h3 className="text-xl font-semibold mb-4">Tema Selecionado</h3>
             {(() => {
               const template = templates.find(t => t.id === selectedTemplate);
               if (!template) return null;
               
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className=""
                   <div>
                     <h4 className="font-medium mb-2">Informações do Tema</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    <p className=""
                       {template.description}
                     </p>
-                    <div className="space-y-2">
+                    <div className=""
                       <div className="text-sm"><strong>Nome:</strong> {template.name}</div>
                       <div className="text-sm"><strong>Estilo:</strong> {template.style}</div>
                     </div>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Paleta de Cores</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
+                    <div className=""
+                      <div className=""
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: template.colors.primary }}></div>
                         <span>Primária: {template.colors.primary}</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: template.colors.secondary }}></div>
                         <span>Secundária: {template.colors.secondary}</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: template.colors.accent }}></div>
                         <span>Destaque: {template.colors.accent}</span>
                       </div>

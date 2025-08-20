@@ -140,7 +140,7 @@ export default function AbsenceManagement() {
   // Aprovar solicitação
   const approveRequestMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      return await apiRequest('PUT', "/approve`);
+      return await apiRequest('PUT', "/api/absences/approve");
     },
     onSuccess: () => {
       toast({
@@ -213,8 +213,8 @@ export default function AbsenceManagement() {
 
   if (isLoading) {
     return (
-      <div className="p-4">
-        <div className="flex items-center justify-center h-64">
+      <div className=""
+        <div className=""
           <div className="text-lg text-gray-600">Carregando solicitações de ausência...</div>
         </div>
       </div>
@@ -222,8 +222,8 @@ export default function AbsenceManagement() {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestão de Ausências</h1>
           <p className="text-gray-600">Gerencie solicitações de férias, licenças e faltas</p>
@@ -236,7 +236,7 @@ export default function AbsenceManagement() {
               Nova Solicitação
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>Nova Solicitação de Ausência</DialogTitle>
               <DialogDescription>
@@ -245,8 +245,8 @@ export default function AbsenceManagement() {
             </DialogHeader>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={form.handleSubmit(handleSubmit)} className=""
+                <div className=""
                   <FormField
                     control={form.control}
                     name="userId"
@@ -298,7 +298,7 @@ export default function AbsenceManagement() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <FormField
                     control={form.control}
                     name="startDate"
@@ -389,7 +389,7 @@ export default function AbsenceManagement() {
                   )}
                 />
 
-                <div className="flex justify-end space-x-2">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -403,10 +403,10 @@ export default function AbsenceManagement() {
         </Dialog>
       </div>
 
-      <div className="grid gap-6">
+      <div className=""
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className=""
               <AlertCircle className="h-5 w-5" />
               Solicitações Pendentes de Aprovação
             </CardTitle>
@@ -416,19 +416,19 @@ export default function AbsenceManagement() {
           </CardHeader>
           <CardContent>
             {pendingRequests.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className=""
                 Nenhuma solicitação pendente
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className=""
                 {pendingRequests.map((request: AbsenceRequest) => (
-                  <div key={request.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center gap-3">
+                  <div key={request.id} className=""
+                    <div className=""
+                      <div className=""
                         <User className="h-4 w-4 text-gray-400" />
                         <div>
                           <h3 className="font-medium">{request.userName || 'Usuário'}</h3>
-                          <p className="text-sm text-gray-600">
+                          <p className=""
                             {absenceTypeLabels[request.absenceType as keyof typeof absenceTypeLabels]}
                           </p>
                         </div>
@@ -438,30 +438,30 @@ export default function AbsenceManagement() {
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-3">
-                      <div className="flex items-center gap-2">
+                    <div className=""
+                      <div className=""
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm">
+                        <span className=""
                           {formatDate(request.startDate)} a {formatDate(request.endDate)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         <Clock className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm">
+                        <span className=""
                           {calculateDays(request.startDate, request.endDate)} dia(s)
                         </span>
                       </div>
                     </div>
 
-                    <div className="mb-4">
-                      <div className="flex items-start gap-2">
+                    <div className=""
+                      <div className=""
                         <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
                         <p className="text-sm text-gray-700">{request.reason}</p>
                       </div>
                     </div>
 
                     {request.status === 'pending' && (
-                      <div className="flex justify-end space-x-2">
+                      <div className=""
                         <Button
                           variant="outline"
                           size="sm"

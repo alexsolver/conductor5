@@ -119,9 +119,9 @@ export function FilteredCustomerSelect({
 
               return (
                 <SelectItem key={customerId} value={customerId}>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col>
                     <span>{customerName}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500>
                       {customer.email} {customer.cpf && "
                     </span>
                   </div>

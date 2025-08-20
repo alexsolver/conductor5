@@ -126,8 +126,8 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
   };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+    <div className="p-4"
+      <div className="p-4"
         {weekDays.map(day => (
           <Button
             key={day.value}
@@ -141,15 +141,15 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
           </Button>
         ))}
       </div>
-      <div className="space-y-3 max-h-72 overflow-y-auto">
+      <div className="p-4"
         {workDays.sort((a, b) => a - b).map(dayValue => (
-          <div key={dayValue} className="border rounded-md p-3 bg-white shadow-sm">
-            <h4 className="text-sm font-semibold mb-2 text-gray-700">
+          <div key={dayValue} className="p-4"
+            <h4 className="p-4"
               {weekDays.find(d => d.value === dayValue)?.label}
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor={`weekly-start-time-" + dayValue} className="text-xs text-gray-600">
+            <div className="p-4"
+              <div className="p-4"
+                <Label htmlFor={`weekly-start-time-" + dayValue} className="p-4"
                   Entrada
                 </Label>
                 <Input
@@ -160,8 +160,8 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
                   className="text-sm"
                 />
               </div>
-              <div className="space-y-1">
-                <Label htmlFor={"weekly-end-time-" + dayValue} className="text-xs text-gray-600">
+              <div className="p-4"
+                <Label htmlFor={"weekly-end-time-" + dayValue} className="p-4"
                   Saída
                 </Label>
                 <Input
@@ -172,8 +172,8 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
                   className="text-sm"
                 />
               </div>
-              <div className="space-y-1">
-                <Label htmlFor={"weekly-break-" + dayValue} className="text-xs text-gray-600">
+              <div className="p-4"
+                <Label htmlFor={"weekly-break-" + dayValue} className="p-4"
                   Pausa (min)
                 </Label>
                 <Input
@@ -942,8 +942,8 @@ function WorkSchedulesContent() {
 
   if (schedulesLoading || templatesLoading) {
     return (
-      <div className="p-4">
-        <div className="flex items-center justify-center h-64">
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg text-gray-600">Carregando dados...</div>
         </div>
       </div>
@@ -952,9 +952,9 @@ function WorkSchedulesContent() {
 
   if (schedulesError) {
     return (
-      <div className="p-4">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <div className="text-lg text-red-600 mb-2">Erro ao carregar escalas</div>
             <div className="text-sm text-gray-600">{schedulesError.message}</div>
             <button
@@ -985,11 +985,11 @@ function WorkSchedulesContent() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4"
       {/* Header Section */}
-      <div className="flex items-center justify-between">
+      <div className="p-4"
         <h1 className="text-3xl font-bold tracking-tight">Escalas de Trabalho</h1>
-        <div className="flex gap-2">
+        <div className="p-4"
           <Button
             onClick={handleNewTemplate}
             variant="outline"
@@ -1019,7 +1019,7 @@ function WorkSchedulesContent() {
       {/* Templates Management Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="p-4"
             <Settings className="h-5 w-5" />
             Templates de Escala Disponíveis
           </CardTitle>
@@ -1029,21 +1029,21 @@ function WorkSchedulesContent() {
         </CardHeader>
         <CardContent>
           {templatesLoading ? (
-            <div className="flex justify-center items-center h-32">
+            <div className="p-4"
               <div className="text-gray-500">Carregando templates...</div>
             </div>
           ) : customTemplates.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="p-4"
               Nenhum template personalizado encontrado. Crie um novo template.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-4"
               {customTemplates.map((template) => (
-                <Card key={template.id} className="border-l-4 border-l-blue-500">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
+                <Card key={template.id} className="p-4"
+                  <CardHeader className="p-4"
+                    <div className="p-4"
                       <CardTitle className="text-base">{template.name}</CardTitle>
-                      <div className="flex gap-1">
+                      <div className="p-4"
                         <Button
                           size="sm"
                           variant="outline"
@@ -1074,8 +1074,8 @@ function WorkSchedulesContent() {
                       <CardDescription className="text-sm">{template.description}</CardDescription>
                     )}
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2 text-sm">
+                  <CardContent className="p-4"
+                    <div className="p-4"
                       <div><strong>Tipo:</strong> {template.scheduleType}</div>
                       <div><strong>Horário:</strong> {template.startTime ? "
                       <div><strong>Dias:</strong> {template.workDays?.length || 0} dias por semana</div>
@@ -1090,7 +1090,7 @@ function WorkSchedulesContent() {
 
       {/* Dialog for creating/editing templates */}
       <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>{selectedTemplate ? 'Editar Template' : 'Novo Template de Escala'}</DialogTitle>
             <DialogDescription>
@@ -1098,7 +1098,7 @@ function WorkSchedulesContent() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateOrUpdateTemplate} className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto"  style={{ scrollbarWidth: 'thin' }}>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="p-4"
               <div>
                 <Label htmlFor="template-name">Nome do Template *</Label>
                 <Input
@@ -1120,7 +1120,7 @@ function WorkSchedulesContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="p-4"
               <div>
                 <Label htmlFor="template-scheduleType">Tipo de Escala</Label>
                 <Select
@@ -1142,7 +1142,7 @@ function WorkSchedulesContent() {
             </div>
 
             {/* Toggle for weekly schedule */}
-            <div className="flex items-center space-x-2">
+            <div className="p-4"
               <Switch
                 id="template-useWeeklySchedule"
                 checked={templateFormData.useWeeklySchedule}
@@ -1157,7 +1157,7 @@ function WorkSchedulesContent() {
             </div>
 
             {templateFormData.useWeeklySchedule ? (
-              <div className="max-h-96 overflow-y-auto border rounded-md p-4 bg-gray-50">
+              <div className="p-4"
                 <WeeklyScheduleForm
                   weeklySchedule={templateFormData.weeklySchedule}
                   workDays={templateFormData.workDays}
@@ -1167,7 +1167,7 @@ function WorkSchedulesContent() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="p-4"
                   <div>
                     <Label htmlFor="template-startTime">Horário de Entrada</Label>
                     <Input
@@ -1203,7 +1203,7 @@ function WorkSchedulesContent() {
 
                 <div>
                   <Label>Dias da Semana</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="p-4"
                     {weekDays.map((day) => (
                       <Button
                         key={day.value}
@@ -1225,7 +1225,7 @@ function WorkSchedulesContent() {
               </>
             )}
 
-            <div className="flex justify-end space-x-2">
+            <div className="p-4"
               <Button type="button" variant="outline" onClick={() => setIsTemplateDialogOpen(false)}>
                 Cancelar
               </Button>
@@ -1242,15 +1242,15 @@ function WorkSchedulesContent() {
 
       {/* Dialog for bulk assignment */}
       <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Atribuição em Massa</DialogTitle>
             <DialogDescription>
               Configure uma escala e atribua para múltiplos funcionários de uma vez.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); handleBulkAssign(); }} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleBulkAssign(); }} className="p-4"
+            <div className="p-4"
               <div>
                 <Label htmlFor="bulk-scheduleType">Tipo de Escala</Label>
                 <Select
@@ -1281,7 +1281,7 @@ function WorkSchedulesContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="p-4"
               <div>
                 <Label htmlFor="bulk-startTime">Horário de Entrada</Label>
                 <Input
@@ -1306,9 +1306,9 @@ function WorkSchedulesContent() {
 
             <div>
               <Label>Funcionários</Label>
-              <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
+              <div className="p-4"
                 {users.map((user: User) => (
-                  <div key={user.id} className="flex items-center space-x-2 py-1">
+                  <div key={user.id} className="p-4"
                     <Checkbox
                       id={"
                       checked={selectedUsers.includes(user.id)}
@@ -1328,7 +1328,7 @@ function WorkSchedulesContent() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2">
+            <div className="p-4"
               <Button type="button" variant="outline" onClick={() => setBulkAssignOpen(false)}>
                 Cancelar
               </Button>
@@ -1342,19 +1342,19 @@ function WorkSchedulesContent() {
 
       {/* Dialog for assigning template to users */}
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Atribuir Template a Funcionários</DialogTitle>
             <DialogDescription>
               Selecione os funcionários para os quais o template "{selectedTemplate?.name}" será atribuído.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="p-4"
             <div>
               <Label>Funcionários</Label>
-              <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
+              <div className="p-4"
                 {users.map((user: User) => (
-                  <div key={user.id} className="flex items-center space-x-2 py-1">
+                  <div key={user.id} className="p-4"
                     <Checkbox
                       id={user.id}
                       checked={selectedUsers.includes(user.id)}
@@ -1366,7 +1366,7 @@ function WorkSchedulesContent() {
                         }
                       }}
                     />
-                    <Label htmlFor={user.id} className="cursor-pointer">
+                    <Label htmlFor={user.id} className="p-4"
                       {user.firstName} {user.lastName} ({user.role || 'Funcionário'})
                     </Label>
                   </div>
@@ -1374,7 +1374,7 @@ function WorkSchedulesContent() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2">
+            <div className="p-4"
               <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
                 Cancelar
               </Button>
@@ -1387,29 +1387,29 @@ function WorkSchedulesContent() {
       </Dialog>
 
       {/* Main schedules list */}
-      <div className="grid gap-4">
+      <div className="p-4"
         {schedules.length > 0 ? (
           schedules.map((schedule: WorkSchedule) => (
-            <Card key={schedule.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 space-y-3">
+            <Card key={schedule.id} className="p-4"
+              <CardContent className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     {/* Header with name and badges */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-2">
+                    <div className="p-4"
+                      <div className="p-4"
                         <Users className="h-4 w-4 text-blue-600" />
                         <h3 className="font-semibold text-lg">{schedule.userName || 'Usuário Não Identificado'}</h3>
                       </div>
                       {getStatusBadge(schedule.isActive)}
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      <Badge variant="outline" className="p-4"
                         {scheduleTypeLabels[schedule.scheduleType] || schedule.scheduleType}
                       </Badge>
                     </div>
 
                     {/* Main information organized */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-4"
                       {/* Schedule Type Details */}
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                      <div className="p-4"
                         <Clock className="h-4 w-4 text-gray-600" />
                         <div>
                           <div className="text-xs text-gray-500">Jornada</div>
@@ -1418,22 +1418,22 @@ function WorkSchedulesContent() {
                       </div>
 
                       {/* Work Days */}
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                      <div className="p-4"
                         <Calendar className="h-4 w-4 text-gray-600" />
                         <div>
                           <div className="text-xs text-gray-500">Dias da Semana</div>
-                          <div className="font-medium text-sm">
+                          <div className="p-4"
                             {schedule.useWeeklySchedule ? getWorkDaysText(Object.keys(schedule.weeklySchedule || {}).map(Number)) : getWorkDaysText(schedule.workDays)}
                           </div>
                         </div>
                       </div>
 
                       {/* Start Date */}
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                      <div className="p-4"
                         <Calendar className="h-4 w-4 text-gray-600" />
                         <div>
                           <div className="text-xs text-gray-500">Data de Início</div>
-                          <div className="font-medium">
+                          <div className="p-4"
                             {schedule.startDate ? format(new Date(schedule.startDate), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}
                           </div>
                         </div>
@@ -1441,11 +1441,11 @@ function WorkSchedulesContent() {
 
                       {/* End Date */}
                       {schedule.endDate && (
-                        <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                        <div className="p-4"
                           <Calendar className="h-4 w-4 text-gray-600" />
                           <div>
                             <div className="text-xs text-gray-500">Data de Fim</div>
-                            <div className="font-medium">
+                            <div className="p-4"
                               {format(new Date(schedule.endDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </div>
                           </div>
@@ -1455,7 +1455,7 @@ function WorkSchedulesContent() {
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex gap-2 ml-4">
+                  <div className="p-4"
                     <Button
                       variant="outline"
                       size="sm"
@@ -1480,10 +1480,10 @@ function WorkSchedulesContent() {
           ))
         ) : (
           <Card>
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-4"
               <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-medium mb-2">Nenhuma escala configurada</h3>
-              <p className="text-gray-600 mb-4">
+              <p className="p-4"
                 Configure escalas de trabalho para gerenciar jornadas dos funcionários
               </p>
               <Button onClick={handleNew}>

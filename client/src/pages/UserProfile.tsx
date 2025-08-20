@@ -342,8 +342,8 @@ export default function UserProfile() {
 
   if (isLoading) {
     return (
-      <div className="p-4 space-y-4">
-        <div className="animate-pulse">
+      <div className="p-4"
+        <div className="p-4"
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
@@ -352,9 +352,9 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4"
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="p-4"
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meu Perfil</h1>
           <p className="text-gray-600 dark:text-gray-400">Gerencie suas informações pessoais e preferências</p>
@@ -363,12 +363,12 @@ export default function UserProfile() {
 
       {/* Profile Header Card */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="h-20 w-20">
+        <CardContent className="p-4"
+          <div className="p-4"
+            <div className="p-4"
+              <Avatar className="p-4"
                 <AvatarImage src={(profile as any)?.avatar || (profile as any)?.avatar_url || ""} />
-                <AvatarFallback className="text-lg">
+                <AvatarFallback className="p-4"
                   {((profile as any)?.firstName || user?.firstName)?.charAt(0)}{((profile as any)?.lastName || user?.lastName)?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -382,10 +382,10 @@ export default function UserProfile() {
                 <Camera className="h-4 w-4" />
               </ObjectUploader>
             </div>
-            <div className="flex-1">
+            <div className="p-4"
               <h2 className="text-xl font-semibold">{(profile as any)?.firstName || user?.firstName} {(profile as any)?.lastName || user?.lastName}</h2>
               <p className="text-gray-600 dark:text-gray-400">{(profile as any)?.email || user?.email}</p>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="p-4"
                 <Badge variant="outline">{(profile as any)?.role || user?.role}</Badge>
                 {(profile as any)?.department && <Badge variant="secondary">{(profile as any).department}</Badge>}
               </div>
@@ -412,40 +412,40 @@ export default function UserProfile() {
       </Card>
 
       {/* Tabs Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="personal" className="flex items-center space-x-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+        <TabsList className="p-4"
+          <TabsTrigger value="personal" className="p-4"
             <User className="h-4 w-4" />
             <span>Pessoal</span>
           </TabsTrigger>
-          <TabsTrigger value="skills" className="flex items-center space-x-2">
+          <TabsTrigger value="skills" className="p-4"
             <Award className="h-4 w-4" />
             <span>Habilidades</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center space-x-2">
+          <TabsTrigger value="notifications" className="p-4"
             <Bell className="h-4 w-4" />
             <span>Notificações</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center space-x-2">
+          <TabsTrigger value="security" className="p-4"
             <Shield className="h-4 w-4" />
             <span>Segurança</span>
           </TabsTrigger>
-          <TabsTrigger value="privacy-gdpr" className="flex items-center space-x-2">
+          <TabsTrigger value="privacy-gdpr" className="p-4"
             <Lock className="h-4 w-4" />
             <span>Privacidade & GDPR/LGPD</span>
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center space-x-2">
+          <TabsTrigger value="preferences" className="p-4"
             <Settings className="h-4 w-4" />
             <span>Preferências</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center space-x-2">
+          <TabsTrigger value="activity" className="p-4"
             <Activity className="h-4 w-4" />
             <span>Atividade</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Personal Information Tab */}
-        <TabsContent value="personal">
+        <TabsContent value="personal>
           <Card>
             <CardHeader>
               <CardTitle>Informações Pessoais</CardTitle>
@@ -455,8 +455,8 @@ export default function UserProfile() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+                  <div className="p-4"
                     <FormField
                       control={form.control}
                       name="firstName"
@@ -556,7 +556,7 @@ export default function UserProfile() {
                     )}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4"
                     <FormField
                       control={form.control}
                       name="location"
@@ -595,7 +595,7 @@ export default function UserProfile() {
                   </div>
 
                   {isEditing && (
-                    <div className="flex justify-end space-x-2">
+                    <div className="p-4"
                       <Button
                         type="button"
                         variant="outline"
@@ -622,7 +622,7 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* Skills Tab */}
-        <TabsContent value="skills">
+        <TabsContent value="skills>
           <Card>
             <CardHeader>
               <CardTitle>Habilidades Técnicas</CardTitle>
@@ -631,17 +631,17 @@ export default function UserProfile() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-400">
+              <div className="p-4"
+                <p className="p-4"
                   Suas habilidades técnicas serão exibidas aqui. Integração com o módulo de habilidades em desenvolvimento.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-4"
                   {Array.isArray(skills) && skills.length > 0 ? (
                     skills.map((skill: any) => (
-                      <div key={skill.id} className="p-4 border rounded-lg">
+                      <div key={skill.id} className="p-4"
                         <h4 className="font-medium">{skill.name}</h4>
                         <p className="text-sm text-gray-600">{skill.category}</p>
-                        <div className="mt-2">
+                        <div className="p-4"
                           <Badge variant={skill.level === 'expert' ? 'default' : 'secondary'}>
                             {skill.level}
                           </Badge>
@@ -658,12 +658,12 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* Notifications Tab */}
-        <TabsContent value="notifications">
+        <TabsContent value="notifications>
           <NotificationPreferencesTab />
         </TabsContent>
 
         {/* Security Tab */}
-        <TabsContent value="security">
+        <TabsContent value="security>
           <Card>
             <CardHeader>
               <CardTitle>Configurações de Segurança</CardTitle>
@@ -671,21 +671,21 @@ export default function UserProfile() {
                 Gerencie a segurança da sua conta
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+            <CardContent className="p-4"
+              <div className="p-4"
+                <div className="p-4"
                   <div>
                     <h4 className="font-medium">Alterar Senha</h4>
                     <p className="text-sm text-gray-600">Atualize sua senha de acesso</p>
                   </div>
                   <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
                     <DialogTrigger asChild>
-                      <Button variant="outline">
+                      <Button variant="outline>
                         <Lock className="h-4 w-4 mr-2" />
                         Alterar
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="p-4"
                       <DialogHeader>
                         <DialogTitle>Alterar Senha</DialogTitle>
                         <DialogDescription>
@@ -693,7 +693,7 @@ export default function UserProfile() {
                         </DialogDescription>
                       </DialogHeader>
                       <Form {...passwordForm}>
-                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="p-4"
                           <FormField
                             control={passwordForm.control}
                             name="currentPassword"
@@ -747,7 +747,7 @@ export default function UserProfile() {
                   </Dialog>
                 </div>
                 
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="p-4"
                   <div>
                     <h4 className="font-medium">Sessões Ativas</h4>
                     <p className="text-sm text-gray-600">Gerencie dispositivos conectados</p>
@@ -756,21 +756,21 @@ export default function UserProfile() {
                     <DialogTrigger asChild>
                       <Button variant="outline">Ver Sessões</Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[525px]">
+                    <DialogContent className="p-4"
                       <DialogHeader>
                         <DialogTitle>Sessões Ativas</DialogTitle>
                         <DialogDescription>
                           Dispositivos conectados à sua conta
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-3">
+                      <div className="p-4"
                         {Array.isArray((sessions as any)?.data) && (sessions as any).data.length > 0 ? (
                           (sessions as any).data.map((session: any) => (
-                            <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div key={session.id} className="p-4"
                               <div>
                                 <p className="font-medium">{session.device}</p>
                                 <p className="text-sm text-gray-600">{session.location}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="p-4"
                                   Última atividade: {new Date(session.lastActivity).toLocaleString('pt-BR')}
                                 </p>
                               </div>
@@ -787,7 +787,7 @@ export default function UserProfile() {
                   </Dialog>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="p-4"
                   <div>
                     <h4 className="font-medium">Logs de Segurança</h4>
                     <p className="text-sm text-gray-600">Histórico de atividades de segurança</p>
@@ -800,7 +800,7 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* Preferences Tab */}
-        <TabsContent value="preferences">
+        <TabsContent value="preferences>
           <Card>
             <CardHeader>
               <CardTitle>Preferências</CardTitle>
@@ -808,9 +808,9 @@ export default function UserProfile() {
                 Configure suas preferências de sistema
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+            <CardContent className="p-4"
+              <div className="p-4"
+                <div className="p-4"
                   <div>
                     <Label htmlFor="language">Idioma</Label>
                     <p className="text-sm text-gray-600">Selecione seu idioma preferido</p>
@@ -819,7 +819,7 @@ export default function UserProfile() {
                     value={(preferences as any)?.data?.language || "pt-BR"
                     onValueChange={(value) => handlePreferenceChange('language', value)}
                   >
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="p-4"
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -832,7 +832,7 @@ export default function UserProfile() {
 
                 <Separator />
 
-                <div className="flex items-center justify-between">
+                <div className="p-4"
                   <div>
                     <Label htmlFor="notifications">Notificações por Email</Label>
                     <p className="text-sm text-gray-600">Receber notificações por email</p>
@@ -844,7 +844,7 @@ export default function UserProfile() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="p-4"
                   <div>
                     <Label htmlFor="push-notifications">Notificações Push</Label>
                     <p className="text-sm text-gray-600">Receber notificações no navegador</p>
@@ -856,7 +856,7 @@ export default function UserProfile() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="p-4"
                   <div>
                     <Label htmlFor="dark-mode">Modo Escuro</Label>
                     <p className="text-sm text-gray-600">Usar tema escuro na interface</p>
@@ -873,7 +873,7 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* Activity Tab */}
-        <TabsContent value="activity">
+        <TabsContent value="activity>
           <Card>
             <CardHeader>
               <CardTitle>Atividade Recente</CardTitle>
@@ -882,16 +882,16 @@ export default function UserProfile() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="p-4"
                 {Array.isArray(activity) && activity.length > 0 ? (
                   activity.map((item: any, index: number) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 border rounded-lg">
-                      <div className="flex-shrink-0">
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <Activity className="h-5 w-5 text-gray-400" />
                       </div>
-                      <div className="flex-1">
+                      <div className="p-4"
                         <p className="text-sm font-medium">{item.description}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="p-4"
                           {new Date(item.timestamp).toLocaleString('pt-BR')}
                         </p>
                       </div>
@@ -906,7 +906,7 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* Privacy & GDPR/LGPD Tab - Seguindo 1qa.md */}
-        <TabsContent value="privacy-gdpr">
+        <TabsContent value="privacy-gdpr>
           <PrivacyGdprTab />
         </TabsContent>
       </Tabs>
@@ -990,7 +990,7 @@ function PrivacyGdprTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
+        <CardTitle className="p-4"
           <Lock className="h-5 w-5" />
           <span>Privacidade & GDPR/LGPD</span>
         </CardTitle>
@@ -998,17 +998,17 @@ function PrivacyGdprTab() {
           Gerencie suas preferências de privacidade e direitos de proteção de dados
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="p-4"
         
         {/* ✅ Política de Privacidade Atual */}
-        <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
-          <div className="flex items-center justify-between">
+        <div className="p-4"
+          <div className="p-4"
             <div>
-              <h4 className="font-medium flex items-center space-x-2">
+              <h4 className="p-4"
                 <FileText className="h-4 w-4" />
                 <span>Política de Privacidade</span>
               </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="p-4"
                 Versão ativa: {activePolicyFromAdmin.version || policyData.version || "1.0"} - {activePolicyFromAdmin.effectiveDate ? new Date(activePolicyFromAdmin.effectiveDate).toLocaleDateString('pt-BR') : (policyData.acceptedAt ? new Date(policyData.acceptedAt).toLocaleDateString('pt-BR') : "Primeira vez")}
               </p>
             </div>
@@ -1027,11 +1027,11 @@ function PrivacyGdprTab() {
         <Separator />
 
         {/* ✅ Gerenciar Consentimento */}
-        <div className="space-y-4">
+        <div className="p-4"
           <h4 className="font-medium">Gerenciar Consentimento</h4>
           
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="p-4"
+            <div className="p-4"
               <div>
                 <Label className="font-medium">Cookies de Marketing</Label>
                 <p className="text-sm text-gray-600">Permitir cookies para personalização de anúncios</p>
@@ -1044,7 +1044,7 @@ function PrivacyGdprTab() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="p-4"
               <div>
                 <Label className="font-medium">Comunicação por SMS</Label>
                 <p className="text-sm text-gray-600">Receber comunicações de marketing por SMS</p>
@@ -1057,7 +1057,7 @@ function PrivacyGdprTab() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="p-4"
               <div>
                 <Label className="font-medium">Análise de Dados</Label>
                 <p className="text-sm text-gray-600">Permitir análise para melhoria de serviços</p>
@@ -1070,7 +1070,7 @@ function PrivacyGdprTab() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="p-4"
               <div>
                 <Label className="font-medium">Visibilidade do Perfil</Label>
                 <p className="text-sm text-gray-600">Controlar visibilidade das informações do perfil</p>
@@ -1081,7 +1081,7 @@ function PrivacyGdprTab() {
                   updatePreferencesMutation.mutate({ ...preferences, profileVisibility: value })
                 }
               >
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="p-4"
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1097,16 +1097,16 @@ function PrivacyGdprTab() {
         <Separator />
 
         {/* ✅ Direitos do Usuário */}
-        <div className="space-y-4">
+        <div className="p-4"
           <h4 className="font-medium">Seus Direitos de Proteção de Dados</h4>
-          <p className="text-sm text-gray-600">
+          <p className="p-4"
             Conforme GDPR/LGPD, você tem os seguintes direitos sobre seus dados pessoais:
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4"
             {/* Baixar Meus Dados */}
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between">
+            <div className="p-4"
+              <div className="p-4"
                 <div>
                   <h5 className="font-medium">Baixar Meus Dados</h5>
                   <p className="text-sm text-gray-600">Exportar todos os seus dados (JSON/CSV/PDF)</p>
@@ -1123,8 +1123,8 @@ function PrivacyGdprTab() {
             </div>
 
             {/* Corrigir Dados */}
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between">
+            <div className="p-4"
+              <div className="p-4"
                 <div>
                   <h5 className="font-medium">Corrigir Dados</h5>
                   <p className="text-sm text-gray-600">Solicitar correção de informações incorretas</p>
@@ -1141,8 +1141,8 @@ function PrivacyGdprTab() {
             </div>
 
             {/* Limitar Uso */}
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between">
+            <div className="p-4"
+              <div className="p-4"
                 <div>
                   <h5 className="font-medium">Limitar Uso</h5>
                   <p className="text-sm text-gray-600">Suspender marketing, manter contratos essenciais</p>
@@ -1159,8 +1159,8 @@ function PrivacyGdprTab() {
             </div>
 
             {/* Excluir Meus Dados */}
-            <div className="p-4 border rounded-lg border-red-200 dark:border-red-800">
-              <div className="flex items-center justify-between">
+            <div className="p-4"
+              <div className="p-4"
                 <div>
                   <h5 className="font-medium text-red-600 dark:text-red-400">Excluir Meus Dados</h5>
                   <p className="text-sm text-gray-600">Direito ao esquecimento (ação irreversível)</p>
@@ -1184,16 +1184,16 @@ function PrivacyGdprTab() {
 
         {/* ✅ Histórico de Solicitações */}
         <Separator />
-        <div className="space-y-4">
+        <div className="p-4"
           <h4 className="font-medium">Histórico de Solicitações</h4>
           
           {(dataRequests as any)?.data && (dataRequests as any).data.length > 0 ? (
-            <div className="space-y-2">
+            <div className="p-4"
               {(dataRequests as any).data.map((request: any) => (
-                <div key={request.id} className="p-3 border rounded-lg flex items-center justify-between">
+                <div key={request.id} className="p-4"
                   <div>
                     <p className="font-medium">{request.requestType}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="p-4"
                       {new Date(request.createdAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
@@ -1211,9 +1211,9 @@ function PrivacyGdprTab() {
 
         {/* ✅ Dialog para exibir política completa - Seguindo 1qa.md */}
         <Dialog open={showPolicyDialog} onOpenChange={setShowPolicyDialog}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="p-4"
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="p-4"
                 <FileText className="h-5 w-5" />
                 {activePolicyFromAdmin.title || "Política de Privacidade"} - Versão {activePolicyFromAdmin.version || policyData.version || "1.0"
               </DialogTitle>
@@ -1227,7 +1227,7 @@ function PrivacyGdprTab() {
                 }
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-4">
+            <div className="p-4"
               <div 
                 className="prose prose-sm max-w-none dark:prose-invert"
                 dangerouslySetInnerHTML={{ 

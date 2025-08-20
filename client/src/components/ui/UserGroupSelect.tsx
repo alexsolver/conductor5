@@ -43,7 +43,7 @@ export function UserGroupSelect({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-2 border rounded">
+      <div className="flex items-center justify-center p-2 border rounded>
         <Loader2 className="w-4 h-4 animate-spin mr-2" />
         <span className="text-sm text-muted-foreground">Carregando grupos...</span>
       </div>
@@ -52,7 +52,7 @@ export function UserGroupSelect({
 
   if (error || !groupsData?.success) {
     return (
-      <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
+      <div className="flex items-center justify-center p-2 border rounded border-destructive/20>
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
         <span className="text-sm text-destructive">Erro ao carregar grupos</span>
       </div>
@@ -63,7 +63,7 @@ export function UserGroupSelect({
 
   if (activeGroups.length === 0) {
     return (
-      <div className="flex items-center justify-center p-2 border rounded border-orange-200">
+      <div className="flex items-center justify-center p-2 border rounded border-orange-200>
         <Users className="w-4 h-4 text-orange-500 mr-2" />
         <span className="text-sm text-orange-600">Nenhum grupo disponível</span>
       </div>
@@ -78,7 +78,7 @@ export function UserGroupSelect({
       <SelectContent>
         {activeGroups.map((group) => (
           <SelectItem key={group.id} value={group.id}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2>
               <Users className="w-4 h-4 text-muted-foreground" />
               <div>
                 <div className="font-medium">{group.name}</div>

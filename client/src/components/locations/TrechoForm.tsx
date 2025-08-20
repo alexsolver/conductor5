@@ -31,7 +31,7 @@ const LocalSelector = ({
   });
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2>
       <Label>{label}</Label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
@@ -40,12 +40,12 @@ const LocalSelector = ({
         <SelectContent>
           {locais.map((local) => (
             <SelectItem key={local.id} value={local.id}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2>
                 <MapPin className="h-4 w-4 text-gray-500" />
                 <div>
                   <div className="font-medium">{local.nome}</div>
                   {local.municipio && local.estado && (
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500>
                       {local.municipio}, {local.estado}
                     </div>
                   )}
@@ -117,20 +117,20 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
       {/* Identificação */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Route className="h-5 w-5" />
             Identificação do Trecho
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
+        <CardContent className="space-y-4>
+          <div className="flex items-center justify-between>
+            <div className="space-y-0.5>
               <Label htmlFor="ativo">Status</Label>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground>
                 Trecho ativo no sistema
               </div>
             </div>
@@ -149,12 +149,12 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
               placeholder="Digite o código de integração (opcional)"
               maxLength={100}
             />
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-gray-500 mt-1>
               {watchedValues.codigoIntegracao?.length || 0}/100 caracteres
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <LocalSelector
                 value={watchedValues.localAId}
@@ -182,7 +182,7 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 <p className="text-sm text-red-500 mt-1">{errors.localBId.message}</p>
               )}
               {watchedValues.localAId && watchedValues.localBId === watchedValues.localAId && (
-                <p className="text-sm text-yellow-600 mt-1">
+                <p className="text-sm text-yellow-600 mt-1>
                   Local B deve ser diferente do Local A
                 </p>
               )}
@@ -191,15 +191,15 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
 
           {/* Resumo da seleção */}
           {watchedValues.localAId && watchedValues.localBId && watchedValues.localAId !== watchedValues.localBId && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-1">
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg>
+              <div className="text-sm font-medium text-blue-800 mb-1>
                 Resumo do Trecho
               </div>
-              <div className="text-sm text-blue-700 flex items-center gap-2">
+              <div className="text-sm text-blue-700 flex items-center gap-2>
                 <MapPin className="h-4 w-4" />
                 Local A → Local B
               </div>
-              <div className="text-xs text-blue-600 mt-1">
+              <div className="text-xs text-blue-600 mt-1>
                 Trecho configurado com sucesso
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
       </Card>
 
       {/* Actions */}
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>

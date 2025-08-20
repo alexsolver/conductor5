@@ -295,12 +295,12 @@ export default function TicketTemplates() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">Templates de Tickets</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Sistema completo de templates com campos customizáveis e análise inteligente
           </p>
         </div>
@@ -319,33 +319,33 @@ export default function TicketTemplates() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="templates" className="flex items-center gap-2">
+        <TabsList className=""
+          <TabsTrigger value="templates" className=""
             <Settings className="w-4 h-4" />
             Gerenciar Templates
           </TabsTrigger>
-          <TabsTrigger value="editor" className="flex items-center gap-2">
+          <TabsTrigger value="editor" className=""
             <Plus className="w-4 h-4" />
             Editor Visual
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
+          <TabsTrigger value="analytics" className=""
             <BarChart3 className="w-4 h-4" />
             Analytics e Relatórios
           </TabsTrigger>
-          <TabsTrigger value="company" className="flex items-center gap-2">
+          <TabsTrigger value="company" className=""
             <Building2 className="w-4 h-4" />
             Configurações da Empresa
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="templates" className="space-y-6">
+        <TabsContent value="templates" className=""
 
         {/* Stats Cards */}
         {stats && Object.keys(stats).length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className=""
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Total</p>
                     <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
@@ -355,8 +355,8 @@ export default function TicketTemplates() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Ativos</p>
                     <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
@@ -366,8 +366,8 @@ export default function TicketTemplates() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Uso médio</p>
                     <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
@@ -377,8 +377,8 @@ export default function TicketTemplates() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-muted-foreground">Mais usado</p>
                     <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
@@ -392,10 +392,10 @@ export default function TicketTemplates() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+        <CardContent className=""
+          <div className=""
+            <div className=""
+              <div className=""
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar Templates"
@@ -406,7 +406,7 @@ export default function TicketTemplates() {
               </div>
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-48">
+              <SelectTrigger className=""
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
@@ -425,12 +425,12 @@ export default function TicketTemplates() {
 
       {/* Templates Grid */}
       {isLoading ? (
-        <div className="text-center py-12">
+        <div className=""
           <p className="text-muted-foreground">Carregando templates...</p>
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
+        <div className=""
+          <p className=""
             {searchTerm || selectedCategory !== 'all' ? 
               'Nenhum Template Encontrado com os Filtros Aplicados' :
               'Nenhum Template Encontrado - Crie o Primeiro'
@@ -438,13 +438,13 @@ export default function TicketTemplates() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className=""
           {filteredTemplates.map((template: TicketTemplate) => (
-            <Card key={template.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+            <Card key={template.id} className=""
+              <CardHeader className=""
+                <div className=""
                   <CardTitle className="text-lg">{template.name}</CardTitle>
-                  <div className="flex gap-1">
+                  <div className=""
                     <Button
                       variant="ghost"
                       size="sm"
@@ -461,20 +461,20 @@ export default function TicketTemplates() {
                     </Button>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <p className=""
                   {template.description}
                 </p>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
+              <CardContent className=""
+                <div className=""
+                  <div className=""
                     <Badge variant="outline">{template.category}</Badge>
                     <Badge className={getPriorityColor(template.priority)}>
                       {getPriorityLabel(template.priority)}
                     </Badge>
                   </div>
 
-                  <div className="text-sm text-muted-foreground space-y-1">
+                  <div className=""
                     <p>Estimativa: {template.estimated_hours}h</p>
                     <p>Usado: {template.usage_count || 0} vezes</p>
                     {template.requires_approval && (
@@ -485,8 +485,8 @@ export default function TicketTemplates() {
                     )}
                   </div>
 
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-muted-foreground">
+                  <div className=""
+                    <p className=""
                       Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
@@ -498,16 +498,16 @@ export default function TicketTemplates() {
       )}
         </TabsContent>
 
-        <TabsContent value="editor" className="space-y-6">
+        <TabsContent value="editor" className=""
           <Card>
             <CardHeader>
               <CardTitle>Editor Visual de Templates</CardTitle>
-              <p className="text-muted-foreground">
+              <p className=""
                 Crie templates de abertura e atribuição usando drag-and-drop. Inclui campos do sistema e campos customizados.
               </p>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="h-[800px]">
+            <CardContent className=""
+              <div className=""
                 <TemplateCanvasEditor
                   onSave={(template) => {
                     console.log('Template salvo:', template);
@@ -541,11 +541,11 @@ export default function TicketTemplates() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
+        <TabsContent value="analytics" className=""
           <TemplateAnalytics companyId={selectedCompany} />
         </TabsContent>
 
-        <TabsContent value="company" className="space-y-6">
+        <TabsContent value="company" className=""
           <CompanyTemplateSelector 
             selectedCompany={selectedCompany}
             onCompanyChange={setSelectedCompany}
@@ -556,21 +556,21 @@ export default function TicketTemplates() {
             <CardHeader>
               <CardTitle>Configurações Avançadas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
+            <CardContent className=""
+              <p className=""
                 Configure templates específicos para esta empresa, definindo terminologias 
                 e fluxos personalizados que atendem às necessidades específicas do cliente.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="p-4">
+              <div className=""
+                <Card className=""
                   <h4 className="font-medium mb-2">Templates Personalizados</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className=""
                     Crie templates específicos para esta empresa com campos customizados.
                   </p>
                 </Card>
-                <Card className="p-4">
+                <Card className=""
                   <h4 className="font-medium mb-2">Aprovações Automáticas</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className=""
                     Configure regras de aprovação baseadas no perfil da empresa.
                   </p>
                 </Card>
@@ -582,13 +582,13 @@ export default function TicketTemplates() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Criar Novo Template - {selectedCompany === 'all' ? 'Global' : 'Específico da Empresa'}</DialogTitle>
           </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(handleCreateTemplate)} className=""
+            <div className=""
               <FormField
                 control={form.control}
                 name="name"
@@ -636,7 +636,7 @@ export default function TicketTemplates() {
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className=""
               <FormField
                 control={form.control}
                 name="priority"
@@ -710,7 +710,7 @@ export default function TicketTemplates() {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className=""
               <Button 
                 type="button" 
                 variant="outline" 
@@ -732,7 +732,7 @@ export default function TicketTemplates() {
 
       {/* Edit Dialog - Similar structure with populated fields */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Editar Template</DialogTitle>
           </DialogHeader>
@@ -741,9 +741,9 @@ export default function TicketTemplates() {
               if (editingTemplate) {
                 updateTemplateMutation.mutate({ id: editingTemplate.id, data });
               }
-            })} className="space-y-4">
+            })} className=""
               {/* Similar form structure as create, but populated with current values */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className=""
                 <FormField
                   control={form.control}
                   name="name"
@@ -791,7 +791,7 @@ export default function TicketTemplates() {
                 )}
               />
 
-              <div className="flex justify-end gap-2 pt-4">
+              <div className=""
                 <Button 
                   type="button" 
                   variant="outline" 

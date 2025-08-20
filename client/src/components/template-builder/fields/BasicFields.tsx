@@ -26,9 +26,9 @@ export const TextField: React.FC<BasicFieldProps> = ({
   const { properties = {} } = field
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -52,7 +52,7 @@ export const TextField: React.FC<BasicFieldProps> = ({
       )}
       
       {properties.maxLength && (
-        <div className="text-xs text-gray-400 text-right">
+        <div className="text-xs text-gray-400 text-right>
           {value?.length || 0}/{properties.maxLength}
         </div>
       )}
@@ -69,9 +69,9 @@ export const TextAreaField: React.FC<BasicFieldProps> = ({
   const { properties = {} } = field
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -94,7 +94,7 @@ export const TextAreaField: React.FC<BasicFieldProps> = ({
       )}
       
       {properties.maxLength && (
-        <div className="text-xs text-gray-400 text-right">
+        <div className="text-xs text-gray-400 text-right>
           {value?.length || 0}/{properties.maxLength}
         </div>
       )}
@@ -111,9 +111,9 @@ export const NumberField: React.FC<BasicFieldProps> = ({
   const { properties = {} } = field
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -138,7 +138,7 @@ export const NumberField: React.FC<BasicFieldProps> = ({
       )}
       
       {(properties.min !== undefined || properties.max !== undefined) && (
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-gray-400>
           {properties.min !== undefined && "
           {properties.min !== undefined && properties.max !== undefined && ' • '}
           {properties.max !== undefined && "
@@ -157,9 +157,9 @@ export const EmailField: React.FC<BasicFieldProps> = ({
   const { properties = {} } = field
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -211,9 +211,9 @@ export const PhoneField: React.FC<BasicFieldProps> = ({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -247,9 +247,9 @@ export const URLField: React.FC<BasicFieldProps> = ({
   const { properties = {} } = field
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>

@@ -196,15 +196,15 @@ export const LocationField: React.FC<LocationFieldProps> = ({
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-3>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {field.isRequired && <span className="text-red-500 ml-1">*</span>}
         </Label>
         
-        <div className="flex items-center gap-1">
-          <Badge variant="secondary" className="text-xs">
+        <div className="flex items-center gap-1>
+          <Badge variant="secondary" className="text-xs>
             <MapPin className="w-3 h-3 mr-1" />
             Localização
           </Badge>
@@ -216,9 +216,9 @@ export const LocationField: React.FC<LocationFieldProps> = ({
       )}
 
       {/* Busca de endereço */}
-      <div className="relative">
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
+      <div className="relative>
+        <div className="flex gap-2>
+          <div className="flex-1 relative>
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <Input
               value={searchQuery}
@@ -248,7 +248,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
         {/* Sugestões de endereço */}
         {suggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
@@ -256,13 +256,13 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                 className="w-full px-3 py-2 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
                 onClick={() => selectSuggestion(suggestion)}
               >
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2>
                   <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">
+                  <div className="min-w-0>
+                    <p className="text-sm font-medium truncate>
                       {suggestion.address}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500>
                       {suggestion.city && ", "
                       {suggestion.state} - {suggestion.country}
                     </p>
@@ -276,18 +276,18 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
       {/* Informações da localização selecionada */}
       {(locationData.latitude || locationData.address) && (
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-2">
+        <Card className="bg-green-50 border-green-200>
+          <CardContent className="p-3>
+            <div className="flex items-start justify-between>
+              <div className="flex items-start gap-2>
                 <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-green-800">
+                <div className="space-y-1>
+                  <p className="text-sm font-medium text-green-800>
                     Localização definida
                   </p>
                   
                   {locationData.address && (
-                    <p className="text-xs text-green-700">
+                    <p className="text-xs text-green-700>
                       📍 {typeof locationData.address === 'string' 
                           ? locationData.address 
                           : typeof locationData.address === 'object' 
@@ -297,13 +297,13 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                   )}
                   
                   {locationData.latitude && locationData.longitude && (
-                    <p className="text-xs text-green-600 font-mono">
+                    <p className="text-xs text-green-600 font-mono>
                       🌐 {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
                     </p>
                   )}
                   
                   {locationData.accuracy && (
-                    <p className="text-xs text-green-600">
+                    <p className="text-xs text-green-600>
                       🎯 Precisão: ±{Math.round(locationData.accuracy)}m
                     </p>
                   )}
@@ -326,9 +326,9 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
       {/* Erro */}
       {error && (
-        <Alert className="border-red-200 bg-red-50">
+        <Alert className="border-red-200 bg-red-50>
           <AlertCircle className="w-4 h-4 text-red-600" />
-          <AlertDescription className="text-red-700 text-xs">
+          <AlertDescription className="text-red-700 text-xs>
             {error}
           </AlertDescription>
         </Alert>
@@ -336,7 +336,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
       {/* Campos de entrada manual */}
       {field.allowManualEntry && (
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t>
           <div>
             <Label className="text-xs">Latitude</Label>
             <Input

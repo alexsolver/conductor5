@@ -53,7 +53,7 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
 
   const resendInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      return apiRequest("/resend`, {
+      return apiRequest("POST", "/api/invitations/resend", {
         method: "POST"
       });
     },
@@ -140,10 +140,10 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4>
       <div>
         <h3 className="text-lg font-medium">{t("userManagement.userInvitations", "Convites de Usuários")}</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground>
           {t("userManagement.userInvitationsDesc", "Gerencie convites pendentes e aceitos")}
         </p>
       </div>
@@ -157,7 +157,7 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8>
               {t("common.loading", "Carregando...")}
             </div>
           ) : (
@@ -176,11 +176,11 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
               <TableBody>
                 {invitationsData?.invitations?.map((invitation) => (
                   <TableRow key={invitation.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium>
                       {invitation.email}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
+                      <Badge variant="outline>
                         {getRoleDisplayName(invitation.role)}
                       </Badge>
                     </TableCell>
@@ -189,7 +189,7 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
                         {getStatusDisplayName(invitation.status)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm>
                       {invitation.invitedByUser 
                         ? "
                         : t("userManagement.system", "Sistema")
@@ -201,14 +201,14 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
                     <TableCell>
                       {format(new Date(invitation.expiresAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button variant="ghost" className="h-8 w-8 p-0>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end>
                           {invitation.status === 'pending' && (
                             <>
                               <DropdownMenuItem 
@@ -250,9 +250,9 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
           )}
 
           {invitationsData?.invitations?.length === 0 && (
-            <div className="text-center py-8">
+            <div className="text-center py-8>
               <Mail className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground>
                 {t("userManagement.noInvitations", "Nenhum convite foi enviado ainda")}
               </p>
             </div>
@@ -262,43 +262,43 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
 
       {/* Statistics */}
       {invitationsData?.invitations && invitationsData.invitations.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-4>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-orange-600">
+            <CardContent className="pt-6>
+              <div className="text-2xl font-bold text-orange-600>
                 {invitationsData.invitations.filter(i => i.status === 'pending').length}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground>
                 {t("userManagement.pendingInvitations", "Convites Pendentes")}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-green-600">
+            <CardContent className="pt-6>
+              <div className="text-2xl font-bold text-green-600>
                 {invitationsData.invitations.filter(i => i.status === 'accepted').length}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground>
                 {t("userManagement.acceptedInvitations", "Convites Aceitos")}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-gray-600">
+            <CardContent className="pt-6>
+              <div className="text-2xl font-bold text-gray-600>
                 {invitationsData.invitations.filter(i => i.status === 'expired').length}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground>
                 {t("userManagement.expiredInvitations", "Convites Expirados")}
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-red-600">
+            <CardContent className="pt-6>
+              <div className="text-2xl font-bold text-red-600>
                 {invitationsData.invitations.filter(i => i.status === 'revoked').length}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground>
                 {t("userManagement.revokedInvitations", "Convites Revogados")}
               </p>
             </CardContent>

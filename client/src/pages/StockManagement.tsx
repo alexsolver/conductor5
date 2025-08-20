@@ -110,9 +110,9 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
+        <div className=""
           <Label htmlFor="movementType">Tipo de Movimentação *</Label>
           <Select value={movementType} onValueChange={setMovementType}>
             <SelectTrigger>
@@ -126,7 +126,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
@@ -142,7 +142,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
@@ -158,7 +158,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="quantity">Quantidade *</Label>
           <Input
             id="quantity"
@@ -170,7 +170,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="unitCost">Custo Unitário (opcional)</Label>
           <Input
             id="unitCost"
@@ -183,7 +183,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className=""
         <Label htmlFor="reason">Motivo *</Label>
         <Textarea
           id="reason"
@@ -194,7 +194,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
         />
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className=""
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Registrando..." : "Registrar Movimentação"
         </Button>
@@ -233,9 +233,9 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
+        <div className=""
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
@@ -251,7 +251,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
@@ -267,7 +267,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="newQuantity">Nova Quantidade *</Label>
           <Input
             id="newQuantity"
@@ -280,7 +280,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className=""
         <Label htmlFor="adjustmentReason">Motivo do Ajuste *</Label>
         <Textarea
           id="adjustmentReason"
@@ -291,7 +291,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
         />
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className=""
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Ajustando..." : "Realizar Ajuste"
         </Button>
@@ -309,10 +309,10 @@ function InventoryModal() {
   const stockItems: StockItem[] = (stockResponse as any)?.data || [];
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
+    <div className=""
+      <div className=""
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm">Total de Itens</CardTitle>
           </CardHeader>
           <CardContent>
@@ -320,21 +320,21 @@ function InventoryModal() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm">Valor Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               R$ {stockItems.reduce((acc, item) => acc + item.totalValue, 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm">Itens Críticos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className=""
               {stockItems.filter(item => item.status === 'critical').length}
             </div>
           </CardContent>
@@ -382,11 +382,11 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
   onCreateWarehouse: () => void; 
 }) {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h3 className="text-lg font-semibold">Gestão de Armazéns</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className=""
             Gerencie seus armazéns e localizações de estoque
           </p>
         </div>
@@ -396,13 +396,13 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className=""
         {warehouses.length === 0 ? (
-          <Card className="col-span-3">
-            <CardContent className="flex flex-col items-center justify-center py-12">
+          <Card className=""
+            <CardContent className=""
               <Warehouse className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">Nenhum armazém cadastrado</h3>
-              <p className="text-sm text-muted-foreground text-center mb-4">
+              <p className=""
                 Comece criando seu primeiro armazém para organizar o estoque
               </p>
               <Button onClick={onCreateWarehouse}>
@@ -414,26 +414,26 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
         ) : (
           warehouses.map((warehouse: any) => (
             <Card key={warehouse.id}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-base">{warehouse.name}</CardTitle>
                 <Warehouse className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
+                <div className=""
+                  <div className=""
                     <MapPin className="h-4 w-4 mr-1" />
                     {warehouse.location || 'Localização não informada'}
                   </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
+                  <div className=""
                     <Package className="h-4 w-4 mr-1" />
                     {warehouse.itemCount || 0} itens
                   </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
+                  <div className=""
                     <Users className="h-4 w-4 mr-1" />
                     {warehouse.manager || 'Sem responsável'}
                   </div>
                 </div>
-                <div className="flex space-x-2 mt-4">
+                <div className=""
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -471,25 +471,25 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
             <CardTitle>Estatísticas dos Armazéns</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center">
+            <div className=""
+              <div className=""
                 <div className="text-2xl font-bold">{warehouses.length}</div>
                 <p className="text-sm text-muted-foreground">Total de Armazéns</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">
+              <div className=""
+                <div className=""
                   {warehouses.reduce((acc, w) => acc + (w.itemCount || 0), 0)}
                 </div>
                 <p className="text-sm text-muted-foreground">Itens Totais</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">
+              <div className=""
+                <div className=""
                   R$ {warehouses.reduce((acc, w) => acc + (w.totalValue || 0), 0).toLocaleString()}
                 </div>
                 <p className="text-sm text-muted-foreground">Valor Total</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">
+              <div className=""
+                <div className=""
                   {warehouses.filter(w => w.status === 'active').length}
                 </div>
                 <p className="text-sm text-muted-foreground">Armazéns Ativos</p>
@@ -620,15 +620,15 @@ export function StockManagement() {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">Gestão de Estoque</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Controle completo do seu inventário e movimentações
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className=""
           <Button onClick={() => setIsNewMovementOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Nova Movimentação
@@ -644,8 +644,8 @@ export function StockManagement() {
         </div>
       </div>
 
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className=""
+        <TabsList className=""
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="items">Itens em Estoque</TabsTrigger>
           <TabsTrigger value="movements">Movimentações</TabsTrigger>
@@ -653,29 +653,29 @@ export function StockManagement() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className=""
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className=""
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Itens em Estoque</CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stockStats.totalItems || stockItems.length}</div>
-                <p className="text-xs text-muted-foreground">
+                <p className=""
                   {stockStats.activeItems || stockItems.filter(item => item.status !== 'critical').length} ativos
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Estoque Baixo</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
+                <div className=""
                   {stockStats.lowStockItems || stockItems.filter(item => item.status === 'low').length}
                 </div>
                 <p className="text-xs text-muted-foreground">Necessitam reposição</p>
@@ -683,12 +683,12 @@ export function StockManagement() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className=""
                   R$ {(stockStats.totalValue || stockItems.reduce((acc, item) => acc + item.totalValue, 0)).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">Inventário completo</p>
@@ -696,7 +696,7 @@ export function StockManagement() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className=""
                 <CardTitle className="text-sm font-medium">Movimentações Hoje</CardTitle>
                 <ArrowUpDown className="h-4 w-4 text-blue-600" />
               </CardHeader>
@@ -717,7 +717,7 @@ export function StockManagement() {
             </CardHeader>
             <CardContent>
               {movements.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className=""
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-medium mb-2">Nenhuma movimentação registrada</h3>
                   <p>As movimentações de estoque aparecerão aqui</p>
@@ -765,17 +765,17 @@ export function StockManagement() {
         </TabsContent>
 
         {/* Items Tab */}
-        <TabsContent value="items" className="space-y-6">
+        <TabsContent value="items" className=""
           {/* Filters */}
           <Card>
             <CardHeader>
               <CardTitle>Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
+              <div className=""
+                <div className=""
                   <Label htmlFor="search">Buscar Item</Label>
-                  <div className="relative">
+                  <div className=""
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="search"
@@ -787,7 +787,7 @@ export function StockManagement() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
@@ -803,7 +803,7 @@ export function StockManagement() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className=""
                   <Label htmlFor="warehouse">Armazém</Label>
                   <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
                     <SelectTrigger>
@@ -833,11 +833,11 @@ export function StockManagement() {
             </CardHeader>
             <CardContent>
               {isLoadingStock ? (
-                <div className="text-center py-8">
+                <div className=""
                   <p>Carregando itens...</p>
                 </div>
               ) : filteredStockItems.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className=""
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-medium mb-2">Nenhum item encontrado</h3>
                   <p>Verifique os filtros aplicados</p>
@@ -865,13 +865,13 @@ export function StockManagement() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-center">
+                          <div className=""
                             <span className="text-lg font-semibold">{item.currentStock}</span>
                             <div className="text-xs text-muted-foreground">unidades</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">
+                          <div className=""
                             <div>Min: {item.minimumStock}</div>
                             <div>Max: {item.maximumStock}</div>
                           </div>
@@ -884,7 +884,7 @@ export function StockManagement() {
                         <TableCell>R$ {item.totalValue.toLocaleString()}</TableCell>
                         <TableCell>{item.warehouse}</TableCell>
                         <TableCell>
-                          <div className="flex space-x-2">
+                          <div className=""
                             <Button 
                               size="sm" 
                               variant="outline" 
@@ -917,7 +917,7 @@ export function StockManagement() {
         </TabsContent>
 
         {/* Movements Tab */}
-        <TabsContent value="movements" className="space-y-6">
+        <TabsContent value="movements" className=""
           <Card>
             <CardHeader>
               <CardTitle>Histórico de Movimentações</CardTitle>
@@ -927,7 +927,7 @@ export function StockManagement() {
             </CardHeader>
             <CardContent>
               {movements.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className=""
                   <ArrowUpDown className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-medium mb-2">Nenhuma movimentação registrada</h3>
                   <p>As movimentações de estoque aparecerão aqui</p>
@@ -981,7 +981,7 @@ export function StockManagement() {
         </TabsContent>
 
         {/* Warehouses Tab */}
-        <TabsContent value="warehouses" className="space-y-6">
+        <TabsContent value="warehouses" className=""
           <WarehousesTab 
             warehouses={warehouses} 
             onCreateWarehouse={() => setIsNewWarehouseOpen(true)}
@@ -991,7 +991,7 @@ export function StockManagement() {
 
       {/* Modals */}
       <Dialog open={isNewMovementOpen} onOpenChange={setIsNewMovementOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Nova Movimentação de Estoque</DialogTitle>
             <DialogDescription>
@@ -1006,7 +1006,7 @@ export function StockManagement() {
       </Dialog>
 
       <Dialog open={isAdjustmentOpen} onOpenChange={setIsAdjustmentOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Ajuste de Estoque</DialogTitle>
             <DialogDescription>
@@ -1021,7 +1021,7 @@ export function StockManagement() {
       </Dialog>
 
       <Dialog open={isInventoryOpen} onOpenChange={setIsInventoryOpen}>
-        <DialogContent className="max-w-6xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Inventário de Estoque</DialogTitle>
             <DialogDescription>
@@ -1033,7 +1033,7 @@ export function StockManagement() {
       </Dialog>
 
       <Dialog open={isNewWarehouseOpen} onOpenChange={setIsNewWarehouseOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Novo Armazém</DialogTitle>
             <DialogDescription>
@@ -1054,7 +1054,7 @@ export function StockManagement() {
 
       {/* View Item Modal */}
       <Dialog open={isViewItemOpen} onOpenChange={setIsViewItemOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Visualizar Item</DialogTitle>
             <DialogDescription>
@@ -1062,8 +1062,8 @@ export function StockManagement() {
             </DialogDescription>
           </DialogHeader>
           {selectedItem && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className=""
+              <div className=""
                 <div>
                   <Label className="text-sm font-medium">Nome do Item</Label>
                   <p className="text-sm text-muted-foreground">{selectedItem.itemName}</p>
@@ -1099,7 +1099,7 @@ export function StockManagement() {
                   <p className="text-sm text-muted-foreground">{selectedItem.warehouse}</p>
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className=""
                 <Button onClick={() => setIsViewItemOpen(false)}>Fechar</Button>
               </div>
             </div>
@@ -1109,7 +1109,7 @@ export function StockManagement() {
 
       {/* Edit Item Modal */}
       <Dialog open={isEditItemOpen} onOpenChange={setIsEditItemOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Editar Item</DialogTitle>
             <DialogDescription>
@@ -1132,7 +1132,7 @@ export function StockManagement() {
 
       {/* View Warehouse Modal */}
       <Dialog open={isViewWarehouseOpen} onOpenChange={setIsViewWarehouseOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Visualizar Armazém</DialogTitle>
             <DialogDescription>
@@ -1140,8 +1140,8 @@ export function StockManagement() {
             </DialogDescription>
           </DialogHeader>
           {selectedWarehouse && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className=""
+              <div className=""
                 <div>
                   <Label className="text-sm font-medium">Nome</Label>
                   <p className="text-sm text-muted-foreground">{selectedWarehouse.name}</p>
@@ -1169,7 +1169,7 @@ export function StockManagement() {
                   </Badge>
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className=""
                 <Button onClick={() => setIsViewWarehouseOpen(false)}>Fechar</Button>
               </div>
             </div>
@@ -1179,7 +1179,7 @@ export function StockManagement() {
 
       {/* Edit Warehouse Modal */}
       <Dialog open={isEditWarehouseOpen} onOpenChange={setIsEditWarehouseOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Editar Armazém</DialogTitle>
             <DialogDescription>
@@ -1238,9 +1238,9 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
+        <div className=""
           <Label htmlFor="name">Nome do Armazém *</Label>
           <Input
             id="name"
@@ -1251,7 +1251,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="location">Localização *</Label>
           <Input
             id="location"
@@ -1262,7 +1262,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="manager">Responsável</Label>
           <Input
             id="manager"
@@ -1272,7 +1272,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="capacity">Capacidade (m²)</Label>
           <Input
             id="capacity"
@@ -1284,7 +1284,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className=""
         <Label htmlFor="description">Descrição</Label>
         <Input
           id="description"
@@ -1294,7 +1294,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
         />
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
@@ -1329,19 +1329,19 @@ function EditItemForm({ item, onSubmit, onCancel }: {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
+        <div className=""
           <Label>Nome do Item</Label>
           <Input value={item.itemName} disabled />
         </div>
         
-        <div className="space-y-2">
+        <div className=""
           <Label>Código</Label>
           <Input value={item.itemCode} disabled />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="minimumStock">Estoque Mínimo *</Label>
           <Input
             id="minimumStock"
@@ -1352,7 +1352,7 @@ function EditItemForm({ item, onSubmit, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="maximumStock">Estoque Máximo *</Label>
           <Input
             id="maximumStock"
@@ -1363,7 +1363,7 @@ function EditItemForm({ item, onSubmit, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="warehouse">Armazém</Label>
           <Input
             id="warehouse"
@@ -1372,17 +1372,17 @@ function EditItemForm({ item, onSubmit, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label>Estoque Atual</Label>
           <Input value={" unidades" disabled />
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">
+        <Button type="submit>
           Salvar Alterações
         </Button>
       </div>
@@ -1423,9 +1423,9 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+    <form onSubmit={handleSubmit} className=""
+      <div className=""
+        <div className=""
           <Label htmlFor="name">Nome do Armazém *</Label>
           <Input
             id="name"
@@ -1435,7 +1435,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="location">Localização *</Label>
           <Input
             id="location"
@@ -1445,7 +1445,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="manager">Responsável</Label>
           <Input
             id="manager"
@@ -1454,7 +1454,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className=""
           <Label htmlFor="status">Status</Label>
           <select 
             id="status"
@@ -1468,11 +1468,11 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">
+        <Button type="submit>
           Salvar Alterações
         </Button>
       </div>

@@ -67,12 +67,12 @@ export default function TranslationManager() {
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
-      <div className="p-8 text-center">
+      <div className="p-4"
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className="p-4"
           Acesso Negado
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="p-4"
           Esta página é restrita para administradores da plataforma SaaS.
         </p>
       </div>
@@ -190,17 +190,17 @@ export default function TranslationManager() {
   ) || [];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4"
+      <div className="p-4"
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="p-4"
             Gerenciador de Traduções
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="p-4"
             Gerencie traduções em todos os idiomas suportados
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="p-4"
           <Button 
             variant="outline" 
             onClick={handleRestore}
@@ -222,7 +222,7 @@ export default function TranslationManager() {
       {/* Language Selector */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="p-4"
             <Languages className="w-5 h-5" />
             Selecionar Idioma
           </CardTitle>
@@ -231,7 +231,7 @@ export default function TranslationManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2">
+          <div className="p-4"
             {isLoadingLanguages ? (
               <div>Carregando idiomas...</div>
             ) : (
@@ -253,8 +253,8 @@ export default function TranslationManager() {
 
       {/* Search */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
+        <CardContent className="p-4"
+          <div className="p-4"
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
               placeholder='Buscar chaves de tradução'
@@ -267,18 +267,18 @@ export default function TranslationManager() {
       </Card>
 
       {/* Translation Tabs */}
-      <Tabs defaultValue="editor" className="flex-1">
-          <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="editor" className="p-4"
+          <TabsList className="p-4"
             <TabsTrigger value="editor">Editor de Traduções</TabsTrigger>
             <TabsTrigger value="completion">Completude Automática</TabsTrigger>
             <TabsTrigger value="keys">Todas as Chaves</TabsTrigger>
           </TabsList>
 
         {/* Translation Editor Tab */}
-        <TabsContent value="editor" className="space-y-4">
+        <TabsContent value="editor" className="p-4"
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="p-4"
                 <Edit3 className="w-5 h-5" />
                 Editor de Traduções - {selectedLanguage}
               </CardTitle>
@@ -293,17 +293,17 @@ export default function TranslationManager() {
                 <div className="text-center py-8">Carregando traduções...</div>
               ) : (
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+                    <div className="p-4"
                       {filteredKeys.map((key: string) => {
                         const currentValue = getNestedValue(form.watch('translations'), key);
                         return (
-                          <div key={key} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <div key={key} className="p-4"
+                            <div className="p-4"
+                              <Label className="p-4"
                                 {key}
                               </Label>
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="p-4"
                                 {typeof currentValue === 'string' ? 'Texto' : 'Objeto'}
                               </Badge>
                             </div>
@@ -320,8 +320,8 @@ export default function TranslationManager() {
                                 className="min-h-20"
                               />
                             ) : (
-                              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                                <pre className="text-sm text-gray-600 dark:text-gray-400">
+                              <div className="p-4"
+                                <pre className="p-4"
                                   {JSON.stringify(currentValue, null, 2)}
                                 </pre>
                               </div>
@@ -332,7 +332,7 @@ export default function TranslationManager() {
                     </div>
 
                     {filteredKeys.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="p-4"
                         {searchTerm ? 'Nenhuma chave encontrada para a busca' : 'Nenhuma tradução encontrada'}
                       </div>
                     )}
@@ -343,8 +343,8 @@ export default function TranslationManager() {
           </Card>
         </TabsContent>
 
-          <TabsContent value="completion" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
+          <TabsContent value="completion" className="p-4"
+            <div className="p-4"
               <h3 className="text-lg font-semibold">Completar Traduções Automaticamente</h3>
               <Button 
                 onClick={async () => {
@@ -386,10 +386,10 @@ export default function TranslationManager() {
             <TranslationCompletionPanel />
           </TabsContent>
 
-          <TabsContent value="keys" className="space-y-4">
+          <TabsContent value="keys" className="p-4"
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="p-4"
                   <Globe className="w-5 h-5" />
                   Todas as Chaves de Tradução
                 </CardTitle>
@@ -401,13 +401,13 @@ export default function TranslationManager() {
                 {isLoadingKeys ? (
                   <div className="text-center py-8">Carregando chaves...</div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="p-4"
                     {((allKeysData as any)?.keys || []).map((key: string) => (
-                      <div key={key} className="border rounded-lg p-4 flex items-center justify-between">
-                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <div key={key} className="p-4"
+                        <Label className="p-4"
                           {key}
                         </Label>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="p-4"
                           {key.split('.').length > 1 ? 'Nested' : 'Top Level'}
                         </Badge>
                       </div>
@@ -420,47 +420,47 @@ export default function TranslationManager() {
       </Tabs>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="p-4"
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="p-4"
             <CardTitle className="text-sm font-medium">Total de Chaves</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="p-4"
               {((allKeysData as any)?.keys || []).length}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="p-4"
               Chaves de tradução no sistema
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="p-4"
             <CardTitle className="text-sm font-medium">Idiomas Suportados</CardTitle>
             <Languages className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="p-4"
               {((languagesData as any)?.languages || []).length}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="p-4"
               Idiomas disponíveis
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="p-4"
             <CardTitle className="text-sm font-medium">Idioma Atual</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="p-4"
               {selectedLanguage.toUpperCase()}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="p-4"
               Idioma sendo editado
             </p>
           </CardContent>

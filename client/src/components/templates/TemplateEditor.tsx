@@ -113,18 +113,18 @@ const DraggableField: React.FC<{
       onClick={() => onSelect(field.id)}
       onDoubleClick={() => onEdit(field.id)}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between>
+        <div className="flex items-center gap-2>
           {getFieldIcon(field.type)}
           <span className="font-medium">{field.label}</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1>
           {field.isRequired && <Badge variant="destructive" className="text-xs">*</Badge>}
           {!field.isVisible && <Badge variant="secondary" className="text-xs">Hidden</Badge>}
           <Settings className="w-4 h-4 text-gray-400" />
         </div>
       </div>
-      <div className="text-xs text-gray-500 mt-1">
+      <div className="text-xs text-gray-500 mt-1>
         Tipo: {field.type} • Chave: {field.key}
       </div>
     </div>
@@ -242,23 +242,23 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   const zoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 50));
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col>
       {/* Toolbar */}
-      <div className="border-b p-4 bg-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button onClick={undo} disabled={historyIndex === 0} size="sm" variant="outline">
+      <div className="border-b p-4 bg-white>
+        <div className="flex items-center justify-between>
+          <div className="flex items-center gap-2>
+            <Button onClick={undo} disabled={historyIndex === 0} size="sm" variant="outline>
               <Undo className="w-4 h-4" />
             </Button>
-            <Button onClick={redo} disabled={historyIndex >= history.length - 1} size="sm" variant="outline">
+            <Button onClick={redo} disabled={historyIndex >= history.length - 1} size="sm" variant="outline>
               <Redo className="w-4 h-4" />
             </Button>
             <div className="h-6 w-px bg-gray-300 mx-2" />
-            <Button onClick={zoomOut} size="sm" variant="outline">
+            <Button onClick={zoomOut} size="sm" variant="outline>
               <ZoomOut className="w-4 h-4" />
             </Button>
             <span className="text-sm text-gray-600 min-w-[60px] text-center">{zoomLevel}%</span>
-            <Button onClick={zoomIn} size="sm" variant="outline">
+            <Button onClick={zoomIn} size="sm" variant="outline>
               <ZoomIn className="w-4 h-4" />
             </Button>
             <Button 
@@ -270,8 +270,8 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button onClick={() => onPreview({ fields })} variant="outline">
+          <div className="flex items-center gap-2>
+            <Button onClick={() => onPreview({ fields })} variant="outline>
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
@@ -284,19 +284,19 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex>
         {/* Sidebar - Palette de componentes */}
-        <div className="w-80 border-r bg-gray-50 p-4">
+        <div className="w-80 border-r bg-gray-50 p-4>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2>
               <TabsTrigger value="design">Componentes</TabsTrigger>
               <TabsTrigger value="properties">Propriedades</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="design" className="space-y-4">
+            <TabsContent value="design" className="space-y-4>
               <div>
                 <h3 className="font-medium mb-3">Campos Disponíveis</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2>
                   {fieldTypes.map((fieldType) => {
                     const Icon = fieldType.icon;
                     return (
@@ -315,17 +315,17 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
               </div>
             </TabsContent>
 
-            <TabsContent value="properties" className="space-y-4">
+            <TabsContent value="properties" className="space-y-4>
               {selectedFieldId ? (
                 <div>
                   <h3 className="font-medium mb-3">Propriedades do Campo</h3>
                   {/* Aqui virá o editor de propriedades */}
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600>
                     Editor de propriedades será implementado na próxima fase
                   </p>
                 </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-8>
                   <p className="text-gray-500">Selecione um campo para editar suas propriedades</p>
                 </div>
               )}
@@ -334,12 +334,12 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 relative overflow-auto">
+        <div className="flex-1 relative overflow-auto>
           <div 
             className="p-8 min-h-full ""
             style={{ transform: ")`, transformOrigin: 'top left' }}
           >
-            <Card className="max-w-4xl mx-auto min-h-[600px]">
+            <Card className="max-w-4xl mx-auto min-h-[600px]>
               <CardHeader>
                 <CardTitle>Preview do Template</CardTitle>
               </CardHeader>
@@ -350,9 +350,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext items={fields} strategy={verticalListSortingStrategy}>
-                    <div className="space-y-4">
+                    <div className="space-y-4>
                       {fields.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
+                        <div className="text-center py-12 text-gray-500>
                           <Plus className="w-12 h-12 mx-auto mb-4 opacity-50" />
                           <p>Arraste componentes da barra lateral para começar</p>
                         </div>

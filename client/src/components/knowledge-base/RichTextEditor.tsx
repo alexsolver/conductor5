@@ -54,7 +54,7 @@ export function RichTextEditor({
   }
 
   return (
-    <div className="rich-text-editor "">
+    <div className="rich-text-editor ">
       <ReactQuill
         theme="snow"
         value={content}

@@ -160,15 +160,15 @@ export default function HolidayCalendar() {
   ];
 
   return (
-    <div className="p-4 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className=""
         <div>
           <h1 className="text-2xl font-bold">Calendário de Feriados</h1>
           <p className="text-gray-600 mt-1">Gerenciar feriados para controle de jornadas multilocation</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className=""
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -176,7 +176,7 @@ export default function HolidayCalendar() {
                 Novo Feriado
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className=""
               <DialogHeader>
                 <DialogTitle>Criar Novo Feriado</DialogTitle>
                 <DialogDescription>
@@ -185,7 +185,7 @@ export default function HolidayCalendar() {
               </DialogHeader>
               
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className=""
                   <FormField
                     control={form.control}
                     name="name"
@@ -200,7 +200,7 @@ export default function HolidayCalendar() {
                     )}
                   />
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className=""
                     <FormField
                       control={form.control}
                       name="date"
@@ -241,7 +241,7 @@ export default function HolidayCalendar() {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className=""
                     <FormField
                       control={form.control}
                       name="countryCode"
@@ -285,16 +285,16 @@ export default function HolidayCalendar() {
                     control={form.control}
                     name="isRecurring"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormItem className=""
                         <FormControl>
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <div className="space-y-1 leading-none">
+                        <div className=""
                           <FormLabel>Feriado recorrente</FormLabel>
-                          <p className="text-sm text-muted-foreground">
+                          <p className=""
                             Se repete todo ano na mesma data
                           </p>
                         </div>
@@ -319,7 +319,7 @@ export default function HolidayCalendar() {
                     )}
                   />
                   
-                  <div className="flex justify-end gap-2">
+                  <div className=""
                     <Button
                       type="button"
                       variant="outline"
@@ -341,14 +341,14 @@ export default function HolidayCalendar() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className=""
             <Filter className="h-5 w-5" />
             Filtros
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="space-y-2">
+          <div className=""
+            <div className=""
               <label className="text-sm font-medium">Ano</label>
               <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                 <SelectTrigger>
@@ -364,7 +364,7 @@ export default function HolidayCalendar() {
               </Select>
             </div>
             
-            <div className="space-y-2">
+            <div className=""
               <label className="text-sm font-medium">País</label>
               <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                 <SelectTrigger>
@@ -379,7 +379,7 @@ export default function HolidayCalendar() {
               </Select>
             </div>
             
-            <div className="space-y-2">
+            <div className=""
               <label className="text-sm font-medium">Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
@@ -396,7 +396,7 @@ export default function HolidayCalendar() {
               </Select>
             </div>
             
-            <div className="space-y-2">
+            <div className=""
               <label className="text-sm font-medium">Região</label>
               <Input
                 placeholder="Ex: SP, RJ..."
@@ -409,10 +409,10 @@ export default function HolidayCalendar() {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
+          <CardContent className=""
+            <div className=""
               <Calendar className="h-4 w-4 text-blue-600" />
               <div>
                 <p className="text-sm font-medium">Total de Feriados</p>
@@ -423,12 +423,12 @@ export default function HolidayCalendar() {
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
+          <CardContent className=""
+            <div className=""
               <Globe className="h-4 w-4 text-red-600" />
               <div>
                 <p className="text-sm font-medium">Nacionais</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className=""
                   {holidays.filter((h: Holiday) => h.type === 'national').length}
                 </p>
               </div>
@@ -437,12 +437,12 @@ export default function HolidayCalendar() {
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
+          <CardContent className=""
+            <div className=""
               <MapPin className="h-4 w-4 text-blue-600" />
               <div>
                 <p className="text-sm font-medium">Regionais</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className=""
                   {holidays.filter((h: Holiday) => h.type === 'regional').length}
                 </p>
               </div>
@@ -451,12 +451,12 @@ export default function HolidayCalendar() {
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
+          <CardContent className=""
+            <div className=""
               <Building className="h-4 w-4 text-green-600" />
               <div>
                 <p className="text-sm font-medium">Corporativos</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className=""
                   {holidays.filter((h: Holiday) => h.type === 'corporate').length}
                 </p>
               </div>
@@ -477,7 +477,7 @@ export default function HolidayCalendar() {
           {isLoading ? (
             <div className="text-center py-8">Carregando feriados...</div>
           ) : (
-            <div className="space-y-6">
+            <div className=""
               {monthNames.map((monthName, index) => {
                 const monthKey = "
                 const monthHolidays = holidaysByMonth[monthKey] || [];
@@ -485,17 +485,17 @@ export default function HolidayCalendar() {
                 if (monthHolidays.length === 0) return null;
                 
                 return (
-                  <div key={monthKey} className="space-y-3">
+                  <div key={monthKey} className=""
                     <h3 className="text-lg font-semibold text-gray-800">{monthName}</h3>
-                    <div className="grid gap-3">
+                    <div className=""
                       {monthHolidays.map((holiday: Holiday) => (
-                        <div key={holiday.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="text-center min-w-[60px]">
-                              <div className="text-lg font-bold">
+                        <div key={holiday.id} className=""
+                          <div className=""
+                            <div className=""
+                              <div className=""
                                 {new Date(holiday.date + 'T00:00:00').getDate()}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className=""
                                 {new Date(holiday.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short' })}
                               </div>
                             </div>
@@ -508,22 +508,22 @@ export default function HolidayCalendar() {
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-2">
+                          <div className=""
                             {holiday.regionCode && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className=""
                                 {holiday.regionCode}
                               </Badge>
                             )}
                             
-                            <Badge className="text-xs "">
-                              <span className="flex items-center gap-1">
+                            <Badge className="text-xs ">
+                              <span className=""
                                 {typeIcons[holiday.type]}
                                 {typeLabels[holiday.type]}
                               </span>
                             </Badge>
                             
                             {holiday.isRecurring && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className=""
                                 Recorrente
                               </Badge>
                             )}
@@ -536,7 +536,7 @@ export default function HolidayCalendar() {
               })}
               
               {Object.keys(holidaysByMonth).length === 0 && (
-                <div className="text-center py-8 text-gray-500">
+                <div className=""
                   Nenhum feriado encontrado para os filtros selecionados.
                 </div>
               )}

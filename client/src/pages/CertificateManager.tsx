@@ -71,8 +71,8 @@ export default function CertificateManager() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
+    <div className=""
+      <div className=""
         <Shield className="h-8 w-8 text-blue-600" />
         <div>
           <h1 className="text-3xl font-bold">Certificados Digitais</h1>
@@ -83,13 +83,13 @@ export default function CertificateManager() {
       {/* Upload de Certificado */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className=""
             <Upload className="h-5 w-5" />
             Instalar Novo Certificado
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className=""
+          <div className=""
             <div>
               <Label htmlFor="cert-name">Nome do Certificado</Label>
               <Input
@@ -111,7 +111,7 @@ export default function CertificateManager() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className=""
             <div>
               <Label htmlFor="certificate-file">Arquivo do Certificado (.crt/.pem)</Label>
               <Input
@@ -145,36 +145,36 @@ export default function CertificateManager() {
       {/* Certificados Ativos */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className=""
             <Key className="h-5 w-5" />
             Certificados Instalados
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <div className="flex items-center gap-3">
+          <div className=""
+            <div className=""
+              <div className=""
                 <CheckCircle className="h-5 w-5 text-green-600" />
                 <div>
                   <div className="font-medium">CLT-Primary-Key-2025</div>
                   <div className="text-sm text-gray-600">RSA-2048 • Expira: 02/08/2026</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className=""
                 <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Ativo</span>
                 <Button variant="outline" size="sm">Renovar</Button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-              <div className="flex items-center gap-3">
+            <div className=""
+              <div className=""
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
                 <div>
                   <div className="font-medium">Certificado-ICP-Brasil-2024</div>
                   <div className="text-sm text-gray-600">RSA-2048 • Expira: 31/12/2024</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className=""
                 <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">Expirando</span>
                 <Button variant="outline" size="sm">Renovar</Button>
               </div>
@@ -184,13 +184,13 @@ export default function CertificateManager() {
       </Card>
 
       {/* Informações CLT */}
-      <Card className="bg-blue-50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
+      <Card className=""
+        <CardContent className=""
+          <div className=""
             <Shield className="h-6 w-6 text-blue-600 mt-1" />
             <div>
               <h3 className="font-semibold text-blue-900">Compliance CLT</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className=""
                 Os certificados digitais garantem a autenticidade e integridade dos registros de ponto conforme 
                 a Portaria MTE 671/2021. Todos os registros são assinados digitalmente com algoritmo RSA-2048.
               </p>

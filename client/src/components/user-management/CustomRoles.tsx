@@ -150,7 +150,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest('PUT', "
+      apiRequest("PUT", "/api/roles"
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       setEditingRole(null);
@@ -300,11 +300,11 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   }, {}) || {};
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4>
+      <div className="flex items-center justify-between>
         <div>
           <h3 className="text-lg font-medium">Papéis e Permissões</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground>
             Gerencie papéis customizados e permissões granulares para o workspace
           </p>
         </div>
@@ -316,7 +316,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
               Criar Papel
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
             <form onSubmit={handleCreateSubmit}>
               <DialogHeader>
                 <DialogTitle>Criar Novo Papel</DialogTitle>
@@ -325,15 +325,15 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                 </DialogDescription>
               </DialogHeader>
               
-              <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
+              <Tabs defaultValue="basic" className="w-full>
+                <TabsList className="grid w-full grid-cols-2 mb-4>
                   <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
                   <TabsTrigger value="permissions">Permissões</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="basic" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
+                <TabsContent value="basic" className="space-y-4>
+                  <div className="space-y-4>
+                    <div className="space-y-2>
                       <Label htmlFor="name">Nome do Papel</Label>
                       <Input
                         id="name"
@@ -343,7 +343,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         required
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="description">Descrição</Label>
                       <Textarea
                         id="description"
@@ -356,17 +356,17 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="permissions" className="space-y-4">
-                  <ScrollArea className="h-96">
-                    <div className="space-y-6">
+                <TabsContent value="permissions" className="space-y-4>
+                  <ScrollArea className="h-96>
+                    <div className="space-y-6>
                       {Object.entries(groupedPermissions).map(([category, permissions]) => (
-                        <div key={category} className="space-y-3">
-                          <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                        <div key={category} className="space-y-3>
+                          <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide>
                             {PERMISSION_CATEGORIES[category as keyof typeof PERMISSION_CATEGORIES] || category}
                           </h4>
-                          <div className="space-y-2">
+                          <div className="space-y-2>
                             {(permissions as Permission[]).map((permission) => (
-                              <div key={permission.id} className="flex items-center space-x-2">
+                              <div key={permission.id} className="flex items-center space-x-2>
                                 <Checkbox
                                   id={"
                                   checked={selectedPermissions.includes(permission.id)}
@@ -378,7 +378,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                                 >
                                   {permission.name}
                                   {permission.description && (
-                                    <span className="text-xs text-muted-foreground block">
+                                    <span className="text-xs text-muted-foreground block>
                                       {permission.description}
                                     </span>
                                   )}
@@ -394,7 +394,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                 </TabsContent>
               </Tabs>
               
-              <DialogFooter className="mt-6">
+              <DialogFooter className="mt-6>
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>
                   Cancelar
                 </Button>
@@ -408,7 +408,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
 
         {/* Dialog de Edição com Abas */}
         <Dialog open={!!editingRole} onOpenChange={() => setEditingRole(null)}>
-          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto>
             <DialogHeader>
               <DialogTitle>Editar Papel</DialogTitle>
               <DialogDescription>
@@ -416,27 +416,27 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
               </DialogDescription>
             </DialogHeader>
             
-            <Tabs defaultValue="info" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-4">
-                <TabsTrigger value="info" className="flex items-center space-x-2">
+            <Tabs defaultValue="info" className="w-full>
+              <TabsList className="grid w-full grid-cols-3 mb-4>
+                <TabsTrigger value="info" className="flex items-center space-x-2>
                   <Edit className="h-4 w-4" />
                   <span>Informações</span>
                 </TabsTrigger>
-                <TabsTrigger value="permissions" className="flex items-center space-x-2">
+                <TabsTrigger value="permissions" className="flex items-center space-x-2>
                   <Shield className="h-4 w-4" />
                   <span>Permissões</span>
                 </TabsTrigger>
-                <TabsTrigger value="users" className="flex items-center space-x-2">
+                <TabsTrigger value="users" className="flex items-center space-x-2>
                   <Users className="h-4 w-4" />
                   <span>Usuários</span>
                 </TabsTrigger>
               </TabsList>
 
               {/* Aba Informações */}
-              <TabsContent value="info" className="space-y-4">
+              <TabsContent value="info" className="space-y-4>
                 <form onSubmit={handleEditSubmit}>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
+                  <div className="space-y-4>
+                    <div className="space-y-2>
                       <Label htmlFor="edit-name">Nome do Papel</Label>
                       <Input
                         id="edit-name"
@@ -446,7 +446,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         required
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="edit-description">Descrição</Label>
                       <Textarea
                         id="edit-description"
@@ -458,7 +458,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                     </div>
                   </div>
                   
-                  <div className="flex justify-end space-x-2 mt-6">
+                  <div className="flex justify-end space-x-2 mt-6>
                     <Button type="button" variant="outline" onClick={handleCloseDialog}>
                       Cancelar
                     </Button>
@@ -470,24 +470,24 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
               </TabsContent>
 
               {/* Aba Permissões */}
-              <TabsContent value="permissions" className="space-y-4">
-                <div className="flex items-center justify-between mb-4">
+              <TabsContent value="permissions" className="space-y-4>
+                <div className="flex items-center justify-between mb-4>
                   <h4 className="text-sm font-medium">Permissões do Papel</h4>
-                  <Badge variant="outline">
+                  <Badge variant="outline>
                     {selectedPermissions.length} permissões selecionadas
                   </Badge>
                 </div>
                 
-                <ScrollArea className="h-96 border rounded-lg p-4">
-                  <div className="space-y-6">
+                <ScrollArea className="h-96 border rounded-lg p-4>
+                  <div className="space-y-6>
                     {Object.entries(groupedPermissions).map(([category, permissions]) => (
-                      <div key={category} className="space-y-3">
-                        <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                      <div key={category} className="space-y-3>
+                        <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide>
                           {PERMISSION_CATEGORIES[category as keyof typeof PERMISSION_CATEGORIES] || category}
                         </h4>
-                        <div className="space-y-2">
+                        <div className="space-y-2>
                           {(permissions as Permission[]).map((permission) => (
-                            <div key={permission.id} className="flex items-center space-x-2">
+                            <div key={permission.id} className="flex items-center space-x-2>
                               <Checkbox
                                 id={"
                                 checked={selectedPermissions.includes(permission.id)}
@@ -499,7 +499,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                               >
                                 {permission.name}
                                 {permission.description && (
-                                  <span className="text-xs text-muted-foreground block">
+                                  <span className="text-xs text-muted-foreground block>
                                     {permission.description}
                                   </span>
                                 )}
@@ -513,7 +513,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                   </div>
                 </ScrollArea>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end>
                   <Button 
                     onClick={() => {
                       if (editingRole) {
@@ -531,17 +531,17 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
               </TabsContent>
 
               {/* Aba Usuários */}
-              <TabsContent value="users" className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+              <TabsContent value="users" className="space-y-4>
+                <div className="space-y-4>
+                  <div className="flex items-center justify-between>
                     <h4 className="text-sm font-medium">Atribuir Usuários ao Papel</h4>
-                    <Badge variant="outline">
+                    <Badge variant="outline>
                       {editingRole?.userCount || 0} usuários atribuídos
                     </Badge>
                   </div>
 
-                  <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
-                    <div className="space-y-2">
+                  <div className="border rounded-lg p-4 max-h-96 overflow-y-auto>
+                    <div className="space-y-2>
                       {Array.isArray(usersData) && usersData.length > 0 ? (
                         usersData.map((user: any) => {
                           const hasRole = false; // TODO: Check if user has this role
@@ -550,9 +550,9 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                               key={user.id} 
                               className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white font-semibold text-xs">
+                              <div className="flex items-center space-x-3>
+                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0>
+                                  <span className="text-white font-semibold text-xs>
                                     {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
                                   </span>
                                 </div>
@@ -562,7 +562,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                                   <p className="text-xs text-gray-400">{user.role || 'Função não informada'}</p>
                                 </div>
                               </div>
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center space-x-2>
                                 {hasRole ? (
                                   <Button
                                     size="sm"
@@ -589,7 +589,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                           );
                         })
                       ) : (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-gray-500>
                           <User className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                           <p>Nenhum usuário disponível</p>
                         </div>
@@ -597,7 +597,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                     </div>
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="flex justify-end>
                     <Button type="button" onClick={handleCloseDialog}>
                       Concluir
                     </Button>
@@ -610,51 +610,51 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">
+        <div className="text-center py-8>
           Carregando papéis...
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3>
           {Array.isArray(rolesData) && rolesData.map((role: Role) => (
             <Card key={role.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center space-x-2">
+              <CardHeader className="pb-2>
+                <div className="flex items-center justify-between>
+                  <CardTitle className="text-base flex items-center space-x-2>
                     <Shield className="h-4 w-4" />
                     <span>{role.name}</span>
                   </CardTitle>
-                  <Badge variant={role.isActive ? "default" : "secondary">
+                  <Badge variant={role.isActive ? "default" : "secondary>
                     {role.isActive ? "Ativo" : "Inativo"
                   </Badge>
                 </div>
                 {role.description && (
-                  <CardDescription className="text-sm">
+                  <CardDescription className="text-sm>
                     {role.description}
                   </CardDescription>
                 )}
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
+              <CardContent className="space-y-3>
+                <div className="flex items-center justify-between text-sm>
                   <span className="text-muted-foreground">Permissões:</span>
-                  <Badge variant="outline">
+                  <Badge variant="outline>
                     {role.permissions?.length || 0}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-sm>
                   <span className="text-muted-foreground">Usuários:</span>
-                  <Badge variant="outline">
+                  <Badge variant="outline>
                     {role.userCount || 0}
                   </Badge>
                 </div>
                 
                 {role.isSystem && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs>
                     <Lock className="h-3 w-3 mr-1" />
                     Papel do Sistema
                   </Badge>
                 )}
                 
-                <div className="flex space-x-2 pt-2">
+                <div className="flex space-x-2 pt-2>
                   <Button
                     size="sm"
                     variant="outline"

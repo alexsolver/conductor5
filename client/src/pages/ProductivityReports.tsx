@@ -123,10 +123,10 @@ export default function ProductivityReports() {
 
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <h1 className="text-2xl font-bold">Relatórios de Produtividade</h1>
-        <Button variant="outline">
+        <Button variant="outline>
           <Download className="h-4 w-4 mr-2" />
           Exportar
         </Button>
@@ -134,15 +134,15 @@ export default function ProductivityReports() {
 
       {/* Status do Sistema */}
       {summary.totalActivities > 0 && summary.totalTimeSeconds === 0 && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="bg-blue-500 text-white p-1 rounded">
+        <Card className=""
+          <CardContent className=""
+            <div className=""
+              <div className=""
                 <Activity className="h-4 w-4" />
               </div>
               <div>
                 <h3 className="font-medium text-blue-900">Sistema de Tracking Ativo</h3>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className=""
                   O sistema está registrando suas atividades com sucesso. 
                   O cálculo de tempo detalhado está sendo ajustado para fornecer métricas mais precisas.
                 </p>
@@ -158,7 +158,7 @@ export default function ProductivityReports() {
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className=""
             <div>
               <Label htmlFor="startDate">Data Inicial</Label>
               <Input
@@ -179,25 +179,25 @@ export default function ProductivityReports() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="my-productivity" className="space-y-4">
+      <Tabs defaultValue="my-productivity" className=""
         <TabsList>
-          <TabsTrigger value="my-productivity" className="flex items-center gap-2">
+          <TabsTrigger value="my-productivity" className=""
             <User className="h-4 w-4" />
             Minha Produtividade
           </TabsTrigger>
-          <TabsTrigger value="team-productivity" className="flex items-center gap-2">
+          <TabsTrigger value="team-productivity" className=""
             <BarChart3 className="h-4 w-4" />
             Equipe
           </TabsTrigger>
         </TabsList>
 
         {/* Minha Produtividade */}
-        <TabsContent value="my-productivity" className="space-y-4">
+        <TabsContent value="my-productivity" className=""
           {/* Resumo Geral */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className=""
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-gray-600">Total de Atividades</p>
                     <p className="text-2xl font-bold">{summary.totalActivities}</p>
@@ -208,8 +208,8 @@ export default function ProductivityReports() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-gray-600">Tempo Total</p>
                     <p className="text-2xl font-bold">{formatDuration(summary.totalTimeSeconds)}</p>
@@ -220,8 +220,8 @@ export default function ProductivityReports() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-gray-600">Tempo Médio por Atividade</p>
                     <p className="text-2xl font-bold">{formatDuration(summary.averageSessionTime)}</p>
@@ -232,8 +232,8 @@ export default function ProductivityReports() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className=""
+                <div className=""
                   <div>
                     <p className="text-sm text-gray-600">Dias Ativos</p>
                     <p className="text-2xl font-bold">{Object.keys(summary.dailyBreakdown).length}</p>
@@ -251,34 +251,34 @@ export default function ProductivityReports() {
             </CardHeader>
             <CardContent>
               {myProductivityLoading ? (
-                <div className="animate-pulse space-y-4">
+                <div className=""
                   {[1, 2, 3].map(i => (
                     <div key={i} className="h-16 bg-gray-200 rounded"></div>
                   ))}
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className=""
                   {Object.entries(summary.activitiesByType).length > 0 ? 
                     Object.entries(summary.activitiesByType).map(([type, data]) => (
-                      <div key={type} className="flex items-center justify-between p-4 border rounded">
-                        <div className="flex items-center gap-3">
+                      <div key={type} className=""
+                        <div className=""
                           <div className="w-4 h-4 rounded ""></div>
                           <div>
                             <div className="font-medium">{getActivityTypeLabel(type)}</div>
-                            <div className="text-sm text-gray-600">
+                            <div className=""
                               {data.count} atividades • {formatDuration(data.avgTime)} média
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className=""
                           <div className="font-medium">{formatDuration(data.totalTime)}</div>
-                          <Badge variant="secondary">
+                          <Badge variant="secondary>
                             {formatPercentage(data.totalTime, summary.totalTimeSeconds)}
                           </Badge>
                         </div>
                       </div>
                     )) : (
-                      <div className="text-center text-gray-500 py-8">
+                      <div className=""
                         Nenhuma atividade registrada no período
                       </div>
                     )
@@ -294,30 +294,30 @@ export default function ProductivityReports() {
               <CardTitle>Atividade Diária</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className=""
                 {Object.entries(summary.dailyBreakdown).length > 0 ?
                   Object.entries(summary.dailyBreakdown)
                     .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
                     .map(([date, data]) => (
-                      <div key={date} className="flex items-center justify-between p-4 border rounded">
+                      <div key={date} className=""
                         <div>
-                          <div className="font-medium">
+                          <div className=""
                             {format(new Date(date), 'dd/MM/yyyy', { locale: ptBR })}
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className=""
                             {data.totalActivities} atividades • {formatDuration(data.totalTime)}
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className=""
                           {Object.entries(data.activities).map(([actType, actData]) => (
-                            <Badge key={actType} variant="outline" className="text-xs">
+                            <Badge key={actType} variant="outline" className=""
                               {getActivityTypeLabel(actType)}: {actData.count}
                             </Badge>
                           ))}
                         </div>
                       </div>
                     )) : (
-                      <div className="text-center text-gray-500 py-8">
+                      <div className=""
                         Nenhuma atividade registrada no período
                       </div>
                     )
@@ -328,42 +328,42 @@ export default function ProductivityReports() {
         </TabsContent>
 
         {/* Produtividade da Equipe */}
-        <TabsContent value="team-productivity" className="space-y-4">
+        <TabsContent value="team-productivity" className=""
           <Card>
             <CardHeader>
               <CardTitle>Ranking da Equipe</CardTitle>
             </CardHeader>
             <CardContent>
               {teamProductivityLoading ? (
-                <div className="animate-pulse space-y-4">
+                <div className=""
                   {[1, 2, 3].map(i => (
                     <div key={i} className="h-16 bg-gray-200 rounded"></div>
                   ))}
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className=""
                   {teamProductivity?.data?.userSummaries?.map((user: any, index: number) => (
-                    <div key={user.userId} className="flex items-center justify-between p-4 border rounded">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold">
+                    <div key={user.userId} className=""
+                      <div className=""
+                        <div className=""
                           {index + 1}
                         </div>
                         <div>
                           <div className="font-medium">Usuário {user.userId.substring(0, 8)}</div>
-                          <div className="text-sm text-gray-600">
+                          <div className=""
                             {user.totalActivities} atividades
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className=""
                         <div className="font-medium">{formatDuration(user.totalTime)}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className=""
                           {Math.floor(user.totalTime / user.totalActivities)}s/atividade
                         </div>
                       </div>
                     </div>
                   )) || (
-                    <div className="text-center text-gray-500 py-8">
+                    <div className=""
                       Nenhum dado de equipe disponível
                     </div>
                   )}

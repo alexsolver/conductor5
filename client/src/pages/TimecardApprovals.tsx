@@ -219,12 +219,12 @@ export default function TimecardApprovals() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-2 mb-6">
+      <div className="p-4"
+        <div className="p-4"
           <CheckCircle className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Aprovação de Registros de Ponto</h1>
         </div>
-        <div className="flex justify-center items-center h-64">
+        <div className="p-4"
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </div>
@@ -233,16 +233,16 @@ export default function TimecardApprovals() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-2 mb-6">
+      <div className="p-4"
+        <div className="p-4"
           <CheckCircle className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Aprovação de Registros de Ponto</h1>
         </div>
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          <CardContent className="p-4"
             <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
             <h3 className="text-lg font-semibold mb-2">Erro ao carregar registros</h3>
-            <p className="text-muted-foreground text-center">
+            <p className="p-4"
               Não foi possível carregar os registros pendentes de aprovação.
             </p>
           </CardContent>
@@ -252,29 +252,29 @@ export default function TimecardApprovals() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
+    <div className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <CheckCircle className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Aprovação de Registros de Ponto</h1>
         </div>
-        <Badge variant="outline" className="text-base px-3 py-1">
+        <Badge variant="outline" className="p-4"
           {pendingApprovals.length} pendente{pendingApprovals.length !== 1 ? 's' : ''}
         </Badge>
       </div>
 
       {pendingApprovals.length === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          <CardContent className="p-4"
             <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
             <h3 className="text-lg font-semibold mb-2">Todos os registros aprovados!</h3>
-            <p className="text-muted-foreground text-center">
+            <p className="p-4"
               Não há registros de ponto pendentes de aprovação no momento.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="p-4"
           {/* Ações em lote */}
           <Card>
             <CardHeader>
@@ -284,7 +284,7 @@ export default function TimecardApprovals() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2 flex-wrap">
+              <div className="p-4"
                 <Button 
                   variant="outline" 
                   onClick={selectAll}
@@ -312,14 +312,14 @@ export default function TimecardApprovals() {
           </Card>
 
           {/* Lista de registros pendentes */}
-          <div className="space-y-4">
+          <div className="p-4"
             {pendingApprovals.map((approval) => (
               <Card key={approval.id} className={`transition-all ${
                 selectedApprovals.includes(approval.id) ? 'ring-2 ring-primary' : ''
-              ">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
+              >
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <input
                         type="checkbox"
                         checked={selectedApprovals.includes(approval.id)}
@@ -327,40 +327,40 @@ export default function TimecardApprovals() {
                         className="mt-1"
                       />
                       
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
+                      <div className="p-4"
+                        <div className="p-4"
+                          <div className="p-4"
                             <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">
+                            <span className="p-4"
                               {approval.firstName} {approval.lastName}
                             </span>
                           </div>
                           <Badge variant="secondary">{approval.email}</Badge>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                          <div className="flex items-center gap-2">
+                        <div className="p-4"
+                          <div className="p-4"
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <div className="font-medium">{getRecordType(approval)}</div>
-                              <div className="text-muted-foreground">
+                              <div className="p-4"
                                 {formatTime(getRecordTime(approval))}
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="p-4"
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <div className="font-medium">Data</div>
-                              <div className="text-muted-foreground">
+                              <div className="p-4"
                                 {formatDate(approval.createdAt)}
                               </div>
                             </div>
                           </div>
 
                           {approval.location && (
-                            <div className="flex items-center gap-2">
+                            <div className="p-4"
                               <MapPin className="h-4 w-4 text-muted-foreground" />
                               <div>
                                 <div className="font-medium">Localização</div>
@@ -371,7 +371,7 @@ export default function TimecardApprovals() {
                         </div>
 
                         {approval.notes && (
-                          <div className="flex items-start gap-2">
+                          <div className="p-4"
                             <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
                             <div>
                               <div className="font-medium text-sm">Observações</div>
@@ -381,14 +381,14 @@ export default function TimecardApprovals() {
                         )}
 
                         {approval.isManualEntry && (
-                          <Badge variant="outline" className="text-amber-600 border-amber-600">
+                          <Badge variant="outline" className="p-4"
                             Entrada Manual
                           </Badge>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 ml-4">
+                    <div className="p-4"
                       <Button
                         size="sm"
                         onClick={() => handleApprove(approval.id)}
@@ -425,8 +425,8 @@ export default function TimecardApprovals() {
               Informe o motivo da rejeição do registro.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <div className="p-4"
+            <div className="p-4"
               <Label htmlFor="rejectionReason">Motivo da Rejeição *</Label>
               <select 
                 id="rejectionReason"
@@ -443,7 +443,7 @@ export default function TimecardApprovals() {
                 <option value="other">Outro motivo</option>
               </select>
             </div>
-            <div className="space-y-2">
+            <div className="p-4"
               <Label htmlFor="rejectionComments">Comentários (opcional)</Label>
               <Textarea
                 id="rejectionComments"
@@ -453,7 +453,7 @@ export default function TimecardApprovals() {
                 rows={3}
               />
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="p-4"
               <Button 
                 variant="outline" 
                 onClick={() => setShowRejectDialog(false)}

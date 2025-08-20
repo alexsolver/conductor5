@@ -186,11 +186,11 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
         ${isSelected ? 'border-blue-500 shadow-lg' : 'border-gray-200'}
         ${hasErrors ? 'border-red-300 bg-red-50' : 'bg-white'}
         ${field.properties?.hidden ? 'opacity-60' : ''}
-      ">
-        <CardContent className="p-4">
+      >
+        <CardContent className="p-4>
           {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-3>
+            <div className="flex items-center gap-2 flex-1 min-w-0>
               {!readonly && (
                 <div
                   {...attributes}
@@ -205,29 +205,29 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
                 hasErrors ? 'text-red-500' : 'text-blue-600'
               "} />
               
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm truncate">
+              <div className="flex-1 min-w-0>
+                <h4 className="font-medium text-sm truncate>
                   {field.label}
                 </h4>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500>
                   {getFieldTypeLabel(field.type)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1>
               {hasErrors && (
                 <AlertTriangle className="w-4 h-4 text-red-500" />
               )}
               
               {field.properties?.required && (
-                <Badge variant="destructive" className="text-xs px-1">
+                <Badge variant="destructive" className="text-xs px-1>
                   *
                 </Badge>
               )}
               
               {field.properties?.hidden && (
-                <Badge variant="secondary" className="text-xs px-1">
+                <Badge variant="secondary" className="text-xs px-1>
                   Oculto
                 </Badge>
               )}
@@ -235,19 +235,19 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
           </div>
 
           {/* Content */}
-          <div className="space-y-2">
+          <div className="space-y-2>
             {/* Field key */}
-            <div className="text-xs text-gray-600">
-              <span className="font-mono bg-gray-100 px-1 rounded">
+            <div className="text-xs text-gray-600>
+              <span className="font-mono bg-gray-100 px-1 rounded>
                 {field.id}
               </span>
             </div>
 
             {/* Validations */}
             {validations.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1>
                 {validations.map((validation, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                  <Badge key={index} variant="outline" className="text-xs>
                     {validation}
                   </Badge>
                 ))}
@@ -256,14 +256,14 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
 
             {/* Properties summary */}
             {field.properties?.placeholder && (
-              <div className="text-xs text-gray-500 italic">
+              <div className="text-xs text-gray-500 italic>
                 "{field.properties.placeholder}"
               </div>
             )}
 
             {/* Options count for select fields */}
             {(['select', 'multiselect', 'radio'].includes(field.type) && field.properties?.options) && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500>
                 {field.properties.options.length} opçõe{field.properties.options.length !== 1 ? 's' : ''}
               </div>
             )}
@@ -271,7 +271,7 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
 
           {/* Actions */}
           {!readonly && (
-            <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity>
               <Button
                 variant="ghost"
                 size="sm"

@@ -179,15 +179,15 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
   // Render article card
   const renderArticleCard = (article: KnowledgeBaseArticle, showLinkButton = false) => {
     return (
-      <Card key={article.id} className="transition-all duration-200 hover:shadow-md "">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+      <Card key={article.id} className="transition-all duration-200 hover:shadow-md ">
+        <CardHeader className="pb-3>
+          <div className="flex items-start justify-between>
+            <div className="flex-1>
+              <CardTitle className="text-base font-semibold text-gray-900 mb-2 line-clamp-2>
                 {article.title}
               </CardTitle>
               
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2>
                 <Badge 
                   variant="outline" 
                   className="text-xs bg-blue-50 text-blue-700 border-blue-200"
@@ -196,7 +196,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                 </Badge>
                 
                 {article.tags?.slice(0, 2).map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
+                  <Badge key={index} variant="secondary" className="text-xs>
                     <Tag className="w-3 h-3 mr-1" />
                     {tag}
                   </Badge>
@@ -204,13 +204,13 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
               </div>
 
               {article.summary && (
-                <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+                <p className="text-sm text-gray-600 mb-3 line-clamp-3>
                   {article.summary}
                 </p>
               )}
             </div>
 
-            <div className="flex flex-col gap-1 ml-4">
+            <div className="flex flex-col gap-1 ml-4>
               {showLinkButton && (
                 <Button
                   variant="outline"
@@ -245,21 +245,21 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
+        <CardContent className="pt-0>
+          <div className="flex items-center justify-between text-xs text-gray-500>
+            <div className="flex items-center gap-4>
+              <span className="flex items-center gap-1>
                 <Eye className="w-3 h-3" />
                 {article.viewCount}
               </span>
               
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1>
                 <Clock className="w-3 h-3" />
                 {new Date(article.publishedAt || article.createdAt).toLocaleDateString('pt-BR')}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2>
               <Button
                 variant="ghost"
                 size="sm"
@@ -292,22 +292,22 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
   const searchResults = (searchResultsData as any)?.success ? (searchResultsData as any).data : [];
 
   return (
-    <div className="space-y-6" data-testid="knowledge-base-tab">
+    <div className="space-y-6" data-testid="knowledge-base-tab>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-full">
+      <div className="flex items-center justify-between>
+        <div className="flex items-center gap-3>
+          <div className="p-2 bg-blue-100 rounded-full>
             <BookOpen className="h-5 w-5 text-blue-600" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Base de Conhecimento</h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600>
               Artigos relacionados e busca na base de conhecimento
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2>
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
@@ -328,10 +328,10 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
       </div>
 
       {/* Search Section */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex gap-3 mb-3">
-            <div className="flex-1">
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200>
+        <CardContent className="p-4>
+          <div className="flex gap-3 mb-3>
+            <div className="flex-1>
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
                 value={searchQuery}
@@ -343,7 +343,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             </div>
             
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-48 bg-white">
+              <SelectTrigger className="w-48 bg-white>
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -373,7 +373,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             </Button>
           </div>
 
-          <p className="text-xs text-blue-700">
+          <p className="text-xs text-blue-700>
             💡 Dica: Use palavras-chave relacionadas ao problema para encontrar artigos relevantes
           </p>
         </CardContent>
@@ -381,21 +381,21 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="related" className="flex-1">
+        <TabsList className="w-full>
+          <TabsTrigger value="related" className="flex-1>
             <LinkIcon className="w-4 h-4 mr-2" />
             Artigos Relacionados ({relatedArticles.length})
           </TabsTrigger>
-          <TabsTrigger value="search" className="flex-1">
+          <TabsTrigger value="search" className="flex-1>
             <Search className="w-4 h-4 mr-2" />
             Resultados da Busca ({searchResults.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="related" className="mt-6">
-          <div className="space-y-4">
+        <TabsContent value="related" className="mt-6>
+          <div className="space-y-4>
             {relatedLoading ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center py-12>
                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
                 <span className="text-gray-600">Carregando artigos relacionados...</span>
               </div>
@@ -406,13 +406,13 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                 )}
               </div>
             ) : (
-              <Card className="p-8 text-center text-gray-500">
+              <Card className="p-8 text-center text-gray-500>
                 <BookOpen className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                 <h3 className="font-medium mb-2">Nenhum artigo relacionado</h3>
-                <p className="text-sm">
+                <p className="text-sm>
                   Não há artigos da base de conhecimento vinculados a este ticket ainda.
                 </p>
-                <p className="text-sm mt-2">
+                <p className="text-sm mt-2>
                   Use a busca acima para encontrar e vincular artigos relevantes.
                 </p>
               </Card>
@@ -420,10 +420,10 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
           </div>
         </TabsContent>
 
-        <TabsContent value="search" className="mt-6">
-          <div className="space-y-4">
+        <TabsContent value="search" className="mt-6>
+          <div className="space-y-4>
             {searchLoading ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center py-12>
                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
                 <span className="text-gray-600">Pesquisando na base de conhecimento...</span>
               </div>
@@ -434,18 +434,18 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                 )}
               </div>
             ) : activeTab === 'search' ? (
-              <Card className="p-8 text-center text-gray-500">
+              <Card className="p-8 text-center text-gray-500>
                 <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                 <h3 className="font-medium mb-2">Nenhum resultado encontrado</h3>
-                <p className="text-sm">
+                <p className="text-sm>
                   Tente usar termos de busca diferentes ou ajustar os filtros.
                 </p>
               </Card>
             ) : (
-              <Card className="p-8 text-center text-gray-500">
+              <Card className="p-8 text-center text-gray-500>
                 <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                 <h3 className="font-medium mb-2">Digite algo para pesquisar</h3>
-                <p className="text-sm">
+                <p className="text-sm>
                   Use a barra de busca acima para encontrar artigos na base de conhecimento.
                 </p>
               </Card>

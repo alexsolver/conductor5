@@ -265,13 +265,13 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden" aria-describedby="create-user-description">
-        <div id="create-user-description" className="sr-only">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden" aria-describedby="create-user-description>
+        <div id="create-user-description" className="sr-only>
           Formulário para criar novo usuário no sistema
         </div>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2>
               <User className="w-5 h-5" />
               Criar Usuário
             </DialogTitle>
@@ -280,36 +280,36 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="basic" className="py-4">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="basic" className="flex items-center gap-2">
+          <Tabs defaultValue="basic" className="py-4>
+            <TabsList className="grid w-full grid-cols-5>
+              <TabsTrigger value="basic" className="flex items-center gap-2>
                 <User className="w-4 h-4" />
                 Dados Básicos
               </TabsTrigger>
-              <TabsTrigger value="address" className="flex items-center gap-2">
+              <TabsTrigger value="address" className="flex items-center gap-2>
                 <MapPin className="w-4 h-4" />
                 Endereço
               </TabsTrigger>
-              <TabsTrigger value="hr" className="flex items-center gap-2">
+              <TabsTrigger value="hr" className="flex items-center gap-2>
                 <Briefcase className="w-4 h-4" />
                 Dados RH
               </TabsTrigger>
-              <TabsTrigger value="groups" className="flex items-center gap-2">
+              <TabsTrigger value="groups" className="flex items-center gap-2>
                 <Users className="w-4 h-4" />
                 Grupos/Funções
               </TabsTrigger>
-              <TabsTrigger value="documents" className="flex items-center gap-2">
+              <TabsTrigger value="documents" className="flex items-center gap-2>
                 <Upload className="w-4 h-4" />
                 Documentos
               </TabsTrigger>
             </TabsList>
 
             {/* Aba 1: Dados Básicos */}
-            <TabsContent value="basic">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+            <TabsContent value="basic>
+              <ScrollArea className="h-[400px] pr-4>
+                <div className="space-y-4>
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="firstName">Nome *</Label>
                       <Input
                         id="firstName"
@@ -319,7 +319,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         required
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="lastName">Sobrenome *</Label>
                       <Input
                         id="lastName"
@@ -331,7 +331,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
@@ -343,7 +343,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="integrationCode">Código de Integração</Label>
                     <Input
                       id="integrationCode"
@@ -353,7 +353,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="alternativeEmail">Email Alternativo</Label>
                     <Input
                       id="alternativeEmail"
@@ -364,8 +364,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="cellPhone">Celular</Label>
                       <Input
                         id="cellPhone"
@@ -374,7 +374,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         placeholder="(11) 99999-9999"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="phone">Telefone</Label>
                       <Input
                         id="phone"
@@ -383,7 +383,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         placeholder="(11) 3333-3333"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="ramal">Ramal</Label>
                       <Input
                         id="ramal"
@@ -394,8 +394,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="timeZone">Fuso Horário</Label>
                       <Select value={formData.timeZone} onValueChange={(value) => setFormData({ ...formData, timeZone: value })}>
                         <SelectTrigger>
@@ -408,7 +408,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="vehicleType">Tipo de Veículo</Label>
                       <Select value={formData.vehicleType} onValueChange={(value) => setFormData({ ...formData, vehicleType: value })}>
                         <SelectTrigger>
@@ -423,7 +423,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="cpfCnpj">CPF/CNPJ</Label>
                     <Input
                       id="cpfCnpj"
@@ -433,15 +433,15 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label>Supervisores</Label>
-                    <ScrollArea className="h-32 border rounded-md p-3">
+                    <ScrollArea className="h-32 border rounded-md p-3>
                       {usersData?.users?.length ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2>
                           {usersData.users.map((user) => (
-                            <div key={user.id} className="flex items-center space-x-2">
+                            <div key={user.id} className="flex items-center space-x-2>
                               <Checkbox
-                                id={"
+                                id={"user-role-
                                 checked={formData.supervisorIds.includes(user.id)}
                                 onCheckedChange={(checked) => handleSupervisorToggle(user.id, !!checked)}
                               />
@@ -452,14 +452,14 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ))}
                         </div>
                       ) : (
-                        <p className="text-center text-muted-foreground py-4 text-sm">
+                        <p className="text-center text-muted-foreground py-4 text-sm>
                           Nenhum usuário disponível
                         </p>
                       )}
                     </ScrollArea>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="role">Papel do Sistema *</Label>
                     <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                       <SelectTrigger>
@@ -476,8 +476,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </Select>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
+                  <div className="space-y-3>
+                    <div className="flex items-center space-x-2>
                       <Checkbox
                         id="isActive"
                         checked={formData.isActive}
@@ -486,7 +486,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       <Label htmlFor="isActive">Conta ativa</Label>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2>
                       <Checkbox
                         id="sendInvitation"
                         checked={formData.sendInvitation}
@@ -500,11 +500,11 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
             </TabsContent>
 
             {/* Aba 2: Endereço */}
-            <TabsContent value="address">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+            <TabsContent value="address>
+              <ScrollArea className="h-[400px] pr-4>
+                <div className="space-y-4>
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="cep">CEP</Label>
                       <Input
                         id="cep"
@@ -513,7 +513,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         placeholder="00000-000"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="country">País</Label>
                       <Select value={formData.country} onValueChange={(value) => setFormData({ ...formData, country: value })}>
                         <SelectTrigger>
@@ -530,8 +530,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="state">Estado</Label>
                       <Input
                         id="state"
@@ -540,7 +540,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         placeholder="São Paulo"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="city">Cidade</Label>
                       <Input
                         id="city"
@@ -551,7 +551,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="streetAddress">Logradouro</Label>
                     <Input
                       id="streetAddress"
@@ -561,8 +561,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="houseType">Tipo</Label>
                       <Select value={formData.houseType} onValueChange={(value) => setFormData({ ...formData, houseType: value })}>
                         <SelectTrigger>
@@ -576,7 +576,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="houseNumber">Número</Label>
                       <Input
                         id="houseNumber"
@@ -587,7 +587,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="complement">Complemento</Label>
                     <Input
                       id="complement"
@@ -597,7 +597,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="neighborhood">Bairro</Label>
                     <Input
                       id="neighborhood"
@@ -611,13 +611,13 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
             </TabsContent>
 
             {/* Aba 3: Dados RH */}
-            <TabsContent value="hr">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-4">
+            <TabsContent value="hr>
+              <ScrollArea className="h-[400px] pr-4>
+                <div className="space-y-4>
                   {/* TIPO DE EMPREGO - Campo Fundamental */}
-                  <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
-                    <div className="space-y-2">
-                      <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300">
+                  <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700>
+                    <div className="space-y-2>
+                      <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300>
                         <Briefcase className="w-4 h-4" />
                         Tipo de Emprego
                       </Label>
@@ -625,7 +625,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         value={formData.employmentType} 
                         onValueChange={(value: "clt" | "autonomo") => setFormData({ ...formData, employmentType: value })}
                       >
-                        <SelectTrigger className="border-purple-300 dark:border-purple-600">
+                        <SelectTrigger className="border-purple-300 dark:border-purple-600>
                           <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
@@ -633,7 +633,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           <SelectItem value="autonomo">Autônomo/Prestador de Serviços</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-sm text-purple-600 dark:text-purple-400">
+                      <p className="text-sm text-purple-600 dark:text-purple-400>
                         {formData.employmentType === "clt" 
                           ? "🕒 CLT: Sistema de Ponto Eletrônico com controle de jornada completo"
                           : "📋 Autônomo: Registro de Jornada para atividades e projetos"
@@ -642,8 +642,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="employeeCode">Código do Funcionário</Label>
                       <Input
                         id="employeeCode"
@@ -652,7 +652,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         placeholder="FUNC001"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="pis">PIS</Label>
                       <Input
                         id="pis"
@@ -663,7 +663,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="cargo">Cargo</Label>
                     <Input
                       id="cargo"
@@ -673,8 +673,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4>
+                    <div className="space-y-2>
                       <Label htmlFor="ctps">CTPS</Label>
                       <Input
                         id="ctps"
@@ -683,7 +683,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         placeholder="1234567"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2>
                       <Label htmlFor="serieNumber">Série</Label>
                       <Input
                         id="serieNumber"
@@ -694,7 +694,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label>Data de Admissão</Label>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -709,7 +709,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           }
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0" align="start>
                         <Calendar
                           mode="single"
                           selected={formData.admissionDate || undefined}
@@ -721,7 +721,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </Popover>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     <Label htmlFor="costCenter">Centro de Custo</Label>
                     <Input
                       id="costCenter"
@@ -735,26 +735,26 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
             </TabsContent>
 
             {/* Aba 4: Grupos/Funções (Permissões e Grupos) */}
-            <TabsContent value="groups">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-6">
+            <TabsContent value="groups>
+              <ScrollArea className="h-[400px] pr-4>
+                <div className="space-y-6>
                   {/* Papéis Customizados */}
                   <div>
-                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <h4 className="font-medium mb-2 flex items-center gap-2>
                       <FileText className="w-4 h-4" />
                       Papéis Customizados
                     </h4>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-sm text-muted-foreground mb-4>
                       Selecione papéis customizados adicionais para este usuário
                     </p>
                     
-                    <ScrollArea className="h-32 border rounded-md p-3">
+                    <ScrollArea className="h-32 border rounded-md p-3>
                       {rolesData?.roles?.length ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2>
                           {rolesData.roles.map((role) => (
-                            <div key={role.id} className="flex items-center space-x-2">
+                            <div key={role.id} className="flex items-center space-x-2>
                               <Checkbox
-                                id={"
+                                id={"user-role-
                                 checked={formData.customRoleIds.includes(role.id)}
                                 onCheckedChange={(checked) => handleRoleToggle(role.id, !!checked)}
                               />
@@ -768,20 +768,20 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ))}
                         </div>
                       ) : (
-                        <p className="text-center text-muted-foreground py-4 text-sm">
+                        <p className="text-center text-muted-foreground py-4 text-sm>
                           Nenhum papel customizado disponível
                         </p>
                       )}
                     </ScrollArea>
                     
                     {formData.customRoleIds.length > 0 && (
-                      <div className="mt-2">
+                      <div className="mt-2>
                         <p className="text-sm text-muted-foreground mb-2">Papéis selecionados:</p>
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1>
                           {formData.customRoleIds.map((roleId) => {
                             const role = rolesData?.roles?.find(r => r.id === roleId);
                             return role ? (
-                              <Badge key={roleId} variant="secondary" className="text-xs">
+                              <Badge key={roleId} variant="secondary" className="text-xs>
                                 {role.name}
                               </Badge>
                             ) : null;
@@ -793,21 +793,21 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
 
                   {/* Grupos de Usuários */}
                   <div>
-                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <h4 className="font-medium mb-2 flex items-center gap-2>
                       <User className="w-4 h-4" />
                       Grupos de Usuários
                     </h4>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-sm text-muted-foreground mb-4>
                       Adicione este usuário a grupos da organização
                     </p>
                     
-                    <ScrollArea className="h-32 border rounded-md p-3">
+                    <ScrollArea className="h-32 border rounded-md p-3>
                       {groupsData?.groups?.length ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2>
                           {groupsData.groups.map((group) => (
-                            <div key={group.id} className="flex items-center space-x-2">
+                            <div key={group.id} className="flex items-center space-x-2>
                               <Checkbox
-                                id={"
+                                id={"user-role-
                                 checked={formData.groupIds.includes(group.id)}
                                 onCheckedChange={(checked) => handleGroupToggle(group.id, !!checked)}
                               />
@@ -821,20 +821,20 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ))}
                         </div>
                       ) : (
-                        <p className="text-center text-muted-foreground py-4 text-sm">
+                        <p className="text-center text-muted-foreground py-4 text-sm>
                           Nenhum grupo disponível
                         </p>
                       )}
                     </ScrollArea>
                     
                     {formData.groupIds.length > 0 && (
-                      <div className="mt-2">
+                      <div className="mt-2>
                         <p className="text-sm text-muted-foreground mb-2">Grupos selecionados:</p>
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1>
                           {formData.groupIds.map((groupId) => {
                             const group = groupsData?.groups?.find(g => g.id === groupId);
                             return group ? (
-                              <Badge key={groupId} variant="secondary" className="text-xs">
+                              <Badge key={groupId} variant="secondary" className="text-xs>
                                 {group.name}
                               </Badge>
                             ) : null;
@@ -848,27 +848,27 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
             </TabsContent>
 
             {/* Aba 5: Documentos (Upload de Arquivos) */}
-            <TabsContent value="documents">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <h4 className="font-medium mb-2 flex items-center justify-center gap-2">
+            <TabsContent value="documents>
+              <ScrollArea className="h-[400px] pr-4>
+                <div className="space-y-6>
+                  <div className="text-center mb-6>
+                    <h4 className="font-medium mb-2 flex items-center justify-center gap-2>
                       <Upload className="w-5 h-5" />
                       Upload de Documentos
                     </h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground>
                       Anexe os documentos necessários para o cadastro do usuário
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
                     {/* RG */}
-                    <div className="space-y-2">
-                      <Label htmlFor="rg-upload" className="flex items-center gap-2">
+                    <div className="space-y-2>
+                      <Label htmlFor="rg-upload" className="flex items-center gap-2>
                         <FileText className="w-4 h-4" />
                         RG (Identidade)
                       </Label>
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors>
                         <input
                           id="rg-upload"
                           type="file"
@@ -884,17 +884,17 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                             }
                           }}
                         />
-                        <Label htmlFor="rg-upload" className="cursor-pointer">
+                        <Label htmlFor="rg-upload" className="cursor-pointer>
                           {formData.documents.rg ? (
-                            <div className="text-green-600 dark:text-green-400">
+                            <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm font-medium">{formData.documents.rg.name}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground>
                                 {(formData.documents.rg.size / 1024 / 1024).toFixed(2)} MB
                               </p>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground">
+                            <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm">Clique para enviar RG</p>
                               <p className="text-xs">PDF, JPG, PNG até 10MB</p>
@@ -905,12 +905,12 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
 
                     {/* CPF */}
-                    <div className="space-y-2">
-                      <Label htmlFor="cpf-upload" className="flex items-center gap-2">
+                    <div className="space-y-2>
+                      <Label htmlFor="cpf-upload" className="flex items-center gap-2>
                         <FileText className="w-4 h-4" />
                         CPF
                       </Label>
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors>
                         <input
                           id="cpf-upload"
                           type="file"
@@ -926,17 +926,17 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                             }
                           }}
                         />
-                        <Label htmlFor="cpf-upload" className="cursor-pointer">
+                        <Label htmlFor="cpf-upload" className="cursor-pointer>
                           {formData.documents.cpf ? (
-                            <div className="text-green-600 dark:text-green-400">
+                            <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm font-medium">{formData.documents.cpf.name}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground>
                                 {(formData.documents.cpf.size / 1024 / 1024).toFixed(2)} MB
                               </p>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground">
+                            <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm">Clique para enviar CPF</p>
                               <p className="text-xs">PDF, JPG, PNG até 10MB</p>
@@ -947,12 +947,12 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
 
                     {/* CNPJ */}
-                    <div className="space-y-2">
-                      <Label htmlFor="cnpj-upload" className="flex items-center gap-2">
+                    <div className="space-y-2>
+                      <Label htmlFor="cnpj-upload" className="flex items-center gap-2>
                         <FileText className="w-4 h-4" />
                         CNPJ (se aplicável)
                       </Label>
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors>
                         <input
                           id="cnpj-upload"
                           type="file"
@@ -968,17 +968,17 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                             }
                           }}
                         />
-                        <Label htmlFor="cnpj-upload" className="cursor-pointer">
+                        <Label htmlFor="cnpj-upload" className="cursor-pointer>
                           {formData.documents.cnpj ? (
-                            <div className="text-green-600 dark:text-green-400">
+                            <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm font-medium">{formData.documents.cnpj.name}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground>
                                 {(formData.documents.cnpj.size / 1024 / 1024).toFixed(2)} MB
                               </p>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground">
+                            <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm">Clique para enviar CNPJ</p>
                               <p className="text-xs">PDF, JPG, PNG até 10MB</p>
@@ -989,12 +989,12 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
 
                     {/* Contrato de Trabalho */}
-                    <div className="space-y-2">
-                      <Label htmlFor="contrato-upload" className="flex items-center gap-2">
+                    <div className="space-y-2>
+                      <Label htmlFor="contrato-upload" className="flex items-center gap-2>
                         <FileText className="w-4 h-4" />
                         Contrato de Trabalho
                       </Label>
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors>
                         <input
                           id="contrato-upload"
                           type="file"
@@ -1010,17 +1010,17 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                             }
                           }}
                         />
-                        <Label htmlFor="contrato-upload" className="cursor-pointer">
+                        <Label htmlFor="contrato-upload" className="cursor-pointer>
                           {formData.documents.contratoTrabalho ? (
-                            <div className="text-green-600 dark:text-green-400">
+                            <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm font-medium">{formData.documents.contratoTrabalho.name}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground>
                                 {(formData.documents.contratoTrabalho.size / 1024 / 1024).toFixed(2)} MB
                               </p>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground">
+                            <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm">Clique para enviar contrato</p>
                               <p className="text-xs">PDF, JPG, PNG até 10MB</p>
@@ -1031,12 +1031,12 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
 
                     {/* Carteira de Vacinação */}
-                    <div className="space-y-2">
-                      <Label htmlFor="vacina-upload" className="flex items-center gap-2">
+                    <div className="space-y-2>
+                      <Label htmlFor="vacina-upload" className="flex items-center gap-2>
                         <FileText className="w-4 h-4" />
                         Carteira de Vacinação
                       </Label>
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors>
                         <input
                           id="vacina-upload"
                           type="file"
@@ -1052,17 +1052,17 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                             }
                           }}
                         />
-                        <Label htmlFor="vacina-upload" className="cursor-pointer">
+                        <Label htmlFor="vacina-upload" className="cursor-pointer>
                           {formData.documents.carteiraVacina ? (
-                            <div className="text-green-600 dark:text-green-400">
+                            <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm font-medium">{formData.documents.carteiraVacina.name}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground>
                                 {(formData.documents.carteiraVacina.size / 1024 / 1024).toFixed(2)} MB
                               </p>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground">
+                            <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm">Clique para enviar carteira</p>
                               <p className="text-xs">PDF, JPG, PNG até 10MB</p>
@@ -1073,12 +1073,12 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     </div>
 
                     {/* Outros Documentos */}
-                    <div className="space-y-2">
-                      <Label htmlFor="outros-upload" className="flex items-center gap-2">
+                    <div className="space-y-2>
+                      <Label htmlFor="outros-upload" className="flex items-center gap-2>
                         <FileText className="w-4 h-4" />
                         Outros Documentos
                       </Label>
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors>
                         <input
                           id="outros-upload"
                           type="file"
@@ -1098,23 +1098,23 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                             }
                           }}
                         />
-                        <Label htmlFor="outros-upload" className="cursor-pointer">
+                        <Label htmlFor="outros-upload" className="cursor-pointer>
                           {formData.documents.outros.length > 0 ? (
-                            <div className="text-green-600 dark:text-green-400">
+                            <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm font-medium">
+                              <p className="text-sm font-medium>
                                 {formData.documents.outros.length} arquivo(s) selecionado(s)
                               </p>
-                              <div className="text-xs text-muted-foreground max-h-20 overflow-y-auto">
+                              <div className="text-xs text-muted-foreground max-h-20 overflow-y-auto>
                                 {formData.documents.outros.map((file, index) => (
-                                  <div key={index} className="truncate">
+                                  <div key={index} className="truncate>
                                     {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                                   </div>
                                 ))}
                               </div>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground">
+                            <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
                               <p className="text-sm">Clique para enviar outros documentos</p>
                               <p className="text-xs">Múltiplos arquivos: PDF, JPG, PNG até 10MB cada</p>
@@ -1126,9 +1126,9 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                   </div>
 
                   {/* Resumo dos documentos enviados */}
-                  <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg>
                     <h5 className="font-medium mb-2 text-sm">Resumo dos Documentos:</h5>
-                    <div className="space-y-1 text-xs text-muted-foreground">
+                    <div className="space-y-1 text-xs text-muted-foreground>
                       <p>RG: {formData.documents.rg ? '✓ Enviado' : '○ Pendente'}</p>
                       <p>CPF: {formData.documents.cpf ? '✓ Enviado' : '○ Pendente'}</p>
                       <p>CNPJ: {formData.documents.cnpj ? '✓ Enviado' : '○ Opcional'}</p>

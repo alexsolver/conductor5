@@ -193,9 +193,9 @@ export function CustomerLocationManager({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <MapPin className="h-5 w-5" />
             Gerenciar Localizações do Cliente
           </DialogTitle>
@@ -204,10 +204,10 @@ export function CustomerLocationManager({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6>
           {/* Add New Location Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="space-y-4>
+            <div className="flex items-center justify-between>
               <h3 className="text-lg font-medium">Adicionar Nova Localização</h3>
               <Button
                 onClick={onAddNewLocation}
@@ -220,8 +220,8 @@ export function CustomerLocationManager({
               </Button>
             </div>
 
-            <div className="flex gap-3">
-              <div className="flex-1">
+            <div className="flex gap-3>
+              <div className="flex-1>
                 <Select value={selectedLocationId} onValueChange={setSelectedLocationId}>
                   <SelectTrigger>
                     <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -229,12 +229,12 @@ export function CustomerLocationManager({
                   <SelectContent>
                     {availableLocations.map((location: any) => (
                       <SelectItem key={location.id} value={location.id}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2>
                           <span>{location.name}</span>
                           <Badge variant="outline" className={getLocationTypeColor(location.type)}>
                             {location.type}
                           </Badge>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500>
                             {location.city}, {location.state}
                           </span>
                         </div>
@@ -254,17 +254,17 @@ export function CustomerLocationManager({
           </div>
 
           {/* Current Locations Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">
+          <div className="space-y-4>
+            <h3 className="text-lg font-medium>
               Localizações Associadas ({customerLocations.length})
             </h3>
 
             {isLoadingCustomerLocations ? (
-              <div className="space-y-3">
+              <div className="space-y-3>
                 {[1, 2, 3].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
+                  <Card key={i} className="animate-pulse>
+                    <CardContent className="p-4>
+                      <div className="space-y-2>
                         <div className="h-4 bg-gray-200 rounded w-1/3"></div>
                         <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                       </div>
@@ -274,12 +274,12 @@ export function CustomerLocationManager({
               </div>
             ) : customerLocations.length === 0 ? (
               <Card>
-                <CardContent className="p-8 text-center">
+                <CardContent className="p-8 text-center>
                   <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <h4 className="text-lg font-medium text-gray-600 mb-2">
+                  <h4 className="text-lg font-medium text-gray-600 mb-2>
                     Nenhuma localização associada
                   </h4>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-gray-500 mb-4>
                     Adicione localizações para associar este cliente a locais específicos.
                   </p>
                   <Button
@@ -293,18 +293,18 @@ export function CustomerLocationManager({
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3>
                 {customerLocations.map((customerLocation) => (
-                  <Card key={customerLocation.locationId} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-3">
-                            <h4 className="font-medium text-lg">
+                  <Card key={customerLocation.locationId} className="border-l-4 border-l-blue-500>
+                    <CardContent className="p-4>
+                      <div className="flex items-start justify-between>
+                        <div className="flex-1 space-y-2>
+                          <div className="flex items-center gap-3>
+                            <h4 className="font-medium text-lg>
                               {customerLocation.location?.name || 'Local não especificado'}
                             </h4>
                             {customerLocation.isPrimary && (
-                              <Badge variant="default" className="bg-yellow-100 text-yellow-800">
+                              <Badge variant="default" className="bg-yellow-100 text-yellow-800>
                                 <Star className="h-3 w-3 mr-1 fill-current" />
                                 Principal
                               </Badge>
@@ -317,26 +317,26 @@ export function CustomerLocationManager({
                             </Badge>
                           </div>
 
-                          <div className="text-sm text-gray-600">
-                            <div className="flex items-center gap-1">
+                          <div className="text-sm text-gray-600>
+                            <div className="flex items-center gap-1>
                               <Navigation className="h-4 w-4" />
                               {customerLocation.location?.address || 'Endereço não especificado'}
                               {customerLocation.location?.number && "
                               {customerLocation.location?.neighborhood && "
                             </div>
-                            <div className="mt-1">
+                            <div className="mt-1>
                               {customerLocation.location?.city || 'Cidade'}, {customerLocation.location?.state || 'Estado'} - {customerLocation.location?.zipCode || 'CEP'}
                             </div>
                           </div>
 
                           {(customerLocation.location?.latitude && customerLocation.location?.longitude) && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-gray-500>
                               Coordenadas: {parseFloat(customerLocation.location.latitude).toFixed(6)}, {parseFloat(customerLocation.location.longitude).toFixed(6)}
                             </div>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 ml-4">
+                        <div className="flex items-center gap-2 ml-4>
                           {!customerLocation.isPrimary && (
                             <Button
                               onClick={() => handleSetPrimary(customerLocation.locationId)}

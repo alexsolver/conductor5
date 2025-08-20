@@ -273,15 +273,15 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {field.isRequired && <span className="text-red-500 ml-1">*</span>}
         </Label>
         
-        <div className="flex items-center gap-1">
-          <Badge variant="secondary" className="text-xs">
+        <div className="flex items-center gap-1>
+          <Badge variant="secondary" className="text-xs>
             {getCalculationIcon()}
             Calculado
           </Badge>
@@ -294,7 +294,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
         <p className="text-xs text-gray-500">{field.description}</p>
       )}
 
-      <div className="relative">
+      <div className="relative>
         <Input
           value={calculatedValue}
           readOnly
@@ -309,27 +309,27 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       </div>
 
       {calculationError && (
-        <Alert className="border-red-200 bg-red-50">
+        <Alert className="border-red-200 bg-red-50>
           <AlertTriangle className="w-4 h-4 text-red-600" />
-          <AlertDescription className="text-red-700 text-xs">
+          <AlertDescription className="text-red-700 text-xs>
             {calculationError}
           </AlertDescription>
         </Alert>
       )}
 
       {field.calculationFormula?.expression && (
-        <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded">
+        <div className="text-xs text-gray-500 font-mono bg-gray-50 p-2 rounded>
           <strong>Fórmula:</strong> {field.calculationFormula.expression}
         </div>
       )}
 
       {field.calculationFormula?.dependencies?.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1>
           <span className="text-xs text-gray-500">Depende de:</span>
           {field.calculationFormula.dependencies.map((depId: string) => {
             const depField = allFields.find(f => f.id === depId)
             return (
-              <Badge key={depId} variant="outline" className="text-xs">
+              <Badge key={depId} variant="outline" className="text-xs>
                 {depField?.label || depId}
               </Badge>
             )

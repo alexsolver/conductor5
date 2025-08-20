@@ -377,16 +377,16 @@ export default function Tickets() {
 
   if (isLoading || isFieldColorsLoading || !isReady) {
     return (
-      <div className="p-4 space-y-6">
+      <div className=""
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="space-y-4">
+        <div className=""
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="space-y-3">
+            <Card key={i} className=""
+              <CardContent className=""
+                <div className=""
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  <div className="flex space-x-2">
+                  <div className=""
                     <div className="h-6 bg-gray-200 rounded-full w-16"></div>
                     <div className="h-6 bg-gray-200 rounded-full w-16"></div>
                     <div className="h-6 bg-gray-200 rounded-full w-20"></div>
@@ -402,20 +402,20 @@ export default function Tickets() {
 
   if (error) {
     return (
-      <div className="p-4 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className=""
+        <div className=""
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className=""
               '[TRANSLATION_NEEDED]'
             </h1>
-            <p className="text-red-600 dark:text-red-400">
+            <p className=""
               {(error as any)?.message || t('common.error')}
             </p>
           </div>
         </div>
         <Card>
-          <CardContent className="p-12 text-center">
-            <div className="text-red-500">
+          <CardContent className=""
+            <div className=""
               <div className="text-lg font-medium mb-2">'[TRANSLATION_NEEDED]'</div>
               <p className="text-sm mb-4">'[TRANSLATION_NEEDED]'</p>
               <Button 
@@ -480,31 +480,31 @@ export default function Tickets() {
   });
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className=""
             '[TRANSLATION_NEEDED]' ({ticketsCount})
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className=""
             '[TRANSLATION_NEEDED]'
           </p>
         </div>
-        <div className="flex space-x-2">
+        <div className=""
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Button className=""
                 <Plus className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]'
               </Button>
             </DialogTrigger>
-              <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
-                <DialogHeader className="flex-shrink-0 pb-4 border-b">
+              <DialogContent className=""
+                <DialogHeader className=""
                   <DialogTitle>'[TRANSLATION_NEEDED]'</DialogTitle>
                 </DialogHeader>
-                <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
+                <div className=""
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className=""
                   {/* Company Selection - Must be first */}
                     <FormField
                       control={form.control}
@@ -522,7 +522,7 @@ export default function Tickets() {
                             value={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-10">
+                              <SelectTrigger className=""
                                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
@@ -558,7 +558,7 @@ export default function Tickets() {
                             disabled={!selectedCompanyId}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-10">
+                              <SelectTrigger className=""
                                 <SelectValue 
                                   placeholder={
                                     !selectedCompanyId 
@@ -759,7 +759,7 @@ export default function Tickets() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className=""
                     {/* 8. PRIORIDADE */}
                     <FormField
                       control={form.control}
@@ -907,7 +907,7 @@ export default function Tickets() {
                   </form>
                   </Form>
                 </div>
-                <div className="flex-shrink-0 flex justify-end space-x-2 pt-4 border-t bg-white dark:bg-gray-800">
+                <div className=""
                   <Button
                     type="button"
                     variant="outline"
@@ -930,25 +930,25 @@ export default function Tickets() {
       </div>
 
       {/* Sistema de Visualizações de Tickets */}
-      <div className="mb-6">
+      <div className=""
         <TicketViewSelector 
           currentViewId={currentViewId}
           onViewChange={handleViewChange}
         />
       </div>
 
-      <div className="space-y-4">
+      <div className=""
         {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
           ticketsList.map((ticket: any) => (
           <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mr-4">
+            <CardContent className=""
+              <div className=""
+                <div className=""
+                  <div className=""
+                    <h3 className=""
                       #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
                     </h3>
-                    <div className="flex items-center space-x-2 flex-shrink-0">
+                    <div className=""
                       <DynamicBadge 
                         fieldName="priority" 
                         value={mapPriorityValue(ticket.priority)}
@@ -970,7 +970,7 @@ export default function Tickets() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2 mb-3">
+                  <div className=""
                     <DynamicBadge 
                       fieldName="category" 
                       value={mapCategoryValue(ticket.category)}
@@ -981,7 +981,7 @@ export default function Tickets() {
                       {getFieldLabel('category', ticket.category || 'suporte_tecnico')}
                     </DynamicBadge>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-3">
+                  <p className=""
                     {ticket.description ? 
                       (ticket.description.length > 150 ? 
                         ticket.description.substring(0, 150) + '...' : 
@@ -990,7 +990,7 @@ export default function Tickets() {
                       'Sem descrição disponível'
                     }
                   </p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <div className=""
                     <span>ID: {ticket.id}</span>
                     <span>•</span>
                     <span>Criado: {formatDate(ticket.created_at || ticket.opened_at)}</span>
@@ -1018,8 +1018,8 @@ export default function Tickets() {
         ))
         ) : (
           <Card>
-            <CardContent className="p-12 text-center">
-              <div className="text-gray-500">
+            <CardContent className=""
+              <div className=""
                 <div className="text-lg font-medium mb-2">📋 Nenhum ticket encontrado</div>
                 <p className="text-sm mb-4">Não há tickets para exibir no momento.</p>
                 <Button 

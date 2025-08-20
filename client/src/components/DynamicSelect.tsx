@@ -175,7 +175,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
           
           return (
             <SelectItem key={uniqueKey} value={optionValue}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2>
                 {option.color && (
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"

@@ -429,24 +429,24 @@ export function AssetsManagement() {
 
   if (isLoadingAssets) {
     return (
-      <div className="container mx-auto p-6">
+      <div className=""
         <div className="text-center">Carregando ativos...</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">Controle de Ativos</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Gerencie equipamentos, computadores e ativos da empresa
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setIsCreateCategoryOpen(true)} variant="outline">
+        <div className=""
+          <Button onClick={() => setIsCreateCategoryOpen(true)} variant="outline>
             <Plus className="h-4 w-4 mr-2" />
             Nova Categoria
           </Button>
@@ -458,56 +458,56 @@ export function AssetsManagement() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assetStats.totalAssets}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {assetStats.activeAssets} ativos
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               R$ {assetStats.totalValue.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               R$ {assetStats.depreciatedValue.toLocaleString()} depreciado
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Manutenção</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assetStats.underMaintenance}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               {assetStats.upcomingMaintenance} programadas
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Garantias</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{assetStats.expiredWarranties}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               garantias expiradas
             </p>
           </CardContent>
@@ -515,9 +515,9 @@ export function AssetsManagement() {
       </div>
 
       {/* Filters and Search */}
-      <div className="flex gap-4 items-center">
-        <div className="flex-1">
-          <div className="relative">
+      <div className=""
+        <div className=""
+          <div className=""
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder='[TRANSLATION_NEEDED]'
@@ -528,7 +528,7 @@ export function AssetsManagement() {
           </div>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className=""
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -541,7 +541,7 @@ export function AssetsManagement() {
           </SelectContent>
         </Select>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className=""
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -563,7 +563,7 @@ export function AssetsManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className=""
             {filteredAssets.map((asset) => {
               const IconComponent = getCategoryIcon(asset.category);
               const depreciatedValue = calculateDepreciation(asset);
@@ -573,28 +573,28 @@ export function AssetsManagement() {
                   key={asset.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div className=""
+                    <div className=""
                       <IconComponent className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className=""
                         <h3 className="font-semibold">{asset.name}</h3>
                         <Badge variant="outline">{asset.assetTag}</Badge>
                       </div>
                       <p className="text-sm text-gray-600">{asset.brand} {asset.model}</p>
-                      <div className="flex items-center gap-4 mt-1">
-                        <span className="text-sm text-gray-500 flex items-center gap-1">
+                      <div className=""
+                        <span className=""
                           <MapPin className="h-3 w-3" />
                           {asset.location.name}
                         </span>
                         {asset.assignedTo && (
-                          <span className="text-sm text-gray-500 flex items-center gap-1">
+                          <span className=""
                             <User className="h-3 w-3" />
                             {asset.assignedTo.name}
                           </span>
                         )}
-                        <span className="text-sm text-gray-500 flex items-center gap-1">
+                        <span className=""
                           <DollarSign className="h-3 w-3" />
                           R$ {depreciatedValue.toFixed(2)}
                         </span>
@@ -602,9 +602,9 @@ export function AssetsManagement() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="flex gap-2 mb-1">
+                  <div className=""
+                    <div className=""
+                      <div className=""
                         <Badge className={getStatusColor(asset.status)}>
                           {getStatusLabel(asset.status)}
                         </Badge>
@@ -612,12 +612,12 @@ export function AssetsManagement() {
                           {getConditionLabel(asset.condition)}
                         </Badge>
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className=""
                         SN: {asset.serialNumber}
                       </p>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className=""
                       <Button
                         variant="ghost"
                         size="sm"
@@ -655,7 +655,7 @@ export function AssetsManagement() {
             })}
 
             {filteredAssets.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className=""
                 Nenhum ativo encontrado
               </div>
             )}
@@ -665,7 +665,7 @@ export function AssetsManagement() {
 
       {/* Create Asset Dialog */}
       <Dialog open={isCreateAssetOpen} onOpenChange={setIsCreateAssetOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Novo Ativo</DialogTitle>
             <DialogDescription>
@@ -677,17 +677,17 @@ export function AssetsManagement() {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             handleCreateAsset(formData);
-          }} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+          }} className=""
+            <div className=""
+              <div className=""
                 <Label htmlFor="assetTag">Tag do Ativo *</Label>
                 <Input id="assetTag" name="assetTag" placeholder="Ex: PC001" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="name">Nome do Ativo *</Label>
                 <Input id="name" name="name" placeholder="Ex: Dell OptiPlex 7090" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="category">Categoria *</Label>
                 <Select name="category" required>
                   <SelectTrigger>
@@ -701,34 +701,34 @@ export function AssetsManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="brand">Marca *</Label>
                 <Input id="brand" name="brand" placeholder="Ex: Dell" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="model">Modelo *</Label>
                 <Input id="model" name="model" placeholder="Ex: OptiPlex 7090" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="serialNumber">Número de Série *</Label>
                 <Input id="serialNumber" name="serialNumber" placeholder="Ex: DELL7090-001" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="purchasePrice">Preço de Compra *</Label>
                 <Input id="purchasePrice" name="purchasePrice" type="number" step="0.01" placeholder="0.00" required />
               </div>
-              <div className="space-y-2">
+              <div className=""
                 <Label htmlFor="department">Departamento *</Label>
                 <Input id="department" name="department" placeholder="Ex: Administrativo" required />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className=""
               <Label htmlFor="description">Descrição *</Label>
               <Textarea id="description" name="description" rows={3} required />
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className=""
               <Button type="button" variant="outline" onClick={() => setIsCreateAssetOpen(false)}>
                 Cancelar
               </Button>

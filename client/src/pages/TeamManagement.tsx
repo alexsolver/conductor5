@@ -309,10 +309,10 @@ export default function TeamManagement() {
 
   if (overviewLoading || membersLoading || statsLoading) {
     return (
-      <div className="p-4 space-y-4">
-        <div className="animate-pulse">
+      <div className=""
+        <div className=""
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className=""
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-24 bg-gray-200 rounded"></div>
             ))}
@@ -324,14 +324,14 @@ export default function TeamManagement() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className=""
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestão de Equipe</h1>
           <p className="text-gray-600 dark:text-gray-400">Sistema integrado de gestão de recursos humanos</p>
         </div>
-        <div className="flex space-x-2">
+        <div className=""
           <Button 
             onClick={() => setShowCreateUser(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
@@ -358,13 +358,13 @@ export default function TeamManagement() {
       </div>
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Membros</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className=""
                   {teamStats?.totalMembers ?? 0}
                 </p>
               </div>
@@ -374,11 +374,11 @@ export default function TeamManagement() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ativos Hoje</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className=""
                   {teamStats?.activeToday ?? 0}
                 </p>
               </div>
@@ -388,11 +388,11 @@ export default function TeamManagement() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Approval</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className=""
                   {teamStats?.pendingApprovals ?? 0}
                 </p>
               </div>
@@ -402,11 +402,11 @@ export default function TeamManagement() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Performance Média</p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className=""
                   {teamStats?.averagePerformance ?? 0}%
                 </p>
               </div>
@@ -417,64 +417,64 @@ export default function TeamManagement() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-10">
-          <TabsTrigger value="overview" className="flex items-center space-x-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+        <TabsList className=""
+          <TabsTrigger value="overview" className=""
             <BarChart3 className="h-3 w-3" />
             <span className="text-xs">Visão Geral</span>
           </TabsTrigger>
-          <TabsTrigger value="members" className="flex items-center space-x-1">
+          <TabsTrigger value="members" className=""
             <Users className="h-3 w-3" />
             <span className="text-xs">Membros</span>
           </TabsTrigger>
-          <TabsTrigger value="groups" className="flex items-center space-x-1">
+          <TabsTrigger value="groups" className=""
             <Building className="h-3 w-3" />
             <span className="text-xs">Grupos</span>
           </TabsTrigger>
-          <TabsTrigger value="roles" className="flex items-center space-x-1">
+          <TabsTrigger value="roles" className=""
             <Shield className="h-3 w-3" />
             <span className="text-xs">Papéis</span>
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center space-x-1">
+          <TabsTrigger value="invitations" className=""
             <Mail className="h-3 w-3" />
             <span className="text-xs">Convites</span>
           </TabsTrigger>
-          <TabsTrigger value="sessions" className="flex items-center space-x-1">
+          <TabsTrigger value="sessions" className=""
             <Monitor className="h-3 w-3" />
             <span className="text-xs">Sessões</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center space-x-1">
+          <TabsTrigger value="activity" className=""
             <Activity className="h-3 w-3" />
             <span className="text-xs">Atividade</span>
           </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center space-x-1">
+          <TabsTrigger value="performance" className=""
             <Target className="h-3 w-3" />
             <span className="text-xs">Performance</span>
           </TabsTrigger>
-          <TabsTrigger value="skills" className="flex items-center space-x-1">
+          <TabsTrigger value="skills" className=""
             <Award className="h-3 w-3" />
             <span className="text-xs">Habilidades</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center space-x-1">
+          <TabsTrigger value="analytics" className=""
             <TrendingUp className="h-3 w-3" />
             <span className="text-xs">Analytics</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="overview>
+          <div className=""
             {/* Department Distribution */}
             <Card>
               <CardHeader>
                 <CardTitle>Distribuição por Departamento</CardTitle>
                 <CardDescription>Membros ativos por departamento</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 {overviewLoading ? (
-                  <div className="space-y-3">
+                  <div className=""
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex items-center justify-between">
+                      <div key={i} className=""
                         <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
                         <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
                       </div>
@@ -482,18 +482,18 @@ export default function TeamManagement() {
                   </div>
                 ) : (
                   Array.isArray(teamOverview?.departments) ? teamOverview.departments.map((dept: any) => (
-                    <div key={dept.name} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                    <div key={dept.name} className=""
+                      <div className=""
                         <Building className="h-4 w-4 text-gray-500" />
                         <span className="font-medium">{dept.name}</span>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className=""
                         <span className="text-sm text-gray-600">{dept.count}</span>
                         <Progress value={dept.percentage} className="w-20" />
                       </div>
                     </div>
                   )) : (
-                    <div className="text-center py-4 text-gray-500">
+                    <div className=""
                       Nenhum departamento encontrado
                     </div>
                   )
@@ -507,13 +507,13 @@ export default function TeamManagement() {
                 <CardTitle>Atividades Recentes</CardTitle>
                 <CardDescription>Últimas ações da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className=""
                 {overviewLoading ? (
-                  <div className="space-y-3">
+                  <div className=""
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                      <div key={i} className=""
                         <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
-                        <div className="flex-1 space-y-1">
+                        <div className=""
                           <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
                           <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
                         </div>
@@ -522,18 +522,18 @@ export default function TeamManagement() {
                   </div>
                 ) : (
                   Array.isArray(teamOverview?.recentActivities) ? teamOverview.recentActivities.map((activity: any, index: number) => (
-                    <div key={index} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <div key={index} className=""
                       <Activity className="h-4 w-4 text-blue-500" />
-                      <div className="flex-1">
+                      <div className=""
                         <p className="text-sm font-medium">{activity.description}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className=""
                           {activity.user && " - "
                           {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')}
                         </p>
                       </div>
                     </div>
                   )) : (
-                    <div className="text-center py-4 text-gray-500">
+                    <div className=""
                       Nenhuma atividade recente
                     </div>
                   )
@@ -547,11 +547,11 @@ export default function TeamManagement() {
                 <CardTitle>Matriz de Habilidades</CardTitle>
                 <CardDescription>Competências da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 {skillsLoading ? (
-                  <div className="space-y-3">
+                  <div className=""
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex items-center justify-between">
+                      <div key={i} className=""
                         <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
                         <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
                       </div>
@@ -559,12 +559,12 @@ export default function TeamManagement() {
                   </div>
                 ) : (
                   Array.isArray(skillsMatrix?.topSkills) ? skillsMatrix.topSkills.map((skill: any) => (
-                    <div key={skill.name} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                    <div key={skill.name} className=""
+                      <div className=""
                         <Award className="h-4 w-4 text-yellow-500" />
                         <span className="font-medium">{skill.name}</span>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className=""
                         <span className="text-sm text-gray-600">{skill.count} pessoas</span>
                         <Badge variant={skill.level === 'Avançado' ? 'default' : 'secondary'}>
                           {skill.level}
@@ -572,7 +572,7 @@ export default function TeamManagement() {
                       </div>
                     </div>
                   )) : (
-                    <div className="text-center py-4 text-gray-500">
+                    <div className=""
                       Nenhuma habilidade encontrada
                     </div>
                   )
@@ -586,39 +586,39 @@ export default function TeamManagement() {
                 <CardTitle>Ações Rápidas</CardTitle>
                 <CardDescription>Módulos integrados do sistema</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-3">
-                <Link href="/technical-skills">
-                  <Button variant="outline" className="w-full justify-start">
+              <CardContent className=""
+                <Link href="/technical-skills>
+                  <Button variant="outline" className=""
                     <Award className="h-4 w-4 mr-2" />
                     Habilidades Técnicas
                   </Button>
                 </Link>
-                <Link href="/agenda-manager">
-                  <Button variant="outline" className="w-full justify-start">
+                <Link href="/agenda-manager>
+                  <Button variant="outline" className=""
                     <Calendar className="h-4 w-4 mr-2" />
                     Agenda de Campo
                   </Button>
                 </Link>
-                <Link href="/timecard">
-                  <Button variant="outline" className="w-full justify-start">
+                <Link href="/timecard>
+                  <Button variant="outline" className=""
                     <Clock className="h-4 w-4 mr-2" />
                     Controle de Ponto
                   </Button>
                 </Link>
-                <Link href="/holiday-calendar">
-                  <Button variant="outline" className="w-full justify-start">
+                <Link href="/holiday-calendar>
+                  <Button variant="outline" className=""
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendário Feriados
                   </Button>
                 </Link>
-                <Link href="/hour-bank">
-                  <Button variant="outline" className="w-full justify-start">
+                <Link href="/hour-bank>
+                  <Button variant="outline" className=""
                     <Clock className="h-4 w-4 mr-2" />
                     Banco de Horas
                   </Button>
                 </Link>
-                <Link href="/tenant-admin/multilocation">
-                  <Button variant="outline" className="w-full justify-start">
+                <Link href="/tenant-admin/multilocation>
+                  <Button variant="outline" className=""
                     <Globe className="h-4 w-4 mr-2" />
                     Multi-localização
                   </Button>
@@ -629,7 +629,7 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Members Tab */}
-        <TabsContent value="members">
+        <TabsContent value="members>
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Membros da Equipe</CardTitle>
@@ -639,10 +639,10 @@ export default function TeamManagement() {
             </CardHeader>
             <CardContent>
               {/* Filters */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-                <div className="lg:col-span-2">
+              <div className=""
+                <div className=""
                   <Label htmlFor="search">Buscar membros</Label>
-                  <div className="relative">
+                  <div className=""
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="search"
@@ -703,7 +703,7 @@ export default function TeamManagement() {
                           <SelectItem key={group.id} value={String(group.id)}>
                             {group.name}
                             {group.description && (
-                              <span className="text-xs text-gray-500 ml-1">
+                              <span className=""
                                 - {group.description}
                               </span>
                             )}
@@ -733,9 +733,9 @@ export default function TeamManagement() {
               </div>
 
               {/* Members List */}
-              <div className="bg-white dark:bg-gray-800 border rounded-lg">
+              <div className=""
                 {/* Table Header */}
-                <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 dark:bg-gray-900 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <div className=""
                   <div className="col-span-3">Membro</div>
                   <div className="col-span-2">Posição</div>
                   <div className="col-span-2">Departamento</div>
@@ -745,53 +745,53 @@ export default function TeamManagement() {
                 </div>
 
                 {/* Table Body */}
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                <div className=""
                   {filteredMembers && filteredMembers.length > 0 ? filteredMembers.map((member: any) => (
-                    <div key={member.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                    <div key={member.id} className=""
                       {/* Member Info */}
-                      <div className="col-span-3 flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-semibold text-sm">
+                      <div className=""
+                        <div className=""
+                          <span className=""
                             {(member.name || member.email || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        <div className=""
+                          <h3 className=""
                             {member.name || "
                           </h3>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className=""
                             ID: {member.id ? member.id.slice(-8) : 'N/A'}
                           </p>
                         </div>
                       </div>
 
                       {/* Position */}
-                      <div className="col-span-2 flex items-center">
-                        <span className="text-sm text-gray-900 dark:text-gray-300 truncate">
+                      <div className=""
+                        <span className=""
                           {member.position || 'Não informado'}
                         </span>
                       </div>
 
                       {/* Department */}
-                      <div className="col-span-2 flex items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                      <div className=""
+                        <span className=""
                           {member.department || 'Geral'}
                         </span>
                       </div>
 
                       {/* Email */}
-                      <div className="col-span-2 flex items-center">
-                        <div className="flex items-center space-x-1 min-w-0">
+                      <div className=""
+                        <div className=""
                           <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                          <span className=""
                             {member.email}
                           </span>
                         </div>
                       </div>
 
                       {/* Status */}
-                      <div className="col-span-1 flex items-center">
-                        <div className="flex items-center space-x-2">
+                      <div className=""
+                        <div className=""
                           <Badge 
                             variant={
                               (member.status === 'active' || member.isActive) ? 'default' : 
@@ -815,7 +815,7 @@ export default function TeamManagement() {
                       </div>
 
                       {/* Actions */}
-                      <div className="col-span-2 flex items-center justify-end space-x-2">
+                      <div className=""
                         <Button
                           size="sm"
                           variant="outline"
@@ -847,12 +847,12 @@ export default function TeamManagement() {
                       </div>
                     </div>
                   )) : (
-                    <div className="p-8 text-center">
+                    <div className=""
                       <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      <h3 className=""
                         Nenhum membro encontrado
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className=""
                         {teamMembers && teamMembers.length === 0 
                           ? '[TRANSLATION_NEEDED]'
                           : "Ajuste os filtros para encontrar membros da equipe."
@@ -864,12 +864,12 @@ export default function TeamManagement() {
 
                 {/* Empty State */}
                 {filteredMembers.length === 0 && (
-                  <div className="p-8 text-center">
+                  <div className=""
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className=""
                       Nenhum membro encontrado
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className=""
                       Ajuste os filtros ou adicione novos membros à equipe.
                     </p>
                   </div>
@@ -877,7 +877,7 @@ export default function TeamManagement() {
               </div>
 
               {filteredMembers.length === 0 && (
-                <div className="text-center py-8">
+                <div className=""
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">Nenhum membro encontrado com os filtros aplicados</p>
                 </div>
@@ -887,19 +887,19 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Performance Tab */}
-        <TabsContent value="performance">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="performance>
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Avaliação de Performance</CardTitle>
                 <CardDescription>Métricas de desempenho da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 {Array.isArray(performanceData?.individuals) ? performanceData.individuals.map((person: any) => (
-                  <div key={person.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-                        <span className="text-white text-sm font-semibold">
+                  <div key={person.id} className=""
+                    <div className=""
+                      <div className=""
+                        <span className=""
                           {person.name?.charAt(0)}
                         </span>
                       </div>
@@ -908,7 +908,7 @@ export default function TeamManagement() {
                         <p className="text-sm text-gray-600">{person.role}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className=""
                       <Progress value={person.performance} className="w-20" />
                       <span className="text-sm font-medium">{person.performance}%</span>
                     </div>
@@ -922,26 +922,26 @@ export default function TeamManagement() {
                 <CardTitle>Metas e Objetivos</CardTitle>
                 <CardDescription>Progresso das metas da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className=""
                 {/* Dynamic goals data from performance API */}
                 {Array.isArray(performanceData?.goals) && performanceData.goals.length > 0 ? (
                   performanceData.goals.map((goal: any, index: number) => (
-                    <div key={index} className="p-3 rounded-lg border">
-                      <div className="flex items-center justify-between mb-2">
+                    <div key={index} className=""
+                      <div className=""
                         <h4 className="font-medium">{goal.name}</h4>
                         <Badge variant={goal.percentage >= 100 ? 'default' : goal.percentage >= 75 ? 'secondary' : 'destructive'}>
                           {goal.percentage >= 100 ? 'Concluído' : goal.percentage >= 75 ? 'Em Progresso' : 'Atrasado'}
                         </Badge>
                       </div>
                       <Progress value={goal.percentage} className="mb-2" />
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className=""
                         <span>{goal.completed} de {goal.total}</span>
                         <span>{goal.percentage}%</span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className=""
                     <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p>Nenhuma meta encontrada</p>
                     <p className="text-sm">Configure metas para a equipe</p>
@@ -953,7 +953,7 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Skills Tab */}
-        <TabsContent value="skills">
+        <TabsContent value="skills>
           <Card>
             <CardHeader>
               <CardTitle>Matriz de Habilidades da Equipe</CardTitle>
@@ -962,12 +962,12 @@ export default function TeamManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
+              <div className=""
                 <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">
+                <p className=""
                   Integração com o módulo de Habilidades Técnicas
                 </p>
-                <Link href="/technical-skills">
+                <Link href="/technical-skills>
                   <Button>
                     <Award className="h-4 w-4 mr-2" />
                     Acessar Habilidades Técnicas
@@ -979,32 +979,32 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Groups Tab */}
-        <TabsContent value="groups" className="space-y-4">
+        <TabsContent value="groups" className=""
           <UserGroups tenantAdmin={true} />
         </TabsContent>
 
         {/* Roles Tab */}
-        <TabsContent value="roles" className="space-y-4">
+        <TabsContent value="roles" className=""
           <CustomRoles tenantAdmin={true} />
         </TabsContent>
 
         {/* Invitations Tab */}
-        <TabsContent value="invitations" className="space-y-4">
+        <TabsContent value="invitations" className=""
           <UserInvitations tenantAdmin={true} />
         </TabsContent>
 
         {/* Sessions Tab */}
-        <TabsContent value="sessions" className="space-y-4">
+        <TabsContent value="sessions" className=""
           <UserSessions tenantAdmin={true} />
         </TabsContent>
 
         {/* Activity Tab */}
-        <TabsContent value="activity" className="space-y-4">
+        <TabsContent value="activity" className=""
           <UserActivity tenantAdmin={true} />
         </TabsContent>
 
         {/* Schedules Tab */}
-        <TabsContent value="schedules">
+        <TabsContent value="schedules>
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Escalas e Horários</CardTitle>
@@ -1013,13 +1013,13 @@ export default function TeamManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="text-center py-8">
+              <div className=""
+                <div className=""
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <p className=""
                     Agenda de Campo para técnicos
                   </p>
-                  <Link href="/agenda-manager">
+                  <Link href="/agenda-manager>
                     <Button>
                       <Calendar className="h-4 w-4 mr-2" />
                       Acessar Agenda de Campo
@@ -1027,12 +1027,12 @@ export default function TeamManagement() {
                   </Link>
                 </div>
 
-                <div className="text-center py-8">
+                <div className=""
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <p className=""
                     Controle de Ponto e Jornadas
                   </p>
-                  <Link href="/timecard">
+                  <Link href="/timecard>
                     <Button>
                       <Clock className="h-4 w-4 mr-2" />
                       Acessar Timecard
@@ -1045,7 +1045,7 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Absence Tab */}
-        <TabsContent value="absence">
+        <TabsContent value="absence>
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Ausências e Férias</CardTitle>
@@ -1054,13 +1054,13 @@ export default function TeamManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="text-center py-8">
+              <div className=""
+                <div className=""
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <p className=""
                     Gestão de Ausências
                   </p>
-                  <Link href="/absence-management">
+                  <Link href="/absence-management>
                     <Button>
                       <Calendar className="h-4 w-4 mr-2" />
                       Acessar Gestão de Ausências
@@ -1068,12 +1068,12 @@ export default function TeamManagement() {
                   </Link>
                 </div>
 
-                <div className="text-center py-8">
+                <div className=""
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <p className=""
                     Banco de Horas
                   </p>
-                  <Link href="/hour-bank">
+                  <Link href="/hour-bank>
                     <Button>
                       <Clock className="h-4 w-4 mr-2" />
                       Acessar Banco de Horas
@@ -1086,20 +1086,20 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Analytics Tab */}
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="analytics>
+          <div className=""
             <Card>
               <CardHeader>
                 <CardTitle>Analytics Avançados de RH</CardTitle>
                 <CardDescription>Métricas e insights da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center py-8">
+              <CardContent className=""
+                <div className=""
                   <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <p className=""
                     Dashboard de analytics em desenvolvimento
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className=""
                     Incluirá métricas de produtividade, turnover, satisfação e retenção
                   </p>
                 </div>
@@ -1111,13 +1111,13 @@ export default function TeamManagement() {
                 <CardTitle>Compliance e Auditoria</CardTitle>
                 <CardDescription>Status de conformidade da equipe</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center py-8">
+              <CardContent className=""
+                <div className=""
                   <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <p className=""
                     Sistema de compliance em desenvolvimento
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className=""
                     Tracking de conformidade, auditoria e riscos
                   </p>
                 </div>

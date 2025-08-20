@@ -152,18 +152,18 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
           <DialogTitle>Criar Novo Contrato</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
             {/* Contract Number Auto-Generated Info */}
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200>
+              <div className="flex items-center gap-2>
                 <div className="text-sm font-medium text-gray-700">Número do Contrato:</div>
-                <div className="text-sm text-gray-500 italic">
+                <div className="text-sm text-gray-500 italic>
                   Será gerado automaticamente após a criação (ex: CTR-2025-003)
                 </div>
               </div>
@@ -229,7 +229,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             />
 
             {/* Contract Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
                 control={form.control}
                 name="status"
@@ -281,7 +281,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             </div>
 
             {/* Client and Manager */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
                 control={form.control}
                 name="companyId"
@@ -341,7 +341,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             </div>
 
             {/* Financial Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
                 control={form.control}
                 name="totalValue"
@@ -388,12 +388,12 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             </div>
 
             {/* Dates */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
                 control={form.control}
                 name="startDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="flex flex-col>
                     <FormLabel>Data de Início *</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -414,7 +414,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0" align="start>
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -435,7 +435,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 control={form.control}
                 name="endDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="flex flex-col>
                     <FormLabel>Data de Fim *</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -456,7 +456,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0" align="start>
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -475,7 +475,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             </div>
 
             {/* Additional Terms */}
-            <div className="space-y-4">
+            <div className="space-y-4>
               <FormField
                 control={form.control}
                 name="scopeOfWork"
@@ -550,7 +550,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4>
               <Button
                 type="button"
                 variant="outline"

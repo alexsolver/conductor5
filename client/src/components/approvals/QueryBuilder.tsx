@@ -182,20 +182,20 @@ export function QueryBuilder() {
   };
 
   return (
-    <div className="space-y-6" data-testid="query-builder">
-      <Card data-testid="query-builder-header">
+    <div className="space-y-6" data-testid="query-builder>
+      <Card data-testid="query-builder-header>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between>
             Query Builder Visual
-            <Badge variant="secondary" data-testid="module-badge">
+            <Badge variant="secondary" data-testid="module-badge>
               Módulo: {currentModule}
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-4">
-            <Select value={currentModule} onValueChange={setCurrentModule} data-testid="module-selector">
-              <SelectTrigger className="w-48">
+          <div className="flex gap-4 mb-4>
+            <Select value={currentModule} onValueChange={setCurrentModule} data-testid="module-selector>
+              <SelectTrigger className="w-48>
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -220,12 +220,12 @@ export function QueryBuilder() {
       </Card>
 
       {/* Query Groups */}
-      <div className="space-y-4" data-testid="query-groups">
+      <div className="space-y-4" data-testid="query-groups>
         {queryGroups.map((group, groupIndex) => (
           <Card key={group.id} data-testid={"
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            <CardHeader className="pb-3>
+              <div className="flex items-center justify-between>
+                <div className="flex items-center gap-2>
                   <span className="font-medium">Grupo {groupIndex + 1}</span>
                   {groupIndex > 0 && (
                     <Select 
@@ -237,7 +237,7 @@ export function QueryBuilder() {
                       }}
                       data-testid={"
                     >
-                      <SelectTrigger className="w-20">
+                      <SelectTrigger className="w-20>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -269,7 +269,7 @@ export function QueryBuilder() {
                         onValueChange={(value) => updateCondition(group.id, condition.id, 'logic', value)}
                         data-testid={"
                       >
-                        <SelectTrigger className="w-20">
+                        <SelectTrigger className="w-20>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -284,7 +284,7 @@ export function QueryBuilder() {
                       onValueChange={(value) => updateCondition(group.id, condition.id, 'field', value)}
                       data-testid={"
                     >
-                      <SelectTrigger className="w-48">
+                      <SelectTrigger className="w-48>
                         <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
@@ -301,7 +301,7 @@ export function QueryBuilder() {
                       onValueChange={(value) => updateCondition(group.id, condition.id, 'operator', value)}
                       data-testid={"
                     >
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-32>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -350,17 +350,17 @@ export function QueryBuilder() {
       </div>
 
       {/* Query Preview */}
-      <Card data-testid="query-preview-card">
+      <Card data-testid="query-preview-card>
         <CardHeader>
           <CardTitle>Preview da Query</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg font-mono text-sm" data-testid="query-preview">
+          <div className="space-y-4>
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg font-mono text-sm" data-testid="query-preview>
               {queryPreview || 'Clique em "Gerar Query" para ver o preview'}
             </div>
             
-            <div className="flex gap-3" data-testid="query-actions">
+            <div className="flex gap-3" data-testid="query-actions>
               <Button 
                 onClick={generateQuery} 
                 className="flex items-center gap-2"

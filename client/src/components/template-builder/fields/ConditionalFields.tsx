@@ -201,14 +201,14 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {isRequired && <span className="text-red-500 ml-1">*</span>}
         </Label>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1>
           {field.conditionalLogic?.conditions?.length > 0 && (
             <Badge 
               variant={conditionsMet ? "default" : "secondary"} 
@@ -231,9 +231,9 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
       {renderBaseField()}
 
       {field.conditionalLogic?.conditions?.length > 0 && (
-        <div className="mt-2">
-          <Alert className="text-xs "">
-            <AlertDescription className="flex items-center gap-2">
+        <div className="mt-2>
+          <Alert className="text-xs ">
+            <AlertDescription className="flex items-center gap-2>
               {conditionsMet ? (
                 <>
                   <CheckCircle className="w-3 h-3 text-green-600" />
@@ -242,7 +242,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
               ) : (
                 <>
                   <AlertTriangle className="w-3 h-3 text-yellow-600" />
-                  <span className="text-yellow-700">
+                  <span className="text-yellow-700>
                     Aguardando condições: {field.conditionalLogic.conditions.length} regra(s)
                   </span>
                 </>

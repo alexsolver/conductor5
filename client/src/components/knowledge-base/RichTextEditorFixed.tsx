@@ -39,7 +39,7 @@ export function RichTextEditor({
   }
 
   return (
-    <div className="rich-text-editor "">
+    <div className="rich-text-editor ">
       <Textarea
         ref={textareaRef}
         value={content}
@@ -51,8 +51,8 @@ export function RichTextEditor({
       />
       
       {/* Rich Text Toolbar */}
-      <div className="flex flex-wrap gap-2 p-2 border-x border-b rounded-b-md bg-gray-50">
-        <div className="text-xs text-gray-500">
+      <div className="flex flex-wrap gap-2 p-2 border-x border-b rounded-b-md bg-gray-50>
+        <div className="text-xs text-gray-500>
           Dica: Use markdown para formatação (ex: **negrito**, *itálico*, # Título)
         </div>
       </div>

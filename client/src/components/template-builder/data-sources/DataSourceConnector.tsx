@@ -259,10 +259,10 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
   }
 
   return (
-    <div className="h-full flex flex-col bg-white border-l">
+    <div className="h-full flex flex-col bg-white border-l>
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="p-4 border-b flex items-center justify-between>
+        <div className="flex items-center gap-2>
           <Database className="w-5 h-5 text-blue-600" />
           <h3 className="font-semibold">Fonte de Dados</h3>
         </div>
@@ -272,16 +272,16 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <Tabs defaultValue="config" className="h-full">
-          <TabsList className="grid w-full grid-cols-3">
+      <div className="flex-1 overflow-y-auto>
+        <Tabs defaultValue="config" className="h-full>
+          <TabsList className="grid w-full grid-cols-3>
             <TabsTrigger value="config">Configuração</TabsTrigger>
             <TabsTrigger value="test">Teste</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
           </TabsList>
 
           {/* Configuration Tab */}
-          <TabsContent value="config" className="p-4 space-y-4">
+          <TabsContent value="config" className="p-4 space-y-4>
             <div>
               <Label className="text-sm font-medium">Nome da Fonte</Label>
               <Input
@@ -305,26 +305,26 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="static">
-                    <div className="flex items-center gap-2">
+                  <SelectItem value="static>
+                    <div className="flex items-center gap-2>
                       <List className="w-4 h-4" />
                       Lista Estática
                     </div>
                   </SelectItem>
-                  <SelectItem value="api">
-                    <div className="flex items-center gap-2">
+                  <SelectItem value="api>
+                    <div className="flex items-center gap-2>
                       <Globe className="w-4 h-4" />
                       API Externa
                     </div>
                   </SelectItem>
-                  <SelectItem value="database">
-                    <div className="flex items-center gap-2">
+                  <SelectItem value="database>
+                    <div className="flex items-center gap-2>
                       <Database className="w-4 h-4" />
                       Consulta no Banco
                     </div>
                   </SelectItem>
-                  <SelectItem value="function">
-                    <div className="flex items-center gap-2">
+                  <SelectItem value="function>
+                    <div className="flex items-center gap-2>
                       <Code className="w-4 h-4" />
                       Função Personalizada
                     </div>
@@ -361,7 +361,7 @@ Opção 3"
 
             {/* API Configuration */}
             {dataSource.type === 'api' && (
-              <div className="space-y-3">
+              <div className="space-y-3>
                 <div>
                   <Label className="text-sm font-medium">URL da API</Label>
                   <Input
@@ -467,10 +467,10 @@ return data.map(item => ({
             )}
 
             {/* Cache Settings */}
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg>
               <div>
                 <Label className="text-sm font-medium">Cache de Dados</Label>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500>
                   Armazenar resultados em cache para melhor performance
                 </p>
               </div>
@@ -485,8 +485,8 @@ return data.map(item => ({
           </TabsContent>
 
           {/* Test Tab */}
-          <TabsContent value="test" className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
+          <TabsContent value="test" className="p-4 space-y-4>
+            <div className="flex items-center justify-between>
               <h4 className="font-medium">Testar Fonte de Dados</h4>
               <Button 
                 onClick={testDataSource} 
@@ -512,18 +512,18 @@ return data.map(item => ({
             )}
 
             {dataSource.status === 'success' && (
-              <Alert className="border-green-200 bg-green-50">
+              <Alert className="border-green-200 bg-green-50>
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <AlertDescription className="text-green-700">
+                <AlertDescription className="text-green-700>
                   Teste realizado com sucesso! {testResult.length} registro(s) encontrado(s).
                 </AlertDescription>
               </Alert>
             )}
 
             {dataSource.status === 'error' && (
-              <Alert className="border-red-200 bg-red-50">
+              <Alert className="border-red-200 bg-red-50>
                 <AlertTriangle className="w-4 h-4 text-red-600" />
-                <AlertDescription className="text-red-700">
+                <AlertDescription className="text-red-700>
                   Erro no teste: {dataSource.error}
                 </AlertDescription>
               </Alert>
@@ -532,12 +532,12 @@ return data.map(item => ({
             {testResult.length > 0 && (
               <div>
                 <h5 className="font-medium mb-2">Dados de Exemplo:</h5>
-                <div className="bg-gray-50 p-3 rounded border max-h-60 overflow-y-auto">
-                  <pre className="text-xs">
+                <div className="bg-gray-50 p-3 rounded border max-h-60 overflow-y-auto>
+                  <pre className="text-xs>
                     {JSON.stringify(testResult.slice(0, 5), null, 2)}
                   </pre>
                   {testResult.length > 5 && (
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 mt-2>
                       ... e mais {testResult.length - 5} registro(s)
                     </p>
                   )}
@@ -547,11 +547,11 @@ return data.map(item => ({
           </TabsContent>
 
           {/* Preview Tab */}
-          <TabsContent value="preview" className="p-4 space-y-4">
+          <TabsContent value="preview" className="p-4 space-y-4>
             <div>
               <h4 className="font-medium mb-3">Preview do Campo</h4>
-              <div className="border rounded p-4 bg-gray-50">
-                <Label className="text-sm font-medium mb-2 block">
+              <div className="border rounded p-4 bg-gray-50>
+                <Label className="text-sm font-medium mb-2 block>
                   {field.label}
                 </Label>
                 
@@ -569,7 +569,7 @@ return data.map(item => ({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500>
                     <Download className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p>Teste a fonte de dados para ver as opções</p>
                   </div>
@@ -578,7 +578,7 @@ return data.map(item => ({
             </div>
 
             {dataSource.lastFetch && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500>
                 Última atualização: {dataSource.lastFetch.toLocaleString('pt-BR')}
               </p>
             )}
@@ -587,8 +587,8 @@ return data.map(item => ({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t flex gap-2">
-        <Button onClick={handleSave} className="flex-1">
+      <div className="p-4 border-t flex gap-2>
+        <Button onClick={handleSave} className="flex-1>
           Salvar Fonte de Dados
         </Button>
         <Button variant="outline" onClick={onClose}>

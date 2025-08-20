@@ -212,12 +212,12 @@ export function CustomerItemMappings() {
   const mappings = mappingsData?.data || [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
+    <div className=""
+      <div className=""
+        <div className=""
           <div>
             <h1 className="text-3xl font-bold">Personalização de Itens por Cliente</h1>
-            <p className="text-muted-foreground">
+            <p className=""
               Gerencie SKUs e configurações personalizadas para cada cliente
             </p>
           </div>
@@ -228,14 +228,14 @@ export function CustomerItemMappings() {
                 Novo Mapeamento
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className=""
               <DialogHeader>
                 <DialogTitle>
                   {editingMapping ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
                 </DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className=""
+                <div className=""
                   <div>
                     <Label htmlFor="customer_id">Empresa Cliente</Label>
                     <Select 
@@ -276,7 +276,7 @@ export function CustomerItemMappings() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""
                   <div>
                     <Label htmlFor="custom_sku">SKU Personalizado</Label>
                     <Input
@@ -337,7 +337,7 @@ export function CustomerItemMappings() {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-2">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -352,11 +352,11 @@ export function CustomerItemMappings() {
 
         {/* Filtros */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className=""
+            <div className=""
               <div>
                 <Label htmlFor="search">Buscar</Label>
-                <div className="relative">
+                <div className=""
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
@@ -402,10 +402,10 @@ export function CustomerItemMappings() {
         </Card>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className=""
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
+            <CardContent className=""
+              <div className=""
                 <Package className="h-4 w-4 text-blue-500" />
                 <div>
                   <p className="text-sm font-medium">Total de Mapeamentos</p>
@@ -415,12 +415,12 @@ export function CustomerItemMappings() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
+            <CardContent className=""
+              <div className=""
                 <User className="h-4 w-4 text-green-500" />
                 <div>
                   <p className="text-sm font-medium">Clientes Ativos</p>
-                  <p className="text-2xl font-bold">
+                  <p className=""
                     {new Set(mappings.map((m: CustomerItemMapping) => m.customer_id)).size}
                   </p>
                 </div>
@@ -440,7 +440,7 @@ export function CustomerItemMappings() {
           {mappingsLoading ? (
             <div className="text-center py-8">Carregando mapeamentos...</div>
           ) : mappings.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className=""
               Nenhum mapeamento encontrado. Crie o primeiro mapeamento personalizado!
             </div>
           ) : (
@@ -460,10 +460,10 @@ export function CustomerItemMappings() {
                   <TableRow key={mapping.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">
+                        <div className=""
                           {mapping.customer_first_name} {mapping.customer_last_name}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className=""
                           {mapping.customer_email}
                         </div>
                       </div>
@@ -471,7 +471,7 @@ export function CustomerItemMappings() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{mapping.item_name}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className=""
                           {mapping.item_integration_code} • {mapping.item_type}
                         </div>
                       </div>
@@ -480,10 +480,10 @@ export function CustomerItemMappings() {
                       <Badge variant="outline">{mapping.custom_sku}</Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="max-w-xs">
+                      <div className=""
                         <div className="font-medium">{mapping.custom_name}</div>
                         {mapping.customer_reference && (
-                          <div className="text-sm text-muted-foreground">
+                          <div className=""
                             Ref: {mapping.customer_reference}
                           </div>
                         )}
@@ -491,12 +491,12 @@ export function CustomerItemMappings() {
                     </TableCell>
 
                     <TableCell>
-                      <Badge variant={mapping.is_active ? "default" : "secondary">
+                      <Badge variant={mapping.is_active ? "default" : "secondary>
                         {mapping.is_active ? "Ativo" : "Inativo"
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
+                      <div className=""
                         <Button
                           variant="outline"
                           size="sm"

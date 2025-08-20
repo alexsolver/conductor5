@@ -35,12 +35,12 @@ export function QuickActions() {
   };
 
   return (
-    <Card className="gradient-card">
+    <Card className="gradient-card>
       <CardHeader>
         <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4>
           {quickActions.map((action) => (
             <Button
               key={action.id}

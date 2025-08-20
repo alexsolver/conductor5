@@ -368,11 +368,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 };
 
   return (
-    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm>
       {/* Header with Search and Time Filters */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="relative w-64">
+      <div className="p-4 border-b border-gray-200>
+        <div className="flex items-center justify-between>
+          <div className="relative w-64>
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               type="text"
@@ -384,7 +384,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           </div>
 
           {/* Time Filter Buttons */}
-          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1>
             {[
               { key: 'hoje', label: 'Hoje' },
               { key: '2min', label: '2min' },
@@ -412,9 +412,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       {/* Timeline Grid */}
       <div className="border rounded-lg bg-white overflow-hidden" style={{ maxHeight: 'calc(100vh - 280px)' }}>
         {/* Header with time slots */}
-        <div className="flex border-b bg-gray-50 sticky top-0 z-10">
+        <div className="flex border-b bg-gray-50 sticky top-0 z-10>
           {/* Left sidebar space */}
-          <div className="w-64 flex-shrink-0 border-r bg-gray-100 p-4">
+          <div className="w-64 flex-shrink-0 border-r bg-gray-100 p-4>
             <div className="text-sm font-medium text-gray-700">Técnicos</div>
           </div>
 
@@ -426,8 +426,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             style={{ maxWidth: 'calc(100vw - 320px)' }}
           >
             {timeSlots.map((timeSlot, index) => (
-              <div key={index} className="flex-shrink-0 w-16 p-2 text-center border-r last:border-r-0">
-                <div className="text-xs font-medium text-gray-900">
+              <div key={index} className="flex-shrink-0 w-16 p-2 text-center border-r last:border-r-0>
+                <div className="text-xs font-medium text-gray-900>
                   {formatTimeSlot(timeSlot)}
                 </div>
               </div>
@@ -438,7 +438,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         {/* Content area */}
         <div className="flex overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)' }}>
           {/* Left sidebar with agent list */}
-          <div className="w-64 flex-shrink-0 border-r bg-gray-50">
+          <div className="w-64 flex-shrink-0 border-r bg-gray-50>
             {filteredAgents.map((agent) => {
               const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
               const dayOfWeek = selectedDate.getDay();
@@ -446,10 +446,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
               const agentName = agent.name || "
 
               return (
-                <div key={agent.id} className="border-b">
+                <div key={agent.id} className="border-b>
                   {/* Planned row */}
-                  <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between">
-                    <div className="text-sm flex-1 flex items-center gap-2">
+                  <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between>
+                    <div className="text-sm flex-1 flex items-center gap-2>
                       <SimpleAvatar 
                         src={agent.profileImageUrl} 
                         name={agentName} 
@@ -460,11 +460,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                         <div className="text-xs text-green-600">Previsto</div>
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500>
                       {worksToday && workSchedule ? (
-                        <div className="text-right">
+                        <div className="text-right>
                           <div>{workSchedule.startTime}-{workSchedule.endTime}</div>
-                          <div className="text-xs text-orange-600">
+                          <div className="text-xs text-orange-600>
                             {workSchedule.scheduleType}
                           </div>
                         </div>
@@ -475,8 +475,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                   </div>
 
                   {/* Actual row */}
-                  <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between">
-                    <div className="text-sm flex-1 flex items-center gap-2">
+                  <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between>
+                    <div className="text-sm flex-1 flex items-center gap-2>
                       <SimpleAvatar 
                         src={agent.profileImageUrl} 
                         name={agentName} 
@@ -487,10 +487,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                         <div className="text-xs text-blue-600">Realizado</div>
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500>
                       {worksToday && workSchedule?.breakStart && workSchedule?.breakEnd ? (
-                        <div className="text-right">
-                          <div className="text-orange-600">
+                        <div className="text-right>
+                          <div className="text-orange-600>
                             ☕ {workSchedule.breakStart}-{workSchedule.breakEnd}
                           </div>
                         </div>
@@ -524,7 +524,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
               )}
 
               {timeSlots.map((timeSlot, timeIndex) => (
-                <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0 relative">
+                <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0 relative>
                   {filteredAgents.map((agent) => {
                     const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
                     const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
@@ -558,7 +558,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     })() : false;
 
                     return (
-                      <div key={agent.id} className="border-b">
+                      <div key={agent.id} className="border-b>
                         {(() => {
                           // Organize schedules in layers to handle overlaps
                           const scheduleLayers = organizeSchedulesInLayers(plannedSchedules, timeSlot);
@@ -714,12 +714,12 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       )}
 
                                       {/* Duration */}
-                                      <span className="text-xs font-medium flex-shrink-0">
+                                      <span className="text-xs font-medium flex-shrink-0>
                                         {duration}
                                       </span>
 
                                       {/* Ticket Number and Title (truncated) */}
-                                      <span className="truncate text-xs font-medium">
+                                      <span className="truncate text-xs font-medium>
                                         {schedule.ticketNumber ? " - ` : ''}{schedule.title}
                                       </span>
                                     </div>
@@ -886,12 +886,12 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       )}
 
                                       {/* Duration */}
-                                      <span className="text-xs font-medium flex-shrink-0">
+                                      <span className="text-xs font-medium flex-shrink-0>
                                         {duration}
                                       </span>
 
                                       {/* Ticket Number and Title (truncated) */}
-                                      <span className="truncate text-xs font-medium">
+                                      <span className="truncate text-xs font-medium>
                                         {schedule.ticketNumber ? " - ` : ''}{schedule.title}
                                       </span>
                                     </div>

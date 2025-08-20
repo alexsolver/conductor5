@@ -112,17 +112,17 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4>
+      <div className="flex items-center justify-between>
         <div>
           <h4 className="text-sm font-medium">Regras de Validação</h4>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500>
             Configure validações personalizadas para este campo
           </p>
         </div>
         
         <Select onValueChange={(value) => addRule(value as ValidationRule['type'])}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40>
             <SelectValue placeholder="Adicionar regra" />
           </SelectTrigger>
           <SelectContent>
@@ -135,11 +135,11 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
         </Select>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3>
         {rules.map((rule, index) => (
-          <Card key={rule.id} className="p-3">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2">
+          <Card key={rule.id} className="p-3>
+            <div className="flex items-start justify-between mb-2>
+              <div className="flex items-center gap-2>
                 <Badge variant={rule.isActive ? 'default' : 'secondary'}>
                   {rule.type === 'required' && 'Obrigatório'}
                   {rule.type === 'minLength' && 'Min. Caracteres'}
@@ -165,7 +165,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
             </div>
 
             {rule.type === 'minLength' && (
-              <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="grid grid-cols-2 gap-2 mb-2>
                 <div>
                   <Label className="text-xs">Comprimento Mínimo</Label>
                   <Input
@@ -180,7 +180,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
             )}
 
             {rule.type === 'maxLength' && (
-              <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="grid grid-cols-2 gap-2 mb-2>
                 <div>
                   <Label className="text-xs">Comprimento Máximo</Label>
                   <Input
@@ -195,7 +195,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
             )}
 
             {rule.type === 'pattern' && (
-              <div className="mb-2">
+              <div className="mb-2>
                 <Label className="text-xs">Expressão Regular</Label>
                 <Input
                   value={rule.value || ''}
@@ -203,14 +203,14 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                   placeholder="^[A-Za-z0-9]+$"
                   className="h-8 font-mono"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 mt-1>
                   Use expressões regulares para validar o formato
                 </p>
               </div>
             )}
 
             {rule.type === 'range' && (
-              <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="grid grid-cols-2 gap-2 mb-2>
                 <div>
                   <Label className="text-xs">Valor Mínimo</Label>
                   <Input
@@ -239,7 +239,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
             )}
 
             {rule.type === 'custom' && (
-              <div className="mb-2">
+              <div className="mb-2>
                 <Label className="text-xs">Função de Validação</Label>
                 <Textarea
                   value={rule.value || ''}
@@ -265,7 +265,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
         ))}
 
         {rules.length === 0 && (
-          <div className="text-center py-6 text-gray-500">
+          <div className="text-center py-6 text-gray-500>
             <Info className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">Nenhuma regra de validação configurada</p>
             <p className="text-xs">Use o menu acima para adicionar validações</p>
@@ -274,14 +274,14 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
       </div>
 
       {rules.length > 0 && (
-        <div className="p-3 bg-blue-50 rounded-lg">
-          <div className="flex items-start gap-2">
+        <div className="p-3 bg-blue-50 rounded-lg>
+          <div className="flex items-start gap-2>
             <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-blue-700">
+              <p className="text-sm font-medium text-blue-700>
                 {rules.filter(r => r.isActive).length} validação(ões) ativa(s)
               </p>
-              <p className="text-xs text-blue-600">
+              <p className="text-xs text-blue-600>
                 As validações serão aplicadas em tempo real durante o preenchimento
               </p>
             </div>

@@ -278,15 +278,15 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6" data-testid="notifications-page">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto p-6 space-y-6" data-testid="notifications-page>
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Notifications & Alerts</h1>
-          <p className="text-muted-foreground">
+          <p className=""
             Manage system notifications and alerts delivery
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className=""
           <Button
             onClick={handleProcessNotifications}
             disabled={processMutation.isPending}
@@ -298,12 +298,12 @@ export default function NotificationsPage() {
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button data-testid="button-create-notification">
+              <Button data-testid="button-create-notification>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Notification
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className=""
               <DialogHeader>
                 <DialogTitle>Create New Notification</DialogTitle>
                 <DialogDescription>
@@ -312,8 +312,8 @@ export default function NotificationsPage() {
               </DialogHeader>
               
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className=""
+                  <div className=""
                     <FormField
                       control={form.control}
                       name="type"
@@ -322,7 +322,7 @@ export default function NotificationsPage() {
                           <FormLabel>Type</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-notification-type">
+                              <SelectTrigger data-testid="select-notification-type>
                                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
@@ -352,7 +352,7 @@ export default function NotificationsPage() {
                           <FormLabel>Severity</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-notification-severity">
+                              <SelectTrigger data-testid="select-notification-severity>
                                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
@@ -412,7 +412,7 @@ export default function NotificationsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Delivery Channels</FormLabel>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className=""
                           {[
                             { value: 'in_app', label: 'In-App' },
                             { value: 'email', label: 'Email' },
@@ -445,7 +445,7 @@ export default function NotificationsPage() {
                     )}
                   />
 
-                  <div className="flex justify-end space-x-2">
+                  <div className=""
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -471,33 +471,33 @@ export default function NotificationsPage() {
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList>
-          <TabsTrigger value="notifications" data-testid="tab-notifications">
+          <TabsTrigger value="notifications" data-testid="tab-notifications>
             <Bell className="w-4 h-4 mr-2" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="stats" data-testid="tab-stats">
+          <TabsTrigger value="stats" data-testid="tab-stats>
             <BarChart3 className="w-4 h-4 mr-2" />
             Statistics
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="notifications" className="space-y-4">
+        <TabsContent value="notifications" className=""
           {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className=""
                 <Filter className="w-5 h-5" />
                 Filters
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-4 gap-4">
+              <div className=""
                 <div>
                   <Label htmlFor="status-filter">Status</Label>
                   <Select value={filters.status} onValueChange={(value) => 
                     setFilters(prev => ({ ...prev, status: value }))
                   }>
-                    <SelectTrigger data-testid="filter-status">
+                    <SelectTrigger data-testid="filter-status>
                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
@@ -516,7 +516,7 @@ export default function NotificationsPage() {
                   <Select value={filters.severity} onValueChange={(value) => 
                     setFilters(prev => ({ ...prev, severity: value }))
                   }>
-                    <SelectTrigger data-testid="filter-severity">
+                    <SelectTrigger data-testid="filter-severity>
                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
@@ -534,7 +534,7 @@ export default function NotificationsPage() {
                   <Select value={filters.type} onValueChange={(value) => 
                     setFilters(prev => ({ ...prev, type: value }))
                   }>
-                    <SelectTrigger data-testid="filter-type">
+                    <SelectTrigger data-testid="filter-type>
                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
@@ -548,7 +548,7 @@ export default function NotificationsPage() {
                   </Select>
                 </div>
 
-                <div className="flex items-end">
+                <div className=""
                   <Button 
                     onClick={() => setFilters({ status: '', type: '', severity: '', page: 1 })}
                     variant="outline"
@@ -562,20 +562,20 @@ export default function NotificationsPage() {
           </Card>
 
           {/* Notifications List */}
-          <div className="space-y-4">
+          <div className=""
             {notificationsLoading ? (
               <Card>
-                <CardContent className="p-6">
+                <CardContent className=""
                   <div className="text-center">Loading notifications...</div>
                 </CardContent>
               </Card>
             ) : notifications?.success && notifications.data?.notifications?.length > 0 ? (
               (notifications.data.notifications as Notification[]).map((notification: Notification) => (
-                <Card key={notification.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                <Card key={notification.id} className=""
+                  <CardContent className=""
+                    <div className=""
+                      <div className=""
+                        <div className=""
                           {getStatusIcon(notification.status)}
                           <h3 className="font-semibold text-lg" data-testid={"
                             {notification.title}
@@ -598,7 +598,7 @@ export default function NotificationsPage() {
                           {notification.message}
                         </p>
                         
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className=""
                           <span data-testid={"
                             Type: {notification.type}
                           </span>
@@ -616,8 +616,8 @@ export default function NotificationsPage() {
                         </div>
                         
                         {notification.requiresEscalation && (
-                          <div className="mt-2">
-                            <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                          <div className=""
+                            <Badge className=""
                               <AlertTriangle className="w-3 h-3 mr-1" />
                               Requires Escalation
                             </Badge>
@@ -625,7 +625,7 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       
-                      <div className="flex flex-col gap-2 ml-4">
+                      <div className=""
                         {!notification.readAt && (
                           <Button
                             size="sm"
@@ -645,8 +645,8 @@ export default function NotificationsPage() {
               ))
             ) : (
               <Card>
-                <CardContent className="p-6">
-                  <div className="text-center text-muted-foreground">
+                <CardContent className=""
+                  <div className=""
                     No notifications found
                   </div>
                 </CardContent>
@@ -655,14 +655,14 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="stats" className="space-y-4">
+        <TabsContent value="stats" className=""
           {statsLoading ? (
             <div className="text-center py-8">Loading statistics...</div>
           ) : stats?.success && stats.data ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className=""
               {/* Overview Stats */}
-              <Card data-testid="stats-total">
-                <CardHeader className="pb-3">
+              <Card data-testid="stats-total>
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Total</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -671,8 +671,8 @@ export default function NotificationsPage() {
                 </CardContent>
               </Card>
               
-              <Card data-testid="stats-pending">
-                <CardHeader className="pb-3">
+              <Card data-testid="stats-pending>
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -681,8 +681,8 @@ export default function NotificationsPage() {
                 </CardContent>
               </Card>
               
-              <Card data-testid="stats-delivered">
-                <CardHeader className="pb-3">
+              <Card data-testid="stats-delivered>
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Delivered</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -691,8 +691,8 @@ export default function NotificationsPage() {
                 </CardContent>
               </Card>
               
-              <Card data-testid="stats-failed">
-                <CardHeader className="pb-3">
+              <Card data-testid="stats-failed>
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Failed</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -702,21 +702,21 @@ export default function NotificationsPage() {
               </Card>
 
               {/* Recent Activity */}
-              <Card className="md:col-span-2" data-testid="stats-recent-activity">
+              <Card className="md:col-span-2" data-testid="stats-recent-activity>
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
+                  <div className=""
+                    <div className=""
                       <span>Last 24 hours:</span>
                       <span className="font-semibold">{(stats.data as any).recentActivity?.last24Hours || 0}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className=""
                       <span>Last week:</span>
                       <span className="font-semibold">{(stats.data as any).recentActivity?.lastWeek || 0}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className=""
                       <span>Last month:</span>
                       <span className="font-semibold">{(stats.data as any).recentActivity?.lastMonth || 0}</span>
                     </div>
@@ -725,14 +725,14 @@ export default function NotificationsPage() {
               </Card>
 
               {/* Type Distribution */}
-              <Card className="md:col-span-2" data-testid="stats-type-distribution">
+              <Card className="md:col-span-2" data-testid="stats-type-distribution>
                 <CardHeader>
                   <CardTitle>By Type</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
+                  <div className=""
                     {Object.entries((stats.data as any).distribution?.byType || {}).map(([type, count]) => (
-                      <div key={type} className="flex justify-between">
+                      <div key={type} className=""
                         <span className="capitalize">{type.replace('_', ' ')}:</span>
                         <span className="font-semibold">{count as number}</span>
                       </div>
@@ -742,7 +742,7 @@ export default function NotificationsPage() {
               </Card>
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className=""
               No statistics available
             </div>
           )}

@@ -95,8 +95,8 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
   const selectedClientes = clientes.filter((c: any) => value.includes(c.id));
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
+    <div className="space-y-2>
+      <div className="relative>
         <Button
           type="button"
           variant="outline"
@@ -111,7 +111,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
         </Button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
             {clientes.map((cliente: any) => (
               <div
                 key={cliente.id}
@@ -119,7 +119,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
                 onClick={() => toggleCliente(cliente.id)}
               >
                 <Checkbox checked={value.includes(cliente.id)} />
-                <div className="flex-1">
+                <div className="flex-1>
                   <p className="text-sm font-medium">{cliente.name}</p>
                   <p className="text-xs text-gray-500">{cliente.email}</p>
                 </div>
@@ -130,9 +130,9 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
       </div>
 
       {selectedClientes.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1>
           {selectedClientes.map((cliente: any) => (
-            <Badge key={cliente.id} variant="secondary" className="flex items-center gap-1">
+            <Badge key={cliente.id} variant="secondary" className="flex items-center gap-1>
               {cliente.name}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -231,8 +231,8 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
   const selectedGrupos = grupos.filter((g: any) => value.includes(g.id));
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
+    <div className="space-y-2>
+      <div className="relative>
         <Button
           type="button"
           variant="outline"
@@ -247,7 +247,7 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
         </Button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
             {grupos.map((grupo: any) => (
               <div
                 key={grupo.id}
@@ -255,9 +255,9 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
                 onClick={() => toggleGrupo(grupo.id)}
               >
                 <Checkbox checked={value.includes(grupo.id)} />
-                <div className="flex-1">
+                <div className="flex-1>
                   <p className="text-sm font-medium">{grupo.name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500>
                     {grupo.description} ({grupo.memberCount} membro(s))
                   </p>
                 </div>
@@ -268,9 +268,9 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
       </div>
 
       {selectedGrupos.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1>
           {selectedGrupos.map((grupo: any) => (
-            <Badge key={grupo.id} variant="secondary" className="flex items-center gap-1">
+            <Badge key={grupo.id} variant="secondary" className="flex items-center gap-1>
               {grupo.name}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -322,8 +322,8 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
   const selectedLocais = locais.filter((l: any) => value.includes(l.id));
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
+    <div className="space-y-2>
+      <div className="relative>
         <Button
           type="button"
           variant="outline"
@@ -338,7 +338,7 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
         </Button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
             {locais.map((local: any) => (
               <div
                 key={local.id}
@@ -346,7 +346,7 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
                 onClick={() => toggleLocal(local.id)}
               >
                 <Checkbox checked={value.includes(local.id)} />
-                <div className="flex-1">
+                <div className="flex-1>
                   <p className="text-sm font-medium">{local.name}</p>
                   <p className="text-xs text-gray-500">{local.displayName}</p>
                 </div>
@@ -357,9 +357,9 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
       </div>
 
       {selectedLocais.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1>
           {selectedLocais.map((local: any) => (
-            <Badge key={local.id} variant="secondary" className="flex items-center gap-1">
+            <Badge key={local.id} variant="secondary" className="flex items-center gap-1>
               {local.name}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -565,17 +565,17 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
       {/* Identificação */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Building className="h-5 w-5" />
             Identificação
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
+        <CardContent className="space-y-4>
+          <div className="flex items-center space-x-2>
             <Switch
               checked={watchedValues.ativo}
               onCheckedChange={(checked) => setValue('ativo', checked)}
@@ -620,12 +620,12 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       {/* Relacionamentos */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <Users className="h-5 w-5" />
             Relacionamentos
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4>
           <div>
             <Label>Clientes Vinculados (Multi-seleção)</Label>
             <ClientesMultiSelect
@@ -663,13 +663,13 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       {/* Geolocalização */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2>
             <MapPin className="h-5 w-5" />
             Geolocalização
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-4>
+          <div className="grid grid-cols-2 gap-4>
             <div>
               <Label htmlFor="latitude">Latitude</Label>
               <Input
@@ -690,7 +690,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2>
             <Button
               type="button"
               variant="outline"
@@ -715,7 +715,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
 
           {showMap && (
-            <div className="border rounded-lg p-4">
+            <div className="border rounded-lg p-4>
               <SimpleMapWithButtons
                 onCoordinateSelect={handleMapCoordinateSelect}
                 onCancel={() => setShowMap(false)}
@@ -729,21 +729,21 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
 
           <div>
             <Label>CEPs Abrangidos ou Próximos</Label>
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2>
               <Input
                 value={newCep}
                 onChange={(e) => setNewCep(e.target.value)}
                 placeholder="Digite um CEP (ex: 01234-567)"
                 className="flex-1"
               />
-              <Button type="button" onClick={addCepAbrangido} size="sm">
+              <Button type="button" onClick={addCepAbrangido} size="sm>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
             {watchedValues.cepsAbrangidos && watchedValues.cepsAbrangidos.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2>
                 {watchedValues.cepsAbrangidos.map((cep, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1>
                     {cep}
                     <X
                       className="h-3 w-3 cursor-pointer"
@@ -762,10 +762,10 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         <CardHeader>
           <CardTitle>Endereço Base</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4>
           <div>
             <Label htmlFor="cep">CEP</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2>
               <Input
                 id="cep"
                 {...register('cep')}
@@ -783,7 +783,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4>
             <div>
               <Label htmlFor="pais">País</Label>
               <Input
@@ -802,7 +802,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4>
             <div>
               <Label htmlFor="municipio">Município</Label>
               <Input
@@ -846,7 +846,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4>
             <div>
               <Label htmlFor="numero">Número</Label>
               <Input
@@ -868,7 +868,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       </Card>
 
       {/* Actions */}
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2>
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar

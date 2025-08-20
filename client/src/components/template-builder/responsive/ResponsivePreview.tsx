@@ -176,53 +176,53 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
   const scale = zoom[0] / 100;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col>
       {/* Toolbar */}
-      <div className="border-b p-4 bg-gray-50">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center">
+      <div className="border-b p-4 bg-gray-50>
+        <div className="flex items-center justify-between mb-4>
+          <h3 className="text-lg font-semibold flex items-center>
             <Eye className="h-5 w-5 mr-2" />
             Preview Responsivo
           </h3>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <Badge className={getCategoryColor(selectedDevice.category)}>
               {selectedDevice.icon}
               <span className="ml-1 capitalize">{selectedDevice.category}</span>
             </Badge>
             
-            <Badge variant="outline">
+            <Badge variant="outline>
               {dimensions.width} × {dimensions.height}
             </Badge>
             
-            <Badge variant="outline">
+            <Badge variant="outline>
               {zoom[0]}%
             </Badge>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4>
           {/* Seleção de Dispositivo */}
           <div>
             <Label className="text-sm font-medium">Dispositivo</Label>
             <Select value={selectedDevice.id} onValueChange={handleDeviceChange}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {['desktop', 'tablet', 'mobile'].map(category => (
                   <div key={category}>
-                    <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase">
+                    <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase>
                       {category}
                     </div>
                     {devices
                       .filter(device => device.category === category)
                       .map(device => (
                         <SelectItem key={device.id} value={device.id}>
-                          <div className="flex items-center">
+                          <div className="flex items-center>
                             {device.icon}
                             <span className="ml-2">{device.name}</span>
-                            <span className="ml-auto text-xs text-gray-500">
+                            <span className="ml-auto text-xs text-gray-500>
                               {device.width}×{device.height}
                             </span>
                           </div>
@@ -237,7 +237,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
           {/* Controles de Orientação */}
           <div>
             <Label className="text-sm font-medium">Orientação</Label>
-            <div className="flex items-center space-x-2 mt-1">
+            <div className="flex items-center space-x-2 mt-1>
               <Button
                 variant={orientation === 'portrait' ? 'default' : 'outline'}
                 size="sm"
@@ -267,7 +267,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
           {/* Zoom */}
           <div>
             <Label className="text-sm font-medium">Zoom ({zoom[0]}%)</Label>
-            <div className="flex items-center space-x-2 mt-1">
+            <div className="flex items-center space-x-2 mt-1>
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -296,8 +296,8 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
           {/* Opções Avançadas */}
           <div>
             <Label className="text-sm font-medium">Opções</Label>
-            <div className="flex items-center space-x-4 mt-1">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4 mt-1>
+              <div className="flex items-center space-x-2>
                 <Switch
                   id="ruler"
                   checked={showRuler}
@@ -306,7 +306,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                 <Label htmlFor="ruler" className="text-xs">Régua</Label>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 <Switch
                   id="grid"
                   checked={showGrid}
@@ -315,7 +315,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                 <Label htmlFor="grid" className="text-xs">Grid</Label>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2>
                 <Switch
                   id="auto-rotate"
                   checked={autoRotate}
@@ -329,9 +329,9 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
       </div>
 
       {/* Preview Area */}
-      <div className="flex-1 p-8 bg-gray-100 overflow-auto">
-        <div className="flex items-center justify-center min-h-full">
-          <div className="relative">
+      <div className="flex-1 p-8 bg-gray-100 overflow-auto>
+        <div className="flex items-center justify-center min-h-full>
+          <div className="relative>
             {/* Ruler */}
             {showRuler && (
               <>
@@ -343,7 +343,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                   {Array.from({ length: Math.ceil(dimensions.width / 50) }, (_, i) => (
                     <div key={i} className="relative" style={{ width: 50 * scale }}>
                       <div className="absolute left-0 top-0 w-px h-full bg-gray-300" />
-                      <div className="absolute left-1 top-1 text-xs text-gray-500">
+                      <div className="absolute left-1 top-1 text-xs text-gray-500>
                         {i * 50}
                       </div>
                     </div>
@@ -358,7 +358,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                   {Array.from({ length: Math.ceil(dimensions.height / 50) }, (_, i) => (
                     <div key={i} className="relative" style={{ height: 50 * scale }}>
                       <div className="absolute left-0 top-0 w-full h-px bg-gray-300" />
-                      <div className="absolute left-1 top-1 text-xs text-gray-500 transform -rotate-90 origin-left">
+                      <div className="absolute left-1 top-1 text-xs text-gray-500 transform -rotate-90 origin-left>
                         {i * 50}
                       </div>
                     </div>
@@ -405,8 +405,8 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
             </div>
 
             {/* Device Info */}
-            <div className="absolute -bottom-8 left-0 right-0 flex justify-center">
-              <Badge variant="outline" className="bg-white">
+            <div className="absolute -bottom-8 left-0 right-0 flex justify-center>
+              <Badge variant="outline" className="bg-white>
                 {selectedDevice.name} • {dimensions.width}×{dimensions.height} • {orientation}
               </Badge>
             </div>
@@ -415,8 +415,8 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
       </div>
 
       {/* Quick Actions */}
-      <div className="border-t p-2 bg-gray-50">
-        <div className="flex items-center justify-center space-x-2">
+      <div className="border-t p-2 bg-gray-50>
+        <div className="flex items-center justify-center space-x-2>
           {devices.slice(0, 6).map((device) => (
             <Button
               key={device.id}

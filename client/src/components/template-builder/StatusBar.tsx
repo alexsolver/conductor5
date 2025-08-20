@@ -56,10 +56,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   };
 
   return (
-    <div className="bg-gray-50 border-t border-gray-200 px-4 py-2 flex items-center justify-between text-xs text-gray-600">
+    <div className="bg-gray-50 border-t border-gray-200 px-4 py-2 flex items-center justify-between text-xs text-gray-600>
       {/* Left Section - Selection Info */}
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-1">
+      <div className="flex items-center space-x-4>
+        <div className="flex items-center space-x-1>
           <MousePointer className="h-3 w-3" />
           <span>
             {selectedFieldsCount > 0 
@@ -71,14 +71,14 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 
         <Separator orientation="vertical" className="h-4" />
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1>
           <Layers className="h-3 w-3" />
           <span>{totalFields} campo{totalFields !== 1 ? 's' : ''}</span>
         </div>
 
         <Separator orientation="vertical" className="h-4" />
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1>
           <Grid3x3 className="h-3 w-3" />
           <span>
             Grade {isGridVisible ? 'visível' : 'oculta'}
@@ -87,22 +87,22 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       </div>
 
       {/* Center Section - Status Indicators */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4>
         {errors > 0 && (
-          <Badge variant="destructive" className="text-xs">
+          <Badge variant="destructive" className="text-xs>
             <AlertTriangle className="h-3 w-3 mr-1" />
             {errors} erro{errors > 1 ? 's' : ''}
           </Badge>
         )}
 
         {warnings > 0 && (
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-xs>
             <AlertTriangle className="h-3 w-3 mr-1" />
             {warnings} aviso{warnings > 1 ? 's' : ''}
           </Badge>
         )}
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1>
           {isConnected ? (
             <Wifi className="h-3 w-3 text-green-600" />
           ) : (
@@ -115,8 +115,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       </div>
 
       {/* Right Section - User & Save Info */}
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-1">
+      <div className="flex items-center space-x-4>
+        <div className="flex items-center space-x-1>
           <Clock className="h-3 w-3" />
           <span>{formatLastSaved(lastSaved)}</span>
         </div>
@@ -124,7 +124,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         {currentUser && (
           <>
             <Separator orientation="vertical" className="h-4" />
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1>
               <User className="h-3 w-3" />
               <span>{currentUser}</span>
             </div>
@@ -133,7 +133,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 
         <Separator orientation="vertical" className="h-4" />
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1>
           <span>Zoom: {Math.round(zoom * 100)}%</span>
         </div>
       </div>

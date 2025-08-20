@@ -44,12 +44,12 @@ export default function TenantAdmin() {
   // Verificar se usuário é tenant admin ou superior
   if (!user || !['tenant_admin', 'saas_admin'].includes(user.role)) {
     return (
-      <div className="p-8 text-center">
+      <div className=""
         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className=""
           Acesso Negado
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className=""
           Esta página é restrita para administradores de workspace.
         </p>
       </div>
@@ -150,22 +150,22 @@ export default function TenantAdmin() {
   };
 
   return (
-    <div className="p-4 space-y-8">
+    <div className=""
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className=""
             Administração do Workspace
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className=""
             Gerencie usuários e configurações do seu workspace
           </p>
         </div>
         
-        <div className="flex space-x-2">
+        <div className=""
           <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline>
                 <Settings className="w-4 h-4 mr-2" />
                 Configurações
               </Button>
@@ -175,7 +175,7 @@ export default function TenantAdmin() {
                 <DialogTitle>Configurações do Workspace</DialogTitle>
               </DialogHeader>
               <Form {...settingsForm}>
-                <form onSubmit={settingsForm.handleSubmit(onSubmitSettings)} className="space-y-4">
+                <form onSubmit={settingsForm.handleSubmit(onSubmitSettings)} className=""
                   <FormField
                     control={settingsForm.control}
                     name="name"
@@ -189,7 +189,7 @@ export default function TenantAdmin() {
                       </FormItem>
                     )}
                   />
-                  <div className="flex justify-end space-x-2">
+                  <div className=""
                     <Button type="button" variant="outline" onClick={() => setIsSettingsDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -204,7 +204,7 @@ export default function TenantAdmin() {
 
           <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gradient-primary text-white hover:opacity-90">
+              <Button className=""
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Usuário
               </Button>
@@ -214,7 +214,7 @@ export default function TenantAdmin() {
                 <DialogTitle>Criar Novo Usuário</DialogTitle>
               </DialogHeader>
               <Form {...userForm}>
-                <form onSubmit={userForm.handleSubmit(onSubmitUser)} className="space-y-4">
+                <form onSubmit={userForm.handleSubmit(onSubmitUser)} className=""
                   <FormField
                     control={userForm.control}
                     name="email"
@@ -275,7 +275,7 @@ export default function TenantAdmin() {
                       </FormItem>
                     )}
                   />
-                  <div className="flex justify-end space-x-2">
+                  <div className=""
                     <Button type="button" variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -291,20 +291,20 @@ export default function TenantAdmin() {
       </div>
 
       {/* Tenant Info Card */}
-      <Card className="gradient-card border-0">
+      <Card className=""
         <CardHeader>
-          <CardTitle className="flex items-center text-white">
+          <CardTitle className=""
             <Building className="w-5 h-5 mr-2" />
             Informações do Tenant
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoadingSettings ? (
-            <div className="flex items-center justify-center py-4">
+            <div className=""
               <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 text-white">
+            <div className=""
               <div>
                 <label className="text-sm text-purple-200">Nome</label>
                 <p className="text-lg font-medium">{tenantSettings?.name}</p>
@@ -319,50 +319,50 @@ export default function TenantAdmin() {
       </Card>
 
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Tickets Ativos</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {analyticsData?.activeTickets || 0}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Usuários</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {usersData?.users?.length || 0}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Satisfação</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {analyticsData?.satisfactionScore || 0}%
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Agentes Online</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {analyticsData?.onlineAgents || 0}
             </div>
           </CardContent>
@@ -372,14 +372,14 @@ export default function TenantAdmin() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className=""
             <Users className="w-5 h-5 mr-2" />
             Usuários do Tenant
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoadingUsers ? (
-            <div className="flex items-center justify-center py-8">
+            <div className=""
               <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
@@ -397,22 +397,22 @@ export default function TenantAdmin() {
               <TableBody>
                 {usersData?.users?.map((user: any) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className=""
                       {user.firstName} {user.lastName}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center">
+                      <div className=""
                         <Mail className="w-4 h-4 mr-2 text-gray-400" />
                         {user.email}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize">
+                      <Badge variant="outline" className=""
                         {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700">
+                      <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700>
                         {user.isActive ? "Ativo" : "Inativo"}
                       </Badge>
                     </TableCell>
@@ -420,7 +420,7 @@ export default function TenantAdmin() {
                       {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString('pt-BR') : 'Nunca'}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm>
                         <Settings className="w-4 h-4" />
                       </Button>
                     </TableCell>

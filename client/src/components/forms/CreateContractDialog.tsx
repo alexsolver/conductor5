@@ -157,10 +157,10 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild data-testid="button-create-contract">
+      <DialogTrigger asChild data-testid="button-create-contract>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-create-contract">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-create-contract>
         <DialogHeader>
           <DialogTitle data-testid="title-create-contract">Criar Novo Contrato</DialogTitle>
           <DialogDescription>
@@ -169,10 +169,10 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
               {/* Informações Básicas */}
-              <div className="space-y-4">
+              <div className="space-y-4>
                 <h3 className="text-lg font-semibold text-muted-foreground">Informações Básicas</h3>
                 
                 <FormField
@@ -219,7 +219,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       <FormLabel>Tipo de Contrato *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-contract-type">
+                          <SelectTrigger data-testid="select-contract-type>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -244,7 +244,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       <FormLabel>Prioridade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-priority">
+                          <SelectTrigger data-testid="select-priority>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -354,10 +354,10 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
               </div>
 
               {/* Informações Comerciais e Datas */}
-              <div className="space-y-4">
+              <div className="space-y-4>
                 <h3 className="text-lg font-semibold text-muted-foreground">Dados Comerciais</h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4>
                   <FormField
                     control={form.control}
                     name="startDate"
@@ -395,7 +395,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4>
                   <FormField
                     control={form.control}
                     name="totalValue"
@@ -445,7 +445,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       <FormLabel>Moeda</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-currency">
+                          <SelectTrigger data-testid="select-currency>
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
@@ -481,15 +481,15 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                   )}
                 />
 
-                <div className="space-y-4">
+                <div className="space-y-4>
                   <FormField
                     control={form.control}
                     name="autoRenewal"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
+                        <div className="space-y-0.5>
                           <FormLabel className="text-base">Renovação Automática</FormLabel>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground>
                             Renovar automaticamente o contrato
                           </div>
                         </div>
@@ -547,7 +547,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
               </div>
             </div>
 
-            <DialogFooter className="gap-2">
+            <DialogFooter className="gap-2>
               <Button 
                 type="button" 
                 variant="outline" 

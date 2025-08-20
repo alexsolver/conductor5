@@ -37,16 +37,16 @@ export default function DropZone({
       "
     >
       {children ? (
-        <div className="p-4">
+        <div className="p-4>
           {children}
         </div>
       ) : (
         showIndicator && (
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center>
             <div className={`
               p-4 rounded-full mb-3 transition-colors
               ${isOver ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}
-            ">
+            >
               {isOver ? (
                 <Target className="w-8 h-8" />
               ) : (
@@ -56,10 +56,10 @@ export default function DropZone({
             <p className={`
               font-medium transition-colors
               ${isOver ? 'text-blue-600' : 'text-gray-500'}
-            ">
+            >
               {isOver ? 'Solte o campo aqui' : label}
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 mt-1>
               Arraste campos da paleta para esta área
             </p>
           </div>

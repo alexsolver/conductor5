@@ -155,7 +155,7 @@ export default function DynamicFieldRenderer({
       
       case 'range':
         return (
-          <div className="space-y-2">
+          <div className="space-y-2>
             <Input
               type="range"
               {...inputProps}
@@ -163,7 +163,7 @@ export default function DynamicFieldRenderer({
               max={fieldData.validation?.max || 100}
               className="w-full"
             />
-            <div className="text-sm text-gray-500 text-center">
+            <div className="text-sm text-gray-500 text-center>
               Valor: {fieldData.value || 0}
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function DynamicFieldRenderer({
       
       case 'color':
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2>
             <Input {...inputProps} type="color" className="w-16 h-10" />
             <Input {...inputProps} className="flex-1" />
           </div>
@@ -196,14 +196,14 @@ export default function DynamicFieldRenderer({
 
   if (isEditing) {
     return (
-      <Card className="border-blue-300 shadow-sm">
-        <CardContent className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+      <Card className="border-blue-300 shadow-sm>
+        <CardContent className="p-4 space-y-4>
+          <div className="flex items-center justify-between>
+            <div className="flex items-center gap-2>
               {getFieldIcon(editData.type)}
               <span className="font-medium">Editando Campo</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2>
               <Button size="sm" onClick={handleSaveEdit}>
                 <Save className="w-4 h-4 mr-1" />
                 Salvar
@@ -215,7 +215,7 @@ export default function DynamicFieldRenderer({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4>
             <div>
               <Label>Rótulo do Campo</Label>
               <Input
@@ -234,7 +234,7 @@ export default function DynamicFieldRenderer({
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <Switch
               checked={editData.required}
               onCheckedChange={(checked) => setEditData(prev => ({ ...prev, required: checked }))}
@@ -244,15 +244,15 @@ export default function DynamicFieldRenderer({
 
           {['select', 'multiselect', 'radio', 'checkbox'].includes(editData.type) && (
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2>
                 <Label>Opções</Label>
                 <Button size="sm" variant="outline" onClick={addOption}>
                   + Adicionar Opção
                 </Button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2>
                 {editData.options?.map((option, index) => (
-                  <div key={index} className="flex gap-2">
+                  <div key={index} className="flex gap-2>
                     <Input
                       placeholder="Rótulo"
                       value={option.label}
@@ -281,11 +281,11 @@ export default function DynamicFieldRenderer({
   }
 
   return (
-    <Card className="relative group">
-      <CardContent className="p-4">
+    <Card className="relative group>
+      <CardContent className="p-4>
         {isEditMode && (
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="flex gap-1">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity>
+            <div className="flex gap-1>
               <Button
                 size="sm"
                 variant="ghost"
@@ -306,14 +306,14 @@ export default function DynamicFieldRenderer({
           </div>
         )}
 
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
+        <div className="space-y-2>
+          <div className="flex items-center gap-2>
             {getFieldIcon(field.type)}
             <Label>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs>
               {field.type}
             </Badge>
           </div>

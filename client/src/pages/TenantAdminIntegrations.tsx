@@ -675,8 +675,8 @@ export default function TenantAdminIntegrations() {
 
   if (isLoading) {
     return (
-      <div className="space-y-8 p-8">
-        <div className="flex items-center justify-center h-64">
+      <div className=""
+        <div className=""
           <div className="text-gray-500">Carregando integrações...</div>
         </div>
       </div>
@@ -1225,15 +1225,15 @@ export default function TenantAdminIntegrations() {
   }, {} as Record<string, TenantIntegration[]>);
 
   return (
-    <div className="p-4 space-y-8">
+    <div className=""
       {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <div className="flex justify-between items-center">
+      <div className=""
+        <div className=""
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className=""
               Integrações do Tenant
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className=""
               Configurar integrações específicas para este workspace
             </p>
           </div>
@@ -1241,9 +1241,9 @@ export default function TenantAdminIntegrations() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Integrações</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -1253,36 +1253,36 @@ export default function TenantAdminIntegrations() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Ativas</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className=""
               {tenantIntegrations.filter(i => i.status === 'connected').length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Configuradas</CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {tenantIntegrations.filter(i => i.configured).length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Categorias</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {Object.keys(groupedIntegrations).length}
             </div>
           </CardContent>
@@ -1290,9 +1290,9 @@ export default function TenantAdminIntegrations() {
       </div>
 
       {/* Integrações por Categoria */}
-      <Tabs defaultValue="certificados" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-"">
-          <TabsTrigger value="certificados">
+      <Tabs defaultValue="certificados" className=""
+        <TabsList className="grid w-full grid-cols-">
+          <TabsTrigger value="certificados>
             Certificados
           </TabsTrigger>
           {Object.keys(groupedIntegrations).map((category) => (
@@ -1303,14 +1303,14 @@ export default function TenantAdminIntegrations() {
         </TabsList>
 
         {/* Aba de Certificados */}
-        <TabsContent value="certificados" className="space-y-4">
+        <TabsContent value="certificados" className=""
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className=""
                 <Shield className="h-6 w-6 text-purple-600" />
                 <span>Gerenciamento de Certificados Digitais</span>
               </CardTitle>
-              <p className="text-gray-600">
+              <p className=""
                 Configure e gerencie certificados digitais ICP-Brasil para assinatura de documentos CLT
               </p>
             </CardHeader>
@@ -1321,39 +1321,39 @@ export default function TenantAdminIntegrations() {
         </TabsContent>
 
         {Object.entries(groupedIntegrations).map(([category, integrations]) => (
-          <TabsContent key={category} value={category} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+          <TabsContent key={category} value={category} className=""
+            <div className=""
               {integrations.map((integration) => {
                 const IconComponent = integration.icon || Mail; // Fallback to Mail icon
                 return (
-                  <Card key={integration.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center space-x-3 min-w-0 flex-1">
-                          <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex-shrink-0">
+                  <Card key={integration.id} className=""
+                    <CardHeader className=""
+                      <div className=""
+                        <div className=""
+                          <div className=""
                             <IconComponent className="h-6 w-6 text-purple-600" />
                           </div>
-                          <div className="min-w-0 flex-1">
+                          <div className=""
                             <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
                               {integration.name}
                             </CardTitle>
-                            <Badge className="" text-xs mt-1">
+                            <Badge className="" text-xs mt-1>
                               {integration.category}
                             </Badge>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end space-y-1 flex-shrink-0">
+                        <div className=""
                           {integration.configured && (
-                            <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                            <Badge className=""
                               <CheckCircle className="h-3 w-3 mr-1" />
                               <span className="hidden sm:inline">Configurado</span>
                               <span className="sm:hidden">Config.</span>
                             </Badge>
                           )}
-                          <Badge className="" text-xs">
+                          <Badge className="" text-xs>
                             {getStatusIcon(integration.status)}
                             <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
-                            <span className="ml-1 capitalize sm:hidden">
+                            <span className=""
                               {integration.status === 'connected' ? 'OK' : 
                                integration.status === 'disconnected' ? 'OFF' : 'ERR'}
                             </span>
@@ -1362,22 +1362,22 @@ export default function TenantAdminIntegrations() {
                       </div>
                     </CardHeader>
 
-                    <CardContent className="flex-1 flex flex-col">
+                    <CardContent className=""
                       <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={integration.description}>
                         {integration.description}
                       </p>
 
                       {integration.features && integration.features.length > 0 && (
-                        <div className="mb-4 flex-1">
+                        <div className=""
                           <h4 className="text-sm font-medium mb-2">Recursos:</h4>
-                          <div className="flex flex-wrap gap-1">
+                          <div className=""
                             {integration.features.slice(0, 2).map((feature, index) => (
                               <Badge key={index} variant="outline" className="text-xs" title={feature}>
                                 {feature.length > 20 ? "...` : feature}
                               </Badge>
                             ))}
                             {integration.features.length > 2 && (
-                              <Badge variant="outline" className="text-xs" title={" recursos adicionais">
+                              <Badge variant="outline" className="text-xs" title={" recursos adicionais>
                                 +{integration.features.length - 2}
                               </Badge>
                             )}
@@ -1386,7 +1386,7 @@ export default function TenantAdminIntegrations() {
                       )}
 
                       {/* ✅ IMPROVED: Layout responsivo dos botões */}
-                      <div className="space-y-2 mt-auto">
+                      <div className=""
                         {/* Primeira linha - Configurar (sempre visível) */}
                         <Button 
                           size="sm" 
@@ -1402,7 +1402,7 @@ export default function TenantAdminIntegrations() {
                         </Button>
 
                         {/* Segunda linha - OAuth2 e Testar */}
-                        <div className="flex gap-2">
+                        <div className=""
                           {(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') && (
                             <Button 
                               size="sm" 
@@ -1429,7 +1429,7 @@ export default function TenantAdminIntegrations() {
                               handleTestIntegration(integration.id`);
                             }}
                             disabled={isTestingIntegration}
-                            className="""
+                            className=""
                           >
                             {isTestingIntegration ? ( // Use the general isTestingIntegration state
                               <>
@@ -1463,12 +1463,12 @@ export default function TenantAdminIntegrations() {
 
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description>
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
-            <DialogDescription id="integration-config-description">
+            <DialogDescription id="integration-config-description>
               Configure os parâmetros necessários para ativar esta integração no seu workspace.
             </DialogDescription>
           </DialogHeader>
@@ -1479,17 +1479,17 @@ export default function TenantAdminIntegrations() {
                 e.preventDefault();
                 e.stopPropagation();
                 configForm.handleSubmit(onSubmitConfig)(e);
-              }} className="space-y-4">
+              }} className=""
                 <FormField
                   control={configForm.control}
                   name="enabled"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
+                    <FormItem className=""
+                      <div className=""
+                        <FormLabel className=""
                           Habilitar Integração
                         </FormLabel>
-                        <div className="text-sm text-gray-500">
+                        <div className=""
                           Ativar ou desativar esta integração
                         </div>
                       </div>
@@ -1633,12 +1633,12 @@ export default function TenantAdminIntegrations() {
                       control={configForm.control}
                       name="useSSL"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">
+                        <FormItem className=""
+                          <div className=""
+                            <FormLabel className=""
                               Usar SSL/TLS
                             </FormLabel>
-                            <div className="text-sm text-gray-500">
+                            <div className=""
                               Habilitar conexão segura
                             </div>
                           </div>
@@ -1656,7 +1656,7 @@ export default function TenantAdminIntegrations() {
 
                 {/* Campos para IMAP Email */}
                 {selectedIntegration.id === 'imap-email' && (
-                  <div className="space-y-4">
+                  <div className=""
                     <FormField
                       control={configForm.control}
                       name="imapServer"
@@ -1738,12 +1738,12 @@ export default function TenantAdminIntegrations() {
                       control={configForm.control}
                       name="useSSL"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">
+                        <FormItem className=""
+                          <div className=""
+                            <FormLabel className=""
                               Usar SSL/TLS
                             </FormLabel>
-                            <div className="text-sm text-gray-500">
+                            <div className=""
                               Habilitar conexão segura IMAP
                             </div>
                           </div>
@@ -1824,7 +1824,7 @@ export default function TenantAdminIntegrations() {
                 {selectedIntegration.id === 'telegram' && (
                   <>
                     {/* Original Telegram Fields */}
-                    <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className=""
                       <h4 className="font-medium text-sm text-blue-800">🤖 Configuração do Bot Telegram</h4>
 
                       <FormField
@@ -1883,11 +1883,11 @@ export default function TenantAdminIntegrations() {
                     </div>
 
                     {/* Templates de Mensagens Personalizáveis */}
-                    <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className=""
                       <h4 className="font-medium text-sm text-green-800">📝 Templates de Mensagens</h4>
 
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="space-y-2">
+                      <div className=""
+                        <div className=""
                           <Label className="text-xs text-green-700">Template de Notificação</Label>
                           <Textarea
                             placeholder="🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}"
@@ -1897,7 +1897,7 @@ export default function TenantAdminIntegrations() {
                           />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className=""
                           <Label className="text-xs text-green-700">Template de Alerta</Label>
                           <Textarea
                             placeholder="🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}"
@@ -1907,7 +1907,7 @@ export default function TenantAdminIntegrations() {
                           />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className=""
                           <Label className="text-xs text-green-700">Template de Resumo</Label>
                           <Textarea
                             placeholder="📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}"
@@ -1923,7 +1923,7 @@ export default function TenantAdminIntegrations() {
 
                 {/* Campos para WhatsApp Business */}
                 {selectedIntegration.id === 'whatsapp-business' && (
-                  <div className="space-y-4">
+                  <div className=""
                     <FormField
                       control={configForm.control}
                       name="whatsappApiKey"
@@ -1993,11 +1993,11 @@ export default function TenantAdminIntegrations() {
                     />
 
                     {/* WhatsApp Templates */}
-                    <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className=""
                       <h4 className="font-medium text-sm text-green-800">📱 Templates Aprovados do WhatsApp</h4>
 
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="space-y-2">
+                      <div className=""
+                        <div className=""
                           <Label className="text-xs text-green-700">Template de Notificação (aprovado)</Label>
                           <Textarea
                             placeholder="Olá {customer_name}, você tem uma nova notificação do Conductor:
@@ -2013,7 +2013,7 @@ Para mais detalhes, acesse o sistema."
                           />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className=""
                           <Label className="text-xs text-green-700">Template de Confirmação (aprovado)</Label>
                           <Textarea
                             placeholder="Olá {customer_name}, confirmamos o recebimento da sua solicitação:
@@ -2030,7 +2030,7 @@ Acompanhe pelo sistema Conductor."
                         </div>
                       </div>
 
-                      <div className="flex gap-2 pt-2 border-t border-green-200">
+                      <div className=""
                         <Button
                           type="button"
                           variant="outline"
@@ -2101,13 +2101,13 @@ Acompanhe pelo sistema Conductor."
 
                 {/* Display test results below the form if available and not for webhook section */}
                 {testResult && !['telegram'].includes(selectedIntegration.id) && (
-                  <pre className="p-2 text-xs rounded-md "">
+                  <pre className="p-2 text-xs rounded-md ">
                     {testResult.message}
                     {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
                   </pre>
                 )}
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className=""
                   <Button
                     type="button"
                     variant="outline"

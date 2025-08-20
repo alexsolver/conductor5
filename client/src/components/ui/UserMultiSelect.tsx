@@ -72,7 +72,7 @@ export function UserMultiSelect({
     <div className={cn("space-y-2", className)}>
       {/* Selected Users Display */}
       {selectedUsers.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1>
           {selectedUsers.map((user) => (
             <Badge
               key={user.id}
@@ -122,11 +122,11 @@ export function UserMultiSelect({
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
+          <PopoverContent className="w-full p-0" align="start>
             <Command>
               <CommandInput placeholder='[TRANSLATION_NEEDED]' />
               <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
-              <CommandGroup className="max-h-64 overflow-y-auto">
+              <CommandGroup className="max-h-64 overflow-y-auto>
                 {availableUsers.map((user) => (
                   <CommandItem
                     key={user.id}
@@ -142,7 +142,7 @@ export function UserMultiSelect({
                         value.includes(user.id) ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <div className="flex flex-col">
+                    <div className="flex flex-col>
                       <span className="font-medium">{user.name}</span>
                       <span className="text-xs text-muted-foreground">{user.email}</span>
                       {user.role && (

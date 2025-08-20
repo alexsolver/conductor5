@@ -77,23 +77,23 @@ export default function PricingRuleConfigurationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
           <DialogTitle>
             {rule ? '[TRANSLATION_NEEDED]' : 'Nova Regra de Precificação'}
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="basic" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="basic" className="space-y-4>
+          <TabsList className="grid w-full grid-cols-4>
             <TabsTrigger value="basic">Básico</TabsTrigger>
             <TabsTrigger value="conditions">Condições</TabsTrigger>
             <TabsTrigger value="actions">Ações</TabsTrigger>
             <TabsTrigger value="advanced">Avançado</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="basic" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="basic" className="space-y-4>
+            <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="name">Nome da Regra</Label>
                 <Input
@@ -133,7 +133,7 @@ export default function PricingRuleConfigurationModal({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="priority">Prioridade (1-10)</Label>
                 <Input
@@ -145,7 +145,7 @@ export default function PricingRuleConfigurationModal({
                   onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) }))}
                 />
               </div>
-              <div className="flex items-center space-x-2 pt-6">
+              <div className="flex items-center space-x-2 pt-6>
                 <Switch
                   checked={formData.isActive}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
@@ -155,16 +155,16 @@ export default function PricingRuleConfigurationModal({
             </div>
           </TabsContent>
 
-          <TabsContent value="conditions" className="space-y-4">
+          <TabsContent value="conditions" className="space-y-4>
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center>
                   <Target className="mr-2 h-4 w-4" />
                   Condições de Aplicação
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-4>
+                <div className="grid grid-cols-2 gap-4>
                   <div>
                     <Label>Quantidade Mínima</Label>
                     <Input
@@ -191,7 +191,7 @@ export default function PricingRuleConfigurationModal({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4>
                   <div>
                     <Label>Preço Mínimo (R$)</Label>
                     <Input
@@ -220,7 +220,7 @@ export default function PricingRuleConfigurationModal({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4>
                   <div>
                     <Label>Válido De</Label>
                     <Input
@@ -242,11 +242,11 @@ export default function PricingRuleConfigurationModal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="actions" className="space-y-4">
+          <TabsContent value="actions" className="space-y-4>
             {formData.ruleType === 'percentual' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center>
                     <Percent className="mr-2 h-4 w-4" />
                     Configuração Percentual
                   </CardTitle>
@@ -264,7 +264,7 @@ export default function PricingRuleConfigurationModal({
                         actions: { ...prev.actions, percentage: parseFloat(e.target.value) }
                       }))}
                     />
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground mt-1>
                       Valores positivos aumentam o preço, negativos diminuem
                     </p>
                   </div>
@@ -275,12 +275,12 @@ export default function PricingRuleConfigurationModal({
             {formData.ruleType === 'fixo' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center>
                     <Calculator className="mr-2 h-4 w-4" />
                     Configuração Valor Fixo
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4>
                   <div>
                     <Label>Valor Fixo (R$)</Label>
                     <Input
@@ -319,21 +319,21 @@ export default function PricingRuleConfigurationModal({
             {formData.ruleType === 'escalonado' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center">
+                  <CardTitle className="flex items-center justify-between>
+                    <span className="flex items-center>
                       <Settings className="mr-2 h-4 w-4" />
                       Configuração Escalonada
                     </span>
-                    <Button onClick={addTierRule} size="sm">
+                    <Button onClick={addTierRule} size="sm>
                       <Plus className="mr-1 h-3 w-3" />
                       Adicionar Faixa
                     </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-3>
                     {tierRules.map((tier, index) => (
-                      <div key={index} className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <div key={index} className="flex items-center space-x-2 p-3 border rounded-lg>
                         <Input
                           type="number"
                           placeholder="Qtd Min"
@@ -376,12 +376,12 @@ export default function PricingRuleConfigurationModal({
             {formData.ruleType === 'dinamico' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center>
                     <Calendar className="mr-2 h-4 w-4" />
                     Fatores Dinâmicos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4>
                   <div>
                     <Label>Fator de Demanda</Label>
                     <Input
@@ -426,13 +426,13 @@ export default function PricingRuleConfigurationModal({
             )}
           </TabsContent>
 
-          <TabsContent value="advanced" className="space-y-4">
+          <TabsContent value="advanced" className="space-y-4>
             <Card>
               <CardHeader>
                 <CardTitle>Configurações Avançadas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-4>
+                <div className="grid grid-cols-2 gap-4>
                   <div>
                     <Label>Preço Mínimo Garantido (R$)</Label>
                     <Input
@@ -477,7 +477,7 @@ export default function PricingRuleConfigurationModal({
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
+        <div className="flex justify-end space-x-2 pt-4 border-t>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>

@@ -184,12 +184,12 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild data-testid={"
         {children || (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm>
             <Edit className="h-4 w-4" />
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-edit-contract">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-edit-contract>
         <DialogHeader>
           <DialogTitle data-testid="title-edit-contract">Editar Contrato</DialogTitle>
           <DialogDescription>
@@ -198,15 +198,15 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
         </DialogHeader>
 
         {isLoadingContract ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8>
             <div className="text-muted-foreground">Carregando dados do contrato...</div>
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
                 {/* Informações Básicas */}
-                <div className="space-y-4">
+                <div className="space-y-4>
                   <h3 className="text-lg font-semibold text-muted-foreground">Informações Básicas</h3>
                   
                   <FormField
@@ -235,7 +235,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Tipo de Contrato *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-type">
+                            <SelectTrigger data-testid="select-edit-type>
                               <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
@@ -260,7 +260,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Status *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-status">
+                            <SelectTrigger data-testid="select-edit-status>
                               <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
@@ -285,7 +285,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Prioridade</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-priority">
+                            <SelectTrigger data-testid="select-edit-priority>
                               <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
@@ -323,10 +323,10 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                 </div>
 
                 {/* Informações Comerciais */}
-                <div className="space-y-4">
+                <div className="space-y-4>
                   <h3 className="text-lg font-semibold text-muted-foreground">Dados Comerciais</h3>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <FormField
                       control={form.control}
                       name="startDate"
@@ -364,7 +364,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4>
                     <FormField
                       control={form.control}
                       name="totalValue"
@@ -414,7 +414,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <FormLabel>Moeda</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-currency">
+                            <SelectTrigger data-testid="select-edit-currency>
                               <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
@@ -450,15 +450,15 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                     )}
                   />
 
-                  <div className="space-y-4">
+                  <div className="space-y-4>
                     <FormField
                       control={form.control}
                       name="autoRenewal"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
+                          <div className="space-y-0.5>
                             <FormLabel className="text-base">Renovação Automática</FormLabel>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-sm text-muted-foreground>
                               Renovar automaticamente o contrato
                             </div>
                           </div>
@@ -516,7 +516,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                 </div>
               </div>
 
-              <DialogFooter className="gap-2">
+              <DialogFooter className="gap-2>
                 <Button 
                   type="button" 
                   variant="outline" 

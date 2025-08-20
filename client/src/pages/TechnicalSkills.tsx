@@ -238,14 +238,14 @@ export default function TechnicalSkills() {
     const maxLevel = Math.max(...options.map(opt => opt.level));
 
     return (
-      <div className="flex items-center space-x-1">
+      <div className=""
         {Array.from({ length: maxLevel }, (_, i) => (
           <Star
             key={i}
             className={`h-4 w-4 fill-yellow-400 text-yellow-400"
           />
         ))}
-        <span className="ml-1 text-xs text-gray-500">
+        <span className=""
           {options.length} níveis
         </span>
       </div>
@@ -261,9 +261,9 @@ export default function TechnicalSkills() {
   }) || [];
 
   return (
-    <div className="p-4 space-y-6">
+    <div className=""
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className=""
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Habilidades Técnicas</h1>
           <p className="text-gray-600">Gerencie habilidades técnicas e certificações dos usuários</p>
@@ -276,7 +276,7 @@ export default function TechnicalSkills() {
               Nova Habilidade
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className=""
             <DialogHeader>
               <DialogTitle>Criar Nova Habilidade</DialogTitle>
               <DialogDescription>
@@ -284,7 +284,7 @@ export default function TechnicalSkills() {
               </DialogDescription>
             </DialogHeader>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className=""
                 <FormField
                   control={createForm.control}
                   name="name"
@@ -335,14 +335,14 @@ export default function TechnicalSkills() {
                 />
 
                 {/* Editor de Opções da Escala */}
-                <div className="space-y-4">
+                <div className=""
                   <FormLabel>Opções da Escala</FormLabel>
                   {scaleOptions.map((option, index) => (
-                    <div key={option.level} className="grid grid-cols-12 gap-2 items-center">
-                      <div className="col-span-1">
+                    <div key={option.level} className=""
+                      <div className=""
                         <span className="text-sm font-medium">{option.level}</span>
                       </div>
-                      <div className="col-span-3">
+                      <div className=""
                         <Input
                           placeholder="Nome da escala"
                           value={option.label}
@@ -353,7 +353,7 @@ export default function TechnicalSkills() {
                           }}
                         />
                       </div>
-                      <div className="col-span-8">
+                      <div className=""
                         <Input
                           placeholder="Descrição da escala"
                           value={option.description}
@@ -429,7 +429,7 @@ export default function TechnicalSkills() {
                   )}
                 />
 
-                <div className="flex justify-end space-x-2">
+                <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -444,9 +444,9 @@ export default function TechnicalSkills() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Total de Habilidades</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -457,7 +457,7 @@ export default function TechnicalSkills() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Certificações Vencidas</CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
@@ -468,7 +468,7 @@ export default function TechnicalSkills() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Vencendo em 30 dias</CardTitle>
             <Award className="h-4 w-4 text-yellow-500" />
           </CardHeader>
@@ -479,7 +479,7 @@ export default function TechnicalSkills() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Categorias</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -491,8 +491,8 @@ export default function TechnicalSkills() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className=""
+        <div className=""
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder='[TRANSLATION_NEEDED]'
@@ -503,7 +503,7 @@ export default function TechnicalSkills() {
         </div>
 
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className=""
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -518,28 +518,28 @@ export default function TechnicalSkills() {
       </div>
 
       {/* Skills Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className=""
         {isLoading ? (
-          <div className="col-span-full text-center py-8">
+          <div className=""
             <div className="text-gray-500">Carregando habilidades...</div>
           </div>
         ) : filteredSkills.length === 0 ? (
-          <div className="col-span-full text-center py-8">
+          <div className=""
             <div className="text-gray-500">Nenhuma habilidade encontrada</div>
           </div>
         ) : (
           filteredSkills.map((skill) => (
-            <Card key={skill.id} className="hover:shadow-md transition-shadow">
+            <Card key={skill.id} className=""
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                <div className=""
+                  <div className=""
                     <CardTitle className="text-lg">{skill.name}</CardTitle>
-                    <div className="flex items-center space-x-2 mt-1">
+                    <div className=""
                       <Badge variant="secondary">{skill.category}</Badge>
                       {renderStars(skill.scaleOptions)}
                     </div>
                   </div>
-                  <div className="flex space-x-1">
+                  <div className=""
                     <Button
                       variant="ghost"
                       size="sm"
@@ -562,7 +562,7 @@ export default function TechnicalSkills() {
                   <p className="text-sm text-gray-600 mb-3">{skill.description}</p>
                 )}
                 {skill.suggestedCertification && (
-                  <div className="text-xs text-blue-600">
+                  <div className=""
                     <Award className="h-3 w-3 inline mr-1" />
                     {skill.suggestedCertification}
                   </div>
@@ -575,7 +575,7 @@ export default function TechnicalSkills() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Editar Habilidade</DialogTitle>
             <DialogDescription>
@@ -583,7 +583,7 @@ export default function TechnicalSkills() {
             </DialogDescription>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className=""
               <FormField
                 control={editForm.control}
                 name="name"
@@ -634,14 +634,14 @@ export default function TechnicalSkills() {
               />
 
               {/* Editor de Opções da Escala */}
-              <div className="space-y-4">
+              <div className=""
                 <FormLabel>Opções da Escala</FormLabel>
                 {scaleOptions.map((option, index) => (
-                  <div key={option.level} className="grid grid-cols-12 gap-2 items-center">
-                    <div className="col-span-1">
+                  <div key={option.level} className=""
+                    <div className=""
                       <span className="text-sm font-medium">{option.level}</span>
                     </div>
-                    <div className="col-span-3">
+                    <div className=""
                       <Input
                         placeholder="Nome da escala"
                         value={option.label}
@@ -652,7 +652,7 @@ export default function TechnicalSkills() {
                         }}
                       />
                     </div>
-                    <div className="col-span-8">
+                    <div className=""
                       <Input
                         placeholder="Descrição da escala"
                         value={option.description}
@@ -728,7 +728,7 @@ export default function TechnicalSkills() {
                 )}
               />
 
-              <div className="flex justify-end space-x-2">
+              <div className=""
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   Cancelar
                 </Button>

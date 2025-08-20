@@ -116,8 +116,8 @@ export default function HourBank() {
   };
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=""
+      <div className=""
         <h1 className="text-2xl font-bold">Banco de Horas</h1>
       </div>
 
@@ -127,7 +127,7 @@ export default function HourBank() {
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className=""
             <div>
               <Label htmlFor="userId">Funcionário</Label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
@@ -157,10 +157,10 @@ export default function HourBank() {
       </Card>
 
       {/* Resumo Geral */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className=""
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm text-gray-600">Total Funcionários</p>
                 <p className="text-2xl font-bold">{summary?.totalEmployees || 0}</p>
@@ -171,11 +171,11 @@ export default function HourBank() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm text-gray-600">Saldo Total</p>
-                <p className="text-2xl font-bold "">
+                <p className="text-2xl font-bold ">
                   {formatHours(summary?.totalBalance || 0)}
                 </p>
               </div>
@@ -185,11 +185,11 @@ export default function HourBank() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm text-gray-600">Horas Expirando</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className=""
                   {formatHours(summary?.expiringHours || 0)}
                 </p>
               </div>
@@ -199,11 +199,11 @@ export default function HourBank() {
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className=""
+            <div className=""
               <div>
                 <p className="text-sm text-gray-600">Movimento do Mês</p>
-                <p className="text-2xl font-bold "">
+                <p className="text-2xl font-bold ">
                   {formatHours(summary?.monthlyMovement || 0)}
                 </p>
               </div>
@@ -214,16 +214,16 @@ export default function HourBank() {
       </div>
 
       {selectedUserId !== 'default' ? (
-        <Tabs defaultValue="balance" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="balance" className=""
+          <TabsList className=""
             <TabsTrigger value="balance">Saldo</TabsTrigger>
             <TabsTrigger value="movements">Movimentações</TabsTrigger>
           </TabsList>
 
           {/* Aba Saldo */}
-          <TabsContent value="balance" className="space-y-4">
+          <TabsContent value="balance" className=""
             {hourBankLoading ? (
-              <div className="animate-pulse space-y-4">
+              <div className=""
                 <div className="h-32 bg-gray-200 rounded"></div>
               </div>
             ) : hourBank ? (
@@ -231,53 +231,53 @@ export default function HourBank() {
                 <CardHeader>
                   <CardTitle>Saldo Detalhado - {hourBank.userName}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-4 bg-blue-50 rounded">
+                <CardContent className=""
+                  <div className=""
+                    <div className=""
+                      <div className=""
                         <span className="font-medium">Saldo Atual:</span>
-                        <span className="text-xl font-bold "">
+                        <span className="text-xl font-bold ">
                           {formatHours(hourBank.balanceHours)}
                         </span>
                       </div>
 
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
+                      <div className=""
+                        <div className=""
                           <span>Horas Ganhas no Mês:</span>
-                          <span className="text-green-600 font-medium">
+                          <span className=""
                             +{formatHours(hourBank.earnedHours)}
                           </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className=""
                           <span>Horas Utilizadas:</span>
-                          <span className="text-red-600 font-medium">
+                          <span className=""
                             -{formatHours(hourBank.usedHours)}
                           </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className=""
                           <span>Horas Expiradas:</span>
-                          <span className="text-orange-600 font-medium">
+                          <span className=""
                             -{formatHours(hourBank.expiredHours)}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="p-4 border rounded">
+                    <div className=""
+                      <div className=""
                         <h4 className="font-medium mb-2">Informações de Expiração</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
+                        <div className=""
+                          <div className=""
                             <span>Status:</span>
                             {getStatusBadge(hourBank.status, hourBank.expirationDate)}
                           </div>
-                          <div className="flex justify-between">
+                          <div className=""
                             <span>Data de Vencimento:</span>
                             <span>
                               {format(new Date(hourBank.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </span>
                           </div>
-                          <div className="flex justify-between">
+                          <div className=""
                             <span>Referência:</span>
                             <span>
                               {format(new Date(hourBank.referenceMonth), 'MMMM/yyyy', { locale: ptBR })}
@@ -289,12 +289,12 @@ export default function HourBank() {
                   </div>
 
                   {hourBank.balanceHours > 0 && new Date(hourBank.expirationDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && (
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
-                      <div className="flex items-center gap-2">
+                    <div className=""
+                      <div className=""
                         <AlertCircle className="h-5 w-5 text-yellow-600" />
                         <span className="font-medium text-yellow-800">Atenção: Horas próximas do vencimento</span>
                       </div>
-                      <p className="text-sm text-yellow-700 mt-1">
+                      <p className=""
                         {formatHours(hourBank.balanceHours)} expirarão em {format(new Date(hourBank.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
                       </p>
                     </div>
@@ -303,10 +303,10 @@ export default function HourBank() {
               </Card>
             ) : (
               <Card>
-                <CardContent className="p-12 text-center">
+                <CardContent className=""
                   <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-medium mb-2">Nenhum registro encontrado</h3>
-                  <p className="text-gray-600">
+                  <p className=""
                     Não há banco de horas para este funcionário no período selecionado
                   </p>
                 </CardContent>
@@ -315,23 +315,23 @@ export default function HourBank() {
           </TabsContent>
 
           {/* Aba Movimentações */}
-          <TabsContent value="movements" className="space-y-4">
+          <TabsContent value="movements" className=""
             <Card>
               <CardHeader>
                 <CardTitle>Histórico de Movimentações</CardTitle>
               </CardHeader>
               <CardContent>
                 {movementsLoading ? (
-                  <div className="animate-pulse space-y-4">
+                  <div className=""
                     {[1, 2, 3].map(i => (
                       <div key={i} className="h-16 bg-gray-200 rounded"></div>
                     ))}
                   </div>
                 ) : (movements as any)?.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className=""
                     {(movements as HourBankMovement[]).map((movement) => (
-                      <div key={movement.id} className="flex justify-between items-center p-4 border rounded">
-                        <div className="flex items-center gap-3">
+                      <div key={movement.id} className=""
+                        <div className=""
                           <div className={`w-3 h-3 rounded-full ${
                             movement.movementType === 'credit' ? 'bg-green-500' :
                             movement.movementType === 'debit' ? 'bg-red-500' :
@@ -339,17 +339,17 @@ export default function HourBank() {
                           "></div>
                           <div>
                             <div className="font-medium">{movement.description}</div>
-                            <div className="text-sm text-gray-600">
+                            <div className=""
                               {format(new Date(movement.movementDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-medium "">
+                        <div className=""
+                          <div className="font-medium ">
                             {movement.movementType === 'credit' ? '+' : movement.movementType === 'debit' ? '-' : ''}
                             {formatHours(movement.hours)}
                           </div>
-                          <Badge variant="outline">
+                          <Badge variant="outline>
                             {movementTypeLabels[movement.movementType]}
                           </Badge>
                         </div>
@@ -357,7 +357,7 @@ export default function HourBank() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center text-gray-500 py-8">
+                  <div className=""
                     Nenhuma movimentação encontrada para o período
                   </div>
                 )}
@@ -367,10 +367,10 @@ export default function HourBank() {
         </Tabs>
       ) : (
         <Card>
-          <CardContent className="p-12 text-center">
+          <CardContent className=""
             <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-medium mb-2">Selecione um funcionário</h3>
-            <p className="text-gray-600">
+            <p className=""
               Escolha um funcionário nos filtros acima para visualizar o banco de horas
             </p>
           </CardContent>

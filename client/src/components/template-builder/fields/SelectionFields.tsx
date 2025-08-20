@@ -33,9 +33,9 @@ export const SelectField: React.FC<SelectionFieldProps> = ({
   const options = properties.options || []
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -64,7 +64,7 @@ export const SelectField: React.FC<SelectionFieldProps> = ({
         <p className="text-xs text-gray-500">{properties.description}</p>
       )}
       
-      <div className="text-xs text-gray-400">
+      <div className="text-xs text-gray-400>
         {options.length} opçõe{options.length !== 1 ? 's' : ''} disponívei{options.length !== 1 ? 's' : ''}
       </div>
     </div>
@@ -103,9 +103,9 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -114,9 +114,9 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
       
       {/* Valores selecionados */}
       {selectedValues.length > 0 && (
-        <div className="flex flex-wrap gap-1 p-2 border rounded-md bg-gray-50">
+        <div className="flex flex-wrap gap-1 p-2 border rounded-md bg-gray-50>
           {selectedValues.map((selectedValue, index) => (
-            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+            <Badge key={index} variant="secondary" className="flex items-center gap-1>
               {getOptionLabel(selectedValue)}
               {!disabled && (
                 <Button
@@ -134,9 +134,9 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
       )}
       
       {/* Opções disponíveis */}
-      <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
+      <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto>
         {options.map((option: any, index: number) => (
-          <div key={index} className="flex items-center space-x-2">
+          <div key={index} className="flex items-center space-x-2>
             <Checkbox
               id={"
               checked={selectedValues.includes(option.value)}
@@ -157,7 +157,7 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
         <p className="text-xs text-gray-500">{properties.description}</p>
       )}
       
-      <div className="text-xs text-gray-400">
+      <div className="text-xs text-gray-400>
         {selectedValues.length} de {options.length} selecionado{selectedValues.length !== 1 ? 's' : ''}
       </div>
     </div>
@@ -175,9 +175,9 @@ export const RadioField: React.FC<SelectionFieldProps> = ({
   const layout = properties.layout || 'vertical'
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -191,7 +191,7 @@ export const RadioField: React.FC<SelectionFieldProps> = ({
         className={layout === 'horizontal' ? 'flex gap-4' : 'space-y-2'}
       >
         {options.map((option: any, index: number) => (
-          <div key={index} className="flex items-center space-x-2">
+          <div key={index} className="flex items-center space-x-2>
             <RadioGroupItem 
               value={option.value} 
               id={"
@@ -222,16 +222,16 @@ export const CheckboxField: React.FC<SelectionFieldProps> = ({
   const { properties = {} } = field
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
+    <div className="space-y-2>
+      <div className="flex items-center justify-between>
+        <Label className="text-sm font-medium>
           {field.label}
           {properties.required && <span className="text-red-500 ml-1">*</span>}
         </Label>
         <Badge variant="outline" className="text-xs">caixa de seleção</Badge>
       </div>
       
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2>
         <Checkbox
           id={field.id}
           checked={!!value}

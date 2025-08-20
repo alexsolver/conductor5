@@ -152,26 +152,26 @@ export function PipelineDesigner() {
   };
 
   return (
-    <div className="space-y-6" data-testid="pipeline-designer">
-      <Card data-testid="pipeline-header">
+    <div className="space-y-6" data-testid="pipeline-designer>
+      <Card data-testid="pipeline-header>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+          <div className="flex items-center justify-between>
+            <CardTitle className="flex items-center gap-2>
               <Settings className="h-5 w-5" />
               Pipeline Designer
             </CardTitle>
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" data-testid="total-steps">
+            <div className="flex items-center gap-4>
+              <Badge variant="outline" data-testid="total-steps>
                 {steps.length} Etapas
               </Badge>
-              <Badge variant="secondary" data-testid="total-sla">
+              <Badge variant="secondary" data-testid="total-sla>
                 SLA Total: {getTotalSLA()}h
               </Badge>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-3" data-testid="pipeline-actions">
+          <div className="flex gap-3" data-testid="pipeline-actions>
             <Button 
               onClick={addStep} 
               className="flex items-center gap-2"
@@ -203,16 +203,16 @@ export function PipelineDesigner() {
       </Card>
 
       {/* Pipeline Steps */}
-      <div className="space-y-4" data-testid="pipeline-steps">
+      <div className="space-y-4" data-testid="pipeline-steps>
         {steps.map((step, index) => (
           <Card 
             key={step.id} 
             className="" transition-all duration-200"
             data-testid={"
           >
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <CardHeader className="pb-3>
+              <div className="flex items-center justify-between>
+                <div className="flex items-center gap-3>
                   <Badge className="bg-white text-gray-800" data-testid={"
                     Etapa {step.stepNumber}
                   </Badge>
@@ -223,7 +223,7 @@ export function PipelineDesigner() {
                     data-testid={"
                   />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2>
                   {index > 0 && (
                     <Button
                       variant="ghost"
@@ -260,7 +260,7 @@ export function PipelineDesigner() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-testid={"
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300>
                     Tipo de Aprovador
                   </label>
                   <Select
@@ -282,7 +282,7 @@ export function PipelineDesigner() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300>
                     Modo de Decisão
                   </label>
                   <Select
@@ -304,7 +304,7 @@ export function PipelineDesigner() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300>
                     SLA (horas)
                   </label>
                   <Input
@@ -318,7 +318,7 @@ export function PipelineDesigner() {
 
                 {step.mode === 'QUORUM' && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300>
                       Quórum
                     </label>
                     <Input
@@ -332,8 +332,8 @@ export function PipelineDesigner() {
                 )}
               </div>
 
-              <div className="mt-4 flex items-center gap-4">
-                <label className="flex items-center gap-2">
+              <div className="mt-4 flex items-center gap-4>
+                <label className="flex items-center gap-2>
                   <input
                     type="checkbox"
                     checked={step.autoApprove}
@@ -358,15 +358,15 @@ export function PipelineDesigner() {
 
       {/* Simulation Results */}
       {simulationResult && (
-        <Card data-testid="simulation-results">
+        <Card data-testid="simulation-results>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <Clock className="h-5 w-5" />
               Resultado da Simulação
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-sm whitespace-pre-wrap" data-testid="simulation-text">
+            <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-sm whitespace-pre-wrap" data-testid="simulation-text>
               {simulationResult}
             </pre>
           </CardContent>
@@ -374,17 +374,17 @@ export function PipelineDesigner() {
       )}
 
       {/* Pipeline Flow Visualization */}
-      <Card data-testid="pipeline-visualization">
+      <Card data-testid="pipeline-visualization>
         <CardHeader>
           <CardTitle>Fluxo Visual</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center space-y-4" data-testid="visual-flow">
+          <div className="flex flex-col items-center space-y-4" data-testid="visual-flow>
             {steps.map((step, index) => (
               <div key={step.id} className="flex flex-col items-center" data-testid={"
-                <div className="p-4 rounded-lg border-2 " min-w-48 text-center">
+                <div className="p-4 rounded-lg border-2 " min-w-48 text-center>
                   <div className="font-medium">{step.name}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1>
                     {step.approverType} • {step.mode} • {step.slaHours}h
                   </div>
                   {step.autoApprove && (

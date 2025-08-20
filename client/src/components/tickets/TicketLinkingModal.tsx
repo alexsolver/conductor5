@@ -280,20 +280,20 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className="flex items-center space-x-2>
             <Link2 className="h-5 w-5" />
             <span>Tickets Vinculados {currentTicket.number || currentTicket.subject}</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6>
           {/* Existing Relationships */}
           {relationships.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-3">Vínculos Existentes</h3>
-              <div className="space-y-2">
+              <div className="space-y-2>
                 {relationships.map((rel) => {
                   const Icon = getRelationshipIcon(rel.relationshipType);
                   return (
@@ -301,17 +301,17 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       key={rel.id}
                       className="flex items-center justify-between p-3 border rounded-lg bg-gray-50 dark:bg-gray-800"
                     >
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3>
                         <Icon className="h-4 w-4 text-gray-500" />
                         <div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2>
                             <span className="font-medium">#{rel.targetTicket?.number || "
-                            <Badge variant="outline">
+                            <Badge variant="outline>
                               {getRelationshipLabel(rel.relationshipType)}
                             </Badge>
                           </div>
                           {rel.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1>
                               {rel.description}
                             </p>
                           )}
@@ -335,22 +335,22 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
           {/* Link New Ticket */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Vincular Novo Ticket</h3>
-            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-              <div className="flex items-center gap-2">
+            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg>
+              <div className="flex items-center gap-2>
                 <Building2 className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                <span className="text-sm font-medium text-amber-800 dark:text-amber-200>
                   Vinculando apenas com tickets da mesma empresa
                 </span>
               </div>
-              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1>
                 Tickets só podem ser vinculados com outros da mesma empresa conforme regras de negócio
               </p>
             </div>
 
             {/* Search and Filters */}
-            <div className="space-y-4">
+            <div className="space-y-4>
               {/* Customer Filter - Só filtro de cliente, empresa é automática */}
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg>
                 <div>
                   <Label htmlFor="customer-filter">Filtrar por Cliente</Label>
                   <FilteredCustomerSelect
@@ -360,16 +360,16 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     placeholder='[TRANSLATION_NEEDED]'
                     className="w-full"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1>
                     ℹ️ Exibindo apenas tickets da mesma empresa do ticket atual
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
                 <div>
                   <Label htmlFor="search">Buscar Ticket</Label>
-                  <div className="relative">
+                  <div className="relative>
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="search"
@@ -417,11 +417,11 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
               {/* Ticket List */}
               {isLoading ? (
-                <div className="flex items-center justify-center p-8">
+                <div className="flex items-center justify-center p-8>
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                 </div>
               ) : (
-                <div className="border rounded-lg max-h-80 overflow-y-auto">
+                <div className="border rounded-lg max-h-80 overflow-y-auto>
                   {filteredTickets.length > 0 ? (
                     filteredTickets.map((ticket: Ticket) => (
                       <div
@@ -431,7 +431,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                         "
                         onClick={() => toggleTicketSelection(ticket)}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between>
                           <input
                             type="checkbox"
                             checked={isTicketSelected(ticket)}
@@ -439,13 +439,13 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             className="mr-3 rounded border-gray-300"
                             onClick={(e) => e.stopPropagation()}
                           />
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 flex-wrap gap-1">
+                          <div className="flex-1>
+                            <div className="flex items-center space-x-2 flex-wrap gap-1>
                               <span className="font-medium">#{ticket.number || "
 
                               {/* Badge de Categoria */}
                               {(ticket as any).category && (
-                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200>
                                   {(ticket as any).category}
                                 </Badge>
                               )}
@@ -458,7 +458,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                 ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
                                 ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
                                 'bg-gray-50 text-gray-700 border-gray-200'
-                              ">
+                              >
                                 {ticket.status === 'new' ? 'Novo' :
                                  ticket.status === 'open' ? 'Aberto' :
                                  ticket.status === 'in_progress' ? 'Em Andamento' :
@@ -478,7 +478,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                 ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
                                 ticket.priority === 'low' ? 'bg-green-500 text-white' :
                                 'bg-gray-500 text-white'
-                              ">
+                              >
                                 {ticket.priority === 'critical' ? 'Crítica' :
                                  ticket.priority === 'high' ? 'Alta' :
                                  ticket.priority === 'medium' ? 'Média' :
@@ -493,7 +493,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                   (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                                   (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
                                   'bg-gray-50 text-gray-700 border-gray-200'
-                                ">
+                                >
                                   {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
                                    (ticket as any).urgency === 'medium' ? 'Urgência Média' :
                                    (ticket as any).urgency === 'low' ? 'Urgência Baixa' :
@@ -501,7 +501,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                 </Badge>
                               )}
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate>
                               {ticket.subject || "Ticket sem assunto definido"
                             </div>
                           </div>
@@ -509,7 +509,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center text-gray-500">
+                    <div className="p-8 text-center text-gray-500>
                       Nenhum ticket encontrado com os filtros selecionados
                     </div>
                   )}
@@ -518,12 +518,12 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
               {/* Selected Tickets Summary */}
               {selectedTickets.length > 0 && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg>
                   <h4 className="font-medium mb-2">Tickets Selecionados ({selectedTickets.length})</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-2>
                     {selectedTickets.map(ticket => (
-                      <div key={ticket.id} className="p-2 bg-white rounded border">
-                        <div className="flex items-center justify-between mb-1">
+                      <div key={ticket.id} className="p-2 bg-white rounded border>
+                        <div className="flex items-center justify-between mb-1>
                           <span className="font-medium">#{ticket.number || "
                           <button
                             onClick={() => toggleTicketSelection(ticket)}
@@ -532,10 +532,10 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             ×
                           </button>
                         </div>
-                        <div className="flex items-center space-x-1 flex-wrap gap-1 mb-1">
+                        <div className="flex items-center space-x-1 flex-wrap gap-1 mb-1>
                           {/* Badge de Categoria */}
                           {(ticket as any).category && (
-                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200>
                               {(ticket as any).category}
                             </Badge>
                           )}
@@ -548,7 +548,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
                             ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
                             'bg-gray-50 text-gray-700 border-gray-200'
-                          ">
+                          >
                             {ticket.status === 'new' ? 'Novo' :
                              ticket.status === 'open' ? 'Aberto' :
                              ticket.status === 'in_progress' ? 'Em Andamento' :
@@ -564,7 +564,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
                             ticket.priority === 'low' ? 'bg-green-500 text-white' :
                             'bg-gray-500 text-white'
-                          ">
+                          >
                             {ticket.priority === 'critical' ? 'Crítica' :
                              ticket.priority === 'high' ? 'Alta' :
                              ticket.priority === 'medium' ? 'Média' :
@@ -579,7 +579,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                               (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                               (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
                               'bg-gray-50 text-gray-700 border-gray-200'
-                            ">
+                            >
                               {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
                                (ticket as any).urgency === 'medium' ? 'Urgência Média' :
                                (ticket as any).urgency === 'low' ? 'Urgência Baixa' :
@@ -587,7 +587,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             </Badge>
                           )}
                         </div>
-                        <div className="text-sm text-gray-600 truncate">
+                        <div className="text-sm text-gray-600 truncate>
                           {ticket.subject || "Ticket sem assunto definido"
                         </div>
                       </div>
@@ -598,7 +598,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
               {/* Relationship Type */}
               {selectedTickets.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-4>
                   <div>
                     <Label htmlFor="relationshipType">Tipo de Relação</Label>
                     <Select value={relationshipType} onValueChange={setRelationshipType}>
@@ -610,7 +610,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                           const Icon = type.icon;
                           return (
                             <SelectItem key={type.value} value={type.value}>
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center space-x-2>
                                 <Icon className="h-4 w-4" />
                                 <span>{type.label}</span>
                               </div>
@@ -632,7 +632,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     />
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-2>
                     <Button variant="outline" onClick={onClose}>
                       Cancelar
                     </Button>

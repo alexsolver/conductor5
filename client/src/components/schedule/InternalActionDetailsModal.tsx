@@ -157,15 +157,15 @@ export default function InternalActionDetailsModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
 
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col>
+        <DialogHeader className="flex-shrink-0>
+          <DialogTitle className="flex items-center gap-2>
             <div className="w-3 h-3 rounded-full bg-purple-500"></div>
             Ação Interna - {internalAction.ticketNumber}
           </DialogTitle>
-          <DialogDescription className="space-y-1">
+          <DialogDescription className="space-y-1>
             <div>{internalAction.ticketSubject}</div>
-            <div className="text-xs text-gray-500 font-mono">
+            <div className="text-xs text-gray-500 font-mono>
               Número: {internalAction.actionNumber || internalAction.id}
             </div>
             <Button 
@@ -182,12 +182,12 @@ export default function InternalActionDetailsModal({
 
         <div className="flex-1 overflow-y-auto space-y-6" style={{ maxHeight: 'calc(90vh - 180px)' }}>
           {/* Technical Info Card */}
-          <Card className="border-purple-200 bg-purple-50">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 gap-2">
-                <div className="space-y-1">
+          <Card className="border-purple-200 bg-purple-50>
+            <CardContent className="p-4>
+              <div className="grid grid-cols-1 gap-2>
+                <div className="space-y-1>
                   <Label className="text-sm font-medium text-purple-700">Número da Ação</Label>
-                  <div className="text-xs text-purple-600 font-mono bg-white p-2 rounded border select-all">
+                  <div className="text-xs text-purple-600 font-mono bg-white p-2 rounded border select-all>
                     {internalAction.actionNumber || internalAction.id}
                   </div>
                 </div>
@@ -196,10 +196,10 @@ export default function InternalActionDetailsModal({
           </Card>
 
           {/* Assigned To Card - Highlighted */}
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-bold text-blue-700 flex items-center gap-2">
+          <Card className="border-blue-200 bg-blue-50>
+            <CardContent className="p-4>
+              <div className="space-y-2>
+                <Label className="text-sm font-bold text-blue-700 flex items-center gap-2>
                   <User className="w-4 h-4" />
                   Atribuído a
                 </Label>
@@ -208,13 +208,13 @@ export default function InternalActionDetailsModal({
                     value={formData.assignedToId}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}
                   >
-                    <SelectTrigger className="border-blue-300 focus:ring-blue-500">
+                    <SelectTrigger className="border-blue-300 focus:ring-blue-500>
                       <SelectValue placeholder="Selecionar responsável" />
                     </SelectTrigger>
                     <SelectContent>
                       {teamMembers?.users?.map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2>
                             <User className="w-4 h-4" />
                             {user.name || user.email}
                           </div>
@@ -223,7 +223,7 @@ export default function InternalActionDetailsModal({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className="flex items-center gap-2 text-sm font-medium text-blue-800 bg-white p-2 rounded border border-blue-200">
+                  <div className="flex items-center gap-2 text-sm font-medium text-blue-800 bg-white p-2 rounded border border-blue-200>
                     <User className="w-4 h-4 text-blue-600" />
                     {internalAction.agentName || internalAction.agentEmail}
                   </div>
@@ -234,9 +234,9 @@ export default function InternalActionDetailsModal({
 
           {/* Action Info Card */}
           <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+            <CardContent className="p-4>
+              <div className="grid grid-cols-2 gap-4>
+                <div className="space-y-2>
                   <Label className="text-sm font-medium text-gray-700">Status</Label>
                   <Badge 
                     variant={internalAction.status === 'completed' ? 'default' : 'secondary'}
@@ -247,7 +247,7 @@ export default function InternalActionDetailsModal({
                   </Badge>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2>
                   <Label className="text-sm font-medium text-gray-700">Tipo de Ação</Label>
                   {isEditing ? (
                     <Select
@@ -266,7 +266,7 @@ export default function InternalActionDetailsModal({
                       </SelectContent>
                     </Select>
                   ) : (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm>
                       <FileText className="w-4 h-4 text-gray-500" />
                       {actionTypeOptions.find(opt => opt.value === internalAction.actionType)?.label || internalAction.actionType}
                     </div>
@@ -278,9 +278,9 @@ export default function InternalActionDetailsModal({
 
           {/* Time and Type */}
           <Card>
-            <CardContent className="p-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+            <CardContent className="p-4 space-y-4>
+              <div className="grid grid-cols-2 gap-4>
+                <div className="space-y-2>
                   <Label className="text-sm font-medium text-gray-700">Data/Hora Início</Label>
                   {isEditing ? (
                     <Input
@@ -289,14 +289,14 @@ export default function InternalActionDetailsModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, startDateTime: e.target.value }))}
                     />
                   ) : (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm>
                       <Calendar className="w-4 h-4 text-gray-500" />
                       {format(parseISO(internalAction.startDateTime), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2>
                   <Label className="text-sm font-medium text-gray-700">Data/Hora Fim</Label>
                   {isEditing ? (
                     <Input
@@ -305,7 +305,7 @@ export default function InternalActionDetailsModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, endDateTime: e.target.value }))}
                     />
                   ) : (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm>
                       <Calendar className="w-4 h-4 text-gray-500" />
                       {format(parseISO(internalAction.endDateTime), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </div>
@@ -313,8 +313,8 @@ export default function InternalActionDetailsModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-4>
+                <div className="space-y-2>
                   <Label className="text-sm font-medium text-gray-700">Horas Estimadas</Label>
                   {isEditing ? (
                     <Input
@@ -325,7 +325,7 @@ export default function InternalActionDetailsModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, estimatedHours: e.target.value }))}
                     />
                   ) : (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm>
                       <Clock className="w-4 h-4 text-gray-500" />
                       {internalAction.estimatedHours}h
                     </div>
@@ -337,10 +337,10 @@ export default function InternalActionDetailsModal({
 
           {/* Description */}
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">Descrição</Label>
               {isEditing ? (
-                <div className="border rounded-md p-3 min-h-[120px]">
+                <div className="border rounded-md p-3 min-h-[120px]>
                   <EditorContent 
                     editor={editor} 
                     className="prose prose-sm max-w-none focus:outline-none"
@@ -356,7 +356,7 @@ export default function InternalActionDetailsModal({
           </Card>
         </div>
 
-        <div className="flex-shrink-0 flex justify-end gap-2 pt-4 border-t mt-4 bg-white">
+        <div className="flex-shrink-0 flex justify-end gap-2 pt-4 border-t mt-4 bg-white>
           {!isEditing ? (
             <Button
               variant="outline"

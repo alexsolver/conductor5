@@ -108,7 +108,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       if (data && Array.isArray(data.users)) {
         return data.users.map((member: any) => ({
           id: member.id,
-          name: member.name || "
+          name: member.name || "Usuário"
           firstName: member.firstName,
           lastName: member.lastName,
           email: member.email,
@@ -445,7 +445,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
   if (groupsLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-8>
         <Loader2 className="h-8 w-8 animate-spin" />
         <span className="ml-2">Carregando grupos...</span>
       </div>
@@ -453,12 +453,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between>
         <div>
           <h3 className="text-lg font-semibold">Grupos de Usuários</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-600 dark:text-gray-400>
             Organize usuários em grupos para facilitar o gerenciamento de permissões
           </p>
         </div>
@@ -476,8 +476,8 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 Crie um novo grupo para organizar usuários
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreateGroup} className="space-y-4">
-              <div className="space-y-2">
+            <form onSubmit={handleCreateGroup} className="space-y-4>
+              <div className="space-y-2>
                 <Label htmlFor="name">Nome do Grupo</Label>
                 <Input
                   id="name"
@@ -487,7 +487,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   required
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2>
                 <Label htmlFor="description">Descrição</Label>
                 <Textarea
                   id="description"
@@ -497,7 +497,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   rows={3}
                 />
               </div>
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2>
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -528,16 +528,16 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       </div>
 
       {/* Lista de Grupos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4>
         {groups.length === 0 ? (
-          <div className="col-span-full">
+          <div className="col-span-full>
             <Card>
-              <CardContent className="text-center py-8">
+              <CardContent className="text-center py-8>
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2>
                   Nenhum grupo encontrado
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-gray-600 dark:text-gray-400 mb-4>
                   Crie seu primeiro grupo para organizar usuários
                 </p>
                 <Button onClick={() => setShowCreateDialog(true)}>
@@ -549,29 +549,29 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           </div>
         ) : (
           groups.map((group) => (
-            <Card key={group.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
+            <Card key={group.id} className="hover:shadow-md transition-shadow>
+              <CardHeader className="pb-3>
+                <div className="flex items-start justify-between>
+                  <div className="flex-1 min-w-0>
                     <CardTitle className="text-base truncate">{group.name}</CardTitle>
                     {group.description && (
-                      <CardDescription className="mt-1 text-sm">
+                      <CardDescription className="mt-1 text-sm>
                         {group.description}
                       </CardDescription>
                     )}
                   </div>
-                  <Badge variant={group.isActive ? "default" : "secondary">
+                  <Badge variant={group.isActive ? "default" : "secondary>
                     {group.isActive ? "Ativo" : "Inativo"
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <CardContent className="pt-0>
+                <div className="flex items-center justify-between>
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400>
                     <Users className="h-4 w-4 mr-1" />
                     <span>{group.memberCount || group.memberships?.length || 0} membros</span>
                   </div>
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-1>
                     <Button
                       size="sm"
                       variant="outline"
@@ -601,7 +601,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
       {/* Dialog de Edição */}
       <Dialog open={!!editingGroup} onOpenChange={() => handleCloseDialog()}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogContent className="max-w-2xl max-h-[80vh]>
           <DialogHeader>
             <DialogTitle>Editar Grupo: {editingGroup?.name}</DialogTitle>
             <DialogDescription>
@@ -610,16 +610,16 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2>
               <TabsTrigger value="info">Informações</TabsTrigger>
-              <TabsTrigger value="members">
+              <TabsTrigger value="members>
                 Membros ({editingGroup?.memberCount || editingGroup?.memberships?.length || selectedUsers.length || 0})
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="info" className="space-y-4">
-              <form onSubmit={handleUpdateGroup} className="space-y-4">
-                <div className="space-y-2">
+            <TabsContent value="info" className="space-y-4>
+              <form onSubmit={handleUpdateGroup} className="space-y-4>
+                <div className="space-y-2>
                   <Label htmlFor="edit-name">Nome do Grupo</Label>
                   <Input
                     id="edit-name"
@@ -628,7 +628,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2>
                   <Label htmlFor="edit-description">Descrição</Label>
                   <Textarea
                     id="edit-description"
@@ -637,7 +637,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     rows={3}
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-end space-x-2>
                   <Button type="button" variant="outline" onClick={handleCloseDialog}>
                     Cancelar
                   </Button>
@@ -661,23 +661,23 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
               </form>
             </TabsContent>
 
-            <TabsContent value="members" className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+            <TabsContent value="members" className="space-y-4>
+              <div className="space-y-4>
+                <div className="flex items-center justify-between>
                   <h4 className="text-sm font-medium">Gerenciar Membros</h4>
-                  <Badge variant="outline">
+                  <Badge variant="outline>
                     {selectedUsers.length} selecionados
                   </Badge>
                 </div>
 
                 {teamMembersLoading ? (
-                  <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center justify-center py-8>
                     <Loader2 className="h-6 w-6 animate-spin" />
                     <span className="ml-2">Carregando membros...</span>
                   </div>
                 ) : (
-                  <ScrollArea className="h-64 border rounded-lg p-4">
-                    <div className="space-y-2">
+                  <ScrollArea className="h-64 border rounded-lg p-4>
+                    <div className="space-y-2>
                       {teamMembersData && teamMembersData.length > 0 ? (
                         teamMembersData.map((member) => {
                           const isInGroup = selectedUsers.includes(member.id);
@@ -709,12 +709,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                   disabled={isUpdatingMemberships}
                                 />
                               </div>
-                              <div className="flex-1 min-w-0 ml-2">
-                                <div className="flex items-center space-x-2">
+                              <div className="flex-1 min-w-0 ml-2>
+                                <div className="flex items-center space-x-2>
                                   <User className="h-4 w-4 text-gray-400" />
                                   <span className="font-medium truncate">{member.name}</span>
                                 </div>
-                                <p className="text-xs text-gray-500 truncate">
+                                <p className="text-xs text-gray-500 truncate>
                                   {member.email} {member.position && "
                                 </p>
                               </div>
@@ -725,9 +725,9 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                           );
                         })
                       ) : (
-                        <div className="text-center py-4">
+                        <div className="text-center py-4>
                           <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500>
                             Nenhum membro da equipe encontrado
                           </p>
                         </div>
@@ -736,7 +736,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   </ScrollArea>
                 )}
 
-                <div className="flex justify-end">
+                <div className="flex justify-end>
                   <Button variant="outline" onClick={handleCloseDialog}>
                     <X className="h-4 w-4 mr-2" />
                     Fechar

@@ -70,12 +70,12 @@ export default function TenantProvisioning() {
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
-      <div className="p-8 text-center">
+      <div className=""
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className=""
           Acesso Negado
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className=""
           Esta página é restrita para administradores da plataforma SaaS.
         </p>
       </div>
@@ -173,12 +173,12 @@ export default function TenantProvisioning() {
 
   const getStatusBadge = (enabled: boolean) => {
     return enabled ? (
-      <Badge variant="default" className="bg-green-500">
+      <Badge variant="default" className=""
         <CheckCircle className="w-3 h-3 mr-1" />
         Ativo
       </Badge>
     ) : (
-      <Badge variant="secondary">
+      <Badge variant="secondary>
         <XCircle className="w-3 h-3 mr-1" />
         Inativo
       </Badge>
@@ -186,39 +186,39 @@ export default function TenantProvisioning() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className=""
+      <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className=""
             Auto-Provisioning de Tenants
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className=""
             Configure e gerencie a criação automática de tenants
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className=""
           <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline>
                 <Settings className="w-4 h-4 mr-2" />
                 Configurações
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className=""
               <DialogHeader>
                 <DialogTitle>Configurações de Auto-Provisioning</DialogTitle>
               </DialogHeader>
               <Form {...configForm}>
-                <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className=""
+                  <div className=""
                     <FormField
                       control={configForm.control}
                       name="enabled"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
+                        <FormItem className=""
+                          <div className=""
                             <FormLabel className="text-base">Auto-Provisioning</FormLabel>
-                            <div className="text-sm text-muted-foreground">
+                            <div className=""
                               Habilitar criação automática de tenants
                             </div>
                           </div>
@@ -236,10 +236,10 @@ export default function TenantProvisioning() {
                       control={configForm.control}
                       name="allowSelfProvisioning"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
+                        <FormItem className=""
+                          <div className=""
                             <FormLabel className="text-base">Auto-Provisioning</FormLabel>
-                            <div className="text-sm text-muted-foreground">
+                            <div className=""
                               Permitir criação por usuários
                             </div>
                           </div>
@@ -277,7 +277,7 @@ export default function TenantProvisioning() {
                     )}
                   />
 
-                  <div className="flex justify-end gap-3">
+                  <div className=""
                     <Button type="button" variant="outline" onClick={() => setIsConfigDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -302,7 +302,7 @@ export default function TenantProvisioning() {
                 <DialogTitle>Provisionar Novo Tenant</DialogTitle>
               </DialogHeader>
               <Form {...provisionForm}>
-                <form onSubmit={provisionForm.handleSubmit(onProvisionSubmit)} className="space-y-4">
+                <form onSubmit={provisionForm.handleSubmit(onProvisionSubmit)} className=""
                   <FormField
                     control={provisionForm.control}
                     name="name"
@@ -345,7 +345,7 @@ export default function TenantProvisioning() {
                     )}
                   />
 
-                  <div className="flex justify-end gap-3">
+                  <div className=""
                     <Button type="button" variant="outline" onClick={() => setIsProvisionDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -361,53 +361,53 @@ export default function TenantProvisioning() {
       </div>
 
       {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className=""
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Status do Sistema</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="flex items-center space-x-2">
+            <div className=""
               {isLoadingConfig ? (
                 <Badge variant="secondary">Carregando...</Badge>
               ) : (
                 getStatusBadge(config?.enabled || false)
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className=""
               {config?.enabled ? 'Auto-provisioning ativo' : 'Auto-provisioning desabilitado'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Geração de Subdomínio</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {config?.subdomainGeneration === 'company-based' && 'Empresa'}
               {config?.subdomainGeneration === 'user-based' && 'Usuário'}
               {config?.subdomainGeneration === 'random' && 'Aleatório'}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               Método de geração ativo
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className=""
             <CardTitle className="text-sm font-medium">Limites Padrão</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className=""
               {config?.defaultTenantSettings?.maxUsers || 50}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className=""
               Usuários por tenant
             </p>
           </CardContent>
@@ -426,29 +426,29 @@ export default function TenantProvisioning() {
           {isLoadingConfig ? (
             <div className="text-center py-8">Carregando configurações...</div>
           ) : config ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className=""
+              <div className=""
                 <div>
                   <Label>Auto-Provisioning</Label>
-                  <div className="mt-1">
+                  <div className=""
                     {getStatusBadge(config.enabled)}
                   </div>
                 </div>
                 <div>
                   <Label>Criação por Usuários</Label>
-                  <div className="mt-1">
+                  <div className=""
                     {getStatusBadge(config.allowSelfProvisioning)}
                   </div>
                 </div>
                 <div>
                   <Label>Criação no Primeiro Usuário</Label>
-                  <div className="mt-1">
+                  <div className=""
                     {getStatusBadge(config.autoCreateOnFirstUser)}
                   </div>
                 </div>
                 <div>
                   <Label>Método de Subdomínio</Label>
-                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <div className=""
                     {config.subdomainGeneration}
                   </div>
                 </div>
@@ -456,8 +456,8 @@ export default function TenantProvisioning() {
               
               <div>
                 <Label>Configurações Padrão</Label>
-                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className=""
+                  <div className=""
                     <div>
                       <span className="font-medium">Máximo de Usuários:</span> {config.defaultTenantSettings.maxUsers}
                     </div>
@@ -475,7 +475,7 @@ export default function TenantProvisioning() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className=""
               Falha ao carregar configurações
             </div>
           )}

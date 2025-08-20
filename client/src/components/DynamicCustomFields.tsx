@@ -167,7 +167,7 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
 
       case 'boolean':
         return (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2>
             <Checkbox
               disabled={readOnly}
               checked={value || false}
@@ -190,9 +190,9 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
       case 'multiselect':
         const selectedValues = Array.isArray(value) ? value : [];
         return (
-          <div className="space-y-2">
+          <div className="space-y-2>
             {field.fieldOptions?.options?.map((option: any) => (
-              <div key={option.value} className="flex items-center space-x-2">
+              <div key={option.value} className="flex items-center space-x-2>
                 <Checkbox
                   disabled={readOnly}
                   checked={selectedValues.includes(option.value)}
@@ -211,7 +211,7 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
 
       default:
         return (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500>
             Tipo de campo não suportado: {field.fieldType}
           </div>
         );
@@ -220,8 +220,8 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="p-4">
-        <div className="flex items-center justify-center">
+      <Card className="p-4>
+        <div className="flex items-center justify-center>
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
           <span>Carregando campos customizados...</span>
         </div>
@@ -231,11 +231,11 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
 
   if (error) {
     return (
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="p-4">
-          <div className="flex items-center text-red-600">
+      <Card className="border-red-200 bg-red-50>
+        <CardContent className="p-4>
+          <div className="flex items-center text-red-600>
             <AlertCircle className="w-4 h-4 mr-2" />
-            <span className="text-sm">
+            <span className="text-sm>
               Erro ao carregar campos customizados. Tente novamente.
             </span>
           </div>
@@ -246,9 +246,9 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
 
   if (fields.length === 0) {
     return (
-      <Card className="border-gray-200 bg-gray-50">
-        <CardContent className="p-4">
-          <p className="text-sm text-gray-600 text-center">
+      <Card className="border-gray-200 bg-gray-50>
+        <CardContent className="p-4>
+          <p className="text-sm text-gray-600 text-center>
             Nenhum campo customizado configurado para este módulo.
           </p>
         </CardContent>
@@ -257,22 +257,22 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   }
 
   return (
-    <div className="space-y-4 "">
+    <div className="space-y-4 ">
       {fields.map((field: CustomFieldMetadata) => (
-        <div key={field.id} className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Label htmlFor={field.id} className="text-sm font-medium">
+        <div key={field.id} className="space-y-1>
+          <div className="flex items-center gap-2>
+            <Label htmlFor={field.id} className="text-sm font-medium>
               {field.fieldLabel}
             </Label>
             {field.isRequired && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-xs>
                 Obrigatório
               </Badge>
             )}
           </div>
           {renderField(field)}
           {field.fieldOptions?.helpText && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500>
               {field.fieldOptions.helpText}
             </p>
           )}

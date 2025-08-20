@@ -20,7 +20,7 @@ export function SlaLedSimple({ ticketId, size = 'md' }: SlaLedSimpleProps) {
   const percent = 85;
   
   return (
-    <div className="flex items-center space-x-2" data-testid="sla-led-simple">
+    <div className="flex items-center space-x-2" data-testid="sla-led-simple>
       <div 
         className="" bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
         title={"% decorrido"

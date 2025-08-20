@@ -172,9 +172,9 @@ export default function EditInternalActionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2>
             <MessageSquare className="w-5 h-5" />
             Editar Ação Interna
           </DialogTitle>
@@ -184,10 +184,10 @@ export default function EditInternalActionModal({
         </DialogHeader>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="space-y-6">
+          <CardContent className="p-6>
+            <div className="space-y-6>
               {/* Date/Time and Time Controls */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 gap-4>
                 <div>
                   <Label htmlFor="start-datetime">Data/Hora Início</Label>
                   <Input
@@ -221,7 +221,7 @@ export default function EditInternalActionModal({
                   />
                 </div>
                 <div>
-                  <div className="flex items-center space-x-2 mb-1">
+                  <div className="flex items-center space-x-2 mb-1>
                     <Switch
                       id="alter-time"
                       checked={formData.alterTimeSpent}
@@ -244,9 +244,9 @@ export default function EditInternalActionModal({
               </div>
 
               {/* Assigned To - Highlighted */}
-              <Card className="border-blue-200 bg-blue-50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
+              <Card className="border-blue-200 bg-blue-50>
+                <CardContent className="p-4>
+                  <div className="flex items-center gap-2 mb-2>
                     <User className="w-4 h-4 text-blue-600" />
                     <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
                   </div>
@@ -270,7 +270,7 @@ export default function EditInternalActionModal({
               <div>
                 <Label htmlFor="action-type">Ação Interna *</Label>
                 <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-1>
                     <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                   </SelectTrigger>
                   <SelectContent>
@@ -300,15 +300,15 @@ export default function EditInternalActionModal({
               </div>
 
               {/* Status */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4>
                 <div>
-                  <div className="flex items-center space-x-2 mb-1">
+                  <div className="flex items-center space-x-2 mb-1>
                     <Switch
                       id="status-toggle"
                       checked={formData.status === "completed"
                       onCheckedChange={(checked) => setFormData(prev => ({ ...prev, status: checked ? "completed" : "pending" }))}
                     />
-                    <Label htmlFor="status-toggle" className="text-sm">
+                    <Label htmlFor="status-toggle" className="text-sm>
                       {formData.status === "completed" ? "Concluída" : "Pendente"
                     </Label>
                   </div>
@@ -329,19 +329,19 @@ export default function EditInternalActionModal({
               </div>
 
               {/* Public/Private Toggle */}
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center space-x-2 mb-4>
                 <Switch
                   id="public-action"
                   checked={isPublic}
                   onCheckedChange={setIsPublic}
                 />
-                <Label htmlFor="public-action" className="text-sm">
+                <Label htmlFor="public-action" className="text-sm>
                   {isPublic ? "Ação Pública (Visível ao cliente)" : "Ação Privada (Apenas agentes)"
                 </Label>
               </div>
 
               {/* Submit Section */}
-              <div className="flex gap-2 justify-end border-t pt-4">
+              <div className="flex gap-2 justify-end border-t pt-4>
                 <Button
                   type="button"
                   variant="outline"

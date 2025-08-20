@@ -109,7 +109,7 @@ export const BatchBadges = memo<{
   className?: string;
 }>(({ badges, className = "" }) => {
   return (
-    <div className={cn("flex flex-wrap gap-2", className)} role="group" aria-label="Tags do ticket">
+    <div className={cn("flex flex-wrap gap-2", className)} role="group" aria-label="Tags do ticket>
       {badges.map(({ fieldName, value, className: badgeClassName, ariaLabel }, index) => (
         <OptimizedBadge
           key={"

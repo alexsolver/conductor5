@@ -450,8 +450,8 @@ export default function SlaManagement() {
 
   if (isLoadingSlas) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex items-center space-x-2">
+      <div className=""
+        <div className=""
           <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
           <span>Carregando SLAs...</span>
         </div>
@@ -460,16 +460,16 @@ export default function SlaManagement() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6" data-testid="sla-management-page">
+    <div className="container mx-auto p-6 space-y-6" data-testid="sla-management-page>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className=""
         <div>
           <h1 className="text-3xl font-bold">Gestão de SLAs</h1>
-          <p className="text-gray-600">
+          <p className=""
             Gerencie acordos de nível de serviço, operacional e contratos base
           </p>
         </div>
-        <div className="flex space-x-2">
+        <div className=""
           <Button 
             onClick={() => checkBreachesMutation.mutate()}
             disabled={checkBreachesMutation.isPending}
@@ -481,12 +481,12 @@ export default function SlaManagement() {
           </Button>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button data-testid="button-create-sla">
+              <Button data-testid="button-create-sla>
                 <Plus className="w-4 h-4 mr-2" />
                 Novo SLA
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className=""
               <DialogHeader>
                 <DialogTitle>Criar Novo SLA</DialogTitle>
               </DialogHeader>
@@ -502,29 +502,29 @@ export default function SlaManagement() {
 
       {/* Statistics Cards */}
       {complianceStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className=""
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">Compliance Total</CardTitle>
               <Target className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className=""
                 {complianceStats.compliancePercentage.toFixed(1)}%
               </div>
-              <p className="text-xs text-gray-600">
+              <p className=""
                 {complianceStats.slaMetTickets} de {complianceStats.totalTickets} tickets
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">Tempo Médio Resposta</CardTitle>
               <Clock className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className=""
                 {Math.round(complianceStats.avgResponseTimeMinutes)}min
               </div>
               <p className="text-xs text-gray-600">Tempo médio de primeira resposta</p>
@@ -532,12 +532,12 @@ export default function SlaManagement() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">Tempo Médio Resolução</CardTitle>
               <CheckCircle className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className=""
                 {Math.round(complianceStats.avgResolutionTimeMinutes)}min
               </div>
               <p className="text-xs text-gray-600">Tempo médio de resolução</p>
@@ -545,15 +545,15 @@ export default function SlaManagement() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className=""
               <CardTitle className="text-sm font-medium">Violações</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className=""
                 {complianceStats.slaViolatedTickets}
               </div>
-              <p className="text-xs text-gray-600">
+              <p className=""
                 Taxa de escalonamento: {complianceStats.escalationRate.toFixed(1)}%
               </p>
             </CardContent>
@@ -562,55 +562,55 @@ export default function SlaManagement() {
       )}
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="definitions" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="definitions" data-testid="tab-definitions">
+      <Tabs defaultValue="definitions" className=""
+        <TabsList className=""
+          <TabsTrigger value="definitions" data-testid="tab-definitions>
             <Settings className="w-4 h-4 mr-2" />
             Definições
           </TabsTrigger>
-          <TabsTrigger value="monitoring" data-testid="tab-monitoring">
+          <TabsTrigger value="monitoring" data-testid="tab-monitoring>
             <Activity className="w-4 h-4 mr-2" />
             Monitoramento
           </TabsTrigger>
-          <TabsTrigger value="violations" data-testid="tab-violations">
+          <TabsTrigger value="violations" data-testid="tab-violations>
             <AlertTriangle className="w-4 h-4 mr-2" />
             Violações
           </TabsTrigger>
-          <TabsTrigger value="analytics" data-testid="tab-analytics">
+          <TabsTrigger value="analytics" data-testid="tab-analytics>
             <BarChart3 className="w-4 h-4 mr-2" />
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="automation" data-testid="tab-automation">
+          <TabsTrigger value="automation" data-testid="tab-automation>
             <Zap className="w-4 h-4 mr-2" />
             Automação
           </TabsTrigger>
         </TabsList>
 
         {/* SLA Definitions Tab */}
-        <TabsContent value="definitions" className="space-y-4">
+        <TabsContent value="definitions" className=""
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className=""
               <div>
                 <CardTitle>Definições de SLA</CardTitle>
                 <CardDescription>
                   Configure acordos de nível de serviço (SLA), operacional (OLA) e contratos base (UC)
                 </CardDescription>
               </div>
-              <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-sla">
+              <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-sla>
                 <Plus className="w-4 h-4 mr-2" />
                 Novo SLA
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className=""
                 {slaDefinitions?.data?.map((sla: SlaDefinition) => (
                   <div 
                     key={sla.id} 
                     className="flex items-center justify-between p-4 border rounded-lg"
                     data-testid={"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
+                    <div className=""
+                      <div className=""
                         <h3 className="font-semibold">{sla.name}</h3>
                         <Badge variant={getStatusBadgeVariant(sla.status)}>
                           {sla.status}
@@ -621,7 +621,7 @@ export default function SlaManagement() {
                         <Badge variant="outline">{sla.type}</Badge>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{sla.description}</p>
-                      <div className="flex space-x-4 text-xs text-gray-500">
+                      <div className=""
                         {sla.responseTimeMinutes && (
                           <span>Resposta: {sla.responseTimeMinutes}min</span>
                         )}
@@ -633,7 +633,7 @@ export default function SlaManagement() {
                         )}
                       </div>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className=""
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -655,12 +655,12 @@ export default function SlaManagement() {
                 ))}
                 
                 {(!slaDefinitions?.data || slaDefinitions.data.length === 0) && (
-                  <div className="text-center py-8">
+                  <div className=""
                     <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <h3 className=""
                       Nenhum SLA configurado
                     </h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className=""
                       Crie seu primeiro SLA para começar o monitoramento
                     </p>
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -675,12 +675,12 @@ export default function SlaManagement() {
         </TabsContent>
 
         {/* Active Monitoring Tab */}
-        <TabsContent value="monitoring" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <TabsContent value="monitoring" className=""
+          <div className=""
             {/* Active Instances */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className=""
                   <PlayCircle className="w-5 h-5 mr-2 text-green-600" />
                   Instâncias Ativas
                 </CardTitle>
@@ -688,27 +688,27 @@ export default function SlaManagement() {
                   SLAs em andamento ({activeInstances?.total || 0})
                 </CardDescription>
               </CardHeader>
-              <CardContent className="max-h-96 overflow-y-auto">
-                <div className="space-y-3">
+              <CardContent className=""
+                <div className=""
                   {activeInstances?.data?.map((instance: SlaInstance) => (
                     <div 
                       key={instance.id} 
                       className="p-3 border rounded-lg"
                       data-testid={"
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div className=""
                         <span className="font-medium">Ticket #{instance.ticketId.slice(-8)}</span>
                         <Badge variant={instance.status === 'running' ? 'default' : 'secondary'}>
                           {instance.status}
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className=""
                         <div>Métrica: {instance.currentMetric}</div>
                         <div>Restante: {instance.remainingMinutes}min</div>
                         <div>Progresso: {((instance.elapsedMinutes / instance.targetMinutes) * 100).toFixed(1)}%</div>
                       </div>
                       {instance.isBreached && (
-                        <div className="mt-2 text-red-600 text-sm font-medium">
+                        <div className=""
                           ⚠️ Violação: +{instance.breachPercentage.toFixed(1)}%
                         </div>
                       )}
@@ -721,7 +721,7 @@ export default function SlaManagement() {
             {/* Breached Instances */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className=""
                   <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
                   Instâncias Violadas
                 </CardTitle>
@@ -729,19 +729,19 @@ export default function SlaManagement() {
                   SLAs que ultrapassaram o limite ({breachedInstances?.total || 0})
                 </CardDescription>
               </CardHeader>
-              <CardContent className="max-h-96 overflow-y-auto">
-                <div className="space-y-3">
+              <CardContent className=""
+                <div className=""
                   {breachedInstances?.data?.map((instance: SlaInstance) => (
                     <div 
                       key={instance.id} 
                       className="p-3 border border-red-200 rounded-lg bg-red-50"
                       data-testid={"
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div className=""
                         <span className="font-medium">Ticket #{instance.ticketId.slice(-8)}</span>
                         <Badge variant="destructive">VIOLADO</Badge>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className=""
                         <div>Métrica: {instance.currentMetric}</div>
                         <div>Violação: +{instance.breachPercentage.toFixed(1)}%</div>
                         <div>Tempo excedido: {instance.elapsedMinutes - instance.targetMinutes}min</div>
@@ -755,7 +755,7 @@ export default function SlaManagement() {
         </TabsContent>
 
         {/* Violations Tab */}
-        <TabsContent value="violations" className="space-y-4">
+        <TabsContent value="violations" className=""
           <Card>
             <CardHeader>
               <CardTitle>Histórico de Violações</CardTitle>
@@ -764,22 +764,22 @@ export default function SlaManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className=""
                 {violations?.data?.map((violation: SlaViolation) => (
                   <div 
                     key={violation.id} 
                     className="p-4 border rounded-lg"
                     data-testid={"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
+                    <div className=""
+                      <div className=""
                         <span className="font-medium">Ticket #{violation.ticketId.slice(-8)}</span>
                         <Badge variant="destructive">{violation.violationType}</Badge>
                         <Badge variant={violation.severityLevel === 'critical' ? 'destructive' : 'secondary'}>
                           {violation.severityLevel}
                         </Badge>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className=""
                         {!violation.acknowledged && (
                           <Badge variant="outline">Não Reconhecida</Badge>
                         )}
@@ -788,7 +788,7 @@ export default function SlaManagement() {
                         )}
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className=""
                       <div>Meta: {violation.targetMinutes}min | Atual: {violation.actualMinutes}min</div>
                       <div>Violação: {violation.violationMinutes}min (+{violation.violationPercentage.toFixed(1)}%)</div>
                       <div>Data: {new Date(violation.createdAt).toLocaleString('pt-BR')}</div>
@@ -797,12 +797,12 @@ export default function SlaManagement() {
                 ))}
 
                 {(!violations?.data || violations.data.length === 0) && (
-                  <div className="text-center py-8">
+                  <div className=""
                     <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <h3 className=""
                       Nenhuma violação registrada
                     </h3>
-                    <p className="text-gray-600">
+                    <p className=""
                       Excelente! Todos os SLAs estão sendo cumpridos.
                     </p>
                   </div>
@@ -813,7 +813,7 @@ export default function SlaManagement() {
         </TabsContent>
 
         {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-4">
+        <TabsContent value="analytics" className=""
           <Card>
             <CardHeader>
               <CardTitle>Analytics de Desempenho</CardTitle>
@@ -822,12 +822,12 @@ export default function SlaManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
+              <div className=""
                 <TrendingUp className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className=""
                   Dashboard de Analytics
                 </h3>
-                <p className="text-gray-600">
+                <p className=""
                   Gráficos e relatórios detalhados em desenvolvimento
                 </p>
               </div>
@@ -836,10 +836,10 @@ export default function SlaManagement() {
         </TabsContent>
 
         {/* Automation Tab */}
-        <TabsContent value="automation" className="space-y-4">
-          <div className="space-y-6">
+        <TabsContent value="automation" className=""
+          <div className=""
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className=""
               <div>
                 <h2 className="text-2xl font-bold">Workflows de Automação SLA</h2>
                 <p className="text-gray-600">Configure ações automáticas baseadas em eventos de SLA</p>
@@ -854,9 +854,9 @@ export default function SlaManagement() {
             </div>
 
             {/* Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className=""
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Total Workflows</CardTitle>
                   <GitBranch className="h-4 w-4 text-blue-600" />
                 </CardHeader>
@@ -867,7 +867,7 @@ export default function SlaManagement() {
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Execuções Hoje</CardTitle>
                   <Play className="h-4 w-4 text-green-600" />
                 </CardHeader>
@@ -878,7 +878,7 @@ export default function SlaManagement() {
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
                   <CheckCircle className="h-4 w-4 text-purple-600" />
                 </CardHeader>
@@ -889,7 +889,7 @@ export default function SlaManagement() {
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className=""
                   <CardTitle className="text-sm font-medium">Falhas</CardTitle>
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                 </CardHeader>
@@ -909,16 +909,16 @@ export default function SlaManagement() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
+                <div className=""
                   <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className=""
                     Sistema de Workflows Implementado
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className=""
                     Backend completo com Clean Architecture implementado. 
                     Frontend com interface completa para gerenciamento de workflows SLA.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-500">
+                  <div className=""
                     <p>✅ Tabelas de banco criadas (sla_workflows, sla_workflow_executions)</p>
                     <p>✅ Repositórios e casos de uso implementados</p>
                     <p>✅ Controllers e rotas configuradas</p>
@@ -933,7 +933,7 @@ export default function SlaManagement() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Editar SLA</DialogTitle>
           </DialogHeader>
@@ -948,7 +948,7 @@ export default function SlaManagement() {
 
       {/* Workflow Dialog */}
       <Dialog open={isWorkflowDialogOpen} onOpenChange={setIsWorkflowDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className=""
           <DialogHeader>
             <DialogTitle>Novo Workflow de Automação</DialogTitle>
           </DialogHeader>
@@ -977,10 +977,10 @@ interface SlaFormProps {
 function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className=""
+        <div className=""
           {/* Basic Information */}
-          <div className="space-y-4">
+          <div className=""
             <h3 className="text-lg font-semibold">Informações Básicas</h3>
             
             <FormField
@@ -1019,7 +1019,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <FormLabel>Tipo *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-sla-type">
+                      <SelectTrigger data-testid="select-sla-type>
                         <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                     </FormControl>
@@ -1042,7 +1042,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <FormLabel>Prioridade *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-sla-priority">
+                      <SelectTrigger data-testid="select-sla-priority>
                         <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                     </FormControl>
@@ -1060,7 +1060,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           </div>
 
           {/* Time Targets */}
-          <div className="space-y-4">
+          <div className=""
             <h3 className="text-lg font-semibold">Metas de Tempo</h3>
             
             <FormField
@@ -1142,17 +1142,17 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
         </div>
 
         {/* Working Hours */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-semibold">Horário de Funcionamento</h3>
           
           <FormField
             control={form.control}
             name="businessHoursOnly"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
+              <FormItem className=""
+                <div className=""
                   <FormLabel className="text-base">Apenas Horário Comercial</FormLabel>
-                  <div className="text-sm text-gray-600">
+                  <div className=""
                     SLA será pausado fora do horário comercial
                   </div>
                 </div>
@@ -1167,7 +1167,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className=""
             <FormField
               control={form.control}
               name="workingHours.start"
@@ -1199,17 +1199,17 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
         </div>
 
         {/* Escalation */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-semibold">Configurações de Escalonamento</h3>
           
           <FormField
             control={form.control}
             name="escalationEnabled"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
+              <FormItem className=""
+                <div className=""
                   <FormLabel className="text-base">Habilitar Escalonamento</FormLabel>
-                  <div className="text-sm text-gray-600">
+                  <div className=""
                     Escalonar automaticamente quando próximo ao vencimento
                   </div>
                 </div>
@@ -1249,7 +1249,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
         </div>
 
         {/* Application Rules */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-semibold">Regras de Aplicação</h3>
           <FormField
             control={form.control}
@@ -1270,8 +1270,8 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-end space-x-2">
-          <Button type="submit" disabled={isSubmitting} data-testid="button-save-sla">
+        <div className=""
+          <Button type="submit" disabled={isSubmitting} data-testid="button-save-sla>
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
@@ -1303,10 +1303,10 @@ interface WorkflowFormProps {
 function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className=""
+        <div className=""
           {/* Basic Information */}
-          <div className="space-y-4">
+          <div className=""
             <h3 className="text-lg font-semibold">Informações Básicas</h3>
             
             <FormField
@@ -1345,7 +1345,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <FormLabel>Evento Disparador *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-workflow-trigger">
+                      <SelectTrigger data-testid="select-workflow-trigger>
                         <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                     </FormControl>
@@ -1385,17 +1385,17 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
           </div>
 
           {/* Configuration */}
-          <div className="space-y-4">
+          <div className=""
             <h3 className="text-lg font-semibold">Configuração</h3>
 
             <FormField
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
+                <FormItem className=""
+                  <div className=""
                     <FormLabel className="text-base">Workflow Ativo</FormLabel>
-                    <div className="text-sm text-gray-600">
+                    <div className=""
                       Habilitar execução automática deste workflow
                     </div>
                   </div>
@@ -1410,9 +1410,9 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
               )}
             />
 
-            <div className="border rounded-lg p-4">
+            <div className=""
               <h4 className="font-medium mb-3">Ações Rápidas</h4>
-              <div className="space-y-2">
+              <div className=""
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -1480,16 +1480,16 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
         </div>
 
         {/* Current Actions Display */}
-        <div className="space-y-4">
+        <div className=""
           <h3 className="text-lg font-semibold">Ações Configuradas</h3>
-          <div className="border rounded-lg p-4">
+          <div className=""
             {form.watch('actions')?.length > 0 ? (
-              <div className="space-y-2">
+              <div className=""
                 {form.watch('actions').map((action: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div key={index} className=""
                     <div>
                       <span className="font-medium capitalize">{action.type.replace('_', ' ')}</span>
-                      <div className="text-sm text-gray-600">
+                      <div className=""
                         {JSON.stringify(action.config, null, 2).substring(0, 100)}...
                       </div>
                     </div>
@@ -1510,7 +1510,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-4 text-gray-500">
+              <div className=""
                 <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                 <p>Nenhuma ação configurada</p>
                 <p className="text-sm">Use os botões acima para adicionar ações</p>
@@ -1520,8 +1520,8 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-end space-x-2">
-          <Button type="submit" disabled={isSubmitting} data-testid="button-save-workflow">
+        <div className=""
+          <Button type="submit" disabled={isSubmitting} data-testid="button-save-workflow>
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />

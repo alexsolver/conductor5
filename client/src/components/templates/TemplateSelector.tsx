@@ -107,12 +107,12 @@ export default function TemplateSelector({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6>
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center>
         <div>
           <h2 className="text-2xl font-bold">Selecionar Template</h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground>
             Escolha um template para acelerar a criação do ticket
           </p>
         </div>
@@ -125,13 +125,13 @@ export default function TemplateSelector({
       {popularTemplates.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2>
               <Star className="w-5 h-5 text-yellow-500" />
               Templates Populares
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3>
               {popularTemplates.slice(0, 6).map((template: TemplatePreview) => (
                 <Button
                   key={template.id}
@@ -139,9 +139,9 @@ export default function TemplateSelector({
                   className="h-auto p-3 text-left justify-start"
                   onClick={() => onSelectTemplate(template)}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1>
                     <div className="font-medium">{template.name}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground>
                       {template.category} • Usado {template.usage_count} vezes
                     </div>
                   </div>
@@ -154,10 +154,10 @@ export default function TemplateSelector({
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
+        <CardContent className="p-4>
+          <div className="flex flex-col sm:flex-row gap-4>
+            <div className="flex-1>
+              <div className="relative>
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder='[TRANSLATION_NEEDED]'
@@ -168,7 +168,7 @@ export default function TemplateSelector({
               </div>
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-48">
+              <SelectTrigger className="w-full sm:w-48>
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
@@ -195,12 +195,12 @@ export default function TemplateSelector({
 
       {/* Templates Grid */}
       {isLoading ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12>
           <p className="text-muted-foreground">Carregando templates...</p>
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
+        <div className="text-center py-12>
+          <p className="text-muted-foreground>
             {searchTerm || selectedCategory !== 'all' || showPopularOnly ? 
               '[TRANSLATION_NEEDED]' :
               '[TRANSLATION_NEEDED]'
@@ -208,59 +208,59 @@ export default function TemplateSelector({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6>
           {filteredTemplates.map((template: TemplatePreview) => (
             <Card 
               key={template.id} 
               className="hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => onSelectTemplate(template)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+              <CardHeader className="pb-3>
+                <div className="flex justify-between items-start>
                   <CardTitle className="text-lg">{template.name}</CardTitle>
                   {popularTemplates.some((p: TemplatePreview) => p.id === template.id) && (
                     <Star className="w-4 h-4 text-yellow-500 fill-current" />
                   )}
                 </div>
-                <Badge variant="secondary" className="w-fit">
+                <Badge variant="secondary" className="w-fit>
                   {template.category}
                 </Badge>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
+                <div className="space-y-3>
+                  <p className="text-sm text-muted-foreground line-clamp-2>
                     {template.description}
                   </p>
                   
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap>
                     <Badge className={getPriorityColor(template.priority)}>
                       {getPriorityLabel(template.priority)}
                     </Badge>
                     {template.requires_approval && (
-                      <Badge variant="outline" className="text-orange-600">
+                      <Badge variant="outline" className="text-orange-600>
                         Requer aprovação
                       </Badge>
                     )}
                     {template.auto_assign && (
-                      <Badge variant="outline" className="text-blue-600">
+                      <Badge variant="outline" className="text-blue-600>
                         Auto-atribuição
                       </Badge>
                     )}
                   </div>
                   
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <div className="flex items-center gap-2">
+                  <div className="text-sm text-muted-foreground space-y-1>
+                    <div className="flex items-center gap-2>
                       <Clock className="w-3 h-3" />
                       <span>Estimativa: {template.estimated_hours}h</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2>
                       <Users className="w-3 h-3" />
                       <span>Usado: {template.usage_count || 0} vezes</span>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-muted-foreground font-medium">
+                  <div className="pt-2 border-t>
+                    <p className="text-xs text-muted-foreground font-medium>
                       Preview: {template.default_title || 'Título será preenchido automaticamente'}
                     </p>
                   </div>
