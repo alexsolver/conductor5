@@ -1,560 +1,87 @@
 {
+  "translationManager": {
+    "title": "Administrador de Traducciones",
+    "description": "Gestionar traducciones del sistema y localización",
+    "restoreBackup": "Restaurar Respaldo",
+    "saveChanges": "Guardar Cambios",
+    "selectLanguage": "Seleccionar Idioma",
+    "selectLanguageDescription": "Elija el idioma para editar traducciones",
+    "loadingLanguages": "Cargando idiomas...",
+    "searchPlaceholder": "Buscar traducciones...",
+    "translationEditor": "Editor de Traducciones",
+    "autoCompletion": "Auto-completar",
+    "allKeys": "Todas las Claves",
+    "loadingTranslations": "Cargando traducciones...",
+    "autoCompleteTitle": "Auto-completar Traducciones Faltantes",
+    "autoCompleteButton": "Auto-completar",
+    "allTranslationKeys": "Todas las Claves de Traducción",
+    "allKeysDescription": "Todas las claves de traducción disponibles en el sistema",
+    "loadingKeys": "Cargando claves...",
+    "totalKeys": "Total de Claves",
+    "keysInSystem": "Claves en el Sistema",
+    "supportedLanguages": "Idiomas Soportados",
+    "availableLanguages": "Idiomas Disponibles",
+    "currentLanguage": "Idioma Actual",
+    "languageBeingEdited": "Idioma siendo Editado",
+    "lastModified": "Última Modificación",
+    "noTranslationsFound": "No se encontraron traducciones"
+  },
   "common": {
-    "search": "Buscar...",
     "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "dashboard": "Panel",
+    "translations": "Traducciones",
+    "gaps": "Análisis de Brechas",
+    "bulk": "Operaciones en Lote",
+    "languages": "Idiomas",
+    "modules": "Módulos",
+    "statistics": "Estadísticas",
+    "completed": "Completado",
+    "missing": "Ausente",
+    "total": "Total",
+    "actions": "Acciones"
+  },
+  "buttons": {
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "submit": "Enviar",
+    "reset": "Resetear",
     "close": "Cerrar",
-    "open": "Abrir",
-    "download": "Descargar",
-    "by": "Por",
-    "loading_attachments": "Cargando archivos adjuntos...",
-    "loading_communications": "Cargando comunicaciones...",
-    "loading_notes": "Cargando notas...",
-    "loading_history": "Cargando historial..."
-  },
-  "navigation": {
-    "previous": "Anterior",
     "next": "Siguiente",
-    "home": "Inicio",
-    "dashboard": "Panel"
+    "previous": "Anterior",
+    "confirm": "Confirmar"
   },
-  "components": {
-    "button": {
-      "loading": "Cargando...",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "delete": "Eliminar",
-      "edit": "Editar",
-      "close": "Cerrar",
-      "submit": "Enviar",
-      "reset": "Resetear",
-      "confirm": "Confirmar"
-    },
-    "breadcrumb": {
-      "home": "Inicio",
-      "dashboard": "Panel"
-    },
-    "input": {
-      "placeholder": "Ingrese texto...",
-      "required": "Este campo es obligatorio",
-      "invalid": "Entrada inválida",
-      "clear": "Limpiar",
-      "search": "Buscar..."
-    },
-    "select": {
-      "placeholder": "Seleccionar opción...",
-      "search": "Buscar opciones...",
-      "clear": "Limpiar selección"
-    },
-    "dialog": {
-      "close": "Cerrar",
-      "cancel": "Cancelar",
-      "save": "Guardar",
-      "confirm": "Confirmar",
-      "delete": "Eliminar"
-    },
-    "table": {
-      "loading": "Cargando...",
-      "filter": "Filtrar",
-      "search": "Buscar en tabla...",
-      "showing": "Mostrando",
-      "of": "de",
-      "entries": "entradas"
-    }
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Por favor, ingrese un email válido",
+    "minLength": "Mínimo {{count}} caracteres requeridos",
+    "maxLength": "Máximo {{count}} caracteres permitidos",
+    "passwordMismatch": "Las contraseñas no coinciden"
   },
-  "app": {
-    "name": "Conductor",
-    "loading": "Cargando...",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "edit": "Editar",
-    "delete": "Eliminar"
-  },
-  "translationManager": {
-    "title": "Gestor de Traducciones",
-    "description": "Administre traducciones en todos los idiomas soportados",
-    "accessDenied": "Acceso Denegado",
-    "accessDeniedDescription": "Debe ser un administrador SaaS para acceder a esta página",
-    "selectLanguage": "Seleccionar Idioma",
-    "selectLanguageDescription": "Elija el idioma para editar sus traducciones",
-    "loadingLanguages": "Cargando idiomas...",
-    "searchPlaceholder": "Buscar claves de traducción...",
-    "translationEditor": "Editor de Traducciones",
-    "autoCompletion": "Completado Automático",
-    "allKeys": "Todas las Claves",
-    "restoreBackup": "Restaurar Respaldo",
-    "saving": "Guardando...",
-    "saveChanges": "Guardar Cambios",
-    "lastModified": "Última modificación",
-    "loadingTranslations": "Cargando traducciones...",
-    "text": "Texto",
-    "object": "Objeto",
-    "translationFor": "Traducción para",
-    "noKeysFound": "No se encontraron claves para la búsqueda",
-    "noTranslationsFound": "No se encontraron traducciones",
-    "autoCompleteTitle": "Completar Traducciones Automáticamente",
-    "autoCompleteButton": "🚀 Completar Todas las Traducciones",
-    "success": "¡Éxito!",
-    "error": "Error",
-    "autoCompleteError": "Error al completar traducciones automáticamente",
-    "allTranslationKeys": "Todas las Claves de Traducción",
-    "allKeysDescription": "Ver y administrar todas las claves de traducción del sistema",
-    "loadingKeys": "Cargando claves...",
-    "nested": "Anidada",
-    "topLevel": "Nivel Superior",
-    "totalKeys": "Total de Claves",
-    "keysInSystem": "Claves de traducción en el sistema",
-    "supportedLanguages": "Idiomas Soportados",
-    "availableLanguages": "Idiomas disponibles",
-    "currentLanguage": "Idioma Actual",
-    "languageBeingEdited": "Idioma siendo editado",
-    "translationsSaved": "Traducciones Guardadas",
-    "translationsUpdated": "¡Traducciones del idioma {{language}} actualizadas con éxito!",
-    "errorSavingTranslations": "Error al guardar traducciones",
-    "backupRestored": "Respaldo Restaurado",
-    "backupRestoredDescription": "¡Traducciones del idioma {{language}} restauradas desde el respaldo!",
-    "errorRestoringBackup": "Error al restaurar respaldo",
-    "confirmRestore": "¿Está seguro de que desea restaurar las traducciones de {{language}} desde el respaldo?"
-  },
-  "forms": {
-    "validation": {
-      "required": "Este campo es obligatorio",
-      "email": "Por favor, ingrese una dirección de correo válida",
-      "numeric": "Por favor, ingrese un número válido",
-      "phone": "Por favor, ingrese un teléfono válido",
-      "date": "Por favor, ingrese una fecha válida"
-    },
-    "actions": {
-      "submit": "Enviar",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "reset": "Restablecer",
-      "clear": "Limpiar Formulario",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "create": "Crear",
-      "update": "Actualizar",
-      "search": "Buscar",
-      "filter": "Filtrar"
-    },
-    "status": {
-      "saving": "Guardando...",
-      "loading": "Cargando...",
-      "success": "¡Éxito!",
-      "error": "Ocurrió un error",
-      "updated": "Actualizado exitosamente",
-      "created": "Creado exitosamente",
-      "deleted": "Eliminado exitosamente"
-    }
-  },
-  "pages": {
-    "dashboard": {
-      "title": "Panel",
-      "welcome": "Bienvenido a Conductor",
-      "overview": "Resumen",
-      "statistics": "Estadísticas"
-    },
-    "customers": {
-      "title": "Clientes",
-      "list": "Lista de Clientes",
-      "add": "Agregar Cliente",
-      "edit": "Editar Cliente",
-      "search": "Buscar clientes...",
-      "total": "Total de clientes"
-    },
-    "tickets": {
-      "title": "Tickets",
-      "list": "Lista de Tickets",
-      "create": "Crear Ticket",
-      "edit": "Editar Ticket",
-      "details": "Detalles del Ticket",
-      "status": "Estado",
-      "priority": "Prioridad"
-    },
-    "users": {
-      "title": "Usuarios",
-      "list": "Lista de Usuarios",
-      "add": "Agregar Usuario",
-      "edit": "Editar Usuario",
-      "invite": "Invitar Usuario",
-      "roles": "Roles",
-      "permissions": "Permisos"
-    }
-  },
-  "modals": {
-    "confirm": {
-      "title": "Confirmar Acción",
-      "message": "¿Está seguro de que desea continuar?",
-      "delete": "¿Está seguro de que desea eliminar este elemento?",
-      "save": "¿Está seguro de que desea guardar los cambios?",
-      "cancel": "¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."
-    }
-  },
-  "dashboard": {
-    "title": "Panel",
-    "overview": "Resumen",
-    "stats": "Estadísticas",
-    "statistics": "Estadísticas",
-    "welcome": "Bienvenido a Conductor"
-  },
-  "auth": {
-    "login": "Iniciar Sesión",
-    "register": "Registrarse",
-    "logout": "Cerrar Sesión"
-  },
-  "users": {
-    "title": "Usuarios",
-    "list": "Lista de Usuarios",
-    "add": "Agregar Usuario",
-    "edit": "Editar Usuario",
-    "profile": "Perfil de Usuario",
-    "permissions": "Permisos",
-    "roles": "Roles"
-  },
-  "customers": {
-    "title": "Clientes",
-    "list": "Lista de Clientes",
-    "add": "Agregar Cliente",
-    "edit": "Editar Cliente",
-    "companies": "Empresas del Cliente",
-    "mappings": "Mapeos de Artículos"
-  },
-  "tickets": {
-    "title": "Tickets",
-    "list": "Lista de Tickets",
-    "create": "Crear Ticket",
-    "edit": "Editar Ticket",
-    "details": "Detalles del Ticket",
-    "configuration": "Configuración de Tickets",
-    "templates": "Plantillas de Tickets",
-    "materials": "Materiales",
-    "advanced": "Configuración Avanzada"
-  },
-  "timecard": {
-    "title": "Tarjeta de Tiempo",
-    "autonomous": "Tarjeta Autónoma",
-    "approvals": "Aprobaciones de Tiempo",
-    "settings": "Configuraciones de Aprobación",
-    "reports": "Informes de Tiempo",
-    "compliance": "Cumplimiento CLT"
-  },
-  "assets": {
-    "title": "Activos",
-    "management": "Gestión de Activos",
-    "planner": "Planificador de Actividades",
-    "maintenance": "Mantenimiento",
-    "tracking": "Seguimiento de Activos"
-  },
-  "inventory": {
-    "title": "Inventario",
-    "catalog": "Catálogo de Artículos",
-    "stock": "Gestión de Stock",
-    "suppliers": "Gestión de Proveedores"
-  },
-  "financial": {
-    "title": "Financiero",
-    "expenses": "Gastos Corporativos",
-    "contracts": "Gestión de Contratos",
-    "billing": "Facturación"
-  },
-  "hr": {
-    "absence": "Gestión de Ausencias",
-    "teams": "Gestión de Equipos",
-    "skills": "Habilidades Técnicas",
-    "schedules": "Horarios de Trabajo",
-    "calendar": "Calendario de Feriados"
-  },
-  "operations": {
-    "title": "Operaciones",
-    "agenda": "Gestor de Agenda",
-    "automation": "Reglas de Automatización",
-    "omnibridge": "OmniBridge",
-    "lpu": "Gestión LPU",
-    "sla": "Gestión de SLA"
-  },
-  "admin": {
-    "title": "Administración",
-    "tenant": "Admin del Tenant",
-    "saas": "Admin SaaS",
-    "provisioning": "Aprovisionamiento de Tenant",
-    "branding": "Marca",
-    "integrations": "Integraciones",
-    "workflows": "Flujos de Trabajo",
-    "performance": "Rendimiento",
-    "disaster": "Recuperación de Desastres"
-  },
-  "compliance": {
-    "title": "Cumplimiento",
-    "management": "Gestión de Cumplimiento",
-    "gdpr": "Cumplimiento GDPR",
-    "security": "Configuraciones de Seguridad",
-    "certificates": "Gestor de Certificados",
-    "integrity": "Control de Integridad"
-  },
-  "reporting": {
-    "title": "Informes",
-    "reports": "Informes",
-    "create": "Crear Informe",
-    "edit": "Editar Informe",
-    "analytics": "Analíticas",
-    "dashboards": "Paneles",
-    "productivity": "Informes de Productividad"
-  },
-  "configuration": {
-    "title": "Configuración",
-    "settings": "Configuraciones",
-    "simple": "Configuraciones Simples",
-    "fields": "Campos Personalizados",
-    "templates": "Selector de Plantillas",
-    "notifications": "Notificaciones",
-    "translations": "Gestor de Traducciones"
-  },
-  "locations": {
-    "title": "Ubicaciones",
-    "new": "Nuevas Ubicaciones",
-    "management": "Gestión de Ubicaciones"
-  },
-  "knowledge": {
-    "title": "Base de Conocimiento",
-    "articles": "Artículos",
-    "search": "Buscar Conocimiento"
-  },
-  "specialized": {
-    "title": "Especializado",
-    "approvals": "Gestión de Aprobaciones",
-    "beneficiaries": "Beneficiarios",
-    "companies": "Empresas",
-    "forms": "Formularios Internos",
-    "landing": "Página de Inicio",
-    "demo": "Demo"
-  },
-  "analytics": {
-    "title": "Analíticas",
-    "insights": "Información detallada sobre su rendimiento de soporte",
-    "performance": "Métricas de Rendimiento",
-    "trends": "Análisis de Tendencias",
-    "reports": "Informes de Análisis",
-    "satisfaction": "Satisfacción del Cliente"
-  },
-  "beneficiaries": {
-    "title": "Beneficiarios",
-    "list": "Lista de Beneficiarios",
-    "add": "Agregar Beneficiario",
-    "edit": "Editar Beneficiario",
-    "details": "Detalles del Beneficiario",
-    "document": "Documentos",
-    "contact": "Información de Contacto"
-  },
-  "companies": {
-    "title": "Empresas",
-    "profile": "Perfil de la Empresa",
-    "hierarchy": "Jerarquía de la Empresa",
-    "branches": "Sucursales",
-    "departments": "Departamentos",
-    "subsidiaries": "Subsidiarias"
-  },
-  "dashboards": {
-    "title": "Paneles",
-    "create": "Crear Panel",
-    "widget": "Widgets del Panel",
-    "layout": "Diseño del Panel",
-    "sharing": "Compartir Panel",
-    "template": "Plantillas de Panel"
-  },
-  "landing": {
-    "title": "Página de Inicio",
-    "welcome": "Bienvenido",
-    "features": "Características de la Plataforma"
-  },
-  "notifications": {
-    "title": "Notificaciones",
-    "settings": "Configuraciones de Notificación",
-    "channels": "Canales de Notificación",
-    "templates": "Plantillas de Notificación",
-    "history": "Historial de Notificaciones",
-    "preferences": "Preferencias del Usuario"
-  },
-  "tickets": {
-    "title": "Tickets",
-    "description": "Gestione y rastree tickets de soporte al cliente",
-    "new_ticket": "Nuevo Ticket",
-    "create_ticket": "Crear Ticket",
-    "all_tickets": "Todos los Tickets",
-    "my_tickets": "Mis Tickets",
-    "assigned_tickets": "Tickets Asignados",
-    "ticket_number": "Ticket #",
-    "subject": "Asunto",
-    "status": "Estado",
-    "priority": "Prioridad",
-    "category": "Categoría",
-    "subcategory": "Subcategoría",
-    "assigned_to": "Asignado a",
-    "customer": "Cliente",
-    "company": "Empresa",
-    "location": "Ubicación",
-    "created_at": "Creado",
-    "updated_at": "Actualizado",
-    "description": "Descripción",
-    "caller": "Solicitante",
-    "beneficiary": "Beneficiario",
-    "attachment": "Adjunto",
-    "attachments": "Adjuntos",
-    "history": "Historial",
-    "communications": "Comunicaciones",
-    "notes": "Notas",
-    "internal_notes": "Notas Internas",
-    "resolution": "Resolución",
-    "close_ticket": "Cerrar Ticket",
-    "reopen_ticket": "Reabrir Ticket",
-    "assign_ticket": "Asignar Ticket",
-    "escalate_ticket": "Escalar Ticket",
-    "link_ticket": "Vincular Ticket",
-    "edit_ticket": "Editar Ticket",
-    "delete_ticket": "Eliminar Ticket",
-    "duplicate_ticket": "Duplicar Ticket",
-    "merge_ticket": "Fusionar Ticket",
-    "status_options": {
-      "new": "Nuevo",
-      "open": "Abierto", 
-      "in_progress": "En Progreso",
-      "resolved": "Resuelto",
-      "closed": "Cerrado",
-      "cancelled": "Cancelado"
-    },
-    "priority_options": {
-      "low": "Baja",
-      "medium": "Media",
-      "high": "Alta",
-      "critical": "Crítica"
-    },
-    "forms": {
-      "create": {
-        "title": "Crear Nuevo Ticket",
-        "subject_placeholder": "Ingrese el asunto del ticket...",
-        "description_placeholder": "Describa el problema en detalle..."
-      },
-      "edit": {
-        "title": "Editar Ticket"
-      }
-    },
-    "messages": {
-      "created_success": "Ticket creado exitosamente",
-      "updated_success": "Ticket actualizado exitosamente",
-      "loading": "Cargando tickets...",
-      "no_tickets": "No se encontraron tickets",
-      "error_loading": "Error al cargar tickets"
-    },
-    "validation": {
-      "subject_required": "El asunto es obligatorio",
-      "customer_required": "El cliente es obligatorio"
-    },
-    "forms": {
-      "create": {
-        "title": "Crear Nuevo Ticket",
-        "subject_placeholder": "Ingrese el asunto del ticket...",
-        "description_placeholder": "Describa el problema en detalle...",
-        "select_company": "Seleccione una empresa",
-        "select_customer": "Seleccione un cliente",
-        "first_select_company": "Primero seleccione una empresa",
-        "no_companies": "No se encontraron empresas",
-        "no_customers_for_company": "No se encontraron clientes para esta empresa",
-        "select_beneficiary": "Seleccione beneficiario (opcional)",
-        "no_beneficiary": "Sin beneficiario",
-        "select_category": "Seleccione categoría",
-        "select_subcategory": "Seleccione subcategoría",
-        "select_action": "Seleccione acción",
-        "select_priority": "Seleccione prioridad",
-        "select_urgency": "Seleccione urgencia",
-        "select_location": "Seleccione ubicación",
-        "first_select_category": "Primero seleccione una categoría",
-        "no_subcategories": "No se encontraron subcategorías",
-        "first_select_subcategory": "Primero seleccione una subcategoría",
-        "no_actions": "No se encontraron acciones",
-        "symptoms_placeholder": "Describa los síntomas observados (opcional)",
-        "business_impact_placeholder": "Describa el impacto en el negocio (opcional)",
-        "workaround_placeholder": "Describa alguna solución temporal aplicada (opcional)",
-        "select_location_optional": "Seleccione ubicación de servicio (opcional)",
-        "no_specific_location": "Sin ubicación específica"
-      }
-    },
-    "actions": {
-      "create": "Crear Ticket",
-      "creating": "Creando...",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "back_to_tickets": "Volver a Tickets"
-    },
-    "upload_attachments": "Subir Archivos",
-    "existing_attachments": "Archivos Existentes",
-    "uploaded_by": "Subido por {{name}}",
-    "change_history": "Historial de Cambios",
-    "field": "Campo",
-    "note_internal": "Interna",
-    "note_public": "Pública",
-    "messages": {
-      "error_creating": "Error al crear ticket",
-      "created_success": "Ticket creado exitosamente",
-      "updated_success": "Ticket actualizado exitosamente",
-      "loading": "Cargando tickets...",
-      "no_tickets": "No se encontraron tickets",
-      "error_loading": "Error al cargar tickets",
-      "not_found": "Ticket no encontrado",
-      "no_description": "Sin descripción proporcionada.",
-      "no_attachments": "No se encontraron archivos adjuntos.",
-      "no_communications": "No se encontraron comunicaciones.",
-      "no_notes": "No se encontraron notas.",
-      "no_history": "No se encontró historial."
-    }
-  },
-  "translationManager": {
-    "title": "Administrador de Traducciones",
-    "description": "Administre traducciones en todos los idiomas compatibles",
-    "accessDenied": "Acceso Denegado",
-    "accessDeniedDescription": "Esta página está restringida a administradores de la plataforma SaaS.",
-    "restoreBackup": "Restaurar Copia de Seguridad",
-    "saveChanges": "Guardar Cambios",
-    "saving": "Guardando...",
-    "selectLanguage": "Seleccionar Idioma",
-    "selectLanguageDescription": "Elija el idioma para editar sus traducciones",
-    "loadingLanguages": "Cargando idiomas...",
-    "searchPlaceholder": "Buscar claves de traducción...",
-    "translationEditor": "Editor de Traducciones",
-    "autoCompletion": "Completado Automático",
-    "allKeys": "Todas las Claves",
-    "lastModified": "Última modificación",
-    "loadingTranslations": "Cargando traducciones...",
-    "translationFor": "Traducción para",
-    "text": "Texto",
-    "object": "Objeto",
-    "noKeysFound": "No se encontraron claves para la búsqueda",
-    "noTranslationsFound": "No se encontraron traducciones",
-    "autoCompleteTitle": "Completar Traducciones Automáticamente",
-    "autoCompleteButton": "🚀 Completar Todas las Traducciones",
-    "success": "¡Éxito!",
-    "error": "Error",
-    "autoCompleteError": "Error al completar traducciones automáticamente",
-    "allTranslationKeys": "Todas las Claves de Traducción",
-    "allKeysDescription": "Vea y administre todas las claves de traducción del sistema",
-    "loadingKeys": "Cargando claves...",
-    "nested": "Anidada",
-    "topLevel": "Nivel Superior",
-    "totalKeys": "Total de Claves",
-    "keysInSystem": "claves de traducción en el sistema",
-    "supportedLanguages": "Idiomas Compatibles",
-    "availableLanguages": "idiomas disponibles",
-    "currentLanguage": "Idioma Actual",
-    "languageBeingEdited": "idioma siendo editado",
-    "translationsSaved": "Traducciones Guardadas",
-    "translationsUpdated": "¡Traducciones del idioma {{language}} actualizadas exitosamente!",
-    "errorSavingTranslations": "Error al guardar traducciones",
-    "backupRestored": "Copia de Seguridad Restaurada",
-    "backupRestoredDescription": "¡Traducciones del idioma {{language}} restauradas desde la copia de seguridad!",
-    "errorRestoringBackup": "Error al restaurar copia de seguridad",
-    "confirmRestore": "¿Está seguro de que desea restaurar las traducciones de {{language}} desde la copia de seguridad?"
+  "messages": {
+    "success": "Operación completada exitosamente",
+    "error": "Ocurrió un error",
+    "saved": "Cambios guardados exitosamente",
+    "deleted": "Elemento eliminado exitosamente",
+    "created": "Elemento creado exitosamente",
+    "updated": "Elemento actualizado exitosamente",
+    "noResults": "No se encontraron resultados",
+    "confirm": "¿Está seguro?",
+    "loading": "Cargando..."
   }
 }

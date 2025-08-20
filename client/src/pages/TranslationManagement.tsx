@@ -46,7 +46,8 @@ import {
   CheckCircle,
   Loader2,
   Save,
-  X
+  X,
+  Database
 } from 'lucide-react';
 
 interface Language {
@@ -169,6 +170,33 @@ export default function TranslationManagement() {
     onError: (error: any) => {
       toast({
         title: "❌ Creation Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Seed translations mutation
+  const seedTranslations = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/translations/seed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to seed translations');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['translations-search'] });
+      queryClient.invalidateQueries({ queryKey: ['translation-stats'] });
+      toast({
+        title: "✅ Translations Seeded",
+        description: data.message
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "❌ Seeding Failed",
         description: error.message,
         variant: "destructive"
       });
@@ -403,6 +431,20 @@ export default function TranslationManagement() {
               </div>
               
               <div className="flex items-center gap-2">
+                <Button 
+                  onClick={() => seedTranslations.mutate()}
+                  disabled={seedTranslations.isPending}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  {seedTranslations.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Database className="h-4 w-4" />
+                  )}
+                  Seed Basic Translations
+                </Button>
+                
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button className="flex items-center gap-2">

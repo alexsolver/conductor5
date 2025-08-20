@@ -42,7 +42,7 @@ const controller = createTranslationController();
 
 /**
  * GET /api/translations/languages
- * Get supported languages
+ * Get supported languages (public endpoint)
  */
 router.get('/languages', controller.getLanguages.bind(controller));
 
@@ -93,5 +93,41 @@ router.put('/:id', jwtAuth, controller.updateTranslation.bind(controller));
  * Partially update a translation
  */
 router.patch('/:id', jwtAuth, controller.updateTranslation.bind(controller));
+
+/**
+ * POST /api/translations/seed
+ * Seed basic translations (admin only)
+ */
+router.post('/seed', jwtAuth, async (req: any, res: any) => {
+  try {
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'SaaS Admin access required'
+      });
+    }
+
+    const { SeedTranslationsUseCase } = await import('./application/use-cases/SeedTranslationsUseCase');
+    const { DrizzleTranslationRepository } = await import('./infrastructure/repositories/DrizzleTranslationRepository');
+    const { TranslationDomainService } = await import('./domain/services/TranslationDomainService');
+    
+    const repository = new DrizzleTranslationRepository();
+    const domainService = new TranslationDomainService();
+    const seedUseCase = new SeedTranslationsUseCase(repository, domainService);
+    
+    const result = await seedUseCase.execute();
+    
+    res.json({
+      success: true,
+      message: `Seeding completed: ${result.created} created, ${result.updated} updated`,
+      data: result
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to seed translations'
+    });
+  }
+});
 
 export default router;
