@@ -1529,9 +1529,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const tenantProvisioningRoutes = await import('./routes/tenant-provisioning');
   app.use('/api/tenant-provisioning', tenantProvisioningRoutes.default);
 
-  // Import and mount translations routes
+  // Import and mount translations routes (Legacy)
   const translationsRoutes = await import('./routes/translations');
-  app.use('/api/translations', translationsRoutes.default);
+  app.use('/api/translations-legacy', translationsRoutes.default);
+  
+  // Translation Management Module - Clean Architecture
+  try {
+    const translationModuleRoutes = await import('./modules/translations/routes');
+    app.use('/api/translations', translationModuleRoutes.default);
+    console.log('✅ [TRANSLATION-MANAGEMENT] Routes registered successfully at /api/translations');
+  } catch (error) {
+    console.error('❌ [TRANSLATION-MANAGEMENT] Failed to load routes:', error);
+  }
 
   // Import and mount validation routes
   const validationRoutes = await import('./routes/validation');
