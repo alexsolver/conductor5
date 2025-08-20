@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "startedAt": "2025-08-20T12:08:34.228Z",
+  "currentPhase": "analysis",
+  "modules": [
+    {
+      "name": "ui-components",
+      "path": "client/src/components/ui",
+      "priority": 1,
+      "riskLevel": "low",
+      "status": "pending",
+      "files": [],
+      "estimatedTexts": 0,
+      "completedAt": null,
+      "backupPath": null
+    },
+    {
+      "name": "layout-components",
+      "path": "client/src/components/layout",
+      "priority": 2,
+      "riskLevel": "low-medium",
+      "status": "pending",
+      "files": [],
+      "estimatedTexts": 0,
+      "completedAt": null,
+      "backupPath": null
+    },
+    {
+      "name": "admin-pages",
+      "path": "client/src/pages",
+      "priority": 3,
+      "riskLevel": "medium",
+      "status": "pending",
+      "files": [],
+      "estimatedTexts": 0,
+      "completedAt": null,
+      "backupPath": null,
+      "exclude": [
+        "AuthPage.tsx"
+      ]
+    },
+    {
+      "name": "form-components",
+      "path": "client/src/components",
+      "priority": 4,
+      "riskLevel": "medium-high",
+      "status": "pending",
+      "files": [],
+      "estimatedTexts": 0,
+      "completedAt": null,
+      "backupPath": null,
+      "exclude": [
+        "auth",
+        "login",
+        "register"
+      ]
+    },
+    {
+      "name": "ticket-system",
+      "path": "client/src/pages",
+      "priority": 5,
+      "riskLevel": "high",
+      "status": "pending",
+      "files": [],
+      "estimatedTexts": 0,
+      "completedAt": null,
+      "backupPath": null,
+      "include": [
+        "Tickets.tsx",
+        "TicketDetails.tsx"
+      ]
+    },
+    {
+      "name": "authentication-system",
+      "path": "client/src",
+      "priority": 6,
+      "riskLevel": "critical",
+      "status": "pending",
+      "files": [],
+      "estimatedTexts": 0,
+      "completedAt": null,
+      "backupPath": null,
+      "include": [
+        "hooks/useAuth.tsx",
+        "pages/AuthPage.tsx"
+      ]
+    }
+  ],
+  "statistics": {
+    "totalModules": 0,
+    "completedModules": 0,
+    "failedModules": 0,
+    "translationKeysAdded": 0,
+    "hardcodedTextsFound": 806
+  },
+  "lastBackup": "translation-backups/backup-initial-state-2025-08-20T12-08-47-622Z",
+  "safetyChecks": {
+    "serverRunning": true,
+    "frontendResponding": true,
+    "criticalFunctionsWorking": true
+  },
+  "lastUpdated": "2025-08-20T12:08:48.200Z"
+}

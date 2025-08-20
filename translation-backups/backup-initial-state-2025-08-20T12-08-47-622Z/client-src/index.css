@@ -1,0 +1,433 @@
+/* Leaflet CSS */
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(210, 40%, 98%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(226, 71%, 40%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(215, 16%, 47%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(199, 89%, 48%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+
+  /* Custom gradient variables */
+  --gradient-primary: linear-gradient(135deg, hsl(226, 71%, 40%) 0%, hsl(215, 16%, 47%) 100%);
+  --gradient-secondary: linear-gradient(135deg, hsl(215, 16%, 47%) 0%, hsl(199, 89%, 48%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(203, 99%, 64%) 0%, hsl(180, 100%, 50%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(35, 91%, 62%) 0%, hsl(35, 95%, 55%) 100%);
+  --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%);
+  --gradient-sidebar: linear-gradient(180deg, hsl(236, 72%, 79%) 0%, hsl(275, 44%, 70%) 50%, hsl(248, 56%, 59%) 100%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+
+  /* Dark mode gradient adjustments */
+  --gradient-primary: linear-gradient(135deg, hsl(236, 62%, 65%) 0%, hsl(275, 34%, 55%) 100%);
+  --gradient-secondary: linear-gradient(135deg, hsl(315, 80%, 60%) 0%, hsl(348, 71%, 52%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(203, 79%, 50%) 0%, hsl(180, 80%, 40%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(35, 71%, 48%) 0%, hsl(35, 75%, 42%) 100%);
+  --gradient-card: linear-gradient(145deg, hsl(240, 10%, 3.9%) 0%, hsl(240, 3.7%, 15.9%) 100%);
+  --gradient-sidebar: linear-gradient(180deg, hsl(236, 62%, 65%) 0%, hsl(275, 34%, 55%) 50%, hsl(248, 46%, 45%) 100%);
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Gradient utility classes */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+
+  .gradient-warning {
+    background: var(--gradient-warning);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .gradient-sidebar {
+    background: var(--gradient-sidebar);
+  }
+
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gradient-border {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box, var(--gradient-primary) border-box;
+  }
+
+  .dark .gradient-border {
+    background: linear-gradient(hsl(240, 10%, 3.9%), hsl(240, 10%, 3.9%)) padding-box, var(--gradient-primary) border-box;
+  }
+
+  /* Improved contrast badge colors */
+  .badge-success {
+    @apply bg-emerald-600 text-white border-emerald-600;
+  }
+  
+  .badge-warning {
+    @apply bg-amber-600 text-white border-amber-600;
+  }
+  
+  .badge-danger {
+    @apply bg-red-600 text-white border-red-600;
+  }
+  
+  .badge-info {
+    @apply bg-blue-600 text-white border-blue-600;
+  }
+  
+  .badge-neutral {
+    @apply bg-slate-600 text-white border-slate-600;
+  }
+
+  /* Dark mode variants */
+  .dark .badge-success {
+    @apply bg-emerald-500 text-slate-900 border-emerald-500;
+  }
+  
+  .dark .badge-warning {
+    @apply bg-amber-500 text-slate-900 border-amber-500;
+  }
+  
+  .dark .badge-danger {
+    @apply bg-red-500 text-white border-red-500;
+  }
+  
+  .dark .badge-info {
+    @apply bg-blue-500 text-white border-blue-500;
+  }
+  
+  .dark .badge-neutral {
+    @apply bg-slate-400 text-slate-900 border-slate-400;
+  }
+
+  .metric-card {
+    background: var(--gradient-card);
+    border: 1px solid hsl(236, 72%, 79%, 0.1);
+    box-shadow: 0 4px 6px -1px hsl(236, 72%, 79%, 0.1), 0 2px 4px -1px hsl(236, 72%, 79%, 0.06);
+  }
+
+  .hover-gradient {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Accessibility improvements for better contrast and focus management */
+  .focus-visible:focus {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Enhanced tab contrast for better visibility */
+  .tab-active {
+    background-color: hsl(220 14.3% 95.9%);
+    color: hsl(222.2 84% 4.9%);
+    border: 2px solid hsl(215.4 16.3% 46.9%);
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .tab-inactive {
+    background-color: transparent;
+    color: hsl(215.4 16.3% 46.9%);
+    border: 1px solid transparent;
+    font-weight: 500;
+  }
+
+  .tab-inactive:hover {
+    background-color: hsl(210 40% 96%);
+    color: hsl(222.2 84% 4.9%);
+    border-color: hsl(214.3 31.8% 91.4%);
+  }
+
+  /* Screen reader only utility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Enhanced form validation styles */
+  .form-field-valid {
+    border-color: hsl(142.1 76.2% 36.3%);
+    background-color: hsl(138.5 76.2% 96.7%);
+  }
+
+  .form-field-invalid {
+    border-color: hsl(0 84.2% 60.2%);
+    background-color: hsl(0 93.3% 97.5%);
+  }
+
+  .form-field-validating {
+    border-color: hsl(221.2 83.2% 53.3%);
+    background-color: hsl(214.3 31.8% 97.5%);
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .tab-active {
+      border-width: 3px;
+      font-weight: 700;
+    }
+    
+    .tab-inactive {
+      border-width: 2px;
+    }
+    
+    .form-field-valid,
+    .form-field-invalid,
+    .form-field-validating {
+      border-width: 2px;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-spin {
+      animation: none;
+    }
+    
+    .transition-all,
+    .transition-colors {
+      transition: none;
+    }
+  }
+
+  .hover-gradient:hover {
+    background: var(--gradient-primary);
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .chart-gradient {
+    background: linear-gradient(180deg, hsl(236, 72%, 79%, 0.3) 0%, hsl(236, 72%, 79%, 0.05) 100%);
+  }
+
+  .dark .chart-gradient {
+    background: linear-gradient(180deg, hsl(236, 62%, 65%, 0.3) 0%, hsl(236, 62%, 65%, 0.05) 100%);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Template Editor Grid Pattern */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-color: #fafafa;
+  }
+
+  /* Drag and Drop Styles */
+  .dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+  }
+
+  .drag-overlay {
+    z-index: 999;
+    transform: rotate(5deg);
+  }
+}
+
+/* Custom animations for gradients */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(240, 3.7%, 15.9%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-primary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-secondary);
+}
+
+/* Custom gradients for sidebar */
+  .gradient-sidebar {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  }
+
+  .gradient-secondary {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+  }
+
+
+/* React Quill Custom Styles */
+.ticket-description-editor .ql-container {
+  min-height: 180px;
+  font-family: inherit;
+}
+
+.ticket-description-editor .ql-editor {
+  min-height: 180px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ticket-description-editor .ql-toolbar {
+  border-top: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: none;
+}
+
+.ticket-description-editor .ql-container {
+  border-bottom: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-top: none;
+}
+
+.ticket-description-editor .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+
+/* Focus styles */
+.ticket-description-editor .ql-toolbar:focus-within,
+.ticket-description-editor .ql-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+/* Rich Text Editor Custom Styles (Knowledge Base) */
+.rich-text-editor .ql-container {
+  min-height: 280px;
+  font-family: inherit;
+}
+
+.rich-text-editor .ql-editor {
+  min-height: 280px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rich-text-editor .ql-toolbar {
+  border-top: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: none;
+}
+
+.rich-text-editor .ql-container {
+  border-bottom: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-top: none;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+
+/* Focus styles for Rich Text Editor */
+.rich-text-editor .ql-toolbar:focus-within,
+.rich-text-editor .ql-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
