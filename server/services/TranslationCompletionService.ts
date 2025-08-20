@@ -570,6 +570,128 @@ export class TranslationCompletionService {
   }
 
   /**
+   * MÉTODO ULTRA SEGURO: Completa apenas arquivos JSON de tradução
+   * NÃO toca em nenhum arquivo de código TypeScript/JSX
+   */
+  async completeAllTranslations(): Promise<Array<{
+    language: string;
+    addedKeys: string[];
+    errors: string[];
+    success: boolean;
+  }>> {
+    console.log('🔒 [ULTRA-SAFE] Starting ultra-safe translation completion');
+    const results: Array<{
+      language: string;
+      addedKeys: string[];
+      errors: string[];
+      success: boolean;
+    }> = [];
+
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      console.log(`🔍 [ULTRA-SAFE] Processing ${language} translation file...`);
+      
+      try {
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
+        
+        // Verifica se o arquivo existe
+        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+        if (!fileExists) {
+          console.log(`⚠️ [ULTRA-SAFE] ${language}.json não encontrado, criando...`);
+          await fs.writeFile(filePath, JSON.stringify({}, null, 2));
+        }
+
+        // Lê o arquivo atual
+        const currentContent = await fs.readFile(filePath, 'utf8');
+        let translations: any = {};
+        
+        try {
+          translations = JSON.parse(currentContent);
+        } catch (parseError) {
+          console.warn(`⚠️ [ULTRA-SAFE] ${language}.json tem formato inválido, resetando...`);
+          translations = {};
+        }
+
+        // Adiciona apenas traduções pré-definidas seguras do AUTO_TRANSLATIONS
+        const addedKeys: string[] = [];
+        let translationsModified = false;
+
+        for (const [key, translationMap] of Object.entries(this.AUTO_TRANSLATIONS)) {
+          if (translationMap[language] && !this.hasTranslation(translations, key)) {
+            this.setTranslation(translations, key, translationMap[language]);
+            addedKeys.push(key);
+            translationsModified = true;
+          }
+        }
+
+        // Salva apenas se houve modificações
+        if (translationsModified) {
+          const backupPath = path.join(this.TRANSLATIONS_DIR, `${language}.json.backup-${Date.now()}`);
+          await fs.writeFile(backupPath, currentContent); // Backup primeiro
+          
+          await fs.writeFile(filePath, JSON.stringify(translations, null, 2));
+          console.log(`✅ [ULTRA-SAFE] ${language}.json updated with ${addedKeys.length} new translations`);
+        } else {
+          console.log(`ℹ️ [ULTRA-SAFE] ${language}.json already complete, no changes needed`);
+        }
+
+        results.push({
+          language,
+          addedKeys,
+          errors: [],
+          success: true
+        });
+
+      } catch (error) {
+        console.error(`❌ [ULTRA-SAFE] Error processing ${language}:`, error);
+        results.push({
+          language,
+          addedKeys: [],
+          errors: [error.message],
+          success: false
+        });
+      }
+    }
+
+    console.log('🎉 [ULTRA-SAFE] Ultra-safe translation completion finished');
+    return results;
+  }
+
+  /**
+   * Verifica se uma tradução existe (navegação segura por objeto aninhado)
+   */
+  private hasTranslation(obj: any, key: string): boolean {
+    const keys = key.split('.');
+    let current = obj;
+    
+    for (const k of keys) {
+      if (!current || typeof current !== 'object' || !(k in current)) {
+        return false;
+      }
+      current = current[k];
+    }
+    
+    return current !== undefined && current !== null && current !== '';
+  }
+
+  /**
+   * Define uma tradução (criação segura de objeto aninhado)
+   */
+  private setTranslation(obj: any, key: string, value: string): void {
+    const keys = key.split('.');
+    let current = obj;
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      const k = keys[i];
+      if (!current[k] || typeof current[k] !== 'object') {
+        current[k] = {};
+      }
+      current = current[k];
+    }
+    
+    current[keys[keys.length - 1]] = value;
+  }
+
+  /**
    * Verifica se uma chave específica é problemática
    */
   private isProblematicKey(key: string): boolean {
