@@ -39,45 +39,53 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 /**
- * GET /api/translation-completion/scan-keys
- * Escaneia todas as chaves de tradução no código fonte
+ * POST /api/translation-completion/scan-keys
+ * Escaneia chaves de tradução nos arquivos fonte
  */
-router.get('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'SaaS admin access required' 
+      });
     }
+
+    console.log('🔍 [SCAN-KEYS] Starting translation key scanning...');
 
     const keys = await translationService.scanTranslationKeys();
 
-    // Agrupa por módulo para melhor visualização
-    const keysByModule = keys.reduce((acc, key) => {
-      if (!acc[key.module]) {
-        acc[key.module] = [];
-      }
-      acc[key.module].push(key);
-      return acc;
-    }, {} as Record<string, typeof keys>);
+    console.log(`✅ [SCAN-KEYS] Scanned ${keys.length} translation keys`);
 
-    res.json({
+    // Ensure we always return valid JSON
+    const response = {
       success: true,
       data: {
+        keys: keys.map(key => ({
+          key: key.key,
+          module: key.module,
+          usage: key.usage || [],
+          priority: key.priority || 'medium'
+        })),
         totalKeys: keys.length,
-        keysByModule,
-        keysByPriority: {
-          high: keys.filter(k => k.priority === 'high').length,
-          medium: keys.filter(k => k.priority === 'medium').length,
-          low: keys.filter(k => k.priority === 'low').length
-        }
+        scannedAt: new Date().toISOString()
       }
-    });
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json(response);
 
   } catch (error) {
-    console.error('Error scanning translation keys:', error);
-    res.status(500).json({
-      success: false, 
-      message: 'Failed to scan translation keys' 
-    });
+    console.error('❌ [SCAN-KEYS] Error scanning translation keys:', error);
+
+    const errorResponse = {
+      success: false,
+      message: 'Failed to scan translation keys',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json(errorResponse);
   }
 });
 
@@ -283,12 +291,12 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
     try {
       // OPERAÇÃO 1: Completa apenas arquivos JSON de tradução (super seguro)
       console.log('📝 [SAFE-STEP-1] Completing translation JSON files only...');
-      
+
       const completionPromise = translationService.completeAllTranslations();
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Safe timeout - operation took too long')), 20000)
       );
-      
+
       completionResults = await Promise.race([completionPromise, timeoutPromise]) as any[];
       console.log('✅ [SAFE-STEP-1] Translation files completed successfully');
 
@@ -300,12 +308,12 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
     try {
       // OPERAÇÃO 2: Gera relatório final (super seguro)
       console.log('📊 [SAFE-STEP-2] Generating completion report...');
-      
+
       const reportPromise = translationService.generateCompletenessReport();
       const reportTimeout = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Report timeout')), 8000)
       );
-      
+
       finalReport = await Promise.race([reportPromise, reportTimeout]) as any;
       console.log('✅ [SAFE-STEP-2] Report generated successfully');
 
@@ -348,7 +356,7 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
 
   } catch (error) {
     console.error('❌ [ULTRA-SAFE-MODE] Even ultra-safe mode had an error:', error);
-    
+
     // Resposta de emergência ultra segura
     res.json({
       success: false,

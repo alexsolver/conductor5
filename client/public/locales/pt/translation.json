@@ -16,7 +16,7 @@
     "loading_history": "Carregando histórico..."
   },
   "TranslationManager": {
-    "title": "Gerenciamento de Traduções",
+    "title": "Gerenciador de Traduções",
     "analyzeCompleteness": "Analisar Completude",
     "scanKeys": "Escanear Chaves",
     "autoCompleteAll": "Completar Automaticamente",
@@ -27,7 +27,25 @@
     "autoCompletionErrorDesc": "Falha ao completar traduções automaticamente",
     "translationsAdded": "Traduções adicionadas",
     "codeFilesProtected": "Arquivos de código protegidos",
-    "reanalyze": "Reanalizar"
+    "reanalyze": "Reanalizar",
+    "scanSuccess": "Escaneamento de traduções concluído com sucesso",
+    "scanError": "Falha no escaneamento de traduções",
+    "analysisSuccess": "Análise concluída com sucesso",
+    "analysisError": "Falha na análise",
+    "restoreBackup": "Restaurar Backup",
+    "saveChanges": "Salvar Alterações",
+    "languageSelection": "Seleção de Idioma",
+    "chooseLanguage": "Escolher Idioma",
+    "searchPlaceholder": "Buscar traduções...",
+    "translationEditor": "Editor de Traduções",
+    "autoCompletion": "Completar Automaticamente",
+    "allKeys": "Todas as Chaves",
+    "editorTitle": "Editor de Traduções",
+    "lastModified": "Última Modificação",
+    "autoCompletionTitle": "Completar Automaticamente",
+    "allKeysTitle": "Todas as Chaves de Tradução",
+    "allKeysDescription": "Visualizar e gerenciar todas as chaves de tradução entre idiomas",
+    "noKeysFound": "Nenhuma chave de tradução encontrada"
   },
   "navigation": {
     "previous": "Anterior",

@@ -244,25 +244,49 @@ export default function TranslationManager() {
 
   const handleScanKeys = async () => {
     setScanningKeys(true);
-    console.log('Scanning for translation keys...');
+    console.log('🔍 [FRONTEND] Starting translation key scanning...');
+
     try {
       const response = await fetch('/api/translation-completion/scan-keys', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         credentials: 'include',
       });
+
+      console.log('📡 [FRONTEND] Response status:', response.status);
+      console.log('📡 [FRONTEND] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ [FRONTEND] Non-JSON response received:', text.substring(0, 200));
+        throw new Error('Server returned non-JSON response');
+      }
+
       const data = await response.json();
-      console.log('✅ Key scanning successful:', data);
-      toast({
-        title: t('TranslationManager.scanSuccess') || "Key scanning completed!",
-        description: data.message,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
+      console.log('✅ [FRONTEND] Key scanning successful:', data);
+
+      if (data.success) {
+        toast({
+          title: t('TranslationManager.scanSuccess') || "Key scanning completed!",
+          description: `Found ${data.data?.totalKeys || 0} translation keys`,
+        });
+      } else {
+        throw new Error(data.message || 'Scan operation failed');
+      }
+
     } catch (error) {
-      console.error('❌ Key scanning error:', error);
+      console.error('❌ [FRONTEND] Key scanning error:', error);
       toast({
         title: t('TranslationManager.scanError') || "Key scanning failed",
-        description: error.message || 'Failed to scan keys',
+        description: error.message || 'Failed to scan translation keys',
         variant: "destructive",
       });
     } finally {

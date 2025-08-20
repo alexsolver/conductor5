@@ -367,6 +367,7 @@ export class TranslationCompletionService {
    * Escaneia todos os arquivos fonte para detectar chaves de tradução e textos hardcoded
    */
   async scanTranslationKeys(): Promise<TranslationKey[]> {
+    console.log('🔍 [TRANSLATION-SCAN] Starting translation key scanning process...');
     const keys: TranslationKey[] = [];
 
     // Multiple patterns to capture different translation usage patterns
@@ -380,18 +381,35 @@ export class TranslationCompletionService {
     ];
 
     for (const sourceDir of this.SOURCE_DIRS) {
+      const fullPath = path.join(process.cwd(), sourceDir);
+      console.log(`📁 [TRANSLATION-SCAN] Scanning directory: ${fullPath}`);
+      
       try {
+        // Check if directory exists
+        const dirExists = await fs.access(fullPath).then(() => true).catch(() => false);
+        if (!dirExists) {
+          console.warn(`⚠️ [TRANSLATION-SCAN] Directory not found: ${fullPath}`);
+          continue;
+        }
+
         for (const pattern of keyPatterns) {
-          await this.scanDirectory(path.join(process.cwd(), sourceDir), keys, pattern);
+          await this.scanDirectory(fullPath, keys, pattern);
         }
       } catch (error) {
-        console.warn(`Could not scan directory ${sourceDir}:`, error);
+        console.warn(`⚠️ [TRANSLATION-SCAN] Could not scan directory ${sourceDir}:`, error);
       }
     }
 
+    console.log(`📊 [TRANSLATION-SCAN] Found ${keys.length} raw translation keys`);
+
     // Filter out invalid keys before processing
     const validKeys = keys.filter(key => this.isValidTranslationKey(key.key));
-    return this.deduplicateAndPrioritize(validKeys);
+    console.log(`✅ [TRANSLATION-SCAN] ${validKeys.length} valid keys after filtering`);
+
+    const deduplicated = this.deduplicateAndPrioritize(validKeys);
+    console.log(`🎯 [TRANSLATION-SCAN] ${deduplicated.length} unique keys after deduplication`);
+
+    return deduplicated;
   }
 
   /**
@@ -533,6 +551,115 @@ export class TranslationCompletionService {
     }
 
     return results;
+  }
+
+  /**
+   * Escaneia um diretório específico em busca de chaves de tradução
+   */
+  private async scanDirectory(dirPath: string, keys: TranslationKey[], pattern: RegExp): Promise<void> {
+    try {
+      const items = await fs.readdir(dirPath, { withFileTypes: true });
+
+      for (const item of items) {
+        const itemPath = path.join(dirPath, item.name);
+
+        if (item.isDirectory()) {
+          // Skip node_modules and other irrelevant directories
+          if (!['node_modules', '.git', 'dist', 'build'].includes(item.name)) {
+            await this.scanDirectory(itemPath, keys, pattern);
+          }
+        } else if (item.isFile() && /\.(tsx?|jsx?)$/.test(item.name)) {
+          try {
+            const content = await fs.readFile(itemPath, 'utf8');
+            const matches = [...content.matchAll(pattern)];
+
+            for (const match of matches) {
+              const key = match[1];
+              if (key && this.isValidTranslationKey(key)) {
+                const moduleName = this.extractModuleName(itemPath);
+                keys.push({
+                  key,
+                  module: moduleName,
+                  usage: [itemPath],
+                  priority: this.determinePriority(key, moduleName)
+                });
+              }
+            }
+          } catch (fileError) {
+            console.warn(`Could not read file ${itemPath}:`, fileError);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`Error scanning directory ${dirPath}:`, error);
+    }
+  }
+
+  /**
+   * Extrai o nome do módulo baseado no caminho do arquivo
+   */
+  private extractModuleName(filePath: string): string {
+    const relativePath = path.relative(process.cwd(), filePath);
+    const parts = relativePath.split(path.sep);
+    
+    if (parts.includes('pages')) {
+      const pageIndex = parts.indexOf('pages');
+      return parts[pageIndex + 1] || 'unknown';
+    }
+    
+    if (parts.includes('components')) {
+      const componentIndex = parts.indexOf('components');
+      return parts[componentIndex + 1] || 'components';
+    }
+    
+    return 'general';
+  }
+
+  /**
+   * Determina a prioridade de uma chave baseada no contexto
+   */
+  private determinePriority(key: string, module: string): 'high' | 'medium' | 'low' {
+    if (key.includes('error') || key.includes('warning')) return 'high';
+    if (key.includes('button') || key.includes('action')) return 'high';
+    if (key.includes('title') || key.includes('heading')) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Remove duplicatas e prioriza as chaves
+   */
+  private deduplicateAndPrioritize(keys: TranslationKey[]): TranslationKey[] {
+    const keyMap = new Map<string, TranslationKey>();
+
+    for (const key of keys) {
+      const existing = keyMap.get(key.key);
+      if (!existing) {
+        keyMap.set(key.key, key);
+      } else {
+        // Merge usage arrays and keep highest priority
+        existing.usage = [...new Set([...existing.usage, ...key.usage])];
+        if (this.getPriorityWeight(key.priority) > this.getPriorityWeight(existing.priority)) {
+          existing.priority = key.priority;
+        }
+      }
+    }
+
+    return Array.from(keyMap.values()).sort((a, b) => {
+      const priorityDiff = this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority);
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.key.localeCompare(b.key);
+    });
+  }
+
+  /**
+   * Converte prioridade em peso numérico para ordenação
+   */
+  private getPriorityWeight(priority: 'high' | 'medium' | 'low'): number {
+    switch (priority) {
+      case 'high': return 3;
+      case 'medium': return 2;
+      case 'low': return 1;
+    }
   }
 
   /**
