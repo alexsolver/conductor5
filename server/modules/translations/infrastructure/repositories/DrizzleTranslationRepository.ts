@@ -11,12 +11,32 @@ import {
   translationAudits, 
   translationCache,
   translationStats
-} from '../../../../shared/schema-translations';
+} from '../../../../../shared/schema-translations';
 import { Translation, TranslationAudit } from '../../domain/entities/Translation';
 import { ITranslationRepository } from '../../domain/repositories/ITranslationRepository';
 import { TranslationGap, BulkTranslationImport } from '../../domain/entities/Translation';
 
 export class DrizzleTranslationRepository implements ITranslationRepository {
+  
+  // Helper to convert database row to domain entity
+  private dbToTranslation(dbRow: any): Translation {
+    return {
+      ...dbRow,
+      context: dbRow.context ?? undefined,
+      tenantId: dbRow.tenantId ?? undefined,
+      updatedBy: dbRow.updatedBy ?? undefined
+    };
+  }
+
+  // Helper to convert database audit row to domain entity
+  private dbToAudit(dbRow: any): TranslationAudit {
+    return {
+      ...dbRow,
+      oldValue: dbRow.oldValue ?? undefined,
+      tenantId: dbRow.tenantId ?? undefined,
+      metadata: dbRow.metadata ?? undefined
+    };
+  }
   
   async findById(id: string, tenantId?: string): Promise<Translation | null> {
     const conditions = [eq(translations.id, id)];
@@ -35,7 +55,7 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       .where(and(...conditions))
       .limit(1);
 
-    return result[0] || null;
+    return result[0] ? this.dbToTranslation(result[0]) : null;
   }
 
   async findByKey(key: string, language: string, tenantId?: string): Promise<Translation | null> {
@@ -54,7 +74,7 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
         )
         .limit(1);
 
-      if (tenantResult[0]) return tenantResult[0];
+      if (tenantResult[0]) return this.dbToTranslation(tenantResult[0]);
     }
 
     // Fallback to global
@@ -70,7 +90,7 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       )
       .limit(1);
 
-    return globalResult[0] || null;
+    return globalResult[0] ? this.dbToTranslation(globalResult[0]) : null;
   }
 
   async findByLanguage(language: string, tenantId?: string): Promise<Translation[]> {
@@ -85,11 +105,13 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       );
     }
 
-    return await db
+    const result = await db
       .select()
       .from(translations)
       .where(and(...conditions))
       .orderBy(translations.key);
+      
+    return result.map(row => this.dbToTranslation(row));
   }
 
   async findByModule(module: string, language: string, tenantId?: string): Promise<Translation[]> {
@@ -107,11 +129,13 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       );
     }
 
-    return await db
+    const result = await db
       .select()
       .from(translations)
       .where(and(...conditions))
       .orderBy(translations.key);
+      
+    return result.map(row => this.dbToTranslation(row));
   }
 
   async create(translation: Omit<Translation, 'id' | 'createdAt' | 'updatedAt'>): Promise<Translation> {
@@ -124,7 +148,7 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       } as any)
       .returning();
 
-    return created;
+    return this.dbToTranslation(created);
   }
 
   async update(id: string, translation: Partial<Translation>, tenantId?: string): Promise<Translation> {
@@ -146,7 +170,7 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       throw new Error('Translation not found or access denied');
     }
 
-    return updated;
+    return this.dbToTranslation(updated);
   }
 
   async delete(id: string, tenantId?: string): Promise<void> {
@@ -314,12 +338,14 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       );
     }
 
-    return await db
+    const result = await db
       .select()
       .from(translations)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(translations.key)
       .limit(1000); // Reasonable limit for search
+      
+    return result.map(row => this.dbToTranslation(row));
   }
 
   async bulkCreate(translationsData: Omit<Translation, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<Translation[]> {
@@ -332,10 +358,12 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       updatedAt: now
     }));
 
-    return await db
+    const result = await db
       .insert(translations)
       .values(toInsert as any[])
       .returning();
+      
+    return result.map(row => this.dbToTranslation(row));
   }
 
   async bulkUpdate(updates: Array<{ id: string; translation: Partial<Translation> }>, tenantId?: string): Promise<Translation[]> {
@@ -394,7 +422,7 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       )
       .limit(1);
 
-    return result[0] || null;
+    return result[0] ? this.dbToTranslation(result[0]) : null;
   }
 
   async createTenantOverride(translation: Omit<Translation, 'id' | 'createdAt' | 'updatedAt'>): Promise<Translation> {
@@ -411,11 +439,13 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       conditions.push(eq(translations.language, language));
     }
 
-    return await db
+    const result = await db
       .select()
       .from(translations)
       .where(and(...conditions))
       .orderBy(translations.key);
+      
+    return result.map(row => this.dbToTranslation(row));
   }
 
   async getAuditLog(translationId?: string, tenantId?: string, limit: number = 100): Promise<TranslationAudit[]> {
@@ -429,12 +459,14 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       conditions.push(eq(translationAudits.tenantId, tenantId));
     }
 
-    return await db
+    const result = await db
       .select()
       .from(translationAudits)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(translationAudits.changedAt))
       .limit(limit);
+      
+    return result.map(row => this.dbToAudit(row));
   }
 
   async createAuditEntry(audit: Omit<TranslationAudit, 'id' | 'changedAt'>): Promise<TranslationAudit> {
@@ -446,6 +478,6 @@ export class DrizzleTranslationRepository implements ITranslationRepository {
       })
       .returning();
 
-    return created;
+    return this.dbToAudit(created);
   }
 }
