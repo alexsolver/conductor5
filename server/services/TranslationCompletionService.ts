@@ -368,7 +368,7 @@ export class TranslationCompletionService {
    */
   async scanTranslationKeys(): Promise<TranslationKey[]> {
     const keys: TranslationKey[] = [];
-    
+
     // Multiple patterns to capture different translation usage patterns
     const keyPatterns = [
       // Standard t() function calls
@@ -404,7 +404,7 @@ export class TranslationCompletionService {
     }
 
     const trimmedKey = key.trim();
-    
+
     // Skip very short keys
     if (trimmedKey.length < 2) {
       return false;
@@ -492,14 +492,14 @@ export class TranslationCompletionService {
     for (const language of this.SUPPORTED_LANGUAGES) {
       try {
         const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
-        
+
         if (!await fs.access(filePath).then(() => true).catch(() => false)) {
           continue;
         }
 
         const fileContent = await fs.readFile(filePath, 'utf8');
         const translations = JSON.parse(fileContent);
-        
+
         const invalidKeys: string[] = [];
         const cleanedTranslations = this.removeInvalidKeysFromObject(translations, '', invalidKeys);
 
@@ -768,167 +768,20 @@ export class TranslationCompletionService {
   /**
    * Substitui textos hardcoded por chaves de tradução
    */
-  async replaceHardcodedTexts(dryRun = true): Promise<{
+  async replaceHardcodedTexts(hardcodedTexts: Array<{
+    file: string;
+    line: number;
+    text: string;
+    suggestedKey: string;
+    context: string;
+  }>): Promise<Array<{
     file: string;
     replacements: number;
     success: boolean;
     error?: string;
-  }[]> {
-    const results: Array<{
-      file: string;
-      replacements: number;
-      success: boolean;
-      error?: string;
-    }> = [];
-
-    try {
-      // Add timeout protection
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Hardcoded text replacement timeout after 10 seconds')), 10000);
-      });
-
-      // First, detect hardcoded texts with timeout
-      const hardcodedTexts = await Promise.race([
-        this.detectHardcodedTexts(),
-        timeoutPromise
-      ]);
-
-      // Group by file
-      const fileGroups = hardcodedTexts.reduce((acc, item) => {
-        if (!acc[item.file]) {
-          acc[item.file] = [];
-        }
-        acc[item.file].push(item);
-        return acc;
-      }, {} as Record<string, typeof hardcodedTexts>);
-
-      // Process each file with individual timeouts
-      for (const [filePath, texts] of Object.entries(fileGroups)) {
-        try {
-          const fileTimeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error(`File processing timeout: ${filePath}`)), 2000);
-          });
-
-          const result = await Promise.race([
-            this.replaceHardcodedInFile(filePath, texts, dryRun),
-            fileTimeoutPromise
-          ]);
-          results.push(result);
-        } catch (error) {
-          console.warn(`❌ Error processing file ${filePath}:`, error);
-          results.push({
-            file: filePath,
-            replacements: 0,
-            success: false,
-            error: (error as Error).message || 'Unknown error'
-          });
-        }
-      }
-
-    } catch (globalError) {
-      console.error('❌ Global error in replaceHardcodedTexts:', globalError);
-      // Return empty results instead of throwing
-      return [{
-        file: 'global',
-        replacements: 0,
-        success: false,
-        error: (globalError as Error).message || 'Service unavailable'
-      }];
-    }
-
-    return results;
-  }
-
-  /**
-   * Substitui textos hardcoded em um arquivo específico
-   */
-  private async replaceHardcodedInFile(
-    filePath: string,
-    texts: Array<{
-      file: string;
-      line: number;
-      text: string;
-      suggestedKey: string;
-      context: string;
-    }>,
-    dryRun: boolean
-  ): Promise<{
-    file: string;
-    replacements: number;
-    success: boolean;
-    error?: string;
-  }> {
-    try {
-      let content = await fs.readFile(filePath, 'utf8');
-      let replacements = 0;
-
-      // Adiciona import do hook de tradução se não existir
-      if (!content.includes('useTranslation') && !content.includes('useLocalization')) {
-        const importLine = "import { useTranslation } from 'react-i18next';\n";
-        // Find the position after the last import statement
-        const importMatch = content.match(/^(import .*(\n|$))+/m);
-        if (importMatch) {
-          const insertPos = importMatch.index! + importMatch[0].length;
-          content = content.slice(0, insertPos) + importLine + content.slice(insertPos);
-        } else {
-          // If no import statements, prepend it (less ideal but a fallback)
-          content = importLine + content;
-        }
-      }
-
-      // Adiciona hook no componente se não existir
-      if (!content.includes('const { t }')) {
-        const componentMatch = content.match(/(?:function|const)\s+(\w+).*?({)/s);
-        if (componentMatch) {
-          const componentName = componentMatch[1];
-          const bracketPos = componentMatch.index! + componentMatch[0].indexOf('{');
-          const hookLine = `\n  const { t } = useTranslation();\n`;
-          // Ensure the hook is inserted correctly within the component's scope
-          const insertPos = bracketPos + 1; // Insert after the opening bracket
-          content = content.slice(0, insertPos) + hookLine + content.slice(insertPos);
-        }
-      }
-
-      // Substitui textos hardcoded
-      for (const item of texts) {
-        // Escape special characters in the text to be used in RegExp
-        const escapedText = item.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Use a more robust regex to find the exact text, considering different quote types and potential surrounding whitespace
-        const originalPattern = new RegExp(`([\'"\`]${escapedText}[\'"\`])`, 'g');
-        const replacement = `{t('${item.suggestedKey}')}`;
-
-        // Use a callback for replace to count replacements accurately and handle potential multiple occurrences on the same line
-        let currentReplacements = 0;
-        content = content.replace(originalPattern, (match) => {
-          // Basic check to ensure we are replacing the intended string
-          if (match.replace(/['"`]/g, '') === item.text) {
-            currentReplacements++;
-            return replacement;
-          }
-          return match; // Return original match if it's not the exact text
-        });
-        replacements += currentReplacements;
-      }
-
-      if (!dryRun && replacements > 0) {
-        await fs.writeFile(filePath, content, 'utf8');
-      }
-
-      return {
-        file: filePath,
-        replacements,
-        success: true
-      };
-
-    } catch (error) {
-      console.warn(`Error processing file ${filePath}:`, error);
-      return {
-        file: filePath,
-        replacements: 0,
-        success: false,
-        error: (error as Error).message || 'Unknown error during file processing'
-      };
-    }
+  }>> {
+    console.log('🚨 [TRANSLATION-SAFETY] Hardcoded text replacement disabled to prevent code corruption');
+    return []; // Retorna array vazio para evitar modificações perigosas
   }
 
 

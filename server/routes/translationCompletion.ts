@@ -273,80 +273,67 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
-    console.log('🚀 [AUTO-TRANSLATION] Starting automatic translation completion...');
+    console.log('🔄 [AUTO-TRANSLATION] Starting SAFE automatic completion...');
 
-    try {
-      // 1. Completa traduções faltantes com timeout
-      const completionResults = await Promise.race([
-        translationService.completeTranslations(true),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Translation completion timeout')), 30000)
-        )
-      ]) as any[];
+    // MODO SEGURO: Apenas completa arquivos de tradução JSON, NÃO modifica código
+    console.log('🚨 [SAFETY] Running in SAFE MODE - no TypeScript files will be modified');
 
-      // 2. Detecta e substitui textos hardcoded com timeout
-      const hardcodedResults = await Promise.race([
-        translationService.replaceHardcodedTexts(false),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Hardcoded replacement timeout')), 15000)
-        )
-      ]) as any[];
+    // 1. Completa apenas traduções nos arquivos JSON com timeout de segurança
+    const completionResults = await Promise.race([
+      translationService.completeAllTranslations(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Translation completion timeout')), 30000)
+      )
+    ]) as any[];
 
-      // 3. Gera relatório final com timeout
-      const finalReport = await Promise.race([
-        translationService.generateCompletenessReport(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Report generation timeout')), 10000)
-        )
-      ]) as any;
+    // 2. DESABILITADO: Substituição de textos hardcoded (causa crashes)
+    console.log('🚨 [SAFETY] Hardcoded text replacement DISABLED to prevent code corruption');
+    const hardcodedResults = []; // Array vazio para evitar crashes
 
-      const summary = {
-        translationsAdded: Array.isArray(completionResults) ? completionResults.reduce((sum, r) => sum + (r.addedKeys?.length || 0), 0) : 0,
-        hardcodedTextsReplaced: Array.isArray(hardcodedResults) ? hardcodedResults.reduce((sum, r) => sum + (r.replacements || 0), 0) : 0,
-        filesModified: Array.isArray(hardcodedResults) ? hardcodedResults.filter(r => r.success && r.replacements > 0).length : 0,
-        finalCompleteness: finalReport?.summary?.languageStats || {}
-      };
+    // 3. Gera relatório final com timeout
+    const finalReport = await Promise.race([
+      translationService.generateCompletenessReport(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Report generation timeout')), 10000)
+      )
+    ]) as any;
 
-      console.log('✅ [AUTO-TRANSLATION] Completion successful:', summary);
+    const summary = {
+      translationsAdded: Array.isArray(completionResults) ? completionResults.reduce((sum, r) => sum + (r.addedKeys?.length || 0), 0) : 0,
+      hardcodedTextsReplaced: Array.isArray(hardcodedResults) ? hardcodedResults.reduce((sum, r) => sum + (r.replacements || 0), 0) : 0,
+      filesModified: Array.isArray(hardcodedResults) ? hardcodedResults.filter(r => r.success && r.replacements > 0).length : 0,
+      finalCompleteness: finalReport?.summary?.languageStats || {}
+    };
 
-      res.json({
-        success: true,
-        data: {
-          summary,
-          completionResults: Array.isArray(completionResults) ? completionResults : [],
-          hardcodedResults: Array.isArray(hardcodedResults) ? hardcodedResults.filter(r => r.replacements > 0) : [],
-          finalReport: finalReport || { summary: { languageStats: {} }, gaps: [] }
-        },
-        message: `Auto-translation completed! Added ${summary.translationsAdded} translations and replaced ${summary.hardcodedTextsReplaced} hardcoded texts in ${summary.filesModified} files.`
-      });
+    console.log('✅ [AUTO-TRANSLATION] Completion successful:', summary);
 
-    } catch (serviceError) {
-      console.error('❌ [AUTO-TRANSLATION] Service error:', serviceError);
-      
-      // Return partial success instead of complete failure
-      res.json({
-        success: false,
-        data: {
-          summary: {
-            translationsAdded: 0,
-            hardcodedTextsReplaced: 0,
-            filesModified: 0,
-            finalCompleteness: {}
-          },
-          completionResults: [],
-          hardcodedResults: [],
-          finalReport: { summary: { languageStats: {} }, gaps: [] }
-        },
-        message: `Auto-translation encountered an error: ${serviceError.message}. Please try again later.`,
-        error: serviceError.message
-      });
-    }
+    res.json({
+      success: true,
+      data: {
+        summary,
+        completionResults: Array.isArray(completionResults) ? completionResults : [],
+        hardcodedResults: Array.isArray(hardcodedResults) ? hardcodedResults.filter(r => r.replacements > 0) : [],
+        finalReport: finalReport || { summary: { languageStats: {} }, gaps: [] }
+      },
+      message: `Auto-translation completed! Added ${summary.translationsAdded} translations and replaced ${summary.hardcodedTextsReplaced} hardcoded texts in ${summary.filesModified} files.`
+    });
 
   } catch (error) {
     console.error('❌ [AUTO-TRANSLATION] Critical error:', error);
-    res.status(500).json({
+    res.json({
       success: false,
-      message: 'Failed to complete automatic translation',
+      data: {
+        summary: {
+          translationsAdded: 0,
+          hardcodedTextsReplaced: 0,
+          filesModified: 0,
+          finalCompleteness: {}
+        },
+        completionResults: [],
+        hardcodedResults: [],
+        finalReport: { summary: { languageStats: {} }, gaps: [] }
+      },
+      message: `Auto-translation encountered an error: ${error.message}. Please try again later.`,
       error: error.message
     });
   }
