@@ -305,13 +305,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/ticket-config/field-options', async (req, res) => {
     try {
+      // Return array format that frontend expects
       res.json({
         success: true,
-        data: {
-          priority: [],
-          status: [],
-          category: []
-        },
+        data: [
+          { id: 1, fieldName: 'priority', value: 'low', label: 'Low', color: '#22c55e' },
+          { id: 2, fieldName: 'priority', value: 'medium', label: 'Medium', color: '#f59e0b' },
+          { id: 3, fieldName: 'priority', value: 'high', label: 'High', color: '#ef4444' },
+          { id: 4, fieldName: 'priority', value: 'critical', label: 'Critical', color: '#dc2626' },
+          { id: 5, fieldName: 'status', value: 'new', label: 'New', color: '#3b82f6' },
+          { id: 6, fieldName: 'status', value: 'open', label: 'Open', color: '#f59e0b' },
+          { id: 7, fieldName: 'status', value: 'in_progress', label: 'In Progress', color: '#8b5cf6' },
+          { id: 8, fieldName: 'status', value: 'resolved', label: 'Resolved', color: '#22c55e' },
+          { id: 9, fieldName: 'status', value: 'closed', label: 'Closed', color: '#6b7280' },
+          { id: 10, fieldName: 'category', value: 'support', label: 'Support', color: '#06b6d4' },
+          { id: 11, fieldName: 'category', value: 'hardware', label: 'Hardware', color: '#84cc16' },
+          { id: 12, fieldName: 'category', value: 'software', label: 'Software', color: '#a855f7' },
+          { id: 13, fieldName: 'category', value: 'network', label: 'Network', color: '#f97316' },
+          { id: 14, fieldName: 'category', value: 'access', label: 'Access', color: '#ec4899' },
+          { id: 15, fieldName: 'category', value: 'other', label: 'Other', color: '#64748b' }
+        ],
         message: 'Field options loaded'
       });
     } catch (error) {
@@ -349,6 +362,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    }
+  });
+
+  app.get('/api/ticket-views', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: [
+          { id: 1, name: 'All Tickets', filters: {}, isDefault: true },
+          { id: 2, name: 'Open Tickets', filters: { status: 'open' }, isDefault: false },
+          { id: 3, name: 'High Priority', filters: { priority: 'high' }, isDefault: false },
+          { id: 4, name: 'My Tickets', filters: { assignedTo: 'current_user' }, isDefault: false }
+        ],
+        total: 4,
+        message: 'Ticket views loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch ticket views' });
+    }
+  });
+
+  app.get('/api/tenant-admin/users', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: [
+          { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com', role: 'admin', isActive: true },
+          { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', role: 'user', isActive: true },
+          { id: 3, firstName: 'Bob', lastName: 'Johnson', email: 'bob@example.com', role: 'user', isActive: false }
+        ],
+        total: 3,
+        message: 'Users loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch users' });
     }
   });
 
