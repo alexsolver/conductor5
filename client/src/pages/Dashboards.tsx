@@ -35,7 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 // ✅ 1QA.MD COMPLIANCE: Enhanced schema following Zendesk patterns
 const dashboardSchema = z.object({
 
-  name: z.string().min(1, "Error"),
+  name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   layoutType: z.enum(["grid", "flex", "masonry", "custom"]),
   isRealTime: z.boolean().default(false),
@@ -158,7 +158,7 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
     id: "customer-satisfaction",
     name: "Customer Satisfaction",
     description: "CSAT scores, feedback trends, and satisfaction analytics",
-    category: "Error",
+    category: "General",
     icon: Star,
     color: "bg-purple-500",
     widgets: 7,
@@ -170,7 +170,7 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
     id: "ticket-trends",
     name: "Ticket Trends",
     description: "Analyze ticket patterns, volume trends, and seasonal insights",
-    category: "Error",
+    category: "General",
     icon: BarChart3,
     color: "bg-indigo-500",
     widgets: 9,
@@ -325,7 +325,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     },
     onSuccess: () => {
       toast({ 
-        title: "Error",
+        title: "Dashboard duplicated",
         description: `A copy of "${dashboard.name}" has been created.`
       });
       onRefresh();
@@ -350,7 +350,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     },
     onSuccess: () => {
       toast({ 
-        title: "Error",
+        title: "Dashboard deleted",
         description: `Dashboard "${dashboard.name}" has been deleted.`
       });
       onRefresh();
@@ -716,7 +716,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
       console.log(`✅ [DASHBOARD-CREATE] Dashboard created successfully:`, response);
       toast({ 
         title: "Error",
-        description: "Error"${form.getValues().name}" has been created.`
+        description: `Dashboard "${form.getValues().name}" has been created.`
       });
       
       // Reset everything and close modal
