@@ -247,10 +247,10 @@ export default function TicketDetail() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Ticket não encontrado</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('tickets.messages.not_found')}</h1>
           <Button onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar aos Tickets
+            {t('tickets.actions.back_to_tickets')}
           </Button>
         </div>
       </div>
@@ -264,7 +264,7 @@ export default function TicketDetail() {
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
+            {t('common.back')}
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -312,13 +312,13 @@ export default function TicketDetail() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
-                Descrição
+                {t('tickets.description')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="prose max-w-none">
                 <p className="text-gray-700 whitespace-pre-wrap">
-                  {ticket.description || 'Nenhuma descrição fornecida.'}
+                  {ticket.description || t('tickets.messages.no_description')}
                 </p>
               </div>
             </CardContent>
@@ -329,18 +329,18 @@ export default function TicketDetail() {
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="attachments" className="flex items-center">
                 <Paperclip className="h-4 w-4 mr-2" />
-                Anexos ({attachments?.length || 0})
+                {t('tickets.attachments')} ({attachments?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="communications" className="flex items-center">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                Comunicações ({communications?.length || 0})
+                {t('tickets.communication')} ({communications?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="notes">
-                Notas ({notes?.length || 0})
+                {t('tickets.notes')} ({notes?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="history" className="flex items-center">
                 <History className="h-4 w-4 mr-2" />
-                Histórico
+                {t('tickets.history')}
               </TabsTrigger>
             </TabsList>
 
@@ -348,7 +348,7 @@ export default function TicketDetail() {
               {/* Upload Component */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Upload de Anexos</CardTitle>
+                  <CardTitle>{t('tickets.upload_attachments')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <TicketAttachmentUpload 
@@ -361,11 +361,11 @@ export default function TicketDetail() {
               {/* Existing Attachments */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Anexos Existentes</CardTitle>
+                  <CardTitle>{t('tickets.existing_attachments')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isAttachmentsLoading ? (
-                    <div className="text-center py-4">Carregando anexos...</div>
+                    <div className="text-center py-4">{t('common.loading_attachments')}</div>
                   ) : attachments && attachments.length > 0 ? (
                     <div className="space-y-3">
                       {attachments.map((attachment) => (
@@ -381,7 +381,7 @@ export default function TicketDetail() {
                               </p>
                               <p className="text-sm text-gray-500">
                                 {formatFileSize(attachment.fileSize)} • 
-                                Enviado por {attachment.uploadedByName} • 
+                                {t('tickets.uploaded_by', { name: attachment.uploadedByName })} • 
                                 {formatDate(attachment.createdAt)}
                               </p>
                             </div>
@@ -391,14 +391,14 @@ export default function TicketDetail() {
                             size="sm"
                             onClick={() => handleDownloadAttachment(attachment.id, attachment.originalName)}
                           >
-                            Download
+                            {t('common.download')}
                           </Button>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      Nenhum anexo encontrado.
+                      {t('tickets.messages.no_attachments')}
                     </div>
                   )}
                 </CardContent>
@@ -408,11 +408,11 @@ export default function TicketDetail() {
             <TabsContent value="communications">
               <Card>
                 <CardHeader>
-                  <CardTitle>Comunicações</CardTitle>
+                  <CardTitle>{t('tickets.communication')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isCommunicationsLoading ? (
-                    <div className="text-center py-4">Carregando comunicações...</div>
+                    <div className="text-center py-4">{t('common.loading_communications')}</div>
                   ) : communications && communications.length > 0 ? (
                     <div className="space-y-4">
                       {communications.map((comm) => (
@@ -426,13 +426,13 @@ export default function TicketDetail() {
                             </span>
                           </div>
                           <p className="text-gray-700">{comm.content}</p>
-                          <p className="text-sm text-gray-500 mt-1">Por: {comm.authorName}</p>
+                          <p className="text-sm text-gray-500 mt-1">{t('common.by')}: {comm.authorName}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      Nenhuma comunicação encontrada.
+                      {t('tickets.messages.no_communications')}
                     </div>
                   )}
                 </CardContent>
@@ -442,31 +442,31 @@ export default function TicketDetail() {
             <TabsContent value="notes">
               <Card>
                 <CardHeader>
-                  <CardTitle>Notas</CardTitle>
+                  <CardTitle>{t('tickets.notes')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isNotesLoading ? (
-                    <div className="text-center py-4">Carregando notas...</div>
+                    <div className="text-center py-4">{t('common.loading_notes')}</div>
                   ) : notes && notes.length > 0 ? (
                     <div className="space-y-4">
                       {notes.map((note) => (
                         <div key={note.id} className="border rounded-lg p-4">
                           <div className="flex justify-between items-start mb-2">
                             <Badge variant={note.isInternal ? 'destructive' : 'default'}>
-                              {note.isInternal ? 'Interna' : 'Pública'}
+                              {note.isInternal ? t('tickets.note_internal') : t('tickets.note_public')}
                             </Badge>
                             <span className="text-sm text-gray-500">
                               {formatDate(note.createdAt)}
                             </span>
                           </div>
                           <p className="text-gray-700 whitespace-pre-wrap">{note.content}</p>
-                          <p className="text-sm text-gray-500 mt-2">Por: {note.authorName}</p>
+                          <p className="text-sm text-gray-500 mt-2">{t('common.by')}: {note.authorName}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      Nenhuma nota encontrada.
+                      {t('tickets.messages.no_notes')}
                     </div>
                   )}
                 </CardContent>
@@ -476,11 +476,11 @@ export default function TicketDetail() {
             <TabsContent value="history">
               <Card>
                 <CardHeader>
-                  <CardTitle>Histórico de Alterações</CardTitle>
+                  <CardTitle>{t('tickets.change_history')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isHistoryLoading ? (
-                    <div className="text-center py-4">Carregando histórico...</div>
+                    <div className="text-center py-4">{t('common.loading_history')}</div>
                   ) : history && history.length > 0 ? (
                     <div className="space-y-3">
                       {history.map((entry) => (
@@ -490,13 +490,13 @@ export default function TicketDetail() {
                               <p className="font-medium text-gray-900">{entry.description}</p>
                               {entry.fieldName && (
                                 <p className="text-sm text-gray-600">
-                                  Campo: {entry.fieldName}
+                                  {t('tickets.field')}: {entry.fieldName}
                                   {entry.oldValue && entry.newValue && (
                                     <span> • {entry.oldValue} → {entry.newValue}</span>
                                   )}
                                 </p>
                               )}
-                              <p className="text-sm text-gray-500">Por: {entry.performedByName}</p>
+                              <p className="text-sm text-gray-500">{t('common.by')}: {entry.performedByName}</p>
                             </div>
                             <span className="text-sm text-gray-500">
                               {formatDate(entry.createdAt)}
@@ -507,7 +507,7 @@ export default function TicketDetail() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      Nenhum histórico encontrado.
+                      {t('tickets.messages.no_history')}
                     </div>
                   )}
                 </CardContent>

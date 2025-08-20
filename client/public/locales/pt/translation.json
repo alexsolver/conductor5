@@ -7,7 +7,13 @@
     "delete": "Excluir",
     "edit": "Editar",
     "close": "Fechar",
-    "open": "Abrir"
+    "open": "Abrir",
+    "download": "Download",
+    "by": "Por",
+    "loading_attachments": "Carregando anexos...",
+    "loading_communications": "Carregando comunicações...",
+    "loading_notes": "Carregando notas...",
+    "loading_history": "Carregando histórico..."
   },
   "navigation": {
     "previous": "Anterior",
@@ -434,15 +440,29 @@
       "edit": "Editar",
       "delete": "Excluir",
       "save": "Salvar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "back_to_tickets": "Voltar aos Tickets"
     },
+    "upload_attachments": "Upload de Anexos",
+    "existing_attachments": "Anexos Existentes",
+    "uploaded_by": "Enviado por {{name}}",
+    "change_history": "Histórico de Alterações",
+    "field": "Campo",
+    "note_internal": "Interna",
+    "note_public": "Pública",
     "messages": {
       "error_creating": "Falha ao criar ticket",
       "created_success": "Ticket criado com sucesso",
       "updated_success": "Ticket atualizado com sucesso",
       "loading": "Carregando tickets...",
       "no_tickets": "Nenhum ticket encontrado",
-      "error_loading": "Erro ao carregar tickets"
+      "error_loading": "Erro ao carregar tickets",
+      "not_found": "Ticket não encontrado",
+      "no_description": "Nenhuma descrição fornecida.",
+      "no_attachments": "Nenhum anexo encontrado.",
+      "no_communications": "Nenhuma comunicação encontrada.",
+      "no_notes": "Nenhuma nota encontrada.",
+      "no_history": "Nenhum histórico encontrado."
     }
   }
 }

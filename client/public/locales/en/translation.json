@@ -7,7 +7,13 @@
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close",
-    "open": "Open"
+    "open": "Open",
+    "download": "Download",
+    "by": "By",
+    "loading_attachments": "Loading attachments...",
+    "loading_communications": "Loading communications...",
+    "loading_notes": "Loading notes...",
+    "loading_history": "Loading history..."
   },
   "navigation": {
     "previous": "Previous",
@@ -434,15 +440,29 @@
       "edit": "Edit",
       "delete": "Delete",
       "save": "Save",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "back_to_tickets": "Back to Tickets"
     },
+    "upload_attachments": "Upload Attachments",
+    "existing_attachments": "Existing Attachments",
+    "uploaded_by": "Uploaded by {{name}}",
+    "change_history": "Change History",
+    "field": "Field",
+    "note_internal": "Internal",
+    "note_public": "Public",
     "messages": {
       "error_creating": "Failed to create ticket",
       "created_success": "Ticket created successfully",
       "updated_success": "Ticket updated successfully",
       "loading": "Loading tickets...",
       "no_tickets": "No tickets found",
-      "error_loading": "Error loading tickets"
+      "error_loading": "Error loading tickets",
+      "not_found": "Ticket not found",
+      "no_description": "No description provided.",
+      "no_attachments": "No attachments found.",
+      "no_communications": "No communications found.",
+      "no_notes": "No notes found.",
+      "no_history": "No history found."
     }
   }
 }
