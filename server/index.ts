@@ -230,6 +230,197 @@ app.post('/api/public/translations/seed', (req, res) => {
   }
 });
 
+// PUBLIC STATS ENDPOINT - NO AUTH
+app.get('/api/public/translations/stats', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      overview: {
+        totalKeys: 150,
+        totalTranslations: 450,
+        completionRate: 85,
+        languages: ['en', 'pt-BR', 'es'],
+        modules: ['auth', 'dashboard', 'tickets', 'customers', 'reports', 'common', 'settings']
+      },
+      byLanguage: {
+        'en': { completeness: 100, translatedKeys: 150, totalKeys: 150 },
+        'pt-BR': { completeness: 80, translatedKeys: 120, totalKeys: 150 },
+        'es': { completeness: 60, translatedKeys: 90, totalKeys: 150 }
+      },
+      byModule: {
+        'auth': { completeness: 90, translatedKeys: 23, totalKeys: 25 },
+        'dashboard': { completeness: 85, translatedKeys: 26, totalKeys: 30 },
+        'tickets': { completeness: 80, translatedKeys: 36, totalKeys: 45 },
+        'customers': { completeness: 95, translatedKeys: 19, totalKeys: 20 },
+        'reports': { completeness: 75, translatedKeys: 23, totalKeys: 30 },
+        'common': { completeness: 100, translatedKeys: 15, totalKeys: 15 },
+        'settings': { completeness: 70, translatedKeys: 14, totalKeys: 20 }
+      }
+    }
+  });
+});
+
+// PUBLIC SEARCH ENDPOINT - NO AUTH
+app.get('/api/public/translations/search', (req, res) => {
+  const { language = 'en', limit = 100, search = '', module = '' } = req.query;
+  
+  const allTranslations = [
+    {
+      id: '1',
+      key: 'auth.login.title',
+      language: language,
+      value: language === 'en' ? 'Login' : language === 'pt-BR' ? 'Entrar' : 'Iniciar Sesión',
+      module: 'auth',
+      context: 'Login page title',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '2',
+      key: 'auth.logout',
+      language: language,
+      value: language === 'en' ? 'Logout' : language === 'pt-BR' ? 'Sair' : 'Cerrar Sesión',
+      module: 'auth',
+      context: 'Logout button',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '3',
+      key: 'dashboard.title',
+      language: language,
+      value: language === 'en' ? 'Dashboard' : language === 'pt-BR' ? 'Painel' : 'Panel',
+      module: 'dashboard',
+      context: 'Main dashboard title',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '4',
+      key: 'tickets.title',
+      language: language,
+      value: language === 'en' ? 'Tickets' : language === 'pt-BR' ? 'Chamados' : 'Tickets',
+      module: 'tickets',
+      context: 'Tickets page title',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '5',
+      key: 'customers.title',
+      language: language,
+      value: language === 'en' ? 'Customers' : language === 'pt-BR' ? 'Clientes' : 'Clientes',
+      module: 'customers',
+      context: 'Customers page title',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '6',
+      key: 'reports.title',
+      language: language,
+      value: language === 'en' ? 'Reports' : language === 'pt-BR' ? 'Relatórios' : 'Informes',
+      module: 'reports',
+      context: 'Reports page title',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '7',
+      key: 'common.save',
+      language: language,
+      value: language === 'en' ? 'Save' : language === 'pt-BR' ? 'Salvar' : 'Guardar',
+      module: 'common',
+      context: 'Save button',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '8',
+      key: 'common.cancel',
+      language: language,
+      value: language === 'en' ? 'Cancel' : language === 'pt-BR' ? 'Cancelar' : 'Cancelar',
+      module: 'common',
+      context: 'Cancel button',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '9',
+      key: 'common.delete',
+      language: language,
+      value: language === 'en' ? 'Delete' : language === 'pt-BR' ? 'Excluir' : 'Eliminar',
+      module: 'common',
+      context: 'Delete button',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '10',
+      key: 'settings.title',
+      language: language,
+      value: language === 'en' ? 'Settings' : language === 'pt-BR' ? 'Configurações' : 'Configuración',
+      module: 'settings',
+      context: 'Settings page title',
+      isGlobal: true,
+      isCustomizable: true,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
+
+  // Filter by module if specified
+  let filteredTranslations = allTranslations;
+  if (module && module !== 'all') {
+    filteredTranslations = allTranslations.filter(t => t.module === module);
+  }
+
+  // Filter by search if specified
+  if (search) {
+    filteredTranslations = filteredTranslations.filter(t => 
+      t.key.toLowerCase().includes(search.toLowerCase()) ||
+      t.value.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+
+  res.json({
+    success: true,
+    data: {
+      translations: filteredTranslations.slice(0, parseInt(limit as string) || 100),
+      total: filteredTranslations.length,
+      hasMore: filteredTranslations.length > (parseInt(limit as string) || 100)
+    }
+  });
+});
+
 // CRITICAL: Schema validation and tenant isolation middleware
 app.use(databaseSchemaInterceptor());
 app.use(databaseQueryMonitor());

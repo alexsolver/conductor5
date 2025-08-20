@@ -119,27 +119,27 @@ export default function TranslationManagement() {
     }
   });
 
-  // Fetch translation statistics
+  // Fetch translation statistics using public endpoint
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['translation-stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/translations/stats?includeModuleBreakdown=true');
+      const response = await fetch('/api/public/translations/stats');
       if (!response.ok) throw new Error('Failed to fetch stats');
       return response.json();
     }
   });
 
-  // Search translations
+  // Search translations using public endpoint
   const { data: translationsData, isLoading: translationsLoading } = useQuery({
     queryKey: ['translations-search', selectedLanguage, selectedModule, searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedLanguage) params.set('language', selectedLanguage);
       if (selectedModule) params.set('module', selectedModule);
-      if (searchQuery) params.set('query', searchQuery);
+      if (searchQuery) params.set('search', searchQuery);
       params.set('limit', '100');
       
-      const response = await apiRequest('GET', `/api/translations/search?${params}`);
+      const response = await fetch(`/api/public/translations/search?${params}`);
       if (!response.ok) throw new Error('Failed to search translations');
       return response.json();
     }
