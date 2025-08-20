@@ -13,17 +13,7 @@
     "loading_attachments": "Cargando archivos adjuntos...",
     "loading_communications": "Cargando comunicaciones...",
     "loading_notes": "Cargando notas...",
-    "loading_history": "Cargando historial...",
-    "create": "Crear",
-    "update": "Actualizar",
-    "filter": "Filtrar",
-    "actions": "Acciones",
-    "processing": "Procesando...",
-    "pleaseWait": "Por favor espere",
-    "none": "Ninguno",
-    "all": "Todos",
-    "select": "Seleccionar",
-    "choose": "Elegir"
+    "loading_history": "Cargando historial..."
   },
   "TranslationManager": {
     "title": "Gestión de Traducciones",
@@ -43,11 +33,7 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "home": "Inicio",
-    "dashboard": "Panel",
-    "tickets": "Tickets",
-    "customers": "Clientes",
-    "analytics": "Análisis",
-    "settings": "Configuración"
+    "dashboard": "Panel"
   },
   "components": {
     "button": {
@@ -136,7 +122,7 @@
     "success": "Éxito",
     "error": "Error",
     "autoCompleteError": "Error al completar traducciones automáticamente",
-    "allTranslationKeys": "Todas las Claves de Tranducción",
+    "allTranslationKeys": "Todas las Claves de Traducción",
     "allKeysDescription": "Vista general de todas las claves de traducción disponibles en el sistema",
     "totalKeys": "Total de Claves",
     "keysInSystem": "claves en el sistema",
@@ -174,15 +160,7 @@
       "updated": "Actualizado exitosamente",
       "created": "Creado exitosamente",
       "deleted": "Eliminado exitosamente"
-    },
-    "name": "Nombre",
-    "email": "Correo",
-    "description": "Descripción",
-    "priority": "Prioridad",
-    "category": "Categoría",
-    "assignedTo": "Asignado a",
-    "createdAt": "Creado en",
-    "updatedAt": "Actualizado en"
+    }
   },
   "pages": {
     "dashboard": {
@@ -225,8 +203,7 @@
       "delete": "¿Está seguro de que desea eliminar este elemento?",
       "save": "¿Está seguro de que desea guardar los cambios?",
       "cancel": "¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."
-    },
-    "confirmDelete": "¿Está seguro de que desea eliminar este elemento?"
+    }
   },
   "dashboard": {
     "title": "Panel",
@@ -267,119 +244,14 @@
   },
   "tickets": {
     "title": "Tickets",
-    "description": "Descripción",
-    "new_ticket": "Nuevo Ticket",
-    "create_ticket": "Crear Ticket",
-    "all_tickets": "Todos los Tickets",
-    "my_tickets": "Mis Tickets",
-    "assigned_tickets": "Tickets Asignados",
-    "ticket_number": "Ticket #",
-    "subject": "Asunto",
-    "status": "Estado",
-    "priority": "Prioridad",
-    "category": "Categoría",
-    "subcategory": "Subcategoría",
-    "assigned_to": "Asignado a",
-    "customer": "Cliente",
-    "company": "Empresa",
-    "location": "Ubicación",
-    "created_at": "Creado",
-    "updated_at": "Actualizado",
-    "caller": "Solicitante",
-    "beneficiary": "Beneficiario",
-    "attachment": "Adjunto",
-    "attachments": "Adjuntos",
-    "history": "Historial",
-    "communications": "Comunicaciones",
-    "notes": "Notas",
-    "internal_notes": "Notas Internas",
-    "resolution": "Resolución",
-    "close_ticket": "Cerrar Ticket",
-    "reopen_ticket": "Reabrir Ticket",
-    "assign_ticket": "Asignar Ticket",
-    "escalate_ticket": "Escalar Ticket",
-    "link_ticket": "Vincular Ticket",
-    "edit_ticket": "Editar Ticket",
-    "delete_ticket": "Eliminar Ticket",
-    "duplicate_ticket": "Duplicar Ticket",
-    "merge_ticket": "Fusionar Ticket",
-    "status_options": {
-      "new": "Nuevo",
-      "open": "Abierto",
-      "in_progress": "En Progreso",
-      "resolved": "Resuelto",
-      "closed": "Cerrado",
-      "cancelled": "Cancelado"
-    },
-    "priority_options": {
-      "low": "Baja",
-      "medium": "Media",
-      "high": "Alta",
-      "critical": "Crítica"
-    },
-    "forms": {
-      "create": {
-        "title": "Crear Nuevo Ticket",
-        "subject_placeholder": "Ingrese el asunto del ticket...",
-        "description_placeholder": "Describa el problema en detalle...",
-        "select_company": "Seleccione una empresa",
-        "select_customer": "Seleccione un cliente",
-        "first_select_company": "Primero seleccione una empresa",
-        "no_companies": "No se encontraron empresas",
-        "no_customers_for_company": "No se encontraron clientes para esta empresa",
-        "select_beneficiary": "Seleccione beneficiario (opcional)",
-        "no_beneficiary": "Sin beneficiario",
-        "select_category": "Seleccione categoría",
-        "select_subcategory": "Seleccione subcategoría",
-        "select_action": "Seleccione acción",
-        "select_priority": "Seleccione prioridad",
-        "select_urgency": "Seleccione urgencia",
-        "select_location": "Seleccione ubicación",
-        "first_select_category": "Primero seleccione una categoría",
-        "no_subcategories": "No se encontraron subcategorías",
-        "first_select_subcategory": "Primero seleccione una subcategoría",
-        "no_actions": "No se encontraron acciones",
-        "symptoms_placeholder": "Describa los síntomas observados (opcional)",
-        "business_impact_placeholder": "Describa el impacto en el negocio (opcional)",
-        "workaround_placeholder": "Describa alguna solución temporal aplicada (opcional)",
-        "select_location_optional": "Seleccione ubicación de servicio (opcional)",
-        "no_specific_location": "Sin ubicación específica"
-      }
-    },
-    "messages": {
-      "error_creating": "Error al crear ticket",
-      "created_success": "Ticket creado exitosamente",
-      "updated_success": "Ticket actualizado exitosamente",
-      "loading": "Cargando tickets...",
-      "no_tickets": "No se encontraron tickets",
-      "error_loading": "Error al cargar tickets",
-      "not_found": "Ticket no encontrado",
-      "no_description": "Sin descripción proporcionada.",
-      "no_attachments": "No se encontraron archivos adjuntos.",
-      "no_communications": "No se encontraron comunicaciones.",
-      "no_notes": "No se encontraron notas.",
-      "no_history": "No se encontró historial."
-    },
-    "validation": {
-      "subject_required": "El asunto es obligatorio",
-      "customer_required": "El cliente es obligatorio"
-    },
-    "actions": {
-      "create": "Crear Ticket",
-      "creating": "Creando...",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "back_to_tickets": "Volver a Tickets"
-    },
-    "upload_attachments": "Subir Archivos",
-    "existing_attachments": "Archivos Existentes",
-    "uploaded_by": "Subido por {{name}}",
-    "change_history": "Historial de Cambios",
-    "field": "Campo",
-    "note_internal": "Interna",
-    "note_public": "Pública"
+    "list": "Lista de Tickets",
+    "create": "Crear Ticket",
+    "edit": "Editar Ticket",
+    "details": "Detalles del Ticket",
+    "configuration": "Configuración de Tickets",
+    "templates": "Plantillas de Tickets",
+    "materials": "Materiales",
+    "advanced": "Configuración Avanzada"
   },
   "timecard": {
     "title": "Tarjeta de Tiempo",
@@ -525,27 +397,182 @@
     "history": "Historial de Notificaciones",
     "preferences": "Preferencias del Usuario"
   },
-  "errors": {
-    "general": "Ocurrió un error inesperado. Inténtalo de nuevo."
+  "tickets": {
+    "title": "Tickets",
+    "description": "Gestione y rastree tickets de soporte al cliente",
+    "new_ticket": "Nuevo Ticket",
+    "create_ticket": "Crear Ticket",
+    "all_tickets": "Todos los Tickets",
+    "my_tickets": "Mis Tickets",
+    "assigned_tickets": "Tickets Asignados",
+    "ticket_number": "Ticket #",
+    "subject": "Asunto",
+    "status": "Estado",
+    "priority": "Prioridad",
+    "category": "Categoría",
+    "subcategory": "Subcategoría",
+    "assigned_to": "Asignado a",
+    "customer": "Cliente",
+    "company": "Empresa",
+    "location": "Ubicación",
+    "created_at": "Creado",
+    "updated_at": "Actualizado",
+    "description": "Descripción",
+    "caller": "Solicitante",
+    "beneficiary": "Beneficiario",
+    "attachment": "Adjunto",
+    "attachments": "Adjuntos",
+    "history": "Historial",
+    "communications": "Comunicaciones",
+    "notes": "Notas",
+    "internal_notes": "Notas Internas",
+    "resolution": "Resolución",
+    "close_ticket": "Cerrar Ticket",
+    "reopen_ticket": "Reabrir Ticket",
+    "assign_ticket": "Asignar Ticket",
+    "escalate_ticket": "Escalar Ticket",
+    "link_ticket": "Vincular Ticket",
+    "edit_ticket": "Editar Ticket",
+    "delete_ticket": "Eliminar Ticket",
+    "duplicate_ticket": "Duplicar Ticket",
+    "merge_ticket": "Fusionar Ticket",
+    "status_options": {
+      "new": "Nuevo",
+      "open": "Abierto",
+      "in_progress": "En Progreso",
+      "resolved": "Resuelto",
+      "closed": "Cerrado",
+      "cancelled": "Cancelado"
+    },
+    "priority_options": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+    "forms": {
+      "create": {
+        "title": "Crear Nuevo Ticket",
+        "subject_placeholder": "Ingrese el asunto del ticket...",
+        "description_placeholder": "Describa el problema en detalle..."
+      },
+      "edit": {
+        "title": "Editar Ticket"
+      }
+    },
+    "messages": {
+      "created_success": "Ticket creado exitosamente",
+      "updated_success": "Ticket actualizado exitosamente",
+      "loading": "Cargando tickets...",
+      "no_tickets": "No se encontraron tickets",
+      "error_loading": "Error al cargar tickets"
+    },
+    "validation": {
+      "subject_required": "El asunto es obligatorio",
+      "customer_required": "El cliente es obligatorio"
+    },
+    "forms": {
+      "create": {
+        "title": "Crear Nuevo Ticket",
+        "subject_placeholder": "Ingrese el asunto del ticket...",
+        "description_placeholder": "Describa el problema en detalle...",
+        "select_company": "Seleccione una empresa",
+        "select_customer": "Seleccione un cliente",
+        "first_select_company": "Primero seleccione una empresa",
+        "no_companies": "No se encontraron empresas",
+        "no_customers_for_company": "No se encontraron clientes para esta empresa",
+        "select_beneficiary": "Seleccione beneficiario (opcional)",
+        "no_beneficiary": "Sin beneficiario",
+        "select_category": "Seleccione categoría",
+        "select_subcategory": "Seleccione subcategoría",
+        "select_action": "Seleccione acción",
+        "select_priority": "Seleccione prioridad",
+        "select_urgency": "Seleccione urgencia",
+        "select_location": "Seleccione ubicación",
+        "first_select_category": "Primero seleccione una categoría",
+        "no_subcategories": "No se encontraron subcategorías",
+        "first_select_subcategory": "Primero seleccione una subcategoría",
+        "no_actions": "No se encontraron acciones",
+        "symptoms_placeholder": "Describa los síntomas observados (opcional)",
+        "business_impact_placeholder": "Describa el impacto en el negocio (opcional)",
+        "workaround_placeholder": "Describa alguna solución temporal aplicada (opcional)",
+        "select_location_optional": "Seleccione ubicación de servicio (opcional)",
+        "no_specific_location": "Sin ubicación específica"
+      }
+    },
+    "actions": {
+      "create": "Crear Ticket",
+      "creating": "Creando...",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "back_to_tickets": "Volver a Tickets"
+    },
+    "upload_attachments": "Subir Archivos",
+    "existing_attachments": "Archivos Existentes",
+    "uploaded_by": "Subido por {{name}}",
+    "change_history": "Historial de Cambios",
+    "field": "Campo",
+    "note_internal": "Interna",
+    "note_public": "Pública",
+    "messages": {
+      "error_creating": "Error al crear ticket",
+      "created_success": "Ticket creado exitosamente",
+      "updated_success": "Ticket actualizado exitosamente",
+      "loading": "Cargando tickets...",
+      "no_tickets": "No se encontraron tickets",
+      "error_loading": "Error al cargar tickets",
+      "not_found": "Ticket no encontrado",
+      "no_description": "Sin descripción proporcionada.",
+      "no_attachments": "No se encontraron archivos adjuntos.",
+      "no_communications": "No se encontraron comunicaciones.",
+      "no_notes": "No se encontraron notas.",
+      "no_history": "No se encontró historial."
+    }
   },
-  "success": {
-    "saved": "Cambios guardados exitosamente"
-  },
-  "placeholders": {
-    "searchHere": "Buscar aquí...",
-    "selectOption": "Seleccione una opción",
-    "enterText": "Ingrese texto"
-  },
-  "buttons": {
-    "submit": "Enviar",
-    "close": "Cerrar",
-    "add": "Agregar",
-    "remove": "Eliminar"
-  },
-  "messages": {
+  "translationManager": {
+    "title": "Gestión de Traducciones",
+    "description": "Gestionar traducciones del sistema en todos los idiomas soportados",
+    "accessDenied": "Acceso Denegado",
+    "accessDeniedDescription": "Se requiere acceso de administrador SaaS para gestionar traducciones.",
+    "selectLanguage": "Selección de Idioma",
+    "selectLanguageDescription": "Elige el idioma para editar las traducciones",
+    "searchPlaceholder": "Buscar claves de traducción...",
+    "translationEditor": "Editor de Traducciones",
+    "autoCompletion": "Completar Automáticamente",
+    "allKeys": "Todas las Claves",
+    "lastModified": "Última modificación",
+    "loadingLanguages": "Cargando idiomas...",
+    "loadingTranslations": "Cargando traducciones...",
+    "loadingKeys": "Cargando claves...",
+    "saving": "Guardando...",
+    "saveChanges": "Guardar Cambios",
+    "restoreBackup": "Restaurar Respaldo",
+    "translationsSaved": "Traducciones Guardadas",
+    "translationsUpdated": "Traducciones actualizadas exitosamente",
+    "errorSavingTranslations": "Error al Guardar Traducciones",
+    "backupRestored": "Respaldo Restaurado",
+    "backupRestoredDescription": "Respaldo restaurado exitosamente",
+    "errorRestoringBackup": "Error al Restaurar Respaldo",
+    "confirmRestore": "¿Estás seguro de que quieres restaurar el respaldo? Esto sobrescribirá los cambios actuales.",
+    "text": "Texto",
+    "object": "Objeto",
+    "translationFor": "Traducción para",
+    "noKeysFound": "No se encontraron claves para tu búsqueda",
+    "noTranslationsFound": "No hay claves de traducción disponibles",
+    "autoCompleteTitle": "Completar Traducciones Automáticamente",
+    "autoCompleteButton": "Completar Todas",
     "success": "Éxito",
     "error": "Error",
-    "warning": "Advertencia",
-    "info": "Información"
+    "autoCompleteError": "Error al completar traducciones automáticamente",
+    "allTranslationKeys": "Todas las Claves de Tranducción",
+    "allKeysDescription": "Vista general de todas las claves de traducción disponibles en el sistema",
+    "totalKeys": "Total de Claves",
+    "keysInSystem": "claves en el sistema",
+    "supportedLanguages": "Idiomas Soportados",
+    "availableLanguages": "Idiomas Disponibles",
+    "currentLanguage": "Idioma Actual",
+    "languageBeingEdited": "Idioma siendo editado"
   }
 }

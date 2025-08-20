@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "actions": "Aktionen",
+    "processing": "Verarbeitung...",
+    "pleaseWait": "Bitte warten",
+    "none": "Keine",
+    "all": "Alle",
+    "select": "Auswählen",
+    "choose": "Wählen"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "tickets": "Tickets",
+    "customers": "Kunden",
+    "analytics": "Analysen",
+    "settings": "Einstellungen"
+  },
+  "errors": {
+    "general": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  },
+  "success": {
+    "saved": "Änderungen erfolgreich gespeichert"
+  },
+  "forms": {
+    "name": "Name",
+    "email": "E-Mail",
+    "description": "Beschreibung",
+    "status": "Status",
+    "priority": "Priorität",
+    "category": "Kategorie",
+    "assignedTo": "Zugewiesen an",
+    "createdAt": "Erstellt am",
+    "updatedAt": "Aktualisiert am"
+  },
+  "modals": {
+    "confirm": "Bestätigen",
+    "confirmDelete": "Sind Sie sicher, dass Sie dieses Element löschen möchten?"
+  },
+  "placeholders": {
+    "searchHere": "Hier suchen...",
+    "selectOption": "Wählen Sie eine Option",
+    "enterText": "Text eingeben"
+  },
+  "buttons": {
+    "submit": "Senden",
+    "close": "Schließen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen"
+  },
+  "messages": {
+    "success": "Erfolg",
+    "error": "Fehler",
+    "warning": "Warnung",
+    "info": "Information"
+  }
+}

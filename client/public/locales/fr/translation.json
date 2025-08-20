@@ -1,0 +1,65 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "actions": "Actions",
+    "processing": "Traitement...",
+    "pleaseWait": "Veuillez patienter",
+    "none": "Aucun",
+    "all": "Tous",
+    "select": "Sélectionner",
+    "choose": "Choisir"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "tickets": "Tickets",
+    "customers": "Clients",
+    "analytics": "Analyses",
+    "settings": "Paramètres"
+  },
+  "errors": {
+    "general": "Une erreur inattendue s'est produite. Veuillez réessayer."
+  },
+  "success": {
+    "saved": "Modifications enregistrées avec succès"
+  },
+  "forms": {
+    "name": "Nom",
+    "email": "Email",
+    "description": "Description",
+    "status": "Statut",
+    "priority": "Priorité",
+    "category": "Catégorie",
+    "assignedTo": "Assigné à",
+    "createdAt": "Créé le",
+    "updatedAt": "Mis à jour le"
+  },
+  "modals": {
+    "confirm": "Confirmer",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément?"
+  },
+  "placeholders": {
+    "searchHere": "Rechercher ici...",
+    "selectOption": "Sélectionnez une option",
+    "enterText": "Saisissez le texte"
+  },
+  "buttons": {
+    "submit": "Soumettre",
+    "close": "Fermer",
+    "add": "Ajouter",
+    "remove": "Supprimer"
+  },
+  "messages": {
+    "success": "Succès",
+    "error": "Erreur",
+    "warning": "Avertissement",
+    "info": "Information"
+  }
+}
