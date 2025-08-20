@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Building2 } from 'lucide-react';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface Company {
   id: string;
@@ -32,6 +33,8 @@ interface CompanySelectorProps {
 }
 
 export function CompanySelector({
+  const { t } = useLocalization();
+
   value,
   onValueChange,
   placeholder = "Selecionar empresa (opcional)",
@@ -101,7 +104,7 @@ export function CompanySelector({
         disabled={disabled || isLoading}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
+          <SelectValue placeholder={isLoading ? {t('approvals.carregando')} : placeholder} />
         </SelectTrigger>
         
         <SelectContent>

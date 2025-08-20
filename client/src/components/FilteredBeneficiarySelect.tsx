@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface FilteredBeneficiarySelectProps {
   value?: string;
@@ -12,7 +13,9 @@ interface FilteredBeneficiarySelectProps {
   className?: string;
 }
 
-export function FilteredBeneficiarySelect({ 
+export function FilteredBeneficiarySelect({
+  const { t } = useLocalization();
+ 
   value, 
   onChange, 
   selectedCustomerId,
@@ -107,7 +110,7 @@ export function FilteredBeneficiarySelect({
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder="Carregando favorecidos..." />
+          <SelectValue placeholder={t('FilteredBeneficiarySelect.tsx.carregandoFavorecidos')} />
         </SelectTrigger>
       </Select>
     );

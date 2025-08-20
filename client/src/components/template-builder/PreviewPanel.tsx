@@ -16,6 +16,7 @@ import { Calendar } from '../ui/calendar'
 import { Badge } from '../ui/badge'
 import { FieldComponent } from './DragDropCanvas'
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   CalendarDays, 
   Upload, 
   MapPin, 
@@ -32,7 +33,9 @@ interface FieldPreviewProps {
   field: FieldComponent
 }
 
-const FieldPreview: React.FC<FieldPreviewProps> = ({ field }) => {
+const FieldPreview: React.FC<FieldPreviewProps> = ({
+  const { t } = useLocalization();
+ field }) => {
   const renderField = () => {
     const { type, properties = {} } = field
     const isRequired = properties.required || false
@@ -95,7 +98,7 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({ field }) => {
         return (
           <Select disabled>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione uma opção..." />
+              <SelectValue placeholder={t('template-builder.selecioneUmaOpcao')} />
             </SelectTrigger>
             <SelectContent>
               {(properties.options || []).map((option: any, index: number) => (

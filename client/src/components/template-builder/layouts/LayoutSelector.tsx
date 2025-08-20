@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Layout,
   Grid,
   Columns,
@@ -65,7 +66,7 @@ const predefinedLayouts: LayoutTemplate[] = [
       sections: [
         {
           id: 'main',
-          title: 'Informações Principais',
+          title: {t('template-builder.informacoesPrincipais')},
           columns: 1,
           fields: [
             { type: 'text', colspan: 1, required: true },
@@ -152,7 +153,7 @@ const predefinedLayouts: LayoutTemplate[] = [
       sections: [
         {
           id: 'basic-info',
-          title: 'Informações Básicas',
+          title: {t('template-builder.informacoesBasicas')},
           columns: 2,
           fields: [
             { type: 'text', colspan: 1, required: true },
@@ -175,7 +176,7 @@ const predefinedLayouts: LayoutTemplate[] = [
         },
         {
           id: 'additional',
-          title: 'Informações Adicionais',
+          title: {t('template-builder.informacoesAdicionais')},
           columns: 1,
           fields: [
             { type: 'textarea', colspan: 1 },
@@ -333,6 +334,8 @@ const predefinedLayouts: LayoutTemplate[] = [
 ];
 
 export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
+  const { t } = useLocalization();
+
   currentLayout,
   onLayoutSelect,
   onLayoutSave,
@@ -353,7 +356,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
   });
 
   const categoryLabels = {
-    all: 'Todos',
+    all: {t('template-builder.todos')},
     basic: 'Básicos',
     advanced: 'Avançados',
     specialized: 'Especializados',
@@ -476,7 +479,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
         <div className="flex space-x-4">
           <div className="flex-1">
             <Input
-              placeholder="Buscar layouts..."
+              placeholder={t('template-builder.buscarLayouts')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

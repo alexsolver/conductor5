@@ -11,12 +11,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Layers } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface TemplateCreateDialogProps {
   onSuccess?: () => void;
 }
 
-export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
+export function TemplateCreateDialog({
+  const { t } = useLocalization();
+ onSuccess }: TemplateCreateDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,19 +41,19 @@ export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
 
       if (response.ok) {
         toast({
-          title: "Sucesso",
+          title: {t('knowledge-base.sucesso')},
           description: "Template criado com sucesso!",
         });
         setIsOpen(false);
         setFormData({ name: "", description: "", category: "", defaultTags: "" });
         onSuccess?.();
       } else {
-        throw new Error('Erro ao criar template');
+        throw new Error({t('knowledge-base.erroAoCriarTemplate')});
       }
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao criar template. Tente novamente.",
+        title: {t('knowledge-base.erro')},
+        description: {t('knowledge-base.erroAoCriarTemplateTenteNovamente')},
         variant: "destructive",
       });
     } finally {
@@ -98,7 +101,7 @@ export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
             <Label htmlFor="category">Categoria</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
               <SelectTrigger data-testid="select-template-category">
-                <SelectValue placeholder="Selecione uma categoria" />
+                <SelectValue placeholder={t('knowledge-base.selecioneUmaCategoria')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="FAQ">FAQ</SelectItem>
@@ -126,7 +129,7 @@ export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading} data-testid="button-submit-template">
-              {isLoading ? "Criando..." : "Criar Template"}
+              {isLoading ? "Criando..." : {t('knowledge-base.criarTemplate')}}
             </Button>
           </div>
         </form>

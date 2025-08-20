@@ -129,7 +129,7 @@ async function autoFixTranslations() {
 }
 
 // Execute if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   autoFixTranslations()
     .then(() => process.exit(0))
     .catch(error => {

@@ -36,6 +36,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface KnowledgeBaseTicketTabProps {
   ticketId: string;
@@ -58,6 +59,8 @@ interface KnowledgeBaseArticle {
 }
 
 const categoryLabels: Record<string, string> = {
+  const { t } = useLocalization();
+
   technical_support: 'Suporte Técnico',
   troubleshooting: 'Solução de Problemas',
   user_guide: 'Guia do Usuário',
@@ -111,7 +114,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     },
     onSuccess: () => {
       toast({ 
-        title: '✅ Sucesso',
+        title: {t('KnowledgeBaseTicketTab.tsx.sucesso')},
         description: 'Artigo vinculado ao ticket com sucesso'
       });
       queryClient.invalidateQueries({ queryKey: [`/api/knowledge-base/tickets/${ticketId}/related`] });
@@ -119,8 +122,8 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     onError: (error: any) => {
       console.error('❌ [KB-TAB] Error linking article:', error);
       toast({ 
-        title: '❌ Erro',
-        description: 'Erro ao vincular artigo ao ticket',
+        title: {t('KnowledgeBaseTicketTab.tsx.erro')},
+        description: {t('KnowledgeBaseTicketTab.tsx.erroAoVincularArtigoAoTicket')},
         variant: 'destructive'
       });
     },
@@ -137,7 +140,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     },
     onSuccess: () => {
       toast({ 
-        title: '✅ Sucesso',
+        title: {t('KnowledgeBaseTicketTab.tsx.sucesso')},
         description: 'Avaliação registrada com sucesso'
       });
       // Refresh both queries
@@ -147,8 +150,8 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     onError: (error: any) => {
       console.error('❌ [KB-TAB] Error rating article:', error);
       toast({ 
-        title: '❌ Erro',
-        description: 'Erro ao avaliar artigo',
+        title: {t('KnowledgeBaseTicketTab.tsx.erro')},
+        description: {t('KnowledgeBaseTicketTab.tsx.erroAoAvaliarArtigo')},
         variant: 'destructive'
       });
     },
@@ -330,7 +333,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
           <div className="flex gap-3 mb-3">
             <div className="flex-1">
               <Input
-                placeholder="Buscar artigos na base de conhecimento..."
+                placeholder={t('KnowledgeBaseTicketTab.tsx.buscarArtigosNaBaseDeConhecimento')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}

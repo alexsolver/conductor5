@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface AttachmentsModalProps {
   ticketId: string;
@@ -24,7 +25,9 @@ interface Attachment {
   source: 'user' | 'email';
 }
 
-export default function AttachmentsModal({ ticketId, isOpen, onClose }: AttachmentsModalProps) {
+export default function AttachmentsModal({
+  const { t } = useLocalization();
+ ticketId, isOpen, onClose }: AttachmentsModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -61,7 +64,7 @@ export default function AttachmentsModal({ ticketId, isOpen, onClose }: Attachme
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('tickets.sucesso')},
         description: "Arquivo anexado com sucesso",
       });
       setSelectedFile(null);
@@ -69,7 +72,7 @@ export default function AttachmentsModal({ ticketId, isOpen, onClose }: Attachme
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: error.message,
         variant: "destructive",
       });
@@ -84,14 +87,14 @@ export default function AttachmentsModal({ ticketId, isOpen, onClose }: Attachme
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('tickets.sucesso')},
         description: "Anexo removido com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "attachments"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: error.message,
         variant: "destructive",
       });
@@ -104,7 +107,7 @@ export default function AttachmentsModal({ ticketId, isOpen, onClose }: Attachme
       // Check file size (30MB limit)
       if (file.size > 30 * 1024 * 1024) {
         toast({
-          title: "Erro",
+          title: {t('tickets.erro')},
           description: "Arquivo muito grande. Limite máximo: 30MB",
           variant: "destructive",
         });

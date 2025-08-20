@@ -93,7 +93,7 @@ export default function Tickets() {
     onError: (error: any) => {
       console.error('❌ [Tickets] API Error:', error);
       toast({
-        title: "Erro ao carregar tickets",
+        title: {t('Tickets.erroAoCarregarTickets')},
         description: "Falha na conexão com a API de tickets",
         variant: "destructive",
       });
@@ -213,7 +213,7 @@ export default function Tickets() {
   const subcategories = (subcategoriesData as any)?.data || [];
   const actions = (actionsData as any)?.data || [];
 
-  console.log('Customers data:', { customersData, customers: customers.length });
+  console.log({t('Tickets.customersData')}, { customersData, customers: customers.length });
 
   // Form setup with new schema
   const form = useForm<NewTicketModalData>({
@@ -279,7 +279,7 @@ export default function Tickets() {
           setFilteredCustomers(customers);
         }
       } catch (error) {
-        console.error('Error fetching customers for company:', error);
+        console.error({t('Tickets.errorFetchingCustomersForCompany')}, error);
         // Fallback: use all customers if API fails
         setFilteredCustomers(customers);
       }
@@ -296,7 +296,7 @@ export default function Tickets() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('Tickets.sucesso')},
         description: "Ticket criado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
@@ -306,7 +306,7 @@ export default function Tickets() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('Tickets.erro')},
         description: error.message || "Falha ao criar ticket",
         variant: "destructive",
       });
@@ -409,7 +409,7 @@ export default function Tickets() {
               Erro ao Carregar Tickets
             </h1>
             <p className="text-red-600 dark:text-red-400">
-              Falha na comunicação com a API: {(error as any)?.message || 'Erro desconhecido'}
+              Falha na comunicação com a API: {(error as any)?.message || {t('Tickets.erroDesconhecido')}}
             </p>
           </div>
         </div>
@@ -523,7 +523,7 @@ export default function Tickets() {
                           >
                             <FormControl>
                               <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Selecione uma empresa" />
+                                <SelectValue placeholder={t('Tickets.selecioneUmaEmpresa')} />
                               </SelectTrigger>
                             </FormControl>
                           <SelectContent>
@@ -563,7 +563,7 @@ export default function Tickets() {
                                   placeholder={
                                     !selectedCompanyId 
                                       ? "Primeiro selecione uma empresa" 
-                                      : "Selecione o cliente"
+                                      : {t('Tickets.selecioneOCliente')}
                                   } 
                                 />
                               </SelectTrigger>
@@ -616,7 +616,7 @@ export default function Tickets() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o favorecido (opcional)" />
+                              <SelectValue placeholder={t('Tickets.selecioneOFavorecidoOpcional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -668,7 +668,7 @@ export default function Tickets() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione a categoria" />
+                              <SelectValue placeholder={t('Tickets.selecioneACategoria')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -701,7 +701,7 @@ export default function Tickets() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={!selectedCategoryId ? "Primeiro selecione uma categoria" : "Selecione a subcategoria"} />
+                              <SelectValue placeholder={!selectedCategoryId ? "Primeiro selecione uma categoria" : {t('Tickets.selecioneASubcategoria')}} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -737,7 +737,7 @@ export default function Tickets() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={!selectedSubcategoryId ? "Primeiro selecione uma subcategoria" : "Selecione a ação"} />
+                              <SelectValue placeholder={!selectedSubcategoryId ? "Primeiro selecione uma subcategoria" : {t('Tickets.selecioneAAcao')}} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -772,7 +772,7 @@ export default function Tickets() {
                               fieldName="priority"
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder="Selecione a prioridade"
+                              placeholder={t('Tickets.selecioneAPrioridade')}
                             />
                           </FormControl>
                           <FormMessage />
@@ -792,7 +792,7 @@ export default function Tickets() {
                               fieldName="urgency"
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder="Selecione a urgência"
+                              placeholder={t('Tickets.selecioneAUrgencia')}
                             />
                           </FormControl>
                           <FormMessage />
@@ -887,7 +887,7 @@ export default function Tickets() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o local de atendimento (opcional)" />
+                              <SelectValue placeholder={t('Tickets.selecioneOLocalDeAtendimentoOpcional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -921,7 +921,7 @@ export default function Tickets() {
                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                     disabled={createTicketMutation.isPending}
                   >
-                    {createTicketMutation.isPending ? "Criando..." : "Criar Ticket"}
+                    {createTicketMutation.isPending ? "Criando..." : {t('Tickets.criarTicket')}}
                   </Button>
                 </div>
             </DialogContent>

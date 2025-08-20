@@ -32,9 +32,12 @@ import { LoadingStateProvider } from "@/components/LoadingStateManager";
 import { ResponsiveTicketsTable } from "@/components/tickets/ResponsiveTicketsTable";
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
+import { useLocalization } from '@/hooks/useLocalization';
 
 // ✅ SCHEMA DINÂMICO para ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
+  const { t } = useLocalization();
+
   // Basic Fields
   description: z.string().min(1, "Descrição é obrigatória"),
   category: z.string().optional(),
@@ -1200,8 +1203,8 @@ const TicketsTable = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar visualização",
+        title: {t('TicketsTable.erro')},
+        description: error.message || {t('TicketsTable.erroAoCriarVisualizacao')},
         variant: "destructive"
       });
     }
@@ -1221,8 +1224,8 @@ const TicketsTable = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao atualizar visualização",
+        title: {t('TicketsTable.erro')},
+        description: error.message || {t('TicketsTable.erroAoAtualizarVisualizacao')},
         variant: "destructive"
       });
     }
@@ -1244,8 +1247,8 @@ const TicketsTable = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao excluir visualização",
+        title: {t('TicketsTable.erro')},
+        description: error.message || {t('TicketsTable.erroAoExcluirVisualizacao')},
         variant: "destructive"
       });
     }
@@ -1265,7 +1268,7 @@ const TicketsTable = React.memo(() => {
   const handleCreateView = () => {
     if (!newViewName.trim()) {
       toast({
-        title: "Erro",
+        title: {t('TicketsTable.erro')},
         description: "Nome da visualização é obrigatório",
         variant: "destructive",
       });
@@ -1409,7 +1412,7 @@ const TicketsTable = React.memo(() => {
   );
 
   // Debug logging
-  console.log('TicketsTable - Data:', {
+  console.log({t('TicketsTable.ticketstableData')}, {
     ticketsError,
     isLoading,
     ticketsCount: tickets.length,
@@ -1464,7 +1467,7 @@ const TicketsTable = React.memo(() => {
         if (!response.ok) {
           const errorData = await response.json();
           console.error('❌ API Error Response:', errorData);
-          throw new Error(errorData.message || "Erro ao criar ticket");
+          throw new Error(errorData.message || {t('TicketsTable.erroAoCriarTicket')});
         }
 
         const result = await response.json();
@@ -1478,7 +1481,7 @@ const TicketsTable = React.memo(() => {
     onSuccess: (data) => {
       console.log("✅ Ticket criado com sucesso:", data);
       toast({
-        title: "Sucesso",
+        title: {t('TicketsTable.sucesso')},
         description: "Ticket criado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
@@ -1489,8 +1492,8 @@ const TicketsTable = React.memo(() => {
     onError: (error: Error) => {
       console.error("❌ Erro ao criar ticket:", error);
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar ticket",
+        title: {t('TicketsTable.erro')},
+        description: error.message || {t('TicketsTable.erroAoCriarTicket')},
         variant: "destructive",
       });
     },
@@ -1507,7 +1510,7 @@ const TicketsTable = React.memo(() => {
     if (!data.subject && !data.description) {
       console.error('❌ Subject or description is required');
       toast({
-        title: "Erro de Validação",
+        title: {t('TicketsTable.erroDeValidacao')},
         description: "Título ou descrição do ticket é obrigatório",
         variant: "destructive",
       });
@@ -1517,7 +1520,7 @@ const TicketsTable = React.memo(() => {
     if (!data.companyId) {
       console.error('❌ Company is required');
       toast({
-        title: "Erro de Validação",
+        title: {t('TicketsTable.erroDeValidacao')},
         description: "Empresa é obrigatória",
         variant: "destructive",
       });
@@ -1527,7 +1530,7 @@ const TicketsTable = React.memo(() => {
     if (!data.callerId) {
       console.error('❌ Customer is required');
       toast({
-        title: "Erro de Validação",
+        title: {t('TicketsTable.erroDeValidacao')},
         description: "Cliente é obrigatório",
         variant: "destructive",
       });
@@ -1580,14 +1583,14 @@ const TicketsTable = React.memo(() => {
   };
 
   const handleEdit = (ticket: any) => {
-    console.log('Edit ticket:', ticket.id);
+    console.log({t('TicketsTable.editTicket')}, ticket.id);
     navigate(`/tickets/${ticket.id}`);
   };
 
   const handleDelete = (ticketId: string) => {
     if (confirm("Are you sure you want to delete this ticket?")) {
       // Redirect to the unified page where delete functionality is handled
-      console.log("Delete ticket:", ticketId);
+      console.log({t('TicketsTable.deleteTicket')}, ticketId);
     }
   };
 
@@ -1624,7 +1627,7 @@ const TicketsTable = React.memo(() => {
                 : 'Por favor, preencha todos os campos obrigatórios';
 
               toast({
-                title: "Erro de Validação",
+                title: {t('TicketsTable.erroDeValidacao')},
                 description: errorText,
                 variant: "destructive",
               });
@@ -1663,7 +1666,7 @@ const TicketsTable = React.memo(() => {
                       fieldName="category"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select category"
+                      placeholder={t('TicketsTable.selectCategory')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1703,7 +1706,7 @@ const TicketsTable = React.memo(() => {
                       fieldName="priority"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select priority"
+                      placeholder={t('TicketsTable.selectPriority')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1722,7 +1725,7 @@ const TicketsTable = React.memo(() => {
                       fieldName="impact"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select impact"
+                      placeholder={t('TicketsTable.selectImpact')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1741,7 +1744,7 @@ const TicketsTable = React.memo(() => {
                       fieldName="urgency"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select urgency"
+                      placeholder={t('TicketsTable.selectUrgency')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1778,7 +1781,7 @@ const TicketsTable = React.memo(() => {
                           form.setValue('beneficiaryType', personType);
                         }
                       }}
-                      placeholder="Buscar cliente..."
+                      placeholder={t('TicketsTable.buscarCliente')}
                       allowedTypes={['user', 'customer']}
                     />
                   </FormControl>
@@ -1800,7 +1803,7 @@ const TicketsTable = React.memo(() => {
                         field.onChange(personId);
                         form.setValue('beneficiaryType', personType);
                       }}
-                      placeholder="Buscar favorecido (opcional)..."
+                      placeholder={t('TicketsTable.buscarFavorecidoOpcional')}
                       allowedTypes={['user', 'customer']}
                     />
                   </FormControl>
@@ -1818,7 +1821,7 @@ const TicketsTable = React.memo(() => {
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select agent" />                      </SelectTrigger>
+                        <SelectValue placeholder={t('TicketsTable.selectAgent')} />                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
@@ -1844,7 +1847,7 @@ const TicketsTable = React.memo(() => {
                     <UserGroupSelect
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Selecione um grupo"
+                      placeholder={t('TicketsTable.selecioneUmGrupo')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1875,7 +1878,7 @@ const TicketsTable = React.memo(() => {
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select contact type" />
+                        <SelectValue placeholder={t('TicketsTable.selectContactType')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1986,7 +1989,7 @@ const TicketsTable = React.memo(() => {
           >
             {createTicketMutation.isPending
               ? "Creating..."
-              : "Create Ticket"
+              : {t('TicketsTable.createTicket')}
             }
           </Button>
         </div>
@@ -2072,7 +2075,7 @@ const TicketsTable = React.memo(() => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search tickets..."
+                placeholder={t('TicketsTable.searchTickets')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -2082,14 +2085,14 @@ const TicketsTable = React.memo(() => {
               fieldName="status"
               value={statusFilter}
               onValueChange={setStatusFilter}
-              placeholder="Filter by status"
+              placeholder={t('TicketsTable.filterByStatus')}
               showAllOption={true}
             />
             <DynamicSelect
               fieldName="priority"
               value={priorityFilter}
               onValueChange={setPriorityFilter}
-              placeholder="Filter by priority"
+              placeholder={t('TicketsTable.filterByPriority')}
               showAllOption={true}
             />
             <Button variant="outline" onClick={() => {
@@ -2164,7 +2167,7 @@ const TicketsTable = React.memo(() => {
       <Dialog open={isNewViewDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingView ? "Editar Visualização" : "Criar Nova Visualização"}</DialogTitle>
+            <DialogTitle>{editingView ? {t('TicketsTable.editarVisualizacao')} : {t('TicketsTable.criarNovaVisualizacao')}}</DialogTitle>
             <DialogDescription>
               Configure sua visualização personalizada de tickets
             </DialogDescription>
@@ -2244,7 +2247,7 @@ const TicketsTable = React.memo(() => {
               Cancelar
             </Button>
             <Button type="button" onClick={handleCreateView} disabled={!newViewName.trim()}>
-              {editingView ? "Salvar Alterações" : "Criar Visualização"}
+              {editingView ? {t('TicketsTable.salvarAlteracoes')} : {t('TicketsTable.criarVisualizacao')}}
             </Button>
           </div>
         </DialogContent>
@@ -2298,7 +2301,7 @@ const TicketsTable = React.memo(() => {
                 <Label>Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o status" />
+                    <SelectValue placeholder={t('TicketsTable.selecioneOStatus')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
@@ -2315,7 +2318,7 @@ const TicketsTable = React.memo(() => {
                 <Label>Prioridade</Label>
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione a prioridade" />
+                    <SelectValue placeholder={t('TicketsTable.selecioneAPrioridade')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
@@ -2332,7 +2335,7 @@ const TicketsTable = React.memo(() => {
                 <Label>Empresa</Label>
                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma empresa" />
+                    <SelectValue placeholder={t('TicketsTable.selecioneUmaEmpresa')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as empresas</SelectItem>
@@ -2350,7 +2353,7 @@ const TicketsTable = React.memo(() => {
                 <Label>Categoria</Label>
                 <Select value="" onValueChange={() => {}}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
+                    <SelectValue placeholder={t('TicketsTable.selecioneUmaCategoria')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as categorias</SelectItem>
@@ -2367,7 +2370,7 @@ const TicketsTable = React.memo(() => {
                 <Label>Responsável</Label>
                 <Select value="" onValueChange={() => {}}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um responsável" />
+                    <SelectValue placeholder={t('TicketsTable.selecioneUmResponsavel')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os responsáveis</SelectItem>
@@ -2433,6 +2436,6 @@ const TicketsTable = React.memo(() => {
   );
 });
 
-TicketsTable.displayName = 'TicketsTable';
+TicketsTable.displayName = {t('TicketsTable.ticketstable')};
 
 export default TicketsTable;

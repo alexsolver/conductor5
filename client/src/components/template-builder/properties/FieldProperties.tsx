@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Plus,
   Minus,
   Eye,
@@ -67,6 +68,8 @@ interface FieldPropertiesProps {
 }
 
 export const FieldProperties: React.FC<FieldPropertiesProps> = ({
+  const { t } = useLocalization();
+
   field,
   onChange
 }) => {
@@ -362,7 +365,7 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     <Input
                       value={newValidation.message}
                       onChange={(e) => setNewValidation({ ...newValidation, message: e.target.value })}
-                      placeholder="Mensagem a ser exibida em caso de erro"
+                      placeholder={t('template-builder.mensagemASerExibidaEmCasoDeErro')}
                     />
                   </div>
 

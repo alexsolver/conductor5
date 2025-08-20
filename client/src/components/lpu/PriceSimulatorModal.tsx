@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calculator, TrendingUp, Info, CheckCircle } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface PriceSimulatorModalProps {
   open: boolean;
@@ -18,6 +19,8 @@ interface PriceSimulatorModalProps {
 }
 
 export default function PriceSimulatorModal({
+  const { t } = useLocalization();
+
   open,
   onOpenChange,
   priceLists,
@@ -158,7 +161,7 @@ export default function PriceSimulatorModal({
                   onValueChange={(value) => setSimulation(prev => ({ ...prev, priceListId: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma lista" />
+                    <SelectValue placeholder={t('lpu.selecioneUmaLista')} />
                   </SelectTrigger>
                   <SelectContent>
                     {priceLists.map(list => (
@@ -198,7 +201,7 @@ export default function PriceSimulatorModal({
                   onValueChange={(value) => setSimulation(prev => ({ ...prev, itemCategory: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
+                    <SelectValue placeholder={t('lpu.selecioneUmaCategoria')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="materiais">Materiais</SelectItem>

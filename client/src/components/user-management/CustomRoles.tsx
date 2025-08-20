@@ -80,17 +80,17 @@ const PERMISSION_CATEGORIES = {
   'hr_team': 'Recursos Humanos e Equipe',
   'timecard': 'Timecard e Ponto',
   // 'projects': Completely removed - module eliminated from system
-  'analytics': 'Analytics e Relatórios',
-  'settings': 'Configurações e Personalização',
+  'analytics': {t('user-management.analyticsERelatorios')},
+  'settings': {t('user-management.configuracoesEPersonalizacao')},
   'multilocation': 'Localização e Multilocation',
   'compliance': 'Compliance e Segurança'
 };
 
 const PERMISSION_LEVELS = {
   'view': 'Visualizar',
-  'create': 'Criar',
-  'edit': 'Editar',
-  'delete': 'Excluir',
+  'create': {t('user-management.criar')},
+  'edit': {t('user-management.editar')},
+  'delete': {t('user-management.excluir')},
   'manage': 'Administrar',
   'configure': 'Configurar'
 };
@@ -135,14 +135,14 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       setFormData({ name: "", description: "" });
       setSelectedPermissions([]);
       toast({
-        title: "Sucesso",
+        title: {t('user-management.sucesso')},
         description: "Papel criado com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao criar papel",
+        title: {t('user-management.erro')},
+        description: {t('user-management.erroAoCriarPapel')},
         variant: "destructive",
       });
     },
@@ -157,14 +157,14 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       setFormData({ name: "", description: "" });
       setSelectedPermissions([]);
       toast({
-        title: "Sucesso",
+        title: {t('user-management.sucesso')},
         description: "Papel atualizado com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar papel",
+        title: {t('user-management.erro')},
+        description: {t('user-management.erroAoAtualizarPapel')},
         variant: "destructive",
       });
     },
@@ -175,14 +175,14 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
-        title: "Sucesso",
+        title: {t('user-management.sucesso')},
         description: "Papel excluído com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao excluir papel",
+        title: {t('user-management.erro')},
+        description: {t('user-management.erroAoExcluirPapel')},
         variant: "destructive",
       });
     },
@@ -194,14 +194,14 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
-        title: "Sucesso",
+        title: {t('user-management.sucesso')},
         description: "Usuário atribuído ao papel com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao atribuir usuário ao papel",
+        title: {t('user-management.erro')},
+        description: {t('user-management.erroAoAtribuirUsuarioAoPapel')},
         variant: "destructive",
       });
     },
@@ -213,14 +213,14 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
-        title: "Sucesso",
+        title: {t('user-management.sucesso')},
         description: "Usuário removido do papel com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao remover usuário do papel",
+        title: {t('user-management.erro')},
+        description: {t('user-management.erroAoRemoverUsuarioDoPapel')},
         variant: "destructive",
       });
     },
@@ -339,7 +339,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         id="name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Ex: Administrador de Tickets"
+                        placeholder={t('user-management.exAdministradorDeTickets')}
                         required
                       />
                     </div>
@@ -399,7 +399,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createRoleMutation.isPending || !formData.name.trim()}>
-                  {createRoleMutation.isPending ? "Criando..." : "Criar Papel"}
+                  {createRoleMutation.isPending ? "Criando..." : {t('user-management.criarPapel')}}
                 </Button>
               </DialogFooter>
             </form>
@@ -442,7 +442,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         id="edit-name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Ex: Administrador de Tickets"
+                        placeholder={t('user-management.exAdministradorDeTickets')}
                         required
                       />
                     </div>
@@ -525,7 +525,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                     }}
                     disabled={updateRoleMutation.isPending}
                   >
-                    {updateRoleMutation.isPending ? "Atualizando..." : "Salvar Permissões"}
+                    {updateRoleMutation.isPending ? "Atualizando..." : {t('user-management.salvarPermissoes')}}
                   </Button>
                 </div>
               </TabsContent>

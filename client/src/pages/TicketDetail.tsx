@@ -210,7 +210,7 @@ export default function TicketDetail() {
     queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}/attachments`] });
     queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}`] });
     toast({
-      title: 'Upload successful',
+      title: {t('TicketDetail.uploadSuccessful')},
       description: 'Files uploaded successfully.',
     });
   };
@@ -318,7 +318,7 @@ export default function TicketDetail() {
             <CardContent>
               <div className="prose max-w-none">
                 <p className="text-gray-700 whitespace-pre-wrap">
-                  {ticket.description || 'Nenhuma descrição fornecida.'}
+                  {ticket.description || {t('TicketDetail.nenhumaDescricaoFornecida')}}
                 </p>
               </div>
             </CardContent>

@@ -12,6 +12,8 @@ import { useLocation } from "wouter";
 import { renderAddressSafely, formatCompanyDisplay, getFieldSafely, formatCustomerName } from "@/utils/addressFormatter";
 
 export default function Customers() {
+  const { t } = useLocalization();
+
   const [, setLocation] = useLocation();
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -20,9 +22,10 @@ export default function Customers() {
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const { apiRequest } = await import('../lib/queryClient');
+import { useLocalization } from '@/hooks/useLocalization';
       const response = await apiRequest('GET', '/api/customers');
       const data = await response.json();
-      console.log('Customers API Response:', data);
+      console.log({t('Customers.customersApiResponse')}, data);
       return data;
     },
     retry: false,
@@ -99,7 +102,7 @@ export default function Customers() {
     }
   };
 
-  console.log('Customers data:', { customers, total, error, isLoading });
+  console.log({t('Customers.customersData')}, { customers, total, error, isLoading });
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);

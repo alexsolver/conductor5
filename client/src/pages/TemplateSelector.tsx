@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe, Loader2, Settings, Moon, Sun, Sunset, Camera, Brush, Heart } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface Template {
   id: string;
@@ -167,7 +168,9 @@ const templates: Template[] = [
 ];
 
 // Color Picker Component
-function ColorPicker({ color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
+function ColorPicker({
+  const { t } = useLocalization();
+ color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">{label}</Label>
@@ -432,7 +435,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao aplicar tema",
+        title: {t('TemplateSelector.erroAoAplicarTema')},
         description: error.message,
         variant: "destructive",
       });
@@ -460,7 +463,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao resetar tema",
+        title: {t('TemplateSelector.erroAoResetarTema')},
         description: error.message,
         variant: "destructive",
       });
@@ -627,7 +630,7 @@ export function TemplateSelector() {
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             disabled={!selectedTemplate || applyTemplateMutation.isPending}
           >
-            {selectedTemplate ? 'Tema Selecionado' : 'Selecione um Tema'}
+            {selectedTemplate ? 'Tema Selecionado' : {t('TemplateSelector.selecioneUmTema')}}
           </Button>
           <Button 
             size="lg" 

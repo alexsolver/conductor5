@@ -359,6 +359,8 @@ const defaultThemes: Theme[] = [
 ];
 
 export const ThemeManager: React.FC<ThemeManagerProps> = ({
+  const { t } = useLocalization();
+
   currentTheme,
   onThemeChange,
   onThemeUpdate,
@@ -458,7 +460,8 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
         const customThemes = updatedThemes.filter(t => t.isCustom);
         localStorage.setItem('customThemes', JSON.stringify(customThemes));
       } catch (error) {
-        console.error('Erro ao importar tema:', error);
+        console.error({t('template-builder.erroAoImportarTema')}, error);
+import { useLocalization } from '@/hooks/useLocalization';
       }
     };
     reader.readAsText(file);

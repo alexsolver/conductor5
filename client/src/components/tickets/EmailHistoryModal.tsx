@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface EmailHistoryModalProps {
   ticketId: string;
@@ -42,7 +43,9 @@ interface EmailTemplate {
   content: string;
 }
 
-export default function EmailHistoryModal({ ticketId, isOpen, onClose }: EmailHistoryModalProps) {
+export default function EmailHistoryModal({
+  const { t } = useLocalization();
+ ticketId, isOpen, onClose }: EmailHistoryModalProps) {
   const [activeTab, setActiveTab] = useState("history");
   const [replyTo, setReplyTo] = useState("");
   const [subject, setSubject] = useState("");
@@ -79,7 +82,7 @@ export default function EmailHistoryModal({ ticketId, isOpen, onClose }: EmailHi
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('tickets.sucesso')},
         description: "E-mail enviado com sucesso",
       });
       setReplyTo("");
@@ -90,7 +93,7 @@ export default function EmailHistoryModal({ ticketId, isOpen, onClose }: EmailHi
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: error.message || "Falha ao enviar e-mail",
         variant: "destructive",
       });
@@ -109,7 +112,7 @@ export default function EmailHistoryModal({ ticketId, isOpen, onClose }: EmailHi
   const handleSendEmail = () => {
     if (!replyTo.trim() || !subject.trim() || !content.trim()) {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: "Por favor, preencha todos os campos obrigatórios",
         variant: "destructive",
       });
@@ -259,7 +262,7 @@ export default function EmailHistoryModal({ ticketId, isOpen, onClose }: EmailHi
                       <label className="text-sm font-medium">Template de E-mail</label>
                       <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
                         <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Selecione um template (opcional)" />
+                          <SelectValue placeholder={t('tickets.selecioneUmTemplateOpcional')} />
                         </SelectTrigger>
                         <SelectContent>
                           {templates.map((template: EmailTemplate) => (

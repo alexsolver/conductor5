@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Package2, 
   MapPin, 
   Wrench, 
@@ -67,6 +68,8 @@ interface AssetStats {
 }
 
 export default function AssetManagement() {
+  const { t } = useLocalization();
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -269,7 +272,7 @@ export default function AssetManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAssetMutation.isPending}>
-                    {createAssetMutation.isPending ? 'Criando...' : 'Criar Ativo'}
+                    {createAssetMutation.isPending ? 'Criando...' : {t('AssetManagement.criarAtivo')}}
                   </Button>
                 </div>
               </form>
@@ -305,7 +308,7 @@ export default function AssetManagement() {
                   <Label htmlFor="assetId">Ativo</Label>
                   <Select name="assetId" required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o ativo" />
+                      <SelectValue placeholder={t('AssetManagement.selecioneOAtivo')} />
                     </SelectTrigger>
                     <SelectContent>
                       {filteredAssets.map((asset: Asset) => (
@@ -443,7 +446,7 @@ export default function AssetManagement() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Buscar ativos..."
+                placeholder={t('AssetManagement.buscarAtivos')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -451,7 +454,7 @@ export default function AssetManagement() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filtrar por status" />
+                <SelectValue placeholder={t('AssetManagement.filtrarPorStatus')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>

@@ -25,7 +25,9 @@ interface AreaFormProps {
 }
 
 // Componente para seleção de cores predefinidas
-const ColorPicker = ({ value, onChange }) => {
+const ColorPicker = ({
+  const { t } = useLocalization();
+ value, onChange }) => {
   const coresPredefinidas = [
     { cor: "#3B82F6", nome: "Azul" },
     { cor: "#EF4444", nome: "Vermelho" },
@@ -296,12 +298,12 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
         });
 
         toast({
-          title: "Arquivo carregado com sucesso",
+          title: {t('locations.arquivoCarregadoComSucesso')},
           description: `${file.name} foi processado`
         });
       } catch (error) {
         toast({
-          title: "Erro ao processar arquivo",
+          title: {t('locations.erroAoProcessarArquivo')},
           description: "Verifique se o arquivo está no formato correto",
           variant: "destructive"
         });
@@ -424,6 +426,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
         );
 
       case 'importar_area':
+import { useLocalization } from '@/hooks/useLocalization';
         return (
           <ArquivoUploader
             onArquivoUpload={(dadosArquivo) => {
@@ -548,7 +551,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo de área" />
+                          <SelectValue placeholder={t('locations.selecioneOTipoDeArea')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -634,7 +637,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
               disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? "Criando..." : "Criar Área"}
+              {isLoading ? "Criando..." : {t('locations.criarArea')}}
             </Button>
           </div>
         </form>

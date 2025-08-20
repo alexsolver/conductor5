@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Search, 
   Plus, 
   Award,
@@ -28,6 +29,8 @@ import {
 
 // Schema para criação de habilidades
 const skillFormSchema = z.object({
+  const { t } = useLocalization();
+
   name: z.string().min(1, "Nome é obrigatório").max(255),
   category: z.string().min(1, "Categoria é obrigatória"),
   suggestedCertification: z.string().optional(),
@@ -308,7 +311,7 @@ export default function TechnicalSkills() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma categoria" />
+                            <SelectValue placeholder={t('TechnicalSkills.selecioneUmaCategoria')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -419,7 +422,7 @@ export default function TechnicalSkills() {
                     <FormItem>
                       <FormLabel>Observações (Opcional)</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Observações adicionais sobre a habilidade..." {...field} />
+                        <Textarea placeholder={t('TechnicalSkills.observacoesAdicionaisSobreAHabilidade')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -431,7 +434,7 @@ export default function TechnicalSkills() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createSkillMutation.isPending}>
-                    {createSkillMutation.isPending ? "Criando..." : "Criar"}
+                    {createSkillMutation.isPending ? "Criando..." : {t('TechnicalSkills.criar')}}
                   </Button>
                 </div>
               </form>
@@ -492,7 +495,7 @@ export default function TechnicalSkills() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Buscar habilidades..."
+            placeholder={t('TechnicalSkills.buscarHabilidades')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -718,7 +721,7 @@ export default function TechnicalSkills() {
                   <FormItem>
                     <FormLabel>Observações (Opcional)</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Observações adicionais sobre a habilidade..." {...field} />
+                      <Textarea placeholder={t('TechnicalSkills.observacoesAdicionaisSobreAHabilidade')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -730,7 +733,7 @@ export default function TechnicalSkills() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={updateSkillMutation.isPending}>
-                  {updateSkillMutation.isPending ? "Salvando..." : "Salvar"}
+                  {updateSkillMutation.isPending ? "Salvando..." : {t('TechnicalSkills.salvar')}}
                 </Button>
               </div>
             </form>

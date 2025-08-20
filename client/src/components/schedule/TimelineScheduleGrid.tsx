@@ -6,6 +6,7 @@ import { Clock, MapPin, Search, Home, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import SimpleAvatar from '@/components/SimpleAvatar';
 import InternalActionDetailsModal from './InternalActionDetailsModal';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface Schedule {
   id: string;
@@ -61,6 +62,8 @@ interface TimelineScheduleGridProps {
 }
 
 const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
+  const { t } = useLocalization();
+
   schedules,
   activityTypes,
   agents,
@@ -373,7 +376,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Buscar técnico..."
+              placeholder={t('schedule.buscarTecnico')}
               className="pl-10"
               value={searchAgent}
               onChange={(e) => setSearchAgent(e.target.value)}

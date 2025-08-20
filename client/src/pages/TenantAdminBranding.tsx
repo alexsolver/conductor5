@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface BrandingSettings {
   logo: {
@@ -70,6 +71,8 @@ interface BrandingSettings {
 }
 
 const defaultSettings: BrandingSettings = {
+  const { t } = useLocalization();
+
   logo: {
     url: "",
     darkUrl: "",
@@ -159,13 +162,13 @@ export default function TenantAdminBranding() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/branding'] });
       toast({
-        title: "Configurações salvas",
+        title: {t('TenantAdminBranding.configuracoesSalvas')},
         description: "As configurações de branding foram atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao salvar",
+        title: {t('TenantAdminBranding.erroAoSalvar')},
         description: error.message,
         variant: "destructive",
       });
@@ -249,7 +252,7 @@ export default function TenantAdminBranding() {
             className="gradient-primary text-white hover:opacity-90"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveSettingsMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            {saveSettingsMutation.isPending ? 'Salvando...' : {t('TenantAdminBranding.salvarAlteracoes')}}
           </Button>
         </div>
       </div>
@@ -636,7 +639,7 @@ export default function TenantAdminBranding() {
                   <Input
                     value={settings.customization.footerText}
                     onChange={(e) => updateSetting('customization.footerText', e.target.value)}
-                    placeholder="© 2024 Minha Empresa. Todos os direitos reservados."
+                    placeholder={t('TenantAdminBranding.2024MinhaEmpresaTodosOsDireitosReservados')}
                   />
                 </div>
               </CardContent>

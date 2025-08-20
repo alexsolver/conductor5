@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Search, 
   Link2, 
   GitBranch,
@@ -55,7 +56,7 @@ interface TicketLinkingModalProps {
 }
 
 const RELATIONSHIP_TYPES = [
-  { value: "related", label: "Relacionado", icon: Link2, description: "Tickets relacionados" },
+  { value: "related", label: "Relacionado", icon: Link2, description: {t('tickets.ticketsRelacionados')} },
   { value: "duplicate", label: "Duplicado", icon: Copy, description: "Ticket duplicado" },
   { value: "blocks", label: "Bloqueia", icon: AlertTriangle, description: "Bloqueia outro ticket" },
   { value: "caused_by", label: "Causado por", icon: ArrowRight, description: "Causado por outro ticket" },
@@ -63,7 +64,9 @@ const RELATIONSHIP_TYPES = [
   { value: "follows", label: "Segue", icon: Workflow, description: "Segue outro ticket" },
 ];
 
-export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: TicketLinkingModalProps) {
+export default function TicketLinkingModal({
+  const { t } = useLocalization();
+ isOpen, onClose, currentTicket }: TicketLinkingModalProps) {
   // Early return if currentTicket is not provided
   if (!currentTicket) {
     return null;
@@ -183,7 +186,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('tickets.sucesso')},
         description: "Chamado vinculado com sucesso",
       });
       if (currentTicket?.id) {
@@ -205,7 +208,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: error.message || "Falha ao vincular chamado",
         variant: "destructive",
       });
@@ -219,7 +222,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('tickets.sucesso')},
         description: "Vínculo removido com sucesso",
       });
       if (currentTicket?.id) {
@@ -238,7 +241,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: error.message || "Falha ao remover vínculo",
         variant: "destructive",
       });
@@ -248,8 +251,8 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const handleLinkTickets = () => {
     if (selectedTickets.length === 0 || !relationshipType) {
       toast({
-        title: "Erro",
-        description: "Selecione pelo menos um chamado e tipo de relação",
+        title: {t('tickets.erro')},
+        description: {t('tickets.selecionePeloMenosUmChamadoETipoDeRelacao')},
         variant: "destructive",
       });
       return;
@@ -354,7 +357,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     value={selectedCustomerId}
                     onChange={setSelectedCustomerId}
                     selectedCompanyId={((currentTicket as any)?.companyId || (currentTicket as any)?.company_id)}
-                    placeholder="Todos os clientes desta empresa"
+                    placeholder={t('tickets.todosOsClientesDestaEmpresa')}
                     className="w-full"
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -382,7 +385,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                   <Label htmlFor="status-filter">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos os status" />
+                      <SelectValue placeholder={t('tickets.todosOsStatus')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
@@ -600,7 +603,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     <Label htmlFor="relationshipType">Tipo de Relação</Label>
                     <Select value={relationshipType} onValueChange={setRelationshipType}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de relação" />
+                        <SelectValue placeholder={t('tickets.selecioneOTipoDeRelacao')} />
                       </SelectTrigger>
                       <SelectContent>
                         {RELATIONSHIP_TYPES.map((type) => {

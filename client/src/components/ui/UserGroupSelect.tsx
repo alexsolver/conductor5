@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, Users } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface UserGroupSelectProps {
   value?: string;
@@ -19,10 +20,12 @@ interface UserGroup {
 }
 
 export function UserGroupSelect({
+  const { t } = useLocalization();
+
   value,
   onChange,
   onValueChange,
-  placeholder = "Selecione um grupo",
+  placeholder = {t('ui.selecioneUmGrupo')},
   disabled = false
 }: UserGroupSelectProps) {
   const { data: groupsData, isLoading, error } = useQuery<{ success: boolean; data: UserGroup[] }>({

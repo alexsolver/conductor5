@@ -36,9 +36,12 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocalization } from '@/hooks/useLocalization';
 
 // ✅ 1QA.MD COMPLIANCE: ZOD SCHEMA VALIDATION
 const createContractSchema = z.object({
+  const { t } = useLocalization();
+
   contractNumber: z.string().min(1, 'Número do contrato é obrigatório'),
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   contractType: z.enum(['service', 'supply', 'maintenance', 'rental', 'sla']),
@@ -118,7 +121,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
       toast({
-        title: "Sucesso",
+        title: {t('forms.sucesso')},
         description: "Contrato criado com sucesso",
       });
       form.reset();
@@ -129,9 +132,9 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
       }
     },
     onError: (error: any) => {
-      console.error('Error creating contract:', error);
+      console.error({t('forms.errorCreatingContract')}, error);
       toast({
-        title: "Erro",
+        title: {t('forms.erro')},
         description: error?.message || "Falha ao criar contrato",
         variant: "destructive",
       });
@@ -217,7 +220,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-contract-type">
-                            <SelectValue placeholder="Selecione o tipo" />
+                            <SelectValue placeholder={t('forms.selecioneOTipo')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -242,7 +245,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-priority">
-                            <SelectValue placeholder="Selecione a prioridade" />
+                            <SelectValue placeholder={t('forms.selecioneAPrioridade')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -443,7 +446,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-currency">
-                            <SelectValue placeholder="Selecione a moeda" />
+                            <SelectValue placeholder={t('forms.selecioneAMoeda')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -558,7 +561,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                 disabled={createContractMutation.isPending}
                 data-testid="button-save-contract"
               >
-                {createContractMutation.isPending ? 'Salvando...' : 'Criar Contrato'}
+                {createContractMutation.isPending ? 'Salvando...' : {t('forms.criarContrato')}}
               </Button>
             </DialogFooter>
           </form>

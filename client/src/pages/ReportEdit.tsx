@@ -21,9 +21,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema for report editing
 const reportSchema = z.object({
+  const { t } = useLocalization();
+
   name: z.string().min(1, "Report name is required"),
   description: z.string().optional(),
   dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
@@ -107,7 +110,7 @@ export default function ReportEdit() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso!",
+        title: {t('ReportEdit.sucesso')},
         description: "Relatório atualizado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -116,7 +119,7 @@ export default function ReportEdit() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: {t('ReportEdit.erro')},
         description: error?.message || "Falha ao atualizar relatório.",
         variant: "destructive",
       });
@@ -127,7 +130,7 @@ export default function ReportEdit() {
     mutationFn: () => apiRequest("DELETE", `/api/reports-dashboards/reports/${reportId}`),
     onSuccess: () => {
       toast({
-        title: "Sucesso!",
+        title: {t('ReportEdit.sucesso')},
         description: "Relatório excluído com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -135,7 +138,7 @@ export default function ReportEdit() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: {t('ReportEdit.erro')},
         description: error?.message || "Falha ao excluir relatório.",
         variant: "destructive",
       });
@@ -225,7 +228,7 @@ export default function ReportEdit() {
               Editar Relatório
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              {reportData?.data?.name || 'Carregando...'}
+              {reportData?.data?.name || {t('ReportEdit.carregando')}}
             </p>
           </div>
         </div>
@@ -245,7 +248,7 @@ export default function ReportEdit() {
             data-testid="button-delete-report"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            {deleteReportMutation.isPending ? "Excluindo..." : "Excluir"}
+            {deleteReportMutation.isPending ? "Excluindo..." : {t('ReportEdit.excluir')}}
           </Button>
           <Button
             onClick={form.handleSubmit(handleUpdateReport)}
@@ -396,7 +399,7 @@ export default function ReportEdit() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder="Selecione a categoria" />
+                                <SelectValue placeholder={t('ReportEdit.selecioneACategoria')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -429,7 +432,7 @@ export default function ReportEdit() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-access-level">
-                                <SelectValue placeholder="Selecione o nível de acesso" />
+                                <SelectValue placeholder={t('ReportEdit.selecioneONivelDeAcesso')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -455,7 +458,7 @@ export default function ReportEdit() {
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-data-source">
-                                    <SelectValue placeholder="Selecione a fonte de dados" />
+                                    <SelectValue placeholder={t('ReportEdit.selecioneAFonteDeDados')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -561,7 +564,7 @@ export default function ReportEdit() {
                               Configuração Básica
                             </h5>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "Configurações Básicas".
+                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba {t('ReportEdit.configuracoesBasicas')}.
                             </p>
                           </div>
                         </div>
@@ -613,7 +616,7 @@ export default function ReportEdit() {
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-schedule-type">
-                                  <SelectValue placeholder="Selecione o tipo" />
+                                  <SelectValue placeholder={t('ReportEdit.selecioneOTipo')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

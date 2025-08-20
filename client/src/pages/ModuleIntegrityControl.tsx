@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   CheckCircle, 
   XCircle, 
   AlertTriangle, 
@@ -85,6 +86,8 @@ interface IntegrityCheck {
 }
 
 const moduleIcons = {
+  const { t } = useLocalization();
+
   auth: Shield,
   customers: Users,
   tickets: Ticket,
@@ -139,7 +142,7 @@ export default function ModuleIntegrityControl() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro na Verificação",
+        title: {t('ModuleIntegrityControl.erroNaVerificacao')},
         description: error.message,
         variant: "destructive",
       });

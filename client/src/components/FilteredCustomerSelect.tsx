@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 import { useCompanyCustomers } from '@/hooks/useCompanyCustomers';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface FilteredCustomerSelectProps {
   value?: string;
@@ -13,7 +14,9 @@ interface FilteredCustomerSelectProps {
   className?: string;
 }
 
-export function FilteredCustomerSelect({ 
+export function FilteredCustomerSelect({
+  const { t } = useLocalization();
+ 
   value, 
   onChange, 
   selectedCompanyId,
@@ -69,7 +72,7 @@ export function FilteredCustomerSelect({
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder="Carregando clientes..." />
+          <SelectValue placeholder={t('FilteredCustomerSelect.tsx.carregandoClientes')} />
         </SelectTrigger>
       </Select>
     );

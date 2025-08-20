@@ -81,6 +81,8 @@ interface TenantIntegration {
 
 // ✅ VALIDATION: Schema for integration configurations
 const integrationConfigSchema = z.object({
+  const { t } = useLocalization();
+
   enabled: z.boolean().default(false),
   useSSL: z.boolean().default(false),
   apiKey: z.string().optional(),
@@ -97,7 +99,7 @@ const integrationConfigSchema = z.object({
   // IMAP specific fields
   imapServer: z.string().optional(),
   imapPort: z.string().optional(),
-  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', 'None']).optional(),
+  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', {t('TenantAdminIntegrations.none')}]).optional(),
   emailAddress: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
     message: "Deve ser um email válido"
   }),
@@ -208,7 +210,7 @@ export default function TenantAdminIntegrations() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao salvar configuração",
+        title: {t('TenantAdminIntegrations.erroAoSalvarConfiguracao')},
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -267,7 +269,7 @@ export default function TenantAdminIntegrations() {
       }
     } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro:', error);
-      let errorMessage = 'Erro desconhecido';
+      let errorMessage = {t('TenantAdminIntegrations.erroDesconhecido')};
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
@@ -333,7 +335,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || 'Erro ao configurar webhook',
+          message: result.message || result.error || {t('TenantAdminIntegrations.erroAoConfigurarWebhook')},
           details: result
         });
       }
@@ -341,7 +343,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: `Erro de conexão ao configurar webhook: ${error.message}`,
+        message: {t('TenantAdminIntegrations.erroDeConexaoAoConfigurarWebhookErrormessage')},
         error: error
       });
     } finally {
@@ -389,7 +391,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || 'Erro ao configurar webhook padrão',
+          message: result.message || result.error || {t('TenantAdminIntegrations.erroAoConfigurarWebhookPadrao')},
           details: result
         });
       }
@@ -397,7 +399,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: `Erro de conexão ao configurar webhook padrão: ${error.message}`,
+        message: {t('TenantAdminIntegrations.erroDeConexaoAoConfigurarWebhookPadraoErrormessage')},
         error: error
       });
     } finally {
@@ -439,7 +441,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-STATUS] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || 'Erro ao obter status do webhook',
+          message: result.message || result.error || {t('TenantAdminIntegrations.erroAoObterStatusDoWebhook')},
           details: result
         });
       }
@@ -447,7 +449,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
+        message: {t('TenantAdminIntegrations.erroDeConexaoAoVerificarStatusDoWebhookErrormessage')},
         error: error
       });
     } finally {
@@ -495,7 +497,7 @@ export default function TenantAdminIntegrations() {
       icon: Mail,
       status: 'disconnected',
       configured: false,
-      features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
+      features: ['Notificações por email', {t('TenantAdminIntegrations.ticketsPorEmail')}, {t('TenantAdminIntegrations.relatoriosAutomaticos')}]
     },
     {
       id: 'imap-email',
@@ -532,6 +534,7 @@ export default function TenantAdminIntegrations() {
       name: 'Twilio SMS',
       category: 'Comunicação',
       description: 'Envio de SMS para notificações e alertas importantes',
+import { useLocalization } from '@/hooks/useLocalization';
       icon: Phone,
       status: 'disconnected',
       configured: false,
@@ -577,7 +580,7 @@ export default function TenantAdminIntegrations() {
       icon: BarChart3,
       status: 'disconnected',
       configured: false,
-      features: ['Métricas de conversão', 'Funis de atendimento', 'Relatórios customizados']
+      features: ['Métricas de conversão', 'Funis de atendimento', {t('TenantAdminIntegrations.relatoriosCustomizados')}]
     },
     {
       id: 'crm-integration',
@@ -861,17 +864,17 @@ export default function TenantAdminIntegrations() {
       console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
 
       // ✅ IMPROVED: Tratamento de erro mais robusto
-      const errorMessage = error?.message || 'Erro desconhecido';
+      const errorMessage = error?.message || {t('TenantAdminIntegrations.erroDesconhecido')};
       const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('Network');
 
       // Fallback values if an error occurs during loading
       configForm.reset(getDefaultValues(integration.id));
 
       toast({
-        title: "⚠️ Erro ao carregar configuração",
+        title: {t('TenantAdminIntegrations.erroAoCarregarConfiguracao')},
         description: isNetworkError 
           ? "Problema de conectividade. Usando valores padrão." 
-          : `Erro do servidor: ${errorMessage}. Usando valores padrão.`,
+          : {t('TenantAdminIntegrations.erroDoServidorErrormessageUsandoValoresPadrao')},
         variant: "destructive",
       });
     }
@@ -964,8 +967,8 @@ export default function TenantAdminIntegrations() {
     } catch (error: any) {
       console.error('❌ [OAUTH-FLOW] Erro:', error);
       toast({
-        title: "Erro OAuth2",
-        description: error.message || "Erro ao iniciar fluxo OAuth2",
+        title: {t('TenantAdminIntegrations.erroOauth2')},
+        description: error.message || {t('TenantAdminIntegrations.erroAoIniciarFluxoOauth2')},
         variant: "destructive",
       });
     }
@@ -974,8 +977,8 @@ export default function TenantAdminIntegrations() {
   const onSubmitConfig = async (data: z.infer<typeof integrationConfigSchema>) => {
     if (!selectedIntegration) {
       toast({
-        title: "❌ Erro de validação",
-        description: "Nenhuma integração selecionada",
+        title: {t('TenantAdminIntegrations.erroDeValidacao')},
+        description: {t('TenantAdminIntegrations.nenhumaIntegracaoSelecionada')},
         variant: "destructive",
       });
       return;
@@ -1071,7 +1074,7 @@ export default function TenantAdminIntegrations() {
 
       if (validationErrors.length > 0) {
         toast({
-          title: "❌ Erro de validação",
+          title: {t('TenantAdminIntegrations.erroDeValidacao')},
           description: validationErrors.join('. '),
           variant: "destructive",
         });
@@ -1206,8 +1209,8 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [SUBMIT-CONFIG] Erro ao processar configuração:', error);
 
       toast({
-        title: "❌ Erro interno",
-        description: "Erro ao processar a configuração. Tente novamente.",
+        title: {t('TenantAdminIntegrations.erroInterno')},
+        description: {t('TenantAdminIntegrations.erroAoProcessarAConfiguracaoTenteNovamente')},
         variant: "destructive",
       });
     }
@@ -1723,7 +1726,7 @@ export default function TenantAdminIntegrations() {
                             >
                               <option value="SSL/TLS">SSL/TLS (Porta 993)</option>
                               <option value="STARTTLS">STARTTLS (Porta 143)</option>
-                              <option value="None">Sem criptografia (Porta 143)</option>
+                              <option value={t('TenantAdminIntegrations.none')}>Sem criptografia (Porta 143)</option>
                             </select>
                           </FormControl>
                           <FormMessage />
@@ -2116,7 +2119,7 @@ Acompanhe pelo sistema Conductor."
                     type="submit"
                     disabled={saveConfigMutation.isPending || isTestingIntegration} // Disable if saving or testing
                   >
-                    {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
+                    {saveConfigMutation.isPending ? "Salvando..." : {t('TenantAdminIntegrations.salvarConfiguracao')}}
                   </Button>
                 </div>
               </form>

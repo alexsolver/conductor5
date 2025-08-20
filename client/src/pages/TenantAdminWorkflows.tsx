@@ -12,8 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Workflow, Clock, Target, AlertCircle, Plus, Edit, Trash2, PlayCircle, PauseCircle } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 export default function TenantAdminWorkflows() {
+  const { t } = useLocalization();
+
   return (
     <div className="space-y-8 p-8">
         {/* Header */}
@@ -48,7 +51,7 @@ export default function TenantAdminWorkflows() {
                       <Label htmlFor="trigger">Gatilho</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o gatilho" />
+                          <SelectValue placeholder={t('TenantAdminWorkflows.selecioneOGatilho')} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="ticket-created">Ticket criado</SelectItem>
@@ -65,7 +68,7 @@ export default function TenantAdminWorkflows() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="actions">Ações</Label>
-                    <Textarea id="actions" placeholder="Descreva as ações a serem executadas" />
+                    <Textarea id="actions" placeholder={t('TenantAdminWorkflows.descrevaAsAcoesASeremExecutadas')} />
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch id="active" />
@@ -388,35 +391,35 @@ export default function TenantAdminWorkflows() {
                       workflow: 'Escalação Automática',
                       ticket: 'TICK-2024-001',
                       time: '2 min atrás',
-                      status: 'Sucesso',
+                      status: {t('TenantAdminWorkflows.sucesso')},
                       action: 'Escalado para supervisor'
                     },
                     {
                       workflow: 'Atribuição por Prioridade',
                       ticket: 'TICK-2024-002',
                       time: '5 min atrás',
-                      status: 'Sucesso',
+                      status: {t('TenantAdminWorkflows.sucesso')},
                       action: 'Atribuído a João Silva'
                     },
                     {
                       workflow: 'Notificação de Atraso',
                       ticket: 'TICK-2024-003',
                       time: '10 min atrás',
-                      status: 'Erro',
+                      status: {t('TenantAdminWorkflows.erro')},
                       action: 'Falha no envio de email'
                     },
                     {
                       workflow: 'Fechamento Automático',
                       ticket: 'TICK-2024-004',
                       time: '15 min atrás',
-                      status: 'Sucesso',
+                      status: {t('TenantAdminWorkflows.sucesso')},
                       action: 'Ticket fechado automaticamente'
                     }
                   ].map((execution, index) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full ${
-                          execution.status === 'Sucesso' ? 'bg-green-500' : 'bg-red-500'
+                          execution.status === {t('TenantAdminWorkflows.sucesso')} ? 'bg-green-500' : 'bg-red-500'
                         }`} />
                         <div>
                           <div className="font-medium">{execution.workflow}</div>
@@ -424,7 +427,7 @@ export default function TenantAdminWorkflows() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <Badge variant={execution.status === 'Sucesso' ? 'default' : 'destructive'}>
+                        <Badge variant={execution.status === {t('TenantAdminWorkflows.sucesso')} ? 'default' : 'destructive'}>
                           {execution.status}
                         </Badge>
                         <div className="text-xs text-gray-500 mt-1">{execution.time}</div>

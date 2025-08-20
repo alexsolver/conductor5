@@ -2,6 +2,7 @@ import React, { createContext, ReactNode, useContext } from 'react';
 import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface User {
   id: string;
@@ -44,7 +45,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+  const { t } = useLocalization();
+ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const { data: user, error, isLoading } = useQuery({
@@ -176,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('✅ [LOGIN-SUCCESS] Login completed successfully');
       
       toast({
-        title: 'Login successful',
+        title: {t('common.loginSuccessful')},
         description: `Welcome back, ${result.user.firstName || result.user.email}!`,
       });
     },
@@ -213,12 +216,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (result.tenant) {
         toast({
-          title: 'Workspace criado com sucesso!',
+          title: {t('common.workspaceCriadoComSucesso')},
           description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
         });
       } else {
         toast({
-          title: 'Registro realizado com sucesso',
+          title: {t('common.registroRealizadoComSucesso')},
           description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email}!`,
         });
       }

@@ -9,12 +9,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 // Temporarily removed date-fns imports to fix bundler issue
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface FormSubmissionsListProps {
   formId?: string;
 }
 
-export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
+export function FormSubmissionsList({
+  const { t } = useLocalization();
+ formId }: FormSubmissionsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -98,7 +101,7 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Buscar por ID ou usuário..."
+                placeholder={t('internal-forms.buscarPorIdOuUsuario')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-64"

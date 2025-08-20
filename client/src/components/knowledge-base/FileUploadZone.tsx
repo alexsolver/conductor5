@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Upload, File, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface UploadedFile {
   id: string;
@@ -25,6 +26,8 @@ interface FileUploadZoneProps {
 }
 
 export function FileUploadZone({
+  const { t } = useLocalization();
+
   onFilesUploaded,
   maxFiles = 5,
   maxFileSize = 10,
@@ -89,7 +92,7 @@ export function FileUploadZone({
         );
 
         toast({
-          title: "❌ Erro no upload",
+          title: {t('knowledge-base.erroNoUpload')},
           description: `Falha ao enviar ${fileData.name}.`,
           variant: "destructive"
         });
@@ -179,7 +182,7 @@ export function FileUploadZone({
                     >
                       {file.status === 'uploading' && 'Enviando...'}
                       {file.status === 'completed' && 'Concluído'}
-                      {file.status === 'error' && 'Erro'}
+                      {file.status === 'error' && {t('knowledge-base.erro')}}
                     </Badge>
                   </div>
                   {file.status === 'uploading' && (

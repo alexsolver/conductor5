@@ -22,6 +22,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useLocalization } from '@/hooks/useLocalization';
 
 
 interface SecurityEvent {
@@ -45,6 +46,8 @@ interface AccountStatus {
 }
 
 export default function SecuritySettings() {
+  const { t } = useLocalization();
+
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -76,7 +79,7 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: error.message,
         variant: "destructive",
       });
@@ -96,7 +99,7 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: error.message,
         variant: "destructive",
       });
@@ -122,7 +125,7 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: error.message,
         variant: "destructive",
       });
@@ -145,7 +148,7 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: error.message,
         variant: "destructive",
       });
@@ -167,7 +170,7 @@ export default function SecuritySettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: error.message,
         variant: "destructive",
       });
@@ -177,7 +180,7 @@ export default function SecuritySettings() {
   const handleSendMagicLink = () => {
     if (!email) {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: "Please enter an email address",
         variant: "destructive",
       });
@@ -189,7 +192,7 @@ export default function SecuritySettings() {
   const handlePasswordReset = () => {
     if (!email) {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: "Please enter an email address",
         variant: "destructive",
       });
@@ -201,7 +204,7 @@ export default function SecuritySettings() {
   const handleSetupTwoFactor = () => {
     if (!password) {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: "Please enter your password",
         variant: "destructive",
       });
@@ -213,7 +216,7 @@ export default function SecuritySettings() {
   const handleVerifyTwoFactor = () => {
     if (!twoFactorToken) {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: "Please enter the 6-digit code",
         variant: "destructive",
       });
@@ -225,7 +228,7 @@ export default function SecuritySettings() {
   const handleToggleTwoFactor = (enabled: boolean) => {
     if (!twoFactorToken) {
       toast({
-        title: "Error",
+        title: {t('SecuritySettings.error')},
         description: "Please enter the 6-digit code",
         variant: "destructive",
       });

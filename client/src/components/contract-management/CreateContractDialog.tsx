@@ -17,8 +17,11 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocalization } from '@/hooks/useLocalization';
 
 const createContractSchema = z.object({
+  const { t } = useLocalization();
+
   contractNumber: z.string().optional(), // Gerado automaticamente pelo backend
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
@@ -127,7 +130,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     },
     onSuccess: () => {
       toast({
-        title: 'Sucesso',
+        title: {t('contract-management.sucesso')},
         description: 'Contrato criado com sucesso!',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
@@ -136,8 +139,8 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao criar contrato',
+        title: {t('contract-management.erro')},
+        description: error.message || {t('contract-management.erroAoCriarContrato')},
         variant: 'destructive',
       });
     },
@@ -176,7 +179,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
+                        <SelectValue placeholder={t('contract-management.selecioneOTipo')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -288,7 +291,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a empresa contratante" />
+                          <SelectValue placeholder={t('contract-management.selecioneAEmpresaContratante')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -319,7 +322,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o gerente" />
+                          <SelectValue placeholder={t('contract-management.selecioneOGerente')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

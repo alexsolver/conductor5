@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface EditInternalActionModalProps {
   ticketId: string;
@@ -19,7 +20,9 @@ interface EditInternalActionModalProps {
   onClose: () => void;
 }
 
-export default function EditInternalActionModal({ ticketId, action, isOpen, onClose }: EditInternalActionModalProps) {
+export default function EditInternalActionModal({
+  const { t } = useLocalization();
+ ticketId, action, isOpen, onClose }: EditInternalActionModalProps) {
   const [formData, setFormData] = useState({
     startDateTime: "",
     endDateTime: "",
@@ -69,7 +72,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
         const date = new Date(dateTime);
         return date.toISOString().slice(0, 16);
       } catch (error) {
-        console.warn('Error formatting datetime:', dateTime, error);
+        console.warn({t('tickets.errorFormattingDatetime')}, dateTime, error);
         return "";
       }
     };
@@ -125,7 +128,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('tickets.sucesso')},
         description: "Ação interna atualizada com sucesso",
       });
 
@@ -137,7 +140,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: error.message || "Falha ao atualizar ação interna",
         variant: "destructive",
       });
@@ -147,7 +150,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
   const handleSubmit = () => {
     if (!formData.actionType) {
       toast({
-        title: "Erro",
+        title: {t('tickets.erro')},
         description: "Por favor, selecione o tipo de ação interna",
         variant: "destructive",
       });
@@ -249,7 +252,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   </div>
                   <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione um membro..." />
+                      <SelectValue placeholder={t('tickets.selecioneUmMembro')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
@@ -268,7 +271,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                 <Label htmlFor="action-type">Ação Interna *</Label>
                 <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Selecione o tipo de ação..." />
+                    <SelectValue placeholder={t('tickets.selecioneOTipoDeAcao')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="analysis">Análise</SelectItem>
@@ -353,7 +356,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {updateActionMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                  {updateActionMutation.isPending ? "Salvando..." : {t('tickets.salvarAlteracoes')}}
                 </Button>
               </div>
             </div>

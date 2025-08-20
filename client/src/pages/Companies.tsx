@@ -32,8 +32,11 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
+import { useLocalization } from '@/hooks/useLocalization';
 
 const companySchema = z.object({
+  const { t } = useLocalization();
+
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
   description: z.string().optional(),
@@ -135,7 +138,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar empresa",
+        title: {t('Companies.erroAoCriarEmpresa')},
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -158,7 +161,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar empresa",
+        title: {t('Companies.erroAoAtualizarEmpresa')},
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -178,7 +181,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao remover empresa",
+        title: {t('Companies.erroAoRemoverEmpresa')},
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -315,7 +318,7 @@ export default function Companies() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o porte" />
+                                <SelectValue placeholder={t('Companies.selecioneOPorte')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -427,7 +430,7 @@ export default function Companies() {
                       type="submit"
                       disabled={createCompanyMutation.isPending}
                     >
-                      {createCompanyMutation.isPending ? "Criando..." : "Criar Empresa"}
+                      {createCompanyMutation.isPending ? "Criando..." : {t('Companies.criarEmpresa')}}
                     </Button>
                   </div>
                 </form>
@@ -442,7 +445,7 @@ export default function Companies() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
-            placeholder="Buscar empresas..."
+            placeholder={t('Companies.buscarEmpresas')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -455,7 +458,7 @@ export default function Companies() {
         <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {searchTerm ? "Nenhuma empresa encontrada" : "Nenhuma empresa cadastrada"}
+            {searchTerm ? {t('Companies.nenhumaEmpresaEncontrada')} : {t('Companies.nenhumaEmpresaCadastrada')}}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             {searchTerm 
@@ -635,7 +638,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o porte" />
+                            <SelectValue placeholder={t('Companies.selecioneOPorte')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -770,7 +773,7 @@ export default function Companies() {
                   type="submit"
                   disabled={editCompanyMutation.isPending}
                 >
-                  {editCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                  {editCompanyMutation.isPending ? "Salvando..." : {t('Companies.salvarAlteracoes')}}
                 </Button>
               </div>
             </form>

@@ -10,6 +10,7 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import {
+import { useLocalization } from '@/hooks/useLocalization';
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -32,6 +33,8 @@ interface UserSelectProps {
 }
 
 export function UserSelect({
+  const { t } = useLocalization();
+
   value,
   onChange,
   users,
@@ -69,7 +72,7 @@ export function UserSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Buscar usuário..." />
+          <CommandInput placeholder={t('ui.buscarUsuario')} />
           <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-y-auto">
             {/* Opção para limpar seleção */}

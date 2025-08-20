@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import L from 'leaflet';
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Fix for default markers in React Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -37,7 +38,9 @@ interface SearchResult {
 }
 
 // Component to handle map clicks
-function MapClickHandler({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
+function MapClickHandler({
+  const { t } = useLocalization();
+ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
   useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
@@ -153,7 +156,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         });
       }
     } catch (error: any) {
-      console.error('Erro na busca:', error);
+      console.error({t('LeafletMapSelector.tsx.erroNaBusca')}, error);
       
       if (error.name === 'AbortError') {
         toast({
@@ -163,7 +166,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         });
       } else {
         toast({
-          title: "Erro na busca",
+          title: {t('LeafletMapSelector.tsx.erroNaBusca')},
           description: "Não foi possível buscar o endereço. Verifique sua conexão.",
           variant: "destructive"
         });
@@ -197,9 +200,9 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         });
       },
       (error) => {
-        console.error('Erro na geolocalização:', error.message || error);
+        console.error({t('LeafletMapSelector.tsx.erroNaGeolocalizacao')}, error.message || error);
         toast({
-          title: "Erro na geolocalização",
+          title: {t('LeafletMapSelector.tsx.erroNaGeolocalizacao')},
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
