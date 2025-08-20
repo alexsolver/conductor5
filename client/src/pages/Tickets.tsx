@@ -612,15 +612,15 @@ export default function Tickets() {
                     name="beneficiaryId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Favorecido</FormLabel>
+                        <FormLabel>{t('tickets.beneficiary')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o favorecido (opcional)" />
+                              <SelectValue placeholder={t('tickets.forms.create.select_beneficiary')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="__none__">Nenhum favorecido</SelectItem>
+                            <SelectItem value="__none__">{t('tickets.forms.create.no_beneficiary')}</SelectItem>
                             {favorecidos.map((favorecido: any) => (
                               <SelectItem key={favorecido.id} value={favorecido.id}>
                                 {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim()}
@@ -639,10 +639,10 @@ export default function Tickets() {
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Assunto *</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.subject')} *</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Digite o assunto do ticket" 
+                              placeholder={t('tickets.forms.create.subject_placeholder')} 
                               className="h-10"
                               {...field} 
                             />
@@ -658,7 +658,7 @@ export default function Tickets() {
                     name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Categoria *</FormLabel>
+                        <FormLabel>{t('tickets.category')} *</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -668,7 +668,7 @@ export default function Tickets() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione a categoria" />
+                              <SelectValue placeholder={t('tickets.forms.create.select_category')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -690,7 +690,7 @@ export default function Tickets() {
                     name="subcategory"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sub Categoria *</FormLabel>
+                        <FormLabel>{t('tickets.subcategory')} *</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -701,14 +701,14 @@ export default function Tickets() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={!selectedCategoryId ? "Primeiro selecione uma categoria" : "Selecione a subcategoria"} />
+                              <SelectValue placeholder={!selectedCategoryId ? t('tickets.forms.create.first_select_category') : t('tickets.forms.create.select_subcategory')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {!selectedCategoryId ? (
-                              <SelectItem value="no-category" disabled>Selecione uma categoria primeiro</SelectItem>
+                              <SelectItem value="no-category" disabled>{t('tickets.forms.create.first_select_category')}</SelectItem>
                             ) : subcategories.length === 0 ? (
-                              <SelectItem value="no-subcategories" disabled>Nenhuma subcategoria encontrada</SelectItem>
+                              <SelectItem value="no-subcategories" disabled>{t('tickets.forms.create.no_subcategories')}</SelectItem>
                             ) : (
                               subcategories.map((subcategory: any) => (
                                 <SelectItem key={subcategory.id} value={subcategory.id}>
@@ -729,7 +729,7 @@ export default function Tickets() {
                     name="action"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Ação *</FormLabel>
+                        <FormLabel>{t('tickets.action')} *</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           value={field.value}
@@ -737,14 +737,14 @@ export default function Tickets() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={!selectedSubcategoryId ? "Primeiro selecione uma subcategoria" : "Selecione a ação"} />
+                              <SelectValue placeholder={!selectedSubcategoryId ? t('tickets.forms.create.first_select_subcategory') : t('tickets.forms.create.select_action')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {!selectedSubcategoryId ? (
-                              <SelectItem value="no-subcategory" disabled>Selecione uma subcategoria primeiro</SelectItem>
+                              <SelectItem value="no-subcategory" disabled>{t('tickets.forms.create.first_select_subcategory')}</SelectItem>
                             ) : actions.length === 0 ? (
-                              <SelectItem value="no-actions" disabled>Nenhuma ação encontrada</SelectItem>
+                              <SelectItem value="no-actions" disabled>{t('tickets.forms.create.no_actions')}</SelectItem>
                             ) : (
                               actions.map((action: any) => (
                                 <SelectItem key={action.id} value={action.id}>
@@ -766,13 +766,13 @@ export default function Tickets() {
                       name="priority"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Prioridade *</FormLabel>
+                          <FormLabel>{t('tickets.priority')} *</FormLabel>
                           <FormControl>
                             <DynamicSelect
                               fieldName="priority"
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder="Selecione a prioridade"
+                              placeholder={t('tickets.forms.create.select_priority')}
                             />
                           </FormControl>
                           <FormMessage />
@@ -786,13 +786,13 @@ export default function Tickets() {
                       name="urgency"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Urgência *</FormLabel>
+                          <FormLabel>{t('tickets.urgency')} *</FormLabel>
                           <FormControl>
                             <DynamicSelect
                               fieldName="urgency"
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder="Selecione a urgência"
+                              placeholder={t('tickets.forms.create.select_urgency')}
                             />
                           </FormControl>
                           <FormMessage />
@@ -807,10 +807,10 @@ export default function Tickets() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Descrição Detalhada *</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.description')} *</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Descreva detalhadamente o problema ou solicitação"
+                              placeholder={t('tickets.forms.create.description_placeholder')}
                               className="min-h-[80px] max-h-[120px] resize-none"
                               {...field} 
                             />
@@ -826,10 +826,10 @@ export default function Tickets() {
                       name="symptoms"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Sintomas</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.symptoms')}</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Descreva os sintomas observados (opcional)"
+                              placeholder={t('tickets.forms.create.symptoms_placeholder')}
                               className="min-h-[60px] max-h-[100px] resize-none"
                               {...field} 
                             />
@@ -845,10 +845,10 @@ export default function Tickets() {
                       name="businessImpact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Impacto no Negócio</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.business_impact')}</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Descreva o impacto no negócio (opcional)"
+                              placeholder={t('tickets.forms.create.business_impact_placeholder')}
                               className="min-h-[60px] max-h-[100px] resize-none"
                               {...field} 
                             />
@@ -864,10 +864,10 @@ export default function Tickets() {
                       name="workaround"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Solução Temporária</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.workaround')}</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Descreva alguma solução temporária aplicada (opcional)"
+                              placeholder={t('tickets.forms.create.workaround_placeholder')}
                               className="min-h-[60px] max-h-[100px] resize-none"
                               {...field} 
                             />
@@ -883,15 +883,15 @@ export default function Tickets() {
                     name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Local</FormLabel>
+                        <FormLabel>{t('tickets.location')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o local de atendimento (opcional)" />
+                              <SelectValue placeholder={t('tickets.forms.create.select_location_optional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="__none__">Nenhum local específico</SelectItem>
+                            <SelectItem value="__none__">{t('tickets.forms.create.no_specific_location')}</SelectItem>
                             {locations.map((location: any) => (
                               <SelectItem key={location.id} value={location.id}>
                                 {location.name || location.nome}
@@ -913,7 +913,7 @@ export default function Tickets() {
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
                   >
-                    Cancelar
+                    {t('common.cancel')}
                   </Button>
                   <Button
                     type="button"
@@ -921,7 +921,7 @@ export default function Tickets() {
                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                     disabled={createTicketMutation.isPending}
                   >
-                    {createTicketMutation.isPending ? "Criando..." : "Criar Ticket"}
+                    {createTicketMutation.isPending ? t('tickets.actions.creating') : t('tickets.actions.create')}
                   </Button>
                 </div>
             </DialogContent>

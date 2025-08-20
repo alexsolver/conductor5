@@ -408,8 +408,33 @@
         "select_customer": "Seleccione un cliente",
         "first_select_company": "Primero seleccione una empresa",
         "no_companies": "No se encontraron empresas",
-        "no_customers_for_company": "No se encontraron clientes para esta empresa"
+        "no_customers_for_company": "No se encontraron clientes para esta empresa",
+        "select_beneficiary": "Seleccione beneficiario (opcional)",
+        "no_beneficiary": "Sin beneficiario",
+        "select_category": "Seleccione categoría",
+        "select_subcategory": "Seleccione subcategoría",
+        "select_action": "Seleccione acción",
+        "select_priority": "Seleccione prioridad",
+        "select_urgency": "Seleccione urgencia",
+        "select_location": "Seleccione ubicación",
+        "first_select_category": "Primero seleccione una categoría",
+        "no_subcategories": "No se encontraron subcategorías",
+        "first_select_subcategory": "Primero seleccione una subcategoría",
+        "no_actions": "No se encontraron acciones",
+        "symptoms_placeholder": "Describa los síntomas observados (opcional)",
+        "business_impact_placeholder": "Describa el impacto en el negocio (opcional)",
+        "workaround_placeholder": "Describa alguna solución temporal aplicada (opcional)",
+        "select_location_optional": "Seleccione ubicación de servicio (opcional)",
+        "no_specific_location": "Sin ubicación específica"
       }
+    },
+    "actions": {
+      "create": "Crear Ticket",
+      "creating": "Creando...",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "save": "Guardar",
+      "cancel": "Cancelar"
     },
     "messages": {
       "error_creating": "Error al crear ticket",

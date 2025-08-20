@@ -408,8 +408,33 @@
         "select_customer": "Selecione um cliente",
         "first_select_company": "Primeiro selecione uma empresa",
         "no_companies": "Nenhuma empresa encontrada",
-        "no_customers_for_company": "Nenhum cliente encontrado para esta empresa"
+        "no_customers_for_company": "Nenhum cliente encontrado para esta empresa",
+        "select_beneficiary": "Selecione o favorecido (opcional)",
+        "no_beneficiary": "Nenhum favorecido",
+        "select_category": "Selecione a categoria",
+        "select_subcategory": "Selecione a subcategoria",
+        "select_action": "Selecione a ação",
+        "select_priority": "Selecione a prioridade",
+        "select_urgency": "Selecione a urgência",
+        "select_location": "Selecione a localização",
+        "first_select_category": "Primeiro selecione uma categoria",
+        "no_subcategories": "Nenhuma subcategoria encontrada",
+        "first_select_subcategory": "Primeiro selecione uma subcategoria",
+        "no_actions": "Nenhuma ação encontrada",
+        "symptoms_placeholder": "Descreva os sintomas observados (opcional)",
+        "business_impact_placeholder": "Descreva o impacto no negócio (opcional)",
+        "workaround_placeholder": "Descreva alguma solução temporária aplicada (opcional)",
+        "select_location_optional": "Selecione o local de atendimento (opcional)",
+        "no_specific_location": "Nenhum local específico"
       }
+    },
+    "actions": {
+      "create": "Criar Ticket",
+      "creating": "Criando...",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "save": "Salvar",
+      "cancel": "Cancelar"
     },
     "messages": {
       "error_creating": "Falha ao criar ticket",

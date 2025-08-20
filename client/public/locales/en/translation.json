@@ -408,8 +408,33 @@
         "select_customer": "Select a customer",
         "first_select_company": "First select a company",
         "no_companies": "No companies found",
-        "no_customers_for_company": "No customers found for this company"
+        "no_customers_for_company": "No customers found for this company",
+        "select_beneficiary": "Select beneficiary (optional)",
+        "no_beneficiary": "No beneficiary",
+        "select_category": "Select category",
+        "select_subcategory": "Select subcategory",
+        "select_action": "Select action",
+        "select_priority": "Select priority",
+        "select_urgency": "Select urgency",
+        "select_location": "Select location",
+        "first_select_category": "First select a category",
+        "no_subcategories": "No subcategories found",
+        "first_select_subcategory": "First select a subcategory",
+        "no_actions": "No actions found",
+        "symptoms_placeholder": "Describe the observed symptoms (optional)",
+        "business_impact_placeholder": "Describe the business impact (optional)",
+        "workaround_placeholder": "Describe any temporary solution applied (optional)",
+        "select_location_optional": "Select service location (optional)",
+        "no_specific_location": "No specific location"
       }
+    },
+    "actions": {
+      "create": "Create Ticket",
+      "creating": "Creating...",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel"
     },
     "messages": {
       "error_creating": "Failed to create ticket",
