@@ -125,6 +125,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ CRITICAL FIX: Add missing /api/auth/refresh endpoint
+  app.post('/api/auth/refresh', async (req, res) => {
+    try {
+      const refreshToken = req.cookies?.refreshToken;
+      
+      if (!refreshToken) {
+        return res.status(400).json({
+          success: false,
+          message: 'Refresh token required'
+        });
+      }
+
+      // Import token manager
+      const { tokenManager } = await import('./middleware/jwtAuth');
+      
+      // Verify refresh token and generate new access token
+      const result = await tokenManager.refreshAccessToken(refreshToken);
+      
+      if (!result.success) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid refresh token'
+        });
+      }
+
+      // Set new access token cookie
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      });
+
+      res.json({
+        success: true,
+        message: 'Token refreshed successfully'
+      });
+    } catch (error) {
+      console.error('❌ [AUTH-REFRESH] Error refreshing token:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  });
+
   // CRITICAL FIX: Bypass tickets/id/relationships endpoint
   app.post('/bypass/tickets/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {

@@ -221,6 +221,55 @@ export class TokenManager {
       return true; // If can't decode, assume expiring
     }
   }
+
+  async refreshAccessToken(refreshToken: string): Promise<{ success: boolean; accessToken?: string; error?: string }> {
+    try {
+      // Verify refresh token
+      const refreshPayload = this.verifyRefreshToken(refreshToken);
+      
+      if (!refreshPayload) {
+        return {
+          success: false,
+          error: 'Invalid refresh token'
+        };
+      }
+
+      // Get user from database to generate new access token
+      const { DependencyContainer } = await import('../middleware/dependencyContainer');
+      const container = DependencyContainer.getInstance();
+      const userRepository = container.userRepository;
+
+      const user = await userRepository.findById(refreshPayload.userId);
+      
+      if (!user || !user.isActive) {
+        return {
+          success: false,
+          error: 'User not found or inactive'
+        };
+      }
+
+      // Generate new access token
+      const newAccessToken = this.generateAccessToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenantId
+      });
+
+      console.log('✅ [TOKEN-MANAGER] Access token refreshed successfully for user:', user.id);
+
+      return {
+        success: true,
+        accessToken: newAccessToken
+      };
+    } catch (error: any) {
+      console.error('❌ [TOKEN-MANAGER] Error refreshing access token:', error);
+      return {
+        success: false,
+        error: 'Failed to refresh token'
+      };
+    }
+  }
 }
 
 export const tokenManager = TokenManager.getInstance();
