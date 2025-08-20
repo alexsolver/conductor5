@@ -184,49 +184,45 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
  * Check if a translation key is valid
  */
 function isValidTranslationKey(key: string): boolean {
-  if (!key || typeof key !== 'string') {
-    return false;
-  }
-
-  const trimmedKey = key.trim();
-  
-  // Skip very short keys
-  if (trimmedKey.length < 2) {
-    return false;
-  }
-
-  // Only exclude obvious technical patterns
-  const technicalPatterns = [
-    /^\/api\//,           // API routes
-    /^https?:\/\//,       // URLs  
-    /^\d{3}:?$/,          // HTTP status codes
-    /^[#][0-9a-fA-F]{3,8}$/, // Hex colors
-    /^\$\{.*\}$/,         // Template variables
-    /^[A-Z]{2,}_[A-Z_]+$/, // Constants like API_KEY
+  // Invalid patterns to exclude technical elements
+  const invalidPatterns = [
+    /^#[0-9a-fA-F]{3,8}$/, // Hex colors
+    /^\/api\//, // API endpoints
+    /^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)$/, // HTTP methods
+    /^\d+:?$/, // Status codes
+    /^[,\-\/\?\@\:\\\n\#\&\+\=\*\(\)\[\]\_\%\$\^\!\~\`\|]$/, // Single characters
+    /^(BRL|USD|EUR|America\/Sao_Paulo|Brasil|Ativo|T|AND|OR)$/, // Technical constants
+    /^[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*$/, // camelCase property names
+    /^(validFrom|validTo|version|warrantyExpiry|website|acquisitionCost|action|active|address)$/, // Technical fields
+    /^https?:\/\//, // URLs
+    /\$\{.*\}/, // Template variables
+    /^\s*$/, // Empty or whitespace
+    /^\d+$/, // Numbers only
+    /^(true|false)$/i, // Booleans
+    /^[A-Z]{2,}$/, // Technical abbreviations
   ];
-
-  for (const pattern of technicalPatterns) {
-    if (pattern.test(trimmedKey)) {
+  
+  // Specific invalid keys
+  const specificInvalidKeys = [
+    'validFrom', 'validTo', 'version', 'warrantyExpiry', 'website',
+    'acquisitionCost', 'action', 'active', 'address', 'a', 'T',
+    '\\n', 'América/Sao_Paulo', 'Brasil', 'Ativo', 'BRL',
+    'DELETE', 'GET', 'POST', 'PUT', 'PATCH', 'AND',
+    '4', '400:', ':', '?', '@', ',', '-', '/', '', ' '
+  ];
+  
+  // Check specific invalid keys
+  if (specificInvalidKeys.includes(key)) {
+    return false;
+  }
+  
+  // Check against patterns
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(key)) {
       return false;
     }
   }
-
-  // Skip pure numbers
-  if (/^\d+$/.test(trimmedKey)) {
-    return false;
-  }
-
-  // Skip obvious technical constants
-  const technicalConstants = [
-    'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD',
-    'BRL', 'USD', 'EUR', 'true', 'false', 'null', 'undefined'
-  ];
   
-  if (technicalConstants.includes(trimmedKey.toUpperCase())) {
-    return false;
-  }
-
-  // Accept most other keys
   return true;
 }
 
@@ -252,15 +248,15 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
         
         translations[lang] = langTranslations;
         
-        // Extract all keys recursively with minimal filtering
+        // Extract all keys recursively with filtering
         const extractKeys = (obj: any, prefix = '') => {
           Object.keys(obj).forEach(key => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
             if (typeof obj[key] === 'object' && obj[key] !== null) {
               extractKeys(obj[key], fullKey);
             } else {
-              // Add key if it's not obviously technical
-              if (isValidTranslationKey(fullKey)) {
+              // Only add valid translation keys
+              if (isValidTranslationKey(fullKey) && isValidTranslationKey(key)) {
                 allKeys.add(fullKey);
               }
             }
@@ -273,22 +269,12 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
       }
     }
 
-    const allKeysArray = Array.from(allKeys);
-    const validKeys = allKeysArray.filter(key => isValidTranslationKey(key)).sort();
-    
-    console.log(`🔍 [TRANSLATION-KEYS] Total keys found: ${allKeysArray.length}`);
-    console.log(`✅ [TRANSLATION-KEYS] Valid keys after filtering: ${validKeys.length}`);
-    console.log(`❌ [TRANSLATION-KEYS] Filtered out: ${allKeysArray.length - validKeys.length}`);
+    const validKeys = Array.from(allKeys).filter(key => isValidTranslationKey(key)).sort();
 
     res.json({
       keys: validKeys,
       translations,
-      languages: SUPPORTED_LANGUAGES,
-      debug: {
-        totalFound: allKeysArray.length,
-        validAfterFilter: validKeys.length,
-        filteredOut: allKeysArray.length - validKeys.length
-      }
+      languages: SUPPORTED_LANGUAGES
     });
 
   } catch (error) {
