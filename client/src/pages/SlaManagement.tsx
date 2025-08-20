@@ -236,7 +236,7 @@ export default function SlaManagement() {
   // Queries para workflows
   const { data: workflows, isLoading: isLoadingWorkflows } = useQuery({
     queryKey: ['/api/sla/workflows'],
-    queryFn: () => apiRequest('/api/sla/workflows').then(res => res.json()),
+    queryFn: () => apiRequest('/api/sla/workflows', { method: 'GET' }).then(res => res.json()),
   });
 
   // Mutations
