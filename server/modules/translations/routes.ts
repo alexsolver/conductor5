@@ -42,9 +42,19 @@ const controller = createTranslationController();
 
 /**
  * GET /api/translations/languages
- * Get supported languages (public endpoint)
+ * Get supported languages (public endpoint - NO AUTH REQUIRED)
  */
-router.get('/languages', controller.getLanguages.bind(controller));
+router.get('/languages', (req: any, res: any) => {
+  // Endpoint público para idiomas - sem autenticação
+  res.json({
+    success: true,
+    data: [
+      { code: 'en', name: 'English', nativeName: 'English' },
+      { code: 'pt-BR', name: 'Portuguese (Brazil)', nativeName: 'Português (Brasil)' },
+      { code: 'es', name: 'Spanish', nativeName: 'Español' }
+    ]
+  });
+});
 
 /**
  * GET /api/translations/stats
