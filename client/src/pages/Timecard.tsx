@@ -129,9 +129,9 @@ export default function Timecard() {
     queryFn: async () => {
       console.log('[TIMECARD-MIRROR] Fetching report for:', currentPeriod);
       try {
-        const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentPeriod}`);
+        const response = await apiRequest('GET', "/api/timecard/reports/attendance/" + currentPeriod);
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error("HTTP " + response.status + ": " + response.statusText);
         }
         const data = await response.json();
         console.log('[TIMECARD-MIRROR] Report data received:', data);
@@ -204,7 +204,7 @@ export default function Timecard() {
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+          throw new Error(errorData.message || "HTTP " + response.status + ": " + response.statusText);
         }
         
         const result = await response.json();
@@ -483,7 +483,7 @@ export default function Timecard() {
                                 record.status === 'approved' ? 'bg-green-100 text-green-800' :
                                 record.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                 'bg-gray-100 text-gray-800'
-                              }`}>
+                              ">
                                 {record.status === 'approved' ? 'OK' : 
                                  record.status === 'pending' ? 'Pend' : 
                                  'Proc'}
@@ -614,7 +614,7 @@ export default function Timecard() {
             {availableActions.map((action, index) => (
               <Button
                 key={action.type}
-                className={`w-full ${action.color} hover:opacity-90 text-white ${action.primary ? '' : 'opacity-80'}`}
+                className="w-full ${action.color} hover:opacity-90 text-white "`}
                 size={action.primary ? "lg" : "default"}
                 onClick={() => handleTimeRecord(action.type)}
                 disabled={recordMutation.isPending}
@@ -810,7 +810,7 @@ export default function Timecard() {
                         return dateA.getTime() - dateB.getTime();
                       })
                       .map((record: any, index: number) => (
-                        <tr key={index} className={`hover:bg-gray-50 ${!record.isConsistent ? 'bg-red-50' : ''}`}>
+                        <tr key={index} className="hover:bg-gray-50 "`}>
                           <td className="border border-gray-300 px-2 py-2 font-medium">{record.date}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center">{record.dayOfWeek}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstEntry || '--:--'}</td>
@@ -825,7 +825,7 @@ export default function Timecard() {
                               record.status === 'Pendente' ? 'bg-yellow-100 text-yellow-800' :
                               record.status === 'Em andamento' ? 'bg-blue-100 text-blue-800' :
                               'bg-gray-100 text-gray-800'
-                            }`}>
+                            ">
                               {record.status === 'Aprovado' ? 'OK' :
                                record.status === 'Inconsistente' ? 'INC' :
                                record.status === 'Pendente' ? 'PEN' : 

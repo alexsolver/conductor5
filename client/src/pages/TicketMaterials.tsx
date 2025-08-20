@@ -83,12 +83,12 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
         }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch planned items: ${response.status}`);
+        throw new Error("Failed to fetch planned items: " + response.status.status");
       }
       
       const data = await response.json();
@@ -104,17 +104,17 @@ export default function TicketMaterials() {
   const { data: consumedItems, isLoading: loadingConsumed } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items', Date.now()],
     queryFn: async () => {
-      const response = await fetch(`/api/materials-services/tickets/${ticketId}/consumed-items`, {
+      const response = await fetch(`/api/materials-services/tickets/" + ticketId + "/consumed-items", {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
         }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch consumed items: ${response.status}`);
+        throw new Error(`Failed to fetch consumed items: ${response.status");
       }
       
       return response.json();
@@ -132,12 +132,12 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
         }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch costs summary: ${response.status}`);
+        throw new Error(`Failed to fetch costs summary: ${response.status");
       }
       
       return response.json();
@@ -155,12 +155,12 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
         }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch items: ${response.status}`);
+        throw new Error(`Failed to fetch items: ${response.status");
       }
       
       return response.json();
@@ -175,13 +175,13 @@ export default function TicketMaterials() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
         },
         body: JSON.stringify(data)
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to add planned item: ${response.status}`);
+        throw new Error(`Failed to add planned item: ${response.status");
       }
 
       return response.json();
@@ -204,7 +204,7 @@ export default function TicketMaterials() {
   // Add consumed item mutation
   const addConsumedItemMutation = useMutation({
     mutationFn: (data: any) => 
-      apiRequest(`/api/materials-services/tickets/${ticketId}/consumed-items`, 'POST', data),
+      apiRequest(`/api/materials-services/tickets/" + ticketId + "/consumed-items", 'POST', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/tickets', ticketId] });
       toast({ title: 'Consumo de material registrado com sucesso' });
@@ -220,16 +220,16 @@ export default function TicketMaterials() {
   // Delete planned item mutation
   const deletePlannedItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items/${itemId}`, {
+      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items/${itemId", {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
         }
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to delete planned item: ${response.status}`);
+        throw new Error(`Failed to delete planned item: ${response.status");
       }
 
       return response.json();
@@ -383,7 +383,7 @@ export default function TicketMaterials() {
                     <h3 className="text-sm font-medium text-gray-500">Variação</h3>
                     <p className={`text-2xl font-bold ${
                       parseFloat((costsSummary as any).data.summary.costVariance) >= 0 ? 'text-red-600' : 'text-green-600'
-                    }`}>
+                    "}>
                       {formatCurrency((costsSummary as any).data.summary.costVariance)}
                     </p>
                   </div>
@@ -450,7 +450,7 @@ export default function TicketMaterials() {
                           plannedSubTab === 'all'
                             ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-500/30'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
-                        }`}
+                        "}
                       >
                         <Package className="w-6 h-6" />
                         <div className="text-left">
@@ -467,7 +467,7 @@ export default function TicketMaterials() {
                           plannedSubTab === 'material'
                             ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-green-500/30'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
-                        }`}
+                        "}
                       >
                         <Box className="w-6 h-6" />
                         <div className="text-left">
@@ -484,7 +484,7 @@ export default function TicketMaterials() {
                           plannedSubTab === 'service'
                             ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-purple-500/30'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
-                        }`}
+                        "}
                       >
                         <Wrench className="w-6 h-6" />
                         <div className="text-left">
@@ -522,14 +522,14 @@ export default function TicketMaterials() {
                         item.itemType === 'material' 
                           ? 'border-l-green-500 bg-gradient-to-r from-green-50/30 to-white hover:from-green-50/50' 
                           : 'border-l-purple-500 bg-gradient-to-r from-purple-50/30 to-white hover:from-purple-50/50'
-                      }`}>
+                      "}>
                         <CardContent className="p-5">
                           <div className="flex items-start justify-between">
                             <div className="space-y-3 flex-1">
                               <div className="flex items-center gap-3 flex-wrap">
                                 <div className={`p-2 rounded-lg ${
                                   item.itemType === 'material' ? 'bg-green-100' : 'bg-purple-100'
-                                }`}>
+                                "}>
                                   {item.itemType === 'material' ? (
                                     <Box className="w-5 h-5 text-green-600" />
                                   ) : (
@@ -544,7 +544,7 @@ export default function TicketMaterials() {
                                       item.itemType === 'material' 
                                         ? 'bg-green-100 text-green-800 border-green-200' 
                                         : 'bg-purple-100 text-purple-800 border-purple-200'
-                                    }`}>
+                                    "}>
                                       {item.itemType === 'material' ? 'Material' : 'Serviço'}
                                     </Badge>
                                     {getStatusBadge(item.status)}
@@ -604,7 +604,7 @@ export default function TicketMaterials() {
                           <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
                             plannedSubTab === 'material' ? 'bg-green-100' :
                             plannedSubTab === 'service' ? 'bg-purple-100' : 'bg-gray-100'
-                          }`}>
+                          "}>
                             {plannedSubTab === 'material' ? (
                               <Box className="w-12 h-12 text-green-400" />
                             ) : plannedSubTab === 'service' ? (
@@ -629,7 +629,7 @@ export default function TicketMaterials() {
                               plannedSubTab === 'material' ? 'bg-green-500 hover:bg-green-600' :
                               plannedSubTab === 'service' ? 'bg-purple-500 hover:bg-purple-600' :
                               'bg-blue-500 hover:bg-blue-600'
-                            }`}
+                            "}
                           >
                             <Plus className="w-4 h-4 mr-2" />
                             Adicionar {plannedSubTab === 'material' ? 'Material' : plannedSubTab === 'service' ? 'Serviço' : 'Item'}
@@ -658,7 +658,7 @@ export default function TicketMaterials() {
                 ) : (consumedItems as any)?.data?.consumedItems?.length > 0 ? (
                   <div className="space-y-3">
                     {(consumedItems as any).data.consumedItems.map((item: TicketMaterial) => (
-                      <Card key={item.id} className={`border-l-4 ${item.itemType === 'material' ? 'border-l-blue-500' : 'border-l-green-500'}`}>
+                      <Card key={item.id} className="border-l-4 "`}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="space-y-2">
@@ -670,7 +670,7 @@ export default function TicketMaterials() {
                                 )}
                                 <h4 className="font-semibold">{item.itemName || 'Item não encontrado'}</h4>
                                 <Badge variant="outline">{item.itemCode || 'N/A'}</Badge>
-                                <Badge className={`${item.itemType === 'material' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                                <Badge className=""`}>
                                   {item.itemType === 'material' ? 'Material' : 'Serviço'}
                                 </Badge>
                                 {getStatusBadge('consumed')}

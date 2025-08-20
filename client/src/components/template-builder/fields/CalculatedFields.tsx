@@ -101,7 +101,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       formula.dependencies?.forEach(fieldId => {
         const fieldValue = formData[fieldId] || 0
         expression = expression.replace(
-          new RegExp(`\\{${fieldId}\\}`, 'g'), 
+          new RegExp(`\\{${fieldId}\\", 'g'), 
           String(fieldValue)
         )
       })

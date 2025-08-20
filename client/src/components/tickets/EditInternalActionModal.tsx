@@ -44,7 +44,7 @@ export default function EditInternalActionModal({
     queryKey: ["/api/tickets", ticketId, "actions", action?.id],
     queryFn: async () => {
       if (!action?.id || !ticketId) return null;
-      const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions/${action.id}`);
+      const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions/${action.id");
       return response.json();
     },
     enabled: isOpen && !!action?.id && !!ticketId,
@@ -123,7 +123,7 @@ export default function EditInternalActionModal({
       
       console.log('🔧 PUT Update - Sending data:', payload);
       
-      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, payload);
+      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id", payload);
       return response.json();
     },
     onSuccess: () => {
@@ -258,7 +258,7 @@ export default function EditInternalActionModal({
                       <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
                       {(teamMembers?.users || []).map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
-                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                          {user.name || `${user.firstName || ''} ${user.lastName || ''".trim() || user.email}
                         </SelectItem>
                       ))}
                     </SelectContent>

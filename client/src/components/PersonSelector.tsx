@@ -78,7 +78,7 @@ export function PersonSelector({
         id: user.id,
         type: 'user' as const,
         email: user.email,
-        fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+        fullName: `${user.firstName || ''} ${user.lastName || ''".trim() || user.email,
         firstName: user.firstName,
         lastName: user.lastName,
       }));
@@ -91,7 +91,7 @@ export function PersonSelector({
         id: customer.id,
         type: 'customer' as const,
         email: customer.email,
-        fullName: customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email,
+        fullName: customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''".trim() || customer.email,
         firstName: customer.firstName,
         lastName: customer.lastName,
       }));
@@ -161,7 +161,7 @@ export function PersonSelector({
                       .filter((person: Person) => person.type === 'user')
                       .map((person: Person) => (
                         <CommandItem
-                          key={`user-${person.id}`}
+                          key={`user-${person.id"}
                           value={person.fullName}
                           onSelect={() => handleSelect(person)}
                         >
@@ -189,7 +189,7 @@ export function PersonSelector({
                       .filter((person: Person) => person.type === 'customer')
                       .map((person: Person) => (
                         <CommandItem
-                          key={`customer-${person.id}`}
+                          key={`customer-${person.id"}
                           value={person.fullName}
                           onSelect={() => handleSelect(person)}
                         >

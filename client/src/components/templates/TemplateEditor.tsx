@@ -173,10 +173,10 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   // Adicionar novo campo
   const addField = useCallback((type: string) => {
     const newField: FieldDefinition = {
-      id: `field_${Date.now()}`,
+      id: `field_${Date.now()",
       type,
-      label: `Novo ${fieldTypes.find(f => f.type === type)?.label || 'Campo'}`,
-      key: `field_${fields.length + 1}`,
+      label: `Novo ${fieldTypes.find(f => f.type === type)?.label || 'Campo'",
+      key: `field_${fields.length + 1",
       isRequired: false,
       isVisible: true,
       sortOrder: fields.length,
@@ -336,7 +336,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         {/* Canvas */}
         <div className="flex-1 relative overflow-auto">
           <div 
-            className={`p-8 min-h-full ${gridVisible ? 'bg-grid-pattern' : 'bg-white'}`}
+            className="p-8 min-h-full "`}
             style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' }}
           >
             <Card className="max-w-4xl mx-auto min-h-[600px]">

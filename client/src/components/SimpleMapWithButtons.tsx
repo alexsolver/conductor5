@@ -111,7 +111,7 @@ function SimpleMapWithButtons({
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText");
       }
 
       const results: SearchResult[] = await response.json();
@@ -171,7 +171,7 @@ function SimpleMapWithButtons({
         
         toast({
           title: "Localização atual",
-          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
+          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)"
         });
       },
       (error) => {
@@ -340,7 +340,7 @@ function SimpleMapWithButtons({
               {/* Horizontal streets */}
               {[...Array(12)].map((_, i) => (
                 <line
-                  key={`h${i}`}
+                  key={`h${i"}
                   x1="0"
                   y1={`${(i + 1) * 8}%`}
                   x2="100%"
@@ -352,7 +352,7 @@ function SimpleMapWithButtons({
               {/* Vertical streets */}
               {[...Array(16)].map((_, i) => (
                 <line
-                  key={`v${i}`}
+                  key={`v${i"}
                   x1={`${(i + 1) * 6}%`}
                   y1="0"
                   x2={`${(i + 1) * 6}%`}

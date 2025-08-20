@@ -62,7 +62,7 @@ export default function DragDropDemo() {
       const fieldData = availableFields.find(f => f.id === active.id);
       if (fieldData) {
         const newField: DroppedField = {
-          id: `${fieldData.id}-${Date.now()}`,
+          id: `${fieldData.id}-${Date.now()",
           type: fieldData.type,
           label: fieldData.label,
           sectionId: over.id.toString(),
@@ -113,7 +113,7 @@ export default function DragDropDemo() {
           
           if (fieldData) {
             const newField: DroppedField = {
-              id: `${fieldData.id}-${Date.now()}`,
+              id: `${fieldData.id}-${Date.now()",
               type: fieldData.type,
               label: fieldData.label,
               sectionId: zone.id,

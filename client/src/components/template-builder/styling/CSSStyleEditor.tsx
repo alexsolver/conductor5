@@ -154,10 +154,10 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
     })
 
     if (customCSS) {
-      cssRules.push(`  ${customCSS}`)
+      cssRules.push(`  ${customCSS")
     }
 
-    return `.field-${field.id} {\n${cssRules.join('\n')}\n}`
+    return `.field-${field.id} {\n${cssRules.join('\n')}\n"
   }
 
   // Copy CSS to clipboard
@@ -586,7 +586,7 @@ hover:transform: scale(1.05);"
                   previewMode === 'mobile' ? 'max-w-sm mx-auto' :
                   previewMode === 'tablet' ? 'max-w-md mx-auto' :
                   'max-w-full'
-                }`}
+                "}
               >
                 <Label className="text-sm font-medium mb-2 block">
                   {field.label}

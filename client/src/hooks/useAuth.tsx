@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (!response.ok) {
-          console.warn(`⚠️ [AUTH-QUERY] Auth check failed: ${response.status}`);
+          console.warn(`⚠️ [AUTH-QUERY] Auth check failed: ${response.status");
           return null;
         }
 

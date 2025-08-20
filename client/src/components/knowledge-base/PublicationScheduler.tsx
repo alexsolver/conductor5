@@ -82,7 +82,7 @@ export function PublicationScheduler({
       return;
     }
 
-    const scheduledFor = new Date(`${scheduledDate}T${scheduledTime}`);
+    const scheduledFor = new Date(`${scheduledDate}T${scheduledTime");
     
     if (scheduledFor <= new Date()) {
       toast({
@@ -179,7 +179,7 @@ export function PublicationScheduler({
                 <div className="p-2 bg-muted rounded text-sm">
                   <strong>Publicação agendada para:</strong><br />
                   {format(
-                    new Date(`${scheduledDate}T${scheduledTime}`),
+                    new Date(`${scheduledDate}T${scheduledTime"),
                     "dd 'de' MMMM 'de' yyyy 'às' HH:mm",
                     { locale: ptBR }
                   )}

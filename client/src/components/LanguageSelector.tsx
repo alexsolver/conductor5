@@ -52,7 +52,7 @@ export function LanguageSelector({
         <Tooltip>
           <TooltipTrigger asChild>
             <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
-              <SelectTrigger className={`w-10 h-10 border-0 bg-transparent hover:bg-muted ${className}`}>
+              <SelectTrigger className="w-10 h-10 border-0 bg-transparent hover:bg-muted "`}>
                 <Globe className="h-4 w-4" />
               </SelectTrigger>
               <SelectContent align="end">
@@ -78,7 +78,7 @@ export function LanguageSelector({
   if (variant === 'compact') {
     return (
       <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
-        <SelectTrigger className={`w-16 h-8 text-xs ${className}`}>
+        <SelectTrigger className="w-16 h-8 text-xs "`}>
           <SelectValue>
             {showFlag ? currentLanguage.flag : currentLanguage.code.toUpperCase()}
           </SelectValue>
@@ -99,7 +99,7 @@ export function LanguageSelector({
 
   return (
     <Select value={currentLanguageCode} onValueChange={handleLanguageChange}>
-      <SelectTrigger className={`w-48 ${className}`}>
+      <SelectTrigger className="w-48 "`}>
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4" />
           <SelectValue>

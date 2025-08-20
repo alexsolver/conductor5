@@ -82,7 +82,7 @@ export default function AttachmentsModal({
   // Delete attachment mutation
   const deleteMutation = useMutation({
     mutationFn: async (attachmentId: string) => {
-      const response = await apiRequest("DELETE", `/api/tickets/${ticketId}/attachments/${attachmentId}`);
+      const response = await apiRequest("DELETE", `/api/tickets/${ticketId}/attachments/${attachmentId");
       return response.json();
     },
     onSuccess: () => {

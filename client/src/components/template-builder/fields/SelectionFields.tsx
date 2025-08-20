@@ -138,13 +138,13 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
         {options.map((option: any, index: number) => (
           <div key={index} className="flex items-center space-x-2">
             <Checkbox
-              id={`${field.id}-option-${index}`}
+              id={`${field.id}-option-${index"}
               checked={selectedValues.includes(option.value)}
               onCheckedChange={() => handleToggleOption(option.value)}
               disabled={disabled}
             />
             <Label 
-              htmlFor={`${field.id}-option-${index}`}
+              htmlFor={`${field.id}-option-${index"}
               className="text-sm cursor-pointer flex-1"
             >
               {option.label}
@@ -194,10 +194,10 @@ export const RadioField: React.FC<SelectionFieldProps> = ({
           <div key={index} className="flex items-center space-x-2">
             <RadioGroupItem 
               value={option.value} 
-              id={`${field.id}-radio-${index}`}
+              id={`${field.id}-radio-${index"}
             />
             <Label 
-              htmlFor={`${field.id}-radio-${index}`}
+              htmlFor={`${field.id}-radio-${index"}
               className="text-sm cursor-pointer"
             >
               {option.label}

@@ -175,7 +175,7 @@ export default function LPU() {
   // Update price list mutation
   const updatePriceListMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PriceList> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/price-lists/${id}`, data);
+      const response = await apiRequest('PUT', `/api/materials-services/price-lists/${id", data);
       return response.json();
     },
     onSuccess: () => {
@@ -196,7 +196,7 @@ export default function LPU() {
   // Delete price list mutation
   const deletePriceListMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/materials-services/price-lists/${id}`);
+      await apiRequest('DELETE', `/api/materials-services/price-lists/${id");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
@@ -257,7 +257,7 @@ export default function LPU() {
   // Update pricing rule mutation
   const updatePricingRuleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PricingRule> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/pricing-rules/${id}`, data);
+      const response = await apiRequest('PUT', `/api/materials-services/pricing-rules/${id", data);
       return response.json();
     },
     onSuccess: () => {
@@ -278,7 +278,7 @@ export default function LPU() {
   // Delete pricing rule mutation
   const deletePricingRuleMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/materials-services/pricing-rules/${id}`);
+      await apiRequest('DELETE', `/api/materials-services/pricing-rules/${id");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
@@ -619,7 +619,7 @@ export default function LPU() {
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Válida de {new Date(list.validFrom).toLocaleDateString()}
-                        {list.validTo && ` até ${new Date(list.validTo).toLocaleDateString()}`}
+                        {list.validTo && ` até ${new Date(list.validTo).toLocaleDateString()"}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -781,7 +781,7 @@ export default function LPU() {
                         selectedPriceListForRules === list.id
                           ? 'bg-blue-50 border-blue-300'
                           : 'hover:bg-gray-50'
-                      }`}
+                      "}
                       onClick={() => setSelectedPriceListForRules(list.id)}
                     >
                       <div className="flex justify-between items-center">
@@ -1095,7 +1095,7 @@ export default function LPU() {
                   {priceLists.slice(0, 5).map((list: PriceList, index) => (
                     <div key={list.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-green-500' : index === 1 ? 'bg-blue-500' : 'bg-gray-400'}`} />
+                        <div className="w-3 h-3 rounded-full "`} />
                         <div>
                           <p className="font-medium text-sm">{list.name}</p>
                           <p className="text-xs text-muted-foreground">v{list.version}</p>
@@ -1319,7 +1319,7 @@ export default function LPU() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name}` : '[TRANSLATION_NEEDED]'}
+              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name" : '[TRANSLATION_NEEDED]'}
             </DialogTitle>
             <DialogDescription>
               Visualize o histórico de alterações e gerencie versões
@@ -1742,7 +1742,7 @@ function PriceListItemsView({
   // Update item mutation
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PriceListItem> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/price-lists/items/${id}`, data);
+      const response = await apiRequest('PUT', `/api/materials-services/price-lists/items/${id", data);
       return response.json();
     },
     onSuccess: () => {
@@ -1762,7 +1762,7 @@ function PriceListItemsView({
   // Delete item mutation
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/materials-services/price-lists/items/${id}`);
+      await apiRequest('DELETE', `/api/materials-services/price-lists/items/${id");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', priceList?.id, 'items'] });
@@ -1832,7 +1832,7 @@ function PriceListItemsView({
                 <TableRow key={item.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{item.itemName || `Item ${item.itemId}`}</p>
+                      <p className="font-medium">{item.itemName || `Item ${item.itemId"}</p>
                       {item.itemId && (
                         <p className="text-sm text-muted-foreground">ID: {item.itemId}</p>
                       )}
@@ -1841,7 +1841,7 @@ function PriceListItemsView({
                   <TableCell>{item.measurementUnit || '-'}</TableCell>
                   <TableCell>{priceList.currency} {Number(item.unitPrice).toFixed(2)}</TableCell>
                   <TableCell>
-                    {item.specialPrice ? `${priceList.currency} ${Number(item.specialPrice).toFixed(2)}` : '-'}
+                    {item.specialPrice ? `${priceList.currency} ${Number(item.specialPrice).toFixed(2)" : '-'}
                   </TableCell>
                   <TableCell>
                     {item.hourlyRate ? `${priceList.currency} ${Number(item.hourlyRate).toFixed(2)}/h` : '-'}

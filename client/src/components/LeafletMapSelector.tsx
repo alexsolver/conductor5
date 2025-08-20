@@ -127,7 +127,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText");
       }
 
       const results: SearchResult[] = await response.json();
@@ -196,7 +196,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         
         toast({
           title: "Localização atual",
-          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
+          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)"
         });
       },
       (error) => {

@@ -69,7 +69,7 @@ export function DynamicBadge({
   const colorHex = getFieldColor(fieldName, value);
   const label = getFieldLabel(fieldName, value);
 
-  console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, colorHex=${colorHex}, ready=${isReady}`);
+  console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, colorHex=${colorHex}, ready=${isReady");
 
   // Se não encontrar cor específica, usar badge padrão do sistema
   if (!colorHex) {

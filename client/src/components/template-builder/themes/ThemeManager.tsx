@@ -448,7 +448,7 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
         const importedTheme = JSON.parse(e.target?.result as string);
         const newTheme = {
           ...importedTheme,
-          id: `imported-${Date.now()}`,
+          id: `imported-${Date.now()",
           isCustom: true,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -498,7 +498,7 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
                       currentTheme.id === theme.id 
                         ? 'ring-2 ring-blue-500 bg-blue-50' 
                         : 'hover:shadow-md'
-                    }`}
+                    "}
                     onClick={() => handleThemeSelect(theme)}
                   >
                     <CardContent className="p-4">

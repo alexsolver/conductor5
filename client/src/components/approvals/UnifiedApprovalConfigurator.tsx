@@ -133,7 +133,7 @@ export function UnifiedApprovalConfigurator() {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/approvals/rules', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token",
           'Content-Type': 'application/json'
         }
       });
@@ -150,7 +150,7 @@ export function UnifiedApprovalConfigurator() {
       const response = await fetch('/api/approvals/rules', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token",
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(ruleData)
@@ -209,7 +209,7 @@ export function UnifiedApprovalConfigurator() {
 
   const addCondition = useCallback(() => {
     const newCondition: ApprovalCondition = {
-      id: `condition_${Date.now()}`,
+      id: `condition_${Date.now()",
       field: '',
       operator: 'EQ',
       value: '',
@@ -239,8 +239,8 @@ export function UnifiedApprovalConfigurator() {
 
   const addApprovalStep = useCallback(() => {
     const newStep: ApprovalStep = {
-      id: `step_${Date.now()}`,
-      name: `Etapa ${currentRule.approvalSteps.length + 1}`,
+      id: `step_${Date.now()",
+      name: `Etapa ${currentRule.approvalSteps.length + 1",
       decisionMode: 'ALL',
       slaHours: 24,
       approvers: [],
@@ -362,7 +362,7 @@ export function UnifiedApprovalConfigurator() {
                   <div className="space-y-2">
                     {rulesData?.data?.map((rule: any) => (
                       <div
-                        key={`rule-${rule.id}`}
+                        key={`rule-${rule.id"}
                         className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                         onClick={() => setCurrentRule(rule)}
                       >

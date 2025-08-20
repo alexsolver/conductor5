@@ -46,7 +46,7 @@ export default function AgrupamentoForm({
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/locations-new/area', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token" }
       });
       if (response.ok) {
         const result = await response.json();
@@ -255,7 +255,7 @@ export default function AgrupamentoForm({
                           selectedAreas.includes(area.id)
                             ? 'bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800'
                             : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                        }`}
+                        "}
                         onClick={() => toggleArea(area.id)}
                       >
                         <Checkbox
@@ -269,7 +269,7 @@ export default function AgrupamentoForm({
                             </h4>
                             <Badge 
                               variant="outline" 
-                              className={`text-xs ${getAreaTypeColor(area.tipoArea)}`}
+                              className="text-xs "`}
                             >
                               {getAreaTypeLabel(area.tipoArea)}
                             </Badge>

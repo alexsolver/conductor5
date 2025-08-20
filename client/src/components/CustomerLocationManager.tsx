@@ -98,7 +98,7 @@ export function CustomerLocationManager({
       if (!locationId) {
         throw new Error('LocationId is required');
       }
-      return apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId}`);
+      return apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
@@ -120,7 +120,7 @@ export function CustomerLocationManager({
   const setPrimaryMutation = useMutation({
     mutationFn: async (locationId: string) => {
       // Remove current location and re-add as primary
-      await apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId}`);
+      await apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId");
       return apiRequest('POST', `/api/customers/${customerId}/locations`, { locationId, isPrimary: true });
     },
     onSuccess: () => {
@@ -321,8 +321,8 @@ export function CustomerLocationManager({
                             <div className="flex items-center gap-1">
                               <Navigation className="h-4 w-4" />
                               {customerLocation.location?.address || 'Endereço não especificado'}
-                              {customerLocation.location?.number && `, ${customerLocation.location.number}`}
-                              {customerLocation.location?.neighborhood && `, ${customerLocation.location.neighborhood}`}
+                              {customerLocation.location?.number && `, ${customerLocation.location.number"}
+                              {customerLocation.location?.neighborhood && `, ${customerLocation.location.neighborhood"}
                             </div>
                             <div className="mt-1">
                               {customerLocation.location?.city || 'Cidade'}, {customerLocation.location?.state || 'Estado'} - {customerLocation.location?.zipCode || 'CEP'}

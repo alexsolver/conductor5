@@ -86,7 +86,7 @@ export default function InternalActionDetailsModal({
   // Update internal action mutation
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/tickets/${internalAction.ticketId}/actions/${internalAction.id}`, data);
+      const response = await apiRequest("PUT", `/api/tickets/${internalAction.ticketId}/actions/${internalAction.id", data);
       return response.json();
     },
     onSuccess: () => {

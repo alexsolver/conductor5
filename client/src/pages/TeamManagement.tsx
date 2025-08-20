@@ -173,7 +173,7 @@ export default function TeamManagement() {
   const filteredMembers = membersArray.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${member.firstName || ''} ${member.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
+                         `${member.firstName || ''} ${member.lastName || ''".toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = filterDepartment === "all" || 
                              member.department === filterDepartment ||
                              member.departmentName === filterDepartment;
@@ -757,7 +757,7 @@ export default function TeamManagement() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário'}
+                            {member.name || `${member.firstName || ''} ${member.lastName || ''".trim() || member.email || 'Usuário'}
                           </h3>
                           <p className="text-xs text-gray-500 truncate">
                             ID: {member.id ? member.id.slice(-8) : 'N/A'}

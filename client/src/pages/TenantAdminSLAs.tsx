@@ -181,7 +181,7 @@ export default function TenantAdminSLAs() {
 
   const updateSlaMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await fetch(`/api/sla/tickets-slas/${id}`, {
+      const response = await fetch(`/api/sla/tickets-slas/${id", {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -200,7 +200,7 @@ export default function TenantAdminSLAs() {
 
   const deleteSlaMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`/api/sla/tickets-slas/${id}`, {
+      const response = await fetch(`/api/sla/tickets-slas/${id", {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error('Erro ao excluir SLA');

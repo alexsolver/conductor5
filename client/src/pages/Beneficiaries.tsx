@@ -145,16 +145,16 @@ export default function Beneficiaries() {
       if (searchTerm) params.append('search', searchTerm);
 
       // Usar endpoint padronizado
-      const response = await fetch(`/api/beneficiaries?${params}`, {
+      const response = await fetch(`/api/beneficiaries?${params", {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token",
           'Content-Type': 'application/json',
         },
         credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch beneficiaries: ${response.status}`);
+        throw new Error(`Failed to fetch beneficiaries: ${response.status");
       }
 
       const data = await response.json();
@@ -238,7 +238,7 @@ export default function Beneficiaries() {
     if (!editingBeneficiary?.id) return;
     
     try {
-      await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId}`);
+      await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId");
       
       // Update local state
       setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
@@ -259,7 +259,7 @@ export default function Beneficiaries() {
   // Update beneficiary mutation
   const updateBeneficiaryMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BeneficiaryFormData }) => {
-      const response = await apiRequest("PUT", `/api/beneficiaries/${id}`, data);
+      const response = await apiRequest("PUT", `/api/beneficiaries/${id", data);
       return response.json();
     },
     onSuccess: () => {
@@ -284,7 +284,7 @@ export default function Beneficiaries() {
   // Delete beneficiary mutation
   const deleteBeneficiaryMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/beneficiaries/${id}`);
+      const response = await apiRequest("DELETE", `/api/beneficiaries/${id");
       return response.json();
     },
     onSuccess: () => {

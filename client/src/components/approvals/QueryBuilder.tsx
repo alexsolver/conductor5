@@ -91,7 +91,7 @@ export function QueryBuilder() {
             conditions: [
               ...group.conditions,
               {
-                id: `${groupId}-${Date.now()}`,
+                id: `${groupId}-${Date.now()",
                 field: '',
                 operator: 'EQ',
                 value: '',
@@ -222,7 +222,7 @@ export function QueryBuilder() {
       {/* Query Groups */}
       <div className="space-y-4" data-testid="query-groups">
         {queryGroups.map((group, groupIndex) => (
-          <Card key={group.id} data-testid={`query-group-${group.id}`}>
+          <Card key={group.id} data-testid={`query-group-${group.id"}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export function QueryBuilder() {
                           g.id === group.id ? { ...g, logic: value as 'AND' | 'OR' } : g
                         ));
                       }}
-                      data-testid={`group-logic-${group.id}`}
+                      data-testid={`group-logic-${group.id"}
                     >
                       <SelectTrigger className="w-20">
                         <SelectValue />
@@ -252,7 +252,7 @@ export function QueryBuilder() {
                     variant="ghost"
                     size="sm"
                     onClick={() => removeGroup(group.id)}
-                    data-testid={`button-remove-group-${group.id}`}
+                    data-testid={`button-remove-group-${group.id"}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -260,14 +260,14 @@ export function QueryBuilder() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3" data-testid={`conditions-${group.id}`}>
+              <div className="space-y-3" data-testid={`conditions-${group.id"}>
                 {group.conditions.map((condition, condIndex) => (
-                  <div key={condition.id} className="flex items-center gap-3" data-testid={`condition-${condition.id}`}>
+                  <div key={condition.id} className="flex items-center gap-3" data-testid={`condition-${condition.id"}>
                     {condIndex > 0 && (
                       <Select 
                         value={condition.logic || 'AND'} 
                         onValueChange={(value) => updateCondition(group.id, condition.id, 'logic', value)}
-                        data-testid={`condition-logic-${condition.id}`}
+                        data-testid={`condition-logic-${condition.id"}
                       >
                         <SelectTrigger className="w-20">
                           <SelectValue />
@@ -282,7 +282,7 @@ export function QueryBuilder() {
                     <Select 
                       value={condition.field} 
                       onValueChange={(value) => updateCondition(group.id, condition.id, 'field', value)}
-                      data-testid={`condition-field-${condition.id}`}
+                      data-testid={`condition-field-${condition.id"}
                     >
                       <SelectTrigger className="w-48">
                         <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -299,7 +299,7 @@ export function QueryBuilder() {
                     <Select 
                       value={condition.operator} 
                       onValueChange={(value) => updateCondition(group.id, condition.id, 'operator', value)}
-                      data-testid={`condition-operator-${condition.id}`}
+                      data-testid={`condition-operator-${condition.id"}
                     >
                       <SelectTrigger className="w-32">
                         <SelectValue />
@@ -318,7 +318,7 @@ export function QueryBuilder() {
                       value={condition.value}
                       onChange={(e) => updateCondition(group.id, condition.id, 'value', e.target.value)}
                       className="flex-1"
-                      data-testid={`condition-value-${condition.id}`}
+                      data-testid={`condition-value-${condition.id"}
                     />
 
                     <Button
@@ -326,7 +326,7 @@ export function QueryBuilder() {
                       size="sm"
                       onClick={() => removeCondition(group.id, condition.id)}
                       disabled={group.conditions.length === 1}
-                      data-testid={`button-remove-condition-${condition.id}`}
+                      data-testid={`button-remove-condition-${condition.id"}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -338,7 +338,7 @@ export function QueryBuilder() {
                   size="sm"
                   onClick={() => addCondition(group.id)}
                   className="flex items-center gap-2"
-                  data-testid={`button-add-condition-${group.id}`}
+                  data-testid={`button-add-condition-${group.id"}
                 >
                   <Plus className="h-4 w-4" />
                   Adicionar Condição

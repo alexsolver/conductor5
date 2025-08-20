@@ -32,7 +32,7 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
   const [activeTab, setActiveTab] = useState("search");
 
   const handleFeatureClick = (feature: string) => {
-    console.log(`✅ [KB-ADVANCED] Feature activated: ${feature}`);
+    console.log(`✅ [KB-ADVANCED] Feature activated: ${feature");
     onFeatureSelect?.(feature);
   };
 

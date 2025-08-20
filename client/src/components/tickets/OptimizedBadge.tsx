@@ -74,7 +74,7 @@ export const OptimizedBadge = memo<OptimizedBadgeProps>(({
       variant={color ? "default" : variant}
       className={cn("transition-all duration-200", className)}
       style={badgeStyle}
-      aria-label={ariaLabel || `${fieldName}: ${displayValue}`}
+      aria-label={ariaLabel || `${fieldName}: ${displayValue"}
       title={displayValue}
     >
       {displayValue}
@@ -112,7 +112,7 @@ export const BatchBadges = memo<{
     <div className={cn("flex flex-wrap gap-2", className)} role="group" aria-label="Tags do ticket">
       {badges.map(({ fieldName, value, className: badgeClassName, ariaLabel }, index) => (
         <OptimizedBadge
-          key={`${fieldName}-${value}-${index}`}
+          key={`${fieldName}-${value}-${index"}
           fieldName={fieldName}
           value={value}
           className={badgeClassName}

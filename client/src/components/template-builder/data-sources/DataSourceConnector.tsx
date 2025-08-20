@@ -64,8 +64,8 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
 }) => {
   const [dataSource, setDataSource] = useState<DataSource>(
     field.dataSource || {
-      id: `ds_${Date.now()}`,
-      name: `Fonte de dados - ${field.label}`,
+      id: `ds_${Date.now()",
+      name: `Fonte de dados - ${field.label",
       type: 'static',
       config: {},
       status: 'idle'
@@ -139,7 +139,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
     const response = await fetch(url, requestConfig)
 
     if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`)
+      throw new Error(`Erro HTTP: ${response.status} ${response.statusText")
     }
 
     const data = await response.json()
@@ -177,7 +177,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
     })
 
     if (!response.ok) {
-      throw new Error(`Erro na consulta: ${response.statusText}`)
+      throw new Error(`Erro na consulta: ${response.statusText")
     }
 
     const result = await response.json()
@@ -231,7 +231,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       return Array.isArray(result) ? result : [result]
 
     } catch (error) {
-      throw new Error(`Erro na função: ${error instanceof Error ? error.message : '[TRANSLATION_NEEDED]'}`)
+      throw new Error(`Erro na função: ${error instanceof Error ? error.message : '[TRANSLATION_NEEDED]'")
     }
   }
 
@@ -246,7 +246,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       
       return func(data) || []
     } catch (error) {
-      throw new Error(`Erro na transformação: ${error instanceof Error ? error.message : '[TRANSLATION_NEEDED]'}`)
+      throw new Error(`Erro na transformação: ${error instanceof Error ? error.message : '[TRANSLATION_NEEDED]'")
     }
   }
 
@@ -343,7 +343,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
                     ...prev,
                     config: { ...prev.config, body: e.target.value }
                   }))}
-                  placeholder={`[
+                  placeholder="Enter [
   {"value": "opt1", "label": "Opção 1"},
   {"value": "opt2", "label": "Opção 2"}
 ]
@@ -416,7 +416,7 @@ Opção 3`}
                       ...prev,
                       config: { ...prev.config, transform: e.target.value }
                     }))}
-                    placeholder={`return data.map(item => ({
+                    placeholder="Enter return data.map(item => ({
   value: item.id,
   label: item.name
 }))`}
@@ -454,7 +454,7 @@ Opção 3`}
                     ...prev,
                     config: { ...prev.config, body: e.target.value }
                   }))}
-                  placeholder={`// Retorne um array de objetos
+                  placeholder="Enter // Retorne um array de objetos
 const data = await fetch('/api/dados').then(r => r.json());
 return data.map(item => ({
   value: item.id,

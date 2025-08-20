@@ -218,7 +218,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
     if (!componentTemplate) return;
 
     const newComponent = {
-      id: `${componentType}_${Date.now()}`,
+      id: `${componentType}_${Date.now()",
       type: componentType,
       position: position || { x: 50, y: 50 },
       size: { width: 200, height: 100 },
@@ -260,7 +260,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
 
     const newComponent = {
       ...component,
-      id: `${component.type}_${Date.now()}`,
+      id: `${component.type}_${Date.now()",
       position: {
         x: component.position.x + 20,
         y: component.position.y + 20
@@ -666,7 +666,7 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             className="w-full h-full"
             style={{
               backgroundColor: component.props.backgroundColor,
-              border: `${component.props.borderWidth}px solid ${component.props.borderColor}`,
+              border: `${component.props.borderWidth}px solid ${component.props.borderColor",
               borderRadius: `${component.props.borderRadius}px`,
               padding: `${component.props.padding}px`,
               boxShadow: component.props.shadow ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
@@ -683,7 +683,7 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
 
   return (
     <div
-      className={`absolute cursor-pointer ${isSelected && !isPreview ? 'ring-2 ring-blue-500' : ''} ${isDragging ? 'opacity-75' : ''}`}
+      className="absolute cursor-pointer ${isSelected && !isPreview ? 'ring-2 ring-blue-500' : ''} "`}
       style={{
         left: component.position.x,
         top: component.position.y,

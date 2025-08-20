@@ -161,9 +161,9 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
-      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
-      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
-      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
+      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
@@ -179,14 +179,14 @@ export default function TenantAdminIntegrations() {
     const response = await fetch('/api/tenant-admin/integrations', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')",
         'Content-Type': 'application/json'
       },
       credentials: 'include'
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status");
     }
     return response.json();
   };
@@ -229,7 +229,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Use accessToken consistently
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')", // Use accessToken consistently
           'Content-Type': 'application/json'
         }
       });
@@ -278,7 +278,7 @@ export default function TenantAdminIntegrations() {
       }
       setTestResult({
         success: false,
-        message: `Falha ao testar integração: ${errorMessage}`,
+        message: `Falha ao testar integração: ${errorMessage",
         error: error
       });
     } finally {
@@ -313,7 +313,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ webhookUrl })
@@ -364,7 +364,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
@@ -420,7 +420,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
           'Content-Type': 'application/json'
         }
       });
@@ -713,25 +713,25 @@ export default function TenantAdminIntegrations() {
   };
 
   const onConfigureIntegration = async (integration: TenantIntegration) => {
-    console.log(`🔧 [CONFIG-LOAD] Configurando integração: ${integration.id}`);
+    console.log(`🔧 [CONFIG-LOAD] Configurando integração: ${integration.id");
     setSelectedIntegration(integration);
     setTestResult(null); // Clear previous test results when opening dialog
 
     try {
       // ✅ CRITICAL FIX: Usar fetch direto com headers corretos
-      console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id}`);
+      console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id");
 
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         credentials: 'include'
       });
 
-      console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
+      console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')");
 
       if (!response.ok) {
         // Handle case where config might not exist yet (e.g., return 404)
@@ -742,7 +742,7 @@ export default function TenantAdminIntegrations() {
           setIsConfigDialogOpen(true);
           return;
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText");
       }
 
       const contentType = response.headers.get('content-type');
@@ -769,7 +769,7 @@ export default function TenantAdminIntegrations() {
 
       if (hasValidConfig) {
         const config = existingConfigData.config;
-        console.log(`✅ [CONFIG-LOAD] Configuração válida encontrada para ${integration.id}`);
+        console.log(`✅ [CONFIG-LOAD] Configuração válida encontrada para ${integration.id");
 
         // ✅ SECURITY: Função para mascarar dados sensíveis de forma consistente
         const maskSensitiveData = (value: string | undefined | null): string => {
@@ -818,9 +818,9 @@ export default function TenantAdminIntegrations() {
           telegramBotToken: maskSensitiveData(config.telegramBotToken),
           telegramChatId: config.telegramChatId || '',
           telegramWebhookUrl: config.telegramWebhookUrl || '', // Load the webhook URL
-          telegramNotificationTemplate: config.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
-          telegramAlertTemplate: config.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
-          telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+          telegramNotificationTemplate: config.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
+          telegramAlertTemplate: config.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+          telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
 
 
           // WhatsApp Business specific fields
@@ -909,9 +909,9 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
-      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
-      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
-      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
+      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
@@ -946,7 +946,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ redirectUri }) // Send redirect URI to backend
@@ -1115,7 +1115,7 @@ export default function TenantAdminIntegrations() {
         const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')",
             'Content-Type': 'application/json'
           }
         });
@@ -1161,9 +1161,9 @@ export default function TenantAdminIntegrations() {
             telegramBotToken: data.telegramBotToken || '',
             telegramChatId: data.telegramChatId || '',
             telegramWebhookUrl: data.telegramWebhookUrl || '', // Include the webhook URL
-            telegramNotificationTemplate: data.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
-            telegramAlertTemplate: data.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
-            telegramSummaryTemplate: data.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+            telegramNotificationTemplate: data.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
+            telegramAlertTemplate: data.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+            telegramSummaryTemplate: data.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
           };
           break;
 
@@ -1291,7 +1291,7 @@ export default function TenantAdminIntegrations() {
 
       {/* Integrações por Categoria */}
       <Tabs defaultValue="certificados" className="space-y-4">
-        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 1}`}>
+        <TabsList className="grid w-full grid-cols-"`}>
           <TabsTrigger value="certificados">
             Certificados
           </TabsTrigger>
@@ -1337,7 +1337,7 @@ export default function TenantAdminIntegrations() {
                             <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
                               {integration.name}
                             </CardTitle>
-                            <Badge className={`${getCategoryColor(integration.category)} text-xs mt-1`}>
+                            <Badge className="" text-xs mt-1`}>
                               {integration.category}
                             </Badge>
                           </div>
@@ -1350,7 +1350,7 @@ export default function TenantAdminIntegrations() {
                               <span className="sm:hidden">Config.</span>
                             </Badge>
                           )}
-                          <Badge className={`${getStatusColor(integration.status)} text-xs`}>
+                          <Badge className="" text-xs`}>
                             {getStatusIcon(integration.status)}
                             <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
                             <span className="ml-1 capitalize sm:hidden">
@@ -1429,7 +1429,7 @@ export default function TenantAdminIntegrations() {
                               handleTestIntegration(integration.id);
                             }}
                             disabled={isTestingIntegration}
-                            className={`${(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') ? 'flex-1' : 'w-full'}`}
+                            className=""`}
                           >
                             {isTestingIntegration ? ( // Use the general isTestingIntegration state
                               <>
@@ -1448,7 +1448,7 @@ export default function TenantAdminIntegrations() {
                       </div>
 
                       {integration.lastSync && (
-                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')}`}>
+                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')"}>
                           Sync: {new Date(integration.lastSync).toLocaleDateString('pt-BR')}
                         </p>
                       )}
@@ -1544,7 +1544,7 @@ export default function TenantAdminIntegrations() {
                           <FormLabel>Redirect URI</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder={`${window.location.origin}/auth/${selectedIntegration.id}/callback`} 
+                              placeholder="Enter ${window.location.origin}/auth/${selectedIntegration.id}/callback`} 
                               {...field} 
                             />
                           </FormControl>
@@ -2101,7 +2101,7 @@ Acompanhe pelo sistema Conductor."
 
                 {/* Display test results below the form if available and not for webhook section */}
                 {testResult && !['telegram'].includes(selectedIntegration.id) && (
-                  <pre className={`p-2 text-xs rounded-md ${testResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <pre className="p-2 text-xs rounded-md "`}>
                     {testResult.message}
                     {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
                   </pre>

@@ -96,7 +96,7 @@ export function UrgentTickets() {
                 ticket.priority === "critical" 
                   ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20" 
                   : "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20"
-              }`}
+              "}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -119,7 +119,7 @@ export function UrgentTickets() {
                   Assigned to: {" "}
                   <span className="font-medium">
                     {ticket.assignedTo 
-                      ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`
+                      ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName"
                       : "Unassigned"
                     }
                   </span>

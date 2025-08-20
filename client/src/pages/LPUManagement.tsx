@@ -667,7 +667,7 @@ export default function LPUManagement() {
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="w-4 h-4" />
                             Válido: {new Date(rule.validFrom).toLocaleDateString('pt-BR')}
-                            {rule.validTo && ` até ${new Date(rule.validTo).toLocaleDateString('pt-BR')}`}
+                            {rule.validTo && ` até ${new Date(rule.validTo).toLocaleDateString('pt-BR')"}
                           </div>
                         )}
                       </div>

@@ -159,12 +159,12 @@ export default function SaasAdminIntegrations() {
   // Mutation para testar integração
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
-      console.log(`🧪 [SAAS-ADMIN-TEST] Testando integração: ${integrationId}`);
+      console.log(`🧪 [SAAS-ADMIN-TEST] Testando integração: ${integrationId");
       const url = `/api/saas-admin/integrations/${integrationId}/test`;
       const response = await apiRequest('POST', url, {});
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText");
       }
       
       const data = await response.json();

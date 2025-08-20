@@ -180,7 +180,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
     if (!template) return;
 
     const newRule: ValidationRule = {
-      id: `rule-${Date.now()}`,
+      id: `rule-${Date.now()",
       name: template.name,
       type: type as any,
       config: { ...template.defaultConfig },
@@ -223,8 +223,8 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
 
   const createValidationTest = () => {
     const newTest: ValidationTest = {
-      id: `test-${Date.now()}`,
-      name: `Teste ${validationTests.length + 1}`,
+      id: `test-${Date.now()",
+      name: `Teste ${validationTests.length + 1",
       fieldValues: { [fieldId]: testValue },
       expectedResult: testResult?.isValid ? 'valid' : 'invalid',
       description: `Teste com valor: "${testValue}"`
@@ -275,7 +275,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
             {/* Lista de Regras Existentes */}
             <div className="space-y-3">
               {currentRules.map((rule) => (
-                <Card key={rule.id} className={`${!rule.enabled ? 'opacity-50' : ''}`}>
+                <Card key={rule.id} className=""`}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -543,7 +543,7 @@ export const ValidationEngine: React.FC<ValidationEngineProps> = ({
                 </div>
 
                 {testResult && (
-                  <Alert className={`${testResult.isValid ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                  <Alert className=""`}>
                     <div className="flex items-center">
                       {testResult.isValid ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />

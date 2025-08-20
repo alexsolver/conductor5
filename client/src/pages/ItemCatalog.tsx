@@ -215,7 +215,7 @@ export default function ItemCatalog() {
         params.append('status', statusFilter);
       }
 
-      const url = `/api/materials-services/items${params.toString() ? `?${params}` : ''}`;
+      const url = `/api/materials-services/items${params.toString() ? `?${params" : ''";
       console.log('🔍 [ItemCatalog] Fetching from URL:', url);
 
       // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
@@ -235,7 +235,7 @@ export default function ItemCatalog() {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token",
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
@@ -286,7 +286,7 @@ export default function ItemCatalog() {
               // Retry the original request with new token
               const retryResponse = await fetch(url, {
                 headers: {
-                  'Authorization': `Bearer ${accessToken}`,
+                  'Authorization': `Bearer ${accessToken",
                   'Content-Type': 'application/json'
                 }
               });
@@ -322,7 +322,7 @@ export default function ItemCatalog() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('🔍 [ItemCatalog] Response error:', errorText);
-        throw new Error(`Failed to fetch items: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch items: ${response.status} ${response.statusText");
       }
 
       // ✅ CRITICAL FIX - Enhanced error handling per 1qa.md compliance
@@ -373,7 +373,7 @@ export default function ItemCatalog() {
           message: parseError.message,
           position: parseError.position
         });
-        throw new Error(`Failed to parse server response: ${parseError.message}`);
+        throw new Error(`Failed to parse server response: ${parseError.message");
       }
 
       console.log('🔍 [ItemCatalog] Response data:', {
@@ -474,7 +474,7 @@ export default function ItemCatalog() {
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof itemSchema> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/items/${id}`, data);
+      const response = await apiRequest('PUT', `/api/materials-services/items/${id", data);
       return response.json();
     },
     onSuccess: () => {
@@ -497,7 +497,7 @@ export default function ItemCatalog() {
 
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/materials-services/items/${id}`);
+      const response = await apiRequest('DELETE', `/api/materials-services/items/${id");
       return response.json();
     },
     onSuccess: () => {
@@ -574,7 +574,7 @@ export default function ItemCatalog() {
     if (selectedItem && currentView === 'item-edit') {
       // Logic to update item and its hierarchical links
       try {
-        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, {
+        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id", {
           ...data,
           childrenIds: data.childrenIds, // Ensure childrenIds are sent
         });
@@ -685,7 +685,7 @@ export default function ItemCatalog() {
                 >
                   <div className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
                     isBulkMode ? 'bg-primary border-primary' : 'border-input'
-                  }`}>
+                  "}>
                     {isBulkMode && <div className="h-2 w-2 bg-primary-foreground rounded-sm" />}
                   </div>
                   Lote ({selectedItems.size})
@@ -746,7 +746,7 @@ export default function ItemCatalog() {
                       key={item.id}
                       className={`hover:bg-gray-50 transition-colors ${
                         selectedItems.has(item.id) ? 'bg-blue-50' : ''
-                      }`}
+                      "}
                     >
                       {isBulkMode && (
                         <TableCell>
@@ -951,7 +951,7 @@ export default function ItemCatalog() {
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              }`}>
+              "}>
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
@@ -1123,7 +1123,7 @@ export default function ItemCatalog() {
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              }`}>
+              "}>
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
@@ -1421,7 +1421,7 @@ export default function ItemCatalog() {
                               if (!selectedItem?.id) return;
 
                               try {
-                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`, {
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id", {
                                   method: 'DELETE'
                                 });
 
@@ -1516,7 +1516,7 @@ export default function ItemCatalog() {
                               if (!selectedItem?.id) return;
 
                               try {
-                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`, {
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id", {
                                   method: 'DELETE'
                                 });
 

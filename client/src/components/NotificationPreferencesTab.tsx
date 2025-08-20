@@ -444,24 +444,24 @@ export default function NotificationPreferencesTab() {
                     isEnabled
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                       : 'border-gray-200 bg-gray-50 dark:bg-gray-800'
-                  }`}
+                  "}
                   onClick={() => handleGlobalChannelToggle(channel.id)}
-                  data-testid={`global-channel-${channel.id}`}
+                  data-testid={`global-channel-${channel.id"}
                 >
-                  <IconComponent className={`h-5 w-5 ${isEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <IconComponent className="h-5 w-5 "`} />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className={`font-medium text-sm ${isEnabled ? 'text-blue-900 dark:text-blue-100' : 'text-gray-500'}`}>
+                      <span className="font-medium text-sm "`}>
                         {channel.name}
                       </span>
                       <Switch
                         checked={isEnabled}
                         onCheckedChange={() => handleGlobalChannelToggle(channel.id)}
                         size="sm"
-                        data-testid={`switch-global-${channel.id}`}
+                        data-testid={`switch-global-${channel.id"}
                       />
                     </div>
-                    <p className={`text-xs ${isEnabled ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400'}`}>
+                    <p className="text-xs "`}>
                       {channel.description}
                     </p>
                   </div>
@@ -644,7 +644,7 @@ export default function NotificationPreferencesTab() {
                     <Switch
                       checked={isEnabled}
                       onCheckedChange={() => handleTypeToggle(type.id)}
-                      data-testid={`switch-type-${type.id}`}
+                      data-testid={`switch-type-${type.id"}
                     />
                   </div>
 
@@ -663,9 +663,9 @@ export default function NotificationPreferencesTab() {
                                 isSelected
                                   ? 'border-blue-500 bg-blue-50'
                                   : 'border-gray-200 hover:border-gray-300'
-                              }`}
+                              "}
                               onClick={() => handleChannelToggle(type.id, channel.id)}
-                              data-testid={`channel-${type.id}-${channel.id}`}
+                              data-testid={`channel-${type.id}-${channel.id"}
                             >
                               <IconComponent className="h-4 w-4" />
                               <div className="flex-1">
@@ -674,7 +674,7 @@ export default function NotificationPreferencesTab() {
                               </div>
                               <div className={`w-2 h-2 rounded-full ${
                                 isSelected ? 'bg-blue-500' : 'bg-gray-300'
-                              }`} />
+                              "} />
                             </div>
                           );
                         })}

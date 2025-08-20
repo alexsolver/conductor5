@@ -78,7 +78,7 @@ export default function Locations() {
       if (favoritesFilter) params.append('favorites', 'true');
       if (tagFilter) params.append('tag', tagFilter);
       
-      const url = `/api/locations${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `/api/locations${params.toString() ? `?${params.toString()" : ''";
       const response = await apiRequest("GET", url);
       return response.json();
     }
@@ -130,7 +130,7 @@ export default function Locations() {
 
   // Delete location mutation
   const deleteLocationMutation = useMutation({
-    mutationFn: (locationId: string) => apiRequest("DELETE", `/api/locations/${locationId}`),
+    mutationFn: (locationId: string) => apiRequest("DELETE", `/api/locations/${locationId"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
@@ -204,7 +204,7 @@ export default function Locations() {
   const handleFileUpload = (locationId: string, file: File) => {
     // Simulate file upload - in real implementation would upload to storage service
     const filename = file.name;
-    const filepath = `/uploads/locations/${locationId}/${filename}`;
+    const filepath = `/uploads/locations/${locationId}/${filename";
     const filesize = file.size;
     
     addAttachmentMutation.mutate({ id: locationId, filename, filepath, filesize });
@@ -760,7 +760,7 @@ export default function Locations() {
                 size="sm"
                 onClick={() => setFavoritesFilter(!favoritesFilter)}
               >
-                <Star className={`h-4 w-4 mr-2 ${favoritesFilter ? 'fill-current' : ''}`} />
+                <Star className="h-4 w-4 mr-2 "`} />
                 {favoritesFilter ? 'Apenas Favoritos' : 'Mostrar Favoritos'}
               </Button>
               <div className="flex items-center gap-2">
@@ -900,7 +900,7 @@ export default function Locations() {
                           disabled={toggleFavoriteMutation.isPending}
                           title={location.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                         >
-                          <Star className={`h-4 w-4 ${location.is_favorite ? 'fill-current' : ''}`} />
+                          <Star className="h-4 w-4 "`} />
                         </Button>
                         <Button 
                           variant="ghost" 

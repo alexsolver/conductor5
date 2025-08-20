@@ -45,12 +45,12 @@ export default function TimecardReports() {
         if (endDate) params.append('endDate', endDate);
         if (selectedEmployee !== 'todos') params.append('employeeId', selectedEmployee);
         
-        const url = `/api/timecard/reports/attendance/${selectedPeriod}${params.toString() ? '?' + params.toString() : ''}`;
+        const url = `/api/timecard/reports/attendance/selectedPeriod + (params.toString() ? "?" + params.toString() : "")
         const response = await apiRequest('GET', url);
 
         if (!response.ok) {
           console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error("HTTP " + response.status + ": " + response.statusText);
         }
 
         const contentType = response.headers.get('content-type');
@@ -94,12 +94,12 @@ export default function TimecardReports() {
         if (endDate) params.append('endDate', endDate);
         if (selectedEmployee !== 'todos') params.append('employeeId', selectedEmployee);
         
-        const url = `/api/timecard/reports/overtime/${selectedPeriod}${params.toString() ? '?' + params.toString() : ''}`;
+        const url = `/api/timecard/reports/overtime/selectedPeriod + (params.toString() ? "?" + params.toString() : "")
         const response = await apiRequest('GET', url);
 
         if (!response.ok) {
           console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error("HTTP " + response.status + ": " + response.statusText);
         }
 
         const contentType = response.headers.get('content-type');
@@ -142,12 +142,12 @@ export default function TimecardReports() {
         if (endDate) params.append('endDate', endDate);
         if (selectedEmployee !== 'todos') params.append('employeeId', selectedEmployee);
         
-        const url = `/api/timecard/reports/compliance/${selectedPeriod}${params.toString() ? '?' + params.toString() : ''}`;
+        const url = `/api/timecard/reports/compliance/selectedPeriod + (params.toString() ? "?" + params.toString() : "")
         const response = await apiRequest('GET', url);
 
         if (!response.ok) {
           console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error("HTTP " + response.status + ": " + response.statusText);
         }
 
         const contentType = response.headers.get('content-type');
@@ -200,7 +200,7 @@ export default function TimecardReports() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/users');
       if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        throw new Error("Erro " + response.status + ": " + response.statusText");
       }
       return response.json();
     }
@@ -431,7 +431,7 @@ export default function TimecardReports() {
                       return dateA - dateB;
                     })
                     ?.map((record: any, index: number) => (
-                      <tr key={index} className={`${!record.isConsistent ? 'bg-red-50 border-red-200' : 'hover:bg-gray-50'} h-14`}>
+                      <tr key={index} className="" h-14`}>
                         <td className="border-2 border-black px-2 py-3 text-center font-bold text-sm">
                           {record.date}
                         </td>
@@ -460,7 +460,7 @@ export default function TimecardReports() {
                               record.status === 'pending' ? 'bg-yellow-500 text-white border-yellow-600' :
                               record.status === 'working' ? 'bg-blue-500 text-white border-blue-600' :
                               'bg-gray-500 text-white border-gray-600'
-                            }`}>
+                            "}>
                                {record.status === 'approved' ? '✅ OK' :
                                record.status === 'pending' ? '⏳ PEND' :
                                record.status === 'working' ? '🔄 TRAB' :

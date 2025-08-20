@@ -53,7 +53,7 @@ export function TeamPerformance() {
           {teamMembers.map((member) => (
             <div key={member.id} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 ${member.gradientClass} rounded-full flex items-center justify-center`}>
+                <div className="w-8 h-8 " rounded-full flex items-center justify-center`}>
                   <span className="text-white text-xs font-medium">
                     {member.initials}
                   </span>

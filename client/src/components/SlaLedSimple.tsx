@@ -7,7 +7,7 @@ interface SlaLedSimpleProps {
 }
 
 export function SlaLedSimple({ ticketId, size = 'md' }: SlaLedSimpleProps) {
-  console.log(`🔍 [SLA-LED-SIMPLE] Rendering for ticket: ${ticketId}`);
+  console.log(`🔍 [SLA-LED-SIMPLE] Rendering for ticket: ${ticketId");
   
   const sizeClasses = {
     sm: 'w-3 h-3',
@@ -22,7 +22,7 @@ export function SlaLedSimple({ ticketId, size = 'md' }: SlaLedSimpleProps) {
   return (
     <div className="flex items-center space-x-2" data-testid="sla-led-simple">
       <div 
-        className={`${sizeClasses[size]} bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg`}
+        className="" bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg`}
         title={`SLA Warning: ${percent}% decorrido`}
       />
       <span className="text-xs font-medium text-yellow-600">SLA</span>

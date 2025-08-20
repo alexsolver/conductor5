@@ -128,8 +128,8 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
           <RadioGroup disabled className={properties.layout === 'horizontal' ? 'flex gap-4' : 'space-y-2'}>
             {(properties.options || []).map((option: any, index: number) => (
               <div key={index} className="flex items-center space-x-2">
-                <RadioGroupItem value={option.value} id={`${field.id}-${index}`} />
-                <Label htmlFor={`${field.id}-${index}`}>{option.label}</Label>
+                <RadioGroupItem value={option.value} id={`${field.id}-${index"} />
+                <Label htmlFor={`${field.id}-${index"}>{option.label}</Label>
               </div>
             ))}
           </RadioGroup>
@@ -149,7 +149,7 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
         return (
           <div className="relative">
             <Input
-              placeholder={`Data (${properties.format || 'dd/MM/yyyy'})`}
+              placeholder="Enter Data (${properties.format || 'dd/MM/yyyy'})`}
               disabled
               className="w-full pr-10"
             />
@@ -161,7 +161,7 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
         return (
           <div className="relative">
             <Input
-              placeholder={`Data e Hora (${properties.format || 'dd/MM/yyyy HH:mm'})`}
+              placeholder="Enter Data e Hora (${properties.format || 'dd/MM/yyyy HH:mm'})`}
               disabled
               className="w-full pr-10"
             />

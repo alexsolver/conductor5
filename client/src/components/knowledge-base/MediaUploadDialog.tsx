@@ -53,7 +53,7 @@ export function MediaUploadDialog({
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const uploadedFile = {
-        id: `file_${Date.now()}`,
+        id: `file_${Date.now()",
         name: file.name,
         size: file.size,
         type: file.type,
@@ -104,7 +104,7 @@ export function MediaUploadDialog({
               dragActive 
                 ? 'border-blue-500 bg-blue-50' 
                 : 'border-gray-300 hover:border-gray-400'
-            }`}
+            "}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}

@@ -149,11 +149,11 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
-                <Label htmlFor={`weekly-start-time-${dayValue}`} className="text-xs text-gray-600">
+                <Label htmlFor={`weekly-start-time-" + dayValue} className="text-xs text-gray-600">
                   Entrada
                 </Label>
                 <Input
-                  id={`weekly-start-time-${dayValue}`}
+                  id={"weekly-start-time-" + dayValue}
                   type="time"
                   value={weeklySchedule[dayValue]?.startTime || '08:00'}
                   onChange={(e) => handleDayChange(dayValue, 'startTime', e.target.value)}
@@ -161,11 +161,11 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`weekly-end-time-${dayValue}`} className="text-xs text-gray-600">
+                <Label htmlFor={"weekly-end-time-" + dayValue} className="text-xs text-gray-600">
                   Saída
                 </Label>
                 <Input
-                  id={`weekly-end-time-${dayValue}`}
+                  id={"weekly-end-time-" + dayValue}
                   type="time"
                   value={weeklySchedule[dayValue]?.endTime || '17:00'}
                   onChange={(e) => handleDayChange(dayValue, 'endTime', e.target.value)}
@@ -173,11 +173,11 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`weekly-break-${dayValue}`} className="text-xs text-gray-600">
+                <Label htmlFor={`weekly-break-${dayValue"} className="text-xs text-gray-600">
                   Pausa (min)
                 </Label>
                 <Input
-                  id={`weekly-break-${dayValue}`}
+                  id={`weekly-break-${dayValue"}
                   type="number"
                   value={weeklySchedule[dayValue]?.breakDurationMinutes || 60}
                   onChange={(e) => handleDayChange(dayValue, 'breakDurationMinutes', e.target.value)}
@@ -316,7 +316,7 @@ function WorkSchedulesContent() {
   // Update schedule mutation
   const updateScheduleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await apiRequest('PUT', `/api/timecard/work-schedules/${id}`, data);
+      const response = await apiRequest('PUT', `/api/timecard/work-schedules/${id", data);
       console.log('[SCHEDULE-UPDATE] Response:', response);
       return response;
     },
@@ -343,7 +343,7 @@ function WorkSchedulesContent() {
   // Delete schedule mutation
   const deleteScheduleMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest('DELETE', `/api/timecard/work-schedules/${id}`);
+      return await apiRequest('DELETE', `/api/timecard/work-schedules/${id");
     },
     onSuccess: () => {
       toast({
@@ -391,7 +391,7 @@ function WorkSchedulesContent() {
   // Update template mutation
   const updateTemplateMutation = useMutation({
     mutationFn: async (templateData: ScheduleTemplate) => {
-      const response = await apiRequest('PUT', `/api/timecard/schedule-templates/${templateData.id}`, templateData);
+      const response = await apiRequest('PUT', `/api/timecard/schedule-templates/${templateData.id", templateData);
       console.log('[TEMPLATE-UPDATE] Response:', response);
       return response;
     },
@@ -418,7 +418,7 @@ function WorkSchedulesContent() {
   // Delete template mutation
   const deleteTemplateMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/timecard/schedule-templates/${id}`);
+      const response = await apiRequest('DELETE', `/api/timecard/schedule-templates/${id");
       console.log('[TEMPLATE-DELETE] Response:', response);
       return response;
     },
@@ -443,7 +443,7 @@ function WorkSchedulesContent() {
   // Assign template to user mutation
   const assignTemplateMutation = useMutation({
     mutationFn: async ({ userId, templateId }: { userId: string; templateId: string }) => {
-      const response = await apiRequest('POST', `/api/timecard/work-schedules/assign-template/${templateId}`, { userId });
+      const response = await apiRequest('POST', `/api/timecard/work-schedules/assign-template/${templateId", { userId });
       console.log('[TEMPLATE-ASSIGN] Response:', response);
       return response;
     },
@@ -683,7 +683,7 @@ function WorkSchedulesContent() {
     if (formData.saveAsTemplate && !selectedSchedule) {
       const templateData = {
         name: formData.templateName.trim(),
-        description: formData.templateDescription.trim() || `Template baseado em escala ${formData.scheduleType}`,
+        description: formData.templateDescription.trim() || `Template baseado em escala ${formData.scheduleType",
         scheduleType: formData.scheduleType,
         category: 'custom',
         workDays: Array.from(new Set(formData.workDays)),
@@ -978,7 +978,7 @@ function WorkSchedulesContent() {
         .map(dayValue => weekDays.find(wd => wd.value === dayValue)?.label)
         .filter(Boolean)
         .join(', ');
-      return `Horários variados por dia: ${days}`;
+      return `Horários variados por dia: ${days";
     } else {
       return `${schedule.startTime} - ${schedule.endTime} (${schedule.breakDurationMinutes} min pausa)`;
     }
@@ -1077,7 +1077,7 @@ function WorkSchedulesContent() {
                   <CardContent className="pt-0">
                     <div className="space-y-2 text-sm">
                       <div><strong>Tipo:</strong> {template.scheduleType}</div>
-                      <div><strong>Horário:</strong> {template.startTime ? `${template.startTime} - ${template.endTime}` : 'N/A'}</div>
+                      <div><strong>Horário:</strong> {template.startTime ? `${template.startTime} - ${template.endTime" : 'N/A'}</div>
                       <div><strong>Dias:</strong> {template.workDays?.length || 0} dias por semana</div>
                     </div>
                   </CardContent>
@@ -1310,7 +1310,7 @@ function WorkSchedulesContent() {
                 {users.map((user: User) => (
                   <div key={user.id} className="flex items-center space-x-2 py-1">
                     <Checkbox
-                      id={`bulk-${user.id}`}
+                      id={`bulk-${user.id"}
                       checked={selectedUsers.includes(user.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
@@ -1320,7 +1320,7 @@ function WorkSchedulesContent() {
                         }
                       }}
                     />
-                    <Label htmlFor={`bulk-${user.id}`} className="cursor-pointer">
+                    <Label htmlFor={`bulk-${user.id"} className="cursor-pointer">
                       {user.firstName} {user.lastName} ({user.role || 'Funcionário'})
                     </Label>
                   </div>

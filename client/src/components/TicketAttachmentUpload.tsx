@@ -42,7 +42,7 @@ export function TicketAttachmentUpload({
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
         },
         credentials: 'include',
       });
@@ -154,7 +154,7 @@ export function TicketAttachmentUpload({
           isDragOver 
             ? 'border-blue-500 bg-blue-50' 
             : 'border-gray-300 hover:border-gray-400'
-        }`}
+        "}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -213,7 +213,7 @@ export function TicketAttachmentUpload({
           <h4 className="text-sm font-medium text-gray-900">Selected Files:</h4>
           {selectedFiles.map((file, index) => (
             <div 
-              key={`${file.name}-${index}`}
+              key={`${file.name}-${index"}
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
             >
               <div className="flex items-center space-x-3">

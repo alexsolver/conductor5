@@ -134,7 +134,7 @@ export default function GdprCompliance() {
 
   const updateReportMutation = useMutation({
     mutationFn: ({ id, ...data }: { id: string } & Partial<GdprReportFormData>) =>
-      apiRequest(`/api/gdpr-compliance/reports/${id}`, {
+      apiRequest(`/api/gdpr-compliance/reports/${id", {
         method: 'PUT',
         body: JSON.stringify(data)
       }),
@@ -514,7 +514,7 @@ export default function GdprCompliance() {
         <div className="grid gap-6">
           {reportsData && Array.isArray(reportsData) && reportsData.length > 0 ? (
             reportsData.map((report: GdprReport) => (
-              <Card key={report.id} className="hover:shadow-md transition-shadow" data-testid={`card-report-${report.id}`}>
+              <Card key={report.id} className="hover:shadow-md transition-shadow" data-testid={`card-report-${report.id"}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
@@ -531,7 +531,7 @@ export default function GdprCompliance() {
                             report.status === 'published' ? 'bg-green-50 text-green-700' :
                             report.status === 'approved' ? 'bg-blue-50 text-blue-700' : 
                             'bg-gray-50 text-gray-700'
-                          }`}
+                          "}
                         >
                           {getStatusLabel(report.status)}
                         </Badge>
@@ -547,7 +547,7 @@ export default function GdprCompliance() {
                       <CardTitle className="text-lg">{report.title}</CardTitle>
                       <CardDescription className="line-clamp-2">
                         {getReportTypeLabel(report.reportType)}
-                        {report.description && ` - ${report.description}`}
+                        {report.description && ` - ${report.description"}
                       </CardDescription>
                     </div>
                     
@@ -576,7 +576,7 @@ export default function GdprCompliance() {
                         <span className="text-muted-foreground">Vencimento:</span>
                         <span className={`font-medium ${
                           new Date(report.dueDate) < new Date() ? 'text-red-600' : ''
-                        }`}>
+                        "}>
                           {new Date(report.dueDate).toLocaleDateString()}
                         </span>
                       </div>
@@ -592,11 +592,11 @@ export default function GdprCompliance() {
                   </div>
 
                   <div className="flex justify-end space-x-2">
-                    <Button size="sm" variant="outline" data-testid={`button-view-${report.id}`}>
+                    <Button size="sm" variant="outline" data-testid={`button-view-${report.id"}>
                       <Eye className="w-3 h-3 mr-1" />
                       Ver Detalhes
                     </Button>
-                    <Button size="sm" variant="outline" data-testid={`button-edit-${report.id}`}>
+                    <Button size="sm" variant="outline" data-testid={`button-edit-${report.id"}>
                       <Edit className="w-3 h-3 mr-1" />
                       Editar
                     </Button>
@@ -604,7 +604,7 @@ export default function GdprCompliance() {
                       <Button
                         size="sm"
                         onClick={() => updateReportMutation.mutate({ id: report.id, status: 'in_progress' })}
-                        data-testid={`button-submit-${report.id}`}
+                        data-testid={`button-submit-${report.id"}
                       >
                         <Send className="w-3 h-3 mr-1" />
                         Enviar

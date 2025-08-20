@@ -128,8 +128,8 @@ export default function EmailHistoryModal({
 
   const handleReplyToEmail = (email: EmailMessage) => {
     setReplyTo(email.from);
-    setSubject(email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`);
-    setContent(`\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}\n\n${email.content}`);
+    setSubject(email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject");
+    setContent(`\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}\n\n${email.content");
     setActiveTab("compose");
   };
 
@@ -177,7 +177,7 @@ export default function EmailHistoryModal({
                     email.direction === 'inbound' 
                       ? 'border-l-blue-500 bg-blue-50' 
                       : 'border-l-green-500 bg-green-50'
-                  }`}>
+                  "}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">

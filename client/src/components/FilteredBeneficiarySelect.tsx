@@ -37,7 +37,7 @@ export function FilteredBeneficiarySelect({
     queryKey: ['/api/customers', selectedCustomerId, 'beneficiaries'],
     queryFn: async () => {
       if (!selectedCustomerId || selectedCustomerId === 'unspecified') return { beneficiaries: [] };
-      console.log(`[FilteredBeneficiarySelect] 🔄 Fetching beneficiaries for customer: ${selectedCustomerId}`);
+      console.log(`[FilteredBeneficiarySelect] 🔄 Fetching beneficiaries for customer: ${selectedCustomerId");
       try {
         const response = await apiRequest('GET', `/api/customers/${selectedCustomerId}/beneficiaries`);
         console.log(`[FilteredBeneficiarySelect] 📋 Response status:`, response.status, response.statusText);
@@ -76,7 +76,7 @@ export function FilteredBeneficiarySelect({
         beneficiariesCount: beneficiariesToShow.length,
         beneficiaries: beneficiariesToShow.map(b => ({ 
           id: b.id, 
-          name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+          name: b.name || `${b.firstName || ''} ${b.lastName || ''".trim(),
           email: b.email 
         }))
       });
@@ -135,7 +135,7 @@ export function FilteredBeneficiarySelect({
             <SelectItem value="__none__">Nenhum favorecido</SelectItem>
             <SelectItem value="unspecified">Não especificado</SelectItem>
             {beneficiariesToShow.map((beneficiary: any) => {
-              const beneficiaryName = `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
+              const beneficiaryName = `${beneficiary.firstName || ''} ${beneficiary.lastName || ''".trim() || 
                                      beneficiary.fullName || beneficiary.name || 
                                      beneficiary.email || 'Favorecido sem nome';
               return (
@@ -143,7 +143,7 @@ export function FilteredBeneficiarySelect({
                   <div className="flex flex-col">
                     <span>{beneficiaryName}</span>
                     <span className="text-sm text-gray-500">
-                      {beneficiary.email} {beneficiary.cpfCnpj && `• CPF/CNPJ: ${beneficiary.cpfCnpj}`}
+                      {beneficiary.email} {beneficiary.cpfCnpj && `• CPF/CNPJ: ${beneficiary.cpfCnpj"}
                     </span>
                   </div>
                 </SelectItem>

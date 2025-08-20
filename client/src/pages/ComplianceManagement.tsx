@@ -448,7 +448,7 @@ export default function ComplianceManagement() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${getComplianceColor(stats?.overallScore || 0)}`}>
+            <div className="text-2xl font-bold "`}>
               {stats?.overallScore || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -684,7 +684,7 @@ export default function ComplianceManagement() {
                           <Badge variant="outline">{score.entityType}</Badge>
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className={`text-3xl font-bold ${getComplianceColor(parseFloat(score.score))}`}>
+                          <div className="text-3xl font-bold "`}>
                             {parseFloat(score.score).toFixed(1)}
                           </div>
                           <div className="flex-1">
@@ -693,7 +693,7 @@ export default function ComplianceManagement() {
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Avaliado em: {new Date(score.assessedAt).toLocaleDateString('pt-BR')}
-                          {score.assessedBy && ` por ${score.assessedBy}`}
+                          {score.assessedBy && ` por ${score.assessedBy"}
                         </p>
                         {score.notes && <p className="text-sm">{score.notes}</p>}
                       </div>

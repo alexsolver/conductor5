@@ -74,7 +74,7 @@ export const ModernRichTextEditor: React.FC<ModernRichTextEditorProps> = ({
   };
 
   return (
-    <div className={`border rounded-lg bg-background ${className}`}>
+    <div className="border rounded-lg bg-background "`}>
       {!readOnly && (
         <div className="flex items-center gap-1 p-2 border-b bg-muted/30">
           <Button

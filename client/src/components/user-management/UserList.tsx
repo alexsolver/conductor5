@@ -99,7 +99,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
 
   const toggleUserStatus = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      const endpoint = tenantAdmin ? `/api/tenant-admin/team/users/${userId}` : `/api/user-management/users/${userId}`;
+      const endpoint = tenantAdmin ? `/api/tenant-admin/team/users/${userId" : `/api/user-management/users/${userId";
       return apiRequest(endpoint, {
         method: "PUT",
         body: { isActive: !isActive }
@@ -123,7 +123,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
 
   const filteredUsers = usersData?.users?.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    `${user.firstName} ${user.lastName".toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   const handleViewUser = (user: any) => {
@@ -202,7 +202,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
                       {user.firstName || user.lastName 
-                        ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                        ? `${user.firstName || ''} ${user.lastName || ''".trim()
                         : t("userManagement.noName", "Sem nome")
                       }
                     </TableCell>
@@ -277,7 +277,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
               {t("userManagement.userDetails", "Detalhes do Usuário")}
             </DialogTitle>
             <DialogDescription>
-              {selectedUser && `${selectedUser.firstName || ''} ${selectedUser.lastName || ''}`.trim() || selectedUser?.email}
+              {selectedUser && `${selectedUser.firstName || ''} ${selectedUser.lastName || ''".trim() || selectedUser?.email}
             </DialogDescription>
           </DialogHeader>
 

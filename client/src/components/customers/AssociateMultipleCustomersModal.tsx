@@ -148,7 +148,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const getFilteredCustomers = () => {
     return customers.filter(customer => {
       const searchLower = searchTerm.toLowerCase();
-      const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+      const fullName = `${customer.firstName || ''} ${customer.lastName || ''".trim();
       const displayName = customer.customerType === 'PJ' ? customer.companyName : fullName;
 
       return (
@@ -188,7 +188,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           successCount++;
         } catch (error: any) {
           errorCount++;
-          errors.push(`Cliente ${customerId}: ${error.message}`);
+          errors.push(`Cliente ${customerId}: ${error.message");
           console.warn(`Failed to associate customer ${customerId}:`, error);
         }
 
@@ -205,7 +205,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           console.warn('Association errors:', errors);
         }
       } else {
-        throw new Error(`Falha ao associar todos os clientes. Erros: ${errors.join('; ')}`);
+        throw new Error(`Falha ao associar todos os clientes. Erros: ${errors.join('; ')");
       }
 
       // Create a summary data structure for backward compatibility
@@ -313,7 +313,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                     const isSelected = selectedCustomerIds.includes(customer.id);
                     const displayName = customer.customerType === 'PJ' 
                       ? customer.companyName 
-                      : `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+                      : `${customer.firstName || ''} ${customer.lastName || ''".trim();
 
                     return (
                       <div
@@ -324,7 +324,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                             : isSelected 
                               ? 'bg-blue-50 border-blue-200 cursor-pointer'
                               : 'hover:bg-gray-50 border-gray-200 cursor-pointer'
-                        }`}
+                        "}
                         onClick={() => handleCustomerToggle(customer.id, customer.isAssociated || false)}
                       >
                         {customer.isAssociated ? (
@@ -341,7 +341,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                           <div className="flex items-center gap-2">
                             <p className={`font-medium text-sm truncate ${
                               customer.isAssociated ? 'text-green-700' : ''
-                            }`}>
+                            "}>
                               {displayName || customer.email}
                             </p>
 
@@ -367,7 +367,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                           </div>
                           <p className={`text-xs truncate ${
                             customer.isAssociated ? 'text-green-600' : 'text-gray-500'
-                          }`}>
+                          "}>
                             {customer.email}
                           </p>
                           {customer.isAssociated && (

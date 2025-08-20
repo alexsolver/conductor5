@@ -58,7 +58,7 @@ export default function TimecardApprovals() {
   // Approve mutation
   const approveMutation = useMutation({
     mutationFn: async ({ entryId, comments }: { entryId: string; comments?: string }) => {
-      return await apiRequest('POST', `/api/timecard/approval/approve/${entryId}`, { comments });
+      return await apiRequest('POST', "/api/timecard/approval/approve/" + entryId, { comments });
     },
     onSuccess: () => {
       toast({
@@ -84,7 +84,7 @@ export default function TimecardApprovals() {
       rejectionReason: string; 
       comments?: string;
     }) => {
-      return await apiRequest('POST', `/api/timecard/approval/reject/${entryId}`, { 
+      return await apiRequest('POST', "/api/timecard/approval/reject/" + entryId, { 
         rejectionReason, 
         comments 
       });
@@ -316,7 +316,7 @@ export default function TimecardApprovals() {
             {pendingApprovals.map((approval) => (
               <Card key={approval.id} className={`transition-all ${
                 selectedApprovals.includes(approval.id) ? 'ring-2 ring-primary' : ''
-              }`}>
+              "}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">

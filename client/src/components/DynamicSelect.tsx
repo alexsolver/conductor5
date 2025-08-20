@@ -70,7 +70,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         params
       });
 
-      const response = await apiRequest("GET", `/api/ticket-config/field-options?${new URLSearchParams(params).toString()}`);
+      const response = await apiRequest("GET", `/api/ticket-config/field-options?${new URLSearchParams(params).toString()");
       return response.json();
     },
     enabled: !!fieldName, // Só executa se fieldName existe
@@ -169,9 +169,9 @@ export function DynamicSelect(props: DynamicSelectProps) {
         )}
         {fieldOptions.map((option, index) => {
           // Usar sempre o ID como chave única, com prefixo do campo para evitar conflitos
-          const uniqueKey = `${fieldName}-${option.id || `${index}-${option.value || 'unknown'}`}`;
+          const uniqueKey = `${fieldName}-${option.id || `${index}-${option.value || 'unknown'"";
           // Ensure option.value is not empty string
-          const optionValue = option.value || `option_${index}`;
+          const optionValue = option.value || `option_${index";
           
           return (
             <SelectItem key={uniqueKey} value={optionValue}>

@@ -235,7 +235,7 @@ export default function SaasAdminPerformance() {
                       <div className={`w-2 h-2 rounded-full mt-2 ${
                         alert.type === 'error' ? 'bg-red-500' :
                         alert.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-                      }`} />
+                      "} />
                       <div className="flex-1">
                         <div className="font-medium">{alert.title}</div>
                         <div className="text-sm text-gray-500">{alert.description}</div>

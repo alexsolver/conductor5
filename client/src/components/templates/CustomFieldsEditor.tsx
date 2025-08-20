@@ -64,7 +64,7 @@ export default function CustomFieldsEditor({
     if (!newField.name || !newField.label) return;
 
     const field: CustomField = {
-      id: `field_${Date.now()}`,
+      id: `field_${Date.now()",
       name: newField.name!,
       label: newField.label!,
       type: newField.type!,
@@ -137,7 +137,7 @@ export default function CustomFieldsEditor({
     const addOption = () => {
       const options = localField.options || [];
       updateLocalField({
-        options: [...options, { value: `option_${options.length + 1}`, label: 'Nova Opção' }]
+        options: [...options, { value: `option_${options.length + 1", label: 'Nova Opção' }]
       });
     };
 

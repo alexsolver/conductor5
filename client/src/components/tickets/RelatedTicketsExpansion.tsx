@@ -132,7 +132,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                                rel.number ||
                                rel.target_ticket_number ||
                                rel.source_ticket_number ||
-                               `T-${String(ticketId || '').slice(0, 8) || 'UNKNOWN'}`;
+                               `T-${String(ticketId || '').slice(0, 8) || 'UNKNOWN'";
 
             const ticketSubject = rel.relatedTicketSubject ||
                                 rel.targetTicketSubject ||
@@ -213,7 +213,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
 
             return (
               <div
-                key={`rel-${rel.id || relatedTicket.id || ticketId || index}`}
+                key={`rel-${rel.id || relatedTicket.id || ticketId || index"}
                 className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -221,7 +221,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                     {getRelationshipLabel(relationshipType)}
                   </span>
                   <Link
-                    href={`/tickets/${ticketId}`}
+                    href={`/tickets/${ticketId"}
                     className="font-mono text-blue-600 hover:underline font-medium whitespace-nowrap"
                   >
                     #{ticketNumber}
@@ -235,16 +235,16 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                     fieldName="status"
                     value={ticketStatus}
                     className="text-xs"
-                    aria-label={`Status: ${ticketStatus}`}
+                    aria-label={`Status: ${ticketStatus"}
                   />
                   <OptimizedBadge
                     fieldName="priority"
                     value={ticketPriority}
                     className="text-xs"
-                    aria-label={`Prioridade: ${ticketPriority}`}
+                    aria-label={`Prioridade: ${ticketPriority"}
                   />
                   <Link
-                    href={`/tickets/${ticketId}`}
+                    href={`/tickets/${ticketId"}
                     className="text-gray-400 hover:text-blue-600 transition-colors"
                     title="Abrir ticket"
                   >

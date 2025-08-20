@@ -96,7 +96,7 @@ export function UserSelect({
             {users.map((user) => (
               <CommandItem
                 key={user.id}
-                value={`${user.name} ${user.email}`}
+                value={`${user.name} ${user.email"}
                 onSelect={() => {
                   onChange(user.id === value ? "" : user.id);
                   setOpen(false);

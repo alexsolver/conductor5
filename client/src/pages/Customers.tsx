@@ -135,11 +135,11 @@ export default function Customers() {
     const name = getFieldSafely(customer, 'name');
 
     if (firstName && lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+      return `${firstName.charAt(0)}${lastName.charAt(0)".toUpperCase();
     }
     if (fullName && fullName.includes(' ')) {
       const parts = fullName.split(' ');
-      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)".toUpperCase();
     }
     if (firstName) {
       return firstName.charAt(0).toUpperCase();
@@ -221,7 +221,7 @@ export default function Customers() {
         </div>
         <Card>
           <CardContent className="p-8 text-center">
-            <div className={`mb-4 ${isPermissionError ? 'text-orange-500' : 'text-red-500'}`}>
+            <div className="mb-4 "`}>
               <h4 className="text-lg font-medium mb-2">
                 {isSchemaError ? '🗄️ Problema de Esquema de Banco' :
                  isPermissionError ? '🔒 Problema de Permissão' :

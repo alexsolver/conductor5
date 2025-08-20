@@ -21,21 +21,21 @@ function getActivityIcon(action: string) {
 }
 
 function getActivityMessage(activity: ActivityLogWithUser) {
-  const userName = activity.user ? `${activity.user.firstName} ${activity.user.lastName}` : "System";
+  const userName = activity.user ? `${activity.user.firstName} ${activity.user.lastName" : "System";
   
   switch (activity.action) {
     case "created":
-      return `${userName} created ${activity.entityType}`;
+      return `${userName} created ${activity.entityType";
     case "resolved":
       return `${userName} resolved ticket`;
     case "assigned":
       return `${userName} assigned ticket`;
     case "updated":
-      return `${userName} updated ${activity.entityType}`;
+      return `${userName} updated ${activity.entityType";
     case "message_added":
       return `${userName} added a message`;
     default:
-      return `${userName} performed ${activity.action}`;
+      return `${userName} performed ${activity.action";
   }
 }
 
@@ -58,7 +58,7 @@ function getUserInitials(user?: { firstName?: string | null; lastName?: string |
   if (!user?.firstName && !user?.lastName) return "SY";
   const first = user.firstName?.charAt(0) || "";
   const last = user.lastName?.charAt(0) || "";
-  return `${first}${last}`.toUpperCase();
+  return `${first}${last".toUpperCase();
 }
 
 export function ActivityFeed() {

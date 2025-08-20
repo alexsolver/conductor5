@@ -163,7 +163,7 @@ export function LeafletMap({
         riseOnHover: true
       })
         .addTo(mapInstanceRef.current)
-        .bindPopup(`<b>Localização Selecionada</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`)
+        .bindPopup(`<b>Localização Selecionada</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)")
         .openPopup();
 
       markerRef.current = marker;
@@ -222,7 +222,7 @@ export function LeafletMap({
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText");
       }
 
       const results: SearchResult[] = await response.json();
@@ -291,7 +291,7 @@ export function LeafletMap({
         
         toast({
           title: "Localização atual",
-          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
+          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)"
         });
       },
       (error) => {

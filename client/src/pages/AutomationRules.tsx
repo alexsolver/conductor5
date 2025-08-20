@@ -119,7 +119,7 @@ export default function AutomationRules() {
     refetchOnWindowFocus: false,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Final error after retries:', error);
-      setLoadingError('[TRANSLATION_NEEDED]'Serviço temporariamente indisponível'}`);
+      setLoadingError('[TRANSLATION_NEEDED]'Serviço temporariamente indisponível'");
     },
     onSuccess: (data) => {
       console.log('✅ [AutomationRules] Rules query successful:', data);
@@ -170,7 +170,7 @@ export default function AutomationRules() {
   // Mutation para deletar regra
   const deleteRuleMutation = useMutation({
     mutationFn: (ruleId: string) =>
-      apiRequest(`/api/automation-rules/${ruleId}`, { method: 'DELETE' }),
+      apiRequest(`/api/automation-rules/${ruleId", { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
       queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
@@ -191,7 +191,7 @@ export default function AutomationRules() {
     onSuccess: (data) => {
       toast({
         title: data.test.matches ? '✅ Regra Compatível' : '❌ Regra Não Compatível',
-        description: `Teste da regra "${data.test.ruleName}": ${data.test.matches ? 'MATCH' : 'NO MATCH'}`,
+        description: `Teste da regra "${data.test.ruleName}": ${data.test.matches ? 'MATCH' : 'NO MATCH'",
         variant: data.test.matches ? 'default' : 'destructive'
       });
     }
@@ -296,7 +296,7 @@ export default function AutomationRules() {
       })
       .map(rule => {
         const safeRule = {
-          id: String(rule.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`),
+          id: String(rule.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)"),
           name: String(rule.name || 'Nome não disponível'),
           description: String(rule.description || 'Descrição não disponível'),
           enabled: Boolean(rule.enabled),

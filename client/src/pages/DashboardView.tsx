@@ -104,7 +104,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
               label: '[TRANSLATION_NEEDED]',
               data: tickets.slice(0, 5).map((ticket: any) => ({
                 id: ticket.id,
-                title: ticket.title || `Ticket ${ticket.ticketNumber}`,
+                title: ticket.title || `Ticket ${ticket.ticketNumber",
                 status: ticket.status,
                 priority: ticket.priority,
               })),
@@ -208,7 +208,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
             {widgetData?.label || widget.name}
           </div>
           {widgetData?.change && (
-            <div className={`text-xs mt-1 ${widgetData.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <div className="text-xs mt-1 "`}>
               {widgetData.change >= 0 ? '↗' : '↘'} {Math.abs(widgetData.change)}%
             </div>
           )}
@@ -378,8 +378,8 @@ function DashboardView() {
 
   // Following 1qa.md patterns for data fetching - called unconditionally
   const { data: dashboardResponse, isLoading, error } = useQuery({
-    queryKey: [`/api/reports-dashboards/dashboards/${id}`],
-    queryFn: () => apiRequest("GET", `/api/reports-dashboards/dashboards/${id}`),
+    queryKey: [`/api/reports-dashboards/dashboards/${id"],
+    queryFn: () => apiRequest("GET", `/api/reports-dashboards/dashboards/${id"),
     enabled: !!id,
     retry: false,
   });
@@ -397,13 +397,13 @@ function DashboardView() {
     return dashboardData.data.widgets.map((widget: DashboardWidget, index: number): GovernedCard => ({
       id: widget.id,
       name: widget.name,
-      description: `Card governado: ${widget.name}`,
+      description: `Card governado: ${widget.name",
       
       // Camada 1: Fonte de dados
       data_source: {
         id: widget.config.dataSource,
-        name: `Sistema de ${widget.config.dataSource}`,
-        description: `Dados reais de ${widget.config.dataSource}`,
+        name: `Sistema de ${widget.config.dataSource",
+        description: `Dados reais de ${widget.config.dataSource",
         type: 'database' as const,
         fields: [],
         refresh_interval: 300,
@@ -415,9 +415,9 @@ function DashboardView() {
       
       // Camada 2: KPI
       kpi: {
-        id: `${widget.config.dataSource}_${widget.type}`,
+        id: `${widget.config.dataSource}_${widget.type",
         name: widget.name,
-        description: `KPI governado para ${widget.name}`,
+        description: `KPI governado para ${widget.name",
         data_source: widget.config.dataSource,
         formula: 'COUNT(*)',
         aggregation: 'count' as const,
@@ -431,7 +431,7 @@ function DashboardView() {
         }
       },
       targets: {
-        kpi_id: `${widget.config.dataSource}_${widget.type}`,
+        kpi_id: `${widget.config.dataSource}_${widget.type",
         target: 100,
         warning: 80,
         critical: 50,
@@ -587,7 +587,7 @@ function DashboardView() {
   // Edit mode functions - following 1qa.md patterns
   const addWidget = (widgetConfig: any) => {
     const newWidget: DashboardWidget = {
-      id: `widget-${Date.now()}`,
+      id: `widget-${Date.now()",
       name: widgetConfig.name || 'Untitled Widget',
       type: widgetConfig.type,
       position: widgetConfig.position,
@@ -621,7 +621,7 @@ function DashboardView() {
       });
       
       // Navigate back to view mode
-      setLocation(`/dashboard/${id}`);
+      setLocation(`/dashboard/${id");
     } catch (error) {
       toast({ 
         title: '[TRANSLATION_NEEDED]', 
@@ -636,7 +636,7 @@ function DashboardView() {
   };
 
   const handleShare = () => {
-    const dashboardUrl = `${window.location.origin}/dashboard/${id}`;
+    const dashboardUrl = `${window.location.origin}/dashboard/${id";
     navigator.clipboard.writeText(dashboardUrl);
     toast({ title: "Link copied", description: "Dashboard link copied to clipboard." });
   };
@@ -705,7 +705,7 @@ function DashboardView() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setLocation(`/dashboard/${id}`)}
+                    onClick={() => setLocation(`/dashboard/${id")}
                     data-testid="button-cancel-edit"
                   >
                     <X className="w-4 h-4 mr-2" />
@@ -811,12 +811,12 @@ function DashboardView() {
                   key={governedCard.id}
                   className={`bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow rounded-lg ${
                     isEditMode ? 'border-2 border-dashed border-purple-300' : 'border'
-                  }`}
+                  "}
                   style={{
-                    gridColumn: `span ${Math.min(governedCard.layout.position?.width || 6, 12)}`,
+                    gridColumn: `span ${Math.min(governedCard.layout.position?.width || 6, 12)",
                     minHeight: `${(governedCard.layout.position?.height || 4) * 60}px`,
                   }}
-                  data-testid={`governed-card-${governedCard.id}`}
+                  data-testid={`governed-card-${governedCard.id"}
                 >
                   {isEditMode && (
                     <div className="bg-purple-50 border-b border-purple-200 p-2 text-xs text-purple-700">
@@ -826,7 +826,7 @@ function DashboardView() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeWidget(governedCard.id)}
-                          data-testid={`button-remove-governed-card-${governedCard.id}`}
+                          data-testid={`button-remove-governed-card-${governedCard.id"}
                         >
                           <Trash2 className="w-3 h-3 text-red-500" />
                         </Button>

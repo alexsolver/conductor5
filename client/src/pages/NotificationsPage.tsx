@@ -140,9 +140,9 @@ export default function NotificationsPage() {
         ...(filters.severity && filters.severity !== 'all' && { severity: filters.severity }),
         page: filters.page.toString(),
         pageSize: '50'
-      }).toString()}`, {
+      }).toString()", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')",
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -156,7 +156,7 @@ export default function NotificationsPage() {
     queryFn: async () => {
       const response = await fetch('/api/notifications/stats', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')",
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -171,7 +171,7 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')",
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         },
@@ -202,7 +202,7 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications/process', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')",
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -212,7 +212,7 @@ export default function NotificationsPage() {
     onSuccess: (data: any) => {
       toast({
         title: '[TRANSLATION_NEEDED]',
-        description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0}`
+        description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0"
       });
       refetchNotifications();
     },
@@ -230,7 +230,7 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications/bulk-read', {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')",
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         },
@@ -434,7 +434,7 @@ export default function NotificationsPage() {
                                     : (field.value || []).filter(c => c !== channel.value);
                                   field.onChange(updatedChannels);
                                 }}
-                                data-testid={`checkbox-channel-${channel.value}`}
+                                data-testid={`checkbox-channel-${channel.value"}
                               />
                               <span className="text-sm">{channel.label}</span>
                             </label>
@@ -577,39 +577,39 @@ export default function NotificationsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {getStatusIcon(notification.status)}
-                          <h3 className="font-semibold text-lg" data-testid={`notification-title-${notification.id}`}>
+                          <h3 className="font-semibold text-lg" data-testid={`notification-title-${notification.id"}>
                             {notification.title}
                           </h3>
                           <Badge 
                             className={severityColors[notification.severity]}
-                            data-testid={`notification-severity-${notification.id}`}
+                            data-testid={`notification-severity-${notification.id"}
                           >
                             {notification.severity.toUpperCase()}
                           </Badge>
                           <Badge 
                             className={statusColors[notification.status]}
-                            data-testid={`notification-status-${notification.id}`}
+                            data-testid={`notification-status-${notification.id"}
                           >
                             {notification.status.toUpperCase()}
                           </Badge>
                         </div>
                         
-                        <p className="text-muted-foreground mb-3" data-testid={`notification-message-${notification.id}`}>
+                        <p className="text-muted-foreground mb-3" data-testid={`notification-message-${notification.id"}>
                           {notification.message}
                         </p>
                         
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span data-testid={`notification-type-${notification.id}`}>
+                          <span data-testid={`notification-type-${notification.id"}>
                             Type: {notification.type}
                           </span>
-                          <span data-testid={`notification-channels-${notification.id}`}>
+                          <span data-testid={`notification-channels-${notification.id"}>
                             Channels: {notification.channels.join(', ')}
                           </span>
-                          <span data-testid={`notification-created-${notification.id}`}>
+                          <span data-testid={`notification-created-${notification.id"}>
                             Created: {formatDate(notification.createdAt)}
                           </span>
                           {notification.sentAt && (
-                            <span data-testid={`notification-sent-${notification.id}`}>
+                            <span data-testid={`notification-sent-${notification.id"}>
                               Sent: {formatDate(notification.sentAt)}
                             </span>
                           )}
@@ -632,7 +632,7 @@ export default function NotificationsPage() {
                             variant="outline"
                             onClick={() => markAsReadMutation.mutate([notification.id])}
                             disabled={markAsReadMutation.isPending}
-                            data-testid={`button-mark-read-${notification.id}`}
+                            data-testid={`button-mark-read-${notification.id"}
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             Mark Read

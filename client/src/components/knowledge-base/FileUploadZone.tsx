@@ -71,7 +71,7 @@ export function FileUploadZone({
                   ...f, 
                   status: 'completed' as const, 
                   progress: 100,
-                  url: `/uploads/${fileData.name}` // Mock URL
+                  url: `/uploads/${fileData.name" // Mock URL
                 }
               : f
           )
@@ -126,7 +126,7 @@ export function FileUploadZone({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className="space-y-4 "`}>
       {/* Drop Zone */}
       <div
         {...getRootProps()}

@@ -156,7 +156,7 @@ export default function UserProfile() {
       console.log('[PROFILE-UPDATE] Starting profile update mutation');
       const response = await apiRequest('PUT', '/api/user/profile', data);
       if (!response.ok) {
-        throw new Error(`Profile update failed: ${response.status}`);
+        throw new Error("Profile update failed: " + response.status);
       }
       return response.json();
     },
@@ -192,7 +192,7 @@ export default function UserProfile() {
       console.log('[PHOTO-UPLOAD] Starting photo upload mutation');
       const response = await apiRequest('PUT', '/api/user/profile/photo', { avatarURL });
       if (!response.ok) {
-        throw new Error(`Photo upload failed: ${response.status}`);
+        throw new Error("Photo upload failed: " + response.status);
       }
       return response.json();
     },

@@ -94,7 +94,7 @@ export default function ContractManagement() {
       Object.entries(filters).forEach(([key, value]) => {
         if (value && value !== 'all') params.append(key, value);
       });
-      const response = await fetch(`/api/contracts?${params.toString()}`);
+      const response = await fetch(`/api/contracts?${params.toString()");
       return response.json();
     },
   });
@@ -105,7 +105,7 @@ export default function ContractManagement() {
   // Mutation para deletar contrato
   const deleteContractMutation = useMutation({
     mutationFn: async (contractId: string) => {
-      const response = await fetch(`/api/contracts/${contractId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/contracts/${contractId", { method: 'DELETE' });
       return response.json();
     },
     onSuccess: () => {
@@ -137,8 +137,8 @@ export default function ContractManagement() {
     return (
       <Badge 
         variant="outline" 
-        className={`border-${statusConfig?.color}-500 text-${statusConfig?.color}-700`}
-        data-testid={`badge-status-${status}`}
+        className="border-${statusConfig?.color}-500 text-"-700`}
+        data-testid={`badge-status-${status"}
       >
         {statusConfig?.label || status}
       </Badge>
@@ -150,8 +150,8 @@ export default function ContractManagement() {
     return (
       <Badge 
         variant="outline" 
-        className={`border-${priorityConfig?.color}-500 text-${priorityConfig?.color}-700`}
-        data-testid={`badge-priority-${priority}`}
+        className="border-${priorityConfig?.color}-500 text-"-700`}
+        data-testid={`badge-priority-${priority"}
       >
         {priorityConfig?.label || priority}
       </Badge>
@@ -161,7 +161,7 @@ export default function ContractManagement() {
   const getTypeBadge = (type: string) => {
     const typeConfig = contractTypes.find(t => t.value === type);
     return (
-      <Badge variant="secondary" data-testid={`badge-type-${type}`}>
+      <Badge variant="secondary" data-testid={`badge-type-${type"}>
         {typeConfig?.label || type}
       </Badge>
     );
@@ -366,15 +366,15 @@ export default function ContractManagement() {
                   <div 
                     key={contract.id} 
                     className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    data-testid={`contract-item-${contract.id}`}
+                    data-testid={`contract-item-${contract.id"}
                   >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg" data-testid={`contract-title-${contract.id}`}>
+                          <h3 className="font-semibold text-lg" data-testid={`contract-title-${contract.id"}>
                             {contract.title}
                           </h3>
-                          <span className="text-sm text-muted-foreground" data-testid={`contract-number-${contract.id}`}>
+                          <span className="text-sm text-muted-foreground" data-testid={`contract-number-${contract.id"}>
                             {contract.contractNumber}
                           </span>
                         </div>
@@ -385,19 +385,19 @@ export default function ContractManagement() {
                           {getPriorityBadge(contract.priority)}
                         </div>
 
-                        <p className="text-sm text-muted-foreground mb-2" data-testid={`contract-description-${contract.id}`}>
+                        <p className="text-sm text-muted-foreground mb-2" data-testid={`contract-description-${contract.id"}>
                           {contract.description || 'Sem descrição'}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          <span data-testid={`contract-period-${contract.id}`}>
+                          <span data-testid={`contract-period-${contract.id"}>
                             {new Date(contract.startDate).toLocaleDateString('pt-BR')} - {new Date(contract.endDate).toLocaleDateString('pt-BR')}
                           </span>
-                          <span data-testid={`contract-total-value-${contract.id}`}>
+                          <span data-testid={`contract-total-value-${contract.id"}>
                             Valor Total: {formatCurrency(contract.totalValue, contract.currency)}
                           </span>
                           {contract.monthlyValue > 0 && (
-                            <span data-testid={`contract-monthly-value-${contract.id}`}>
+                            <span data-testid={`contract-monthly-value-${contract.id"}>
                               Mensal: {formatCurrency(contract.monthlyValue, contract.currency)}
                             </span>
                           )}
@@ -409,7 +409,7 @@ export default function ContractManagement() {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            data-testid={`button-view-${contract.id}`}
+                            data-testid={`button-view-${contract.id"}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             Ver
@@ -419,7 +419,7 @@ export default function ContractManagement() {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            data-testid={`button-edit-${contract.id}`}
+                            data-testid={`button-edit-${contract.id"}
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Editar
@@ -430,7 +430,7 @@ export default function ContractManagement() {
                           size="sm"
                           onClick={() => deleteContractMutation.mutate(contract.id)}
                           disabled={deleteContractMutation.isPending}
-                          data-testid={`button-delete-${contract.id}`}
+                          data-testid={`button-delete-${contract.id"}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Excluir

@@ -152,7 +152,7 @@ export default function CLTCompliance() {
     onError: (error) => {
       toast({
         title: '[TRANSLATION_NEEDED]',
-        description: `Falha ao gerar relatório: ${error.message}`,
+        description: `Falha ao gerar relatório: ${error.message",
         variant: "destructive"
       });
     }

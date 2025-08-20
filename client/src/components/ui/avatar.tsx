@@ -25,7 +25,7 @@ const Avatar: React.FC<AvatarProps> = ({
   };
 
   return (
-    <div className={`${sizeClasses[size]} rounded-full overflow-hidden ${className}`}>
+    <div className="${sizeClasses[size]} rounded-full overflow-hidden "`}>
       {children}
     </div>
   );
@@ -42,7 +42,7 @@ const AvatarImage: React.FC<{ src?: string; alt?: string; className?: string }> 
       <img
         src={src}
         alt={alt}
-        className={`w-full h-full object-cover ${className}`}
+        className="w-full h-full object-cover "`}
       />
     );
   }
@@ -86,7 +86,7 @@ const AvatarFallback: React.FC<{ name?: string; className?: string; children?: R
 
   return (
     <div
-      className={`w-full h-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ${className}`}
+      className="w-full h-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} "`}
     >
       {children || getInitials(name)}
     </div>
@@ -141,14 +141,14 @@ const SimpleAvatar: React.FC<AvatarProps> = ({
       <img
         src={src}
         alt={alt || name}
-        className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
+        className="${sizeClasses[size]} rounded-full object-cover "`}
       />
     );
   }
 
   return (
     <div
-      className={`${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ${className}`}
+      className="${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} "`}
     >
       {getInitials(name)}
     </div>

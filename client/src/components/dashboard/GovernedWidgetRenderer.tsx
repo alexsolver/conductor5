@@ -14,9 +14,9 @@ interface GovernedWidgetProps {
 export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidgetProps) {
   // ✅ 1QA.MD COMPLIANCE: Fetch real data using governance rules
   const { data: kpiValue, isLoading, error } = useQuery({
-    queryKey: [`/api/dashboards/kpi/${card.kpi.id}`, tenantId, userId],
+    queryKey: [`/api/dashboards/kpi/${card.kpi.id", tenantId, userId],
     queryFn: async () => {
-      const response = await fetch(`/api/dashboards/kpi/${card.kpi.id}`, {
+      const response = await fetch(`/api/dashboards/kpi/${card.kpi.id", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -199,7 +199,7 @@ function renderTrendIndicator(kpiValue: any, card: GovernedCard) {
   const isGoodDirection = card.kpi.direction === 'up' ? isPositive : !isPositive;
   
   return (
-    <div className={`flex items-center text-sm ${isGoodDirection ? 'text-green-600' : 'text-red-600'}`}>
+    <div className="flex items-center text-sm "`}>
       {isPositive ? (
         <TrendingUp className="w-4 h-4 mr-1" />
       ) : kpiValue.change < 0 ? (
@@ -257,7 +257,7 @@ function renderGaugeVisualization(value: number, targets: any) {
         />
         {/* Progress arc */}
         <path
-          d={`M 10 45 A 40 40 0 0 1 ${50 + 35 * Math.cos(Math.PI - (angle * Math.PI) / 180)} ${45 - 35 * Math.sin(Math.PI - (angle * Math.PI) / 180)}`}
+          d={`M 10 45 A 40 40 0 0 1 ${50 + 35 * Math.cos(Math.PI - (angle * Math.PI) / 180)} ${45 - 35 * Math.sin(Math.PI - (angle * Math.PI) / 180)"}
           fill="none"
           stroke="#10b981"
           strokeWidth="8"
@@ -275,20 +275,20 @@ function formatValue(value: any, format: any) {
   const prefix = format?.prefix || '';
   const suffix = format?.suffix || '';
   
-  return `${prefix}${value.toFixed(decimals)}${suffix}`;
+  return `${prefix}${value.toFixed(decimals)}${suffix";
 }
 
 function handleCardClick(card: GovernedCard) {
   if (card.drilldown) {
     switch (card.drilldown.type) {
       case 'report':
-        window.location.href = `/reports/${card.drilldown.target}`;
+        window.location.href = `/reports/${card.drilldown.target";
         break;
       case 'table':
-        window.location.href = `/data/${card.drilldown.target}`;
+        window.location.href = `/data/${card.drilldown.target";
         break;
       case 'dashboard':
-        window.location.href = `/dashboard/${card.drilldown.target}`;
+        window.location.href = `/dashboard/${card.drilldown.target";
         break;
       case 'external_link':
         if (card.drilldown.new_window) {

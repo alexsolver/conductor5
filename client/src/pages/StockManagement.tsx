@@ -966,7 +966,7 @@ export function StockManagement() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {movement.totalCost ? `R$ ${movement.totalCost.toLocaleString()}` : '-'}
+                          {movement.totalCost ? `R$ ${movement.totalCost.toLocaleString()" : '-'}
                         </TableCell>
                         <TableCell>{movement.warehouse}</TableCell>
                         <TableCell>{movement.createdBy}</TableCell>

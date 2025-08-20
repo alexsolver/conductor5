@@ -47,7 +47,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
 
   const addRule = (type: ValidationRule['type']) => {
     const newRule: ValidationRule = {
-      id: `rule_${Date.now()}`,
+      id: `rule_${Date.now()",
       type,
       message: getDefaultMessage(type),
       isActive: true
@@ -218,7 +218,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                     value={rule.value ? String(rule.value).split(',')[0] : ''}
                     onChange={(e) => {
                       const max = rule.value ? String(rule.value).split(',')[1] : ''
-                      updateRule(index, { value: `${e.target.value},${max}` })
+                      updateRule(index, { value: `${e.target.value},${max" })
                     }}
                     className="h-8"
                   />
@@ -230,7 +230,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                     value={rule.value ? String(rule.value).split(',')[1] : ''}
                     onChange={(e) => {
                       const min = rule.value ? String(rule.value).split(',')[0] : ''
-                      updateRule(index, { value: `${min},${e.target.value}` })
+                      updateRule(index, { value: `${min},${e.target.value" })
                     }}
                     className="h-8"
                   />

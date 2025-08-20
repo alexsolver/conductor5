@@ -255,7 +255,7 @@ export function WorkflowConfigurationDialog({
                       </div>
                       <div className="text-sm text-gray-600">
                         {assigneeTypes.find(t => t.value === step.assigneeType)?.label}
-                        {step.assigneeId && `: ${step.assigneeId}`}
+                        {step.assigneeId && `: ${step.assigneeId"}
                       </div>
                     </div>
                     <Button

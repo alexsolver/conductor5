@@ -86,7 +86,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   const filteredAgents = agents.filter(agent => {
     if (!agent || !agent.email) return false;
 
-    const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
+    const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''".trim() || agent.email;
 
     return agentName.toLowerCase().includes(searchAgent.toLowerCase()) ||
            agent.email.toLowerCase().includes(searchAgent.toLowerCase());
@@ -223,7 +223,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
           {/* Left sidebar with agent list */}
           <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {
-              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
+              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''".trim() || agent.email;
 
               return (
                 <div key={agent.id} className="border-b">
@@ -308,15 +308,15 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                                         isInternalAction 
                                           ? 'bg-purple-600 border border-purple-400' 
                                           : getPriorityColor(schedule.priority)
-                                      }`}
+                                      "}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onScheduleClick(schedule);
                                       }}
                                       title={
                                         isInternalAction 
-                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'}`
-                                          : `${schedule.title} - ${activityType?.name || 'N/A'}`
+                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'"
+                                          : `${schedule.title} - ${activityType?.name || 'N/A'"
                                       }
                                     />
                                   );
@@ -339,15 +339,15 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                                         isInternalAction 
                                           ? 'bg-purple-600 border border-purple-400' 
                                           : getPriorityColor(schedule.priority)
-                                      }`}
+                                      "}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onScheduleClick(schedule);
                                       }}
                                       title={
                                         isInternalAction 
-                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'}`
-                                          : `${schedule.title} - ${activityType?.name || 'N/A'}`
+                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'"
+                                          : `${schedule.title} - ${activityType?.name || 'N/A'"
                                       }
                                     />
                                   );

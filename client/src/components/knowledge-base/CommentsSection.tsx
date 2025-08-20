@@ -102,7 +102,7 @@ export function CommentsSection({
   };
 
   const renderComment = (comment: Comment, isReply = false) => (
-    <Card key={comment.id} className={`${isReply ? 'ml-8 mt-2' : 'mb-4'}`}>
+    <Card key={comment.id} className=""`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -126,7 +126,7 @@ export function CommentsSection({
               variant="ghost"
               size="sm"
               onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-              data-testid={`button-reply-${comment.id}`}
+              data-testid={`button-reply-${comment.id"}
             >
               <Reply className="h-4 w-4" />
               Responder
@@ -136,7 +136,7 @@ export function CommentsSection({
       </CardHeader>
       
       <CardContent className="pt-0">
-        <p className="text-sm whitespace-pre-wrap" data-testid={`comment-content-${comment.id}`}>
+        <p className="text-sm whitespace-pre-wrap" data-testid={`comment-content-${comment.id"}>
           {comment.content}
         </p>
         
@@ -147,14 +147,14 @@ export function CommentsSection({
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder="Escreva sua resposta..."
               rows={3}
-              data-testid={`input-reply-${comment.id}`}
+              data-testid={`input-reply-${comment.id"}
             />
             <div className="flex space-x-2">
               <Button
                 size="sm"
                 onClick={() => handleReply(comment.id)}
                 disabled={createCommentMutation.isPending}
-                data-testid={`button-send-reply-${comment.id}`}
+                data-testid={`button-send-reply-${comment.id"}
               >
                 <Send className="h-4 w-4 mr-2" />
                 Responder
@@ -166,7 +166,7 @@ export function CommentsSection({
                   setReplyingTo(null);
                   setReplyContent('');
                 }}
-                data-testid={`button-cancel-reply-${comment.id}`}
+                data-testid={`button-cancel-reply-${comment.id"}
               >
                 Cancelar
               </Button>

@@ -116,7 +116,7 @@ export default function TranslationManager() {
   // Mutation para salvar traduções
   const saveTranslationMutation = useMutation({
     mutationFn: async (data: UpdateTranslationFormData) => {
-      const res = await apiRequest('PUT', `/api/translations/${selectedLanguage}`, data);
+      const res = await apiRequest('PUT', "/api/translations/" + selectedLanguage, data);
       return res.json();
     },
     onSuccess: () => {
@@ -316,7 +316,7 @@ export default function TranslationManager() {
                                   setNestedValue(newTranslations, key, e.target.value);
                                   form.setValue('translations', newTranslations);
                                 }}
-                                placeholder={`Tradução para ${key}`}
+                                placeholder={"Enter Tradução para " + key}
                                 className="min-h-20"
                               />
                             ) : (
@@ -352,7 +352,7 @@ export default function TranslationManager() {
                     const response = await fetch('/api/translation-completion/auto-complete-all', {
                       method: 'POST',
                       headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Authorization': "Bearer " + (localStorage.getItem("token") || ""),
                         'Content-Type': 'application/json'
                       }
                     });

@@ -133,7 +133,7 @@ export default function TimecardAutonomous() {
                   isWorking ? 'bg-green-100 text-green-800' :
                   isOnBreak ? 'bg-yellow-100 text-yellow-800' :
                   'bg-gray-100 text-gray-800'
-                }`}
+                "
               >
                 {isWorking ? terminology.statusLabels.working :
                  isOnBreak ? terminology.statusLabels.onBreak :
@@ -141,13 +141,13 @@ export default function TimecardAutonomous() {
               </Badge>
               <span className="text-sm text-gray-600">
                 {timecardStatus?.lastAction && 
-                  `Última ação: ${format(new Date(timecardStatus.lastAction), 'HH:mm')}`
+                  `Última ação: ${format(new Date(timecardStatus.lastAction), 'HH:mm')"
                 }
               </span>
             </div>
             <div className="text-sm text-gray-500">
               {timecardStatus?.todayTotalTime && 
-                `Tempo total hoje: ${timecardStatus.todayTotalTime}`
+                `Tempo total hoje: ${timecardStatus.todayTotalTime"
               }
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function TimecardAutonomous() {
                       record.type === 'clock_out' ? 'bg-red-500' :
                       record.type === 'break_start' ? 'bg-yellow-500' :
                       'bg-blue-500'
-                    }`} />
+                    " />
                     <span className="font-medium">
                       {record.type === 'clock_in' ? terminology.actionLabels.clockIn :
                        record.type === 'clock_out' ? terminology.actionLabels.clockOut :

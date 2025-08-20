@@ -102,7 +102,7 @@ export default function TicketEdit() {
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id}`);
+      const response = await apiRequest("GET", `/api/tickets/${id");
       return response.json();
     },
     enabled: !!id,
@@ -281,7 +281,7 @@ export default function TicketEdit() {
   // Update ticket mutation
   const updateTicketMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/tickets/${id}`, data);
+      const response = await apiRequest("PUT", `/api/tickets/${id", data);
       return response.json();
     },
     onSuccess: () => {
@@ -304,7 +304,7 @@ export default function TicketEdit() {
   // Delete ticket mutation
   const deleteTicketMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("DELETE", `/api/tickets/${id}`);
+      await apiRequest("DELETE", `/api/tickets/${id");
     },
     onSuccess: () => {
       toast({
@@ -829,7 +829,7 @@ export default function TicketEdit() {
                               </FormControl>
                               <SelectContent>
                                 {filteredCustomers.map((customer: any) => (
-                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
+                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id"}>
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
                                 ))}
@@ -855,7 +855,7 @@ export default function TicketEdit() {
                               <SelectContent>
                                 <SelectItem value="none">Nenhum</SelectItem>
                                 {filteredCustomers.map((customer: any) => (
-                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id}`}>
+                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id"}>
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
                                 ))}

@@ -509,7 +509,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                 currentLayout?.id === layout.id 
                   ? 'ring-2 ring-blue-500 bg-blue-50' 
                   : 'hover:shadow-lg'
-              }`}
+              "}
               onClick={() => onLayoutSelect(layout)}
             >
               <CardHeader className="pb-3">

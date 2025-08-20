@@ -133,7 +133,7 @@ export default function Companies() {
   // Mutation para atualizar company
   const updateCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest('PUT', `/api/customers/companies/${id}`, data),
+      apiRequest('PUT', `/api/customers/companies/${id", data),
     onSuccess: (result, variables) => {
       // Only invalidate cache for non-optimistic updates (when not called from Default button)
       const isOptimisticUpdate = variables.data.isOptimisticUpdate;
@@ -161,7 +161,7 @@ export default function Companies() {
 
   // Mutation para deletar company
   const deleteCompanyMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id"),
     onSuccess: async (data, deletedId) => {
       console.log('Company deleted successfully:', { deletedId, response: data });
 
@@ -606,16 +606,16 @@ export default function Companies() {
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       company.status === 'inactive' ? 'bg-gray-100' : 'bg-blue-100'
-                    }`}>
+                    "}>
                       <Building2 className={`w-5 h-5 ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-blue-600'
-                      }`} />
+                      "} />
                     </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
                       <p className={`text-sm font-medium truncate ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-gray-900'
-                      }`}>
+                      "}>
                         {company.name}
                       </p>
                       {(company.name?.toLowerCase().includes('default') || 
@@ -633,7 +633,7 @@ export default function Companies() {
                     {company.description && (
                       <p className={`text-sm truncate ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-gray-500'
-                      }`}>
+                      "}>
                         {company.description}
                       </p>
                     )}
@@ -756,7 +756,7 @@ export default function Companies() {
                                 isOptimisticUpdate: true
                               };
                               
-                              console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus}`);
+                              console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus");
                               
                               // Optimistically update the company status in cache
                               queryClient.setQueryData(['/api/companies'], (oldData: any) => {

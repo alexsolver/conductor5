@@ -441,11 +441,11 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {usersData.users.map((user) => (
                             <div key={user.id} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`supervisor-${user.id}`}
+                                id={`supervisor-${user.id"}
                                 checked={formData.supervisorIds.includes(user.id)}
                                 onCheckedChange={(checked) => handleSupervisorToggle(user.id, !!checked)}
                               />
-                              <Label htmlFor={`supervisor-${user.id}`} className="text-sm cursor-pointer">
+                              <Label htmlFor={`supervisor-${user.id"} className="text-sm cursor-pointer">
                                 {user.firstName} {user.lastName} ({user.email})
                               </Label>
                             </div>
@@ -754,11 +754,11 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {rolesData.roles.map((role) => (
                             <div key={role.id} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`role-${role.id}`}
+                                id={`role-${role.id"}
                                 checked={formData.customRoleIds.includes(role.id)}
                                 onCheckedChange={(checked) => handleRoleToggle(role.id, !!checked)}
                               />
-                              <Label htmlFor={`role-${role.id}`} className="flex-1 cursor-pointer text-sm">
+                              <Label htmlFor={`role-${role.id"} className="flex-1 cursor-pointer text-sm">
                                 <div className="font-medium">{role.name}</div>
                                 {role.description && (
                                   <div className="text-xs text-muted-foreground">{role.description}</div>
@@ -807,11 +807,11 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {groupsData.groups.map((group) => (
                             <div key={group.id} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`group-${group.id}`}
+                                id={`group-${group.id"}
                                 checked={formData.groupIds.includes(group.id)}
                                 onCheckedChange={(checked) => handleGroupToggle(group.id, !!checked)}
                               />
-                              <Label htmlFor={`group-${group.id}`} className="flex-1 cursor-pointer text-sm">
+                              <Label htmlFor={`group-${group.id"} className="flex-1 cursor-pointer text-sm">
                                 <div className="font-medium">{group.name}</div>
                                 {group.description && (
                                   <div className="text-xs text-muted-foreground">{group.description}</div>

@@ -135,7 +135,7 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
             <div
               key={time}
               className={slotClass}
-              title={`${time} - ${isOccupied ? 'Ocupado' : isBreak ? 'Intervalo' : 'Disponível'}`}
+              title={`${time} - ${isOccupied ? 'Ocupado' : isBreak ? 'Intervalo' : 'Disponível'"}
             >
               {isBreak ? '☕' : slotContent}
             </div>

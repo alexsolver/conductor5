@@ -238,7 +238,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                   {filteredHistory.map((entry: HistoryEntry, index: number) => (
                     <div key={entry.id} className="relative flex items-start">
                       {/* Timeline dot */}
-                      <div className={`absolute left-4 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${getActionColor(entry.type)}`}>
+                      <div className="absolute left-4 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center "`}>
                         {getActionIcon(entry.type).icon({ className: "w-4 h-4" })}
                       </div>
 
@@ -248,7 +248,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                           entry.isPublic 
                             ? 'border-l-green-500 bg-green-50' 
                             : 'border-l-gray-400 bg-gray-50'
-                        }`}>
+                        "}>
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between mb-2">
                               <div>

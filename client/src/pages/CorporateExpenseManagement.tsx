@@ -384,7 +384,7 @@ function ExpenseReportsList() {
         limit: '20'
       });
 
-      const response = await apiRequest('GET', `/api/expense-approval/reports?${params}`);
+      const response = await apiRequest('GET', `/api/expense-approval/reports?${params");
       if (!response.ok) {
         throw new Error('Falha ao carregar relatórios de despesas');
       }
@@ -489,7 +489,7 @@ function ExpenseReportsList() {
               <div 
                 key={report.id} 
                 className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                data-testid={`expense-report-${report.id}`}
+                data-testid={`expense-report-${report.id"}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
@@ -497,7 +497,7 @@ function ExpenseReportsList() {
                       {report.title || 'Relatório sem título'}
                     </h4>
                     <p className="text-sm text-gray-600 mb-2">
-                      {report.reportNumber || `REP-${report.id?.slice(0, 8)}`}
+                      {report.reportNumber || `REP-${report.id?.slice(0, 8)"}
                     </p>
                     {report.description && (
                       <p className="text-sm text-gray-700 mb-2">{report.description}</p>
@@ -516,12 +516,12 @@ function ExpenseReportsList() {
                     Criado em {new Date(report.createdAt || new Date()).toLocaleDateString('pt-BR')}
                   </span>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" data-testid={`button-view-${report.id}`}>
+                    <Button size="sm" variant="outline" data-testid={`button-view-${report.id"}>
                       <Eye className="h-3 w-3 mr-1" />
                       Ver
                     </Button>
                     {(report.status === 'draft' || report.status === 'rejected') && (
-                      <Button size="sm" variant="outline" data-testid={`button-edit-${report.id}`}>
+                      <Button size="sm" variant="outline" data-testid={`button-edit-${report.id"}>
                         <Edit className="h-3 w-3 mr-1" />
                         Editar
                       </Button>

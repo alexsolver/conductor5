@@ -144,15 +144,15 @@ export default function Reports() {
   });
 
   const handleCreateFromTemplate = (templateId: string) => {
-    setLocation(`/reports/create?template=${templateId}`);
+    setLocation(`/reports/create?template=${templateId");
   };
 
   const handleEditReport = (reportId: string) => {
-    setLocation(`/reports/edit/${reportId}`);
+    setLocation(`/reports/edit/${reportId");
   };
 
   const handleViewReport = (reportId: string) => {
-    setLocation(`/reports/view/${reportId}`);
+    setLocation(`/reports/view/${reportId");
   };
 
   // Zendesk-style Explore Landing
@@ -214,7 +214,7 @@ export default function Reports() {
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
-                        <div className={`p-3 rounded-lg ${template.color} text-white mb-4`}>
+                        <div className="p-3 rounded-lg " text-white mb-4`}>
                           <template.icon className="h-6 w-6" />
                         </div>
                         <Badge variant="secondary" className="text-xs">
@@ -251,11 +251,11 @@ export default function Reports() {
                 <Card 
                   key={source.id}
                   className="hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setLocation(`/reports/create?datasource=${source.id}`)}
+                  onClick={() => setLocation(`/reports/create?datasource=${source.id")}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center mb-4">
-                      <source.icon className={`h-8 w-8 ${source.color} mr-3`} />
+                      <source.icon className="h-8 w-8 " mr-3`} />
                       <div>
                         <h3 className="font-semibold text-gray-900">{source.name}</h3>
                         <p className="text-sm text-gray-500">{source.tables} tables</p>

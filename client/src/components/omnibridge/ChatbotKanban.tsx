@@ -554,7 +554,7 @@ export default function ChatbotVisualEditor() {
     try {
       const token = localStorage.getItem('token');
       const headers = {
-        'Authorization': token ? `Bearer ${token}` : '',
+        'Authorization': token ? `Bearer ${token" : '',
         'Content-Type': 'application/json',
         'x-tenant-id': user?.tenantId || ''
       };
@@ -634,7 +634,7 @@ export default function ChatbotVisualEditor() {
         name: newChatbotData.name,
         description: newChatbotData.description,
         flow: {
-          id: `flow_${Date.now()}`,
+          id: `flow_${Date.now()",
           name: 'Novo Fluxo',
           description: 'Fluxo inicial do chatbot',
           nodes: [
@@ -709,7 +709,7 @@ export default function ChatbotVisualEditor() {
     if (!nodeType) return;
 
     const newNode: FlowNode = {
-      id: `node_${Date.now()}`,
+      id: `node_${Date.now()",
       type: nodeType.type,
       title: nodeType.name,
       description: nodeType.description,
@@ -738,7 +738,7 @@ export default function ChatbotVisualEditor() {
     if (connecting && connectionStart && connectionStart !== node.id) {
       // Create connection
       const newConnection = {
-        id: `conn_${Date.now()}`,
+        id: `conn_${Date.now()",
         from: connectionStart,
         to: node.id,
         label: 'Conectar'
@@ -944,7 +944,7 @@ export default function ChatbotVisualEditor() {
                     onDragStart={(e) => handleDragStart(e, nodeType.id)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded ${nodeType.color} text-white`}>
+                      <div className="p-2 rounded " text-white`}>
                         <IconComponent className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1109,7 +1109,7 @@ export default function ChatbotVisualEditor() {
                         isNodeDragging && draggedNode?.id === node.id ? 'cursor-grabbing shadow-2xl scale-105' : 'cursor-grab'
                       } ${
                         connecting ? 'cursor-crosshair' : ''
-                      }`}
+                      "}
                       style={{
                         left: node.position.x,
                         top: node.position.y,
@@ -1122,7 +1122,7 @@ export default function ChatbotVisualEditor() {
                       <Card className="shadow-md">
                         <CardHeader className="p-3 pb-2">
                           <div className="flex items-center gap-2">
-                            <div className={`p-1.5 rounded ${nodeType?.color || 'bg-gray-500'} text-white`}>
+                            <div className="p-1.5 rounded " text-white`}>
                               <IconComponent className="h-4 w-4" />
                             </div>
                             <div className="flex-1 min-w-0">

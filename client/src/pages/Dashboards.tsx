@@ -821,7 +821,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
               }Enter dashboard title"}>
                 <step.icon className="w-5 h-5" />
               </div>
-              <span className={`ml-2 text-sm font-medium ${
+              <span className="ml-2 text-sm font-medium"
                 index <= currentStep ? 'text-blue-600' : 'text-gray-500'
               }Enter dashboard title"}>
                 {step.title}

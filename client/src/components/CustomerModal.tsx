@@ -141,7 +141,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const mutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       if (customer?.id) {
-        return apiRequest('PATCH', `/api/customers/${customer.id}`, data);
+        return apiRequest('PATCH', `/api/customers/${customer.id", data);
       } else {
         return apiRequest('POST', '/api/customers', data);
       }
@@ -427,7 +427,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       });
 
       // Fazer a requisição de exclusão
-      const result = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
+      const result = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId");
       console.log('[TRANSLATION_NEEDED]', result);
 
       if (result && (result as any).success === false) {
@@ -976,13 +976,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                 const companyId = membership.company_id || membership.id;
                                 const membershipId = membership.membership_id || membership.id || index;
                                 // Chave única garantida usando múltiplos identificadores
-                                const uniqueKey = `membership-${membershipId}-${companyId}-${index}`;
+                                const uniqueKey = `membership-${membershipId}-${companyId}-${index";
 
                                 return (
                                   <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                                     <div className="flex items-center gap-2">
                                       <span className="font-medium">
-                                        {membership.display_name || membership.company_name || membership.name || `Empresa ${companyId || index + 1}`}
+                                        {membership.display_name || membership.company_name || membership.name || `Empresa ${companyId || index + 1"}
                                       </span>
                                       <Badge variant={membership.is_primary ? "default" : "secondary"}>
                                         {membership.role || 'member'}
@@ -1068,8 +1068,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                           }
 
                                           return unassociatedCompanies.map((company: any) => (
-                                            <SelectItem key={`available-company-${company.id}`} value={String(company.id)}>
-                                              {company.displayName || company.display_name || company.name || `Empresa ${company.id}`}
+                                            <SelectItem key={`available-company-${company.id"} value={String(company.id)}>
+                                              {company.displayName || company.display_name || company.name || `Empresa ${company.id"}
                                               {company.cnpj && ` (${company.cnpj})`}
                                             </SelectItem>
                                           ));

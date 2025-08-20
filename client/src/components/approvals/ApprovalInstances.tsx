@@ -73,7 +73,7 @@ export function ApprovalInstances() {
       params.append('page', currentPage.toString());
       params.append('limit', '20');
       
-      return apiRequest(`/api/approvals/instances?${params}`);
+      return apiRequest(`/api/approvals/instances?${params");
     }
   });
 
@@ -269,14 +269,14 @@ export function ApprovalInstances() {
                 </TableRow>
               ) : (
                 instancesData?.data?.map((instance) => (
-                  <TableRow key={instance.id} data-testid={`instance-row-${instance.id}`}>
-                    <TableCell data-testid={`instance-entity-${instance.id}`}>
+                  <TableRow key={instance.id} data-testid={`instance-row-${instance.id"}>
+                    <TableCell data-testid={`instance-entity-${instance.id"}>
                       <div>
                         <div className="font-medium">{instance.entityType}</div>
                         <div className="text-sm text-gray-500">{instance.entityId}</div>
                       </div>
                     </TableCell>
-                    <TableCell data-testid={`instance-rule-${instance.id}`}>
+                    <TableCell data-testid={`instance-rule-${instance.id"}>
                       <div>
                         <div className="font-medium">{instance.rule?.name || 'N/A'}</div>
                         <Badge variant="outline" className="text-xs">
@@ -284,7 +284,7 @@ export function ApprovalInstances() {
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell data-testid={`instance-status-${instance.id}`}>
+                    <TableCell data-testid={`instance-status-${instance.id"}>
                       <Badge className={getStatusColor(instance.status)}>
                         <span className="flex items-center gap-1">
                           {getStatusIcon(instance.status)}
@@ -292,24 +292,24 @@ export function ApprovalInstances() {
                         </span>
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={`instance-sla-${instance.id}`}>
-                      <div className={`text-sm ${isOverdue(instance.slaDeadline) ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
+                    <TableCell data-testid={`instance-sla-${instance.id"}>
+                      <div className="text-sm "`}>
                         {formatTimeRemaining(instance.slaDeadline)}
                       </div>
                       <div className="text-xs text-gray-400">
                         {new Date(instance.slaDeadline).toLocaleDateString('pt-BR')}
                       </div>
                     </TableCell>
-                    <TableCell data-testid={`instance-created-${instance.id}`}>
+                    <TableCell data-testid={`instance-created-${instance.id"}>
                       {new Date(instance.createdAt).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2" data-testid={`instance-actions-${instance.id}`}>
+                      <div className="flex items-center gap-2" data-testid={`instance-actions-${instance.id"}>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setSelectedInstance(instance)}
-                          data-testid={`button-view-${instance.id}`}
+                          data-testid={`button-view-${instance.id"}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -320,7 +320,7 @@ export function ApprovalInstances() {
                               size="sm"
                               onClick={() => setDecisionDialog(instance)}
                               className="text-green-600 hover:text-green-700"
-                              data-testid={`button-approve-${instance.id}`}
+                              data-testid={`button-approve-${instance.id"}
                             >
                               <ThumbsUp className="h-4 w-4" />
                             </Button>
@@ -332,7 +332,7 @@ export function ApprovalInstances() {
                                 setDecision('rejected');
                               }}
                               className="text-red-600 hover:text-red-700"
-                              data-testid={`button-reject-${instance.id}`}
+                              data-testid={`button-reject-${instance.id"}
                             >
                               <ThumbsDown className="h-4 w-4" />
                             </Button>

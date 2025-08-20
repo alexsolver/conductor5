@@ -40,7 +40,7 @@ export function TemplateHierarchyManager({
   // Buscar hierarquia do template atual
   const { data: hierarchy } = useQuery({
     queryKey: ['/api/template-hierarchy', templateId],
-    queryFn: () => apiRequest('GET', `/api/template-hierarchy/${templateId}`),
+    queryFn: () => apiRequest('GET', `/api/template-hierarchy/${templateId"),
     enabled: !!templateId
   });
 
@@ -53,7 +53,7 @@ export function TemplateHierarchyManager({
   // Buscar templates por categoria
   const { data: categoryTemplates } = useQuery({
     queryKey: ['/api/template-hierarchy/category', selectedCategory],
-    queryFn: () => apiRequest('GET', `/api/template-hierarchy/category/${selectedCategory}`),
+    queryFn: () => apiRequest('GET', `/api/template-hierarchy/category/${selectedCategory"),
     enabled: !!selectedCategory
   });
 

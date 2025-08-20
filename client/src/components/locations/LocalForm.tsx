@@ -134,7 +134,7 @@ export default function LocalForm({
 
       const response = await fetch('/api/team-management/members', {
         headers: {
-          'Authorization': `Bearer ${validToken}`,
+          'Authorization': `Bearer ${validToken",
           'Content-Type': 'application/json'
         }
       });
@@ -148,7 +148,7 @@ export default function LocalForm({
             .filter(member => member.id && (member.name || member.firstName || member.lastName))
             .map((member: any) => ({
               id: member.id,
-              name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Sem nome',
+              name: member.name || `${member.firstName || ''} ${member.lastName || ''".trim() || 'Sem nome',
               email: member.email || 'Sem email',
               role: member.position || member.role || 'Membro da Equipe'
             }));
@@ -258,9 +258,9 @@ export default function LocalForm({
       }
 
       // Try internal API endpoint first
-      const response = await fetch(`/api/locations-new/services/cep/${cleanCep}`, {
+      const response = await fetch(`/api/locations-new/services/cep/${cleanCep", {
         headers: {
-          'Authorization': `Bearer ${validToken}`,
+          'Authorization': `Bearer ${validToken",
           'Content-Type': 'application/json',
         },
       });
@@ -285,7 +285,7 @@ export default function LocalForm({
 
           toast({
             title: "CEP encontrado",
-            description: `Endereço preenchido: ${data.logradouro}, ${data.bairro}`,
+            description: `Endereço preenchido: ${data.logradouro}, ${data.bairro",
           });
           return;
         }
@@ -322,7 +322,7 @@ export default function LocalForm({
 
         toast({
           title: "CEP encontrado",
-          description: `Endereço preenchido: ${viaCepData.logradouro}, ${viaCepData.bairro}`,
+          description: `Endereço preenchido: ${viaCepData.logradouro}, ${viaCepData.bairro",
         });
       } else {
         console.error('❌ [CEP-LOOKUP] CEP not found in ViaCEP');
@@ -349,7 +349,7 @@ export default function LocalForm({
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)"
       );
       const data = await response.json();
 
@@ -387,7 +387,7 @@ export default function LocalForm({
     setShowMapModal(false);
     toast({
       title: "Coordenadas selecionadas",
-      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`,
+      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)",
     });
   };
 
@@ -450,9 +450,9 @@ export default function LocalForm({
       }
 
       // Call holidays API endpoint
-      const response = await fetch(`/api/locations-new/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`, {
+      const response = await fetch(`/api/locations-new/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear", {
         headers: {
-          'Authorization': `Bearer ${validToken}`,
+          'Authorization': `Bearer ${validToken",
           'Content-Type': 'application/json'
         }
       });
@@ -462,7 +462,7 @@ export default function LocalForm({
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ [HOLIDAYS-FETCH] API error:', response.status, errorText);
-        throw new Error(`API returned ${response.status}: ${errorText}`);
+        throw new Error(`API returned ${response.status}: ${errorText");
       }
 
       const result = await response.json();
@@ -484,7 +484,7 @@ export default function LocalForm({
 
         toast({
           title: "Feriados encontrados",
-          description: `${result.total || 0} feriados carregados para ${municipio}, ${estado}`,
+          description: `${result.total || 0} feriados carregados para ${municipio}, ${estado",
         });
       } else {
         console.error('❌ [HOLIDAYS-FETCH] Invalid API response:', result);
@@ -578,7 +578,7 @@ export default function LocalForm({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token",
           'Accept': 'application/json'
         },
         body: JSON.stringify(data)
@@ -670,7 +670,7 @@ export default function LocalForm({
 
         toast({
           title: '[TRANSLATION_NEEDED]',
-          description: `Não foi possível interpretar a resposta do servidor: ${parseError.message}`,
+          description: `Não foi possível interpretar a resposta do servidor: ${parseError.message",
           variant: "destructive"
         });
         return;
@@ -705,12 +705,12 @@ export default function LocalForm({
 
         const errorMessage = result?.message || result?.error || '[TRANSLATION_NEEDED]';
         const errorDetails = result?.details ? 
-          result.details.map((d: any) => `${d.field}: ${d.message}`).join('\n') : '';
+          result.details.map((d: any) => `${d.field}: ${d.message").join('\n') : '';
 
         toast({
           title: '[TRANSLATION_NEEDED]',
           description: errorDetails ? 
-            `${errorMessage}\n\nDetalhes:\n${errorDetails}` : 
+            `${errorMessage}\n\nDetalhes:\n${errorDetails" : 
             errorMessage,
           variant: "destructive"
         });
@@ -728,7 +728,7 @@ export default function LocalForm({
       } else {
         toast({
           title: '[TRANSLATION_NEEDED]',
-          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : '[TRANSLATION_NEEDED]'}`,
+          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : '[TRANSLATION_NEEDED]'",
           variant: "destructive"
         });
       }

@@ -179,7 +179,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
   // Render article card
   const renderArticleCard = (article: KnowledgeBaseArticle, showLinkButton = false) => {
     return (
-      <Card key={article.id} className={`transition-all duration-200 hover:shadow-md ${viewMode === 'list' ? 'mb-2' : ''}`}>
+      <Card key={article.id} className="transition-all duration-200 hover:shadow-md "`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -218,7 +218,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                   onClick={() => linkArticleMutation.mutate({ articleId: article.id })}
                   disabled={linkArticleMutation.isPending}
                   className="text-xs h-7"
-                  data-testid={`button-link-article-${article.id}`}
+                  data-testid={`button-link-article-${article.id"}
                 >
                   {linkArticleMutation.isPending ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -234,9 +234,9 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open(`/knowledge-base/articles/${article.id}`, '_blank')}
+                onClick={() => window.open(`/knowledge-base/articles/${article.id", '_blank')}
                 className="text-xs h-7"
-                data-testid={`button-view-article-${article.id}`}
+                data-testid={`button-view-article-${article.id"}
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 Ver

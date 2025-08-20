@@ -97,7 +97,7 @@ export default function TimecardApprovalSettings() {
           // Usar queries individuais para cada grupo para evitar problemas de cache
           const response = await fetch(`/api/timecard/approval/groups/${group.id}/members`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+              'Authorization': `Bearer " + (localStorage.getItem("accessToken") || ""),
               'Content-Type': 'application/json',
             },
             credentials: 'include',
@@ -106,7 +106,7 @@ export default function TimecardApprovalSettings() {
           if (response.ok) {
             const data = await response.json();
             counts[group.id] = data.members?.length || 0;
-            console.log(`Group ${group.name} (${group.id}) has ${counts[group.id]} members`);
+            console.log("Group " + group.name + " (" + group.id + ") has " + counts[group.id] + " members");
           } else {
             console.error(`Failed to fetch members for group ${group.id}:`, response.status);
             counts[group.id] = 0;
@@ -184,7 +184,7 @@ export default function TimecardApprovalSettings() {
   // Update group mutation
   const updateGroupMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
-      return await apiRequest('PUT', `/api/timecard/approval/groups/${id}`, data);
+      return await apiRequest('PUT', `/api/timecard/approval/groups/${id", data);
     },
     onSuccess: () => {
       toast({
@@ -238,7 +238,7 @@ export default function TimecardApprovalSettings() {
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      return await apiRequest('DELETE', `/api/timecard/approval/groups/${groupId}`);
+      return await apiRequest('DELETE', `/api/timecard/approval/groups/${groupId");
     },
     onSuccess: () => {
       toast({

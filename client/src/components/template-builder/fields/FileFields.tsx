@@ -51,11 +51,11 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
     }
 
     // Verificar tipo (simplificado)
-    const extension = `.${file.name.split('.').pop()?.toLowerCase()}`
+    const extension = `.${file.name.split('.').pop()?.toLowerCase()"
     const allowedExtensions = acceptedTypes.split(',').map(ext => ext.trim().toLowerCase())
     
     if (!allowedExtensions.includes(extension)) {
-      return `Tipo de arquivo não permitido. Permitidos: ${acceptedTypes}`
+      return `Tipo de arquivo não permitido. Permitidos: ${acceptedTypes"
     }
 
     return null
@@ -111,7 +111,7 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
 
       // Marcar como concluído
       const finalFiles = (multiple ? files : [files]).map((f: FileInfo) =>
-        f.name === file.name ? { ...f, progress: 100, url: `#uploaded-${f.name}` } : f
+        f.name === file.name ? { ...f, progress: 100, url: `#uploaded-${f.name" } : f
       )
 
       if (multiple) {
@@ -386,7 +386,7 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
 
       {/* Preview das Imagens */}
       {images.length > 0 && (
-        <div className={`grid gap-4 ${multiple ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}`}>
+        <div className="grid gap-4 "`}>
           {(multiple ? images : [images]).map((image: FileInfo, index: number) => (
             <div key={index} className="relative group">
               <div className="aspect-square rounded-lg overflow-hidden border bg-gray-100">

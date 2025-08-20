@@ -218,7 +218,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   // Remove relationship mutation - Clean Architecture endpoint per 1qa.md
   const removeRelationshipMutation = useMutation({
     mutationFn: async (relationshipId: string) => {
-      await apiRequest("DELETE", `/api/ticket-relationships/${relationshipId}`);
+      await apiRequest("DELETE", `/api/ticket-relationships/${relationshipId");
     },
     onSuccess: () => {
       toast({
@@ -305,7 +305,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                         <Icon className="h-4 w-4 text-gray-500" />
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">#{rel.targetTicket?.number || `T-${rel.targetTicket?.id?.slice(-8) || 'N/A'}`} - {rel.targetTicket?.subject || 'Sem título'}</span>
+                            <span className="font-medium">#{rel.targetTicket?.number || `T-${rel.targetTicket?.id?.slice(-8) || 'N/A'"} - {rel.targetTicket?.subject || 'Sem título'}</span>
                             <Badge variant="outline">
                               {getRelationshipLabel(rel.relationshipType)}
                             </Badge>
@@ -428,7 +428,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                         key={ticket.id}
                         className={`p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${
                           isTicketSelected(ticket) ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200" : ""
-                        }`}
+                        "}
                         onClick={() => toggleTicketSelection(ticket)}
                       >
                         <div className="flex items-center justify-between">
@@ -441,7 +441,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                           />
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 flex-wrap gap-1">
-                              <span className="font-medium">#{ticket.number || `T-${ticket.id.slice(-8)}`}</span>
+                              <span className="font-medium">#{ticket.number || `T-${ticket.id.slice(-8)"}</span>
 
                               {/* Badge de Categoria */}
                               {(ticket as any).category && (
@@ -458,7 +458,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                 ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
                                 ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
                                 'bg-gray-50 text-gray-700 border-gray-200'
-                              }`}>
+                              "}>
                                 {ticket.status === 'new' ? 'Novo' :
                                  ticket.status === 'open' ? 'Aberto' :
                                  ticket.status === 'in_progress' ? 'Em Andamento' :
@@ -478,7 +478,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                 ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
                                 ticket.priority === 'low' ? 'bg-green-500 text-white' :
                                 'bg-gray-500 text-white'
-                              }`}>
+                              "}>
                                 {ticket.priority === 'critical' ? 'Crítica' :
                                  ticket.priority === 'high' ? 'Alta' :
                                  ticket.priority === 'medium' ? 'Média' :
@@ -493,11 +493,11 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                   (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                                   (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
                                   'bg-gray-50 text-gray-700 border-gray-200'
-                                }`}>
+                                "}>
                                   {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
                                    (ticket as any).urgency === 'medium' ? 'Urgência Média' :
                                    (ticket as any).urgency === 'low' ? 'Urgência Baixa' :
-                                   `Urgência: ${(ticket as any).urgency}`}
+                                   `Urgência: ${(ticket as any).urgency"}
                                 </Badge>
                               )}
                             </div>
@@ -524,7 +524,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     {selectedTickets.map(ticket => (
                       <div key={ticket.id} className="p-2 bg-white rounded border">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium">#{ticket.number || `T-${ticket.id.slice(-8)}`}</span>
+                          <span className="font-medium">#{ticket.number || `T-${ticket.id.slice(-8)"}</span>
                           <button
                             onClick={() => toggleTicketSelection(ticket)}
                             className="text-red-500 hover:text-red-700 ml-2 text-lg leading-none"
@@ -548,7 +548,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
                             ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
                             'bg-gray-50 text-gray-700 border-gray-200'
-                          }`}>
+                          "}>
                             {ticket.status === 'new' ? 'Novo' :
                              ticket.status === 'open' ? 'Aberto' :
                              ticket.status === 'in_progress' ? 'Em Andamento' :
@@ -564,7 +564,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
                             ticket.priority === 'low' ? 'bg-green-500 text-white' :
                             'bg-gray-500 text-white'
-                          }`}>
+                          "}>
                             {ticket.priority === 'critical' ? 'Crítica' :
                              ticket.priority === 'high' ? 'Alta' :
                              ticket.priority === 'medium' ? 'Média' :
@@ -579,11 +579,11 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                               (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                               (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
                               'bg-gray-50 text-gray-700 border-gray-200'
-                            }`}>
+                            "}>
                               {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
                                (ticket as any).urgency === 'medium' ? 'Urgência Média' :
                                (ticket as any).urgency === 'low' ? 'Urgência Baixa' :
-                               `Urgência: ${(ticket as any).urgency}`}
+                               `Urgência: ${(ticket as any).urgency"}
                             </Badge>
                           )}
                         </div>
@@ -640,7 +640,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       onClick={handleLinkTickets}
                       disabled={createRelationshipMutation.isPending}
                     >
-                      {createRelationshipMutation.isPending ? "Vinculando..." : `Vincular ${selectedTickets.length} Ticket${selectedTickets.length !== 1 ? 's' : ''}`}
+                      {createRelationshipMutation.isPending ? "Vinculando..." : `Vincular ${selectedTickets.length} Ticket${selectedTickets.length !== 1 ? 's' : ''"}
                     </Button>
                   </div>
                 </div>

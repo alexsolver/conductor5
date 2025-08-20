@@ -87,7 +87,7 @@ const renderFieldByType = (
                 <Input
                   {...formField}
                   type={field.fieldType === 'email' ? 'email' : field.fieldType === 'phone' ? 'tel' : 'text'}
-                  placeholder={`Digite ${field.label.toLowerCase()}`}
+                  placeholder="Enter Digite ${field.label.toLowerCase()"}
                   disabled={isReadOnly}
                   onChange={(e) => {
                     formField.onChange(e);
@@ -116,7 +116,7 @@ const renderFieldByType = (
               <FormControl>
                 <Textarea
                   {...formField}
-                  placeholder={`Digite ${field.label.toLowerCase()}`}
+                  placeholder="Enter Digite ${field.label.toLowerCase()"}
                   disabled={isReadOnly}
                   rows={4}
                   onChange={(e) => {
@@ -148,7 +148,7 @@ const renderFieldByType = (
                 <Input
                   {...formField}
                   type="number"
-                  placeholder={`Digite ${field.label.toLowerCase()}`}
+                  placeholder="Enter Digite ${field.label.toLowerCase()"}
                   disabled={isReadOnly}
                   onChange={(e) => {
                     const value = parseFloat(e.target.value) || 0;
@@ -324,12 +324,12 @@ export function DynamicFormRenderer({
       metadata: 'Metadados',
       sidebar: 'Informações Adicionais'
     };
-    return titles[sectionId as keyof typeof titles] || `Seção ${sectionId}`;
+    return titles[sectionId as keyof typeof titles] || `Seção ${sectionId";
   };
 
   if (fields.length === 0) {
     return (
-      <div className={`p-8 text-center text-gray-500 ${className}`}>
+      <div className="p-8 text-center text-gray-500 "`}>
         <Type className="h-8 w-8 mx-auto mb-2 text-gray-400" />
         <p>Nenhum campo personalizado configurado</p>
         <p className="text-sm mt-1">
@@ -340,7 +340,7 @@ export function DynamicFormRenderer({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className="space-y-6 "`}>
       {Object.entries(groupedFields).map(([sectionId, sectionFields]) => {
         // Sort fields by position
         const sortedFields = sectionFields

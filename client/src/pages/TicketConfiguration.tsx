@@ -253,7 +253,7 @@ const TicketConfiguration: React.FC = () => {
     queryKey: ['categories', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
-      const response = await apiRequest('GET', `/api/ticket-config/categories?companyId=${selectedCompany}`);
+      const response = await apiRequest('GET', "/api/ticket-config/categories?companyId=" + selectedCompany);
       const result = await response.json();
       return result.success ? result.data : [];
     },
@@ -264,7 +264,7 @@ const TicketConfiguration: React.FC = () => {
     queryKey: ['subcategories', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
-      const response = await apiRequest('GET', `/api/ticket-config/subcategories?companyId=${selectedCompany}`);
+      const response = await apiRequest('GET', "/api/ticket-config/categories?companyId=" + selectedCompany);
       const result = await response.json();
       return result.success ? result.data : [];
     },
@@ -275,7 +275,7 @@ const TicketConfiguration: React.FC = () => {
     queryKey: ['actions', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
-      const response = await apiRequest('GET', `/api/ticket-config/actions?companyId=${selectedCompany}`);
+      const response = await apiRequest('GET', "/api/ticket-config/categories?companyId=" + selectedCompany);
       const result = await response.json();
       return result.success ? result.data : [];
     },
@@ -288,7 +288,7 @@ const TicketConfiguration: React.FC = () => {
       if (!selectedCompany) return [];
       // Add timestamp to prevent caching issues
       const timestamp = Date.now();
-      const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}&_t=${timestamp}`);
+      const response = await apiRequest('GET', "/api/ticket-config/categories?companyId=" + selectedCompany);
       const result = await response.json();
       console.log('🔍 Field options query result for company:', selectedCompany, result);
 
@@ -315,7 +315,7 @@ const TicketConfiguration: React.FC = () => {
     queryKey: ['/api/ticket-config/numbering', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return null;
-      const response = await apiRequest('GET', `/api/ticket-config/numbering?companyId=${selectedCompany}`);
+      const response = await apiRequest('GET', "/api/ticket-config/categories?companyId=" + selectedCompany);
       const result = await response.json();
       return result.success ? result.data : null;
     },
@@ -379,7 +379,7 @@ const TicketConfiguration: React.FC = () => {
   const updateCategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof categorySchema> & { id: string }) => {
       const { id, ...updateData } = data;
-      const response = await apiRequest('PUT', `/api/ticket-config/categories/${id}`, updateData);
+      const response = await apiRequest('PUT', "/api/ticket-config/categories?companyId=" + selectedCompany, updateData);
       return response.json();
     },
     onSuccess: () => {
@@ -394,7 +394,7 @@ const TicketConfiguration: React.FC = () => {
   const updateSubcategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof subcategorySchema> & { id: string }) => {
       const { id, ...updateData } = data;
-      const response = await apiRequest('PUT', `/api/ticket-config/subcategories/${id}`, updateData);
+      const response = await apiRequest('PUT', "/api/ticket-config/categories?companyId=" + selectedCompany, updateData);
       return response.json();
     },
     onSuccess: () => {
@@ -409,7 +409,7 @@ const TicketConfiguration: React.FC = () => {
   const updateActionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof actionSchema> & { id: string }) => {
       const { id, ...updateData } = data;
-      const response = await apiRequest('PUT', `/api/ticket-config/actions/${id}`, updateData);
+      const response = await apiRequest('PUT', "/api/ticket-config/categories?companyId=" + selectedCompany, updateData);
       return response.json();
     },
     onSuccess: () => {
@@ -474,7 +474,7 @@ const TicketConfiguration: React.FC = () => {
   const updateFieldOptionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof fieldOptionSchema> & { id: string }) => {
       const { id, ...updateData } = data;
-      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}`, {
+      const response = await apiRequest('PUT', "/api/ticket-config/categories?companyId=" + selectedCompany, {
         ...updateData,
         companyId: selectedCompany
       });
@@ -534,7 +534,7 @@ const TicketConfiguration: React.FC = () => {
 
   const deleteFieldOptionMutation = useMutation({
     mutationFn: async (optionId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-config/field-options/${optionId}`);
+      const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
       return response.json();
     },
     onSuccess: async () => {
@@ -567,7 +567,7 @@ const TicketConfiguration: React.FC = () => {
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-config/categories/${categoryId}`);
+      const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
       return response.json();
     },
     onSuccess: () => {
@@ -578,7 +578,7 @@ const TicketConfiguration: React.FC = () => {
 
   const deleteSubcategoryMutation = useMutation({
     mutationFn: async (subcategoryId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-config/subcategories/${subcategoryId}`);
+      const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
       return response.json();
     },
     onSuccess: () => {
@@ -589,7 +589,7 @@ const TicketConfiguration: React.FC = () => {
 
   const deleteActionMutation = useMutation({
     mutationFn: async (actionId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-config/actions/${actionId}`);
+      const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
       return response.json();
     },
     onSuccess: () => {
@@ -630,7 +630,7 @@ const TicketConfiguration: React.FC = () => {
       
       toast({ 
         title: 'Estrutura Copiada com Sucesso',
-        description: `${result.summary || 'Toda a estrutura hierárquica foi copiada da empresa Default.'}`
+        description: `${result.summary || "Toda a estrutura hierárquica foi copiada da empresa Default.""
       });
     },
     onError: (error: any) => {
@@ -1273,11 +1273,11 @@ const TicketConfiguration: React.FC = () => {
 
               return (
                 <Card key={key} className="overflow-hidden">
-                  <CardHeader className={`bg-${color}-50 border-b`}>
+                  <CardHeader className="bg-"-50 border-b`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 bg-${color}-100 rounded-lg`}>
-                          <Icon className={`w-5 h-5 text-${color}-600`} />
+                        <div className="p-2 bg-"-100 rounded-lg`}>
+                          <Icon className="w-5 h-5 text-"-600`} />
                         </div>
                         <div>
                           <CardTitle className="text-lg">{title}</CardTitle>
@@ -1292,7 +1292,7 @@ const TicketConfiguration: React.FC = () => {
                         </Badge>
                         <Button 
                           onClick={() => openDialog('field-option', { fieldName: key })}
-                          className={`bg-${color}-600 hover:bg-${color}-700`}
+                          className="bg-${color}-600 hover:bg-"-700`}
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Nova Opção
@@ -1303,8 +1303,8 @@ const TicketConfiguration: React.FC = () => {
                   <CardContent className="p-0">
                     {fieldOptionsForType.length === 0 ? (
                       <div className="text-center py-12">
-                        <div className={`w-16 h-16 mx-auto mb-4 bg-${color}-100 rounded-full flex items-center justify-center`}>
-                          <Icon className={`w-8 h-8 text-${color}-400`} />
+                        <div className="w-16 h-16 mx-auto mb-4 bg-"-100 rounded-full flex items-center justify-center`}>
+                          <Icon className="w-8 h-8 text-"-400`} />
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
                           Nenhuma opção configurada
@@ -1314,7 +1314,7 @@ const TicketConfiguration: React.FC = () => {
                         </p>
                         <Button 
                           onClick={() => openDialog('field-option', { fieldName: key })}
-                          className={`bg-${color}-600 hover:bg-${color}-700`}
+                          className="bg-${color}-600 hover:bg-"-700`}
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Criar Primeira Opção

@@ -254,7 +254,7 @@ function LocationsNewContent() {
   // Create mutation using apiRequest
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', `/api/locations-new/${activeRecordType}`, data);
+      const response = await apiRequest('POST', `/api/locations-new/${activeRecordType", data);
       return response.json();
     },
     onSuccess: () => {
@@ -262,7 +262,7 @@ function LocationsNewContent() {
         title: '[TRANSLATION_NEEDED]',
         description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} criado com sucesso!`
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType"] });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
       setIsCreateDialogOpen(false);
       form.reset();
@@ -1286,8 +1286,8 @@ function LocationsNewContent() {
                         <div className="grid grid-cols-7 gap-2">
                           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, index) => (
                             <div key={index} className="flex items-center space-x-2">
-                              <Checkbox id={`dia-${index}`} />
-                              <label htmlFor={`dia-${index}`} className="text-sm">{dia}</label>
+                              <Checkbox id={`dia-${index"} />
+                              <label htmlFor={`dia-${index"} className="text-sm">{dia}</label>
                             </div>
                           ))}
                         </div>
@@ -1742,8 +1742,8 @@ function LocationsNewContent() {
                           <div className="grid grid-cols-2 gap-2">
                             {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
                               <div key={index} className="flex items-center space-x-2">
-                                <Checkbox id={`area-${index}`} />
-                                <label htmlFor={`area-${index}`} className="text-sm flex items-center space-x-2">
+                                <Checkbox id={`area-${index"} />
+                                <label htmlFor={`area-${index"} className="text-sm flex items-center space-x-2">
                                   <div className="w-3 h-3 bg-blue-500 rounded"></div>
                                   <span>{area}</span>
                                   <Badge variant="outline" className="text-xs">Faixa CEP</Badge>

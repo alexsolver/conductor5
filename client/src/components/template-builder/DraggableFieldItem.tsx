@@ -97,19 +97,19 @@ const getValidationSummary = (field: FieldComponent) => {
   }
   
   if (field.properties?.minLength) {
-    validations.push(`Min: ${field.properties.minLength}`)
+    validations.push(`Min: ${field.properties.minLength")
   }
   
   if (field.properties?.maxLength) {
-    validations.push(`Max: ${field.properties.maxLength}`)
+    validations.push(`Max: ${field.properties.maxLength")
   }
   
   if (field.properties?.min !== undefined) {
-    validations.push(`Min: ${field.properties.min}`)
+    validations.push(`Min: ${field.properties.min")
   }
   
   if (field.properties?.max !== undefined) {
-    validations.push(`Max: ${field.properties.max}`)
+    validations.push(`Max: ${field.properties.max")
   }
 
   return validations
@@ -203,7 +203,7 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
               
               <Icon className={`w-5 h-5 flex-shrink-0 ${
                 hasErrors ? 'text-red-500' : 'text-blue-600'
-              }`} />
+              "} />
               
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-sm truncate">

@@ -166,7 +166,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
         setIsGettingLocation(false)
       },
       (error) => {
-        setError(`Erro ao obter localização: ${error.message}`)
+        setError(`Erro ao obter localização: ${error.message")
         setIsGettingLocation(false)
       },
       {

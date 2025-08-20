@@ -157,10 +157,10 @@ export const ResponsiveTicketsTable = ({
           ) : (
             tickets.map((ticket) => [
               <TableRow
-                key={`ticket-${ticket.id}`}
+                key={`ticket-${ticket.id"}
                 className="hover:bg-gray-50 transition-colors"
                 role="row"
-                aria-label={`Ticket ${ticket.number || ticket.id?.slice(0, 8)}: ${ticket.subject}`}
+                aria-label={`Ticket ${ticket.number || ticket.id?.slice(0, 8)}: ${ticket.subject"}
               >
                   <TableCell className="font-mono text-sm">
                     <div className="flex items-center gap-2">
@@ -180,9 +180,9 @@ export const ResponsiveTicketsTable = ({
                         </Button>
                       )}
                       <Link
-                        href={`/tickets/${ticket.id}`}
+                        href={`/tickets/${ticket.id"}
                         className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
-                        aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
+                        aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)"}
                       >
                         #{ticket.number || ticket.id?.slice(0, 8)}
                       </Link>
@@ -192,7 +192,7 @@ export const ResponsiveTicketsTable = ({
                   <TableCell className="max-w-0">
                     <div className="truncate">
                       <Link
-                        href={`/tickets/${ticket.id}`}
+                        href={`/tickets/${ticket.id"}
                         className="font-medium text-gray-900 hover:text-blue-600 transition-colors block"
                         title={ticket.subject}
                       >
@@ -213,7 +213,7 @@ export const ResponsiveTicketsTable = ({
                     <OptimizedBadge
                       fieldName="category"
                       value={ticket.category || ''}
-                      aria-label={`Categoria: ${ticket.category}`}
+                      aria-label={`Categoria: ${ticket.category"}
                     />
                   </TableCell>
 
@@ -221,7 +221,7 @@ export const ResponsiveTicketsTable = ({
                     <OptimizedBadge
                       fieldName="status"
                       value={ticket.status}
-                      aria-label={`Status: ${ticket.status}`}
+                      aria-label={`Status: ${ticket.status"}
                     />
                   </TableCell>
 
@@ -229,7 +229,7 @@ export const ResponsiveTicketsTable = ({
                     <OptimizedBadge
                       fieldName="priority"
                       value={ticket.priority}
-                      aria-label={`Prioridade: ${ticket.priority}`}
+                      aria-label={`Prioridade: ${ticket.priority"}
                     />
                   </TableCell>
 
@@ -246,7 +246,7 @@ export const ResponsiveTicketsTable = ({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/tickets/${ticket.id}`} className="flex items-center gap-2">
+                          <Link href={`/tickets/${ticket.id"} className="flex items-center gap-2">
                             <Eye className="h-4 w-4" />
                             Ver Detalhes
                           </Link>
@@ -266,7 +266,7 @@ export const ResponsiveTicketsTable = ({
 
               /* Expanded relationships - using RelatedTicketsExpansion component for real data */
               currentExpandedTickets.has(ticket.id) && (
-                <TableRow key={`relationships-${ticket.id}`} className="bg-blue-50">
+                <TableRow key={`relationships-${ticket.id"} className="bg-blue-50">
                   <TableCell colSpan={9} className="p-0">
                     <RelatedTicketsExpansion ticketId={ticket.id} />
                   </TableCell>

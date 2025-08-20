@@ -115,15 +115,15 @@ const DraggableField = ({ field }: { field: TemplateField }) => {
       ref={drag}
       className={`flex items-center gap-2 p-3 border rounded-lg cursor-move hover:shadow-md transition-shadow ${
         isDragging ? 'opacity-50' : ''
-      } ${field.section === 'custom' ? 'bg-purple-50 border-purple-200' : 'bg-white'}`}
+      } ${field.section === 'custom' ? 'bg-purple-50 border-purple-200' : 'bg-white'"}
     >
-      <FieldIcon className={`w-4 h-4 ${field.section === 'custom' ? 'text-purple-600' : 'text-gray-500'}`} />
+      <FieldIcon className="w-4 h-4 "`} />
       <div className="flex-1">
-        <div className={`text-sm font-medium ${field.section === 'custom' ? 'text-purple-800' : ''}`}>
+        <div className="text-sm font-medium "`}>
           {field.label}
           {field.section === 'custom' && <span className="ml-1 text-xs text-purple-500">(Customizado)</span>}
         </div>
-        <div className={`text-xs ${field.section === 'custom' ? 'text-purple-600' : 'text-gray-500'}`}>
+        <div className="text-xs "`}>
           {FIELD_TYPES[field.type as keyof typeof FIELD_TYPES]?.label}
         </div>
       </div>
@@ -154,7 +154,7 @@ const DroppedField = ({
         return (
           <Select disabled>
             <SelectTrigger>
-              <SelectValue placeholder={`Selecionar ${field.label}`} />
+              <SelectValue placeholder="Enter Selecionar ${field.label"} />
             </SelectTrigger>
           </Select>
         );
@@ -231,7 +231,7 @@ const TabDropZone = ({
       ref={drop}
       className={`min-h-[400px] p-4 border-2 border-dashed rounded-lg transition-colors ${
         isOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-gray-50'
-      }`}
+      "}
     >
       {fields.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -296,7 +296,7 @@ export default function TemplateCanvasEditor({
   const handleFieldDrop = useCallback((field: TemplateField, tabId: string) => {
     const newField = {
       ...field,
-      id: `${field.id}_${Date.now()}` // ID único para cada instância
+      id: `${field.id}_${Date.now()" // ID único para cada instância
     };
 
     setFieldsByTab(prev => ({

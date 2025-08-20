@@ -127,7 +127,7 @@ export function SupplierManagement() {
   // Update supplier mutation
   const updateSupplierMutation = useMutation({
     mutationFn: async ({ id, ...data }: Partial<Supplier> & { id: string }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/suppliers/${id}`, data);
+      const response = await apiRequest('PUT', `/api/materials-services/suppliers/${id", data);
       return response.json();
     },
     onSuccess: () => {
@@ -148,7 +148,7 @@ export function SupplierManagement() {
   // Delete supplier mutation
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/materials-services/suppliers/${id}`);
+      const response = await apiRequest('DELETE', `/api/materials-services/suppliers/${id");
       return response.json();
     },
     onSuccess: () => {
@@ -196,7 +196,7 @@ export function SupplierManagement() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-4 w-4 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+        className="h-4 w-4 "`}
       />
     ));
   };

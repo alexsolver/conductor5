@@ -91,7 +91,7 @@ export default function TicketDetail() {
 
   // Fetch ticket details
   const { data: ticket, isLoading: isTicketLoading, error: ticketError } = useQuery<Ticket>({
-    queryKey: [`/api/tickets/${id}`],
+    queryKey: [`/api/tickets/${id"],
     enabled: !!id,
     retry: (failureCount, error: any) => {
       // Se for erro 401 (não autorizado), não tenta novamente
@@ -143,7 +143,7 @@ export default function TicketDetail() {
 
   // 🎯 [1QA-COMPLIANCE] Fetch company details for proper display
   const { data: company, error: companyError } = useQuery({
-    queryKey: [`/api/companies/${ticket?.companyId}`],
+    queryKey: [`/api/companies/${ticket?.companyId"],
     enabled: !!ticket?.companyId,
     select: (data: any) => {
       console.log('🏢 [COMPANY-QUERY] Raw response:', data);
@@ -174,14 +174,14 @@ export default function TicketDetail() {
 
   // 🎯 [1QA-COMPLIANCE] Fetch user details for assigned user display  
   const { data: assignedUser } = useQuery({
-    queryKey: [`/api/users/${ticket?.assignedToId}`],
+    queryKey: [`/api/users/${ticket?.assignedToId"],
     enabled: !!ticket?.assignedToId,
     select: (data: any) => data?.data || data,
   });
 
   // 🎯 [1QA-COMPLIANCE] Fetch location details for proper display
   const { data: location } = useQuery({
-    queryKey: [`/api/locations/${ticket?.locationId}`],
+    queryKey: [`/api/locations/${ticket?.locationId"],
     enabled: !!ticket?.locationId,
     select: (data: any) => data?.data || data,
   });
@@ -208,7 +208,7 @@ export default function TicketDetail() {
   const handleUploadComplete = () => {
     // Refresh attachments after upload
     queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}/attachments`] });
-    queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}`] });
+    queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id"] });
     toast({
       title: '[TRANSLATION_NEEDED]',
       description: 'Files uploaded successfully.',
@@ -541,7 +541,7 @@ export default function TicketDetail() {
                   <span className="text-gray-500">Responsável:</span>
                   <span className="ml-2 font-medium">
                     {assignedUser?.firstName && assignedUser?.lastName 
-                      ? `${assignedUser.firstName} ${assignedUser.lastName}`
+                      ? `${assignedUser.firstName} ${assignedUser.lastName"
                       : assignedUser?.email || ticket.assignedToId
                     }
                   </span>

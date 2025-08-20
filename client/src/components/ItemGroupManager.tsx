@@ -337,7 +337,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                         selectedParentItem?.id === item.id
                           ? 'bg-blue-100 border border-blue-300'
                           : 'hover:bg-gray-50'
-                      }`}
+                      "}
                       onClick={() => setSelectedParentItem(item)}
                     >
                       <input

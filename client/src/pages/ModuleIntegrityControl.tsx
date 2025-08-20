@@ -337,7 +337,7 @@ export default function ModuleIntegrityControl() {
                                 <Badge 
                                   variant={module.status === 'healthy' ? 'default' : 
                                           module.status === 'warning' ? 'secondary' : 'destructive'}
-                                  className={`${getStatusColor(module.status)}`}
+                                  className=""`}
                                 >
                                   {getStatusIcon(module.status)}
                                   <span className="ml-1">{module.status}</span>

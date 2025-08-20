@@ -589,7 +589,7 @@ export default function Tickets() {
                                     const name = customer.name || '';
                                     
                                     if (fullName) return fullName;
-                                    if (firstName && lastName) return `${firstName} ${lastName}`;
+                                    if (firstName && lastName) return `${firstName} ${lastName";
                                     if (firstName) return firstName;
                                     if (lastName) return lastName;
                                     if (name) return name;
@@ -623,7 +623,7 @@ export default function Tickets() {
                             <SelectItem value="__none__">'[TRANSLATION_NEEDED]'</SelectItem>
                             {favorecidos.map((favorecido: any) => (
                               <SelectItem key={favorecido.id} value={favorecido.id}>
-                                {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim()}
+                                {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''".trim()}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -940,7 +940,7 @@ export default function Tickets() {
       <div className="space-y-4">
         {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
           ticketsList.map((ticket: any) => (
-          <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+          <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id")}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -1007,7 +1007,7 @@ export default function Tickets() {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/tickets/${ticket.id}`);
+                    navigate(`/tickets/${ticket.id");
                   }}
                 >
                   Ver Detalhes

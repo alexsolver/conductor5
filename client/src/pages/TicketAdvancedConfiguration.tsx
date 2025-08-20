@@ -168,9 +168,9 @@ function TicketAdvancedConfiguration() {
 
   // Data queries
   const { data: fieldConfigurations = [], isLoading: fieldsLoading } = useQuery({
-    queryKey: ['/api/ticket-metadata/field-configurations'],
+    queryKey: ['"/api/ticket-metadata/field-configurations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/ticket-metadata/field-configurations');
+      const response = await apiRequest('GET', '"/api/ticket-metadata/field-configurations');
       const result = await response.json();
       return result.success ? result.data : [];
     }
@@ -196,11 +196,11 @@ function TicketAdvancedConfiguration() {
   // Mutations
   const createFieldMutation = useMutation({
     mutationFn: async (data: z.infer<typeof advancedFieldSchema>) => {
-      const response = await apiRequest('POST', '/api/ticket-metadata/field-configurations', data);
+      const response = await apiRequest('POST', '"/api/ticket-metadata/field-configurations', data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-metadata/field-configurations'] });
+      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-metadata/field-configurations'] });
       setIsDialogOpen(false);
       fieldForm.reset();
       toast({ title: "Campo criado com sucesso" });
@@ -209,11 +209,11 @@ function TicketAdvancedConfiguration() {
 
   const updateFieldMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof advancedFieldSchema> }) => {
-      const response = await apiRequest('PUT', `/api/ticket-metadata/field-configurations/${id}`, data);
+      const response = await apiRequest('PUT', "/api/ticket-metadata/field-configurations/" + id, data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-metadata/field-configurations'] });
+      queryClient.invalidateQueries({ queryKey: ['"/api/ticket-metadata/field-configurations'] });
       setIsDialogOpen(false);
       setEditingItem(null);
       toast({ title: "Campo atualizado com sucesso" });
@@ -222,7 +222,7 @@ function TicketAdvancedConfiguration() {
 
   const createOptionMutation = useMutation({
     mutationFn: async ({ fieldId, data }: { fieldId: string; data: z.infer<typeof fieldOptionSchema> }) => {
-      const response = await apiRequest('POST', `/api/ticket-metadata/field-options/${fieldId}`, data);
+      const response = await apiRequest('POST', `/api/ticket-metadata/field-options/${fieldId", data);
       return response.json();
     },
     onSuccess: () => {

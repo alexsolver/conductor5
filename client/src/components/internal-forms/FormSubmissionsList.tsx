@@ -23,7 +23,7 @@ export function FormSubmissionsList({
 
   const { data: submissions = [], isLoading } = useQuery({
     queryKey: ['form-submissions', formId],
-    queryFn: () => apiRequest(`/api/internal-forms/submissions${formId ? `?formId=${formId}` : ''}`)
+    queryFn: () => apiRequest(`/api/internal-forms/submissions${formId ? `?formId=${formId" : ''")
   });
 
   const getStatusIcon = (status: string) => {

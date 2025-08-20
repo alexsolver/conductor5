@@ -88,7 +88,7 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
   }
 
   return (
-    <div className={`border rounded-md ${disabled ? 'bg-gray-50' : 'bg-white'}`}>
+    <div className="border rounded-md "`}>
       {!disabled && (
         <div className="flex flex-wrap gap-1 p-2 border-b bg-gray-50">
           <Button
@@ -503,7 +503,7 @@ const TicketsTable = React.memo(() => {
       if (priorityFilter !== 'all') params.append('priority', priorityFilter);
       if (searchTerm) params.append('search', searchTerm);
 
-      const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
+      const response = await apiRequest('GET', `/api/tickets?${params.toString()");
       if (!response.ok) throw new Error('Failed to fetch tickets');
       return response.json();
     },
@@ -630,7 +630,7 @@ const TicketsTable = React.memo(() => {
     // Se não está expandido, expande e busca relacionamentos se necessário
     if (!ticketRelationships[ticketId]) {
       try {
-        console.log(`🔄 [RELATIONSHIP-FETCH] Fetching relationships for ticket ${ticketId}`);
+        console.log(`🔄 [RELATIONSHIP-FETCH] Fetching relationships for ticket ${ticketId");
         const response = await apiRequest('GET', `/api/ticket-relationships/${ticketId}/relationships`);
         const data = await response.json();
 
@@ -648,7 +648,7 @@ const TicketsTable = React.memo(() => {
           relationships = Object.values(data.data).flat();
         }
 
-        console.log(`✅ [RELATIONSHIP-FETCH] Processed ${relationships.length} relationships for ticket ${ticketId}`);
+        console.log(`✅ [RELATIONSHIP-FETCH] Processed ${relationships.length} relationships for ticket ${ticketId");
 
         setTicketRelationships(prev => ({
           ...prev,
@@ -687,7 +687,7 @@ const TicketsTable = React.memo(() => {
       Promise.all(
         tickets.map(async (ticket: any) => {
           try {
-            console.log(`🔄 [RELATIONSHIP-INIT] Buscando relacionamentos para ticket ${ticket.id}`);
+            console.log(`🔄 [RELATIONSHIP-INIT] Buscando relacionamentos para ticket ${ticket.id");
             const response = await apiRequest("GET", `/api/ticket-relationships/${ticket.id}/relationships`);
             const data = await response.json();
 
@@ -767,8 +767,8 @@ const TicketsTable = React.memo(() => {
         case 'number':
           return (
             <TableCell className="font-mono text-sm overflow-hidden" style={cellStyle}>
-              <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline truncate block">
-                {(ticket as any).number || `#${ticket.id.slice(-8)}`}
+              <Link href={`/tickets/${ticket.id"} className="text-blue-600 hover:text-blue-800 hover:underline truncate block">
+                {(ticket as any).number || `#${ticket.id.slice(-8)"}
               </Link>
             </TableCell>
           );
@@ -791,10 +791,10 @@ const TicketsTable = React.memo(() => {
               return (ticket as any).customer_name;
             }
             if ((ticket as any).caller_first_name && (ticket as any).caller_last_name) {
-              return `${(ticket as any).caller_first_name} ${(ticket as any).caller_last_name}`.trim();
+              return `${(ticket as any).caller_first_name} ${(ticket as any).caller_last_name".trim();
             }
             if ((ticket as any).customer_first_name && (ticket as any).customer_last_name) {
-              return `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`.trim();
+              return `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name".trim();
             }
             // Fallbacks para objetos relacionados
             if (ticket.caller?.fullName) return ticket.caller.fullName;
@@ -880,7 +880,7 @@ const TicketsTable = React.memo(() => {
 
           // Debug log para verificar se a cor está sendo encontrada
           if (process.env.NODE_ENV === 'development') {
-            console.log(`🔍 Category color lookup: ${rawCategoryValue} = ${categoryColor}`);
+            console.log(`🔍 Category color lookup: ${rawCategoryValue} = ${categoryColor");
           }
 
           const categoryLabel = getFieldLabel('category', rawCategoryValue) ||
@@ -980,7 +980,7 @@ const TicketsTable = React.memo(() => {
             <TableCell className="overflow-hidden" style={cellStyle}>
               {ticket.assignedTo ? (
                 <div>
-                  <div className="font-medium truncate" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`}>
+                  <div className="font-medium truncate" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName"}>
                     {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
                   </div>
                   <div className="text-sm text-gray-500 truncate" title={ticket.assignedTo.email}>
@@ -1161,7 +1161,7 @@ const TicketsTable = React.memo(() => {
 
   // Função de renderização otimizada
   const renderCell = useCallback((column: any, ticket: Ticket, key?: string) => (
-    <TableCellComponent key={key || `${ticket.id}-${column.id}`} column={column} ticket={ticket} />
+    <TableCellComponent key={key || `${ticket.id}-${column.id"} column={column} ticket={ticket} />
   ), []);
 
   // Otimizar comparação do TableCellComponent com comparação personalizada
@@ -1210,7 +1210,7 @@ const TicketsTable = React.memo(() => {
 
   const updateViewMutation = useMutation({
     mutationFn: async ({ id, viewData }: { id: string, viewData: any }) => {
-      return apiRequest('PUT', `/api/ticket-views/${id}`, viewData);
+      return apiRequest('PUT', `/api/ticket-views/${id", viewData);
     },
     onSuccess: () => {
       toast({
@@ -1231,7 +1231,7 @@ const TicketsTable = React.memo(() => {
 
   const deleteViewMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/ticket-views/${id}`);
+      return apiRequest('DELETE', `/api/ticket-views/${id");
     },
     onSuccess: () => {
       toast({
@@ -1375,8 +1375,8 @@ const TicketsTable = React.memo(() => {
         // Debounce para localStorage - 300ms
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
-          localStorage.setItem(`column-width-${columnId}`, newWidth.toString());
-          console.log(`✅ Resize completed for column: ${columnId}`);
+          localStorage.setItem(`column-width-${columnId", newWidth.toString());
+          console.log(`✅ Resize completed for column: ${columnId");
         }, 300);
       });
     };
@@ -1388,7 +1388,7 @@ const TicketsTable = React.memo(() => {
 
       // Salvar no localStorage apenas no final
       const finalWidth = getColumnWidth(columnId);
-      localStorage.setItem(`column-width-${columnId}`, finalWidth.toString());
+      localStorage.setItem(`column-width-${columnId", finalWidth.toString());
 
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -1582,7 +1582,7 @@ const TicketsTable = React.memo(() => {
 
   const handleEdit = (ticket: any) => {
     console.log('Edit ticket:', ticket.id);
-    navigate(`/tickets/${ticket.id}`);
+    navigate(`/tickets/${ticket.id");
   };
 
   const handleDelete = (ticketId: string) => {
@@ -2203,7 +2203,7 @@ const TicketsTable = React.memo(() => {
                   <div key={column.id} className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      id={`column-${column.id}`}
+                      id={`column-${column.id"}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       checked={selectedColumns.includes(column.id)}
                       onChange={() => {
@@ -2214,7 +2214,7 @@ const TicketsTable = React.memo(() => {
                         }
                       }}
                     />
-                    <label htmlFor={`column-${column.id}`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                    <label htmlFor={`column-${column.id"} className="text-sm font-medium text-gray-700 cursor-pointer">
                       {column.label}
                     </label>
                   </div>

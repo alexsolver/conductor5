@@ -52,7 +52,7 @@ export function ApprovalWorkflow({
   // Buscar histórico de aprovações para template específico
   const { data: approvalHistory } = useQuery({
     queryKey: ['/api/template-versions/approvals', templateId],
-    queryFn: () => apiRequest('GET', `/api/template-versions/approvals/${templateId}`),
+    queryFn: () => apiRequest('GET', `/api/template-versions/approvals/${templateId"),
     enabled: !!templateId
   });
 

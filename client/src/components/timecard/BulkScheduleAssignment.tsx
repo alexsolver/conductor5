@@ -304,13 +304,13 @@ export default function BulkScheduleAssignment() {
                   ) : (
                     availableUsers.map((user: any) => {
                       const hasConflict = usersWithConflicts.includes(user.id);
-                      const displayName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
+                      const displayName = `${user.first_name || ''} ${user.last_name || ''".trim() || user.email;
                       return (
                         <div
                           key={user.id}
                           className={`flex items-center space-x-2 p-2 rounded border ${
                             hasConflict ? 'border-orange-300 bg-orange-50' : 'border-gray-200'
-                          }`}
+                          "}
                         >
                           <Checkbox
                             id={user.id}

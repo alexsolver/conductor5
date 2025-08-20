@@ -119,12 +119,12 @@ export function Header() {
                     isWorking 
                       ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 shadow-lg shadow-yellow-400/50' 
                       : ''
-                  }`}
+                  "}
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage 
                       src={userProfile?.avatar || userProfile?.avatar_url || ""} 
-                      alt={`${userProfile?.firstName || user?.firstName} ${userProfile?.lastName || user?.lastName}`}
+                      alt={`${userProfile?.firstName || user?.firstName} ${userProfile?.lastName || user?.lastName"}
                     />
                     <AvatarFallback className="bg-purple-600 text-white text-sm font-semibold">
                       {(userProfile?.firstName || user?.firstName) ? 
@@ -144,7 +144,7 @@ export function Header() {
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
                       {(userProfile?.firstName || user?.firstName) ? 
-                        `${userProfile?.firstName || user?.firstName} ${userProfile?.lastName || user?.lastName || ''}`.trim() : 
+                        `${userProfile?.firstName || user?.firstName} ${userProfile?.lastName || user?.lastName || ''".trim() : 
                         userProfile?.email || user?.email
                       }
                     </p>

@@ -149,12 +149,12 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
     else if (ua.includes('android')) os = 'Android';
     else if (ua.includes('ios') || ua.includes('iphone') || ua.includes('ipad')) os = 'iOS';
     
-    return `${browser} em ${os}`;
+    return `${browser} em ${os";
   };
 
   const filteredSessions = sessionsData?.sessions?.filter(session => 
     session.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${session.user?.firstName || ''} ${session.user?.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${session.user?.firstName || ''} ${session.user?.lastName || ''".toLowerCase().includes(searchTerm.toLowerCase()) ||
     session.ipAddress?.includes(searchTerm) ||
     session.location?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -263,7 +263,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                         <div>
                           <div className="font-medium">
                             {session.user 
-                              ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim() || session.user.email
+                              ? `${session.user.firstName || ''} ${session.user.lastName || ''".trim() || session.user.email
                               : t("userManagement.unknownUser", "Usuário desconhecido")
                             }
                           </div>
@@ -298,7 +298,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                           new Date(session.lastActivity) > new Date(Date.now() - 5 * 60 * 1000)
                             ? 'text-green-500'
                             : 'text-gray-400'
-                        }`} />
+                        "} />
                         <span className="text-sm">
                           {formatDistanceToNow(new Date(session.lastActivity), { 
                             addSuffix: true, 

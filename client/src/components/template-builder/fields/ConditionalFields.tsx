@@ -142,7 +142,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
           <Input
             {...commonProps}
             type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : 'text'}
-            placeholder={field.placeholder || `Digite ${field.label.toLowerCase()}`}
+            placeholder={field.placeholder || `Digite ${field.label.toLowerCase()"}
           />
         )
 
@@ -190,7 +190,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
         return (
           <Input
             {...commonProps}
-            placeholder={field.placeholder || `Digite ${field.label.toLowerCase()}`}
+            placeholder={field.placeholder || `Digite ${field.label.toLowerCase()"}
           />
         )
     }
@@ -232,7 +232,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
 
       {field.conditionalLogic?.conditions?.length > 0 && (
         <div className="mt-2">
-          <Alert className={`text-xs ${conditionsMet ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
+          <Alert className="text-xs "`}>
             <AlertDescription className="flex items-center gap-2">
               {conditionsMet ? (
                 <>

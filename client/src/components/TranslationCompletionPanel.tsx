@@ -221,7 +221,7 @@ export function TranslationCompletionPanel() {
                   <span className={`font-medium ${
                     stats.completeness >= 90 ? 'text-green-600' : 
                     stats.completeness >= 70 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
+                  "}>
                     {stats.completeness.toFixed(1)}%
                   </span>
                 </div>

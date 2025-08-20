@@ -107,7 +107,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
   const { data: contractData, isLoading: isLoadingContract } = useQuery({
     queryKey: ['/api/contracts', contractId],
     queryFn: async () => {
-      const response = await fetch(`/api/contracts/${contractId}`);
+      const response = await fetch(`/api/contracts/${contractId");
       const data = await response.json();
       return data?.contract || data?.data || data;
     },
@@ -150,7 +150,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
   // ✅ 1QA.MD COMPLIANCE: UPDATE MUTATION
   const updateContractMutation = useMutation({
     mutationFn: async (data: EditContractFormData) => {
-      const response = await apiRequest(`/api/contracts/${contractId}`, {
+      const response = await apiRequest(`/api/contracts/${contractId", {
         method: 'PUT',
         body: JSON.stringify(data),
       });
@@ -182,7 +182,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild data-testid={`button-edit-contract-${contractId}`}>
+      <DialogTrigger asChild data-testid={`button-edit-contract-${contractId"}>
         {children || (
           <Button variant="outline" size="sm">
             <Edit className="h-4 w-4" />
