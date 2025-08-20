@@ -263,33 +263,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ✅ CRITICAL: Add basic data endpoints that frontend needs
-  app.get('/api/tickets', async (req, res) => {
-    try {
-      res.json({
-        success: true,
-        data: [],
-        total: 0,
-        message: 'No tickets found'
-      });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Failed to fetch tickets' });
-    }
-  });
-
-  app.get('/api/customers', async (req, res) => {
-    try {
-      res.json({
-        success: true,
-        data: [],
-        total: 0,
-        message: 'No customers found'
-      });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Failed to fetch customers' });
-    }
-  });
-
   app.get('/api/users', async (req, res) => {
     try {
       res.json({
@@ -397,6 +370,213 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Failed to fetch users' });
+    }
+  });
+
+  app.get('/api/knowledge-base/articles', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: [
+          { 
+            id: 1, 
+            title: 'Como criar um ticket', 
+            content: 'Guia completo para criação de tickets no sistema.',
+            category: 'Tutorial',
+            author: 'Admin',
+            createdAt: new Date().toISOString(),
+            isPublished: true
+          },
+          { 
+            id: 2, 
+            title: 'Configuração inicial', 
+            content: 'Passos para configurar seu ambiente de trabalho.',
+            category: 'Setup',
+            author: 'Admin',
+            createdAt: new Date().toISOString(),
+            isPublished: true
+          },
+          { 
+            id: 3, 
+            title: 'FAQ - Perguntas Frequentes', 
+            content: 'Respostas para as dúvidas mais comuns dos usuários.',
+            category: 'FAQ',
+            author: 'Support',
+            createdAt: new Date().toISOString(),
+            isPublished: true
+          }
+        ],
+        total: 3,
+        message: 'Knowledge base articles loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch knowledge base articles' });
+    }
+  });
+
+  app.get('/api/tenants/:id', async (req, res) => {
+    try {
+      const tenantId = req.params.id;
+      res.json({
+        success: true,
+        data: {
+          id: tenantId,
+          name: 'Conductor Development Tenant',
+          domain: 'dev.conductor.com',
+          settings: {
+            theme: 'default',
+            language: 'pt-BR',
+            timeZone: 'America/Sao_Paulo'
+          },
+          isActive: true,
+          createdAt: new Date().toISOString()
+        },
+        message: 'Tenant data loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch tenant data' });
+    }
+  });
+
+  app.get('/api/user/profile', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: {
+          id: 'dev-user-123',
+          email: 'admin@test.com',
+          firstName: 'Test',
+          lastName: 'User',
+          role: 'admin',
+          department: 'IT',
+          phone: '+55 11 99999-9999',
+          preferences: {
+            language: 'pt-BR',
+            theme: 'light',
+            notifications: {
+              email: true,
+              inApp: true,
+              sms: false
+            }
+          },
+          lastLogin: new Date().toISOString()
+        },
+        message: 'Profile loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    }
+  });
+
+  app.get('/api/timecard/current-status', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: {
+          status: 'clocked_out',
+          todayHours: '8h 30m',
+          weeklyHours: '42h 15m',
+          lastAction: {
+            type: 'clock_out',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+          },
+          isPaused: false
+        },
+        message: 'Timecard status loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch timecard status' });
+    }
+  });
+
+  app.get('/api/tickets', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: [
+          {
+            id: 1,
+            title: 'Sistema lento para carregar',
+            description: 'O sistema está demorando muito para carregar as páginas',
+            status: 'open',
+            priority: 'high',
+            category: 'software',
+            assignedTo: 'John Doe',
+            customer: 'Cliente A',
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: 2,
+            title: 'Erro de conexão com banco',
+            description: 'Intermitência na conexão com o banco de dados',
+            status: 'in_progress',
+            priority: 'critical',
+            category: 'hardware',
+            assignedTo: 'Jane Smith',
+            customer: 'Cliente B',
+            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: 3,
+            title: 'Solicitação de novo usuário',
+            description: 'Criar acesso para novo funcionário',
+            status: 'new',
+            priority: 'medium',
+            category: 'access',
+            assignedTo: null,
+            customer: 'Cliente C',
+            createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ],
+        total: 3,
+        message: 'Tickets loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch tickets' });
+    }
+  });
+
+  app.get('/api/customers', async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        data: [
+          {
+            id: 1,
+            name: 'Cliente A',
+            email: 'cliente.a@exemplo.com',
+            phone: '+55 11 88888-8888',
+            company: 'Empresa A Ltda',
+            status: 'active',
+            createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 2,
+            name: 'Cliente B',
+            email: 'cliente.b@exemplo.com',
+            phone: '+55 11 77777-7777',
+            company: 'Empresa B S.A.',
+            status: 'active',
+            createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 3,
+            name: 'Cliente C',
+            email: 'cliente.c@exemplo.com',
+            phone: '+55 11 66666-6666',
+            company: 'Empresa C ME',
+            status: 'inactive',
+            createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ],
+        total: 3,
+        message: 'Customers loaded'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch customers' });
     }
   });
 
