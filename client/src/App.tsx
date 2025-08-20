@@ -14,7 +14,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import TicketsTable from "./pages/TicketsTable";
-import TicketDetails from "./pages/TicketDetails";
+import TicketDetail from "./pages/TicketDetail";
 // CustomersTable removed - unified with Clientes.tsx
 import Beneficiaries from "./pages/Beneficiaries";
 // Locations import moved below to avoid duplication
@@ -148,7 +148,7 @@ function AppRouter() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
-        <Route path="/tickets/:id" component={TicketDetails} />
+        <Route path="/tickets/:id" component={TicketDetail} />
         <Route path="/customers" component={Customers} />
         <Route path="/tenant-admin/solicitantes" component={Customers} />
         <Route path="/tenant-admin/beneficiaries" component={Beneficiaries} />
