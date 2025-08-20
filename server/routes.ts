@@ -1533,6 +1533,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const translationsRoutes = await import('./routes/translations');
   app.use('/api/translations-legacy', translationsRoutes.default);
   
+  // Public translation languages endpoint - NO AUTH (must be before protected routes)
+  app.get('/api/public/translations/languages', (req, res) => {
+    res.json({
+      success: true,
+      data: [
+        { code: 'en', name: 'English', nativeName: 'English' },
+        { code: 'pt-BR', name: 'Portuguese (Brazil)', nativeName: 'Português (Brasil)' },
+        { code: 'es', name: 'Spanish', nativeName: 'Español' }
+      ]
+    });
+  });
+
   // Translation Management Module - Clean Architecture
   try {
     const translationModuleRoutes = await import('./modules/translations/routes');

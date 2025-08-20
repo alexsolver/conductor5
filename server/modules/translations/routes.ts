@@ -42,10 +42,10 @@ const controller = createTranslationController();
 
 /**
  * GET /api/translations/languages
- * Get supported languages (public endpoint - NO AUTH REQUIRED)
+ * Get supported languages (public endpoint - NO AUTH)
  */
 router.get('/languages', (req: any, res: any) => {
-  // Endpoint público para idiomas - sem autenticação
+  // Bypass middleware completely - return static data
   res.json({
     success: true,
     data: [

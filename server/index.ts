@@ -182,6 +182,18 @@ app.use(express.json({ limit: '10mb' })); // Increased limit for stability
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
 
+// PUBLIC ROUTES - NO AUTH (must be before auth middleware)
+app.get('/api/public/translations/languages', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { code: 'en', name: 'English', nativeName: 'English' },
+      { code: 'pt-BR', name: 'Portuguese (Brazil)', nativeName: 'Português (Brasil)' },
+      { code: 'es', name: 'Spanish', nativeName: 'Español' }
+    ]
+  });
+});
+
 // CRITICAL: Schema validation and tenant isolation middleware
 app.use(databaseSchemaInterceptor());
 app.use(databaseQueryMonitor());

@@ -109,11 +109,11 @@ export default function TranslationManagement() {
     isGlobal: true
   });
 
-  // Fetch supported languages
+  // Fetch supported languages (public endpoint)
   const { data: languagesData } = useQuery({
     queryKey: ['translation-languages'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/translations/languages');
+      const response = await fetch('/api/public/translations/languages');
       if (!response.ok) throw new Error('Failed to fetch languages');
       return response.json();
     }
