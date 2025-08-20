@@ -1,0 +1,20 @@
+{
+  "common": {
+    "selectOption": "Selecionar opção",
+    "noOptions": "Nenhuma opção",
+    "search": "Buscar...",
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "open": "Abrir",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
+  },
+  "navigation": {
+    "previous": "Anterior",
+    "next": "Próximo"
+  }
+}

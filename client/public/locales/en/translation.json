@@ -1,0 +1,39 @@
+{
+  "common": {
+    "selectOption": "Select option",
+    "noOptions": "No options",
+    "search": "Search...",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "open": "Open",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "navigation": {
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "components": {
+    "userSelect": {
+      "placeholder": "Select user...",
+      "noResults": "No users found",
+      "searchPlaceholder": "Search users..."
+    },
+    "button": {
+      "loading": "Loading...",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "close": "Close"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "dashboard": "Dashboard"
+    }
+  }
+}

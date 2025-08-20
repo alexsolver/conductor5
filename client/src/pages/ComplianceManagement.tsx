@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Shield, 
   FileSearch, 
   Award, 
@@ -106,6 +107,8 @@ interface ComplianceStats {
 }
 
 export default function ComplianceManagement() {
+  const { t } = useLocalization();
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -349,7 +352,7 @@ export default function ComplianceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAuditMutation.isPending}>
-                    {createAuditMutation.isPending ? 'Criando...' : 'Criar Auditoria'}
+                    {createAuditMutation.isPending ? 'Criando...' : {t('ComplianceManagement.criarAuditoria')}}
                   </Button>
                 </div>
               </form>
@@ -419,7 +422,7 @@ export default function ComplianceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createCertificationMutation.isPending}>
-                    {createCertificationMutation.isPending ? 'Criando...' : 'Criar Certificação'}
+                    {createCertificationMutation.isPending ? 'Criando...' : {t('ComplianceManagement.criarCertificacao')}}
                   </Button>
                 </div>
               </form>
