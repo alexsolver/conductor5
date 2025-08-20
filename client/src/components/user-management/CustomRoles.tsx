@@ -80,8 +80,8 @@ const PERMISSION_CATEGORIES = {
   'hr_team': 'Recursos Humanos e Equipe',
   'timecard': 'Timecard e Ponto',
   // 'projects': Completely removed - module eliminated from system
-  'analytics': {t('user-management.analyticsERelatorios')},
-  'settings': {t('user-management.configuracoesEPersonalizacao')},
+  'analytics': 'Analytics e Relatórios',
+  'settings': 'Configurações e Personalização',
   'multilocation': 'Localização e Multilocation',
   'compliance': 'Compliance e Segurança'
 };

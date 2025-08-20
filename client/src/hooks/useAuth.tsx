@@ -45,9 +45,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({
+export function AuthProvider({ children }: { children: ReactNode }) {
   const { t } = useLocalization();
- children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const { data: user, error, isLoading } = useQuery({
@@ -179,7 +178,7 @@ export function AuthProvider({
       console.log('✅ [LOGIN-SUCCESS] Login completed successfully');
       
       toast({
-        title: {t('common.loginSuccessful')},
+        title: t('common.loginSuccessful'),
         description: `Welcome back, ${result.user.firstName || result.user.email}!`,
       });
     },
@@ -216,12 +215,12 @@ export function AuthProvider({
 
       if (result.tenant) {
         toast({
-          title: {t('common.workspaceCriadoComSucesso')},
+          title: t('common.workspaceCriadoComSucesso'),
           description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
         });
       } else {
         toast({
-          title: {t('common.registroRealizadoComSucesso')},
+          title: t('common.registroRealizadoComSucesso'),
           description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email}!`,
         });
       }

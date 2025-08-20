@@ -60,8 +60,7 @@ interface MirrorRecord {
 }
 
 // Função para transformar dados do frontend para backend
-const transformTimecardData = (frontendData: any) => {
-  const { t } = useLocalization();
+const transformTimecardData = (frontendData: any, t: (key: string) => string) => {
 
   const now = new Date().toISOString();
   const payload: any = {
@@ -88,7 +87,7 @@ const transformTimecardData = (frontendData: any) => {
     try {
       payload.location = JSON.stringify(frontendData.location);
     } catch (e) {
-      console.warn({t('Timecard.errorSerializingLocationData')}, e);
+      console.warn(t('Timecard.errorSerializingLocationData'), e);
       payload.location = null;
     }
   }
@@ -108,6 +107,7 @@ export default function Timecard() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLocalization();
 
   // Query para obter dados do usuário
   const { data: userInfo } = useQuery({
@@ -186,7 +186,7 @@ export default function Timecard() {
         },
         (error) => {
           setLocationError('Não foi possível obter a localização');
-          console.warn({t('Timecard.erroAoObterLocalizacao')}, error);
+          console.warn(t('Timecard.erroAoObterLocalizacao'), error);
         }
       );
     }
@@ -197,7 +197,7 @@ export default function Timecard() {
     mutationFn: async (data: { recordType: string; deviceType: string; location?: any; notes?: string }) => {
       try {
         // Transformar dados do frontend para formato backend
-        const transformedData = transformTimecardData(data);
+        const transformedData = transformTimecardData(data, t);
         console.log('[TIMECARD-DEBUG] Sending data:', transformedData);
         
         const response = await apiRequest('POST', '/api/timecard/timecard-entries', transformedData);
@@ -223,7 +223,7 @@ export default function Timecard() {
     onSuccess: (result: any) => {
       console.log('Registro de ponto bem-sucedido:', result);
       toast({
-        title: {t('Timecard.pontoRegistradoComSucesso')},
+        title: t('Timecard.pontoRegistradoComSucesso'),
         description: 'Seu registro foi salvo e processado.',
       });
       // Invalidar cache e forçar nova busca para atualizar status
@@ -231,15 +231,15 @@ export default function Timecard() {
       queryClient.refetchQueries({ queryKey: ['/api/timecard/current-status'] });
     },
     onError: (error: any) => {
-      console.error({t('Timecard.erroAoRegistrarPonto')}, error);
+      console.error(t('Timecard.erroAoRegistrarPonto'), error);
       
-      let errorTitle = {t('Timecard.erroAoRegistrarPonto')};
+      let errorTitle = t('Timecard.erroAoRegistrarPonto');
       let errorMessage = 'Tente novamente em alguns instantes.';
       
       // Extract specific error messages
       if (error?.message) {
         if (error.message.includes('UNAUTHORIZED')) {
-          errorTitle = {t('Timecard.erroDeAutenticacao')};
+          errorTitle = t('Timecard.erroDeAutenticacao');
           errorMessage = 'Faça login novamente para continuar.';
         } else if (error.message.includes('VALIDATION_ERROR')) {
           errorTitle = 'Dados Inválidos';
@@ -311,7 +311,7 @@ export default function Timecard() {
     try {
       return format(new Date(dateString), 'HH:mm', { locale: ptBR });
     } catch (error) {
-      console.warn({t('Timecard.errorFormattingTime')}, dateString, error);
+      console.warn(t('Timecard.errorFormattingTime'), dateString, error);
       return '--:--';
     }
   };
@@ -321,7 +321,7 @@ export default function Timecard() {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
     } catch (error) {
-      console.warn({t('Timecard.errorFormattingDate')}, dateString, error);
+      console.warn(t('Timecard.errorFormattingDate'), dateString, error);
       return '--/--/----';
     }
   };

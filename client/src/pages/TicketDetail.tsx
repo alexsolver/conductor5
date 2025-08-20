@@ -150,7 +150,7 @@ const TicketDetails = React.memo(() => {
 
   // Basic information - consolidated into single tab
   const basicTabs = [
-    { id: "basico", label: {t('TicketDetail.informacoes')}, icon: FileText },
+    { id: "basico", label: t('TicketDetail.informacoes'), icon: FileText },
   ];
 
   // Fetch ticket attachments - moved here to avoid initialization error
@@ -253,7 +253,7 @@ const TicketDetails = React.memo(() => {
           setSelectedCompanyCustomers([]);
         }
       } catch (error) {
-        console.error({t('TicketDetail.errorFetchingCustomers')}, error);
+        console.error(t('TicketDetail.errorFetchingCustomers'), error);
         setSelectedCompanyCustomers([]);
       }
     };
@@ -294,7 +294,7 @@ const TicketDetails = React.memo(() => {
           setSelectedCompanyCustomers([]);
         }
       } catch (error) {
-        console.error({t('TicketDetail.errorFetchingCustomers')}, error);
+        console.error(t('TicketDetail.errorFetchingCustomers'), error);
         setSelectedCompanyCustomers([]);
       }
     } else {
@@ -651,7 +651,7 @@ const TicketDetails = React.memo(() => {
     { id: "history", label: "Histórico", icon: History },
     { 
       id: "internal-actions", 
-      label: getTabLabel({t('TicketDetail.acoesInternas')}, internalActionsData?.length), 
+      label: getTabLabel(t('TicketDetail.acoesInternas'), internalActionsData?.length), 
       icon: Settings 
     },
     { 

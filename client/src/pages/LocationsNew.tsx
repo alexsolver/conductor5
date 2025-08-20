@@ -28,11 +28,10 @@ import {
 } from "../../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Record type definitions
 const RECORD_TYPES = {
-  // const { t } = useTranslation();
-
   local: {
     label: "Local",
     icon: MapPin,
@@ -80,6 +79,7 @@ const RECORD_TYPES = {
 // Main component
 function LocationsNewContent() {
   const { toast } = useToast();
+  const { t } = useLocalization();
   const [activeRecordType, setActiveRecordType] = useState<string>("local");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -258,7 +258,7 @@ function LocationsNewContent() {
     },
     onSuccess: () => {
       toast({
-        title: {t('LocationsNew.sucesso')},
+        title: t('LocationsNew.sucesso'),
         description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} criado com sucesso!`
       });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
@@ -1616,7 +1616,6 @@ function LocationsNewContent() {
                                   <SelectItem value="raio">Raio</SelectItem>
                                   <SelectItem value="linha">Linha</SelectItem>
                                   <SelectItem value="importar">Importar Área</SelectItem>
-import { useLocalization } from '@/hooks/useLocalization';
                                 </SelectContent>
                               </Select>
                               <FormMessage />

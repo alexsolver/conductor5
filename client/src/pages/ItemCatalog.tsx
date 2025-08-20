@@ -436,7 +436,7 @@ export default function ItemCatalog() {
         console.log('🔗 Links carregados:', result);
         return result?.data || { customers: [], suppliers: [] };
       } catch (error) {
-        console.error({t('ItemCatalog.error')}, error);
+        console.error(t('ItemCatalog.error'), error);
         return { customers: [], suppliers: [] };
       }
     },

@@ -70,7 +70,7 @@ export default function TimecardAutonomous() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardAutonomous.erroNoRegistro')},
+        title: t('TimecardAutonomous.erroNoRegistro'),
         description: "Não foi possível registrar a atividade",
         variant: "destructive",
       });

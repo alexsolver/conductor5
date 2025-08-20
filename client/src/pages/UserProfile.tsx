@@ -48,8 +48,6 @@ import type { UploadResult } from "@uppy/core";
 import { useLocalization } from '@/hooks/useLocalization';
 
 const profileSchema = z.object({
-  const { t } = useLocalization();
-
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
@@ -80,6 +78,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 export default function UserProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLocalization();
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -176,7 +175,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
       toast({
-        title: {t('UserProfile.erroAoAtualizar')},
+        title: t('UserProfile.erroAoAtualizar'),
         description: "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
@@ -235,7 +234,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
       toast({
-        title: {t('UserProfile.erroAoAtualizarFoto')},
+        title: t('UserProfile.erroAoAtualizarFoto'),
         description: "Não foi possível atualizar sua foto de perfil.",
         variant: "destructive",
       });
@@ -271,7 +270,7 @@ export default function UserProfile() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('UserProfile.erroAoAlterarSenha')},
+        title: t('UserProfile.erroAoAlterarSenha'),
         description: error.message || "Não foi possível alterar a senha.",
         variant: "destructive",
       });
@@ -293,7 +292,7 @@ export default function UserProfile() {
     },
     onError: () => {
       toast({
-        title: {t('UserProfile.erroAoSalvar')},
+        title: t('UserProfile.erroAoSalvar'),
         description: "Não foi possível salvar as preferências.",
         variant: "destructive",
       });
@@ -311,7 +310,7 @@ export default function UserProfile() {
       };
     } catch (error) {
       toast({
-        title: {t('UserProfile.erroNoUpload')},
+        title: t('UserProfile.erroNoUpload'),
         description: "Não foi possível obter URL de upload.",
         variant: "destructive",
       });

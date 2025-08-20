@@ -110,7 +110,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     queryKey: ['/api/team-management/members', member?.id],
     queryFn: async () => {
       if (!member?.id) return null;
-      console.log({t('user-management.editmemberdialogFetchingCompleteMemberDetailsFor')}, member.id);
+      console.log(t('user-management.editmemberdialogFetchingCompleteMemberDetailsFor'), member.id);
       
       // Try multiple endpoints to get complete user data
       try {

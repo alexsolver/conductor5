@@ -36,8 +36,6 @@ import { useLocalization } from '@/hooks/useLocalization';
 
 // ✅ SCHEMA DINÂMICO para ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
-  const { t } = useLocalization();
-
   // Basic Fields
   description: z.string().min(1, "Descrição é obrigatória"),
   category: z.string().optional(),
@@ -208,6 +206,7 @@ interface Ticket {
 }
 
 const TicketsTable = React.memo(() => {
+  const { t } = useLocalization();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
@@ -1203,8 +1202,8 @@ const TicketsTable = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: {t('TicketsTable.erro')},
-        description: error.message || {t('TicketsTable.erroAoCriarVisualizacao')},
+        title: t('TicketsTable.erro'),
+        description: error.message || t('TicketsTable.erroAoCriarVisualizacao'),
         variant: "destructive"
       });
     }
@@ -1224,8 +1223,8 @@ const TicketsTable = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: {t('TicketsTable.erro')},
-        description: error.message || {t('TicketsTable.erroAoAtualizarVisualizacao')},
+        title: t('TicketsTable.erro'),
+        description: error.message || t('TicketsTable.erroAoAtualizarVisualizacao'),
         variant: "destructive"
       });
     }
@@ -1247,8 +1246,8 @@ const TicketsTable = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: {t('TicketsTable.erro')},
-        description: error.message || {t('TicketsTable.erroAoExcluirVisualizacao')},
+        title: t('TicketsTable.erro'),
+        description: error.message || t('TicketsTable.erroAoExcluirVisualizacao'),
         variant: "destructive"
       });
     }
@@ -1268,7 +1267,7 @@ const TicketsTable = React.memo(() => {
   const handleCreateView = () => {
     if (!newViewName.trim()) {
       toast({
-        title: {t('TicketsTable.erro')},
+        title: t('TicketsTable.erro'),
         description: "Nome da visualização é obrigatório",
         variant: "destructive",
       });
@@ -1412,7 +1411,7 @@ const TicketsTable = React.memo(() => {
   );
 
   // Debug logging
-  console.log({t('TicketsTable.ticketstableData')}, {
+  console.log(t('TicketsTable.ticketstableData'), {
     ticketsError,
     isLoading,
     ticketsCount: tickets.length,
@@ -1467,7 +1466,7 @@ const TicketsTable = React.memo(() => {
         if (!response.ok) {
           const errorData = await response.json();
           console.error('❌ API Error Response:', errorData);
-          throw new Error(errorData.message || {t('TicketsTable.erroAoCriarTicket')});
+          throw new Error(errorData.message || t('TicketsTable.erroAoCriarTicket'));
         }
 
         const result = await response.json();
@@ -1481,7 +1480,7 @@ const TicketsTable = React.memo(() => {
     onSuccess: (data) => {
       console.log("✅ Ticket criado com sucesso:", data);
       toast({
-        title: {t('TicketsTable.sucesso')},
+        title: t('TicketsTable.sucesso'),
         description: "Ticket criado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
@@ -1492,8 +1491,8 @@ const TicketsTable = React.memo(() => {
     onError: (error: Error) => {
       console.error("❌ Erro ao criar ticket:", error);
       toast({
-        title: {t('TicketsTable.erro')},
-        description: error.message || {t('TicketsTable.erroAoCriarTicket')},
+        title: t('TicketsTable.erro'),
+        description: error.message || t('TicketsTable.erroAoCriarTicket'),
         variant: "destructive",
       });
     },
@@ -1510,7 +1509,7 @@ const TicketsTable = React.memo(() => {
     if (!data.subject && !data.description) {
       console.error('❌ Subject or description is required');
       toast({
-        title: {t('TicketsTable.erroDeValidacao')},
+        title: t('TicketsTable.erroDeValidacao'),
         description: "Título ou descrição do ticket é obrigatório",
         variant: "destructive",
       });
@@ -1520,7 +1519,7 @@ const TicketsTable = React.memo(() => {
     if (!data.companyId) {
       console.error('❌ Company is required');
       toast({
-        title: {t('TicketsTable.erroDeValidacao')},
+        title: t('TicketsTable.erroDeValidacao'),
         description: "Empresa é obrigatória",
         variant: "destructive",
       });
@@ -1530,7 +1529,7 @@ const TicketsTable = React.memo(() => {
     if (!data.callerId) {
       console.error('❌ Customer is required');
       toast({
-        title: {t('TicketsTable.erroDeValidacao')},
+        title: t('TicketsTable.erroDeValidacao'),
         description: "Cliente é obrigatório",
         variant: "destructive",
       });
@@ -1583,14 +1582,14 @@ const TicketsTable = React.memo(() => {
   };
 
   const handleEdit = (ticket: any) => {
-    console.log({t('TicketsTable.editTicket')}, ticket.id);
+    console.log(t('TicketsTable.editTicket'), ticket.id);
     navigate(`/tickets/${ticket.id}`);
   };
 
   const handleDelete = (ticketId: string) => {
     if (confirm("Are you sure you want to delete this ticket?")) {
       // Redirect to the unified page where delete functionality is handled
-      console.log({t('TicketsTable.deleteTicket')}, ticketId);
+      console.log(t('TicketsTable.deleteTicket'), ticketId);
     }
   };
 
@@ -1627,7 +1626,7 @@ const TicketsTable = React.memo(() => {
                 : 'Por favor, preencha todos os campos obrigatórios';
 
               toast({
-                title: {t('TicketsTable.erroDeValidacao')},
+                title: t('TicketsTable.erroDeValidacao'),
                 description: errorText,
                 variant: "destructive",
               });
@@ -1989,7 +1988,7 @@ const TicketsTable = React.memo(() => {
           >
             {createTicketMutation.isPending
               ? "Creating..."
-              : {t('TicketsTable.createTicket')}
+              : t('TicketsTable.createTicket')
             }
           </Button>
         </div>
@@ -2436,6 +2435,6 @@ const TicketsTable = React.memo(() => {
   );
 });
 
-TicketsTable.displayName = {t('TicketsTable.ticketstable')};
+TicketsTable.displayName = 'TicketsTable';
 
 export default TicketsTable;

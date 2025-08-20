@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { useLocalization } from '@/hooks/useLocalization';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -239,6 +240,7 @@ export default function ActivityPlanner() {
   // Asset Creation Dialog
   function CreateAssetDialog({ onSuccess }: { onSuccess: () => void }) {
     const [open, setOpen] = useState(false);
+    const { t } = useLocalization();
     
     const form = useForm<AssetFormData>({
       resolver: zodResolver(assetSchema),
@@ -269,7 +271,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: {t('ActivityPlanner.erroAoCriarAtivo')}, 
+          title: t('ActivityPlanner.erroAoCriarAtivo'), 
           description: error.message,
           variant: "destructive" 
         });

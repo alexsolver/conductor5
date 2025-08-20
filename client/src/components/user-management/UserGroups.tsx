@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useLocalization } from "@/hooks/useLocalization";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,7 @@ interface UserGroupsProps {
 
 export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const { t } = useTranslation();
+  const { t: tLocal } = useLocalization();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -150,7 +152,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       toast({
-        title: {t('user-management.erroAoCriarGrupo')},
+        title: t('user-management.erroAoCriarGrupo'),
         description: error?.message || "Falha ao criar grupo",
         variant: "destructive",
       });
@@ -176,7 +178,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       toast({
-        title: {t('user-management.erroAoAtualizarGrupo')},
+        title: tLocal('user-management.erroAoAtualizarGrupo'),
         description: error?.message || "Falha ao atualizar grupo",
         variant: "destructive",
       });
@@ -197,7 +199,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       toast({
-        title: {t('user-management.erroAoExcluirGrupo')},
+        title: tLocal('user-management.erroAoExcluirGrupo'),
         description: error?.message || "Falha ao excluir grupo",
         variant: "destructive",
       });
@@ -229,10 +231,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
     onError: (error: any) => {
-      console.error({t('user-management.errorAddingUserToGroup')}, error);
-      const errorMessage = error?.message || error?.response?.data?.message || {t('user-management.erroAoAdicionarUsuarioAoGrupo')};
+      console.error(tLocal('user-management.errorAddingUserToGroup'), error);
+      const errorMessage = error?.message || error?.response?.data?.message || tLocal('user-management.erroAoAdicionarUsuarioAoGrupo');
       toast({
-        title: {t('user-management.erroAoAdicionarUsuario')},
+        title: tLocal('user-management.erroAoAdicionarUsuario'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -264,10 +266,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
     onError: (error: any) => {
-      console.error({t('user-management.errorRemovingUserFromGroup')}, error);
-      const errorMessage = error?.message || error?.response?.data?.message || {t('user-management.erroAoRemoverUsuarioDoGrupo')};
+      console.error(tLocal('user-management.errorRemovingUserFromGroup'), error);
+      const errorMessage = error?.message || error?.response?.data?.message || tLocal('user-management.erroAoRemoverUsuarioDoGrupo');
       toast({
-        title: {t('user-management.erroAoRemoverUsuario')},
+        title: tLocal('user-management.erroAoRemoverUsuario'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -283,10 +285,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         await addUserToGroupMutation.mutateAsync({ groupId, userId });
       }
     } catch (error: any) {
-      console.error({t('user-management.errorTogglingUserInGroup')}, error);
-      const errorMessage = error?.message || error?.response?.data?.message || {t('user-management.erroAoAlterarUsuarioNoGrupo')};
+      console.error(tLocal('user-management.errorTogglingUserInGroup'), error);
+      const errorMessage = error?.message || error?.response?.data?.message || tLocal('user-management.erroAoAlterarUsuarioNoGrupo');
       toast({
-        title: {t('user-management.erroNaOperacao')},
+        title: tLocal('user-management.erroNaOperacao'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -379,9 +381,9 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         setSelectedUsers(prev => [...prev, userId]);
       }
       
-      const errorMessage = error?.message || {t('user-management.erroNaOperacao')};
+      const errorMessage = error?.message || tLocal('user-management.erroNaOperacao');
       toast({
-        title: {t('user-management.erroNaOperacao')},
+        title: tLocal('user-management.erroNaOperacao'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -422,10 +424,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
       refetchGroups();
     } catch (error: any) {
-      console.error({t('user-management.errorUpdatingGroupMemberships')}, error);
-      const errorMessage = error?.message || error?.response?.data?.message || {t('user-management.erroAoAtualizarMembrosDoGrupo')};
+      console.error(tLocal('user-management.errorUpdatingGroupMemberships'), error);
+      const errorMessage = error?.message || error?.response?.data?.message || tLocal('user-management.erroAoAtualizarMembrosDoGrupo');
       toast({
-        title: {t('user-management.erro')},
+        title: tLocal('user-management.erro'),
         description: errorMessage,
         variant: "destructive",
       });

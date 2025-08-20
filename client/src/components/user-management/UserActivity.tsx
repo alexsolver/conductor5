@@ -128,7 +128,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
       'group': 'Grupo',
       'role': 'Papel',
       'permission': 'Permissão',
-      'settings': {t('user-management.configuracoes')},
+      'settings': t('user-management.configuracoes'),
     };
     return resourceNames[resource] || resource;
   };

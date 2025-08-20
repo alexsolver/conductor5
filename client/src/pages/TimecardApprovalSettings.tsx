@@ -112,7 +112,7 @@ export default function TimecardApprovalSettings() {
             counts[group.id] = 0;
           }
         } catch (error) {
-          console.error({t('TimecardApprovalSettings.errorFetchingMemberCountForGroup')}, group.id, error);
+          console.error(t('TimecardApprovalSettings.errorFetchingMemberCountForGroup'), group.id, error);
           counts[group.id] = 0;
         }
       }
@@ -141,7 +141,7 @@ export default function TimecardApprovalSettings() {
     },
     onSuccess: () => {
       toast({
-        title: {t('TimecardApprovalSettings.configuracoesSalvas')},
+        title: t('TimecardApprovalSettings.configuracoesSalvas'),
         description: "As configurações de aprovação foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/settings'] });
@@ -152,7 +152,7 @@ export default function TimecardApprovalSettings() {
         description: "Falha ao salvar as configurações.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorUpdatingSettings')}, error);
+      console.error(t('TimecardApprovalSettings.errorUpdatingSettings'), error);
     },
   });
 
@@ -177,7 +177,7 @@ export default function TimecardApprovalSettings() {
         description: "Falha ao criar o grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorCreatingGroup')}, error);
+      console.error(t('TimecardApprovalSettings.errorCreatingGroup'), error);
     },
   });
 
@@ -203,7 +203,7 @@ export default function TimecardApprovalSettings() {
         description: "Falha ao atualizar o grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorUpdatingGroup')}, error);
+      console.error(t('TimecardApprovalSettings.errorUpdatingGroup'), error);
     },
   });
 
@@ -231,7 +231,7 @@ export default function TimecardApprovalSettings() {
         description: "Falha ao atualizar membros do grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorUpdatingMembers')}, error);
+      console.error(t('TimecardApprovalSettings.errorUpdatingMembers'), error);
     },
   });
 
@@ -253,7 +253,7 @@ export default function TimecardApprovalSettings() {
         description: "Falha ao remover o grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorDeletingGroup')}, error);
+      console.error(t('TimecardApprovalSettings.errorDeletingGroup'), error);
     },
   });
 

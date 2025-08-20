@@ -22,8 +22,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { 
 import { useLocalization } from '@/hooks/useLocalization';
+import { 
   Languages, 
   Save, 
   RotateCcw, 
@@ -38,8 +38,6 @@ import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
-  const { t } = useLocalization();
-
   translations: z.record(z.any())
 });
 
@@ -61,6 +59,7 @@ export default function TranslationManager() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLocalization();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -131,7 +130,7 @@ export default function TranslationManager() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TranslationManager.erroAoSalvarTraducoes')},
+        title: t('TranslationManager.erroAoSalvarTraducoes'),
         description: error.message,
         variant: "destructive",
       });
@@ -153,7 +152,7 @@ export default function TranslationManager() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TranslationManager.erroAoRestaurarBackup')},
+        title: t('TranslationManager.erroAoRestaurarBackup'),
         description: error.message,
         variant: "destructive",
       });
@@ -216,7 +215,7 @@ export default function TranslationManager() {
             disabled={saveTranslationMutation.isPending}
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveTranslationMutation.isPending ? "Salvando..." : {t('TranslationManager.salvarAlteracoes')}}
+            {saveTranslationMutation.isPending ? "Salvando..." : t('TranslationManager.salvarAlteracoes')}
           </Button>
         </div>
       </div>
@@ -335,7 +334,7 @@ export default function TranslationManager() {
 
                     {filteredKeys.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        {searchTerm ? {t('TranslationManager.nenhumaChaveEncontradaParaABusca')} : {t('TranslationManager.nenhumaTraducaoEncontrada')}}
+                        {searchTerm ? t('TranslationManager.nenhumaChaveEncontradaParaABusca') : t('TranslationManager.nenhumaTraducaoEncontrada')}
                       </div>
                     )}
                   </form>

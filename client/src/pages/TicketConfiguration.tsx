@@ -33,11 +33,10 @@ import {
   ChevronDown,
   ChevronRight
 } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Schemas de validação
 const companySchema = z.object({
-  // const { t } = useTranslation();
-
   id: z.string(),
   name: z.string(),
   active: z.boolean().default(true)
@@ -168,6 +167,7 @@ interface NumberingConfig {
 const TicketConfiguration: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLocalization();
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [activeTab, setActiveTab] = useState('hierarchy');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -303,7 +303,6 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany,
     staleTime: 0,
-    cacheTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchInterval: false,
@@ -490,14 +489,14 @@ const TicketConfiguration: React.FC = () => {
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ 
-        title: {t('TicketConfiguration.opcaoAtualizadaComSucesso')},
+        title: t('TicketConfiguration.opcaoAtualizadaComSucesso'),
         description: "A opção foi atualizada no sistema."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option:', error);
       toast({ 
-        title: {t('TicketConfiguration.erroAoAtualizarOpcao')},
+        title: t('TicketConfiguration.erroAoAtualizarOpcao'),
         description: "Não foi possível atualizar a opção.",
         variant: "destructive"
       });
@@ -519,7 +518,7 @@ const TicketConfiguration: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
       
       toast({ 
-        title: {t('TicketConfiguration.statusAtualizadoComSucesso')},
+        title: t('TicketConfiguration.statusAtualizadoComSucesso'),
         description: "A opção foi ativada/desativada."
       });
     },

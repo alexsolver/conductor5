@@ -23,6 +23,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocalization } from '@/hooks/useLocalization';
 import { 
   ArrowLeft,
   Settings2, 
@@ -48,8 +49,6 @@ import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema para configurações avançadas
 const advancedFieldSchema = z.object({
-  // const { t } = useTranslation();
-
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
   displayLabel: z.string().min(1, "Rótulo é obrigatório"),
   fieldType: z.enum(['text', 'textarea', 'select', 'multiselect', 'date', 'datetime', 'number', 'boolean', 'email', 'phone']),
@@ -120,6 +119,7 @@ interface SLAConfiguration {
 function TicketAdvancedConfiguration() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLocalization();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("field-management");
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -612,7 +612,7 @@ function TicketAdvancedConfiguration() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'field' && (editingItem.id ? {t('TicketAdvancedConfiguration.editarCampo')} : 'Novo Campo')}
+              {editingItem?.type === 'field' && (editingItem.id ? t('TicketAdvancedConfiguration.editarCampo') : 'Novo Campo')}
               {editingItem?.type === 'option' && 'Nova Opção'}
               {editingItem?.type === 'sla' && 'Configurar SLA'}
             </DialogTitle>

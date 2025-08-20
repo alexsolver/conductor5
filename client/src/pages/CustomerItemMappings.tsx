@@ -232,7 +232,7 @@ export function CustomerItemMappings() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingMapping ? {t('CustomerItemMappings.editar')} : "Novo"}
+                  {editingMapping ? t('CustomerItemMappings.editar') : "Novo"}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">

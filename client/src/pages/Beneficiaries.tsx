@@ -755,7 +755,7 @@ export default function Beneficiaries() {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingBeneficiary ? {t('Beneficiaries.editar')} : "Novo"} Favorecido
+                {editingBeneficiary ? t('Beneficiaries.editar') : "Novo"} Favorecido
               </DialogTitle>
               <DialogDescription>
                 {editingBeneficiary

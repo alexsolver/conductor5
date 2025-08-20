@@ -1121,7 +1121,7 @@ export function StockManagement() {
             <EditItemForm 
               item={selectedItem}
               onSubmit={(data) => {
-                console.log({t('StockManagement.editandoItem')}, data);
+                console.log(t('StockManagement.editandoItem'), data);
                 toast({ title: "Item atualizado com sucesso!" });
                 setIsEditItemOpen(false);
               }}

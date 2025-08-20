@@ -203,7 +203,7 @@ export default function TimecardReports() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/users');
       if (!response.ok) {
-        throw new Error({t('TimecardReports.erroResponsestatusResponsestatustext')});
+        throw new Error(t('TimecardReports.erroResponsestatusResponsestatustext'));
       }
       return response.json();
     }

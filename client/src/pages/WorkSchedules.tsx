@@ -86,13 +86,13 @@ const weekDays = [
 
 // Component for configuring weekly schedules
 function WeeklyScheduleForm({
-  const { t } = useLocalization();
  weeklySchedule, workDays, onWeeklyScheduleChange, onWorkDaysChange }: {
   weeklySchedule: WeeklySchedule;
   workDays: number[];
   onWeeklyScheduleChange: (schedule: WeeklySchedule) => void;
   onWorkDaysChange: (days: number[]) => void;
 }) {
+  const { t } = useLocalization();
   const handleDayChange = (dayValue: number, field: keyof DaySchedule, value: string) => {
     const newWeeklySchedule = {
       ...weeklySchedule,
@@ -200,6 +200,7 @@ import { WorkScheduleErrorBoundary } from '@/components/WorkScheduleErrorBoundar
 import { useLocalization } from '@/hooks/useLocalization';
 
 function WorkSchedulesContent() {
+  const { t } = useLocalization();
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
@@ -308,7 +309,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-CREATE-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroAoCriarEscala')},
+        title: t('WorkSchedules.erroAoCriarEscala'),
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -335,7 +336,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-UPDATE-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroAoAtualizarEscala')},
+        title: t('WorkSchedules.erroAoAtualizarEscala'),
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -356,7 +357,7 @@ function WorkSchedulesContent() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('WorkSchedules.erroAoExcluirEscala')},
+        title: t('WorkSchedules.erroAoExcluirEscala'),
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
