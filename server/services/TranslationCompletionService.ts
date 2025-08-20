@@ -324,7 +324,52 @@ export class TranslationCompletionService {
       }
     }
 
-    return this.deduplicateAndPrioritize(keys);
+    // Filter out invalid keys before processing
+    const validKeys = keys.filter(key => this.isValidTranslationKey(key.key));
+    return this.deduplicateAndPrioritize(validKeys);
+  }
+
+  /**
+   * Verifica se uma chave é uma chave de tradução válida
+   */
+  private isValidTranslationKey(key: string): boolean {
+    // Skip API URLs
+    if (key.includes('/api/') || key.includes('http') || key.includes('${')) {
+      return false;
+    }
+
+    // Skip single characters or numbers
+    if (key.length < 3 || /^\d+$/.test(key)) {
+      return false;
+    }
+
+    // Skip SQL keywords
+    const sqlKeywords = ['AND', 'OR', 'SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE', 'DELETE'];
+    if (sqlKeywords.includes(key.toUpperCase())) {
+      return false;
+    }
+
+    // Skip HTTP status codes
+    if (/^\d{3}:?$/.test(key)) {
+      return false;
+    }
+
+    // Skip single special characters
+    if (/^[^a-zA-Z0-9]+$/.test(key) && key.length < 3) {
+      return false;
+    }
+
+    // Must have at least one dot for module.key structure
+    if (!key.includes('.')) {
+      return false;
+    }
+
+    // Must start with letter
+    if (!/^[a-zA-Z]/.test(key)) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -357,6 +402,141 @@ export class TranslationCompletionService {
     }
 
     return hardcodedTexts;
+  }
+
+  /**
+   * Remove chaves de tradução inválidas dos arquivos de tradução
+   */
+  async cleanInvalidTranslationKeys(): Promise<{
+    filesProcessed: number;
+    totalKeysRemoved: number;
+    details: Array<{
+      language: string;
+      keysRemoved: string[];
+      success: boolean;
+    }>;
+  }> {
+    const results = {
+      filesProcessed: 0,
+      totalKeysRemoved: 0,
+      details: [] as Array<{
+        language: string;
+        keysRemoved: string[];
+        success: boolean;
+      }>
+    };
+
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      try {
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
+        
+        if (!await fs.access(filePath).then(() => true).catch(() => false)) {
+          continue;
+        }
+
+        const fileContent = await fs.readFile(filePath, 'utf8');
+        const translations = JSON.parse(fileContent);
+        
+        const invalidKeys: string[] = [];
+        const cleanedTranslations = this.removeInvalidKeysFromObject(translations, '', invalidKeys);
+
+        if (invalidKeys.length > 0) {
+          // Create backup
+          const backupPath = path.join(this.TRANSLATIONS_DIR, `${language}.backup.json`);
+          await fs.writeFile(backupPath, fileContent);
+
+          // Write cleaned translations
+          await fs.writeFile(filePath, JSON.stringify(cleanedTranslations, null, 2));
+
+          results.totalKeysRemoved += invalidKeys.length;
+        }
+
+        results.details.push({
+          language,
+          keysRemoved: invalidKeys,
+          success: true
+        });
+
+        results.filesProcessed++;
+
+      } catch (error) {
+        console.error(`Error cleaning ${language} translations:`, error);
+        results.details.push({
+          language,
+          keysRemoved: [],
+          success: false
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Remove chaves inválidas de um objeto de tradução recursivamente
+   */
+  private removeInvalidKeysFromObject(obj: any, prefix: string, invalidKeys: string[]): any {
+    const cleaned: any = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+
+      // Check if this key is invalid
+      if (!this.isValidTranslationKey(fullKey) && prefix) {
+        invalidKeys.push(fullKey);
+        continue;
+      }
+
+      // Check if the key itself is problematic (API routes, numbers, etc.)
+      if (this.isProblematicKey(key)) {
+        invalidKeys.push(fullKey);
+        continue;
+      }
+
+      if (typeof value === 'object' && value !== null) {
+        const cleanedValue = this.removeInvalidKeysFromObject(value, fullKey, invalidKeys);
+        if (Object.keys(cleanedValue).length > 0) {
+          cleaned[key] = cleanedValue;
+        }
+      } else {
+        cleaned[key] = value;
+      }
+    }
+
+    return cleaned;
+  }
+
+  /**
+   * Verifica se uma chave específica é problemática
+   */
+  private isProblematicKey(key: string): boolean {
+    // API routes
+    if (key.includes('/api/') || key.includes('${')) {
+      return true;
+    }
+
+    // HTTP status codes
+    if (/^\d{3}:?$/.test(key)) {
+      return true;
+    }
+
+    // Single numbers
+    if (/^\d+$/.test(key)) {
+      return true;
+    }
+
+    // SQL keywords
+    const sqlKeywords = ['AND', 'OR', 'SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE', 'DELETE'];
+    if (sqlKeywords.includes(key.toUpperCase())) {
+      return true;
+    }
+
+    // Single special characters
+    if (/^[^a-zA-Z0-9]+$/.test(key) && key.length < 3) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

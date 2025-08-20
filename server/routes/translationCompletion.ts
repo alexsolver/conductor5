@@ -353,6 +353,33 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
+ * POST /api/translation-completion/clean-invalid
+ * Remove chaves de tradução inválidas dos arquivos
+ */
+router.post('/clean-invalid', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({ message: 'SaaS admin access required' });
+    }
+
+    const results = await translationService.cleanInvalidTranslationKeys();
+
+    res.json({
+      success: true,
+      data: results,
+      message: `Cleaned ${results.totalKeysRemoved} invalid keys from ${results.filesProcessed} files`
+    });
+
+  } catch (error) {
+    console.error('Error cleaning invalid translation keys:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clean invalid translation keys'
+    });
+  }
+});
+
+/**
  * POST /api/translation-completion/validate
  * Valida integridade das traduções
  */
