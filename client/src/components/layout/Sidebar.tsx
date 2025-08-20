@@ -76,8 +76,8 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: "{t('customers.title')}", href: "/customers", icon: Users },
-  { name: "{t('ticketSystem.title')}", href: "/tickets", icon: Ticket },
+  { name: "customers.title", href: "/customers", icon: Users },
+  { name: "ticketSystem.title", href: "/tickets", icon: Ticket },
   { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
   {
     name: "Controle de Jornadas",
@@ -133,7 +133,7 @@ const adminNavigation = [
     icon: Shield, 
     roles: ['saas_admin'],
     children: [
-      { name: "{t('dashboard.title')}", href: "/saas-admin", icon: BarChart3 },
+      { name: "dashboard.title", href: "/saas-admin", icon: BarChart3 },
       { name: "Gestão de Tenants", href: "/saas-admin/tenants", icon: Database },
       { name: "Performance & Saúde", href: "/saas-admin/performance", icon: TrendingUp },
       { name: "Configurações de Segurança", href: "/saas-admin/security", icon: Shield },
@@ -166,7 +166,7 @@ const adminNavigation = [
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Templates de Tickets", href: "/ticket-templates", icon: FileText },
       { name: "Campos Customizados", href: "/custom-fields-admin", icon: Wrench },
-      { name: "{t('customers.title')}", href: "/customers", icon: Users },
+      { name: "customers.title", href: "/customers", icon: Users },
       { name: "Favorecidos", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
       { name: "OmniBridge", href: "/omnibridge", icon: MessageSquare }, // Added OmniBridge link
@@ -192,6 +192,15 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { terminology, employmentType } = useEmploymentDetection();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
+  // Helper function to translate menu items
+  const translateName = (name: string): string => {
+    // Check if it's a translation key
+    if (name.includes('.')) {
+      return t(name);
+    }
+    return name;
+  };
+
   // Fetch tickets count for badge
   const { data: ticketsData } = useQuery({
     queryKey: ["/api/tickets"], // Simple query key for consistent caching
@@ -214,7 +223,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   // Create navigation with dynamic badges and employment-specific terminology
   const navigation = baseNavigation.map(item => {
-    if (item.name === "{t('ticketSystem.title')}" && activeTicketsCount > 0) {
+    if (item.name.includes('ticketSystem.title') && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
 
@@ -373,7 +382,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       backgroundColor: 'var(--accent)',
                       color: 'white'
                     } : {}}
-                    title={item.name}>
+                    title={translateName(item.name)}>
                       <item.icon className="h-6 w-6 flex-shrink-0" />
                       {item.badge && (
                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -382,7 +391,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       )}
                       {/* Tooltip for collapsed state */}
                       <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                        {item.name}
+                        {translateName(item.name)}
                       </div>
                     </div>
                   </div>
@@ -402,7 +411,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       color: 'white'
                     } : {}}>
                       <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                      {item.name}
+                      {translateName(item.name)}
                       {item.badge && (
                         <Badge variant="destructive" className="ml-2">
                           {item.badge}
