@@ -109,8 +109,8 @@ export default function TranslationManager() {
 
   // Atualizar form quando translations carregam
   useEffect(() => {
-    if (translationData?.translations) {
-      form.reset({ translations: translationData.translations });
+    if ((translationData as any)?.translations) {
+      form.reset({ translations: (translationData as any).translations });
     }
   }, [translationData, form]);
 
@@ -236,7 +236,7 @@ export default function TranslationManager() {
             {isLoadingLanguages ? (
               <div>{t('translationManager.loadingLanguages')}</div>
             ) : (
-              languagesData?.languages.map((lang: Language) => (
+              ((languagesData as any)?.languages)?.map((lang: Language) => (
                 <Button
                   key={lang.code}
                   variant={selectedLanguage === lang.code ? "default" : "outline"}
@@ -284,8 +284,8 @@ export default function TranslationManager() {
                 {t('translationManager.translationEditor')} - {selectedLanguage}
               </CardTitle>
               <CardDescription>
-                {translationData?.lastModified && (
-                  <span>{t('translationManager.lastModified')}: {new Date(translationData.lastModified).toLocaleString()}</span>
+                {(translationData as any)?.lastModified && (
+                  <span>{t('translationManager.lastModified')}: {new Date((translationData as any).lastModified).toLocaleString()}</span>
                 )}
               </CardDescription>
             </CardHeader>
@@ -403,7 +403,7 @@ export default function TranslationManager() {
                   <div className="text-center py-8">{t('translationManager.loadingKeys')}</div>
                 ) : (
                   <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {allKeysData?.keys?.map((key: string) => (
+                    {((allKeysData as any)?.keys)?.map((key: string) => (
                       <div key={key} className="border rounded-lg p-4 flex items-center justify-between">
                         <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {key}
@@ -429,7 +429,7 @@ export default function TranslationManager() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {allKeysData?.keys?.length || 0}
+              {((allKeysData as any)?.keys)?.length || 0}
             </div>
             <p className="text-xs text-muted-foreground">
               {t('translationManager.keysInSystem')}
@@ -444,7 +444,7 @@ export default function TranslationManager() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {languagesData?.languages?.length || 0}
+              {((languagesData as any)?.languages)?.length || 0}
             </div>
             <p className="text-xs text-muted-foreground">
               {t('translationManager.availableLanguages')}

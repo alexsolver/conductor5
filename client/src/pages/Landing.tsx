@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Users, BarChart3, Shield, Globe, Headphones } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 const features = [
   {
+  const { t } = useLocalization();
+
     icon: Headphones,
     title: "Omnichannel Support",
     description: "Manage tickets from email, chat, phone, and social media in one unified platform.",
   },
   {
     icon: BarChart3,
-    title: "Advanced Analytics",
+    title: {t('Landing.advancedAnalytics')},
     description: "Get insights with real-time dashboards, performance metrics, and detailed reporting.",
   },
   {
