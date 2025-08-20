@@ -12,7 +12,7 @@ import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip } from "lucide-react";
 import { useLocation } from "wouter";
-import { useLocalization } from "@/hooks/useLocalization";
+import { useTranslation } from 'react-i18next';
 import { SlaLedSimple } from "@/components/SlaLedSimple";
 
 interface Ticket {
@@ -83,7 +83,6 @@ interface HistoryEntry {
 export default function TicketDetail() {
   const { id } = useParams();
   const [, navigate] = useLocation();
-  const { t } = useTranslation();
   const { formatDate } = useLocalization();
   const { toast } = useToast();
   const queryClient = useQueryClient();

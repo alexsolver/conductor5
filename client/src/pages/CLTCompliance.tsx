@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface IntegrityCheck {
   isValid: boolean;
@@ -72,6 +73,7 @@ interface DigitalKey {
 }
 
 export default function CLTCompliance() {
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -91,11 +93,11 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "Erro na Reconstituição",
+        title: "[Translation]",
         description: "Falha ao reconstituir cadeia de integridade",
         variant: "destructive"
       });
-      console.error('Erro na reconstituição:', error);
+      console.error("[Translation]", error);
     }
   });
   const [selectedPeriod, setSelectedPeriod] = useState({
@@ -148,7 +150,7 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: `Falha ao gerar relatório: ${error.message}`,
         variant: "destructive"
       });

@@ -13,7 +13,6 @@ import { useTranslation } from "react-i18next";
 export default function AuthPage() {
   const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
-  const { t } = useTranslation();
 
   // ✅ CRITICAL FIX: Não limpar tokens automaticamente na página de auth
   // Isso pode estar causando problemas durante o processo de login
@@ -188,7 +187,7 @@ export default function AuthPage() {
               Creating account...
             </>
           ) : (
-            "Create Account"
+            "Criar Conta"
           )}
         </Button>
       </form>

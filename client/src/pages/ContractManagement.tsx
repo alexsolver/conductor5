@@ -22,6 +22,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { CreateContractDialog } from '@/components/forms/CreateContractDialog';
 import { EditContractDialog } from '@/components/forms/EditContractDialog';
 import { ContractViewDialog } from '@/components/forms/ContractViewDialog';
+import { useTranslation } from 'react-i18next';
 
 // Tipos de contrato
 const contractTypes = [
@@ -73,6 +74,7 @@ interface ContractFilters {
 }
 
 export default function ContractManagement() {
+
   const [filters, setFilters] = useState<ContractFilters>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -109,13 +111,13 @@ export default function ContractManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
       toast({
-        title: "Sucesso",
+        title: "[Translation]",
         description: "Contrato excluído com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: "Falha ao excluir contrato",
         variant: "destructive",
       });
@@ -279,7 +281,7 @@ export default function ContractManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar contratos..."
+                  placeholder="[Translation]"
                   value={filters.search || ''}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="pl-10"

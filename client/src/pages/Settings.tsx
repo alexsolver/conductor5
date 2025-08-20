@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
+import { useTranslation } from 'react-i18next';
   User, 
   Building, 
   Bell, 
@@ -34,6 +35,7 @@ import {
 } from "lucide-react";
 
 export default function Settings() {
+
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +58,7 @@ export default function Settings() {
 
   const handleSave = () => {
     toast({
-      title: "Settings saved",
+      title: "[Translation]",
       description: "Your settings have been updated successfully.",
     });
   };
@@ -554,7 +556,7 @@ export default function Settings() {
                       { name: "Salesforce", description: "Sync customer data with Salesforce", connected: true },
                       { name: "Shopify", description: "Connect with your Shopify store", connected: false },
                       { name: "HubSpot", description: "Sync contacts and deals", connected: false },
-                      { name: "Jira", description: "Create issues from tickets", connected: true },
+                      { name: "Jira", description: "[Translation]", connected: true },
                     ].map((integration) => (
                       <div key={integration.name} className="p-4 border rounded-lg">
                         <div className="flex items-center justify-between mb-2">

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocalization } from "@/hooks/useLocalization";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,6 @@ import { useCompanyFilter } from "@/hooks/useCompanyFilter";
 import { NewTicketModalData, newTicketModalSchema } from "../../../shared/ticket-validation";
 
 export default function Tickets() {
-  const { t } = useTranslation();
   const { formatDate } = useLocalization();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentViewId, setCurrentViewId] = useState<string | undefined>();

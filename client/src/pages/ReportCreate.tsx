@@ -22,9 +22,11 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useTranslation } from 'react-i18next';
 
 // Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
+
   name: z.string().min(1, "Report name is required"),
   description: z.string().optional(),
   dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
@@ -73,7 +75,7 @@ export default function ReportCreate() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso!",
+        title: "[Translation]",
         description: "Relatório criado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -81,7 +83,7 @@ export default function ReportCreate() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: error?.message || "Falha ao criar relatório.",
         variant: "destructive",
       });
@@ -324,7 +326,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder="Selecione a categoria" />
+                                <SelectValue placeholder="[Translation]" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -357,7 +359,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-access-level">
-                                <SelectValue placeholder="Selecione o nível de acesso" />
+                                <SelectValue placeholder="[Translation]" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -383,7 +385,7 @@ export default function ReportCreate() {
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-data-source">
-                                    <SelectValue placeholder="Selecione a fonte de dados" />
+                                    <SelectValue placeholder="[Translation]" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -489,7 +491,7 @@ export default function ReportCreate() {
                               Configuração Básica
                             </h5>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "Configurações Básicas".
+                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "[Translation]".
                             </p>
                           </div>
                         </div>
@@ -541,7 +543,7 @@ export default function ReportCreate() {
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-schedule-type">
-                                  <SelectValue placeholder="Selecione o tipo" />
+                                  <SelectValue placeholder="[Translation]" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

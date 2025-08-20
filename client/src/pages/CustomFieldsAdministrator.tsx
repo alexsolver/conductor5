@@ -61,8 +61,8 @@ interface EditFieldFormData extends CreateFieldFormData {
 }
 
 const MODULE_TYPES = [
-  { value: 'customers', label: 'Clientes' },
-  { value: 'tickets', label: 'Tickets' },
+  { value: 'customers', label: "[Translation]" },
+  { value: 'tickets', label: "[Translation]" },
   { value: 'beneficiaries', label: 'Beneficiários' },
   { value: 'materials', label: 'Materiais' },
   { value: 'services', label: 'Serviços' },
@@ -83,7 +83,6 @@ const FIELD_TYPE_CONFIG = {
 } as const;
 
 export default function CustomFieldsAdministrator() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -136,8 +135,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: 'Erro',
-        description: 'Erro ao criar campo customizado.',
+        title: "[Translation]",
+        description: "[Translation]",
         variant: 'destructive'
       });
     }
@@ -169,8 +168,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: 'Erro',
-        description: 'Erro ao atualizar campo customizado.',
+        title: "[Translation]",
+        description: "[Translation]",
         variant: 'destructive'
       });
     }
@@ -199,8 +198,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: 'Erro',
-        description: 'Erro ao remover campo customizado.',
+        title: "[Translation]",
+        description: "[Translation]",
         variant: 'destructive'
       });
     }
@@ -303,7 +302,7 @@ export default function CustomFieldsAdministrator() {
                       size="sm"
                       onClick={() => setEditingField(field)}
                       className="hover:bg-blue-50 hover:text-blue-700"
-                      title="Editar campo"
+                      title="[Translation]"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -312,7 +311,7 @@ export default function CustomFieldsAdministrator() {
                       size="sm"
                       onClick={() => setFieldToDelete(field)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Excluir campo"
+                      title="[Translation]"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -365,7 +364,7 @@ export default function CustomFieldsAdministrator() {
               </Label>
               <Select value={selectedModule} onValueChange={(value: ModuleType) => setSelectedModule(value)}>
                 <SelectTrigger className="w-56 bg-white border-gray-200">
-                  <SelectValue placeholder="Selecione um módulo" />
+                  <SelectValue placeholder="[Translation]" />
                 </SelectTrigger>
                 <SelectContent>
                   {MODULE_TYPES.map((module) => (

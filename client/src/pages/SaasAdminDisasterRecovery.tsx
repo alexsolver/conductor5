@@ -6,8 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, HardDrive, Clock, CheckCircle, Play, Pause, Download } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function SaasAdminDisasterRecovery() {
+
   return (
     <div className="space-y-8 p-8">
         {/* Header */}
@@ -165,28 +167,28 @@ export default function SaasAdminDisasterRecovery() {
                         type: 'Automático',
                         size: '2.4 TB',
                         duration: '1h 23min',
-                        status: 'Sucesso'
+                        status: "[Translation]"
                       },
                       {
                         date: '16/01/2025 02:00',
                         type: 'Automático',
                         size: '2.4 TB',
                         duration: '1h 18min',
-                        status: 'Sucesso'
+                        status: "[Translation]"
                       },
                       {
                         date: '15/01/2025 22:00',
                         type: 'Automático',
                         size: '2.4 TB',
                         duration: '1h 31min',
-                        status: 'Sucesso'
+                        status: "[Translation]"
                       },
                       {
                         date: '15/01/2025 18:00',
                         type: 'Manual',
                         size: '2.4 TB',
                         duration: '1h 12min',
-                        status: 'Sucesso'
+                        status: "[Translation]"
                       }
                     ].map((backup, index) => (
                       <TableRow key={index}>
@@ -223,21 +225,21 @@ export default function SaasAdminDisasterRecovery() {
                     {
                       date: '16/01/2025 06:00',
                       type: 'Completo',
-                      tenant: 'Todos',
+                      tenant: "[Translation]",
                       size: '2.4 TB',
                       verified: true
                     },
                     {
                       date: '16/01/2025 02:00',
                       type: 'Incremental',
-                      tenant: 'Todos',
+                      tenant: "[Translation]",
                       size: '345 GB',
                       verified: true
                     },
                     {
                       date: '15/01/2025 22:00',
                       type: 'Incremental',
-                      tenant: 'Todos',
+                      tenant: "[Translation]",
                       size: '289 GB',
                       verified: true
                     }

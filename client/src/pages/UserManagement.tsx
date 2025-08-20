@@ -35,7 +35,6 @@ interface UserStats {
 }
 
 export function UserManagement() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);

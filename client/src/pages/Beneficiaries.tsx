@@ -39,9 +39,11 @@ import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from 'react-i18next';
 
 // Schema for beneficiary creation/editing
 const beneficiarySchema = z.object({
+
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
@@ -188,7 +190,7 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: "[Translation]",
         description: "Favorecido criado com sucesso",
       });
       setIsCreateDialogOpen(false);
@@ -197,7 +199,7 @@ export default function Beneficiaries() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: error.message || "Falha ao criar favorecido",
         variant: "destructive",
       });
@@ -219,12 +221,12 @@ export default function Beneficiaries() {
       
       setShowCustomerSelector(false);
       toast({
-        title: "Sucesso",
+        title: "[Translation]",
         description: "Cliente associado com sucesso",
       });
     } catch (error) {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: "Falha ao associar cliente",
         variant: "destructive",
       });
@@ -241,12 +243,12 @@ export default function Beneficiaries() {
       setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
       
       toast({
-        title: "Sucesso",
+        title: "[Translation]",
         description: "Cliente desassociado com sucesso",
       });
     } catch (error) {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: "Falha ao desassociar cliente",
         variant: "destructive",
       });
@@ -261,7 +263,7 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: "[Translation]",
         description: "Favorecido atualizado com sucesso",
       });
       setEditingBeneficiary(null);
@@ -271,7 +273,7 @@ export default function Beneficiaries() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: error.message || "Falha ao atualizar favorecido",
         variant: "destructive",
       });
@@ -286,14 +288,14 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: "[Translation]",
         description: "Favorecido excluído com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"], exact: false });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: error.message || "Falha ao excluir favorecido",
         variant: "destructive",
       });
@@ -363,7 +365,7 @@ export default function Beneficiaries() {
 
   // Handle edit
   const handleEdit = (beneficiary: Beneficiary) => {
-    console.log('Editing beneficiary:', beneficiary);
+    console.log("[Translation]", beneficiary);
     setEditingBeneficiary(beneficiary);
     
     // Map database fields to form fields
@@ -514,7 +516,7 @@ export default function Beneficiaries() {
                     </div>
                     <Select onValueChange={handleAddCustomer}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Escolha um cliente" />
+                        <SelectValue placeholder="[Translation]" />
                       </SelectTrigger>
                       <SelectContent>
                         {((customersData as any)?.customers || []).filter((customer: any) => 
@@ -542,7 +544,7 @@ export default function Beneficiaries() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um cliente" />
+                          <SelectValue placeholder="[Translation]" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -719,7 +721,7 @@ export default function Beneficiaries() {
             type="submit"
             disabled={createBeneficiaryMutation.isPending || updateBeneficiaryMutation.isPending}
           >
-            {editingBeneficiary ? "Atualizar" : "Criar"} Favorecido
+            {editingBeneficiary ? "Atualizar" : "[Translation]"} Favorecido
           </Button>
         </div>
       </form>
@@ -751,7 +753,7 @@ export default function Beneficiaries() {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingBeneficiary ? "Editar" : "Criar"} Favorecido
+                {editingBeneficiary ? "[Translation]"} Favorecido
               </DialogTitle>
               <DialogDescription>
                 {editingBeneficiary
@@ -813,7 +815,7 @@ export default function Beneficiaries() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar favorecidos..."
+            placeholder="[Translation]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"

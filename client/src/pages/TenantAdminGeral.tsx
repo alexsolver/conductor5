@@ -16,6 +16,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
+import { useTranslation } from 'react-i18next';
   Users, 
   TrendingUp, 
   Ticket, 
@@ -33,6 +34,7 @@ import {
 
 // Schema para configurações de branding
 const brandingSchema = z.object({
+
   companyName: z.string().min(1, "Nome da empresa é obrigatório"),
   logoUrl: z.string().url().optional().or(z.literal("")),
   primaryColor: z.string().min(1, "Cor primária é obrigatória"),
@@ -152,14 +154,14 @@ export default function TenantAdminGeral() {
     },
     onSuccess: () => {
       toast({
-        title: "Configurações salvas",
+        title: "[Translation]",
         description: "As configurações de branding foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/branding"] });
     },
     onError: () => {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: "Ocorreu um erro ao salvar as configurações.",
         variant: "destructive",
       });
@@ -221,13 +223,13 @@ export default function TenantAdminGeral() {
           {/* Estatísticas principais */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title="Total de Clientes"
+              title="[Translation]"
               value={(analytics as any)?.totalCustomers || 0}
               icon={Users}
               trend={12}
             />
             <StatCard
-              title="Tickets Ativos"
+              title="[Translation]"
               value={(analytics as any)?.totalTickets || 0}
               icon={Ticket}
               trend={8}
@@ -507,7 +509,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o fuso horário" />
+                                <SelectValue placeholder="[Translation]" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -531,7 +533,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o idioma" />
+                                <SelectValue placeholder="[Translation]" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>

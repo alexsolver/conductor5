@@ -29,8 +29,10 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from 'react-i18next';
 
 const integrationConfigSchema = z.object({
+
   apiKey: z.string().min(1, "API Key é obrigatória"),
   baseUrl: z.string().optional().refine((val) => {
     if (!val || val === "") return true;
@@ -146,7 +148,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "Erro ao salvar configuração",
+        title: "[Translation]",
         description: errorMessage,
         variant: "destructive",
       });
@@ -188,7 +190,7 @@ export default function SaasAdminIntegrations() {
         console.error('❌ [SAAS-ADMIN-TEST] Test failed with data:', data);
         toast({
           title: "Teste falhou", 
-          description: data.error || data.message || "Erro na integração",
+          description: data.error || data.message || "[Translation]",
           variant: "destructive",
         });
       }
@@ -196,7 +198,7 @@ export default function SaasAdminIntegrations() {
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
 
-      let errorMessage = "Erro ao testar integração";
+      let errorMessage = "[Translation]";
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -204,7 +206,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "Erro no teste",
+        title: "[Translation]",
         description: errorMessage,
         variant: "destructive",
       });
@@ -565,7 +567,7 @@ export default function SaasAdminIntegrations() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={saveConfigMutation.isPending}>
-                  {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
+                  {saveConfigMutation.isPending ? "Salvando..." : "[Translation]"}
                 </Button>
               </div>
             </form>

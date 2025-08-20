@@ -23,6 +23,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
+import { useTranslation } from 'react-i18next';
   Shield, 
   FileText, 
   AlertTriangle, 
@@ -51,6 +52,7 @@ import {
 
 // ✅ Form Schemas following 1qa.md patterns
 const gdprReportSchema = z.object({
+
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   reportType: z.enum([
@@ -240,7 +242,7 @@ export default function GdprCompliance() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-report-type">
-                          <SelectValue placeholder="Selecione o tipo" />
+                          <SelectValue placeholder="[Translation]" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -298,7 +300,7 @@ export default function GdprCompliance() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-risk-level">
-                            <SelectValue placeholder="Selecione o risco" />
+                            <SelectValue placeholder="[Translation]" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -345,7 +347,7 @@ export default function GdprCompliance() {
 
               <div className="flex justify-end space-x-2">
                 <Button type="submit" disabled={createReportMutation.isPending} data-testid="button-submit-report">
-                  {createReportMutation.isPending ? 'Criando...' : 'Criar Relatório'}
+                  {createReportMutation.isPending ? 'Criando...' : "[Translation]"}
                 </Button>
               </div>
             </form>
@@ -485,7 +487,7 @@ export default function GdprCompliance() {
         <div className="flex space-x-4">
           <div className="flex-1">
             <Input
-              placeholder="Buscar relatórios..."
+              placeholder="[Translation]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"

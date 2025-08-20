@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useTranslation } from 'react-i18next';
 
 // Types
 interface Notification {
@@ -74,6 +75,7 @@ interface NotificationStats {
 
 // Form schemas
 const createNotificationSchema = z.object({
+
   type: z.string().min(1, 'Type is required'),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
   title: z.string().min(1, 'Title is required').max(500, 'Title too long'),
@@ -178,7 +180,7 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: 'Success',
+        title: "[Translation]",
         description: 'Notification created successfully'
       });
       setIsCreateOpen(false);
@@ -187,7 +189,7 @@ export default function NotificationsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
+        title: "[Translation]",
         description: error.message || 'Failed to create notification',
         variant: 'destructive'
       });
@@ -208,14 +210,14 @@ export default function NotificationsPage() {
     },
     onSuccess: (data: any) => {
       toast({
-        title: 'Processing Complete',
+        title: "[Translation]",
         description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0}`
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
+        title: "[Translation]",
         description: error.message || 'Failed to process notifications',
         variant: 'destructive'
       });
@@ -237,14 +239,14 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: 'Success',
+        title: "[Translation]",
         description: 'Notifications marked as read'
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
+        title: "[Translation]",
         description: error.message || 'Failed to mark as read',
         variant: 'destructive'
       });
@@ -291,7 +293,7 @@ export default function NotificationsPage() {
             data-testid="button-process-notifications"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            {processMutation.isPending ? 'Processing...' : 'Process Now'}
+            {processMutation.isPending ? "[Translation]" : 'Process Now'}
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
@@ -320,7 +322,7 @@ export default function NotificationsPage() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-notification-type">
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder="[Translation]" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -350,7 +352,7 @@ export default function NotificationsPage() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-notification-severity">
-                                <SelectValue placeholder="Select severity" />
+                                <SelectValue placeholder="[Translation]" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -416,7 +418,7 @@ export default function NotificationsPage() {
                             { value: 'sms', label: 'SMS' },
                             { value: 'push', label: 'Push' },
                             { value: 'webhook', label: 'Webhook' },
-                            { value: 'dashboard_alert', label: 'Dashboard' }
+                            { value: 'dashboard_alert', label: "[Translation]" }
                           ].map((channel) => (
                             <label 
                               key={channel.value} 
@@ -456,7 +458,7 @@ export default function NotificationsPage() {
                       disabled={createMutation.isPending}
                       data-testid="button-submit-create"
                     >
-                      {createMutation.isPending ? 'Creating...' : 'Create Notification'}
+                      {createMutation.isPending ? 'Creating...' : "[Translation]"}
                     </Button>
                   </div>
                 </form>
@@ -495,7 +497,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, status: value }))
                   }>
                     <SelectTrigger data-testid="filter-status">
-                      <SelectValue placeholder="All statuses" />
+                      <SelectValue placeholder="[Translation]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
@@ -514,7 +516,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, severity: value }))
                   }>
                     <SelectTrigger data-testid="filter-severity">
-                      <SelectValue placeholder="All severities" />
+                      <SelectValue placeholder="[Translation]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Severities</SelectItem>
@@ -532,7 +534,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, type: value }))
                   }>
                     <SelectTrigger data-testid="filter-type">
-                      <SelectValue placeholder="All types" />
+                      <SelectValue placeholder="[Translation]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>

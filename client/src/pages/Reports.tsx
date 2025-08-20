@@ -22,6 +22,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useTranslation } from 'react-i18next';
 
 // Zendesk-style Quick Start Templates
 const ZENDESK_QUICK_TEMPLATES = [
@@ -67,7 +68,7 @@ const ZENDESK_QUICK_TEMPLATES = [
 const ZENDESK_DATA_SOURCES = [
   {
     id: "tickets",
-    name: "Tickets",
+    name: "[Translation]",
     description: "Support tickets and related data",
     icon: Grid,
     tables: 45,
@@ -75,7 +76,7 @@ const ZENDESK_DATA_SOURCES = [
   },
   {
     id: "users",
-    name: "Users", 
+    name: "[Translation]", 
     description: "Customer and agent information",
     icon: Users,
     tables: 12,
@@ -101,6 +102,7 @@ const ZENDESK_DATA_SOURCES = [
 
 // Main Explore Page Component
 export default function Reports() {
+
   const [searchTerm, setSearchTerm] = useState("");
   const [activeView, setActiveView] = useState("explore"); // explore, reports, dashboards
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -121,7 +123,7 @@ export default function Reports() {
 
   // Zendesk-style Categories
   const categories = [
-    { id: "all", name: "All Categories", count: reports.length },
+    { id: "all", name: "[Translation]", count: reports.length },
     { id: "performance", name: "Performance", count: reports.filter(r => r.category === 'operational').length },
     { id: "team", name: "Team Analytics", count: reports.filter(r => r.category === 'hr').length },
     { id: "customer", name: "Customer Insights", count: reports.filter(r => r.category === 'analytical').length },
@@ -386,7 +388,7 @@ export default function Reports() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search reports and dashboards..."
+                placeholder="[Translation]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -396,7 +398,7 @@ export default function Reports() {
           <div className="flex items-center space-x-4">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Categories" />
+                <SelectValue placeholder="[Translation]" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (

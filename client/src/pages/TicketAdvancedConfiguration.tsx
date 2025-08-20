@@ -116,7 +116,6 @@ interface SLAConfiguration {
 }
 
 function TicketAdvancedConfiguration() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();

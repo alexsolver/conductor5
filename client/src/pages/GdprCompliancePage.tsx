@@ -24,9 +24,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { FormDescription } from '@/components/ui/form';
 import { Shield, FileText, AlertTriangle, Settings, BarChart3, Download, Trash2, Edit } from 'lucide-react';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 
 // Schemas de validação
 const cookieConsentSchema = z.object({
+
   consentType: z.enum(['cookies_necessary', 'cookies_statistics', 'cookies_marketing', 'data_processing', 'communications', 'profiling', 'third_party_sharing']),
   granted: z.boolean(),
   consentVersion: z.string().min(1),
@@ -324,7 +326,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-consent-type">
-                              <SelectValue placeholder="Selecione o tipo" />
+                              <SelectValue placeholder="[Translation]" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -411,7 +413,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-request-type">
-                              <SelectValue placeholder="Selecione o tipo" />
+                              <SelectValue placeholder="[Translation]" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -453,7 +455,7 @@ export default function GdprCompliancePage() {
                     disabled={createDataSubjectRequest.isPending}
                     data-testid="button-create-request"
                   >
-                    {createDataSubjectRequest.isPending ? 'Criando...' : 'Criar Solicitação'}
+                    {createDataSubjectRequest.isPending ? 'Criando...' : "[Translation]"}
                   </Button>
                 </form>
               </Form>
@@ -525,7 +527,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-incident-severity">
-                              <SelectValue placeholder="Selecione a severidade" />
+                              <SelectValue placeholder="[Translation]" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -836,8 +838,8 @@ function PrivacyPolicyManagement() {
     onError: (error: any) => {
       console.error('❌ [CREATE-POLICY] Error:', error);
       toast({ 
-        title: "Erro ao criar política", 
-        description: error.message || 'Erro desconhecido',
+        title: "[Translation]", 
+        description: error.message || "[Translation]",
         variant: "destructive" 
       });
     }
@@ -1081,7 +1083,7 @@ function PrivacyPolicyManagement() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createPolicyMutation.isPending}>
-                  {createPolicyMutation.isPending ? "Criando..." : "Criar Política"}
+                  {createPolicyMutation.isPending ? "Criando..." : "[Translation]"}
                 </Button>
               </DialogFooter>
             </form>

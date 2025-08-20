@@ -2,10 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ticket, Clock, Users, TrendingUp } from "lucide-react";
-import { useLocalization } from "@/hooks/useLocalization";
+import { useTranslation } from 'react-i18next';
 
 export default function Dashboard() {
-  const { t } = useTranslation();
   const { formatDate, formatNumber } = useLocalization();
   
   const { data: statsResponse, isLoading } = useQuery({
@@ -78,8 +77,8 @@ export default function Dashboard() {
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400">{t('dashboard.welcome')}</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">"[Translation]"</h1>
+          <p className="text-gray-600 dark:text-gray-400">"[Translation]"</p>
         </div>
       </div>
 

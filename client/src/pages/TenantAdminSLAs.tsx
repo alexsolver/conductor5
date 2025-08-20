@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { 
+import { useTranslation } from 'react-i18next';
   Clock, 
   AlertTriangle, 
   Target, 
@@ -86,6 +87,7 @@ interface SlaMetrics {
 
 // Validation schemas
 const slaFormSchema = z.object({
+
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   slaLevel: z.enum(['L1', 'L2', 'L3']),
@@ -162,7 +164,7 @@ export default function TenantAdminSLAs() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error('Erro ao criar SLA');
+      if (!response.ok) throw new Error("[Translation]");
       return response.json();
     },
     onSuccess: () => {
@@ -172,7 +174,7 @@ export default function TenantAdminSLAs() {
       setShowCreateDialog(false);
     },
     onError: () => {
-      toast({ title: 'Erro ao criar SLA', variant: 'destructive' });
+      toast({ title: "[Translation]", variant: 'destructive' });
     }
   });
 
@@ -183,7 +185,7 @@ export default function TenantAdminSLAs() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error('Erro ao atualizar SLA');
+      if (!response.ok) throw new Error("[Translation]");
       return response.json();
     },
     onSuccess: () => {
@@ -191,7 +193,7 @@ export default function TenantAdminSLAs() {
       toast({ title: 'SLA atualizado com sucesso!' });
     },
     onError: () => {
-      toast({ title: 'Erro ao atualizar SLA', variant: 'destructive' });
+      toast({ title: "[Translation]", variant: 'destructive' });
     }
   });
 
@@ -200,14 +202,14 @@ export default function TenantAdminSLAs() {
       const response = await fetch(`/api/sla/tickets-slas/${id}`, {
         method: 'DELETE'
       });
-      if (!response.ok) throw new Error('Erro ao excluir SLA');
+      if (!response.ok) throw new Error("[Translation]");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/sla/tickets-slas'] });
       toast({ title: 'SLA excluído com sucesso!' });
     },
     onError: () => {
-      toast({ title: 'Erro ao excluir SLA', variant: 'destructive' });
+      toast({ title: "[Translation]", variant: 'destructive' });
     }
   });
 
@@ -571,7 +573,7 @@ export default function TenantAdminSLAs() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o nível" />
+                            <SelectValue placeholder="[Translation]" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -630,7 +632,7 @@ export default function TenantAdminSLAs() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createSlaMutation.isPending}>
-                  {createSlaMutation.isPending ? 'Criando...' : 'Criar SLA'}
+                  {createSlaMutation.isPending ? 'Criando...' : "[Translation]"}
                 </Button>
               </div>
             </form>

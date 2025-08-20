@@ -16,9 +16,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from 'react-i18next';
 
 // Location form schema
 const locationFormSchema = z.object({
+
   name: z.string().min(1, "Nome é obrigatório").max(200),
   description: z.string().optional(),
   locationType: z.enum(['point', 'segment', 'area', 'region', 'route']),
@@ -112,14 +114,14 @@ export default function Locations() {
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
-        title: "Sucesso",
+        title: "[Translation]",
         description: "Local criado com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar local",
+        title: "[Translation]",
+        description: error.message || "[Translation]",
         variant: "destructive",
       });
     }
@@ -132,14 +134,14 @@ export default function Locations() {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
       toast({
-        title: "Sucesso", 
+        title: "[Translation]", 
         description: "Local excluído com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao excluir local",
+        title: "[Translation]",
+        description: error.message || "[Translation]",
         variant: "destructive",
       });
     }
@@ -167,7 +169,7 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao favoritar",
+        title: "[Translation]",
         description: error?.message || "Não foi possível alterar favorito.",
         variant: "destructive",
       });
@@ -191,7 +193,7 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao anexar arquivo",
+        title: "[Translation]",
         description: error?.message || "Não foi possível anexar o arquivo.",
         variant: "destructive",
       });
@@ -410,7 +412,7 @@ export default function Locations() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createLocationMutation.isPending}>
-                    {createLocationMutation.isPending ? "Criando..." : "Criar Local"}
+                    {createLocationMutation.isPending ? "Criando..." : "[Translation]"}
                   </Button>
                 </div>
               </form>
@@ -713,7 +715,7 @@ export default function Locations() {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar locais..."
+                    placeholder="[Translation]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -763,7 +765,7 @@ export default function Locations() {
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Filtrar por tag..."
+                  placeholder="[Translation]"
                   value={tagFilter}
                   onChange={(e) => setTagFilter(e.target.value)}
                   className="w-48 h-8"
@@ -808,7 +810,7 @@ export default function Locations() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum local encontrado</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm || locationTypeFilter || statusFilter
-                  ? "Nenhum local corresponde aos filtros aplicados."
+                  ? "[Translation]"
                   : "Comece criando seu primeiro local no sistema."}
               </p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -907,7 +909,7 @@ export default function Locations() {
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" title="Editar local">
+                        <Button variant="ghost" size="sm" title="[Translation]">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 

@@ -60,7 +60,6 @@ type ProvisionTenantFormData = z.infer<typeof provisionTenantSchema>;
 type ConfigFormData = z.infer<typeof configSchema>;
 
 export default function TenantProvisioning() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -133,7 +132,7 @@ export default function TenantProvisioning() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao criar tenant",
+        title: "[Translation]",
         description: error.message,
         variant: "destructive",
       });
@@ -151,12 +150,12 @@ export default function TenantProvisioning() {
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
-        description: "Configurações de auto-provisioning atualizadas com sucesso!",
+        description: "[Translation]",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao atualizar configuração",
+        title: "[Translation]",
         description: error.message,
         variant: "destructive",
       });
@@ -263,7 +262,7 @@ export default function TenantProvisioning() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o método" />
+                              <SelectValue placeholder="[Translation]" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -282,7 +281,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateConfigMutation.isPending}>
-                      {updateConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
+                      {updateConfigMutation.isPending ? "Salvando..." : "[Translation]"}
                     </Button>
                   </div>
                 </form>
@@ -350,7 +349,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={provisionMutation.isPending}>
-                      {provisionMutation.isPending ? "Criando..." : "Criar Tenant"}
+                      {provisionMutation.isPending ? "Criando..." : "[Translation]"}
                     </Button>
                   </div>
                 </form>

@@ -58,8 +58,10 @@ import {
   Monitor
 } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from 'react-i18next';
 
 export default function TeamManagement() {
+
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
@@ -201,7 +203,7 @@ export default function TeamManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar status",
+        title: "[Translation]",
         description: error?.message || "Falha ao atualizar o status do membro.",
         variant: "destructive",
       });
@@ -213,7 +215,7 @@ export default function TeamManagement() {
     console.log('TeamManagement - Opening edit dialog with member:', member);
     if (!member || !member.id) {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -227,7 +229,7 @@ export default function TeamManagement() {
   const handleToggleMemberStatus = async (member: any) => {
     if (!member || !member.id) {
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -238,9 +240,9 @@ export default function TeamManagement() {
     try {
       toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
     } catch (error) {
-      console.error('Error toggling member status:', error);
+      console.error("[Translation]", error);
       toast({
-        title: "Erro",
+        title: "[Translation]",
         description: "Falha ao alterar status do membro",
         variant: "destructive",
       });
@@ -251,7 +253,7 @@ export default function TeamManagement() {
   const handleExportTeamData = () => {
     if (!teamMembers || teamMembers.length === 0) {
       toast({
-        title: "Nenhum dado para exportar",
+        title: "[Translation]",
         description: "Não há membros da equipe para exportar.",
         variant: "destructive",
       });
@@ -297,7 +299,7 @@ export default function TeamManagement() {
       });
     } catch (error) {
       toast({
-        title: "Erro na exportação",
+        title: "[Translation]",
         description: "Falha ao exportar os dados da equipe.",
         variant: "destructive",
       });
@@ -654,7 +656,7 @@ export default function TeamManagement() {
                   <Label htmlFor="department">Departamento</Label>
                   <Select value={filterDepartment} onValueChange={setFilterDepartment}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
+                      <SelectValue placeholder="[Translation]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -690,7 +692,7 @@ export default function TeamManagement() {
                   <Label htmlFor="group">Grupo</Label>
                   <Select value={filterGroup} onValueChange={setFilterGroup}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
+                      <SelectValue placeholder="[Translation]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -717,7 +719,7 @@ export default function TeamManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
+                      <SelectValue placeholder="[Translation]" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -851,7 +853,7 @@ export default function TeamManagement() {
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {teamMembers && teamMembers.length === 0 
-                          ? "Nenhum membro foi adicionado à equipe ainda."
+                          ? "[Translation]"
                           : "Ajuste os filtros para encontrar membros da equipe."
                         }
                       </p>

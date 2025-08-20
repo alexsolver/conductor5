@@ -27,6 +27,7 @@ interface ComplianceItem {
 }
 
 function getStatusIcon(status: ComplianceItem["status"]) {
+
   switch (status) {
     case "implemented":
       return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -54,7 +55,7 @@ function getStatusBadge(status: ComplianceItem["status"]) {
 
 function getCategoryIcon(category: string) {
   switch (category) {
-    case "Dashboard":
+    case "[Translation]":
       return <BarChart className="h-5 w-5" />;
     case "Arquitetura":
       return <Layers className="h-5 w-5" />;
@@ -81,15 +82,16 @@ function getCategoryIcon(category: string) {
 
 const clearArchitectureItems: ComplianceItem[] = [
   // Dashboard de Monitoramento
-  { name: "Visualização em tempo real do status", status: "implemented", category: "Dashboard" },
-  { name: "Score de saúde (0-100%) por módulo", status: "implemented", category: "Dashboard" },
-  { name: "Indicadores visuais coloridos", status: "implemented", category: "Dashboard" },
-  { name: "Métricas do sistema completas", status: "partial", category: "Dashboard" },
+  { name: "Visualização em tempo real do status", status: "implemented", category: "[Translation]" },
+  { name: "Score de saúde (0-100%) por módulo", status: "implemented", category: "[Translation]" },
+  { name: "Indicadores visuais coloridos", status: "implemented", category: "[Translation]" },
+  { name: "Métricas do sistema completas", status: "partial", category: "[Translation]" },
   
   // Verificação Automática
   { name: "Escaneamento de arquivos críticos", status: "implemented", category: "Validação" },
   { name: "Validação de sintaxe TypeScript", status: "implemented", category: "Validação" },
   { name: "Verificação de imports/exports", status: "implemented", category: "Validação" },
+import { useTranslation } from 'react-i18next';
   { name: "Detecção de dependências quebradas", status: "implemented", category: "Validação" },
   
   // Camada de Entidades (Domain Layer)
