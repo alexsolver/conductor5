@@ -156,7 +156,7 @@ export default function Customers() {
       }
     }
     return (
-      <div className=""
+      <div className="p-4"
         <Building className="h-3 w-3 mr-1 flex-shrink-0" />
         <span className="text-sm truncate" title={String(displayText)}>
           {String(displayText)}
@@ -166,15 +166,15 @@ export default function Customers() {
   };
   if (isLoading) {
     return (
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"</div>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className=""
+                <div key={i} className="p-4"
                   <div className="text-lg">"</div>
-                  <div className=""
+                  <div className="p-4"
                     <div className="text-lg">"</div>
                     <div className="text-lg">"</div>
                   </div>
@@ -194,48 +194,48 @@ export default function Customers() {
     const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
     const isPermissionError = errorType === 'PERMISSION_DENIED';
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <h1 className="text-lg">"Customers</h1>
         </div>
         <Card>
-          <CardContent className=""
+          <CardContent className="p-4"
             <div className="text-lg">"
-              <h4 className=""
+              <h4 className="p-4"
                 {isSchemaError ? '🗄️ Problema de Esquema de Banco' :
                  isPermissionError ? '🔒 Problema de Permissão' :
                  '❌ Erro ao carregar clientes'}
               </h4>
-              <p className=""
+              <p className="p-4"
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
               {/* Error Code Display */}
               {(error as any)?.code && (
-                <div className=""
+                <div className="p-4"
                   Código: {(error as any).code}
                 </div>
               )}
               {/* Technical Details */}
               {(error as any)?.details && (
-                <details className=""
+                <details className="p-4"
                   <summary className="text-lg">"Detalhes técnicos</summary>
                   <pre className="text-lg">"{JSON.stringify((error as any).details, null, 2)}</pre>
                 </details>
               )}
               {/* Suggestions */}
               {(error as any)?.suggestion && (
-                <div className=""
+                <div className="p-4"
                   💡 <strong>Sugestão:</strong> {(error as any).suggestion}
                 </div>
               )}
               {/* Schema-specific help */}
               {isSchemaError && (
-                <div className=""
+                <div className="p-4"
                   🔧 <strong>Para resolver:</strong> Execute as migrações de banco de dados ou consulte um administrador.
                 </div>
               )}
             </div>
-            <div className=""
+            <div className="p-4"
               <Button
                 onClick={() => window.location.reload()}
                 variant="outline"
@@ -263,13 +263,13 @@ export default function Customers() {
     );
   }
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Customers</h1>
           <p className="text-lg">"Manage your customer database and relationships ({total} registros)</p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button variant="outline>
             <Search className="h-4 w-4 mr-2" />
             Search
@@ -284,7 +284,7 @@ export default function Customers() {
         </div>
       </div>
       <Card>
-        <CardContent className=""
+        <CardContent className="p-4"
           <Table>
             <TableHeader>
               <TableRow>
@@ -300,16 +300,16 @@ export default function Customers() {
             </TableHeader>
             <TableBody>
               {customers?.length > 0 ? customers.map((customer: any) => (
-                <TableRow key={customer.id} className=""
+                <TableRow key={customer.id} className="p-4"
                   <TableCell>
-                    <Avatar className=""
-                      <AvatarFallback className=""
+                    <Avatar className="p-4"
+                      <AvatarFallback className="p-4"
                         {getInitials(customer) || "U"
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
                   <TableCell>
-                    <div className=""
+                    <div className="p-4"
                       {formatCustomerName(customer)}
                     </div>
                     {(() => {
@@ -317,13 +317,13 @@ export default function Customers() {
                       if (customerType === 'PJ') {
                         const companyName = getCustomerField(customer, 'companyName');
                         return (
-                          <div className=""
+                          <div className="p-4"
                             🏢 {companyName || 'Pessoa Jurídica'}
                           </div>
                         );
                       } else if (customerType === 'PF') {
                         return (
-                          <div className=""
+                          <div className="p-4"
                             👤 Pessoa Física
                           </div>
                         );
@@ -332,7 +332,7 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className=""
+                    <div className="p-4"
                       <Mail className="h-3 w-3 mr-1" />
                       <span className="text-lg">"{customer.email}</span>
                     </div>
@@ -344,7 +344,7 @@ export default function Customers() {
                                    customer.mobile_phone ||
                                    customer.mobilePhone;
                       return phone ? (
-                        <div className=""
+                        <div className="p-4"
                           <Phone className="h-3 w-3 mr-1" />
                           <span>{String(phone)}</span>
                         </div>
@@ -366,7 +366,7 @@ export default function Customers() {
                         displayText = companies;
                       }
                       return (
-                        <div className=""
+                        <div className="p-4"
                           <Building className="h-3 w-3 mr-1 flex-shrink-0" />
                           <span className="text-sm truncate" title={String(displayText)}>
                             {displayText || '-'}
@@ -376,7 +376,7 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className=""
+                    <div className="p-4"
                       <Badge
                         variant={
                           customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true
@@ -406,14 +406,14 @@ export default function Customers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className=""
+                    <span className="p-4"
                       {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                     </span>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className=""
+                        <Button variant="ghost" size="sm" className="p-4"
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -436,8 +436,8 @@ export default function Customers() {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={8} className=""
-                    <div className=""
+                  <TableCell colSpan={8} className="p-4"
+                    <div className="p-4"
                       <div className="text-lg">"Nenhum cliente encontrado</div>
                       <p className="text-lg">"Adicione seu primeiro cliente para começar.</p>
                     </div>

@@ -63,8 +63,8 @@ export default function CertificateManager() {
     }
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <Shield className="h-8 w-8 text-blue-600" />
         <div>
           <h1 className="text-lg">"Certificados Digitais</h1>
@@ -74,13 +74,13 @@ export default function CertificateManager() {
       {/* Upload de Certificado */}
       <Card>
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Upload className="h-5 w-5" />
             Instalar Novo Certificado
           </CardTitle>
         </CardHeader>
-        <CardContent className=""
-          <div className=""
+        <CardContent className="p-4"
+          <div className="p-4"
             <div>
               <Label htmlFor="cert-name">Nome do Certificado</Label>
               <Input
@@ -101,7 +101,7 @@ export default function CertificateManager() {
               />
             </div>
           </div>
-          <div className=""
+          <div className="p-4"
             <div>
               <Label htmlFor="certificate-file">Arquivo do Certificado (.crt/.pem)</Label>
               <Input
@@ -133,35 +133,35 @@ export default function CertificateManager() {
       {/* Certificados Ativos */}
       <Card>
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Key className="h-5 w-5" />
             Certificados Instalados
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""
-            <div className=""
-              <div className=""
+          <div className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <CheckCircle className="h-5 w-5 text-green-600" />
                 <div>
                   <div className="text-lg">"CLT-Primary-Key-2025</div>
                   <div className="text-lg">"RSA-2048 • Expira: 02/08/2026</div>
                 </div>
               </div>
-              <div className=""
+              <div className="p-4"
                 <span className="text-lg">"Ativo</span>
                 <Button variant="outline" size="sm">Renovar</Button>
               </div>
             </div>
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
                 <div>
                   <div className="text-lg">"Certificado-ICP-Brasil-2024</div>
                   <div className="text-lg">"RSA-2048 • Expira: 31/12/2024</div>
                 </div>
               </div>
-              <div className=""
+              <div className="p-4"
                 <span className="text-lg">"Expirando</span>
                 <Button variant="outline" size="sm">Renovar</Button>
               </div>
@@ -170,13 +170,13 @@ export default function CertificateManager() {
         </CardContent>
       </Card>
       {/* Informações CLT */}
-      <Card className=""
-        <CardContent className=""
-          <div className=""
+      <Card className="p-4"
+        <CardContent className="p-4"
+          <div className="p-4"
             <Shield className="h-6 w-6 text-blue-600 mt-1" />
             <div>
               <h3 className="text-lg">"Compliance CLT</h3>
-              <p className=""
+              <p className="p-4"
                 Os certificados digitais garantem a autenticidade e integridade dos registros de ponto conforme 
                 a Portaria MTE 671/2021. Todos os registros são assinados digitalmente com algoritmo RSA-2048.
               </p>

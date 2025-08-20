@@ -305,13 +305,13 @@ export default function Companies() {
   };
   if (isLoading) {
     return (
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"</div>
-        <div className=""
+        <div className="p-4"
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className=""
-              <CardContent className=""
-                <div className=""
+            <Card key={i} className="p-4"
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div className="text-lg">"</div>
                   <div className="text-lg">"</div>
                   <div className="text-lg">"</div>
@@ -324,34 +324,34 @@ export default function Companies() {
     );
   }
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             Empresas
           </h1>
-          <p className=""
+          <p className="p-4"
             Gerencie empresas e suas informações
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className=""
+            <Button className="p-4"
               <Plus className="w-4 h-4 mr-2" />
               Nova Empresa
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl" aria-describedby="create-company-description>
-            <div id="create-company-description" className=""
+            <div id="create-company-description" className="p-4"
               Formulário para criar uma nova empresa cliente com informações básicas
             </div>
             <DialogHeader>
               <DialogTitle>Criar Nova Empresa</DialogTitle>
             </DialogHeader>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(handleCreateCompany)} className=""
-                <div className=""
+              <form onSubmit={createForm.handleSubmit(handleCreateCompany)} className="p-4"
+                <div className="p-4"
                   <FormField
                     control={createForm.control}
                     name="name"
@@ -392,7 +392,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={createForm.control}
                     name="industry"
@@ -431,7 +431,7 @@ export default function Companies() {
                     )}
                   />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={createForm.control}
                     name="email"
@@ -472,7 +472,7 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={createForm.control}
                     name="subscriptionTier"
@@ -518,7 +518,7 @@ export default function Companies() {
                     )}
                   />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -540,8 +540,8 @@ export default function Companies() {
         </Dialog>
       </div>
       {/* Busca */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder='[TRANSLATION_NEEDED]'
@@ -550,18 +550,18 @@ export default function Companies() {
             className="pl-10"
           />
         </div>
-        <Badge variant="outline" className=""
+        <Badge variant="outline" className="p-4"
           {filteredCompanies.length} empresa{filteredCompanies.length !== 1 ? 's' : ''}
         </Badge>
       </div>
       {/* Lista de empresas */}
-      <div className=""
+      <div className="p-4"
         {filteredCompanies.map((company: Company) => (
-          <Card key={company.id} className=""
-            <CardHeader className=""
-              <div className=""
+          <Card key={company.id} className="p-4"
+            <CardHeader className="p-4"
+              <div className="p-4"
                 
-                <div className=""
+                <div className="p-4"
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       company.status === 'inactive' ? 'bg-gray-100' : 'bg-blue-100'
                     >
@@ -569,8 +569,8 @@ export default function Companies() {
                         company.status === 'inactive' ? 'text-gray-400' : 'text-blue-600'
                       "} />
                     </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <p className={`text-sm font-medium truncate ${
                         company.status === 'inactive' ? 'text-gray-400' : 'text-gray-900'
                       >
@@ -578,12 +578,12 @@ export default function Companies() {
                       </p>
                       {(company.name?.toLowerCase().includes('default') || 
                     company.displayName?.toLowerCase().includes('default')) && (
-                        <Badge variant="outline" className=""
+                        <Badge variant="outline" className="p-4"
                           Padrão
                         </Badge>
                       )}
                       {company.status === 'inactive' && (
-                        <Badge variant="outline" className=""
+                        <Badge variant="outline" className="p-4"
                           Inativa
                         </Badge>
                       )}
@@ -598,47 +598,47 @@ export default function Companies() {
                   </div>
                 </div>
                 
-                <div className=""
+                <div className="p-4"
                   <Badge className={getStatusColor(company.status)}>
                     {company.status === 'active' ? 'Ativo' : 
                      company.status === 'inactive' ? 'Inativo' : 'Suspenso'}
                   </Badge>
                   {(company.name?.toLowerCase().includes('default') || 
                     company.displayName?.toLowerCase().includes('default')) && (
-                    <Badge variant="outline" className=""
+                    <Badge variant="outline" className="p-4"
                       Padrão
                     </Badge>
                   )}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className=""
+            <CardContent className="p-4"
               {company.description && (
-                <p className=""
+                <p className="p-4"
                   {company.description}
                 </p>
               )}
-              <div className=""
+              <div className="p-4"
                 {company.industry && (
-                  <div className=""
+                  <div className="p-4"
                     <Building2 className="w-4 h-4 mr-2" />
                     {company.industry}
                   </div>
                 )}
                 {company.email && (
-                  <div className=""
+                  <div className="p-4"
                     <Mail className="w-4 h-4 mr-2" />
                     {company.email}
                   </div>
                 )}
                 {company.phone && (
-                  <div className=""
+                  <div className="p-4"
                     <Phone className="w-4 h-4 mr-2" />
                     {company.phone}
                   </div>
                 )}
                 {company.website && (
-                  <div className=""
+                  <div className="p-4"
                     <Globe className="w-4 h-4 mr-2" />
                     <a 
                       href={company.website} 
@@ -657,8 +657,8 @@ export default function Companies() {
                 onAssociateCustomers={() => handleOpenAssociateModal(company)}
               />
               {/* Company Footer with Actions */}
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <Calendar className="w-3 h-3 mr-1" />
                   {(() => {
                     // Check multiple possible date fields
@@ -669,7 +669,7 @@ export default function Companies() {
                     return 'Cadastrada recentemente';
                   })()}
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button
                     variant="outline"
                     size="sm"
@@ -778,12 +778,12 @@ export default function Companies() {
         ))}
       </div>
       {filteredCompanies.length === 0 && !isLoading && (
-        <div className=""
+        <div className="p-4"
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className=""
+          <h3 className="p-4"
             Nenhuma empresa encontrada
           </h3>
-          <p className=""
+          <p className="p-4"
             {searchTerm ? 'Tente ajustar sua busca.' : 'Comece criando sua primeira empresa cliente.'}
           </p>
           {!searchTerm && (
@@ -800,15 +800,15 @@ export default function Companies() {
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl" aria-describedby="edit-company-description>
-          <div id="edit-company-description" className=""
+          <div id="edit-company-description" className="p-4"
             Formulário para editar informações da empresa cliente selecionada
           </div>
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleUpdateCompany)} className=""
-              <div className=""
+            <form onSubmit={editForm.handleSubmit(handleUpdateCompany)} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={editForm.control}
                   name="name"
@@ -849,7 +849,7 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <FormField
                   control={editForm.control}
                   name="industry"
@@ -888,7 +888,7 @@ export default function Companies() {
                   )}
                 />
               </div>
-              <div className=""
+              <div className="p-4"
                 <FormField
                   control={editForm.control}
                   name="email"
@@ -929,7 +929,7 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <FormField
                   control={editForm.control}
                   name="subscriptionTier"
@@ -975,7 +975,7 @@ export default function Companies() {
                   )}
                 />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Button 
                   type="button" 
                   variant="outline" 

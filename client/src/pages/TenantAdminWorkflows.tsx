@@ -15,15 +15,15 @@ import { Workflow, Clock, Target, AlertCircle, Plus, Edit, Trash2, PlayCircle, P
 export default function TenantAdminWorkflows() {
   // Localization temporarily disabled
   return (
-    <div className=""
+    <div className="p-4"
         {/* Header */}
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             <div>
-              <h1 className=""
+              <h1 className="p-4"
                 Gestão de Workflows
               </h1>
-              <p className=""
+              <p className="p-4"
                 Configurar workflows automatizados e regras de negócio
               </p>
             </div>
@@ -34,17 +34,17 @@ export default function TenantAdminWorkflows() {
                   Novo Workflow
                 </Button>
               </DialogTrigger>
-              <DialogContent className=""
+              <DialogContent className="p-4"
                 <DialogHeader>
                   <DialogTitle>Criar Novo Workflow</DialogTitle>
                 </DialogHeader>
-                <div className=""
-                  <div className=""
-                    <div className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <Label htmlFor="name">Nome do Workflow</Label>
                       <Input id="name" placeholder="Ex: Escalação Automática" />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="trigger">Gatilho</Label>
                       <Select>
                         <SelectTrigger>
@@ -59,15 +59,15 @@ export default function TenantAdminWorkflows() {
                       </Select>
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="conditions">Condições</Label>
                     <Textarea id="conditions" placeholder="Descreva as condições que ativam este workflow" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="actions">Ações</Label>
                     <Textarea id="actions" placeholder='[TRANSLATION_NEEDED]' />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Switch id="active" />
                     <Label htmlFor="active">Ativo</Label>
                   </div>
@@ -78,63 +78,63 @@ export default function TenantAdminWorkflows() {
           </div>
         </div>
         {/* Workflow Overview */}
-        <div className=""
+        <div className="p-4"
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Workflows Ativos</CardTitle>
               <Workflow className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"12</div>
-              <p className=""
+              <p className="p-4"
                 3 novos este mês
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Execuções Hoje</CardTitle>
               <PlayCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"847</div>
-              <p className=""
+              <p className="p-4"
                 +12% desde ontem
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Taxa de Sucesso</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"98.5%</div>
-              <p className=""
+              <p className="p-4"
                 +0.3% esta semana
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"SLA Compliance</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"94.2%</div>
-              <p className=""
+              <p className="p-4"
                 Meta: 95%
               </p>
             </CardContent>
           </Card>
         </div>
-        <Tabs defaultValue="workflows" className=""
-          <TabsList className=""
+        <Tabs defaultValue="workflows" className="p-4"
+          <TabsList className="p-4"
             <TabsTrigger value="workflows">Workflows</TabsTrigger>
             <TabsTrigger value="slas">SLAs</TabsTrigger>
             <TabsTrigger value="automation">Automação</TabsTrigger>
           </TabsList>
-          <TabsContent value="workflows" className=""
+          <TabsContent value="workflows" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Workflows Configurados</CardTitle>
@@ -199,7 +199,7 @@ export default function TenantAdminWorkflows() {
                         <TableCell>{workflow.successRate}%</TableCell>
                         <TableCell>{workflow.lastRun}</TableCell>
                         <TableCell>
-                          <div className=""
+                          <div className="p-4"
                             <Button variant="ghost" size="sm>
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -209,7 +209,7 @@ export default function TenantAdminWorkflows() {
                                 <PlayCircle className="h-4 w-4" />
                               }
                             </Button>
-                            <Button variant="ghost" size="sm" className=""
+                            <Button variant="ghost" size="sm" className="p-4"
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -221,13 +221,13 @@ export default function TenantAdminWorkflows() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="slas" className=""
+          <TabsContent value="slas" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Níveis de Serviço (SLAs)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {[
                     {
                       priority: 'Crítico',
@@ -262,11 +262,11 @@ export default function TenantAdminWorkflows() {
                       color: 'green'
                     }
                   ].map((sla, index) => (
-                    <div key={index} className=""
-                      <div className=""
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <div>
                           <h3 className="text-lg">"{sla.priority}</h3>
-                          <div className=""
+                          <div className="p-4"
                             Resposta: {sla.responseTime} | Resolução: {sla.resolutionTime}
                           </div>
                         </div>
@@ -274,13 +274,13 @@ export default function TenantAdminWorkflows() {
                           {sla.currentCompliance >= sla.target ? 'Atendido' : 'Abaixo da Meta'}
                         </Badge>
                       </div>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <span>Compliance atual</span>
                           <span className="text-lg">"{sla.currentCompliance}%</span>
                         </div>
                         <Progress value={sla.currentCompliance} className="h-2" />
-                        <div className=""
+                        <div className="p-4"
                           <span>Meta: {sla.target}%</span>
                           <span>{sla.currentCompliance >= sla.target ? 
                             "%": 
@@ -294,13 +294,13 @@ export default function TenantAdminWorkflows() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="automation" className=""
-            <div className=""
+          <TabsContent value="automation" className="p-4"
+            <div className="p-4"
               <Card>
                 <CardHeader>
                   <CardTitle>Regras de Automação</CardTitle>
                 </CardHeader>
-                <CardContent className=""
+                <CardContent className="p-4"
                   {[
                     {
                       name: 'Auto-assign por skill',
@@ -327,13 +327,13 @@ export default function TenantAdminWorkflows() {
                       triggers: 89
                     }
                   ].map((rule, index) => (
-                    <div key={index} className=""
-                      <div className=""
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <div className="text-lg">"{rule.name}</div>
                         <div className="text-lg">"{rule.description}</div>
                         <div className="text-lg">"{rule.triggers} execuções hoje</div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Switch checked={rule.active} />
                         <Button variant="ghost" size="sm>
                           <Edit className="h-4 w-4" />
@@ -347,7 +347,7 @@ export default function TenantAdminWorkflows() {
                 <CardHeader>
                   <CardTitle>Triggers Disponíveis</CardTitle>
                 </CardHeader>
-                <CardContent className=""
+                <CardContent className="p-4"
                   {[
                     { trigger: 'Ticket criado', count: 145, icon: '📝' },
                     { trigger: 'Status alterado', count: 89, icon: '🔄' },
@@ -356,8 +356,8 @@ export default function TenantAdminWorkflows() {
                     { trigger: 'Tempo limite SLA', count: 12, icon: '⏰' },
                     { trigger: 'Atribuição mudou', count: 34, icon: '👤' }
                   ].map((trigger, index) => (
-                    <div key={index} className=""
-                      <div className=""
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <span className="text-lg">"{trigger.icon}</span>
                         <span className="text-lg">"{trigger.trigger}</span>
                       </div>
@@ -372,7 +372,7 @@ export default function TenantAdminWorkflows() {
                 <CardTitle>Histórico de Execuções</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {[
                     {
                       workflow: 'Escalação Automática',
@@ -403,8 +403,8 @@ export default function TenantAdminWorkflows() {
                       action: 'Ticket fechado automaticamente'
                     }
                   ].map((execution, index) => (
-                    <div key={index} className=""
-                      <div className=""
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <div className={`w-2 h-2 rounded-full ${
                           execution.status === 'Sucesso' ? 'bg-green-500' : 'bg-red-500'
                         "} />
@@ -413,7 +413,7 @@ export default function TenantAdminWorkflows() {
                           <div className="text-lg">"{execution.ticket} • {execution.action}</div>
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Badge variant={execution.status === 'Sucesso' ? 'default' : 'destructive'}>
                           {execution.status}
                         </Badge>

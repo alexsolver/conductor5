@@ -167,9 +167,9 @@ const templates: Template[] = [
 // Color Picker Component
 function ColorPicker({ color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
   return (
-    <div className=""
+    <div className="p-4"
       <Label className="text-lg">"{label}</Label>
-      <div className=""
+      <div className="p-4"
         <input
           type="color"
           value={color}
@@ -222,26 +222,26 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className=""
+        <Button variant="outline" size="sm" className="p-4"
           <Brush className="w-4 h-4 mr-2" />
           Personalizar
         </Button>
       </DialogTrigger>
-      <DialogContent className=""
+      <DialogContent className="p-4"
         <DialogHeader>
-          <DialogTitle className=""
+          <DialogTitle className="p-4"
             <Palette className="w-5 h-5" />
             Personalizar Tema: {template.name}
           </DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="colors" className=""
-          <TabsList className=""
+        <Tabs defaultValue="colors" className="p-4"
+          <TabsList className="p-4"
             <TabsTrigger value="colors">Cores Personalizadas</TabsTrigger>
             <TabsTrigger value="presets">Paletas Prontas</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="colors" className=""
+          <TabsContent value="colors" className="p-4"
             <div>
               <Label className="text-lg">"Nome do Tema</Label>
               <Input
@@ -251,8 +251,8 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
               />
             </div>
             
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <h4 className="text-lg">"Editar Cores</h4>
                 <ColorPicker
                   color={customColors.primary}
@@ -276,7 +276,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                 />
               </div>
               
-              <div className=""
+              <div className="p-4"
                 <h4 className="text-lg">"Pré-visualização</h4>
                 <div 
                   className="h-32 rounded-lg relative overflow-hidden"
@@ -285,17 +285,17 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                   }}
                 >
                   <div className="text-lg">"</div>
-                  <div className=""
+                  <div className="p-4"
                     {template.icon}
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     {customName}
                   </div>
                 </div>
                 
-                <div className=""
+                <div className="p-4"
                   <h5 className="text-lg">"Paleta de Cores</h5>
-                  <div className=""
+                  <div className="p-4"
                     <div 
                       className="w-8 h-8 rounded border-2 border-white shadow-md"
                       style={{ backgroundColor: customColors.primary }}
@@ -321,7 +321,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
               </div>
             </div>
             
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" onClick={() => setCustomColors(template.colors)}>
                 Resetar
               </Button>
@@ -331,23 +331,23 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
             </div>
           </TabsContent>
           
-          <TabsContent value="presets" className=""
-            <p className=""
+          <TabsContent value="presets" className="p-4"
+            <p className="p-4"
               Escolha uma paleta de cores pré-definida para aplicar rapidamente ao seu template.
             </p>
             
-            <div className=""
+            <div className="p-4"
               {presetPalettes.map((palette, index) => (
                 <Card 
                   key={index}
                   className="cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => setCustomColors(palette.colors)}
                 >
-                  <CardContent className=""
-                    <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
                       <h5 className="text-lg">"{palette.name}</h5>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div 
                         className="w-6 h-6 rounded border border-gray-300"
                         style={{ backgroundColor: palette.colors.primary }}
@@ -376,7 +376,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
               ))}
             </div>
             
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" onClick={() => setCustomColors(template.colors)}>
                 Resetar para Original
               </Button>
@@ -474,20 +474,20 @@ export function TemplateSelector() {
   // Combine original templates with custom ones
   const allTemplates = [...templates, ...customTemplates];
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         {/* Header */}
-        <div className=""
-          <h1 className=""
+        <div className="p-4"
+          <h1 className="p-4"
             Personalizar Aparência
           </h1>
-          <p className=""
+          <p className="p-4"
             Escolha um dos temas profissionais abaixo para personalizar a aparência do seu sistema. 
             Cada tema inclui esquema de cores, layout e componentes otimizados.
           </p>
         </div>
         {/* Templates Grid */}
-        <div className=""
+        <div className="p-4"
           {allTemplates.map((template) => (
             <Card 
               key={template.id}
@@ -506,36 +506,36 @@ export function TemplateSelector() {
                 style={{ background: template.preview }}
               >
                 <div className="text-lg">"</div>
-                <div className=""
+                <div className="p-4"
                   {template.icon}
                 </div>
-                <div className=""
-                  <Badge variant="secondary" className=""
+                <div className="p-4"
+                  <Badge variant="secondary" className="p-4"
                     {template.style}
                   </Badge>
                 </div>
                 {selectedTemplate === template.id && (
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <Check className="w-8 h-8 text-white" />
                     </div>
                   </div>
                 )}
               </div>
-              <CardHeader className=""
-                <CardTitle className=""
+              <CardHeader className="p-4"
+                <CardTitle className="p-4"
                   {template.name}
                   {hoveredTemplate === template.id && (
                     <Sparkles className="w-5 h-5 text-yellow-500" />
                   )}
                 </CardTitle>
-                <p className=""
+                <p className="p-4"
                   {template.description}
                 </p>
               </CardHeader>
-              <CardContent className=""
+              <CardContent className="p-4"
                 {/* Color Palette */}
-                <div className=""
+                <div className="p-4"
                   <div 
                     className="w-8 h-8 rounded-full border-2 border-white shadow-md"
                     style={{ backgroundColor: template.colors.primary }}
@@ -558,16 +558,16 @@ export function TemplateSelector() {
                   ></div>
                 </div>
                 {/* Features */}
-                <div className=""
+                <div className="p-4"
                   {template.features.map((feature, index) => (
-                    <div key={index} className=""
+                    <div key={index} className="p-4"
                       <div className="text-lg">"</div>
                       {feature}
                     </div>
                   ))}
                 </div>
                 {/* Apply Button */}
-                <div className=""
+                <div className="p-4"
                   <Button 
                     className="flex-1" 
                     variant={selectedTemplate === template.id ? "default" : "outline"
@@ -598,7 +598,7 @@ export function TemplateSelector() {
           ))}
         </div>
         {/* Action Buttons */}
-        <div className=""
+        <div className="p-4"
           <Button 
             size="lg" 
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -624,36 +624,36 @@ export function TemplateSelector() {
         </div>
         {/* Theme Info */}
         {selectedTemplate && (
-          <div className=""
+          <div className="p-4"
             <h3 className="text-lg">"Tema Selecionado</h3>
             {(() => {
               const template = templates.find(t => t.id === selectedTemplate);
               if (!template) return null;
               
               return (
-                <div className=""
+                <div className="p-4"
                   <div>
                     <h4 className="text-lg">"Informações do Tema</h4>
-                    <p className=""
+                    <p className="p-4"
                       {template.description}
                     </p>
-                    <div className=""
+                    <div className="p-4"
                       <div className="text-lg">"<strong>Nome:</strong> {template.name}</div>
                       <div className="text-lg">"<strong>Estilo:</strong> {template.style}</div>
                     </div>
                   </div>
                   <div>
                     <h4 className="text-lg">"Paleta de Cores</h4>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: template.colors.primary }}></div>
                         <span>Primária: {template.colors.primary}</span>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: template.colors.secondary }}></div>
                         <span>Secundária: {template.colors.secondary}</span>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: template.colors.accent }}></div>
                         <span>Destaque: {template.colors.accent}</span>
                       </div>

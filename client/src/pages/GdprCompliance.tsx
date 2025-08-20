@@ -197,12 +197,12 @@ export default function GdprCompliance() {
             Novo Relatório GDPR
           </Button>
         </DialogTrigger>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Criar Relatório GDPR</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className=""
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
               <FormField
                 control={form.control}
                 name="title"
@@ -247,7 +247,7 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <FormField
                   control={form.control}
                   name="priority"
@@ -323,7 +323,7 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button type="submit" disabled={createReportMutation.isPending} data-testid="button-submit-report>
                   {createReportMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
                 </Button>
@@ -347,10 +347,10 @@ export default function GdprCompliance() {
       reportsLastMonth: 0
     };
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <h2 className="text-lg">"Dashboard GDPR Compliance</h2>
-          <div className=""
+          <div className="p-4"
             <Button variant="outline" size="sm" onClick={() => refetchReports()} data-testid="button-refresh>
               <RefreshCw className="w-4 h-4 mr-2" />
               Atualizar
@@ -362,9 +362,9 @@ export default function GdprCompliance() {
           </div>
         </div>
         {/* Metrics Cards */}
-        <div className=""
+        <div className="p-4"
           <Card data-testid="card-total-reports>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Total de Relatórios</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -373,7 +373,7 @@ export default function GdprCompliance() {
             </CardContent>
           </Card>
           <Card data-testid="card-active-reports>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Relatórios Ativos</CardTitle>
               <Activity className="h-4 w-4 text-blue-500" />
             </CardHeader>
@@ -382,7 +382,7 @@ export default function GdprCompliance() {
             </CardContent>
           </Card>
           <Card data-testid="card-overdue-reports>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Relatórios Vencidos</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-500" />
             </CardHeader>
@@ -391,7 +391,7 @@ export default function GdprCompliance() {
             </CardContent>
           </Card>
           <Card data-testid="card-compliance-score>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Score de Compliance</CardTitle>
               <BarChart3 className="h-4 w-4 text-green-500" />
             </CardHeader>
@@ -402,9 +402,9 @@ export default function GdprCompliance() {
           </Card>
         </div>
         {/* Additional metrics */}
-        <div className=""
+        <div className="p-4"
           <Card data-testid="card-high-risk>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Relatórios de Alto Risco</CardTitle>
               <AlertCircle className="h-4 w-4 text-orange-500" />
             </CardHeader>
@@ -414,20 +414,20 @@ export default function GdprCompliance() {
             </CardContent>
           </Card>
           <Card data-testid="card-this-month>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Este Mês</CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"{metrics.reportsThisMonth}</div>
-              <p className=""
+              <p className="p-4"
                 {metrics.reportsThisMonth > metrics.reportsLastMonth ? '+' : ''}
                 {metrics.reportsThisMonth - metrics.reportsLastMonth} vs mês anterior
               </p>
             </CardContent>
           </Card>
           <Card data-testid="card-completed>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Concluídos</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-500" />
             </CardHeader>
@@ -444,14 +444,14 @@ export default function GdprCompliance() {
   const renderReports = () => {
     const reportsData = reports?.data || [];
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <h2 className="text-lg">"Relatórios GDPR</h2>
           <CreateGdprReportDialog />
         </div>
         {/* Filters */}
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             <Input
               placeholder='[TRANSLATION_NEEDED]'
               value={searchTerm}
@@ -475,14 +475,14 @@ export default function GdprCompliance() {
           </Select>
         </div>
         {/* Reports Grid */}
-        <div className=""
+        <div className="p-4"
           {reportsData && Array.isArray(reportsData) && reportsData.length > 0 ? (
             reportsData.map((report: GdprReport) => (
               <Card key={report.id} className="hover:shadow-md transition-shadow" data-testid={"
                 <CardHeader>
-                  <div className=""
-                    <div className=""
-                      <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         <Badge 
                           variant={report.priority === 'high' || report.priority === 'critical' ? 'destructive' : 'default'}
                           className="text-xs"
@@ -500,7 +500,7 @@ export default function GdprCompliance() {
                           {getStatusLabel(report.status)}
                         </Badge>
                         {report.riskLevel && (
-                          <Badge variant="secondary" className=""
+                          <Badge variant="secondary" className="p-4"
                             Risco: {report.riskLevel === 'very_high' ? 'Muito Alto' : 
                                    report.riskLevel === 'high' ? 'Alto' :
                                    report.riskLevel === 'medium' ? 'Médio' :
@@ -509,32 +509,32 @@ export default function GdprCompliance() {
                         )}
                       </div>
                       <CardTitle className="text-lg">"{report.title}</CardTitle>
-                      <CardDescription className=""
+                      <CardDescription className="p-4"
                         {getReportTypeLabel(report.reportType)}
                         {report.description && "
                       </CardDescription>
                     </div>
                     
                     {report.complianceScore && (
-                      <div className=""
+                      <div className="p-4"
                         <div className="text-lg">"Score</div>
                         <div className="text-lg">"{report.complianceScore}%</div>
                       </div>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <Calendar className="h-4 w-4 text-gray-500" />
                       <span className="text-lg">"Criado:</span>
-                      <span className=""
+                      <span className="p-4"
                         {new Date(report.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     
                     {report.dueDate && (
-                      <div className=""
+                      <div className="p-4"
                         <Clock className="h-4 w-4 text-gray-500" />
                         <span className="text-lg">"Vencimento:</span>
                         <span className={`font-medium ${
@@ -546,14 +546,14 @@ export default function GdprCompliance() {
                     )}
                     
                     {report.assignedUserId && (
-                      <div className=""
+                      <div className="p-4"
                         <Users className="h-4 w-4 text-gray-500" />
                         <span className="text-lg">"Responsável:</span>
                         <span className="text-lg">"Atribuído</span>
                       </div>
                     )}
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Button size="sm" variant="outline" data-testid={"
                       <Eye className="w-3 h-3 mr-1" />
                       Ver Detalhes
@@ -578,13 +578,13 @@ export default function GdprCompliance() {
             ))
           ) : (
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <Shield className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className=""
+                  <h3 className="p-4"
                     Nenhum relatório GDPR
                   </h3>
-                  <p className=""
+                  <p className="p-4"
                     Crie relatórios GDPR para gerenciar compliance de dados.
                   </p>
                 </div>
@@ -596,18 +596,18 @@ export default function GdprCompliance() {
     );
   };
   return (
-    <div className=""
-      <div className=""
-        <div className=""
-          <h1 className=""
+    <div className="p-4"
+      <div className="p-4"
+        <div className="p-4"
+          <h1 className="p-4"
             GDPR Compliance
           </h1>
-          <p className=""
+          <p className="p-4"
             Sistema completo de gestão de compliance GDPR e proteção de dados
           </p>
         </div>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className=""
-          <TabsList className=""
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+          <TabsList className="p-4"
             <TabsTrigger value="dashboard" data-testid="tab-dashboard>
               <BarChart3 className="w-4 h-4 mr-2" />
               Dashboard
@@ -625,13 +625,13 @@ export default function GdprCompliance() {
               Auditoria
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="dashboard" className=""
+          <TabsContent value="dashboard" className="p-4"
             {renderDashboard()}
           </TabsContent>
-          <TabsContent value="reports" className=""
+          <TabsContent value="reports" className="p-4"
             {renderReports()}
           </TabsContent>
-          <TabsContent value="templates" className=""
+          <TabsContent value="templates" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Templates GDPR</CardTitle>
@@ -640,13 +640,13 @@ export default function GdprCompliance() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className=""
+                <p className="p-4"
                   Funcionalidade em desenvolvimento - Templates para DPIA, relatórios de violação, etc.
                 </p>
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="audit" className=""
+          <TabsContent value="audit" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Trilha de Auditoria</CardTitle>
@@ -655,7 +655,7 @@ export default function GdprCompliance() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className=""
+                <p className="p-4"
                   Funcionalidade em desenvolvimento - Logs de auditoria e rastreamento de mudanças
                 </p>
               </CardContent>

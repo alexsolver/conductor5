@@ -189,23 +189,23 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
 ];
 // ✅ 1QA.MD COMPLIANCE: Zendesk-style navigation breadcrumbs
 const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
-  <div className=""
+  <div className="p-4"
     <Home className="w-4 h-4" />
     <span>Home</span>
     <ChevronRight className="w-4 h-4" />
     <span>Analytics</span>
     <ChevronRight className="w-4 h-4" />
-    <span className=""
+    <span className="p-4"
       {currentView === "templates" ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
     </span>
   </div>
 );
 // ✅ 1QA.MD COMPLIANCE: Zendesk-style template showcase
 const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (template: any) => void }) => (
-  <div className=""
+  <div className="p-4"
     {/* Featured Templates */}
     <div>
-      <div className=""
+      <div className="p-4"
         <div>
           <h2 className="text-lg">"Featured Templates</h2>
           <p className="text-lg">"Get started quickly with our most popular dashboards</p>
@@ -216,36 +216,36 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
         </Button>
       </div>
       
-      <div className=""
+      <div className="p-4"
         {ZENDESK_DASHBOARD_TEMPLATES.filter(t => t.featured).map((template) => (
           <Card 
             key={template.id}
             className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-blue-200"
             onClick={() => onSelectTemplate(template)}
           >
-            <CardHeader className=""
-              <div className=""
+            <CardHeader className="p-4"
+              <div className="p-4"
                 <div className={"p-3 rounded-lg " + template.color + " text-white>
                   <template.icon className="w-6 h-6" />
                 </div>
-                <Badge variant="secondary" className=""
+                <Badge variant="secondary" className="p-4"
                   {template.popularity}
                 </Badge>
               </div>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 {template.name}
               </CardTitle>
-              <p className=""
+              <p className="p-4"
                 {template.description}
               </p>
             </CardHeader>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <span>{template.widgets} widgets</span>
                 <span>{template.estimatedTime}</span>
               </div>
-              <div className=""
-                <Button size="sm" className=""
+              <div className="p-4"
+                <Button size="sm" className="p-4"
                   <PlayCircle className="w-4 h-4 mr-2" />
                   Use Template
                 </Button>
@@ -261,13 +261,13 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
     {/* Categories */}
     <div>
       <h3 className="text-lg">"Browse by Category</h3>
-      <div className=""
+      <div className="p-4"
         {["Support", "Performance", '[TRANSLATION_NEEDED]', "Compliance"].map((category) => (
-          <Card key={category} className=""
-            <CardContent className=""
+          <Card key={category} className="p-4"
+            <CardContent className="p-4"
               <Folder className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <h4 className="text-lg">"{category}</h4>
-              <p className=""
+              <p className="p-4"
                 {ZENDESK_DASHBOARD_TEMPLATES.filter(t => t.category === category).length} templates
               </p>
             </CardContent>
@@ -421,20 +421,20 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     }
   };
   return (
-    <Card className=""
-      <CardHeader className=""
-        <div className=""
-          <div className=""
+    <Card className="p-4"
+      <CardHeader className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             {/* Status & Type Icons */}
-            <div className=""
+            <div className="p-4"
               {getStatusIcon()}
-              <div className=""
+              <div className="p-4"
                 <Grid className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
             
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <CardTitle 
                   className="text-lg group-hover:text-blue-600 transition-colors truncate cursor-pointer"
                   onClick={handleOpenDashboard}
@@ -450,23 +450,23 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
               </div>
               
               {dashboard.description && (
-                <p className=""
+                <p className="p-4"
                   {dashboard.description}
                 </p>
               )}
               
               {/* Owner & Collaborators */}
-              <div className=""
+              <div className="p-4"
                 {dashboard.owner && (
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       {dashboard.owner.name.charAt(0)}
                     </div>
                     <span className="text-lg">"{dashboard.owner.name}</span>
                   </div>
                 )}
                 {dashboard.collaborators && dashboard.collaborators.length > 0 && (
-                  <span className=""
+                  <span className="p-4"
                     +{dashboard.collaborators.length} collaborators
                   </span>
                 )}
@@ -474,14 +474,14 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
               
               {/* Tags */}
               {dashboard.tags && dashboard.tags.length > 0 && (
-                <div className=""
+                <div className="p-4"
                   {dashboard.tags.slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="secondary" className=""
+                    <Badge key={tag} variant="secondary" className="p-4"
                       {tag}
                     </Badge>
                   ))}
                   {dashboard.tags.length > 3 && (
-                    <Badge variant="secondary" className=""
+                    <Badge variant="secondary" className="p-4"
                       +{dashboard.tags.length - 3}
                     </Badge>
                   )}
@@ -489,7 +489,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
               )}
               
               {/* Status Badges */}
-              <div className=""
+              <div className="p-4"
                 <Badge 
                   variant={dashboard.status === "active" ? "default" : "secondary"
                   className="text-xs"
@@ -497,7 +497,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
                   {dashboard.status}
                 </Badge>
                 {dashboard.isRealTime && (
-                  <Badge variant="outline" className=""
+                  <Badge variant="outline" className="p-4"
                     <RefreshCw className="w-3 h-3 mr-1" />
                     Live
                   </Badge>
@@ -515,11 +515,11 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
           {/* Actions Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className=""
+              <Button variant="ghost" size="sm" className="p-4"
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className=""
+            <DropdownMenuContent align="end" className="p-4"
               <DropdownMenuItem onClick={handleOpenDashboard}>
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Open Dashboard
@@ -563,19 +563,19 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
         </div>
       </CardHeader>
       
-      <CardContent className=""
+      <CardContent className="p-4"
         {/* Metrics Row */}
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             <div className="text-lg">"{dashboard.widgetCount}</div>
             <div className="text-lg">"Widgets</div>
           </div>
-          <div className=""
+          <div className="p-4"
             <div className="text-lg">"{dashboard.viewCount}</div>
             <div className="text-lg">"Views</div>
           </div>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               {dashboard.refreshInterval}s
             </div>
             <div className="text-lg">"Refresh</div>
@@ -583,12 +583,12 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
         </div>
         {/* Insights */}
         {dashboard.insights && (
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <span className="text-lg">"Dashboard Insights</span>
               <TrendingUp className="w-4 h-4 text-green-500" />
             </div>
-            <div className=""
+            <div className="p-4"
               <div>
                 <span className="text-lg">"Performance: </span>
                 <span className="text-lg">"{dashboard.insights.performance}%</span>
@@ -601,9 +601,9 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
           </div>
         )}
         {/* Action Buttons */}
-        <div className=""
-          <div className=""
-            <Button size="sm" onClick={handleOpenDashboard} className=""
+        <div className="p-4"
+          <div className="p-4"
+            <Button size="sm" onClick={handleOpenDashboard} className="p-4"
               <ArrowUpRight className="w-3 h-3 mr-1" />
               Open
             </Button>
@@ -613,7 +613,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
             </Button>
           </div>
           
-          <div className=""
+          <div className="p-4"
             <Button
               variant="ghost"
               size="sm"
@@ -627,7 +627,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
                 <Star className="w-4 h-4 text-gray-400" />
               )}
             </Button>
-            <span className=""
+            <span className="p-4"
               {dashboard.lastViewedAt ? 
                 "Updated " + new Date(dashboard.lastViewedAt).toLocaleDateString() + "" : 
                 'Never viewed'
@@ -774,17 +774,17 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
           Create Dashboard
         </Button>
       </DialogTrigger>
-      <DialogContent className=""
+      <DialogContent className="p-4"
         <DialogHeader>
-          <DialogTitle className=""
+          <DialogTitle className="p-4"
             <BarChart3 className="w-5 h-5 text-blue-600" />
             <span>Create New Dashboard</span>
           </DialogTitle>
         </DialogHeader>
         {/* Zendesk-style Step Progress */}
-        <div className=""
+        <div className="p-4"
           {steps.map((step, index) => (
-            <div key={index} className=""
+            <div key={index} className="p-4"
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                 index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
               }Enter dashboard title>
@@ -804,17 +804,17 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
           ))}
         </div>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className=""
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
             
             {/* Step 0: Template Selection */}
             {currentStep === 0 && (
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <h3 className="text-lg">"Choose a Template</h3>
                   <p className="text-lg">"Start with a pre-built template or create from scratch</p>
                 </div>
                 
-                <div className=""
+                <div className="p-4"
                   {/* Blank Template */}
                   <Card 
                     className={`cursor-pointer transition-all ${
@@ -822,8 +822,8 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                     }Enter dashboard title"
                     onClick={() => setSelectedTemplate({ id: "blank", name: "Blank Dashboard" })}
                   >
-                    <CardContent className=""
-                      <div className=""
+                    <CardContent className="p-4"
+                      <div className="p-4"
                         <Plus className="w-6 h-6 text-gray-500" />
                       </div>
                       <h4 className="text-lg">"Blank Dashboard</h4>
@@ -840,15 +840,15 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       }Enter dashboard title"
                       onClick={() => setSelectedTemplate(template)}
                     >
-                      <CardContent className=""
-                        <div className=""
+                      <CardContent className="p-4"
+                        <div className="p-4"
                           <div className={"p-2 rounded-lg " + template.color + " text-white flex-shrink-0>
                             <template.icon className="w-5 h-5" />
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <h4 className="text-lg">"{template.name}</h4>
                             <p className="text-lg">"{template.description}</p>
-                            <div className=""
+                            <div className="p-4"
                               <span>{template.widgets} widgets</span>
                               <Badge variant="secondary" className="text-lg">"{template.popularity}</Badge>
                             </div>
@@ -862,7 +862,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             )}
             {/* Step 1: Basic Info */}
             {currentStep === 1 && (
-              <div className=""
+              <div className="p-4"
                 <FormField
                   control={form.control}
                   name="name"
@@ -917,9 +917,9 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             )}
             {/* Step 2: Configuration */}
             {currentStep === 2 && (
-              <div className=""
-                <div className=""
-                  <div className=""
+              <div className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <h4 className="text-lg">"Layout & Appearance</h4>
                     
                     <FormField
@@ -948,10 +948,10 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       control={form.control}
                       name="isPublic"
                       render={({ field }) => (
-                        <FormItem className=""
-                          <div className=""
+                        <FormItem className="p-4"
+                          <div className="p-4"
                             <FormLabel>Public Dashboard</FormLabel>
-                            <div className=""
+                            <div className="p-4"
                               Allow public access via shareable link
                             </div>
                           </div>
@@ -965,17 +965,17 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       )}
                     />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <h4 className="text-lg">"Real-time Settings</h4>
                     
                     <FormField
                       control={form.control}
                       name="isRealTime"
                       render={({ field }) => (
-                        <FormItem className=""
-                          <div className=""
+                        <FormItem className="p-4"
+                          <div className="p-4"
                             <FormLabel>Real-time Updates</FormLabel>
-                            <div className=""
+                            <div className="p-4"
                               Enable automatic data refresh
                             </div>
                           </div>
@@ -996,7 +996,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                           <FormItem>
                             <FormLabel>Refresh Interval (seconds)</FormLabel>
                             <FormControl>
-                              <div className=""
+                              <div className="p-4"
                                 <Slider
                                   value={[field.value]}
                                   onValueChange={([value]) => field.onChange(value)}
@@ -1004,7 +1004,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                                   max={300}
                                   step={5}
                                 />
-                                <div className=""
+                                <div className="p-4"
                                   Every {field.value} seconds
                                 </div>
                               </div>
@@ -1018,7 +1018,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
               </div>
             )}
             {/* Navigation Buttons */}
-            <div className=""
+            <div className="p-4"
               <Button
                 type="button"
                 variant="outline"
@@ -1153,24 +1153,24 @@ export default function Dashboards() {
     refetch();
   };
   return (
-    <div className=""
+    <div className="p-4"
       {/* ✅ 1QA.MD COMPLIANCE: Zendesk-style header */}
-      <div className=""
-        <div className=""
-          <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <ZendeskBreadcrumbs currentView={activeView} />
             
-            <div className=""
+            <div className="p-4"
               <div>
-                <h1 className=""
+                <h1 className="p-4"
                   <BarChart3 className="w-8 h-8 text-blue-600" />
                   <span>Dashboards</span>
                 </h1>
-                <p className=""
+                <p className="p-4"
                   Create and manage interactive dashboards with real-time insights
                 </p>
               </div>
-              <div className=""
+              <div className="p-4"
                 <Button variant="outline" onClick={() => setActiveView("templates")}>
                   <BookOpen className="w-4 h-4 mr-2" />
                   Browse Templates
@@ -1189,35 +1189,35 @@ export default function Dashboards() {
           </div>
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         {/* ✅ 1QA.MD COMPLIANCE: Zendesk-style navigation tabs */}
-        <Tabs value={activeView} onValueChange={setActiveView} className=""
-          <TabsList className=""
-            <TabsTrigger value="dashboards" className=""
+        <Tabs value={activeView} onValueChange={setActiveView} className="p-4"
+          <TabsList className="p-4"
+            <TabsTrigger value="dashboards" className="p-4"
               <Grid className="w-4 h-4" />
               <span>My Dashboards</span>
             </TabsTrigger>
-            <TabsTrigger value="templates" className=""
+            <TabsTrigger value="templates" className="p-4"
               <BookOpen className="w-4 h-4" />
               <span>Templates</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className=""
+            <TabsTrigger value="insights" className="p-4"
               <TrendingUp className="w-4 h-4" />
               <span>Insights</span>
             </TabsTrigger>
           </TabsList>
           {/* Templates View */}
-          <TabsContent value="templates" className=""
+          <TabsContent value="templates" className="p-4"
             <ZendeskTemplateShowcase onSelectTemplate={(template) => {
               console.log('[TRANSLATION_NEEDED]', template);
             }} />
           </TabsContent>
           {/* Insights View */}
-          <TabsContent value="insights" className=""
-            <div className=""
+          <TabsContent value="insights" className="p-4"
+            <div className="p-4"
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <div>
                       <p className="text-lg">"Total Dashboards</p>
                       <p className="text-lg">"{dashboards.length}</p>
@@ -1229,11 +1229,11 @@ export default function Dashboards() {
               </Card>
               
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <div>
                       <p className="text-lg">"Active Dashboards</p>
-                      <p className=""
+                      <p className="p-4"
                         {dashboards.filter(d => d.status === "active").length}
                       </p>
                       <p className="text-lg">"Live data</p>
@@ -1244,11 +1244,11 @@ export default function Dashboards() {
               </Card>
               
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <div>
                       <p className="text-lg">"Total Views</p>
-                      <p className=""
+                      <p className="p-4"
                         {dashboards.reduce((acc: number, d: Dashboard) => acc + d.viewCount, 0)}
                       </p>
                       <p className="text-lg">"From API</p>
@@ -1259,11 +1259,11 @@ export default function Dashboards() {
               </Card>
               
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <div>
                       <p className="text-lg">"Avg. Performance</p>
-                      <p className=""
+                      <p className="p-4"
                         {dashboards.length > 0 ? 
                           Math.round(dashboards.reduce((acc, d) => acc + (d.insights?.performance || 0), 0) / dashboards.length) 
                           : 0}%
@@ -1281,14 +1281,14 @@ export default function Dashboards() {
                 <CardTitle>Dashboard Performance Insights</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {dashboards.slice(0, 5).map((dashboard: Dashboard) => (
-                    <div key={dashboard.id} className=""
-                      <div className=""
+                    <div key={dashboard.id} className="p-4"
+                      <div className="p-4"
                         <div className="text-lg">"</div>
                         <span className="text-lg">"{dashboard.name}</span>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <span>{dashboard.viewCount} views</span>
                         <span>{dashboard.insights?.performance || 'N/A'}% performance</span>
                         <Badge variant="outline">{dashboard.status}</Badge>
@@ -1296,7 +1296,7 @@ export default function Dashboards() {
                     </div>
                   ))}
                   {dashboards.length === 0 && (
-                    <div className=""
+                    <div className="p-4"
                       No dashboards available. Create your first dashboard to see insights.
                     </div>
                   )}
@@ -1305,12 +1305,12 @@ export default function Dashboards() {
             </Card>
           </TabsContent>
           {/* Dashboards View */}
-          <TabsContent value="dashboards" className=""
+          <TabsContent value="dashboards" className="p-4"
             {/* ✅ 1QA.MD COMPLIANCE: FIXED Working filters and search */}
-            <div className=""
-              <div className=""
-                <div className=""
-                  <div className=""
+            <div className="p-4"
+              <div className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
                       placeholder={"Enter
@@ -1320,9 +1320,9 @@ export default function Dashboards() {
                     />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Select value={layoutFilter} onValueChange={setLayoutFilter}>
-                    <SelectTrigger className=""
+                    <SelectTrigger className="p-4"
                       <Filter className="w-4 h-4 mr-2" />
                       <SelectValue placeholder="Layout" />
                     </SelectTrigger>
@@ -1336,7 +1336,7 @@ export default function Dashboards() {
                   </Select>
                   
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className=""
+                    <SelectTrigger className="p-4"
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1347,7 +1347,7 @@ export default function Dashboards() {
                     </SelectContent>
                   </Select>
                   
-                  <div className=""
+                  <div className="p-4"
                     <Button 
                       variant={viewMode === "grid" ? "default" : "ghost"} 
                       size="sm"
@@ -1367,7 +1367,7 @@ export default function Dashboards() {
               </div>
               {/* ✅ 1QA.MD COMPLIANCE: FIXED Working filter tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className=""
+                <TabsList className="p-4"
                   <TabsTrigger value="all">All ({dashboards.length})</TabsTrigger>
                   <TabsTrigger value="favorites>
                     Favorites ({dashboards.filter(d => d.isFavorite).length})
@@ -1382,20 +1382,20 @@ export default function Dashboards() {
                     Live ({dashboards.filter(d => d.isRealTime).length})
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value={activeTab} className=""
+                <TabsContent value={activeTab} className="p-4"
                   {isLoading ? (
-                    <div className=""
+                    <div className="p-4"
                       {[...Array(6)].map((_, i) => (
                         <div key={i} className="h-80 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
                       ))}
                     </div>
                   ) : error ? (
-                    <div className=""
+                    <div className="p-4"
                       <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                      <h3 className=""
+                      <h3 className="p-4"
                         Error loading dashboards
                       </h3>
-                      <p className=""
+                      <p className="p-4"
                         {error instanceof Error ? error.message : "Failed to load dashboards"
                       </p>
                       <Button onClick={handleRefresh}>
@@ -1417,19 +1417,19 @@ export default function Dashboards() {
                       ))}
                     </div>
                   ) : (
-                    <div className=""
+                    <div className="p-4"
                       <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className=""
+                      <h3 className="p-4"
                         No dashboards found
                       </h3>
-                      <p className=""
+                      <p className="p-4"
                         {searchTerm || layoutFilter !== "all" || activeTab !== "all"
                           ? "Try adjusting your search criteria"
                           : "Get started by creating your first dashboard"
                         }
                       </p>
                       {(!searchTerm && layoutFilter === "all" && activeTab === "all") && (
-                        <div className=""
+                        <div className="p-4"
                           <ZendeskCreateDashboardDialog onSuccess={handleRefresh} />
                           <Button variant="outline" onClick={() => setActiveView("templates")}>
                             Browse Templates

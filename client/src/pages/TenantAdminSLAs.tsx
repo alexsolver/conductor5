@@ -238,53 +238,53 @@ export default function TenantAdminSLAs() {
   // RENDER COMPONENTS
   // ======================================
   const renderOverviewTab = () => (
-    <div className=""
+    <div className="p-4"
       {/* Metrics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de SLAs</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics?.totalSlas || 0}</div>
-            <p className=""
+            <p className="p-4"
               {metrics?.activeSlas || 0} ativos
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Taxa de Compliance</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics?.complianceRate || 0}%</div>
-            <p className=""
+            <p className="p-4"
               Últimos 30 dias
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Tempo de Resposta</CardTitle>
             <Timer className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics?.avgResponseTime || 0}h</div>
-            <p className=""
+            <p className="p-4"
               Média mensal
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Escalações</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics?.escalationCount || 0}</div>
-            <p className=""
+            <p className="p-4"
               Este mês
             </p>
           </CardContent>
@@ -293,7 +293,7 @@ export default function TenantAdminSLAs() {
       {/* SLA List */}
       <Card>
         <CardHeader>
-          <div className=""
+          <div className="p-4"
             <div>
               <CardTitle>SLAs Configurados</CardTitle>
               <CardDescription>
@@ -308,15 +308,15 @@ export default function TenantAdminSLAs() {
         </CardHeader>
         <CardContent>
           {isLoadingSlas ? (
-            <div className=""
+            <div className="p-4"
               <div className="text-lg">"</div>
             </div>
           ) : (
-            <div className=""
+            <div className="p-4"
               {slas.map((sla: TicketSLA) => (
-                <div key={sla.id} className=""
-                  <div className=""
-                    <div className=""
+                <div key={sla.id} className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <h3 className="text-lg">"{sla.name}</h3>
                       <Badge className={getSlaLevelColor(sla.slaLevel)}>
                         {sla.slaLevel}
@@ -328,7 +328,7 @@ export default function TenantAdminSLAs() {
                     {sla.description && (
                       <p className="text-lg">"{sla.description}</p>
                     )}
-                    <div className=""
+                    <div className="p-4"
                       {sla.metadata?.priority && (
                         <span>Prioridades: {sla.metadata.priority.join(', ')}</span>
                       )}
@@ -337,7 +337,7 @@ export default function TenantAdminSLAs() {
                       )}
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Button
                       variant="outline"
                       size="sm"
@@ -371,7 +371,7 @@ export default function TenantAdminSLAs() {
   const renderRulesTab = () => (
     <Card>
       <CardHeader>
-        <div className=""
+        <div className="p-4"
           <div>
             <CardTitle>Regras de SLA</CardTitle>
             <CardDescription>
@@ -385,7 +385,7 @@ export default function TenantAdminSLAs() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className=""
+        <div className="p-4"
           Selecione um SLA na aba "Visão Geral" para gerenciar suas regras
         </div>
       </CardContent>
@@ -394,7 +394,7 @@ export default function TenantAdminSLAs() {
   const renderStatusTimeoutsTab = () => (
     <Card>
       <CardHeader>
-        <div className=""
+        <div className="p-4"
           <div>
             <CardTitle>Timeouts por Status</CardTitle>
             <CardDescription>
@@ -408,7 +408,7 @@ export default function TenantAdminSLAs() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className=""
+        <div className="p-4"
           Configure timeouts baseados nos status dos metadados de tickets
         </div>
       </CardContent>
@@ -423,37 +423,37 @@ export default function TenantAdminSLAs() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className=""
+        <div className="p-4"
           Nenhuma escalação registrada
         </div>
       </CardContent>
     </Card>
   );
   const renderMetricsTab = () => (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <Card>
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <BarChart3 className="h-5 w-5" />
               Performance por SLA
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               Gráfico de performance será exibido aqui
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <TrendingUp className="h-5 w-5" />
               Tendências de Compliance
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               Gráfico de tendências será exibido aqui
             </div>
           </CardContent>
@@ -462,34 +462,34 @@ export default function TenantAdminSLAs() {
     </div>
   );
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Sistema de SLA</h1>
-          <p className=""
+          <p className="p-4"
             Gerencie acordos de nível de serviço integrados aos metadados de tickets
           </p>
         </div>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
-        <TabsList className=""
-          <TabsTrigger value="overview" className=""
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+        <TabsList className="p-4"
+          <TabsTrigger value="overview" className="p-4"
             <Activity className="h-4 w-4" />
             Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="rules" className=""
+          <TabsTrigger value="rules" className="p-4"
             <Settings className="h-4 w-4" />
             Regras
           </TabsTrigger>
-          <TabsTrigger value="timeouts" className=""
+          <TabsTrigger value="timeouts" className="p-4"
             <Clock className="h-4 w-4" />
             Timeouts
           </TabsTrigger>
-          <TabsTrigger value="escalations" className=""
+          <TabsTrigger value="escalations" className="p-4"
             <Flag className="h-4 w-4" />
             Escalações
           </TabsTrigger>
-          <TabsTrigger value="metrics" className=""
+          <TabsTrigger value="metrics" className="p-4"
             <BarChart3 className="h-4 w-4" />
             Métricas
           </TabsTrigger>
@@ -502,13 +502,13 @@ export default function TenantAdminSLAs() {
       </Tabs>
       {/* Create SLA Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Criar Novo SLA</DialogTitle>
           </DialogHeader>
           <Form {...slaForm}>
-            <form onSubmit={slaForm.handleSubmit(handleCreateSla)} className=""
-              <div className=""
+            <form onSubmit={slaForm.handleSubmit(handleCreateSla)} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={slaForm.control}
                   name="name"
@@ -563,10 +563,10 @@ export default function TenantAdminSLAs() {
                 control={slaForm.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className=""
-                    <div className=""
+                  <FormItem className="p-4"
+                    <div className="p-4"
                       <FormLabel>SLA Ativo</FormLabel>
-                      <div className=""
+                      <div className="p-4"
                         Ativar este SLA para aplicação automática
                       </div>
                     </div>
@@ -579,7 +579,7 @@ export default function TenantAdminSLAs() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button
                   type="button"
                   variant="outline"

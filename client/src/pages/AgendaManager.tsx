@@ -325,27 +325,27 @@ const AgendaManager: React.FC = () => {
   }, [schedules, internalActions]);
   const isLoading = schedulesLoading || activityTypesLoading || agentsLoading || internalActionsLoading;
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
       <Card>
-        <CardHeader className=""
-          <div className=""
+        <CardHeader className="p-4"
+          <div className="p-4"
             <div>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 Agenda
               </CardTitle>
-              <p className=""
+              <p className="p-4"
                 {view === 'timeline' ? 'Linha do Tempo' : 'Agenda 14 Dias'} - {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
               </p>
             </div>
           </div>
           {/* Filters Row */}
-          <div className=""
+          <div className="p-4"
             {/* Client Filter */}
             <div>
               <label className="text-lg">"Cliente</label>
               <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -365,7 +365,7 @@ const AgendaManager: React.FC = () => {
             <div>
               <label className="text-lg">"Grupo</label>
               <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -382,7 +382,7 @@ const AgendaManager: React.FC = () => {
             <div>
               <label className="text-lg">"Técnicos</label>
               <Select value={selectedAgents} onValueChange={setSelectedAgents}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -412,8 +412,8 @@ const AgendaManager: React.FC = () => {
             {/* Actions - removed bulk edit, generate and publish buttons */}
           </div>
           {/* Date Navigation and View Toggles */}
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <Button
                 variant="outline"
                 size="sm"
@@ -423,7 +423,7 @@ const AgendaManager: React.FC = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               
-              <span className=""
+              <span className="p-4"
                 {view === 'agenda' 
                   ? ")"
                   : format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
@@ -439,7 +439,7 @@ const AgendaManager: React.FC = () => {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <div className=""
+            <div className="p-4"
               <Button
                 variant={view === 'timeline' ? 'default' : 'outline'}
                 size="sm"
@@ -459,7 +459,7 @@ const AgendaManager: React.FC = () => {
         </CardHeader>
       </Card>
       {/* Main Layout */}
-      <div className=""
+      <div className="p-4"
         {view === 'timeline' ? (
           <TimelineScheduleGrid
             schedules={combinedAgendaItems as Schedule[]}

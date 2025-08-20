@@ -247,14 +247,14 @@ export default function ComplianceManagement() {
     return 'text-red-600';
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Gestão de Compliance</h1>
           <p className="text-lg">"Sistema completo de auditorias, certificações e evidências</p>
         </div>
         
-        <div className=""
+        <div className="p-4"
           <Dialog open={isCreateAuditOpen} onOpenChange={setIsCreateAuditOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -262,7 +262,7 @@ export default function ComplianceManagement() {
                 Nova Auditoria
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Criar Nova Auditoria</DialogTitle>
                 <DialogDescription>
@@ -280,13 +280,13 @@ export default function ComplianceManagement() {
                   scope: formData.get('scope'),
                   objectives: formData.get('objectives')
                 });
-              }} className=""
-                <div className=""
-                  <div className=""
+              }} className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="title">Título da Auditoria *</Label>
                     <Input name="title" required placeholder="Ex: Auditoria ISO 9001:2015" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="type">Tipo</Label>
                     <Select name="type" required>
                       <SelectTrigger>
@@ -301,25 +301,25 @@ export default function ComplianceManagement() {
                   </div>
                 </div>
                 
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="auditor">Auditor Responsável *</Label>
                     <Input name="auditor" required placeholder="Nome do auditor" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="scheduledDate">Data Agendada</Label>
                     <Input name="scheduledDate" type="date" />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="scope">Escopo</Label>
                   <Input name="scope" placeholder="Ex: Processos produtivos e qualidade" />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="objectives">Objetivos</Label>
                   <Textarea name="objectives" placeholder="Descreva os objetivos da auditoria..." />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsCreateAuditOpen(false)}>
                     Cancelar
                   </Button>
@@ -355,36 +355,36 @@ export default function ComplianceManagement() {
                   issueDate: formData.get('issueDate'),
                   expirationDate: formData.get('expirationDate')
                 });
-              }} className=""
-                <div className=""
+              }} className="p-4"
+                <div className="p-4"
                   <Label htmlFor="name">Nome da Certificação *</Label>
                   <Input name="name" required placeholder="Ex: ISO 9001:2015" />
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="standard">Norma/Padrão</Label>
                     <Input name="standard" placeholder="Ex: ISO 9001:2015" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="certifyingBody">Órgão Certificador</Label>
                     <Input name="certifyingBody" placeholder="Ex: ABNT" />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="scope">Escopo</Label>
                   <Textarea name="scope" placeholder="Descreva o escopo da certificação..." />
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="issueDate">Data de Emissão</Label>
                     <Input name="issueDate" type="date" required />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="expirationDate">Data de Vencimento</Label>
                     <Input name="expirationDate" type="date" />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsCreateCertOpen(false)}>
                     Cancelar
                   </Button>
@@ -406,9 +406,9 @@ export default function ComplianceManagement() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Score Geral</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -416,62 +416,62 @@ export default function ComplianceManagement() {
             <div className="text-lg">"
               {stats?.overallScore || 0}
             </div>
-            <p className=""
+            <p className="p-4"
               {stats?.complianceLevel || 'N/A'}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Auditorias</CardTitle>
             <FileSearch className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.audits?.total || 0}</div>
-            <p className=""
+            <p className="p-4"
               {stats?.audits?.completed || 0} concluídas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Certificações</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.certifications?.total || 0}</div>
-            <p className=""
+            <p className="p-4"
               {stats?.certifications?.active || 0} ativas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Alertas Ativos</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.alerts?.active || 0}</div>
-            <p className=""
+            <p className="p-4"
               {stats?.alerts?.critical || 0} críticos
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Vencendo</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.certifications?.expiring || 0}</div>
-            <p className=""
+            <p className="p-4"
               próximos 30 dias
             </p>
           </CardContent>
         </Card>
       </div>
       {/* Main Content Tabs */}
-      <Tabs defaultValue="audits" className=""
+      <Tabs defaultValue="audits" className="p-4"
         <TabsList>
           <TabsTrigger value="audits">Auditorias</TabsTrigger>
           <TabsTrigger value="certifications">Certificações</TabsTrigger>
@@ -479,42 +479,42 @@ export default function ComplianceManagement() {
           <TabsTrigger value="scores">Scores</TabsTrigger>
           <TabsTrigger value="evidence">Evidências</TabsTrigger>
         </TabsList>
-        <TabsContent value="audits" className=""
-          <div className=""
+        <TabsContent value="audits" className="p-4"
+          <div className="p-4"
             {auditsLoading ? (
               <div className="text-lg">"Carregando auditorias...</div>
             ) : audits.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhuma auditoria encontrada
               </div>
             ) : (
               audits.map((audit) => (
                 <Card key={audit.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"{audit.title}</h3>
                           {getStatusBadge(audit.status, 'audit')}
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Tipo: {audit.type} | Auditor: {audit.auditor}
                         </p>
                         {audit.scheduledDate && (
-                          <div className=""
+                          <div className="p-4"
                             <Calendar className="w-4 h-4" />
                             {new Date(audit.scheduledDate).toLocaleDateString('pt-BR')}
                           </div>
                         )}
                         {audit.score && (
-                          <div className=""
+                          <div className="p-4"
                             <Star className="w-4 h-4" />
                             Score: {audit.score}
                           </div>
                         )}
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         <Button variant="outline" size="sm>
                           <Eye className="w-4 h-4 mr-1" />
                           Visualizar
@@ -527,26 +527,26 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="certifications" className=""
-          <div className=""
+        <TabsContent value="certifications" className="p-4"
+          <div className="p-4"
             {certifications.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhuma certificação encontrada
               </div>
             ) : (
               certifications.map((cert) => (
                 <Card key={cert.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"{cert.name}</h3>
                           {getStatusBadge(cert.status, 'cert')}
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Padrão: {cert.standard} | Órgão: {cert.certifyingBody}
                         </p>
-                        <div className=""
+                        <div className="p-4"
                           <span>Emitido: {new Date(cert.issueDate).toLocaleDateString('pt-BR')}</span>
                           {cert.expirationDate && (
                             <span>Vence: {new Date(cert.expirationDate).toLocaleDateString('pt-BR')}</span>
@@ -555,7 +555,7 @@ export default function ComplianceManagement() {
                         <p className="text-lg">"{cert.scope}</p>
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         {cert.documentUrl && (
                           <Button variant="outline" size="sm>
                             <Upload className="w-4 h-4 mr-1" />
@@ -574,36 +574,36 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="alerts" className=""
-          <div className=""
+        <TabsContent value="alerts" className="p-4"
+          <div className="p-4"
             {alerts.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhum alerta encontrado
               </div>
             ) : (
               alerts.map((alert) => (
                 <Card key={alert.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"{alert.title}</h3>
                           {getSeverityBadge(alert.severity)}
                           {getStatusBadge(alert.status, 'alert')}
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Tipo: {alert.type} | Disparado: {new Date(alert.triggerDate).toLocaleDateString('pt-BR')}
                         </p>
                         <p className="text-lg">"{alert.description}</p>
                         {alert.dueDate && (
-                          <div className=""
+                          <div className="p-4"
                             <Clock className="w-4 h-4" />
                             Vencimento: {new Date(alert.dueDate).toLocaleDateString('pt-BR')}
                           </div>
                         )}
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         {alert.status === 'active' && (
                           <Button
                             variant="outline"
@@ -623,31 +623,31 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="scores" className=""
-          <div className=""
+        <TabsContent value="scores" className="p-4"
+          <div className="p-4"
             {scores.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhum score encontrado
               </div>
             ) : (
               scores.map((score) => (
                 <Card key={score.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"Score de Compliance</h3>
                           <Badge variant="outline">{score.entityType}</Badge>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"
                             {parseFloat(score.score).toFixed(1)}
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <Progress value={parseFloat(score.score)} className="w-full" />
                           </div>
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Avaliado em: {new Date(score.assessedAt).toLocaleDateString('pt-BR')}
                           {score.assessedBy && "
                         </p>
@@ -660,7 +660,7 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="evidence" className=""
+        <TabsContent value="evidence" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Evidências</CardTitle>
@@ -669,10 +669,10 @@ export default function ComplianceManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <Upload className="w-12 h-12 mx-auto mb-4" />
                 <p>Módulo de evidências em desenvolvimento</p>
-                <p className=""
+                <p className="p-4"
                   Upload de documentos, fotos e verificação de conformidade
                 </p>
               </div>

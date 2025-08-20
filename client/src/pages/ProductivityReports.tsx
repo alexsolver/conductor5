@@ -110,8 +110,8 @@ export default function ProductivityReports() {
     dailyBreakdown: {}
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <h1 className="text-lg">"Relatórios de Produtividade</h1>
         <Button variant="outline>
           <Download className="h-4 w-4 mr-2" />
@@ -120,15 +120,15 @@ export default function ProductivityReports() {
       </div>
       {/* Status do Sistema */}
       {summary.totalActivities > 0 && summary.totalTimeSeconds === 0 && (
-        <Card className=""
-          <CardContent className=""
-            <div className=""
-              <div className=""
+        <Card className="p-4"
+          <CardContent className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <Activity className="h-4 w-4" />
               </div>
               <div>
                 <h3 className="text-lg">"Sistema de Tracking Ativo</h3>
-                <p className=""
+                <p className="p-4"
                   O sistema está registrando suas atividades com sucesso. 
                   O cálculo de tempo detalhado está sendo ajustado para fornecer métricas mais precisas.
                 </p>
@@ -143,7 +143,7 @@ export default function ProductivityReports() {
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""
+          <div className="p-4"
             <div>
               <Label htmlFor="startDate">Data Inicial</Label>
               <Input
@@ -163,24 +163,24 @@ export default function ProductivityReports() {
           </div>
         </CardContent>
       </Card>
-      <Tabs defaultValue="my-productivity" className=""
+      <Tabs defaultValue="my-productivity" className="p-4"
         <TabsList>
-          <TabsTrigger value="my-productivity" className=""
+          <TabsTrigger value="my-productivity" className="p-4"
             <User className="h-4 w-4" />
             Minha Produtividade
           </TabsTrigger>
-          <TabsTrigger value="team-productivity" className=""
+          <TabsTrigger value="team-productivity" className="p-4"
             <BarChart3 className="h-4 w-4" />
             Equipe
           </TabsTrigger>
         </TabsList>
         {/* Minha Produtividade */}
-        <TabsContent value="my-productivity" className=""
+        <TabsContent value="my-productivity" className="p-4"
           {/* Resumo Geral */}
-          <div className=""
+          <div className="p-4"
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Total de Atividades</p>
                     <p className="text-lg">"{summary.totalActivities}</p>
@@ -190,8 +190,8 @@ export default function ProductivityReports() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Tempo Total</p>
                     <p className="text-lg">"{formatDuration(summary.totalTimeSeconds)}</p>
@@ -201,8 +201,8 @@ export default function ProductivityReports() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Tempo Médio por Atividade</p>
                     <p className="text-lg">"{formatDuration(summary.averageSessionTime)}</p>
@@ -212,8 +212,8 @@ export default function ProductivityReports() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Dias Ativos</p>
                     <p className="text-lg">"{Object.keys(summary.dailyBreakdown).length}</p>
@@ -230,26 +230,26 @@ export default function ProductivityReports() {
             </CardHeader>
             <CardContent>
               {myProductivityLoading ? (
-                <div className=""
+                <div className="p-4"
                   {[1, 2, 3].map(i => (
                     <div key={i} className="text-lg">"</div>
                   ))}
                 </div>
               ) : (
-                <div className=""
+                <div className="p-4"
                   {Object.entries(summary.activitiesByType).length > 0 ? 
                     Object.entries(summary.activitiesByType).map(([type, data]) => (
-                      <div key={type} className=""
-                        <div className=""
+                      <div key={type} className="p-4"
+                        <div className="p-4"
                           <div className="w-4 h-4 rounded "</div>
                           <div>
                             <div className="text-lg">"{getActivityTypeLabel(type)}</div>
-                            <div className=""
+                            <div className="p-4"
                               {data.count} atividades • {formatDuration(data.avgTime)} média
                             </div>
                           </div>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"{formatDuration(data.totalTime)}</div>
                           <Badge variant="secondary>
                             {formatPercentage(data.totalTime, summary.totalTimeSeconds)}
@@ -257,7 +257,7 @@ export default function ProductivityReports() {
                         </div>
                       </div>
                     )) : (
-                      <div className=""
+                      <div className="p-4"
                         Nenhuma atividade registrada no período
                       </div>
                     )
@@ -272,30 +272,30 @@ export default function ProductivityReports() {
               <CardTitle>Atividade Diária</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {Object.entries(summary.dailyBreakdown).length > 0 ?
                   Object.entries(summary.dailyBreakdown)
                     .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
                     .map(([date, data]) => (
-                      <div key={date} className=""
+                      <div key={date} className="p-4"
                         <div>
-                          <div className=""
+                          <div className="p-4"
                             {format(new Date(date), 'dd/MM/yyyy', { locale: ptBR })}
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             {data.totalActivities} atividades • {formatDuration(data.totalTime)}
                           </div>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           {Object.entries(data.activities).map(([actType, actData]) => (
-                            <Badge key={actType} variant="outline" className=""
+                            <Badge key={actType} variant="outline" className="p-4"
                               {getActivityTypeLabel(actType)}: {actData.count}
                             </Badge>
                           ))}
                         </div>
                       </div>
                     )) : (
-                      <div className=""
+                      <div className="p-4"
                         Nenhuma atividade registrada no período
                       </div>
                     )
@@ -305,42 +305,42 @@ export default function ProductivityReports() {
           </Card>
         </TabsContent>
         {/* Produtividade da Equipe */}
-        <TabsContent value="team-productivity" className=""
+        <TabsContent value="team-productivity" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Ranking da Equipe</CardTitle>
             </CardHeader>
             <CardContent>
               {teamProductivityLoading ? (
-                <div className=""
+                <div className="p-4"
                   {[1, 2, 3].map(i => (
                     <div key={i} className="text-lg">"</div>
                   ))}
                 </div>
               ) : (
-                <div className=""
+                <div className="p-4"
                   {teamProductivity?.data?.userSummaries?.map((user: any, index: number) => (
-                    <div key={user.userId} className=""
-                      <div className=""
-                        <div className=""
+                    <div key={user.userId} className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           {index + 1}
                         </div>
                         <div>
                           <div className="text-lg">"Usuário {user.userId.substring(0, 8)}</div>
-                          <div className=""
+                          <div className="p-4"
                             {user.totalActivities} atividades
                           </div>
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <div className="text-lg">"{formatDuration(user.totalTime)}</div>
-                        <div className=""
+                        <div className="p-4"
                           {Math.floor(user.totalTime / user.totalActivities)}s/atividade
                         </div>
                       </div>
                     </div>
                   )) || (
-                    <div className=""
+                    <div className="p-4"
                       Nenhum dado de equipe disponível
                     </div>
                   )}

@@ -64,12 +64,12 @@ export default function TenantProvisioning() {
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
-      <div className=""
+      <div className="p-4"
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className=""
+        <h1 className="p-4"
           Acesso Negado
         </h1>
-        <p className=""
+        <p className="p-4"
           Esta página é restrita para administradores da plataforma SaaS.
         </p>
       </div>
@@ -159,7 +159,7 @@ export default function TenantProvisioning() {
   };
   const getStatusBadge = (enabled: boolean) => {
     return enabled ? (
-      <Badge variant="default" className=""
+      <Badge variant="default" className="p-4"
         <CheckCircle className="w-3 h-3 mr-1" />
         Ativo
       </Badge>
@@ -171,17 +171,17 @@ export default function TenantProvisioning() {
     );
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             Auto-Provisioning de Tenants
           </h1>
-          <p className=""
+          <p className="p-4"
             Configure e gerencie a criação automática de tenants
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline>
@@ -189,21 +189,21 @@ export default function TenantProvisioning() {
                 Configurações
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Configurações de Auto-Provisioning</DialogTitle>
               </DialogHeader>
               <Form {...configForm}>
-                <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className=""
-                  <div className=""
+                <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="p-4"
+                  <div className="p-4"
                     <FormField
                       control={configForm.control}
                       name="enabled"
                       render={({ field }) => (
-                        <FormItem className=""
-                          <div className=""
+                        <FormItem className="p-4"
+                          <div className="p-4"
                             <FormLabel className="text-lg">"Auto-Provisioning</FormLabel>
-                            <div className=""
+                            <div className="p-4"
                               Habilitar criação automática de tenants
                             </div>
                           </div>
@@ -221,10 +221,10 @@ export default function TenantProvisioning() {
                       control={configForm.control}
                       name="allowSelfProvisioning"
                       render={({ field }) => (
-                        <FormItem className=""
-                          <div className=""
+                        <FormItem className="p-4"
+                          <div className="p-4"
                             <FormLabel className="text-lg">"Auto-Provisioning</FormLabel>
-                            <div className=""
+                            <div className="p-4"
                               Permitir criação por usuários
                             </div>
                           </div>
@@ -260,7 +260,7 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-                  <div className=""
+                  <div className="p-4"
                     <Button type="button" variant="outline" onClick={() => setIsConfigDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -284,7 +284,7 @@ export default function TenantProvisioning() {
                 <DialogTitle>Provisionar Novo Tenant</DialogTitle>
               </DialogHeader>
               <Form {...provisionForm}>
-                <form onSubmit={provisionForm.handleSubmit(onProvisionSubmit)} className=""
+                <form onSubmit={provisionForm.handleSubmit(onProvisionSubmit)} className="p-4"
                   <FormField
                     control={provisionForm.control}
                     name="name"
@@ -324,7 +324,7 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-                  <div className=""
+                  <div className="p-4"
                     <Button type="button" variant="outline" onClick={() => setIsProvisionDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -339,51 +339,51 @@ export default function TenantProvisioning() {
         </div>
       </div>
       {/* Status Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Status do Sistema</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {isLoadingConfig ? (
                 <Badge variant="secondary">Carregando...</Badge>
               ) : (
                 getStatusBadge(config?.enabled || false)
               )}
             </div>
-            <p className=""
+            <p className="p-4"
               {config?.enabled ? 'Auto-provisioning ativo' : 'Auto-provisioning desabilitado'}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Geração de Subdomínio</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {config?.subdomainGeneration === 'company-based' && 'Empresa'}
               {config?.subdomainGeneration === 'user-based' && 'Usuário'}
               {config?.subdomainGeneration === 'random' && 'Aleatório'}
             </div>
-            <p className=""
+            <p className="p-4"
               Método de geração ativo
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Limites Padrão</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {config?.defaultTenantSettings?.maxUsers || 50}
             </div>
-            <p className=""
+            <p className="p-4"
               Usuários por tenant
             </p>
           </CardContent>
@@ -401,29 +401,29 @@ export default function TenantProvisioning() {
           {isLoadingConfig ? (
             <div className="text-lg">"Carregando configurações...</div>
           ) : config ? (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <div>
                   <Label>Auto-Provisioning</Label>
-                  <div className=""
+                  <div className="p-4"
                     {getStatusBadge(config.enabled)}
                   </div>
                 </div>
                 <div>
                   <Label>Criação por Usuários</Label>
-                  <div className=""
+                  <div className="p-4"
                     {getStatusBadge(config.allowSelfProvisioning)}
                   </div>
                 </div>
                 <div>
                   <Label>Criação no Primeiro Usuário</Label>
-                  <div className=""
+                  <div className="p-4"
                     {getStatusBadge(config.autoCreateOnFirstUser)}
                   </div>
                 </div>
                 <div>
                   <Label>Método de Subdomínio</Label>
-                  <div className=""
+                  <div className="p-4"
                     {config.subdomainGeneration}
                   </div>
                 </div>
@@ -431,8 +431,8 @@ export default function TenantProvisioning() {
               
               <div>
                 <Label>Configurações Padrão</Label>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <div>
                       <span className="text-lg">"Máximo de Usuários:</span> {config.defaultTenantSettings.maxUsers}
                     </div>
@@ -450,7 +450,7 @@ export default function TenantProvisioning() {
               </div>
             </div>
           ) : (
-            <div className=""
+            <div className="p-4"
               Falha ao carregar configurações
             </div>
           )}

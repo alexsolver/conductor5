@@ -158,7 +158,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
   const widgetData = processRealData(realData, widget.config.dataSource, widget.type);
   if (isLoading) {
     return (
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"</div>
       </div>
     );
@@ -166,11 +166,11 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
   // ✅ 1QA.MD COMPLIANCE: Show error state for failed real data loading
   if (!widgetData && !isLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
           <p className="text-lg">"Erro ao carregar dados</p>
-          <p className=""
+          <p className="p-4"
             Fonte: {widget.config.dataSource}
           </p>
         </div>
@@ -181,11 +181,11 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
   switch (widget.type) {
     case 'metric':
       return (
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             {widgetData?.value || '0'}
           </div>
-          <div className=""
+          <div className="p-4"
             {widgetData?.label || widget.name}
           </div>
           {widgetData?.change && (
@@ -198,9 +198,9 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
     
     case 'chart':
       return (
-        <div className=""
-          <div className=""
-            <div className=""
+        <div className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <BarChart3 className="w-16 h-16 text-purple-600 mx-auto mb-2" />
               <div className="text-lg">"{widgetData?.value || '0'}</div>
               <div className="text-lg">"{widgetData?.label || 'Chart Data'}</div>
@@ -210,20 +210,20 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
       );
     case 'table':
       return (
-        <div className=""
+        <div className="p-4"
           {widgetData?.data && Array.isArray(widgetData.data) ? (
-            <div className=""
+            <div className="p-4"
               <Table className="w-12 h-12 text-purple-600 mx-auto mb-2" />
-              <div className=""
+              <div className="p-4"
                 {widgetData.data.length} records
               </div>
-              <div className=""
+              <div className="p-4"
                 {widgetData.lastUpdated || 'Recently updated'}
               </div>
             </div>
           ) : (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <Table className="w-12 h-12 mx-auto mb-2" />
                 <p className="text-lg">"Data Table</p>
                 <p className="text-lg">"Loading data...</p>
@@ -234,15 +234,15 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
       );
     default:
       return (
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             <IconComponent className="w-12 h-12 mx-auto mb-2" />
-            <p className=""
+            <p className="p-4"
               {widget.type === 'gauge' && 'Progress Gauge'}
               {widget.type === 'text' && 'Text Content'}
               {widget.type === 'image' && 'Image Display'}
             </p>
-            <p className=""
+            <p className="p-4"
               Data source: {widget.config.dataSource}
             </p>
           </div>
@@ -269,8 +269,8 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
     onSave(widgetConfig);
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <label className="text-lg">"Widget Name</label>
           <Input
@@ -320,7 +320,7 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             </SelectContent>
           </Select>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button onClick={handleSave} disabled={!widgetConfig.name.trim()} data-testid="button-save-widget>
             <CheckCircle className="w-4 h-4 mr-2" />
             Add Widget
@@ -514,10 +514,10 @@ function DashboardView() {
   // Early returns after all hooks are called
   if (isLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg">"</div>
-          <div className=""
+          <div className="p-4"
             {[...Array(6)].map((_, i) => (
               <div key={i} className="text-lg">"</div>
             ))}
@@ -528,12 +528,12 @@ function DashboardView() {
   }
   if (error || !dashboardResponse) {
     return (
-      <div className=""
-        <div className=""
-          <h3 className=""
+      <div className="p-4"
+        <div className="p-4"
+          <h3 className="p-4"
             Dashboard not found
           </h3>
-          <p className=""
+          <p className="p-4"
             The dashboard you're looking for doesn't exist or you don't have permission to view it.
           </p>
           <Button onClick={() => setLocation('/dashboards')}>
@@ -602,12 +602,12 @@ function DashboardView() {
     }
   };
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
-        <div className=""
-          <div className=""
-            <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <Button
                 variant="ghost"
                 size="sm"
@@ -618,24 +618,24 @@ function DashboardView() {
                 Back
               </Button>
               <div>
-                <h1 className=""
+                <h1 className="p-4"
                   {dashboard.name}
                 </h1>
                 {dashboard.description && (
-                  <p className=""
+                  <p className="p-4"
                     {dashboard.description}
                   </p>
                 )}
-                <div className=""
+                <div className="p-4"
                   <Badge variant="outline">{dashboard.layoutType}</Badge>
                   {dashboard.isRealTime && (
-                    <Badge variant="outline" className=""
+                    <Badge variant="outline" className="p-4"
                       <RefreshCw className="w-3 h-3 mr-1" />
                       Real-time
                     </Badge>
                   )}
                   {dashboard.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className=""
+                    <Badge key={tag} variant="secondary" className="p-4"
                       {tag}
                     </Badge>
                   ))}
@@ -643,7 +643,7 @@ function DashboardView() {
               </div>
             </div>
             
-            <div className=""
+            <div className="p-4"
               {isEditMode ? (
                 // Edit mode buttons - following 1qa.md patterns
                 <>
@@ -720,11 +720,11 @@ function DashboardView() {
         </div>
       </div>
       {/* Dashboard Canvas */}
-      <div className=""
+      <div className="p-4"
         {isEditMode && showWidgetDesigner && (
-          <Card className=""
+          <Card className="p-4"
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <span>Widget Designer</span>
                 <Button
                   variant="ghost"
@@ -742,10 +742,10 @@ function DashboardView() {
           </Card>
         )}
         {/* 🎯 SISTEMA DE GOVERNANÇA ATIVO - Cards Governados */}
-        <div className=""
+        <div className="p-4"
           {isEditMode && showWidgetDesigner && (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 🎯 Sistema de Governança Ativo: Cards são gerenciados pelas 4 camadas de governança
               </div>
             </div>
@@ -771,8 +771,8 @@ function DashboardView() {
                   data-testid={"
                 >
                   {isEditMode && (
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <span>🎯 Governança: {governedCard.card_type}</span>
                         <Button
                           variant="ghost"
@@ -785,7 +785,7 @@ function DashboardView() {
                       </div>
                     </div>
                   )}
-                  <div className=""
+                  <div className="p-4"
                     {/* ✅ WIDGET GOVERNADO: Usando GovernedWidgetRenderer */}
                     <GovernedWidgetRenderer 
                       card={governedCard} 
@@ -796,12 +796,12 @@ function DashboardView() {
                 </div>
               ))
             ) : (
-              <div className=""
+              <div className="p-4"
                 <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className=""
+                <h3 className="p-4"
                   {isEditMode ? "Empty Dashboard" : "No widgets configured"
                 </h3>
-                <p className=""
+                <p className="p-4"
                   {isEditMode 
                     ? "Start building your dashboard by adding widgets" 
                     : "This dashboard doesn't have any widgets yet. Add some widgets to get started."

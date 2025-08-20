@@ -197,12 +197,12 @@ export function CustomerItemMappings() {
   };
   const mappings = mappingsData?.data || [];
   return (
-    <div className=""
-      <div className=""
-        <div className=""
+    <div className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <div>
             <h1 className="text-lg">"Personalização de Itens por Cliente</h1>
-            <p className=""
+            <p className="p-4"
               Gerencie SKUs e configurações personalizadas para cada cliente
             </p>
           </div>
@@ -213,14 +213,14 @@ export function CustomerItemMappings() {
                 Novo Mapeamento
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>
                   {editingMapping ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
                 </DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className=""
-                <div className=""
+              <form onSubmit={handleSubmit} className="p-4"
+                <div className="p-4"
                   <div>
                     <Label htmlFor="customer_id">Empresa Cliente</Label>
                     <Select 
@@ -260,7 +260,7 @@ export function CustomerItemMappings() {
                     </Select>
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <div>
                     <Label htmlFor="custom_sku">SKU Personalizado</Label>
                     <Input
@@ -316,7 +316,7 @@ export function CustomerItemMappings() {
                     placeholder='[TRANSLATION_NEEDED]'
                   />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -330,11 +330,11 @@ export function CustomerItemMappings() {
         </div>
         {/* Filtros */}
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <Label htmlFor="search">Buscar</Label>
-                <div className=""
+                <div className="p-4"
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
@@ -379,10 +379,10 @@ export function CustomerItemMappings() {
           </CardContent>
         </Card>
         {/* Estatísticas */}
-        <div className=""
+        <div className="p-4"
           <Card>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <Package className="h-4 w-4 text-blue-500" />
                 <div>
                   <p className="text-lg">"Total de Mapeamentos</p>
@@ -392,12 +392,12 @@ export function CustomerItemMappings() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <User className="h-4 w-4 text-green-500" />
                 <div>
                   <p className="text-lg">"Clientes Ativos</p>
-                  <p className=""
+                  <p className="p-4"
                     {new Set(mappings.map((m: CustomerItemMapping) => m.customer_id)).size}
                   </p>
                 </div>
@@ -415,7 +415,7 @@ export function CustomerItemMappings() {
           {mappingsLoading ? (
             <div className="text-lg">"Carregando mapeamentos...</div>
           ) : mappings.length === 0 ? (
-            <div className=""
+            <div className="p-4"
               Nenhum mapeamento encontrado. Crie o primeiro mapeamento personalizado!
             </div>
           ) : (
@@ -435,10 +435,10 @@ export function CustomerItemMappings() {
                   <TableRow key={mapping.id}>
                     <TableCell>
                       <div>
-                        <div className=""
+                        <div className="p-4"
                           {mapping.customer_first_name} {mapping.customer_last_name}
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           {mapping.customer_email}
                         </div>
                       </div>
@@ -446,7 +446,7 @@ export function CustomerItemMappings() {
                     <TableCell>
                       <div>
                         <div className="text-lg">"{mapping.item_name}</div>
-                        <div className=""
+                        <div className="p-4"
                           {mapping.item_integration_code} • {mapping.item_type}
                         </div>
                       </div>
@@ -455,10 +455,10 @@ export function CustomerItemMappings() {
                       <Badge variant="outline">{mapping.custom_sku}</Badge>
                     </TableCell>
                     <TableCell>
-                      <div className=""
+                      <div className="p-4"
                         <div className="text-lg">"{mapping.custom_name}</div>
                         {mapping.customer_reference && (
-                          <div className=""
+                          <div className="p-4"
                             Ref: {mapping.customer_reference}
                           </div>
                         )}
@@ -470,7 +470,7 @@ export function CustomerItemMappings() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className=""
+                      <div className="p-4"
                         <Button
                           variant="outline"
                           size="sm"

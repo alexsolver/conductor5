@@ -198,13 +198,13 @@ export default function LPUManagement() {
     return <Badge variant="outline">{labels[type as keyof typeof labels] || type}</Badge>;
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"LPU - Lista de Preços Unificada</h1>
           <p className="text-lg">"Gestão completa de precificação com workflow de aprovação</p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -212,7 +212,7 @@ export default function LPUManagement() {
                 Nova Lista
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Criar Nova Lista de Preços</DialogTitle>
                 <DialogDescription>
@@ -232,23 +232,23 @@ export default function LPUManagement() {
                   validTo: formData.get('validTo'),
                   notes: formData.get('notes')
                 });
-              }} className=""
-                <div className=""
-                  <div className=""
+              }} className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="name">Nome da Lista *</Label>
                     <Input name="name" required placeholder="Ex: Lista Comercial 2025" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="code">Código *</Label>
                     <Input name="code" required placeholder="Ex: LC2025" />
                   </div>
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="version">Versão</Label>
                     <Input name="version" defaultValue="1.0" placeholder="1.0" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="currency">Moeda</Label>
                     <Select name="currency" defaultValue="BRL>
                       <SelectTrigger>
@@ -261,26 +261,26 @@ export default function LPUManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="automaticMargin">Margem Automática (%)</Label>
                     <Input name="automaticMargin" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="validFrom">Válido De *</Label>
                     <Input name="validFrom" type="date" required />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="validTo">Válido Até</Label>
                     <Input name="validTo" type="date" />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="notes">Observações</Label>
                   <Textarea name="notes" placeholder='[TRANSLATION_NEEDED]' />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsCreateListOpen(false)}>
                     Cancelar
                   </Button>
@@ -317,13 +317,13 @@ export default function LPUManagement() {
                   validFrom: formData.get('validFrom'),
                   validTo: formData.get('validTo')
                 });
-              }} className=""
-                <div className=""
+              }} className="p-4"
+                <div className="p-4"
                   <Label htmlFor="name">Nome da Regra *</Label>
                   <Input name="name" required placeholder="Ex: Desconto por Volume" />
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="type">Tipo de Regra</Label>
                     <Select name="type" required>
                       <SelectTrigger>
@@ -337,32 +337,32 @@ export default function LPUManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="priority">Prioridade</Label>
                     <Input name="priority" type="number" defaultValue="0" />
                   </div>
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="conditions">Condição</Label>
                     <Input name="conditions" placeholder="Ex: categoria=eletrônicos" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="action">Percentual (%)</Label>
                     <Input name="action" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="validFrom">Válido De</Label>
                     <Input name="validFrom" type="date" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="validTo">Válido Até</Label>
                     <Input name="validTo" type="date" />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsCreateRuleOpen(false)}>
                     Cancelar
                   </Button>
@@ -376,68 +376,68 @@ export default function LPUManagement() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Listas</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.totalLists || 0}</div>
-            <p className=""
+            <p className="p-4"
               {stats?.activeLists || 0} listas ativas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Pendente Aprovação</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.pendingApproval || 0}</div>
-            <p className=""
+            <p className="p-4"
               aguardando análise
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Taxa de Aprovação</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.approvalRate || 0}%</div>
-            <p className=""
+            <p className="p-4"
               {stats?.approvedVersions || 0} aprovadas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Regras Ativas</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.activeRules || 0}</div>
-            <p className=""
+            <p className="p-4"
               regras configuradas
             </p>
           </CardContent>
         </Card>
       </div>
       {/* Main Content Tabs */}
-      <Tabs defaultValue="lists" className=""
+      <Tabs defaultValue="lists" className="p-4"
         <TabsList>
           <TabsTrigger value="lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="versions">Versionamento</TabsTrigger>
           <TabsTrigger value="rules">Regras de Precificação</TabsTrigger>
           <TabsTrigger value="dynamic">Precificação Dinâmica</TabsTrigger>
         </TabsList>
-        <TabsContent value="lists" className=""
+        <TabsContent value="lists" className="p-4"
           {/* Filters */}
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -447,7 +447,7 @@ export default function LPUManagement() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className=""
+              <SelectTrigger className="p-4"
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -458,29 +458,29 @@ export default function LPUManagement() {
             </Select>
           </div>
           {/* Price Lists */}
-          <div className=""
+          <div className="p-4"
             {listsLoading ? (
               <div className="text-lg">"Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhuma lista encontrada
               </div>
             ) : (
               filteredPriceLists.map((list: PriceList) => (
                 <Card key={list.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"{list.name}</h3>
                           <Badge variant={list.isActive ? 'default' : 'outline'}>
                             {list.isActive ? 'Ativa' : 'Inativa'}
                           </Badge>
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Código: {list.code} | Versão: {list.version} | Moeda: {list.currency}
                         </p>
-                        <div className=""
+                        <div className="p-4"
                           <span>Válido: {new Date(list.validFrom).toLocaleDateString('pt-BR')}</span>
                           {list.validTo && (
                             <span>até {new Date(list.validTo).toLocaleDateString('pt-BR')}</span>
@@ -490,7 +490,7 @@ export default function LPUManagement() {
                           )}
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Button
                           variant="outline"
                           size="sm"
@@ -511,7 +511,7 @@ export default function LPUManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="versions" className=""
+        <TabsContent value="versions" className="p-4"
           {selectedList ? (
             <Card>
               <CardHeader>
@@ -522,7 +522,7 @@ export default function LPUManagement() {
               </CardHeader>
               <CardContent>
                 {versions.length === 0 ? (
-                  <div className=""
+                  <div className="p-4"
                     Nenhuma versão encontrada
                   </div>
                 ) : (
@@ -555,7 +555,7 @@ export default function LPUManagement() {
                             {version.baseMargin ? "%` : '-'}
                           </TableCell>
                           <TableCell>
-                            <div className=""
+                            <div className="p-4"
                               {version.status === 'draft' && (
                                 <Button
                                   variant="outline"
@@ -589,46 +589,46 @@ export default function LPUManagement() {
             </Card>
           ) : (
             <Card>
-              <CardContent className=""
+              <CardContent className="p-4"
                 <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className=""
+                <p className="p-4"
                   Selecione uma lista de preços para visualizar suas versões
                 </p>
               </CardContent>
             </Card>
           )}
         </TabsContent>
-        <TabsContent value="rules" className=""
-          <div className=""
+        <TabsContent value="rules" className="p-4"
+          <div className="p-4"
             {pricingRules.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhuma regra configurada
               </div>
             ) : (
               pricingRules.map((rule) => (
                 <Card key={rule.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"{rule.name}</h3>
                           {getRuleTypeBadge(rule.type)}
                           <Badge variant={rule.active ? 'default' : 'outline'}>
                             {rule.active ? 'Ativa' : 'Inativa'}
                           </Badge>
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Prioridade: {rule.priority} | Tipo: {rule.type}
                         </p>
                         {rule.validFrom && (
-                          <div className=""
+                          <div className="p-4"
                             <Calendar className="w-4 h-4" />
                             Válido: {new Date(rule.validFrom).toLocaleDateString('pt-BR')}
                             {rule.validTo && "
                           </div>
                         )}
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Button variant="outline" size="sm>
                           <Settings className="w-4 h-4 mr-1" />
                           Configurar
@@ -641,7 +641,7 @@ export default function LPUManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="dynamic" className=""
+        <TabsContent value="dynamic" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Precificação Dinâmica</CardTitle>
@@ -650,10 +650,10 @@ export default function LPUManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <TrendingUp className="w-12 h-12 mx-auto mb-4" />
                 <p>Módulo de precificação dinâmica em desenvolvimento</p>
-                <p className=""
+                <p className="p-4"
                   Fatores: demanda, sazonalidade, estoque, concorrência
                 </p>
               </div>

@@ -102,8 +102,8 @@ export default function HourBank() {
     return <Badge className="text-lg">"Ativo</Badge>;
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <h1 className="text-lg">"Banco de Horas</h1>
       </div>
       {/* Filtros */}
@@ -112,7 +112,7 @@ export default function HourBank() {
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""
+          <div className="p-4"
             <div>
               <Label htmlFor="userId">Funcionário</Label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
@@ -141,10 +141,10 @@ export default function HourBank() {
         </CardContent>
       </Card>
       {/* Resumo Geral */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Total Funcionários</p>
                 <p className="text-lg">"{summary?.totalEmployees || 0}</p>
@@ -154,8 +154,8 @@ export default function HourBank() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Saldo Total</p>
                 <p className="text-lg">"
@@ -167,11 +167,11 @@ export default function HourBank() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Horas Expirando</p>
-                <p className=""
+                <p className="p-4"
                   {formatHours(summary?.expiringHours || 0)}
                 </p>
               </div>
@@ -180,8 +180,8 @@ export default function HourBank() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Movimento do Mês</p>
                 <p className="text-lg">"
@@ -194,15 +194,15 @@ export default function HourBank() {
         </Card>
       </div>
       {selectedUserId !== 'default' ? (
-        <Tabs defaultValue="balance" className=""
-          <TabsList className=""
+        <Tabs defaultValue="balance" className="p-4"
+          <TabsList className="p-4"
             <TabsTrigger value="balance">Saldo</TabsTrigger>
             <TabsTrigger value="movements">Movimentações</TabsTrigger>
           </TabsList>
           {/* Aba Saldo */}
-          <TabsContent value="balance" className=""
+          <TabsContent value="balance" className="p-4"
             {hourBankLoading ? (
-              <div className=""
+              <div className="p-4"
                 <div className="text-lg">"</div>
               </div>
             ) : hourBank ? (
@@ -210,51 +210,51 @@ export default function HourBank() {
                 <CardHeader>
                   <CardTitle>Saldo Detalhado - {hourBank.userName}</CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
-                      <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         <span className="text-lg">"Saldo Atual:</span>
                         <span className="text-lg">"
                           {formatHours(hourBank.balanceHours)}
                         </span>
                       </div>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <span>Horas Ganhas no Mês:</span>
-                          <span className=""
+                          <span className="p-4"
                             +{formatHours(hourBank.earnedHours)}
                           </span>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <span>Horas Utilizadas:</span>
-                          <span className=""
+                          <span className="p-4"
                             -{formatHours(hourBank.usedHours)}
                           </span>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <span>Horas Expiradas:</span>
-                          <span className=""
+                          <span className="p-4"
                             -{formatHours(hourBank.expiredHours)}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <h4 className="text-lg">"Informações de Expiração</h4>
-                        <div className=""
-                          <div className=""
+                        <div className="p-4"
+                          <div className="p-4"
                             <span>Status:</span>
                             {getStatusBadge(hourBank.status, hourBank.expirationDate)}
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <span>Data de Vencimento:</span>
                             <span>
                               {format(new Date(hourBank.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </span>
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <span>Referência:</span>
                             <span>
                               {format(new Date(hourBank.referenceMonth), 'MMMM/yyyy', { locale: ptBR })}
@@ -265,12 +265,12 @@ export default function HourBank() {
                     </div>
                   </div>
                   {hourBank.balanceHours > 0 && new Date(hourBank.expirationDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && (
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <AlertCircle className="h-5 w-5 text-yellow-600" />
                         <span className="text-lg">"Atenção: Horas próximas do vencimento</span>
                       </div>
-                      <p className=""
+                      <p className="p-4"
                         {formatHours(hourBank.balanceHours)} expirarão em {format(new Date(hourBank.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
                       </p>
                     </div>
@@ -279,10 +279,10 @@ export default function HourBank() {
               </Card>
             ) : (
               <Card>
-                <CardContent className=""
+                <CardContent className="p-4"
                   <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg">"Nenhum registro encontrado</h3>
-                  <p className=""
+                  <p className="p-4"
                     Não há banco de horas para este funcionário no período selecionado
                   </p>
                 </CardContent>
@@ -290,23 +290,23 @@ export default function HourBank() {
             )}
           </TabsContent>
           {/* Aba Movimentações */}
-          <TabsContent value="movements" className=""
+          <TabsContent value="movements" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Histórico de Movimentações</CardTitle>
               </CardHeader>
               <CardContent>
                 {movementsLoading ? (
-                  <div className=""
+                  <div className="p-4"
                     {[1, 2, 3].map(i => (
                       <div key={i} className="text-lg">"</div>
                     ))}
                   </div>
                 ) : (movements as any)?.length > 0 ? (
-                  <div className=""
+                  <div className="p-4"
                     {(movements as HourBankMovement[]).map((movement) => (
-                      <div key={movement.id} className=""
-                        <div className=""
+                      <div key={movement.id} className="p-4"
+                        <div className="p-4"
                           <div className={`w-3 h-3 rounded-full ${
                             movement.movementType === 'credit' ? 'bg-green-500' :
                             movement.movementType === 'debit' ? 'bg-red-500' :
@@ -314,12 +314,12 @@ export default function HourBank() {
                           "></div>
                           <div>
                             <div className="text-lg">"{movement.description}</div>
-                            <div className=""
+                            <div className="p-4"
                               {format(new Date(movement.movementDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </div>
                           </div>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"
                             {movement.movementType === 'credit' ? '+' : movement.movementType === 'debit' ? '-' : ''}
                             {formatHours(movement.hours)}
@@ -332,7 +332,7 @@ export default function HourBank() {
                     ))}
                   </div>
                 ) : (
-                  <div className=""
+                  <div className="p-4"
                     Nenhuma movimentação encontrada para o período
                   </div>
                 )}
@@ -342,10 +342,10 @@ export default function HourBank() {
         </Tabs>
       ) : (
         <Card>
-          <CardContent className=""
+          <CardContent className="p-4"
             <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg">"Selecione um funcionário</h3>
-            <p className=""
+            <p className="p-4"
               Escolha um funcionário nos filtros acima para visualizar o banco de horas
             </p>
           </CardContent>

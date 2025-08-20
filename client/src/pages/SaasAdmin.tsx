@@ -29,12 +29,12 @@ export default function SaasAdmin() {
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
-      <div className=""
+      <div className="p-4"
         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className=""
+        <h1 className="p-4"
           Acesso Negado
         </h1>
-        <p className=""
+        <p className="p-4"
           Esta página é restrita para administradores da plataforma SaaS.
         </p>
       </div>
@@ -91,21 +91,21 @@ export default function SaasAdmin() {
     createTenantMutation.mutate(data);
   };
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             Administração SaaS
           </h1>
-          <p className=""
+          <p className="p-4"
             Gerencie tenants, usuários e configurações da plataforma
           </p>
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className=""
+            <Button className="p-4"
               <Plus className="w-4 h-4 mr-2" />
               Novo Tenant
             </Button>
@@ -115,7 +115,7 @@ export default function SaasAdmin() {
               <DialogTitle>Criar Novo Tenant</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className=""
+              <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
                 <FormField
                   control={form.control}
                   name="name"
@@ -142,7 +142,7 @@ export default function SaasAdmin() {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -156,77 +156,77 @@ export default function SaasAdmin() {
         </Dialog>
       </div>
       {/* Analytics Cards */}
-      <div className=""
-        <Card className=""
-          <CardHeader className=""
+      <div className="p-4"
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total Tenants</CardTitle>
             <Building className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {tenantsData?.total || 0}
             </div>
           </CardContent>
         </Card>
-        <Card className=""
-          <CardHeader className=""
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total Usuários</CardTitle>
             <Users className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {analyticsData?.totalUsers || 0}
             </div>
           </CardContent>
         </Card>
-        <Card className=""
-          <CardHeader className=""
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total Tickets</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {analyticsData?.totalTickets || 0}
             </div>
           </CardContent>
         </Card>
-        <Card className=""
-          <CardHeader className=""
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Usuários Ativos</CardTitle>
             <Users className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {analyticsData?.activeUsers || 0}
             </div>
           </CardContent>
         </Card>
       </div>
       {/* Tenants and Users Tables */}
-      <div className=""
+      <div className="p-4"
         {/* Tenants Table */}
         <Card>
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <Building className="w-5 h-5 mr-2" />
               Tenants
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingTenants ? (
-              <div className=""
+              <div className="p-4"
                 <div className="text-lg">"</div>
               </div>
             ) : (
-              <div className=""
+              <div className="p-4"
                 {tenantsData?.tenants?.map((tenant: any) => (
-                  <div key={tenant.id} className=""
-                    <div className=""
+                  <div key={tenant.id} className="p-4"
+                    <div className="p-4"
                       <h3 className="text-lg">"{tenant.name}</h3>
                       <Badge className="text-lg">"Ativo</Badge>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <span className="text-lg">"Subdomínio:</span>
                         <Badge variant="outline">{tenant.subdomain}</Badge>
                       </div>
@@ -235,8 +235,8 @@ export default function SaasAdmin() {
                         {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
-                    <div className=""
-                      <Button variant="ghost" size="sm" className=""
+                    <div className="p-4"
+                      <Button variant="ghost" size="sm" className="p-4"
                         <Settings className="w-4 h-4 mr-1" />
                         Gerenciar
                       </Button>
@@ -250,18 +250,18 @@ export default function SaasAdmin() {
         {/* Users Table */}
         <Card>
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <Users className="w-5 h-5 mr-2" />
               Usuários da Plataforma
             </CardTitle>
           </CardHeader>
           <CardContent>
             {usersData ? (
-              <div className=""
+              <div className="p-4"
                 {usersData?.users?.slice(0, 5).map((user: any) => (
-                  <div key={user.id} className=""
-                    <div className=""
-                      <h3 className=""
+                  <div key={user.id} className="p-4"
+                    <div className="p-4"
+                      <h3 className="p-4"
                         {user.firstName} {user.lastName}
                       </h3>
                       <Badge 
@@ -271,7 +271,7 @@ export default function SaasAdmin() {
                         {user.role.replace('_', ' ')}
                       </Badge>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>{user.email}</div>
                       <div>
                         <span className="text-lg">"Status:</span>
@@ -288,14 +288,14 @@ export default function SaasAdmin() {
                     </div>
                   </div>
                 ))}
-                <div className=""
-                  <Button variant="outline" size="sm" className=""
+                <div className="p-4"
+                  <Button variant="outline" size="sm" className="p-4"
                     Ver todos os usuários
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className=""
+              <div className="p-4"
                 <div className="text-lg">"</div>
               </div>
             )}

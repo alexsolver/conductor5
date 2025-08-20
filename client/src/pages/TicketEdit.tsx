@@ -350,15 +350,15 @@ export default function TicketEdit() {
   };
   if (isLoading) {
     return (
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"</div>
       </div>
     );
   }
   if (!ticket) {
     return (
-      <div className=""
-        <h2 className=""
+      <div className="p-4"
+        <h2 className="p-4"
           Ticket não encontrado
         </h2>
         <Button onClick={() => navigate("/tickets")} variant="outline>
@@ -370,10 +370,10 @@ export default function TicketEdit() {
   }
   console.log("🎫 TicketEdit renderizando com ticket:", ticket?.id, "isLinkingModalOpen:", isLinkingModalOpen);
   return (
-      <div className=""
+      <div className="p-4"
         {/* Header */}
-        <div className=""
-        <div className=""
+        <div className="p-4"
+        <div className="p-4"
           <Button
             variant="outline"
             size="sm"
@@ -383,15 +383,15 @@ export default function TicketEdit() {
             Voltar
           </Button>
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               Editar Ticket #{ticket.number || ticket.id?.slice(-8)}
             </h1>
-            <p className=""
+            <p className="p-4"
               {ticket.subject || ticket.short_description}
             </p>
           </div>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button
             variant="outline"
             size="sm"
@@ -416,9 +416,9 @@ export default function TicketEdit() {
           </Button>
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         {/* Main Form */}
-        <div className=""
+        <div className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Detalhes do Ticket</CardTitle>
@@ -428,7 +428,7 @@ export default function TicketEdit() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className=""
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
                   {/* Wrap form content in CustomFieldsWrapper to provide form context */}
                   <CustomFieldsWrapper
                     moduleType="tickets"
@@ -439,8 +439,8 @@ export default function TicketEdit() {
                       console.log(" alterado:`, value);
                     }}
                   >
-                  <Tabs defaultValue="basic" className=""
-                    <TabsList className=""
+                  <Tabs defaultValue="basic" className="p-4"
+                    <TabsList className="p-4"
                       <TabsTrigger value="basic">Básico</TabsTrigger>
                       <TabsTrigger value="template">Template/Ambiente</TabsTrigger>
                       <TabsTrigger value="assignment">Atribuição</TabsTrigger>
@@ -449,11 +449,11 @@ export default function TicketEdit() {
                       <TabsTrigger value="people">Pessoas</TabsTrigger>
                     </TabsList>
                     {/* Tab 1: Basic Information */}
-                    <TabsContent value="basic" className=""
+                    <TabsContent value="basic" className="p-4"
                       {/* Classificação */}
-                      <div className=""
+                      <div className="p-4"
                         <h3 className="text-lg">"CLASSIFICAÇÃO</h3>
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="priority"
@@ -524,8 +524,8 @@ export default function TicketEdit() {
                       />
                     </TabsContent>
                     {/* Tab 2: Template/Environment */}
-                    <TabsContent value="template" className=""
-                      <div className=""
+                    <TabsContent value="template" className="p-4"
+                      <div className="p-4"
                         {/* Environment Section */}
                         <div>
                           <FormField
@@ -589,7 +589,7 @@ export default function TicketEdit() {
                           />
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         {/* Caller Name/Responsible */}
                         <div>
                           <FormField
@@ -628,7 +628,7 @@ export default function TicketEdit() {
                           />
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         {/* URL Field */}
                         <FormField
                           control={form.control}
@@ -658,7 +658,7 @@ export default function TicketEdit() {
                           )}
                         />
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         {/* Call Number */}
                         <div>
                           <FormField
@@ -734,10 +734,10 @@ export default function TicketEdit() {
                       </div>
                     </TabsContent>
                     {/* Tab 3: Assignment */}
-                    <TabsContent value="assignment" className=""
+                    <TabsContent value="assignment" className="p-4"
                       {/* Company Selection */}
-                      <div className=""
-                        <label className=""
+                      <div className="p-4"
+                        <label className="p-4"
                           <Building2 className="h-4 w-4" />
                           Empresa Cliente
                         </label>
@@ -762,7 +762,7 @@ export default function TicketEdit() {
                           ))}
                         </select>
                         {selectedCompanyId && (
-                          <p className=""
+                          <p className="p-4"
                             Clientes filtrados por esta empresa: {filteredCustomers.length}
                           </p>
                         )}
@@ -871,7 +871,7 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-                      <div className=""
+                      <div className="p-4"
                         {/* Publication Priority */}
                         <FormField
                           control={form.control}
@@ -953,8 +953,8 @@ export default function TicketEdit() {
                         control={form.control}
                         name="closeToPublish"
                         render={({ field }) => (
-                          <FormItem className=""
-                            <div className=""
+                          <FormItem className="p-4"
+                            <div className="p-4"
                               <FormLabel>Pronto para publicar?</FormLabel>
                               <FormDescription>
                                 Marque se este ticket está pronto para ser publicado.
@@ -971,7 +971,7 @@ export default function TicketEdit() {
                       />
                     </TabsContent>
                     {/* Tab 4: Classification */}
-                    <TabsContent value="classification" className=""
+                    <TabsContent value="classification" className="p-4"
                       <FormField
                         control={form.control}
                         name="category"
@@ -1013,7 +1013,7 @@ export default function TicketEdit() {
                       />
                     </TabsContent>
                     {/* Tab 5: Details */}
-                    <TabsContent value="details" className=""
+                    <TabsContent value="details" className="p-4"
                       <FormField
                         control={form.control}
                         name="businessImpact"
@@ -1055,7 +1055,7 @@ export default function TicketEdit() {
                       />
                     </TabsContent>
                     {/* Tab 6: People */}
-                    <TabsContent value="people" className=""
+                    <TabsContent value="people" className="p-4"
                     </TabsContent>
                   </Tabs>
                   <Button type="submit>
@@ -1069,7 +1069,7 @@ export default function TicketEdit() {
             </Card>
           </div>
           {/* Right Sidebar */}
-          <div className=""
+          <div className="p-4"
             {/* Ticket Relationships */}
             <Card>
               <CardHeader>
@@ -1083,14 +1083,14 @@ export default function TicketEdit() {
               </CardContent>
             </Card>
             {/* Actions */}
-            <Card className=""
+            <Card className="p-4"
               <CardHeader>
                 <CardTitle>Ações</CardTitle>
                 <CardDescription>
                   Gerencie anexos, histórico e outras ações
                 </CardDescription>
               </CardHeader>
-              <CardContent className=""
+              <CardContent className="p-4"
                 <Button
                   variant="secondary"
                   className="w-full justify-start"

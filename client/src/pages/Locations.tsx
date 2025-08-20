@@ -218,14 +218,14 @@ export default function Locations() {
   const locations = locationsData?.data?.locations || [];
   const stats = statsData?.data || {};
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Módulo de Locais</h1>
           <p className="text-lg">"Sistema geoespacial completo para gestão de localizações</p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline>
@@ -255,7 +255,7 @@ export default function Locations() {
       </div>
       {/* Create Location Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
             <DialogHeader>
               <DialogTitle>Criar Novo Local</DialogTitle>
               <DialogDescription>
@@ -263,7 +263,7 @@ export default function Locations() {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleCreateLocation)} className=""
+              <form onSubmit={form.handleSubmit(handleCreateLocation)} className="p-4"
                 <FormField
                   control={form.control}
                   name="name"
@@ -291,7 +291,7 @@ export default function Locations() {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={form.control}
                     name="locationType"
@@ -340,7 +340,7 @@ export default function Locations() {
                     )}
                   />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={form.control}
                     name="coordinates.lat"
@@ -380,7 +380,7 @@ export default function Locations() {
                     )}
                   />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -394,20 +394,20 @@ export default function Locations() {
         </Dialog>
         {/* Sprint 2 - Location Management Dialog */}
         <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
-          <DialogContent className=""
+          <DialogContent className="p-4"
             <DialogHeader>
               <DialogTitle>Gerenciar Local: {selectedLocation?.name}</DialogTitle>
             </DialogHeader>
-            <div className=""
+            <div className="p-4"
               {/* Tags Management */}
               <div>
-                <h3 className=""
+                <h3 className="p-4"
                   <Tag className="h-4 w-4" />
                   Tags
                 </h3>
-                <div className=""
+                <div className="p-4"
                   {selectedLocation?.tags?.map((tag: string, index: number) => (
-                    <Badge key={index} variant="secondary" className=""
+                    <Badge key={index} variant="secondary" className="p-4"
                       {tag}
                       <button
                         onClick={() => {/* Remove tag */}}
@@ -418,28 +418,28 @@ export default function Locations() {
                     </Badge>
                   )) || <p className="text-lg">"Nenhuma tag adicionada</p>}
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Input placeholder="Nova tag..." className="flex-1" />
                   <Button size="sm">Adicionar</Button>
                 </div>
               </div>
               {/* Attachments Management */}
               <div>
-                <h3 className=""
+                <h3 className="p-4"
                   <Upload className="h-4 w-4" />
                   Anexos
                 </h3>
-                <div className=""
+                <div className="p-4"
                   <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className=""
+                  <p className="p-4"
                     Arraste arquivos aqui ou clique para selecionar
                   </p>
                   <input type="file" multiple className="hidden" />
                 </div>
                 {selectedLocation?.attachments && selectedLocation.attachments.length > 0 && (
-                  <div className=""
+                  <div className="p-4"
                     {selectedLocation.attachments.map((attachment: any, index: number) => (
-                      <div key={index} className=""
+                      <div key={index} className="p-4"
                         <span className="text-lg">"{attachment.filename}</span>
                         <Button variant="ghost" size="sm>
                           <Trash2 className="h-4 w-4" />
@@ -451,15 +451,15 @@ export default function Locations() {
               </div>
               {/* Hierarchy Management */}
               <div>
-                <h3 className=""
+                <h3 className="p-4"
                   <TreePine className="h-4 w-4" />
                   Hierarquia
                 </h3>
-                <div className=""
+                <div className="p-4"
                   <div>
                     <label className="text-lg">"Local pai:</label>
                     <Select value={selectedLocation?.parent_location_id || "none>
-                      <SelectTrigger className=""
+                      <SelectTrigger className="p-4"
                         <SelectValue placeholder="Selecionar local pai" />
                       </SelectTrigger>
                       <SelectContent>
@@ -471,9 +471,9 @@ export default function Locations() {
                   {selectedLocation?.children && selectedLocation.children.length > 0 && (
                     <div>
                       <label className="text-lg">"Locais filhos:</label>
-                      <div className=""
+                      <div className="p-4"
                         {selectedLocation.children.map((child: any, index: number) => (
-                          <div key={index} className=""
+                          <div key={index} className="p-4"
                             {child.name}
                           </div>
                         ))}
@@ -483,7 +483,7 @@ export default function Locations() {
                 </div>
               </div>
             </div>
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" onClick={() => setIsManageDialogOpen(false)}>
                 Fechar
               </Button>
@@ -493,20 +493,20 @@ export default function Locations() {
         </Dialog>
       {/* Import KML/GeoJSON Dialog */}
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Importar Dados Geoespaciais</DialogTitle>
             <DialogDescription>
               Carregue arquivos KML ou GeoJSON para criar múltiplos locais automaticamente
             </DialogDescription>
           </DialogHeader>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className=""
+              <p className="p-4"
                 Arraste arquivos aqui ou clique para selecionar
               </p>
-              <p className=""
+              <p className="p-4"
                 Formatos aceitos: .kml, .geojson, .json
               </p>
               <input 
@@ -522,25 +522,25 @@ export default function Locations() {
               </Button>
             </div>
             
-            <div className=""
+            <div className="p-4"
               <h4 className="text-lg">"Opções de Importação</h4>
-              <div className=""
-                <label className=""
+              <div className="p-4"
+                <label className="p-4"
                   <input type="checkbox" defaultChecked />
                   <span className="text-lg">"Preservar coordenadas originais</span>
                 </label>
-                <label className=""
+                <label className="p-4"
                   <input type="checkbox" defaultChecked />
                   <span className="text-lg">"Criar hierarquia automática</span>
                 </label>
-                <label className=""
+                <label className="p-4"
                   <input type="checkbox" />
                   <span className="text-lg">"Sobrescrever locais existentes</span>
                 </label>
               </div>
             </div>
           </div>
-          <div className=""
+          <div className="p-4"
             <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
               Cancelar
             </Button>
@@ -553,18 +553,18 @@ export default function Locations() {
       </Dialog>
       {/* Schedule Configuration Dialog */}
       <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Configuração de Horários de Funcionamento</DialogTitle>
             <DialogDescription>
               Configure horários padrão para todos os locais ou específicos por tipo
             </DialogDescription>
           </DialogHeader>
-          <div className=""
+          <div className="p-4"
             <div>
               <label className="text-lg">"Aplicar configuração para:</label>
               <Select defaultValue="all>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -575,10 +575,10 @@ export default function Locations() {
                 </SelectContent>
               </Select>
             </div>
-            <div className=""
+            <div className="p-4"
               <h4 className="text-lg">"Horários da Semana</h4>
               {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((day, index) => (
-                <div key={day} className=""
+                <div key={day} className="p-4"
                   <div className="text-lg">"{day}</div>
                   <input type="checkbox" defaultChecked={index < 5} />
                   <Input placeholder="08:00" className="w-20 h-8" />
@@ -588,23 +588,23 @@ export default function Locations() {
                 </div>
               ))}
             </div>
-            <div className=""
+            <div className="p-4"
               <h4 className="text-lg">"Configurações Especiais</h4>
-              <label className=""
+              <label className="p-4"
                 <input type="checkbox" />
                 <span className="text-lg">"Horário de verão automático</span>
               </label>
-              <label className=""
+              <label className="p-4"
                 <input type="checkbox" />
                 <span className="text-lg">"Fechar automaticamente em feriados</span>
               </label>
-              <label className=""
+              <label className="p-4"
                 <input type="checkbox" />
                 <span className="text-lg">"Notificar mudanças de horário</span>
               </label>
             </div>
           </div>
-          <div className=""
+          <div className="p-4"
             <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
               Cancelar
             </Button>
@@ -616,21 +616,21 @@ export default function Locations() {
         </DialogContent>
       </Dialog>
       {/* Statistics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Locais</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats.total_locations || 0}</div>
-            <p className=""
+            <p className="p-4"
               {stats.active_locations || 0} ativos
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Pontos</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -640,7 +640,7 @@ export default function Locations() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Áreas</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -650,7 +650,7 @@ export default function Locations() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Rotas</CardTitle>
             <Route className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -663,17 +663,17 @@ export default function Locations() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Filter className="h-5 w-5" />
             Filtros e Busca
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""
+          <div className="p-4"
             {/* Basic Filters */}
-            <div className=""
-              <div className=""
-                <div className=""
+            <div className="p-4"
+              <div className="p-4"
+                <div className="p-4"
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder='[TRANSLATION_NEEDED]'
@@ -684,7 +684,7 @@ export default function Locations() {
                 </div>
               </div>
               <Select value={locationTypeFilter} onValueChange={setLocationTypeFilter}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder="Tipo de local" />
                 </SelectTrigger>
                 <SelectContent>
@@ -697,7 +697,7 @@ export default function Locations() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -710,8 +710,8 @@ export default function Locations() {
               </Select>
             </div>
             {/* Sprint 2 - Advanced Filters */}
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 Filtros Avançados:
               </div>
               <Button
@@ -722,7 +722,7 @@ export default function Locations() {
                 <Star className="h-4 w-4 mr-2 "" />
                 {favoritesFilter ? 'Apenas Favoritos' : 'Mostrar Favoritos'}
               </Button>
-              <div className=""
+              <div className="p-4"
                 <Tag className="h-4 w-4 text-gray-400" />
                 <Input
                   placeholder='[TRANSLATION_NEEDED]'
@@ -757,17 +757,17 @@ export default function Locations() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <div className="text-lg">"</div>
                 <p className="text-lg">"Carregando locais...</p>
               </div>
             </div>
           ) : locations.length === 0 ? (
-            <div className=""
+            <div className="p-4"
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg">"Nenhum local encontrado</h3>
-              <p className=""
+              <p className="p-4"
                 {searchTerm || locationTypeFilter || statusFilter
                   ? '[TRANSLATION_NEEDED]'
                   : "Comece criando seu primeiro local no sistema."
@@ -793,7 +793,7 @@ export default function Locations() {
                 {locations.map((location: any) => (
                   <TableRow key={location.id}>
                     <TableCell>
-                      <div className=""
+                      <div className="p-4"
                         {location.is_favorite && (
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         )}
@@ -801,20 +801,20 @@ export default function Locations() {
                         <div>
                           <div className="text-lg">"{location.name}</div>
                           {location.description && (
-                            <div className=""
+                            <div className="p-4"
                               {location.description}
                             </div>
                           )}
                           {/* Sprint 2 - Display tags */}
                           {location.tags && location.tags.length > 0 && (
-                            <div className=""
+                            <div className="p-4"
                               {location.tags.slice(0, 2).map((tag: string, index: number) => (
-                                <Badge key={index} variant="secondary" className=""
+                                <Badge key={index} variant="secondary" className="p-4"
                                   {tag}
                                 </Badge>
                               ))}
                               {location.tags.length > 2 && (
-                                <Badge variant="outline" className=""
+                                <Badge variant="outline" className="p-4"
                                   +{location.tags.length - 2}
                                 </Badge>
                               )}
@@ -841,15 +841,15 @@ export default function Locations() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className=""
+                      <div className="p-4"
                         {location.coordinates?.lat?.toFixed(6)}, {location.coordinates?.lng?.toFixed(6)}
                       </div>
                     </TableCell>
                     <TableCell>
                       {new Date(location.created_at).toLocaleDateString('pt-BR')}
                     </TableCell>
-                    <TableCell className=""
-                      <div className=""
+                    <TableCell className="p-4"
+                      <div className="p-4"
                         <Button 
                           variant="ghost" 
                           size="sm"

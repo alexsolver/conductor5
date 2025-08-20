@@ -156,14 +156,14 @@ export default function AssetManagement() {
     return <Badge variant={variants[priority as keyof typeof variants] || 'outline'}>{priority}</Badge>;
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Controle de Ativos</h1>
           <p className="text-lg">"Gestão completa de ativos com geolocalização e QR codes</p>
         </div>
         
-        <div className=""
+        <div className="p-4"
           <Dialog open={isCreateAssetOpen} onOpenChange={setIsCreateAssetOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -171,7 +171,7 @@ export default function AssetManagement() {
                 Novo Ativo
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Criar Novo Ativo</DialogTitle>
                 <DialogDescription>
@@ -190,24 +190,24 @@ export default function AssetManagement() {
                   acquisitionCost: formData.get('acquisitionCost'),
                   warrantyExpiry: formData.get('warrantyExpiry')
                 });
-              }} className=""
-                <div className=""
-                  <div className=""
+              }} className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="name">Nome do Ativo *</Label>
                     <Input name="name" required placeholder="Ex: Compressor Industrial" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="code">Código *</Label>
                     <Input name="code" required placeholder="Ex: COMP-001" />
                   </div>
                 </div>
                 
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="serialNumber">Número de Série</Label>
                     <Input name="serialNumber" placeholder="Ex: SN123456789" />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="status">Status</Label>
                     <Select name="status" defaultValue="active>
                       <SelectTrigger>
@@ -222,8 +222,8 @@ export default function AssetManagement() {
                     </Select>
                   </div>
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="assetLevel">Nível do Ativo</Label>
                     <Select name="assetLevel" defaultValue="machine>
                       <SelectTrigger>
@@ -236,16 +236,16 @@ export default function AssetManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="acquisitionCost">Custo de Aquisição</Label>
                     <Input name="acquisitionCost" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="warrantyExpiry">Data de Vencimento da Garantia</Label>
                   <Input name="warrantyExpiry" type="date" />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsCreateAssetOpen(false)}>
                     Cancelar
                   </Button>
@@ -280,8 +280,8 @@ export default function AssetManagement() {
                   scheduledDate: formData.get('scheduledDate'),
                   description: formData.get('description')
                 });
-              }} className=""
-                <div className=""
+              }} className="p-4"
+                <div className="p-4"
                   <Label htmlFor="assetId">Ativo</Label>
                   <Select name="assetId" required>
                     <SelectTrigger>
@@ -296,8 +296,8 @@ export default function AssetManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label htmlFor="type">Tipo de Manutenção</Label>
                     <Select name="type" required>
                       <SelectTrigger>
@@ -310,7 +310,7 @@ export default function AssetManagement() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="priority">Prioridade</Label>
                     <Select name="priority" defaultValue="medium>
                       <SelectTrigger>
@@ -325,15 +325,15 @@ export default function AssetManagement() {
                     </Select>
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="scheduledDate">Data Agendada</Label>
                   <Input name="scheduledDate" type="datetime-local" required />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="description">Descrição</Label>
                   <Textarea name="description" required placeholder="Descreva os trabalhos a serem realizados..." />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsMaintenanceOpen(false)}>
                     Cancelar
                   </Button>
@@ -347,70 +347,70 @@ export default function AssetManagement() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Ativos</CardTitle>
             <Package2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.totalAssets || 0}</div>
-            <p className=""
+            <p className="p-4"
               {stats?.activeAssets || 0} ativos ativos
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Em Manutenção</CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.maintenanceAssets || 0}</div>
-            <p className=""
+            <p className="p-4"
               {stats?.scheduledMaintenance || 0} agendadas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Taxa de Conclusão</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{stats?.maintenanceCompletionRate || 0}%</div>
-            <p className=""
+            <p className="p-4"
               {stats?.completedMaintenance || 0} concluídas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"QR Codes</CardTitle>
             <QrCode className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {assets.filter((a: Asset) => a.qrCode).length}
             </div>
-            <p className=""
+            <p className="p-4"
               ativos com QR Code
             </p>
           </CardContent>
         </Card>
       </div>
       {/* Main Content Tabs */}
-      <Tabs defaultValue="assets" className=""
+      <Tabs defaultValue="assets" className="p-4"
         <TabsList>
           <TabsTrigger value="assets">Ativos</TabsTrigger>
           <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
           <TabsTrigger value="hierarchy">Hierarquia</TabsTrigger>
           <TabsTrigger value="meters">Medidores</TabsTrigger>
         </TabsList>
-        <TabsContent value="assets" className=""
+        <TabsContent value="assets" className="p-4"
           {/* Filters */}
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -420,7 +420,7 @@ export default function AssetManagement() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className=""
+              <SelectTrigger className="p-4"
                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
@@ -433,27 +433,27 @@ export default function AssetManagement() {
             </Select>
           </div>
           {/* Assets List */}
-          <div className=""
+          <div className="p-4"
             {assetsLoading ? (
               <div className="text-lg">"Carregando ativos...</div>
             ) : filteredAssets.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhum ativo encontrado
               </div>
             ) : (
               filteredAssets.map((asset: Asset) => (
                 <Card key={asset.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"{asset.name}</h3>
                           {getStatusBadge(asset.status)}
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Código: {asset.code} | Série: {asset.serialNumber || 'N/A'}
                         </p>
-                        <div className=""
+                        <div className="p-4"
                           <span>Nível: {asset.assetLevel}</span>
                           {asset.acquisitionCost && (
                             <span>Custo: R$ {parseFloat(asset.acquisitionCost).toFixed(2)}</span>
@@ -461,7 +461,7 @@ export default function AssetManagement() {
                         </div>
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         {!asset.qrCode && (
                           <Button
                             variant="outline"
@@ -493,34 +493,34 @@ export default function AssetManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="maintenance" className=""
-          <div className=""
+        <TabsContent value="maintenance" className="p-4"
+          <div className="p-4"
             {maintenance.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhuma manutenção agendada
               </div>
             ) : (
               maintenance.map((m) => (
                 <Card key={m.id}>
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="text-lg">"{m.description}</h3>
                           {getPriorityBadge(m.priority)}
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           Tipo: {m.type} | Status: {m.status}
                         </p>
                         {m.scheduledDate && (
-                          <div className=""
+                          <div className="p-4"
                             <Calendar className="w-4 h-4" />
                             {new Date(m.scheduledDate).toLocaleDateString('pt-BR')}
                           </div>
                         )}
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         <Button variant="outline" size="sm>
                           <Settings className="w-4 h-4 mr-1" />
                           Gerenciar
@@ -533,7 +533,7 @@ export default function AssetManagement() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="hierarchy" className=""
+        <TabsContent value="hierarchy" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Hierarquia de Ativos</CardTitle>
@@ -543,13 +543,13 @@ export default function AssetManagement() {
             </CardHeader>
             <CardContent>
               {hierarchy.length === 0 ? (
-                <div className=""
+                <div className="p-4"
                   Nenhuma hierarquia configurada
                 </div>
               ) : (
-                <div className=""
+                <div className="p-4"
                   {/* Tree view would be implemented here */}
-                  <p className=""
+                  <p className="p-4"
                     Hierarquia carregada com {hierarchy.length} nós raiz
                   </p>
                 </div>
@@ -557,7 +557,7 @@ export default function AssetManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="meters" className=""
+        <TabsContent value="meters" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Medidores de Ativos</CardTitle>
@@ -566,7 +566,7 @@ export default function AssetManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <Gauge className="w-12 h-12 mx-auto mb-4" />
                 <p>Módulo de medidores em desenvolvimento</p>
               </div>

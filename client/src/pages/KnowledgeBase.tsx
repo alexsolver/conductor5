@@ -103,12 +103,12 @@ export default function KnowledgeBase() {
     console.log('🔍 [KB-SEARCH] Performing search:', { searchQuery, selectedCategory, selectedAccess });
   };
   const EmptyState = () => (
-    <div className=""
+    <div className="p-4"
       <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-      <h3 className=""
+      <h3 className="p-4"
         Nenhum artigo disponível
       </h3>
-      <p className=""
+      <p className="p-4"
         Não há artigos publicados na base de conhecimento.
       </p>
       {activeTab === "articles" && (
@@ -126,14 +126,14 @@ export default function KnowledgeBase() {
   return (
     <div className="container mx-auto px-4 py-8" data-testid="knowledge-base-page>
       {/* Header */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               <BookOpen className="h-8 w-8 text-blue-600" />
               Base de Conhecimento Avançada
             </h1>
-            <p className=""
+            <p className="p-4"
               Sistema completo com templates, aprovação, comentários, busca semântica e versionamento
             </p>
           </div>
@@ -148,12 +148,12 @@ export default function KnowledgeBase() {
         </div>
       </div>
       {/* Advanced Search */}
-      <Card className=""
-        <CardContent className=""
-          <div className=""
-            <div className=""
-              <div className=""
-                <div className=""
+      <Card className="p-4"
+        <CardContent className="p-4"
+          <div className="p-4"
+            <div className="p-4"
+              <div className="p-4"
+                <div className="p-4"
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Pesquisar artigos... (busca semântica disponível)"
@@ -175,7 +175,7 @@ export default function KnowledgeBase() {
                 {semanticSearch ? "Busca Semântica ON" : "Busca Tradicional"
               </Button>
             </div>
-            <div className=""
+            <div className="p-4"
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-full sm:w-48 bg-white" data-testid="select-category>
                   <SelectValue placeholder="Categoria" />
@@ -206,12 +206,12 @@ export default function KnowledgeBase() {
               </Button>
             </div>
             {semanticSearch && (
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <Layers className="h-4 w-4 text-blue-600" />
                   <Label className="text-lg">"Busca Semântica Ativa</Label>
                 </div>
-                <p className=""
+                <p className="p-4"
                   A busca semântica encontra artigos por significado, não apenas palavras-chave exatas.
                 </p>
               </div>
@@ -220,32 +220,32 @@ export default function KnowledgeBase() {
         </CardContent>
       </Card>
       {/* Tabs para Funcionalidades Avançadas */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
-        <TabsList className=""
-          <TabsTrigger value="articles" className=""
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+        <TabsList className="p-4"
+          <TabsTrigger value="articles" className="p-4"
             <FileText className="h-4 w-4" />
             Artigos
           </TabsTrigger>
-          <TabsTrigger value="templates" className=""
+          <TabsTrigger value="templates" className="p-4"
             <Layers className="h-4 w-4" />
             Templates
           </TabsTrigger>
-          <TabsTrigger value="approvals" className=""
+          <TabsTrigger value="approvals" className="p-4"
             <CheckCircle className="h-4 w-4" />
             Aprovações
           </TabsTrigger>
-          <TabsTrigger value="versions" className=""
+          <TabsTrigger value="versions" className="p-4"
             <Clock className="h-4 w-4" />
             Versões
           </TabsTrigger>
-          <TabsTrigger value="media" className=""
+          <TabsTrigger value="media" className="p-4"
             <Upload className="h-4 w-4" />
             Mídia
           </TabsTrigger>
         </TabsList>
         {/* Tab: Artigos */}
         <TabsContent value="articles>
-          <div className=""
+          <div className="p-4"
             {isLoading ? (
               Array.from({ length: 3 }).map((_, index) => (
                 <Card key={index}>
@@ -261,65 +261,65 @@ export default function KnowledgeBase() {
             ) : articles.length === 0 ? (
               <EmptyState />
             ) : (
-              <div className=""
+              <div className="p-4"
                 {articles.map((article: Article) => (
                   <Card key={article.id} className="hover:shadow-lg transition-shadow" data-testid={"
-                    <CardHeader className=""
-                      <div className=""
+                    <CardHeader className="p-4"
+                      <div className="p-4"
                         <CardTitle className="text-lg">"{article.title}</CardTitle>
-                        <div className=""
-                          <Badge variant={article.published ? "default" : "secondary"} className=""
+                        <div className="p-4"
+                          <Badge variant={article.published ? "default" : "secondary"} className="p-4"
                             {article.published ? 'Publicado' : 'Rascunho'}
                           </Badge>
                           {article.version && (
-                            <Badge variant="outline" className=""
+                            <Badge variant="outline" className="p-4"
                               v{article.version}
                             </Badge>
                           )}
                         </div>
                       </div>
-                      <CardDescription className=""
+                      <CardDescription className="p-4"
                         {article.summary || 'Sem descrição disponível'}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className=""
-                      <div className=""
+                    <CardContent className="p-4"
+                      <div className="p-4"
                         <Tag className="h-3 w-3" />
                         <span>{article.category}</span>
                       </div>
                       {article.tags && article.tags.length > 0 && (
-                        <div className=""
+                        <div className="p-4"
                           {article.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="outline" className=""
+                            <Badge key={tag} variant="outline" className="p-4"
                               {tag}
                             </Badge>
                           ))}
                           {article.tags.length > 3 && (
-                            <Badge variant="outline" className=""
+                            <Badge variant="outline" className="p-4"
                               +{article.tags.length - 3}
                             </Badge>
                           )}
                         </div>
                       )}
-                      <div className=""
-                        <div className=""
-                          <span className=""
+                      <div className="p-4"
+                        <div className="p-4"
+                          <span className="p-4"
                             <Eye className="h-3 w-3" />
                             {article.view_count || 0}
                           </span>
-                          <span className=""
+                          <span className="p-4"
                             <ThumbsUp className="h-3 w-3" />
                             {article.helpful_count || 0}
                           </span>
-                          <span className=""
+                          <span className="p-4"
                             <MessageSquare className="h-3 w-3" />
                             0
                           </span>
                         </div>
                       </div>
                       <Separator />
-                      <div className=""
-                        <Button size="sm" variant="outline" className=""
+                      <div className="p-4"
+                        <Button size="sm" variant="outline" className="p-4"
                           <Eye className="h-3 w-3 mr-1" />
                           Ver
                         </Button>
@@ -336,8 +336,8 @@ export default function KnowledgeBase() {
         </TabsContent>
         {/* Tab: Templates */}
         <TabsContent value="templates>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <div>
                 <h3 className="text-lg">"Templates Disponíveis</h3>
                 <p className="text-lg">"Gerencie templates reutilizáveis para artigos</p>
@@ -345,10 +345,10 @@ export default function KnowledgeBase() {
               <TemplateCreateDialog />
             </div>
             
-            <div className=""
-              <Card className=""
+            <div className="p-4"
+              <Card className="p-4"
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <Layers className="h-5 w-5 text-blue-600" />
                     Template FAQ
                   </CardTitle>
@@ -357,7 +357,7 @@ export default function KnowledgeBase() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
+                  <div className="p-4"
                     <Badge variant="outline">FAQ</Badge>
                     <Button size="sm" variant="outline">Usar Template</Button>
                   </div>
@@ -368,8 +368,8 @@ export default function KnowledgeBase() {
         </TabsContent>
         {/* Tab: Aprovações */}
         <TabsContent value="approvals>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <div>
                 <h3 className="text-lg">"Workflow de Aprovação</h3>
                 <p className="text-lg">"Gerencie artigos pendentes de aprovação</p>
@@ -385,9 +385,9 @@ export default function KnowledgeBase() {
               </Button>
             </div>
             
-            <div className=""
+            <div className="p-4"
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Pendentes</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -397,7 +397,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Aprovados</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -407,7 +407,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Rejeitados</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -416,7 +416,7 @@ export default function KnowledgeBase() {
                 </CardContent>
               </Card>
             </div>
-            <div className=""
+            <div className="p-4"
               <CheckCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-lg">"Nenhum artigo pendente de aprovação no momento</p>
             </div>
@@ -424,8 +424,8 @@ export default function KnowledgeBase() {
         </TabsContent>
         {/* Tab: Versões */}
         <TabsContent value="versions>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <div>
                 <h3 className="text-lg">"Controle de Versões</h3>
                 <p className="text-lg">"Histórico de alterações dos artigos</p>
@@ -435,16 +435,16 @@ export default function KnowledgeBase() {
                 Ver Histórico
               </Button>
             </div>
-            <div className=""
+            <div className="p-4"
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">"Atividade Recente</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <div className="text-lg">"</div>
-                      <div className=""
+                      <div className="p-4"
                         <p className="text-lg">"Sistema inicializado</p>
                         <p className="text-lg">"Controle de versões ativo</p>
                       </div>
@@ -458,17 +458,17 @@ export default function KnowledgeBase() {
         </TabsContent>
         {/* Tab: Mídia */}
         <TabsContent value="media>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <div>
                 <h3 className="text-lg">"Biblioteca de Mídia</h3>
                 <p className="text-lg">"Gerencie imagens, vídeos e documentos</p>
               </div>
               <MediaUploadDialog />
             </div>
-            <div className=""
+            <div className="p-4"
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Imagens</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -478,7 +478,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Vídeos</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -488,7 +488,7 @@ export default function KnowledgeBase() {
               </Card>
               
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Documentos</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -497,7 +497,7 @@ export default function KnowledgeBase() {
                 </CardContent>
               </Card>
             </div>
-            <div className=""
+            <div className="p-4"
               <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <p className="text-lg">"Nenhum arquivo de mídia enviado ainda</p>
             </div>

@@ -214,19 +214,19 @@ export default function Compliance() {
   const clearArchCategories = groupByCategory(clearArchitectureItems);
   const multitenancyCategories = groupByCategory(multitenancyItems);
   return (
-      <div className=""
+      <div className="p-4"
         {/* Header */}
-        <div className=""
+        <div className="p-4"
           <h1 className="text-lg">"Compliance</h1>
-          <p className=""
+          <p className="p-4"
             Verificação de conformidade arquitetural e requisitos técnicos
           </p>
         </div>
         {/* Progress Overview */}
-        <div className=""
+        <div className="p-4"
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Layers className="h-5 w-5" />
                 Clear Architecture
               </CardTitle>
@@ -235,13 +235,13 @@ export default function Compliance() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <span>Progresso Geral</span>
                   <span>{clearArchProgress}%</span>
                 </div>
                 <Progress value={clearArchProgress} className="h-3" />
-                <div className=""
+                <div className="p-4"
                   <span>{clearArchitectureItems.filter(i => i.status === "implemented").length} implementados</span>
                   <span>{clearArchitectureItems.length} total</span>
                 </div>
@@ -250,7 +250,7 @@ export default function Compliance() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Database className="h-5 w-5" />
                 Multitenancy
               </CardTitle>
@@ -259,13 +259,13 @@ export default function Compliance() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <span>Progresso Geral</span>
                   <span>{multitenancyProgress}%</span>
                 </div>
                 <Progress value={multitenancyProgress} className="h-3" />
-                <div className=""
+                <div className="p-4"
                   <span>{multitenancyItems.filter(i => i.status === "implemented").length} implementados</span>
                   <span>{multitenancyItems.length} total</span>
                 </div>
@@ -276,7 +276,7 @@ export default function Compliance() {
         {/* Clear Architecture Section */}
         <Card>
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <Layers className="h-6 w-6" />
               1. Clear Architecture
             </CardTitle>
@@ -285,28 +285,28 @@ export default function Compliance() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {Object.entries(clearArchCategories).map(([category, items]) => {
                 const categoryProgress = calculateProgress(items);
                 return (
-                  <div key={category} className=""
-                    <div className=""
+                  <div key={category} className="p-4"
+                    <div className="p-4"
                       {getCategoryIcon(category)}
                       <h3 className="text-lg">"{category}</h3>
-                      <div className=""
+                      <div className="p-4"
                         <span className="text-lg">"{categoryProgress}%</span>
                         <Progress value={categoryProgress} className="w-24 h-2" />
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       {items.map((item, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          <div className=""
+                          <div className="p-4"
                             {getStatusIcon(item.status)}
-                            <div className=""
+                            <div className="p-4"
                               <p className="text-lg">"{item.name}</p>
                               {item.description && (
                                 <p className="text-lg">"{item.description}</p>
@@ -326,7 +326,7 @@ export default function Compliance() {
         {/* Multitenancy Requirements Section */}
         <Card>
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <Database className="h-6 w-6" />
               2. Requisitos - Multitenancy
             </CardTitle>
@@ -335,28 +335,28 @@ export default function Compliance() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {Object.entries(multitenancyCategories).map(([category, items]) => {
                 const categoryProgress = calculateProgress(items);
                 return (
-                  <div key={category} className=""
-                    <div className=""
+                  <div key={category} className="p-4"
+                    <div className="p-4"
                       {getCategoryIcon(category)}
                       <h3 className="text-lg">"{category}</h3>
-                      <div className=""
+                      <div className="p-4"
                         <span className="text-lg">"{categoryProgress}%</span>
                         <Progress value={categoryProgress} className="w-24 h-2" />
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       {items.map((item, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          <div className=""
+                          <div className="p-4"
                             {getStatusIcon(item.status)}
-                            <div className=""
+                            <div className="p-4"
                               <p className="text-lg">"{item.name}</p>
                               {item.description && (
                                 <p className="text-lg">"{item.description}</p>

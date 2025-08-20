@@ -20,17 +20,17 @@ export default function Dashboard() {
   const activity = (activityResponse as any)?.data || [];
   if (isLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div>
             <div className="text-lg">"</div>
             <div className="text-lg">"</div>
           </div>
         </div>
-        <div className=""
+        <div className="p-4"
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className=""
-              <CardHeader className=""
+            <Card key={i} className="p-4"
+              <CardHeader className="p-4"
                 <div className="text-lg">"</div>
               </CardHeader>
               <CardContent>
@@ -69,19 +69,19 @@ export default function Dashboard() {
     },
   ];
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"'[TRANSLATION_NEEDED]'</h1>
           <p className="text-lg">"'[TRANSLATION_NEEDED]'</p>
         </div>
       </div>
       {/* Metrics Grid */}
-      <div className=""
+      <div className="p-4"
         {metrics.map((metric) => (
-          <Card key={metric.title} className=""
-            <CardHeader className=""
-              <CardTitle className=""
+          <Card key={metric.title} className="p-4"
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 {metric.title}
               </CardTitle>
               <metric.icon className="h-4 w-4 text-purple-600" />
@@ -94,26 +94,26 @@ export default function Dashboard() {
         ))}
       </div>
       {/* Activity Feed */}
-      <div className=""
+      <div className="p-4"
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {activity?.slice(0, 5).map((item: any, index: number) => (
-                <div key={index} className=""
+                <div key={index} className="p-4"
                   <div className="text-lg">"</div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"{item.action}</span>
                     <span className="text-lg">" by {item.user?.firstName || 'User'}</span>
                   </div>
-                  <span className=""
+                  <span className="p-4"
                     {new Date(item.createdAt).toLocaleTimeString()}
                   </span>
                 </div>
               )) || (
-                <div className=""
+                <div className="p-4"
                   No recent activity
                 </div>
               )}
@@ -125,16 +125,16 @@ export default function Dashboard() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
-              <button className=""
+            <div className="p-4"
+              <button className="p-4"
                 <div className="text-lg">"Create New Ticket</div>
                 <div className="text-lg">"Start a new support ticket</div>
               </button>
-              <button className=""
+              <button className="p-4"
                 <div className="text-lg">"Add Customer</div>
                 <div className="text-lg">"Register a new customer</div>
               </button>
-              <button className=""
+              <button className="p-4"
                 <div className="text-lg">"View Reports</div>
                 <div className="text-lg">"Check detailed analytics</div>
               </button>

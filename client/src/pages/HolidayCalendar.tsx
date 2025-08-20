@@ -143,15 +143,15 @@ export default function HolidayCalendar() {
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Calendário de Feriados</h1>
           <p className="text-lg">"Gerenciar feriados para controle de jornadas multilocation</p>
         </div>
         
-        <div className=""
+        <div className="p-4"
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -159,7 +159,7 @@ export default function HolidayCalendar() {
                 Novo Feriado
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Criar Novo Feriado</DialogTitle>
                 <DialogDescription>
@@ -168,7 +168,7 @@ export default function HolidayCalendar() {
               </DialogHeader>
               
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className=""
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
                   <FormField
                     control={form.control}
                     name="name"
@@ -183,7 +183,7 @@ export default function HolidayCalendar() {
                     )}
                   />
                   
-                  <div className=""
+                  <div className="p-4"
                     <FormField
                       control={form.control}
                       name="date"
@@ -224,7 +224,7 @@ export default function HolidayCalendar() {
                     />
                   </div>
                   
-                  <div className=""
+                  <div className="p-4"
                     <FormField
                       control={form.control}
                       name="countryCode"
@@ -268,16 +268,16 @@ export default function HolidayCalendar() {
                     control={form.control}
                     name="isRecurring"
                     render={({ field }) => (
-                      <FormItem className=""
+                      <FormItem className="p-4"
                         <FormControl>
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <div className=""
+                        <div className="p-4"
                           <FormLabel>Feriado recorrente</FormLabel>
-                          <p className=""
+                          <p className="p-4"
                             Se repete todo ano na mesma data
                           </p>
                         </div>
@@ -302,7 +302,7 @@ export default function HolidayCalendar() {
                     )}
                   />
                   
-                  <div className=""
+                  <div className="p-4"
                     <Button
                       type="button"
                       variant="outline"
@@ -323,14 +323,14 @@ export default function HolidayCalendar() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Filter className="h-5 w-5" />
             Filtros
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <label className="text-lg">"Ano</label>
               <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                 <SelectTrigger>
@@ -346,7 +346,7 @@ export default function HolidayCalendar() {
               </Select>
             </div>
             
-            <div className=""
+            <div className="p-4"
               <label className="text-lg">"País</label>
               <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                 <SelectTrigger>
@@ -361,7 +361,7 @@ export default function HolidayCalendar() {
               </Select>
             </div>
             
-            <div className=""
+            <div className="p-4"
               <label className="text-lg">"Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
@@ -378,7 +378,7 @@ export default function HolidayCalendar() {
               </Select>
             </div>
             
-            <div className=""
+            <div className="p-4"
               <label className="text-lg">"Região</label>
               <Input
                 placeholder="Ex: SP, RJ..."
@@ -390,10 +390,10 @@ export default function HolidayCalendar() {
         </CardContent>
       </Card>
       {/* Stats */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <Calendar className="h-4 w-4 text-blue-600" />
               <div>
                 <p className="text-lg">"Total de Feriados</p>
@@ -404,12 +404,12 @@ export default function HolidayCalendar() {
         </Card>
         
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <Globe className="h-4 w-4 text-red-600" />
               <div>
                 <p className="text-lg">"Nacionais</p>
-                <p className=""
+                <p className="p-4"
                   {holidays.filter((h: Holiday) => h.type === 'national').length}
                 </p>
               </div>
@@ -418,12 +418,12 @@ export default function HolidayCalendar() {
         </Card>
         
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <MapPin className="h-4 w-4 text-blue-600" />
               <div>
                 <p className="text-lg">"Regionais</p>
-                <p className=""
+                <p className="p-4"
                   {holidays.filter((h: Holiday) => h.type === 'regional').length}
                 </p>
               </div>
@@ -432,12 +432,12 @@ export default function HolidayCalendar() {
         </Card>
         
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <Building className="h-4 w-4 text-green-600" />
               <div>
                 <p className="text-lg">"Corporativos</p>
-                <p className=""
+                <p className="p-4"
                   {holidays.filter((h: Holiday) => h.type === 'corporate').length}
                 </p>
               </div>
@@ -457,7 +457,7 @@ export default function HolidayCalendar() {
           {isLoading ? (
             <div className="text-lg">"Carregando feriados...</div>
           ) : (
-            <div className=""
+            <div className="p-4"
               {monthNames.map((monthName, index) => {
                 const monthKey = "
                 const monthHolidays = holidaysByMonth[monthKey] || [];
@@ -465,17 +465,17 @@ export default function HolidayCalendar() {
                 if (monthHolidays.length === 0) return null;
                 
                 return (
-                  <div key={monthKey} className=""
+                  <div key={monthKey} className="p-4"
                     <h3 className="text-lg">"{monthName}</h3>
-                    <div className=""
+                    <div className="p-4"
                       {monthHolidays.map((holiday: Holiday) => (
-                        <div key={holiday.id} className=""
-                          <div className=""
-                            <div className=""
-                              <div className=""
+                        <div key={holiday.id} className="p-4"
+                          <div className="p-4"
+                            <div className="p-4"
+                              <div className="p-4"
                                 {new Date(holiday.date + 'T00:00:00').getDate()}
                               </div>
-                              <div className=""
+                              <div className="p-4"
                                 {new Date(holiday.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short' })}
                               </div>
                             </div>
@@ -488,22 +488,22 @@ export default function HolidayCalendar() {
                             </div>
                           </div>
                           
-                          <div className=""
+                          <div className="p-4"
                             {holiday.regionCode && (
-                              <Badge variant="outline" className=""
+                              <Badge variant="outline" className="p-4"
                                 {holiday.regionCode}
                               </Badge>
                             )}
                             
                             <Badge className="text-lg">"
-                              <span className=""
+                              <span className="p-4"
                                 {typeIcons[holiday.type]}
                                 {typeLabels[holiday.type]}
                               </span>
                             </Badge>
                             
                             {holiday.isRecurring && (
-                              <Badge variant="secondary" className=""
+                              <Badge variant="secondary" className="p-4"
                                 Recorrente
                               </Badge>
                             )}
@@ -516,7 +516,7 @@ export default function HolidayCalendar() {
               })}
               
               {Object.keys(holidaysByMonth).length === 0 && (
-                <div className=""
+                <div className="p-4"
                   Nenhum feriado encontrado para os filtros selecionados.
                 </div>
               )}

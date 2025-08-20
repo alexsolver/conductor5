@@ -101,9 +101,9 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
     });
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
-        <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <Label htmlFor="movementType">Tipo de Movimentação *</Label>
           <Select value={movementType} onValueChange={setMovementType}>
             <SelectTrigger>
@@ -116,7 +116,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             </SelectContent>
           </Select>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
@@ -131,7 +131,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             </SelectContent>
           </Select>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
@@ -146,7 +146,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             </SelectContent>
           </Select>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="quantity">Quantidade *</Label>
           <Input
             id="quantity"
@@ -157,7 +157,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="unitCost">Custo Unitário (opcional)</Label>
           <Input
             id="unitCost"
@@ -169,7 +169,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <Label htmlFor="reason">Motivo *</Label>
         <Textarea
           id="reason"
@@ -179,7 +179,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           required
         />
       </div>
-      <div className=""
+      <div className="p-4"
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Registrando..." : "Registrar Movimentação"
         </Button>
@@ -213,9 +213,9 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
     });
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
-        <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
@@ -230,7 +230,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
             </SelectContent>
           </Select>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
@@ -245,7 +245,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
             </SelectContent>
           </Select>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="newQuantity">Nova Quantidade *</Label>
           <Input
             id="newQuantity"
@@ -257,7 +257,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <Label htmlFor="adjustmentReason">Motivo do Ajuste *</Label>
         <Textarea
           id="adjustmentReason"
@@ -267,7 +267,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           required
         />
       </div>
-      <div className=""
+      <div className="p-4"
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Ajustando..." : "Realizar Ajuste"
         </Button>
@@ -283,10 +283,10 @@ function InventoryModal() {
   });
   const stockItems: StockItem[] = (stockResponse as any)?.data || [];
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Itens</CardTitle>
           </CardHeader>
           <CardContent>
@@ -294,21 +294,21 @@ function InventoryModal() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Valor Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               R$ {stockItems.reduce((acc, item) => acc + item.totalValue, 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Itens Críticos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {stockItems.filter(item => item.status === 'critical').length}
             </div>
           </CardContent>
@@ -354,11 +354,11 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
   onCreateWarehouse: () => void; 
 }) {
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h3 className="text-lg">"Gestão de Armazéns</h3>
-          <p className=""
+          <p className="p-4"
             Gerencie seus armazéns e localizações de estoque
           </p>
         </div>
@@ -367,13 +367,13 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
           Novo Armazém
         </Button>
       </div>
-      <div className=""
+      <div className="p-4"
         {warehouses.length === 0 ? (
-          <Card className=""
-            <CardContent className=""
+          <Card className="p-4"
+            <CardContent className="p-4"
               <Warehouse className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg">"Nenhum armazém cadastrado</h3>
-              <p className=""
+              <p className="p-4"
                 Comece criando seu primeiro armazém para organizar o estoque
               </p>
               <Button onClick={onCreateWarehouse}>
@@ -385,26 +385,26 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
         ) : (
           warehouses.map((warehouse: any) => (
             <Card key={warehouse.id}>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"{warehouse.name}</CardTitle>
                 <Warehouse className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <MapPin className="h-4 w-4 mr-1" />
                     {warehouse.location || 'Localização não informada'}
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Package className="h-4 w-4 mr-1" />
                     {warehouse.itemCount || 0} itens
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Users className="h-4 w-4 mr-1" />
                     {warehouse.manager || 'Sem responsável'}
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -441,25 +441,25 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
             <CardTitle>Estatísticas dos Armazéns</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <div className="text-lg">"{warehouses.length}</div>
                 <p className="text-lg">"Total de Armazéns</p>
               </div>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   {warehouses.reduce((acc, w) => acc + (w.itemCount || 0), 0)}
                 </div>
                 <p className="text-lg">"Itens Totais</p>
               </div>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   R$ {warehouses.reduce((acc, w) => acc + (w.totalValue || 0), 0).toLocaleString()}
                 </div>
                 <p className="text-lg">"Valor Total</p>
               </div>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   {warehouses.filter(w => w.status === 'active').length}
                 </div>
                 <p className="text-lg">"Armazéns Ativos</p>
@@ -575,15 +575,15 @@ export function StockManagement() {
     return matchesSearch && matchesStatus && matchesWarehouse;
   });
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Gestão de Estoque</h1>
-          <p className=""
+          <p className="p-4"
             Controle completo do seu inventário e movimentações
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button onClick={() => setIsNewMovementOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Nova Movimentação
@@ -598,55 +598,55 @@ export function StockManagement() {
           </Button>
         </div>
       </div>
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className=""
-        <TabsList className=""
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="p-4"
+        <TabsList className="p-4"
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="items">Itens em Estoque</TabsTrigger>
           <TabsTrigger value="movements">Movimentações</TabsTrigger>
           <TabsTrigger value="warehouses">Armazéns</TabsTrigger>
         </TabsList>
         {/* Overview Tab */}
-        <TabsContent value="overview" className=""
+        <TabsContent value="overview" className="p-4"
           {/* Statistics Cards */}
-          <div className=""
+          <div className="p-4"
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Itens em Estoque</CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-lg">"{stockStats.totalItems || stockItems.length}</div>
-                <p className=""
+                <p className="p-4"
                   {stockStats.activeItems || stockItems.filter(item => item.status !== 'critical').length} ativos
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Estoque Baixo</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {stockStats.lowStockItems || stockItems.filter(item => item.status === 'low').length}
                 </div>
                 <p className="text-lg">"Necessitam reposição</p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Valor Total</CardTitle>
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   R$ {(stockStats.totalValue || stockItems.reduce((acc, item) => acc + item.totalValue, 0)).toLocaleString()}
                 </div>
                 <p className="text-lg">"Inventário completo</p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Movimentações Hoje</CardTitle>
                 <ArrowUpDown className="h-4 w-4 text-blue-600" />
               </CardHeader>
@@ -666,7 +666,7 @@ export function StockManagement() {
             </CardHeader>
             <CardContent>
               {movements.length === 0 ? (
-                <div className=""
+                <div className="p-4"
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg">"Nenhuma movimentação registrada</h3>
                   <p>As movimentações de estoque aparecerão aqui</p>
@@ -713,17 +713,17 @@ export function StockManagement() {
           </Card>
         </TabsContent>
         {/* Items Tab */}
-        <TabsContent value="items" className=""
+        <TabsContent value="items" className="p-4"
           {/* Filters */}
           <Card>
             <CardHeader>
               <CardTitle>Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <Label htmlFor="search">Buscar Item</Label>
-                  <div className=""
+                  <div className="p-4"
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="search"
@@ -734,7 +734,7 @@ export function StockManagement() {
                     />
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
@@ -749,7 +749,7 @@ export function StockManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="warehouse">Armazém</Label>
                   <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
                     <SelectTrigger>
@@ -778,11 +778,11 @@ export function StockManagement() {
             </CardHeader>
             <CardContent>
               {isLoadingStock ? (
-                <div className=""
+                <div className="p-4"
                   <p>Carregando itens...</p>
                 </div>
               ) : filteredStockItems.length === 0 ? (
-                <div className=""
+                <div className="p-4"
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg">"Nenhum item encontrado</h3>
                   <p>Verifique os filtros aplicados</p>
@@ -810,13 +810,13 @@ export function StockManagement() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className=""
+                          <div className="p-4"
                             <span className="text-lg">"{item.currentStock}</span>
                             <div className="text-lg">"unidades</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className=""
+                          <div className="p-4"
                             <div>Min: {item.minimumStock}</div>
                             <div>Max: {item.maximumStock}</div>
                           </div>
@@ -829,7 +829,7 @@ export function StockManagement() {
                         <TableCell>R$ {item.totalValue.toLocaleString()}</TableCell>
                         <TableCell>{item.warehouse}</TableCell>
                         <TableCell>
-                          <div className=""
+                          <div className="p-4"
                             <Button 
                               size="sm" 
                               variant="outline" 
@@ -861,7 +861,7 @@ export function StockManagement() {
           </Card>
         </TabsContent>
         {/* Movements Tab */}
-        <TabsContent value="movements" className=""
+        <TabsContent value="movements" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Histórico de Movimentações</CardTitle>
@@ -871,7 +871,7 @@ export function StockManagement() {
             </CardHeader>
             <CardContent>
               {movements.length === 0 ? (
-                <div className=""
+                <div className="p-4"
                   <ArrowUpDown className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg">"Nenhuma movimentação registrada</h3>
                   <p>As movimentações de estoque aparecerão aqui</p>
@@ -924,7 +924,7 @@ export function StockManagement() {
           </Card>
         </TabsContent>
         {/* Warehouses Tab */}
-        <TabsContent value="warehouses" className=""
+        <TabsContent value="warehouses" className="p-4"
           <WarehousesTab 
             warehouses={warehouses} 
             onCreateWarehouse={() => setIsNewWarehouseOpen(true)}
@@ -933,7 +933,7 @@ export function StockManagement() {
       </Tabs>
       {/* Modals */}
       <Dialog open={isNewMovementOpen} onOpenChange={setIsNewMovementOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Nova Movimentação de Estoque</DialogTitle>
             <DialogDescription>
@@ -947,7 +947,7 @@ export function StockManagement() {
         </DialogContent>
       </Dialog>
       <Dialog open={isAdjustmentOpen} onOpenChange={setIsAdjustmentOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Ajuste de Estoque</DialogTitle>
             <DialogDescription>
@@ -961,7 +961,7 @@ export function StockManagement() {
         </DialogContent>
       </Dialog>
       <Dialog open={isInventoryOpen} onOpenChange={setIsInventoryOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Inventário de Estoque</DialogTitle>
             <DialogDescription>
@@ -972,7 +972,7 @@ export function StockManagement() {
         </DialogContent>
       </Dialog>
       <Dialog open={isNewWarehouseOpen} onOpenChange={setIsNewWarehouseOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Novo Armazém</DialogTitle>
             <DialogDescription>
@@ -992,7 +992,7 @@ export function StockManagement() {
       </Dialog>
       {/* View Item Modal */}
       <Dialog open={isViewItemOpen} onOpenChange={setIsViewItemOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Visualizar Item</DialogTitle>
             <DialogDescription>
@@ -1000,8 +1000,8 @@ export function StockManagement() {
             </DialogDescription>
           </DialogHeader>
           {selectedItem && (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <div>
                   <Label className="text-lg">"Nome do Item</Label>
                   <p className="text-lg">"{selectedItem.itemName}</p>
@@ -1037,7 +1037,7 @@ export function StockManagement() {
                   <p className="text-lg">"{selectedItem.warehouse}</p>
                 </div>
               </div>
-              <div className=""
+              <div className="p-4"
                 <Button onClick={() => setIsViewItemOpen(false)}>Fechar</Button>
               </div>
             </div>
@@ -1046,7 +1046,7 @@ export function StockManagement() {
       </Dialog>
       {/* Edit Item Modal */}
       <Dialog open={isEditItemOpen} onOpenChange={setIsEditItemOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Editar Item</DialogTitle>
             <DialogDescription>
@@ -1068,7 +1068,7 @@ export function StockManagement() {
       </Dialog>
       {/* View Warehouse Modal */}
       <Dialog open={isViewWarehouseOpen} onOpenChange={setIsViewWarehouseOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Visualizar Armazém</DialogTitle>
             <DialogDescription>
@@ -1076,8 +1076,8 @@ export function StockManagement() {
             </DialogDescription>
           </DialogHeader>
           {selectedWarehouse && (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <div>
                   <Label className="text-lg">"Nome</Label>
                   <p className="text-lg">"{selectedWarehouse.name}</p>
@@ -1105,7 +1105,7 @@ export function StockManagement() {
                   </Badge>
                 </div>
               </div>
-              <div className=""
+              <div className="p-4"
                 <Button onClick={() => setIsViewWarehouseOpen(false)}>Fechar</Button>
               </div>
             </div>
@@ -1114,7 +1114,7 @@ export function StockManagement() {
       </Dialog>
       {/* Edit Warehouse Modal */}
       <Dialog open={isEditWarehouseOpen} onOpenChange={setIsEditWarehouseOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Editar Armazém</DialogTitle>
             <DialogDescription>
@@ -1169,9 +1169,9 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
     });
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
-        <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <Label htmlFor="name">Nome do Armazém *</Label>
           <Input
             id="name"
@@ -1181,7 +1181,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="location">Localização *</Label>
           <Input
             id="location"
@@ -1191,7 +1191,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="manager">Responsável</Label>
           <Input
             id="manager"
@@ -1200,7 +1200,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
             onChange={(e) => setManager(e.target.value)}
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="capacity">Capacidade (m²)</Label>
           <Input
             id="capacity"
@@ -1211,7 +1211,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <Label htmlFor="description">Descrição</Label>
         <Input
           id="description"
@@ -1220,7 +1220,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
-      <div className=""
+      <div className="p-4"
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
@@ -1252,18 +1252,18 @@ function EditItemForm({ item, onSubmit, onCancel }: {
     });
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
-        <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <Label>Nome do Item</Label>
           <Input value={item.itemName} disabled />
         </div>
         
-        <div className=""
+        <div className="p-4"
           <Label>Código</Label>
           <Input value={item.itemCode} disabled />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="minimumStock">Estoque Mínimo *</Label>
           <Input
             id="minimumStock"
@@ -1273,7 +1273,7 @@ function EditItemForm({ item, onSubmit, onCancel }: {
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="maximumStock">Estoque Máximo *</Label>
           <Input
             id="maximumStock"
@@ -1283,7 +1283,7 @@ function EditItemForm({ item, onSubmit, onCancel }: {
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="warehouse">Armazém</Label>
           <Input
             id="warehouse"
@@ -1291,12 +1291,12 @@ function EditItemForm({ item, onSubmit, onCancel }: {
             onChange={(e) => setWarehouse(e.target.value)}
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label>Estoque Atual</Label>
           <Input value={" unidades" disabled />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
@@ -1337,9 +1337,9 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
     });
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
-        <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <Label htmlFor="name">Nome do Armazém *</Label>
           <Input
             id="name"
@@ -1348,7 +1348,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="location">Localização *</Label>
           <Input
             id="location"
@@ -1357,7 +1357,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="manager">Responsável</Label>
           <Input
             id="manager"
@@ -1365,7 +1365,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
             onChange={(e) => setManager(e.target.value)}
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="status">Status</Label>
           <select 
             id="status"
@@ -1378,7 +1378,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
           </select>
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>

@@ -104,14 +104,14 @@ function CreateExpenseReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button data-testid="button-create-expense-report" className=""
+        <Button data-testid="button-create-expense-report" className="p-4"
           <Plus className="h-4 w-4 mr-2" />
           Novo Relatório de Despesas
         </Button>
       </DialogTrigger>
-      <DialogContent className=""
+      <DialogContent className="p-4"
         <DialogHeader>
-          <DialogTitle className=""
+          <DialogTitle className="p-4"
             Criar Novo Relatório de Despesas
           </DialogTitle>
           <DialogDescription>
@@ -119,7 +119,7 @@ function CreateExpenseReportDialog() {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className=""
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
             <FormField
               control={form.control}
               name="title"
@@ -154,7 +154,7 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-            <div className=""
+            <div className="p-4"
               <FormField
                 control={form.control}
                 name="departmentId"
@@ -225,7 +225,7 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-            <div className=""
+            <div className="p-4"
               <Button 
                 type="button" 
                 variant="outline" 
@@ -264,11 +264,11 @@ function DashboardMetrics() {
   });
   if (isLoading) {
     return (
-      <div className=""
+      <div className="p-4"
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <div className="text-lg">"</div>
                 <div className="text-lg">"</div>
               </div>
@@ -286,12 +286,12 @@ function DashboardMetrics() {
     ...metrics
   };
   return (
-    <div className=""
-      <Card className=""
-        <CardContent className=""
-          <div className=""
+    <div className="p-4"
+      <Card className="p-4"
+        <CardContent className="p-4"
+          <div className="p-4"
             <FileText className="h-8 w-8 text-blue-600" />
-            <div className=""
+            <div className="p-4"
               <p className="text-lg">"Total de Relatórios</p>
               <p className="text-2xl font-bold text-blue-900 dark:text-blue-100" data-testid="metric-total-reports>
                 {defaultMetrics.totalReports}
@@ -300,11 +300,11 @@ function DashboardMetrics() {
           </div>
         </CardContent>
       </Card>
-      <Card className=""
-        <CardContent className=""
-          <div className=""
+      <Card className="p-4"
+        <CardContent className="p-4"
+          <div className="p-4"
             <Clock className="h-8 w-8 text-yellow-600" />
-            <div className=""
+            <div className="p-4"
               <p className="text-lg">"Pendentes</p>
               <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100" data-testid="metric-pending-approvals>
                 {defaultMetrics.pendingApprovals}
@@ -313,11 +313,11 @@ function DashboardMetrics() {
           </div>
         </CardContent>
       </Card>
-      <Card className=""
-        <CardContent className=""
-          <div className=""
+      <Card className="p-4"
+        <CardContent className="p-4"
+          <div className="p-4"
             <DollarSign className="h-8 w-8 text-green-600" />
-            <div className=""
+            <div className="p-4"
               <p className="text-lg">"Valor Total</p>
               <p className="text-2xl font-bold text-green-900 dark:text-green-100" data-testid="metric-total-amount>
                 R$ {(defaultMetrics.totalAmount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -326,11 +326,11 @@ function DashboardMetrics() {
           </div>
         </CardContent>
       </Card>
-      <Card className=""
-        <CardContent className=""
-          <div className=""
+      <Card className="p-4"
+        <CardContent className="p-4"
+          <div className="p-4"
             <CheckCircle className="h-8 w-8 text-purple-600" />
-            <div className=""
+            <div className="p-4"
               <p className="text-lg">"Tempo Médio</p>
               <p className="text-2xl font-bold text-purple-900 dark:text-purple-100" data-testid="metric-avg-processing-time>
                 {defaultMetrics.averageProcessingTime || 0}h
@@ -365,8 +365,8 @@ function ExpenseReportsList() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className=""
-          <div className=""
+        <CardContent className="p-4"
+          <div className="p-4"
             <div className="text-lg">"</div>
             <span className="text-lg">"Carregando relatórios...</span>
           </div>
@@ -377,8 +377,8 @@ function ExpenseReportsList() {
   if (error) {
     return (
       <Card>
-        <CardContent className=""
-          <div className=""
+        <CardContent className="p-4"
+          <div className="p-4"
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg">"Erro ao Carregar</h3>
             <p className="text-lg">"Não foi possível carregar os relatórios de despesas.</p>
@@ -399,15 +399,15 @@ function ExpenseReportsList() {
   return (
     <Card>
       <CardHeader>
-        <div className=""
+        <div className="p-4"
           <div>
             <CardTitle className="text-lg">"Relatórios de Despesas</CardTitle>
             <CardDescription>
               {filteredReports.length} relatório(s) encontrado(s)
             </CardDescription>
           </div>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -436,10 +436,10 @@ function ExpenseReportsList() {
       </CardHeader>
       <CardContent>
         {filteredReports.length === 0 ? (
-          <div className=""
+          <div className="p-4"
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg">"Nenhum relatório encontrado</h3>
-            <p className=""
+            <p className="p-4"
               {searchTerm || statusFilter !== 'all' 
                 ? 'Tente ajustar os filtros de busca.' 
                 : 'Comece criando seu primeiro relatório de despesas.'}
@@ -447,37 +447,37 @@ function ExpenseReportsList() {
             <CreateExpenseReportDialog />
           </div>
         ) : (
-          <div className=""
+          <div className="p-4"
             {filteredReports.map((report) => (
               <div 
                 key={report.id} 
                 className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                 data-testid={"
               >
-                <div className=""
-                  <div className=""
-                    <h4 className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <h4 className="p-4"
                       {report.title || 'Relatório sem título'}
                     </h4>
-                    <p className=""
+                    <p className="p-4"
                       {report.reportNumber || "
                     </p>
                     {report.description && (
                       <p className="text-lg">"{report.description}</p>
                     )}
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     {getStatusBadge(report.status || 'draft')}
-                    <span className=""
+                    <span className="p-4"
                       R$ {(report.totalAmount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <span>
                     Criado em {new Date(report.createdAt || new Date()).toLocaleDateString('pt-BR')}
                   </span>
-                  <div className=""
+                  <div className="p-4"
                     <Button size="sm" variant="outline" data-testid={"
                       <Eye className="h-3 w-3 mr-1" />
                       Ver
@@ -501,26 +501,26 @@ function ExpenseReportsList() {
 // Main Component
 export default function CorporateExpenseManagement() {
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             Gestão de Despesas Corporativas
           </h1>
-          <p className=""
+          <p className="p-4"
             Sistema completo de aprovação e gerenciamento de despesas empresariais seguindo 1qa.md
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <CreateExpenseReportDialog />
         </div>
       </div>
       {/* Dashboard Metrics */}
       <DashboardMetrics />
       {/* Main Content Tabs */}
-      <Tabs defaultValue="reports" className=""
-        <TabsList className=""
+      <Tabs defaultValue="reports" className="p-4"
+        <TabsList className="p-4"
           <TabsTrigger value="reports" data-testid="tab-reports>
             <FileText className="h-4 w-4 mr-2" />
             Relatórios
@@ -548,7 +548,7 @@ export default function CorporateExpenseManagement() {
         <TabsContent value="approvals>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Clock className="h-5 w-5 text-yellow-600" />
                 Fluxo de Aprovações
               </CardTitle>
@@ -557,13 +557,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <Clock className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
                 <h3 className="text-lg">"Sistema de Aprovações</h3>
-                <p className=""
+                <p className="p-4"
                   Workflow hierárquico com SLA, escalonamento e audit trail completo
                 </p>
-                <Button className=""
+                <Button className="p-4"
                   Configurar Regras de Aprovação
                 </Button>
               </div>
@@ -573,7 +573,7 @@ export default function CorporateExpenseManagement() {
         <TabsContent value="policies>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <AlertTriangle className="h-5 w-5 text-red-600" />
                 Policy Engine
               </CardTitle>
@@ -582,13 +582,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
                 <h3 className="text-lg">"Configuração de Políticas</h3>
-                <p className=""
+                <p className="p-4"
                   Sistema avançado de regras com limites, blacklists e compliance
                 </p>
-                <Button className=""
+                <Button className="p-4"
                   Abrir Query Builder
                 </Button>
               </div>
@@ -598,7 +598,7 @@ export default function CorporateExpenseManagement() {
         <TabsContent value="cards>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <CreditCard className="h-5 w-5 text-purple-600" />
                 Cartões Corporativos
               </CardTitle>
@@ -607,13 +607,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <CreditCard className="h-12 w-12 text-purple-400 mx-auto mb-4" />
                 <h3 className="text-lg">"Gestão de Cartões</h3>
-                <p className=""
+                <p className="p-4"
                   Matching inteligente, reconciliação automática e controle de gastos
                 </p>
-                <Button className=""
+                <Button className="p-4"
                   Configurar Integração
                 </Button>
               </div>
@@ -623,7 +623,7 @@ export default function CorporateExpenseManagement() {
         <TabsContent value="analytics>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <BarChart3 className="h-5 w-5 text-green-600" />
                 Analytics & Compliance
               </CardTitle>
@@ -632,13 +632,13 @@ export default function CorporateExpenseManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <BarChart3 className="h-12 w-12 text-green-400 mx-auto mb-4" />
                 <h3 className="text-lg">"Business Intelligence</h3>
-                <p className=""
+                <p className="p-4"
                   Dashboards executivos, detecção de fraudes e análise de padrões
                 </p>
-                <Button className=""
+                <Button className="p-4"
                   Ver Relatórios
                 </Button>
               </div>

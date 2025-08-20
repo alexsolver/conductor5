@@ -98,7 +98,7 @@ export default function TicketMaterials() {
   const { data: consumedItems, isLoading: loadingConsumed } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items', Date.now()],
     queryFn: async () => {
-      const response = await fetch(`/api/materials-services/tickets/" + ticketId + "/consumed-items", { headers: { "Content-Type": "application/json"ation/json"ation/json"ation/json"ation/json" }
+      const response = await fetch(`/api/materials-services/tickets/" + ticketId + "/consumed-items", { headers: { "Content-Type": "application/json"ation/json"ation/json"ation/json"ation/json"ation/json" }
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -305,12 +305,12 @@ export default function TicketMaterials() {
     );
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         {/* Header */}
-        <div className=""
+        <div className="p-4"
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               <Package className="w-8 h-8 text-blue-600" />
               Materiais e Serviços
             </h1>
@@ -319,13 +319,13 @@ export default function TicketMaterials() {
         </div>
         {/* Cost Summary Cards */}
         {(costsSummary as any)?.data?.summary && (
-          <div className=""
+          <div className="p-4"
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <h3 className="text-lg">"Custo Planejado</h3>
-                    <p className=""
+                    <p className="p-4"
                       {formatCurrency((costsSummary as any).data.summary.totalPlannedCost)}
                     </p>
                   </div>
@@ -334,11 +334,11 @@ export default function TicketMaterials() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <h3 className="text-lg">"Custo Real</h3>
-                    <p className=""
+                    <p className="p-4"
                       {formatCurrency((costsSummary as any).data.summary.totalActualCost)}
                     </p>
                   </div>
@@ -347,8 +347,8 @@ export default function TicketMaterials() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <h3 className="text-lg">"Variação</h3>
                     <p className={`text-2xl font-bold ${
@@ -362,11 +362,11 @@ export default function TicketMaterials() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <h3 className="text-lg">"Total de Itens</h3>
-                    <p className=""
+                    <p className="p-4"
                       {(costsSummary as any).data.summary.totalItemsCount}
                     </p>
                   </div>
@@ -379,17 +379,17 @@ export default function TicketMaterials() {
         {/* Main Content Tabs */}
         <Card>
           <CardHeader>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className=""
-              <TabsList className=""
-                <TabsTrigger value="planned" className=""
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+              <TabsList className="p-4"
+                <TabsTrigger value="planned" className="p-4"
                   <Calendar className="w-4 h-4" />
                   Planejados
                 </TabsTrigger>
-                <TabsTrigger value="consumed" className=""
+                <TabsTrigger value="consumed" className="p-4"
                   <CheckCircle className="w-4 h-4" />
                   Consumidos
                 </TabsTrigger>
-                <TabsTrigger value="add" className=""
+                <TabsTrigger value="add" className="p-4"
                   <Plus className="w-4 h-4" />
                   Adicionar
                 </TabsTrigger>
@@ -399,17 +399,17 @@ export default function TicketMaterials() {
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               {/* Planned Items Tab */}
-              <TabsContent value="planned" className=""
-                <div className=""
+              <TabsContent value="planned" className="p-4"
+                <div className="p-4"
                   <h3 className="text-lg">"Itens Planejados</h3>
-                  <Badge variant="outline" className=""
+                  <Badge variant="outline" className="p-4"
                     {(plannedItems as any)?.data?.plannedItems?.length || 0} itens
                   </Badge>
                 </div>
                 {/* Sub-tabs for Material/Service Separation */}
-                <Card className=""
-                  <CardContent className=""
-                    <div className=""
+                <Card className="p-4"
+                  <CardContent className="p-4"
+                    <div className="p-4"
                       <button
                         onClick={() => setPlannedSubTab('all')}
                         className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
@@ -419,9 +419,9 @@ export default function TicketMaterials() {
                         "
                       >
                         <Package className="w-6 h-6" />
-                        <div className=""
+                        <div className="p-4"
                           <div>Todos os Itens</div>
-                          <div className=""
+                          <div className="p-4"
                             {(plannedItems as any)?.data?.plannedItems?.length || 0} total
                           </div>
                         </div>
@@ -435,9 +435,9 @@ export default function TicketMaterials() {
                         "
                       >
                         <Box className="w-6 h-6" />
-                        <div className=""
+                        <div className="p-4"
                           <div>Materiais</div>
-                          <div className=""
+                          <div className="p-4"
                             {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'material').length || 0} materiais
                           </div>
                         </div>
@@ -451,9 +451,9 @@ export default function TicketMaterials() {
                         "
                       >
                         <Wrench className="w-6 h-6" />
-                        <div className=""
+                        <div className="p-4"
                           <div>Serviços</div>
-                          <div className=""
+                          <div className="p-4"
                             {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'service').length || 0} serviços
                           </div>
                         </div>
@@ -462,7 +462,7 @@ export default function TicketMaterials() {
                   </CardContent>
                 </Card>
                 {loadingPlanned ? (
-                  <div className=""
+                  <div className="p-4"
                     <Clock className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
                     <p>Carregando itens planejados...</p>
                   </div>
@@ -479,17 +479,17 @@ export default function TicketMaterials() {
                     
                     if (filteredItems.length > 0) {
                       return (
-                        <div className=""
+                        <div className="p-4"
                           {filteredItems.map((item: TicketMaterial) => (
                       <Card key={item.id} className={`group hover:shadow-lg transition-all duration-300 border-l-4 ${
                         item.itemType === 'material' 
                           ? 'border-l-green-500 bg-gradient-to-r from-green-50/30 to-white hover:from-green-50/50' 
                           : 'border-l-purple-500 bg-gradient-to-r from-purple-50/30 to-white hover:from-purple-50/50'
                       >
-                        <CardContent className=""
-                          <div className=""
-                            <div className=""
-                              <div className=""
+                        <CardContent className="p-4"
+                          <div className="p-4"
+                            <div className="p-4"
+                              <div className="p-4"
                                 <div className={`p-2 rounded-lg ${
                                   item.itemType === 'material' ? 'bg-green-100' : 'bg-purple-100'
                                 >
@@ -499,9 +499,9 @@ export default function TicketMaterials() {
                                     <Wrench className="w-5 h-5 text-purple-600" />
                                   )}
                                 </div>
-                                <div className=""
+                                <div className="p-4"
                                   <h4 className="text-lg">"{item.itemName || 'Item não encontrado'}</h4>
-                                  <div className=""
+                                  <div className="p-4"
                                     <Badge variant="outline" className="text-lg">"{item.itemCode || 'N/A'}</Badge>
                                     <Badge className={`text-xs ${
                                       item.itemType === 'material' 
@@ -515,28 +515,28 @@ export default function TicketMaterials() {
                                   </div>
                                 </div>
                               </div>
-                              <div className=""
-                                <div className=""
+                              <div className="p-4"
+                                <div className="p-4"
                                   <p className="text-lg">"Quantidade</p>
                                   <p className="text-lg">"{item.plannedQuantity} {item.measurementUnit || 'UN'}</p>
                                 </div>
-                                <div className=""
+                                <div className="p-4"
                                   <p className="text-lg">"Preço Unitário</p>
                                   <p className="text-lg">"{formatCurrency(item.unitPriceAtPlanning)}</p>
                                 </div>
-                                <div className=""
+                                <div className="p-4"
                                   <p className="text-lg">"Custo Estimado</p>
                                   <p className="text-lg">"{formatCurrency(item.estimatedCost)}</p>
                                 </div>
                               </div>
                               {item.notes && (
-                                <div className=""
+                                <div className="p-4"
                                   <p className="text-lg">"<strong>Observações:</strong> {item.notes}</p>
                                 </div>
                               )}
                             </div>
-                            <div className=""
-                              <div className=""
+                            <div className="p-4"
+                              <div className="p-4"
                                 <p className="text-lg">"Planejado em</p>
                                 <p className="text-lg">"{new Date(item.createdAt).toLocaleDateString('pt-BR')}</p>
                               </div>
@@ -563,7 +563,7 @@ export default function TicketMaterials() {
                       );
                     } else {
                       return (
-                        <div className=""
+                        <div className="p-4"
                           <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
                             plannedSubTab === 'material' ? 'bg-green-100' :
                             plannedSubTab === 'service' ? 'bg-purple-100' : 'bg-gray-100'
@@ -576,12 +576,12 @@ export default function TicketMaterials() {
                               <Package className="w-12 h-12 text-gray-400" />
                             )}
                           </div>
-                          <h3 className=""
+                          <h3 className="p-4"
                             {plannedSubTab === 'all' ? 'Nenhum Item Planejado' :
                              plannedSubTab === 'material' ? 'Nenhum Material Planejado' :
                              'Nenhum Serviço Planejado'}
                           </h3>
-                          <p className=""
+                          <p className="p-4"
                             {plannedSubTab === 'all' ? 'Adicione materiais e serviços para começar o planejamento.' :
                              plannedSubTab === 'material' ? 'Adicione materiais necessários para este ticket.' :
                              'Adicione serviços necessários para este ticket.'}
@@ -604,26 +604,26 @@ export default function TicketMaterials() {
                 )}
               </TabsContent>
               {/* Consumed Items Tab */}
-              <TabsContent value="consumed" className=""
-                <div className=""
+              <TabsContent value="consumed" className="p-4"
+                <div className="p-4"
                   <h3 className="text-lg">"Itens Consumidos</h3>
-                  <Badge variant="outline" className=""
+                  <Badge variant="outline" className="p-4"
                     {(consumedItems as any)?.data?.consumedItems?.length || 0} itens
                   </Badge>
                 </div>
                 {loadingConsumed ? (
-                  <div className=""
+                  <div className="p-4"
                     <Clock className="w-8 h-8 animate-spin mx-auto mb-2 text-green-500" />
                     <p>Carregando consumos...</p>
                   </div>
                 ) : (consumedItems as any)?.data?.consumedItems?.length > 0 ? (
-                  <div className=""
+                  <div className="p-4"
                     {(consumedItems as any).data.consumedItems.map((item: TicketMaterial) => (
                       <Card key={item.id} className="text-lg">"
-                        <CardContent className=""
-                          <div className=""
-                            <div className=""
-                              <div className=""
+                        <CardContent className="p-4"
+                          <div className="p-4"
+                            <div className="p-4"
+                              <div className="p-4"
                                 {item.itemType === 'material' ? (
                                   <Box className="w-4 h-4 text-blue-600" />
                                 ) : (
@@ -636,14 +636,14 @@ export default function TicketMaterials() {
                                 </Badge>
                                 {getStatusBadge('consumed')}
                               </div>
-                              <div className=""
+                              <div className="p-4"
                                 <p><strong>Quantidade Consumida:</strong> {item.actualQuantity} {item.measurementUnit || 'UN'}</p>
                                 <p><strong>Preço Unitário:</strong> {formatCurrency(item.unitPriceAtConsumption || '0')}</p>
                                 <p><strong>Custo Total:</strong> {formatCurrency(item.totalCost || '0')}</p>
                                 {item.notes && <p><strong>Observações:</strong> {item.notes}</p>}
                               </div>
                             </div>
-                            <div className=""
+                            <div className="p-4"
                               <p>Consumido em</p>
                               <p>{item.consumedAt ? new Date(item.consumedAt).toLocaleDateString('pt-BR') : 'N/A'}</p>
                             </div>
@@ -653,24 +653,24 @@ export default function TicketMaterials() {
                     ))}
                   </div>
                 ) : (
-                  <div className=""
+                  <div className="p-4"
                     <CheckCircle className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                     <p>Nenhum consumo registrado</p>
                   </div>
                 )}
               </TabsContent>
               {/* Add Items Tab */}
-              <TabsContent value="add" className=""
-                <div className=""
+              <TabsContent value="add" className="p-4"
+                <div className="p-4"
                   {/* Add Planned Item */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className=""
+                      <CardTitle className="p-4"
                         <Calendar className="w-5 h-5" />
                         Adicionar Item Planejado
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className=""
+                    <CardContent className="p-4"
                       <div>
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
@@ -715,12 +715,12 @@ export default function TicketMaterials() {
                   {/* Add Consumed Item */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className=""
+                      <CardTitle className="p-4"
                         <CheckCircle className="w-5 h-5" />
                         Registrar Consumo
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className=""
+                    <CardContent className="p-4"
                       <div>
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>

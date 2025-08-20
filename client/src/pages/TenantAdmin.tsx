@@ -39,12 +39,12 @@ export default function TenantAdmin() {
   // Verificar se usuário é tenant admin ou superior
   if (!user || !['tenant_admin', 'saas_admin'].includes(user.role)) {
     return (
-      <div className=""
+      <div className="p-4"
         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className=""
+        <h1 className="p-4"
           Acesso Negado
         </h1>
-        <p className=""
+        <p className="p-4"
           Esta página é restrita para administradores de workspace.
         </p>
       </div>
@@ -135,19 +135,19 @@ export default function TenantAdmin() {
     updateSettingsMutation.mutate(data);
   };
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             Administração do Workspace
           </h1>
-          <p className=""
+          <p className="p-4"
             Gerencie usuários e configurações do seu workspace
           </p>
         </div>
         
-        <div className=""
+        <div className="p-4"
           <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline>
@@ -160,7 +160,7 @@ export default function TenantAdmin() {
                 <DialogTitle>Configurações do Workspace</DialogTitle>
               </DialogHeader>
               <Form {...settingsForm}>
-                <form onSubmit={settingsForm.handleSubmit(onSubmitSettings)} className=""
+                <form onSubmit={settingsForm.handleSubmit(onSubmitSettings)} className="p-4"
                   <FormField
                     control={settingsForm.control}
                     name="name"
@@ -174,7 +174,7 @@ export default function TenantAdmin() {
                       </FormItem>
                     )}
                   />
-                  <div className=""
+                  <div className="p-4"
                     <Button type="button" variant="outline" onClick={() => setIsSettingsDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -188,7 +188,7 @@ export default function TenantAdmin() {
           </Dialog>
           <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
             <DialogTrigger asChild>
-              <Button className=""
+              <Button className="p-4"
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Usuário
               </Button>
@@ -198,7 +198,7 @@ export default function TenantAdmin() {
                 <DialogTitle>Criar Novo Usuário</DialogTitle>
               </DialogHeader>
               <Form {...userForm}>
-                <form onSubmit={userForm.handleSubmit(onSubmitUser)} className=""
+                <form onSubmit={userForm.handleSubmit(onSubmitUser)} className="p-4"
                   <FormField
                     control={userForm.control}
                     name="email"
@@ -259,7 +259,7 @@ export default function TenantAdmin() {
                       </FormItem>
                     )}
                   />
-                  <div className=""
+                  <div className="p-4"
                     <Button type="button" variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
                       Cancelar
                     </Button>
@@ -274,20 +274,20 @@ export default function TenantAdmin() {
         </div>
       </div>
       {/* Tenant Info Card */}
-      <Card className=""
+      <Card className="p-4"
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Building className="w-5 h-5 mr-2" />
             Informações do Tenant
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoadingSettings ? (
-            <div className=""
+            <div className="p-4"
               <div className="text-lg">"</div>
             </div>
           ) : (
-            <div className=""
+            <div className="p-4"
               <div>
                 <label className="text-lg">"Nome</label>
                 <p className="text-lg">"{tenantSettings?.name}</p>
@@ -301,47 +301,47 @@ export default function TenantAdmin() {
         </CardContent>
       </Card>
       {/* Analytics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Tickets Ativos</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {analyticsData?.activeTickets || 0}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Usuários</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {usersData?.users?.length || 0}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Satisfação</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {analyticsData?.satisfactionScore || 0}%
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Agentes Online</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {analyticsData?.onlineAgents || 0}
             </div>
           </CardContent>
@@ -350,14 +350,14 @@ export default function TenantAdmin() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Users className="w-5 h-5 mr-2" />
             Usuários do Tenant
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoadingUsers ? (
-            <div className=""
+            <div className="p-4"
               <div className="text-lg">"</div>
             </div>
           ) : (
@@ -375,17 +375,17 @@ export default function TenantAdmin() {
               <TableBody>
                 {usersData?.users?.map((user: any) => (
                   <TableRow key={user.id}>
-                    <TableCell className=""
+                    <TableCell className="p-4"
                       {user.firstName} {user.lastName}
                     </TableCell>
                     <TableCell>
-                      <div className=""
+                      <div className="p-4"
                         <Mail className="w-4 h-4 mr-2 text-gray-400" />
                         {user.email}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className=""
+                      <Badge variant="outline" className="p-4"
                         {user.role}
                       </Badge>
                     </TableCell>

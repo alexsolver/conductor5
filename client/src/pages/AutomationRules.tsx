@@ -297,15 +297,15 @@ export default function AutomationRules() {
   // Early return se houver erro crítico
   if (loadingError || rulesError) {
     return (
-      <div className=""
-        <div className=""
-          <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <AlertTriangle className="h-12 w-12 mx-auto text-red-500 mb-4" />
             <h3 className="text-lg">"Erro ao Carregar Página</h3>
-            <p className=""
+            <p className="p-4"
               {loadingError || rulesError?.message || 'Não foi possível carregar as regras de automação'}
             </p>
-            <div className=""
+            <div className="p-4"
               <Button 
                 onClick={() => {
                   setLoadingError(null);
@@ -322,11 +322,11 @@ export default function AutomationRules() {
               </Button>
             </div>
             {process.env.NODE_ENV === 'development' && (
-              <details className=""
-                <summary className=""
+              <details className="p-4"
+                <summary className="p-4"
                   Detalhes do Erro (Dev)
                 </summary>
-                <pre className=""
+                <pre className="p-4"
                   {JSON.stringify(rulesError || loadingError, null, 2)}
                 </pre>
               </details>
@@ -342,11 +342,11 @@ export default function AutomationRules() {
     isLoading 
   });
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h2 className="text-lg">"🤖 Regras de Automação</h2>
-          <p className=""
+          <p className="p-4"
             Configure regras inteligentes para automatizar o roteamento e resposta de mensagens
           </p>
         </div>
@@ -359,14 +359,14 @@ export default function AutomationRules() {
             </Button>
           </DialogTrigger>
           
-          <DialogContent className=""
+          <DialogContent className="p-4"
             <DialogHeader>
               <DialogTitle>🤖 Criar Regra de Automação</DialogTitle>
             </DialogHeader>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className=""
-                <div className=""
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4"
+                <div className="p-4"
                   <FormField
                     control={form.control}
                     name="name"
@@ -418,8 +418,8 @@ export default function AutomationRules() {
                   control={form.control}
                   name="enabled"
                   render={({ field }) => (
-                    <FormItem className=""
-                      <div className=""
+                    <FormItem className="p-4"
+                      <div className="p-4"
                         <FormLabel className="text-lg">"Regra Ativa</FormLabel>
                         <FormDescription>
                           A regra será executada automaticamente quando ativa
@@ -435,8 +435,8 @@ export default function AutomationRules() {
                   )}
                 />
                 {/* Condições */}
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label className="text-lg">"🎯 Condições (IF)</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addCondition}>
                       <Plus className="mr-2 h-4 w-4" />
@@ -444,14 +444,14 @@ export default function AutomationRules() {
                     </Button>
                   </div>
                   {(form.watch('conditions') || []).map((_, index) => (
-                    <div key={index} className=""
-                      <div className=""
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <Label className="text-lg">"Campo</Label>
                         <Select
                           value={form.watch(".field`)}
                           onValueChange={(value) => form.setValue(".field`, value)}
                         >
-                          <SelectTrigger className=""
+                          <SelectTrigger className="p-4"
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -464,13 +464,13 @@ export default function AutomationRules() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Label className="text-lg">"Operador</Label>
                         <Select
                           value={form.watch(".operator`)}
                           onValueChange={(value) => form.setValue(".operator`, value)}
                         >
-                          <SelectTrigger className=""
+                          <SelectTrigger className="p-4"
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -484,7 +484,7 @@ export default function AutomationRules() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Label className="text-lg">"Valor</Label>
                         <Input
                           className="h-8"
@@ -493,13 +493,13 @@ export default function AutomationRules() {
                           onChange={(e) => form.setValue(".value`, e.target.value)}
                         />
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Label className="text-lg">"Lógica</Label>
                         <Select
                           value={form.watch(".logicalOperator`) || 'AND'}
                           onValueChange={(value) => form.setValue(".logicalOperator`, value)}
                         >
-                          <SelectTrigger className=""
+                          <SelectTrigger className="p-4"
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -512,8 +512,8 @@ export default function AutomationRules() {
                   ))}
                 </div>
                 {/* Ações */}
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Label className="text-lg">"⚡ Ações (THEN)</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addAction}>
                       <Plus className="mr-2 h-4 w-4" />
@@ -521,14 +521,14 @@ export default function AutomationRules() {
                     </Button>
                   </div>
                   {(form.watch('actions') || []).map((_, index) => (
-                    <div key={index} className=""
-                      <div className=""
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <Label className="text-lg">"Tipo de Ação</Label>
                         <Select
                           value={form.watch(".type`)}
                           onValueChange={(value) => form.setValue(".type`, value)}
                         >
-                          <SelectTrigger className=""
+                          <SelectTrigger className="p-4"
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -541,7 +541,7 @@ export default function AutomationRules() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Label className="text-lg">"Destino</Label>
                         <Input
                           className="h-8"
@@ -550,7 +550,7 @@ export default function AutomationRules() {
                           onChange={(e) => form.setValue(".target`, e.target.value)}
                         />
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Label className="text-lg">"Parâmetros (JSON)</Label>
                         <Input
                           className="h-8"
@@ -569,7 +569,7 @@ export default function AutomationRules() {
                     </div>
                   ))}
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="submit" disabled={createRuleMutation.isPending}>
                     {createRuleMutation.isPending ? '🔄 Criando...' : '✅ Criar Regra'}
                   </Button>
@@ -583,51 +583,51 @@ export default function AutomationRules() {
         </Dialog>
       </div>
       {/* Métricas */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Regras</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics.rulesCount || 0}</div>
-            <p className=""
+            <p className="p-4"
               {metrics.enabledRulesCount || 0} ativas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Regras Executadas</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics.rulesExecuted || 0}</div>
-            <p className=""
+            <p className="p-4"
               Total executadas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Ações Disparadas</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics.actionsTriggered || 0}</div>
-            <p className=""
+            <p className="p-4"
               Ações executadas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Taxa de Sucesso</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{metrics.successRate || 100}%</div>
-            <p className=""
+            <p className="p-4"
               {metrics.avgExecutionTime || 0}ms média
             </p>
           </CardContent>
@@ -636,30 +636,30 @@ export default function AutomationRules() {
       {/* Lista de Regras */}
       <Card>
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Settings className="h-5 w-5" />
             Regras Configuradas
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className=""
+            <div className="p-4"
               <div className="text-lg">"</div>
               <p className="text-lg">"Carregando regras de automação...</p>
-              <p className=""
+              <p className="p-4"
                 Conectando com o serviço de automação...
               </p>
             </div>
           ) : rules.length === 0 ? (
-            <div className=""
+            <div className="p-4"
               <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg">"Nenhuma regra de automação configurada</p>
-              <p className=""
+              <p className="p-4"
                 Crie sua primeira regra para automatizar o processamento de mensagens
               </p>
             </div>
           ) : (
-            <div className=""
+            <div className="p-4"
               {Array.isArray(safeRules) && safeRules.length > 0 ? (
                 safeRules.map((rule: any, index: number) => {
                   // Validação tripla para cada regra
@@ -683,9 +683,9 @@ export default function AutomationRules() {
                   };
                   
                   return (
-                    <div key={displayRule.id} className=""
-                      <div className=""
-                        <div className=""
+                    <div key={displayRule.id} className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           {displayRule.enabled ? (
                             <Play className="h-4 w-4 text-green-600" />
                           ) : (
@@ -694,24 +694,24 @@ export default function AutomationRules() {
                           <div>
                             <p className="text-lg">"{displayRule.name}</p>
                             <p className="text-lg">"{displayRule.description}</p>
-                            <div className=""
-                              <Badge variant="outline" className=""
+                            <div className="p-4"
+                              <Badge variant="outline" className="p-4"
                                 Prioridade {displayRule.priority}
                               </Badge>
-                              <Badge variant="outline" className=""
+                              <Badge variant="outline" className="p-4"
                                 {displayRule.conditionsCount} condições
                               </Badge>
-                              <Badge variant="outline" className=""
+                              <Badge variant="outline" className="p-4"
                                 {displayRule.actionsCount} ações
                               </Badge>
-                              <Badge variant={displayRule.enabled ? 'default' : 'secondary'} className=""
+                              <Badge variant={displayRule.enabled ? 'default' : 'secondary'} className="p-4"
                                 {displayRule.enabled ? 'Ativa' : 'Inativa'}
                               </Badge>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Button
                           variant="outline"
                           size="sm"
@@ -736,7 +736,7 @@ export default function AutomationRules() {
                   );
                 })
               ) : (
-                <div className=""
+                <div className="p-4"
                   <p className="text-lg">"Nenhuma regra processada com segurança</p>
                 </div>
               )}
@@ -747,12 +747,12 @@ export default function AutomationRules() {
       {/* Dialog de Teste */}
       {selectedRule && (
         <Dialog open={!!selectedRule} onOpenChange={() => setSelectedRule(null)}>
-          <DialogContent className=""
+          <DialogContent className="p-4"
             <DialogHeader>
               <DialogTitle>🧪 Testar Regra: {selectedRule.name || 'Regra'}</DialogTitle>
             </DialogHeader>
             
-            <div className=""
+            <div className="p-4"
               <div>
                 <Label>Dados de Teste (JSON)</Label>
                 <Textarea
@@ -761,11 +761,11 @@ export default function AutomationRules() {
                   placeholder='{"message": "suporte", "sender": "João", "hour": 14}'
                   className="h-32 font-mono text-sm"
                 />
-                <p className=""
+                <p className="p-4"
                   Configure os dados que serão usados para testar a regra
                 </p>
               </div>
-              <div className=""
+              <div className="p-4"
                 <Button
                   onClick={() => handleTestRule(selectedRule.id)}
                   disabled={testRuleMutation.isPending}

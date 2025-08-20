@@ -198,8 +198,8 @@ export default function TicketDetail() {
   };
   if (isTicketLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg">"</div>
           <div className="text-lg">"</div>
         </div>
@@ -210,8 +210,8 @@ export default function TicketDetail() {
     console.log('❌ [TICKET-DETAIL] Error loading ticket:', ticketError);
     if (ticketError.message?.includes('401')) {
       return (
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             <h1 className="text-lg">"Sessão expirada</h1>
             <p className="text-lg">"Faça login novamente para continuar</p>
             <Button onClick={() => console.log('Auth redirect blocked per 1qa.md')}>
@@ -224,8 +224,8 @@ export default function TicketDetail() {
   }
   if (!ticket) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <h1 className="text-lg">"'[TRANSLATION_NEEDED]'</h1>
           <Button onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -236,19 +236,19 @@ export default function TicketDetail() {
     );
   }
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <Button variant="ghost" onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             '[TRANSLATION_NEEDED]'
           </Button>
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               #{ticket.number} - {ticket.subject}
             </h1>
-            <div className=""
+            <div className="p-4"
               <DynamicBadge 
                 fieldName="status" 
                 value={ticket.status}
@@ -281,45 +281,45 @@ export default function TicketDetail() {
         </div>
       </div>
       {/* Main Content */}
-      <div className=""
+      <div className="p-4"
         {/* Left Column - Main Content */}
-        <div className=""
+        <div className="p-4"
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <FileText className="h-5 w-5 mr-2" />
                 '[TRANSLATION_NEEDED]'
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
-                <p className=""
+              <div className="p-4"
+                <p className="p-4"
                   {ticket.description || t('tickets.messages.no_description')}
                 </p>
               </div>
             </CardContent>
           </Card>
           {/* Tabs for detailed content */}
-          <Tabs defaultValue="attachments" className=""
-            <TabsList className=""
-              <TabsTrigger value="attachments" className=""
+          <Tabs defaultValue="attachments" className="p-4"
+            <TabsList className="p-4"
+              <TabsTrigger value="attachments" className="p-4"
                 <Paperclip className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]' ({attachments?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="communications" className=""
+              <TabsTrigger value="communications" className="p-4"
                 <MessageSquare className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]' ({communications?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="notes>
                 '[TRANSLATION_NEEDED]' ({notes?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="history" className=""
+              <TabsTrigger value="history" className="p-4"
                 <History className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]'
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="attachments" className=""
+            <TabsContent value="attachments" className="p-4"
               {/* Upload Component */}
               <Card>
                 <CardHeader>
@@ -341,19 +341,19 @@ export default function TicketDetail() {
                   {isAttachmentsLoading ? (
                     <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : attachments && attachments.length > 0 ? (
-                    <div className=""
+                    <div className="p-4"
                       {attachments.map((attachment) => (
                         <div 
                           key={attachment.id}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
                         >
-                          <div className=""
+                          <div className="p-4"
                             <Paperclip className="h-5 w-5 text-gray-400" />
                             <div>
-                              <p className=""
+                              <p className="p-4"
                                 {attachment.originalName}
                               </p>
-                              <p className=""
+                              <p className="p-4"
                                 {formatFileSize(attachment.fileSize)} • 
                                 {t('tickets.uploaded_by', { name: attachment.uploadedByName })} • 
                                 {formatDate(attachment.createdAt)}
@@ -371,7 +371,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className=""
+                    <div className="p-4"
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -387,14 +387,14 @@ export default function TicketDetail() {
                   {isCommunicationsLoading ? (
                     <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : communications && communications.length > 0 ? (
-                    <div className=""
+                    <div className="p-4"
                       {communications.map((comm) => (
-                        <div key={comm.id} className=""
-                          <div className=""
+                        <div key={comm.id} className="p-4"
+                          <div className="p-4"
                             <Badge variant={comm.direction === 'inbound' ? 'default' : 'secondary'}>
                               {comm.type} - {comm.direction}
                             </Badge>
-                            <span className=""
+                            <span className="p-4"
                               {formatDate(comm.createdAt)}
                             </span>
                           </div>
@@ -404,7 +404,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className=""
+                    <div className="p-4"
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -420,14 +420,14 @@ export default function TicketDetail() {
                   {isNotesLoading ? (
                     <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : notes && notes.length > 0 ? (
-                    <div className=""
+                    <div className="p-4"
                       {notes.map((note) => (
-                        <div key={note.id} className=""
-                          <div className=""
+                        <div key={note.id} className="p-4"
+                          <div className="p-4"
                             <Badge variant={note.isInternal ? 'destructive' : 'default'}>
                               {note.isInternal ? t('tickets.note_internal') : t('tickets.note_public')}
                             </Badge>
-                            <span className=""
+                            <span className="p-4"
                               {formatDate(note.createdAt)}
                             </span>
                           </div>
@@ -437,7 +437,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className=""
+                    <div className="p-4"
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -453,14 +453,14 @@ export default function TicketDetail() {
                   {isHistoryLoading ? (
                     <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : history && history.length > 0 ? (
-                    <div className=""
+                    <div className="p-4"
                       {history.map((entry) => (
-                        <div key={entry.id} className=""
-                          <div className=""
+                        <div key={entry.id} className="p-4"
+                          <div className="p-4"
                             <div>
                               <p className="text-lg">"{entry.description}</p>
                               {entry.fieldName && (
-                                <p className=""
+                                <p className="p-4"
                                   '[TRANSLATION_NEEDED]': {entry.fieldName}
                                   {entry.oldValue && entry.newValue && (
                                     <span> • {entry.oldValue} → {entry.newValue}</span>
@@ -469,7 +469,7 @@ export default function TicketDetail() {
                               )}
                               <p className="text-lg">"'[TRANSLATION_NEEDED]': {entry.performedByName}</p>
                             </div>
-                            <span className=""
+                            <span className="p-4"
                               {formatDate(entry.createdAt)}
                             </span>
                           </div>
@@ -477,7 +477,7 @@ export default function TicketDetail() {
                       ))}
                     </div>
                   ) : (
-                    <div className=""
+                    <div className="p-4"
                       '[TRANSLATION_NEEDED]'
                     </div>
                   )}
@@ -487,28 +487,28 @@ export default function TicketDetail() {
           </Tabs>
         </div>
         {/* Right Column - Sidebar Info */}
-        <div className=""
+        <div className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Informações do Ticket</CardTitle>
             </CardHeader>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                 <span className="text-lg">"Criado:</span>
                 <span className="text-lg">"{formatDate(ticket.createdAt)}</span>
               </div>
               
-              <div className=""
+              <div className="p-4"
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                 <span className="text-lg">"Atualizado:</span>
                 <span className="text-lg">"{formatDate(ticket.updatedAt)}</span>
               </div>
               {ticket.assignedToId && (
-                <div className=""
+                <div className="p-4"
                   <User className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-lg">"Responsável:</span>
-                  <span className=""
+                  <span className="p-4"
                     {assignedUser?.firstName && assignedUser?.lastName 
                       ? "
                       : assignedUser?.email || ticket.assignedToId
@@ -517,19 +517,19 @@ export default function TicketDetail() {
                 </div>
               )}
               {ticket.companyId && (
-                <div className=""
+                <div className="p-4"
                   <Building className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-lg">"Empresa:</span>
-                  <span className=""
+                  <span className="p-4"
                     {(ticket as any)?.company_name || (ticket as any)?.company_display_name || company?.name || ticket.companyId}
                   </span>
                 </div>
               )}
               {ticket.locationId && (
-                <div className=""
+                <div className="p-4"
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-lg">"Local:</span>
-                  <span className=""
+                  <span className="p-4"
                     {location?.name || location?.address || ticket.locationId}
                   </span>
                 </div>

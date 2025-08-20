@@ -28,8 +28,8 @@ export default function AuthPage() {
       loginMutation.mutate({ email, password });
     };
     return (
-      <form onSubmit={handleSubmit} className=""
-        <div className=""
+      <form onSubmit={handleSubmit} className="p-4"
+        <div className="p-4"
           <Label htmlFor="login-email">Email</Label>
           <Input
             id="login-email"
@@ -41,7 +41,7 @@ export default function AuthPage() {
             disabled={loginMutation.isPending}
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="login-password">Password</Label>
           <Input
             id="login-password"
@@ -90,9 +90,9 @@ export default function AuthPage() {
       });
     };
     return (
-      <form onSubmit={handleSubmit} className=""
-        <div className=""
-          <div className=""
+      <form onSubmit={handleSubmit} className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <Label htmlFor="register-firstName">First Name</Label>
             <Input
               id="register-firstName"
@@ -103,7 +103,7 @@ export default function AuthPage() {
               disabled={registerMutation.isPending}
             />
           </div>
-          <div className=""
+          <div className="p-4"
             <Label htmlFor="register-lastName">Last Name</Label>
             <Input
               id="register-lastName"
@@ -115,7 +115,7 @@ export default function AuthPage() {
             />
           </div>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="register-email">Email</Label>
           <Input
             id="register-email"
@@ -127,7 +127,7 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="register-company">Nome da Empresa</Label>
           <Input
             id="register-company"
@@ -139,7 +139,7 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="register-workspace">Nome do Workspace</Label>
           <Input
             id="register-workspace"
@@ -150,11 +150,11 @@ export default function AuthPage() {
             required
             disabled={registerMutation.isPending}
           />
-          <p className=""
+          <p className="p-4"
             Será usado como URL do seu workspace (ex: acme-support.conductor.com)
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="register-password">Password</Label>
           <Input
             id="register-password"
@@ -186,8 +186,8 @@ export default function AuthPage() {
   };
   if (isLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
           <span className="text-lg">"Loading...</span>
         </div>
@@ -195,20 +195,20 @@ export default function AuthPage() {
     );
   }
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         {/* Left side - Authentication Form */}
-        <div className=""
-          <div className=""
-            <h1 className=""
+        <div className="p-4"
+          <div className="p-4"
+            <h1 className="p-4"
               Welcome to Conductor
             </h1>
-            <p className=""
+            <p className="p-4"
               Your comprehensive customer support platform
             </p>
           </div>
-          <Card className=""
-            <CardHeader className=""
+          <Card className="p-4"
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Get Started</CardTitle>
               <CardDescription>
                 Sign in to your account or create a new one
@@ -216,14 +216,14 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className=""
+                <TabsList className="p-4"
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
                 </TabsList>
-                <TabsContent value="login" className=""
+                <TabsContent value="login" className="p-4"
                   <LoginForm />
                 </TabsContent>
-                <TabsContent value="register" className=""
+                <TabsContent value="register" className="p-4"
                   <RegisterForm />
                 </TabsContent>
               </Tabs>
@@ -231,35 +231,35 @@ export default function AuthPage() {
           </Card>
         </div>
         {/* Right side - Hero Section */}
-        <div className=""
-          <div className=""
-            <div className=""
+        <div className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <img 
                 src="/conductor-logo.svg" 
                 alt="Conductor Logo" 
                 className="w-28 h-28 object-contain"
               />
             </div>
-            <h2 className=""
+            <h2 className="p-4"
               Streamline Your Support Operations
             </h2>
           </div>
-          <div className=""
-            <div className=""
-              <div className=""
+          <div className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <svg viewBox="0 0 24 24" className="w-5 h-5 text-purple-600" fill="currentColor>
                   <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </div>
               <div>
                 <h3 className="text-lg">"Ticket Management</h3>
-                <p className=""
+                <p className="p-4"
                   Create, assign, and track support tickets with ease
                 </p>
               </div>
             </div>
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-600" fill="currentColor>
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
@@ -268,20 +268,20 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="text-lg">"Customer Database</h3>
-                <p className=""
+                <p className="p-4"
                   Maintain detailed customer profiles and history
                 </p>
               </div>
             </div>
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <svg viewBox="0 0 24 24" className="w-5 h-5 text-orange-600" fill="currentColor>
                   <path d="M16 4v12l-4-2-4 2V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2z"/>
                 </svg>
               </div>
               <div>
                 <h3 className="text-lg">"Analytics Dashboard</h3>
-                <p className=""
+                <p className="p-4"
                   Monitor performance with detailed insights
                 </p>
               </div>

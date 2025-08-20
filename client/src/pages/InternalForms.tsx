@@ -49,21 +49,21 @@ export default function InternalForms() {
     return <div className="text-lg">"Carregando...</div>;
   }
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Formulários de Ações Internas</h1>
           <p className="text-lg">"Crie e gerencie formulários para automação de processos internos</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className=""
+            <Button className="p-4"
               <Plus className="h-4 w-4 mr-2" />
               Novo Formulário
             </Button>
           </DialogTrigger>
-          <DialogContent className=""
+          <DialogContent className="p-4"
             <DialogHeader>
               <DialogTitle>Criar Novo Formulário</DialogTitle>
             </DialogHeader>
@@ -72,10 +72,10 @@ export default function InternalForms() {
         </Dialog>
       </div>
       {/* Stats Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Total de Formulários</p>
                 <p className="text-lg">"{forms.length}</p>
@@ -85,8 +85,8 @@ export default function InternalForms() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Formulários Ativos</p>
                 <p className="text-lg">"{forms.filter((f: any) => f.isActive).length}</p>
@@ -96,8 +96,8 @@ export default function InternalForms() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Categorias</p>
                 <p className="text-lg">"{categories.length}</p>
@@ -107,8 +107,8 @@ export default function InternalForms() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div>
                 <p className="text-lg">"Submissões Hoje</p>
                 <p className="text-lg">"0</p>
@@ -120,9 +120,9 @@ export default function InternalForms() {
       </div>
       {/* Search and Filters */}
       <Card>
-        <CardContent className=""
-          <div className=""
-            <div className=""
+        <CardContent className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Pesquisar formulários..."
@@ -147,11 +147,11 @@ export default function InternalForms() {
         </CardContent>
       </Card>
       {/* Forms Grid */}
-      <div className=""
+      <div className="p-4"
         {filteredForms.map((form: any) => (
-          <Card key={form.id} className=""
+          <Card key={form.id} className="p-4"
             <CardHeader>
-              <div className=""
+              <div className="p-4"
                 <CardTitle className="text-lg">"{form.name}</CardTitle>
                 <Badge
                   variant={form.isActive ? "default" : "secondary"
@@ -164,15 +164,15 @@ export default function InternalForms() {
             <CardContent>
               <p className="text-lg">"{form.description}</p>
               
-              <div className=""
+              <div className="p-4"
                 <span>Categoria: {form.category}</span>
                 <span>{form.fields.length} campos</span>
               </div>
-              <div className=""
-                <Button variant="outline" size="sm" className=""
+              <div className="p-4"
+                <Button variant="outline" size="sm" className="p-4"
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" className=""
+                <Button variant="outline" size="sm" className="p-4"
                   Visualizar
                 </Button>
                 <Button variant="outline" size="sm>
@@ -185,12 +185,12 @@ export default function InternalForms() {
       </div>
       {filteredForms.length === 0 && (
         <Card>
-          <CardContent className=""
+          <CardContent className="p-4"
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className=""
+            <h3 className="p-4"
               Nenhum formulário encontrado
             </h3>
-            <p className=""
+            <p className="p-4"
               {searchTerm || selectedCategory !== "all" 
                 ? "Tente ajustar os filtros de busca"
                 : "Comece criando seu primeiro formulário de ação interna"

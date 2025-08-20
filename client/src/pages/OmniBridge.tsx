@@ -721,8 +721,8 @@ export default function OmniBridge() {
   };
   if (loading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg">"</div>
           <p className="text-lg">"Carregando OmniBridge...</p>
         </div>
@@ -730,15 +730,15 @@ export default function OmniBridge() {
     );
   }
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"OmniBridge</h1>
-          <p className=""
+          <p className="p-4"
             Central de comunicação unificada - Email, WhatsApp, Telegram e mais
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button
             variant="outline"
             size="sm"
@@ -758,33 +758,33 @@ export default function OmniBridge() {
           </Button>
         </div>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
-        <TabsList className=""
-          <TabsTrigger value="channels" className=""
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+        <TabsList className="p-4"
+          <TabsTrigger value="channels" className="p-4"
             <Settings className="h-4 w-4" />
             Canais
           </TabsTrigger>
-          <TabsTrigger value="inbox" className=""
+          <TabsTrigger value="inbox" className="p-4"
             <MessageSquare className="h-4 w-4" />
             Inbox
           </TabsTrigger>
-          <TabsTrigger value="automation" className=""
+          <TabsTrigger value="automation" className="p-4"
             <Zap className="h-4 w-4" />
             Automação
           </TabsTrigger>
-          <TabsTrigger value="chatbots" className=""
+          <TabsTrigger value="chatbots" className="p-4"
             <Bot className="h-4 w-4" />
             Chatbots
           </TabsTrigger>
-          <TabsTrigger value="templates" className=""
+          <TabsTrigger value="templates" className="p-4"
             <FileText className="h-4 w-4" />
             Templates
           </TabsTrigger>
         </TabsList>
         {/* Inbox Tab */}
-        <TabsContent value="inbox" className=""
-          <div className=""
-            <div className=""
+        <TabsContent value="inbox" className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -794,7 +794,7 @@ export default function OmniBridge() {
               />
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className=""
+              <SelectTrigger className="p-4"
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -806,7 +806,7 @@ export default function OmniBridge() {
               </SelectContent>
             </Select>
             <Select value={filterChannel} onValueChange={setFilterChannel}>
-              <SelectTrigger className=""
+              <SelectTrigger className="p-4"
                 <SelectValue placeholder="Canal" />
               </SelectTrigger>
               <SelectContent>
@@ -818,13 +818,13 @@ export default function OmniBridge() {
               </SelectContent>
             </Select>
           </div>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <Card>
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <span>Mensagens ({filteredMessages.length})</span>
-                    <div className=""
+                    <div className="p-4"
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -855,15 +855,15 @@ export default function OmniBridge() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className=""
+                  <ScrollArea className="p-4"
                     {filteredMessages.length === 0 ? (
-                      <div className=""
+                      <div className="p-4"
                         <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Nenhuma mensagem encontrada</p>
                         <p className="text-lg">"Configure seus canais para começar a receber mensagens</p>
                       </div>
                     ) : (
-                      <div className=""
+                      <div className="p-4"
                         {filteredMessages.map((message) => (
                           <div
                             key={message.id}
@@ -872,9 +872,9 @@ export default function OmniBridge() {
                             } ${message.status === 'unread' ? 'border-l-4 border-l-primary' : ''"
                             onClick={() => setSelectedMessage(message)}
                           >
-                            <div className=""
-                              <div className=""
-                                <div className=""
+                            <div className="p-4"
+                              <div className="p-4"
+                                <div className="p-4"
                                   {message.channelType === 'email' && <Mail className="h-4 w-4" />}
                                   {message.channelType === 'whatsapp' && <MessageSquare className="h-4 w-4" />}
                                   {message.channelType === 'telegram' && <MessageCircle className="h-4 w-4" />}
@@ -888,7 +888,7 @@ export default function OmniBridge() {
                                   {message.priority}
                                 </Badge>
                               </div>
-                              <div className=""
+                              <div className="p-4"
                                 <span>{message.timestamp}</span>
                                 {message.attachments && message.attachments > 0 && (
                                   <Badge variant="outline">{message.attachments} anexos</Badge>
@@ -909,13 +909,13 @@ export default function OmniBridge() {
                             {message.subject && (
                               <h4 className="text-lg">"{message.subject}</h4>
                             )}
-                            <p className=""
+                            <p className="p-4"
                               {message.content}
                             </p>
-                            <div className=""
-                              <div className=""
+                            <div className="p-4"
+                              <div className="p-4"
                                 {message.tags?.map((tag) => (
-                                  <Badge key={tag} variant="outline" className=""
+                                  <Badge key={tag} variant="outline" className="p-4"
                                     <Tag className="h-3 w-3 mr-1" />
                                     {tag}
                                   </Badge>
@@ -951,9 +951,9 @@ export default function OmniBridge() {
                 </CardHeader>
                 <CardContent>
                   {selectedMessage ? (
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           {selectedMessage.channelType === 'email' && <Mail className="h-4 w-4" />}
                           {selectedMessage.channelType === 'whatsapp' && <MessageSquare className="h-4 w-4" />}
                           {selectedMessage.channelType === 'telegram' && <MessageCircle className="h-4 w-4" />}
@@ -973,7 +973,7 @@ export default function OmniBridge() {
                         <Label className="text-lg">"Conteúdo</Label>
                         <p className="text-lg">"{selectedMessage.content}</p>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Badge variant="secondary" className={getPriorityColor(selectedMessage.priority)}>
                           {selectedMessage.priority}
                         </Badge>
@@ -982,7 +982,7 @@ export default function OmniBridge() {
                         </Badge>
                       </div>
                       <Separator />
-                      <div className=""
+                      <div className="p-4"
                         <Button 
                           className="w-full" 
                           size="sm"
@@ -994,7 +994,7 @@ export default function OmniBridge() {
                           <Reply className="h-4 w-4 mr-2" />
                           Responder
                         </Button>
-                        <div className=""
+                        <div className="p-4"
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -1018,7 +1018,7 @@ export default function OmniBridge() {
                             Arquivar
                           </Button>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -1050,7 +1050,7 @@ export default function OmniBridge() {
                       </div>
                     </div>
                   ) : (
-                    <div className=""
+                    <div className="p-4"
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>Selecione uma mensagem para ver os detalhes</p>
                     </div>
@@ -1061,7 +1061,7 @@ export default function OmniBridge() {
           </div>
         </TabsContent>
         {/* Channels Tab */}
-        <TabsContent value="channels" className=""
+        <TabsContent value="channels" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Canais de Comunicação</CardTitle>
@@ -1071,10 +1071,10 @@ export default function OmniBridge() {
             </CardHeader>
             <CardContent>
               {channels.length === 0 ? (
-                <div className=""
+                <div className="p-4"
                   <Settings className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <h3 className="text-lg">"Nenhum canal configurado</h3>
-                  <p className=""
+                  <p className="p-4"
                     Configure seus canais de comunicação no Workspace Admin para que eles apareçam aqui.
                   </p>
                   <Button
@@ -1086,19 +1086,19 @@ export default function OmniBridge() {
                   </Button>
                 </div>
               ) : (
-                <div className=""
+                <div className="p-4"
                   {channels.map((channel) => (
-                  <Card key={channel.id} className=""
-                    <CardHeader className=""
-                      <div className=""
-                        <div className=""
+                  <Card key={channel.id} className="p-4"
+                    <CardHeader className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           {/* Use the actual icon if available, otherwise fallback */}
                           {channel.icon ? (
-                            <div className=""
+                            <div className="p-4"
                               <img src={channel.icon} alt={channel.name} className="h-5 w-5 text-primary" />
                             </div>
                           ) : (
-                            <div className=""
+                            <div className="p-4"
                               {React.createElement(getChannelIcon(channel.id), { className: "h-5 w-5 text-primary" })}
                             </div>
                           )}
@@ -1113,28 +1113,28 @@ export default function OmniBridge() {
                         />
                       </div>
                     </CardHeader>
-                    <CardContent className=""
-                      <p className=""
+                    <CardContent className="p-4"
+                      <p className="p-4"
                         {channel.description}
                       </p>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <span>Status:</span>
                           <Badge variant="outline" className={getStatusColor(channel.status)}>
                             {channel.status}
                           </Badge>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <span>Mensagens:</span>
                           <span className="text-lg">"{channel.messageCount}</span>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <span>Última atividade:</span>
                           <span className="text-lg">"{channel.lastActivity || '[TRANSLATION_NEEDED]'}</span>
                         </div>
                       </div>
                       <Separator className="my-3" />
-                      <div className=""
+                      <div className="p-4"
                         <Button
                           variant="outline"
                           size="sm"
@@ -1144,7 +1144,7 @@ export default function OmniBridge() {
                           <Settings className="h-4 w-4 mr-2" />
                           Configurar
                         </Button>
-                        <Button variant="outline" size="sm" className=""
+                        <Button variant="outline" size="sm" className="p-4"
                           <Activity className="h-4 w-4 mr-2" />
                           Logs
                         </Button>
@@ -1158,12 +1158,12 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
         {/* Automation Tab */}
-        <TabsContent value="automation" className=""
+        <TabsContent value="automation" className="p-4"
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <span>Regras de Automação</span>
-                <div className=""
+                <div className="p-4"
                   <Button variant="outline" size="sm>
                     <FileText className="h-4 w-4 mr-2" />
                     Templates
@@ -1180,29 +1180,29 @@ export default function OmniBridge() {
             </CardHeader>
             <CardContent>
               {automationRules.length === 0 ? (
-                <div className=""
+                <div className="p-4"
                   <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Nenhuma regra de automação configurada</p>
                   <p className="text-lg">"Crie sua primeira regra para automatizar o atendimento</p>
-                  <div className=""
+                  <div className="p-4"
                     <Button onClick={() => setShowCreateRuleModal(true)} variant="outline>
                       <Plus className="h-4 w-4 mr-2" />
                       Criar Primeira Regra
                     </Button>
-                    <div className=""
+                    <div className="p-4"
                       Use templates prontos para começar rapidamente
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className=""
+                <div className="p-4"
                   {/* Rules List */}
-                  <div className=""
+                  <div className="p-4"
                     {automationRules.map((rule) => (
-                      <Card key={rule.id} className=""
-                        <CardHeader className=""
-                          <div className=""
-                            <div className=""
+                      <Card key={rule.id} className="p-4"
+                        <CardHeader className="p-4"
+                          <div className="p-4"
+                            <div className="p-4"
                               <div className="text-lg">"
                                 <Workflow className="h-5 w-5 "" />
                               </div>
@@ -1211,7 +1211,7 @@ export default function OmniBridge() {
                                 <p className="text-lg">"{rule.description}</p>
                               </div>
                             </div>
-                            <div className=""
+                            <div className="p-4"
                               <Switch
                                 checked={rule.isEnabled}
                                 onCheckedChange={(enabled) => handleToggleAutomationRule(rule.id, enabled)}
@@ -1222,14 +1222,14 @@ export default function OmniBridge() {
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent className=""
-                          <div className=""
+                        <CardContent className="p-4"
+                          <div className="p-4"
                             {/* Triggers */}
                             <div>
                               <Label className="text-lg">"GATILHOS</Label>
-                              <div className=""
+                              <div className="p-4"
                                 {rule.triggers && rule.triggers.map((trigger, index) => (
-                                  <Badge key={index} variant="outline" className=""
+                                  <Badge key={index} variant="outline" className="p-4"
                                     {trigger.type === 'keyword' && 'Palavras-chave'}
                                     {trigger.type === 'new_message' && 'Nova mensagem'}
                                     {trigger.type === 'channel_specific' && 'Canal específico'}
@@ -1244,9 +1244,9 @@ export default function OmniBridge() {
                             {/* Actions */}
                             <div>
                               <Label className="text-lg">"AÇÕES</Label>
-                              <div className=""
+                              <div className="p-4"
                                 {rule.actions && rule.actions.map((action, index) => (
-                                  <Badge key={index} variant="secondary" className=""
+                                  <Badge key={index} variant="secondary" className="p-4"
                                     {action.type === 'auto_reply' && 'Resposta automática'}
                                     {action.type === 'forward_message' && 'Encaminhar'}
                                     {action.type === 'create_ticket' && '[TRANSLATION_NEEDED]'}
@@ -1261,16 +1261,16 @@ export default function OmniBridge() {
                               </div>
                             </div>
                             {/* Stats */}
-                            <div className=""
-                              <div className=""
-                                <span className=""
+                            <div className="p-4"
+                              <div className="p-4"
+                                <span className="p-4"
                                   Prioridade: <span className="text-lg">"{rule.priority}</span>
                                 </span>
-                                <span className=""
+                                <span className="p-4"
                                   Execuções: <span className="text-lg">"{rule.executionStats?.totalExecutions || 0}</span>
                                 </span>
                               </div>
-                              <div className=""
+                              <div className="p-4"
                                 <Button variant="outline" size="sm>
                                   <Settings className="h-4 w-4 mr-2" />
                                   Editar
@@ -1292,10 +1292,10 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
         {/* Templates Tab */}
-        <TabsContent value="templates" className=""
+        <TabsContent value="templates" className="p-4"
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <span>Templates de Resposta</span>
                 <Button size="sm>
                   <Plus className="h-4 w-4 mr-2" />
@@ -1307,7 +1307,7 @@ export default function OmniBridge() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum template configurado</p>
                 <p className="text-lg">"Crie templates para agilizar suas respostas</p>
@@ -1320,13 +1320,13 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
         {/* Chatbots Tab */}
-        <TabsContent value="chatbots" className=""
+        <TabsContent value="chatbots" className="p-4"
           <ChatbotKanban />
         </TabsContent>
       </Tabs>
       {/* Modal de Resposta */}
       <Dialog open={showReplyModal} onOpenChange={setShowReplyModal}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Responder Mensagem</DialogTitle>
             <DialogDescription>
@@ -1334,8 +1334,8 @@ export default function OmniBridge() {
               {selectedMessage?.subject && "
             </DialogDescription>
           </DialogHeader>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <p className="text-lg">"Mensagem original:</p>
               <p className="text-lg">"{selectedMessage?.content}</p>
             </div>
@@ -1345,7 +1345,7 @@ export default function OmniBridge() {
               onChange={(e) => setReplyContent(e.target.value)}
               rows={6}
             />
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" onClick={() => setShowReplyModal(false)}>
                 Cancelar
               </Button>
@@ -1368,15 +1368,15 @@ export default function OmniBridge() {
       </Dialog>
       {/* Modal de Encaminhamento */}
       <Dialog open={showForwardModal} onOpenChange={setShowForwardModal}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Encaminhar Mensagem</DialogTitle>
             <DialogDescription>
               Encaminhando mensagem de: {selectedMessage?.from}
             </DialogDescription>
           </DialogHeader>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <p className="text-lg">"Mensagem original:</p>
               <p className="text-lg">"{selectedMessage?.content}</p>
             </div>
@@ -1399,7 +1399,7 @@ export default function OmniBridge() {
                 rows={4}
               />
             </div>
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" onClick={() => setShowForwardModal(false)}>
                 Cancelar
               </Button>
@@ -1424,14 +1424,14 @@ export default function OmniBridge() {
       </Dialog>
       {/* Modal de Criar Regra de Automação */}
       <Dialog open={showCreateRuleModal} onOpenChange={setShowCreateRuleModal}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Nova Regra de Automação</DialogTitle>
             <DialogDescription>
               Configure uma nova regra para automatizar o processamento de mensagens
             </DialogDescription>
           </DialogHeader>
-          <div className=""
+          <div className="p-4"
             <div>
               <Label htmlFor="rule-name">Nome da Regra</Label>
               <Input
@@ -1451,7 +1451,7 @@ export default function OmniBridge() {
                 rows={3}
               />
             </div>
-            <div className=""
+            <div className="p-4"
               <div>
                 <Label htmlFor="trigger-type">Gatilho</Label>
                 <Select 
@@ -1501,7 +1501,7 @@ export default function OmniBridge() {
                 onChange={(e) => setNewRuleData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
               />
             </div>
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" onClick={() => setShowCreateRuleModal(false)}>
                 Cancelar
               </Button>

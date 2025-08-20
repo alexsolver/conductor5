@@ -165,20 +165,20 @@ export default function CLTCompliance() {
     });
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             <Shield className="text-red-600" />
             CLT Compliance
           </h1>
-          <p className=""
+          <p className="p-4"
             Sistema de conformidade CLT - Portaria 671/2021 MTE
           </p>
         </div>
       </div>
-      <Tabs defaultValue="integrity" className=""
-        <TabsList className=""
+      <Tabs defaultValue="integrity" className="p-4"
+        <TabsList className="p-4"
           <TabsTrigger value="integrity">Integridade</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
           <TabsTrigger value="backups">Backups</TabsTrigger>
@@ -189,7 +189,7 @@ export default function CLTCompliance() {
         <TabsContent value="integrity>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Hash className="h-5 w-5" />
                 Verificação de Integridade da Cadeia
               </CardTitle>
@@ -199,13 +199,13 @@ export default function CLTCompliance() {
             </CardHeader>
             <CardContent>
               {integrityLoading ? (
-                <div className=""
+                <div className="p-4"
                   <div className="text-lg">"</div>
                 </div>
               ) : integrityCheck ? (
-                <div className=""
+                <div className="p-4"
                   <Alert className={integrityCheck.isValid ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50>
-                    <div className=""
+                    <div className="p-4"
                       {integrityCheck.isValid ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       ) : (
@@ -216,9 +216,9 @@ export default function CLTCompliance() {
                           {integrityCheck.isValid ? 'CADEIA ÍNTEGRA' : 'CADEIA COMPROMETIDA'}
                         </strong>
                         {!integrityCheck.isValid && (
-                          <div className=""
+                          <div className="p-4"
                             {integrityCheck.errors.map((error, index) => (
-                              <div key={index} className=""
+                              <div key={index} className="p-4"
                                 • {error}
                               </div>
                             ))}
@@ -228,7 +228,7 @@ export default function CLTCompliance() {
                     </div>
                   </Alert>
                   
-                  <div className=""
+                  <div className="p-4"
                     <div>
                       <span className="text-lg">"Status:</span>
                       <Badge className={integrityCheck.isValid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800>
@@ -237,7 +237,7 @@ export default function CLTCompliance() {
                     </div>
                     <div>
                       <span className="text-lg">"Verificado em:</span>
-                      <span className=""
+                      <span className="p-4"
                         {new Date(integrityCheck.timestamp).toLocaleString('pt-BR')}
                       </span>
                     </div>
@@ -245,13 +245,13 @@ export default function CLTCompliance() {
                   
                   {/* Botão para reconstituir cadeia comprometida */}
                   {!integrityCheck.isValid && (
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <div>
-                          <h4 className=""
+                          <h4 className="p-4"
                             Cadeia de Integridade Comprometida
                           </h4>
-                          <p className=""
+                          <p className="p-4"
                             A cadeia de integridade dos registros CLT está comprometida e precisa ser reconstituída.
                           </p>
                         </div>
@@ -293,7 +293,7 @@ export default function CLTCompliance() {
         <TabsContent value="audit>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <FileCheck className="h-5 w-5" />
                 Trilha de Auditoria
               </CardTitle>
@@ -303,15 +303,15 @@ export default function CLTCompliance() {
             </CardHeader>
             <CardContent>
               {auditLoading ? (
-                <div className=""
+                <div className="p-4"
                   <div className="text-lg">"</div>
                 </div>
               ) : auditLogs?.logs ? (
-                <div className=""
+                <div className="p-4"
                   {auditLogs.logs.slice(0, 10).map((log: AuditLogEntry) => (
-                    <div key={log.id} className=""
-                      <div className=""
-                        <div className=""
+                    <div key={log.id} className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <Badge variant="outline">NSR {log.nsr}</Badge>
                           <Badge className={
                             log.action === 'CREATE' ? 'bg-green-100 text-green-800' :
@@ -322,25 +322,25 @@ export default function CLTCompliance() {
                             {log.action}
                           </Badge>
                         </div>
-                        <span className=""
+                        <span className="p-4"
                           {new Date(log.performedAt).toLocaleString('pt-BR')}
                         </span>
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         <div>
                           <span className="text-lg">"IP:</span> {log.ipAddress}
                         </div>
                         <div>
                           <span className="text-lg">"Hash:</span>
-                          <code className=""
+                          <code className="p-4"
                             {log.auditHash.substring(0, 16)}...
                           </code>
                         </div>
                       </div>
                       
                       {log.reason && (
-                        <div className=""
+                        <div className="p-4"
                           <span className="text-lg">"Motivo:</span> {log.reason}
                         </div>
                       )}
@@ -362,7 +362,7 @@ export default function CLTCompliance() {
         <TabsContent value="backups>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Database className="h-5 w-5" />
                 Status dos Backups
               </CardTitle>
@@ -372,47 +372,47 @@ export default function CLTCompliance() {
             </CardHeader>
             <CardContent>
               {backupLoading ? (
-                <div className=""
+                <div className="p-4"
                   <div className="text-lg">"</div>
                 </div>
               ) : backupStatus?.backups ? (
-                <div className=""
-                  <div className=""
-                    <div className=""
-                      <div className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         {backupStatus.summary?.totalBackups || 0}
                       </div>
                       <div className="text-lg">"Total Backups</div>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         {backupStatus.summary?.verifiedBackups || 0}
                       </div>
                       <div className="text-lg">"Verificados</div>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         {Math.round((backupStatus.summary?.totalSize || 0) / 1024 / 1024)}MB
                       </div>
                       <div className="text-lg">"Tamanho Total</div>
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     {backupStatus.backups.slice(0, 15).map((backup: BackupStatus, index: number) => (
-                      <div key={index} className=""
-                        <div className=""
-                          <div className=""
+                      <div key={index} className="p-4"
+                        <div className="p-4"
+                          <div className="p-4"
                             {backup.isVerified ? (
                               <CheckCircle className="h-4 w-4 text-green-600" />
                             ) : (
                               <Clock className="h-4 w-4 text-orange-600" />
                             )}
-                            <span className=""
+                            <span className="p-4"
                               {new Date(backup.backupDate).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
                           
-                          <div className=""
+                          <div className="p-4"
                             <span>{backup.recordCount} registros</span>
                             <span>•</span>
                             <span>{Math.round(backup.backupSize / 1024)}KB</span>
@@ -447,7 +447,7 @@ export default function CLTCompliance() {
         <TabsContent value="keys>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Key className="h-5 w-5" />
                 Chaves de Assinatura Digital
               </CardTitle>
@@ -457,46 +457,46 @@ export default function CLTCompliance() {
             </CardHeader>
             <CardContent>
               {keysLoading ? (
-                <div className=""
+                <div className="p-4"
                   <div className="text-lg">"</div>
                 </div>
               ) : digitalKeys?.keys ? (
-                <div className=""
-                  <div className=""
-                    <div className=""
-                      <div className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         {digitalKeys.summary?.totalKeys || 0}
                       </div>
                       <div className="text-lg">"Total Chaves</div>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         {digitalKeys.summary?.activeKeys || 0}
                       </div>
                       <div className="text-lg">"Ativas</div>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         {digitalKeys.summary?.expiredKeys || 0}
                       </div>
                       <div className="text-lg">"Expiradas</div>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         {digitalKeys.summary?.revokedKeys || 0}
                       </div>
                       <div className="text-lg">"Revogadas</div>
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     {digitalKeys.keys.map((key: DigitalKey) => (
-                      <div key={key.id} className=""
-                        <div className=""
-                          <div className=""
+                      <div key={key.id} className="p-4"
+                        <div className="p-4"
+                          <div className="p-4"
                             <Lock className="h-4 w-4" />
                             <span className="text-lg">"{key.keyName}</span>
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <Badge className={
                               key.isActive && !key.isExpired ? 'bg-green-100 text-green-800' :
                               key.isExpired ? 'bg-orange-100 text-orange-800' :
@@ -511,16 +511,16 @@ export default function CLTCompliance() {
                           </div>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <div>
                             <span className="text-lg">"Criada em:</span>
-                            <span className=""
+                            <span className="p-4"
                               {new Date(key.createdAt).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
                           <div>
                             <span className="text-lg">"Expira em:</span>
-                            <span className=""
+                            <span className="p-4"
                               {new Date(key.expiresAt).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
@@ -544,7 +544,7 @@ export default function CLTCompliance() {
         <TabsContent value="reports>
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Download className="h-5 w-5" />
                 Relatórios de Compliance
               </CardTitle>
@@ -552,8 +552,8 @@ export default function CLTCompliance() {
                 Geração e download de relatórios para fiscalização
               </CardDescription>
             </CardHeader>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <div>
                   <label className="text-lg">"Data Inicial</label>
                   <input
@@ -580,29 +580,29 @@ export default function CLTCompliance() {
                 </Button>
               </div>
               {reportsLoading ? (
-                <div className=""
+                <div className="p-4"
                   <div className="text-lg">"</div>
                 </div>
               ) : complianceReports?.reports ? (
-                <div className=""
+                <div className="p-4"
                   {complianceReports.reports.map((report: ComplianceReport) => (
-                    <div key={report.id} className=""
-                      <div className=""
-                        <div className=""
+                    <div key={report.id} className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <span className="text-lg">"{report.reportType}</span>
                           <Badge variant="outline>
                             {new Date(report.periodStart).toLocaleDateString('pt-BR')} - {' '}
                             {new Date(report.periodEnd).toLocaleDateString('pt-BR')}
                           </Badge>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           {report.totalRecords} registros • {report.totalEmployees} funcionários • {report.totalHours}h
                         </div>
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         {report.isSubmittedToAuthorities && (
-                          <Badge className=""
+                          <Badge className="p-4"
                             Enviado
                           </Badge>
                         )}

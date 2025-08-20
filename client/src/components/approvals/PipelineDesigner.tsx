@@ -190,7 +190,7 @@ export function PipelineDesigner() {
         {steps.map((step, index) => (
           <Card 
             key={step.id} 
-            className="" transition-all duration-200"
+            className="p-4" transition-all duration-200"
             data-testid={"
           >
             <CardHeader className="pb-3>

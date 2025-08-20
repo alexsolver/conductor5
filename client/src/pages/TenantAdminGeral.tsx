@@ -163,13 +163,13 @@ export default function TenantAdminGeral() {
   // Cards de estatísticas do dashboard
   const StatCard = ({ title, value, icon: Icon, trend }: any) => (
     <Card>
-      <CardContent className=""
-        <div className=""
+      <CardContent className="p-4"
+        <div className="p-4"
           <div>
             <p className="text-lg">"{title}</p>
             <p className="text-lg">"{value}</p>
             {trend && (
-              <p className=""
+              <p className="p-4"
                 <span className="text-lg">"+{trend}%</span> vs mês anterior
               </p>
             )}
@@ -181,31 +181,31 @@ export default function TenantAdminGeral() {
   );
   if (analyticsLoading || teamStatsLoading || usersLoading || brandingLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </div>
     );
   }
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Geral</h1>
-          <p className=""
+          <p className="p-4"
             Dashboard e configurações gerais do workspace
           </p>
         </div>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="branding">Branding & Personalização</TabsTrigger>
         </TabsList>
-        <TabsContent value="dashboard" className=""
+        <TabsContent value="dashboard" className="p-4"
           {/* Estatísticas principais */}
-          <div className=""
+          <div className="p-4"
             <StatCard
               title='[TRANSLATION_NEEDED]'
               value={(analytics as any)?.totalCustomers || 0}
@@ -232,22 +232,22 @@ export default function TenantAdminGeral() {
             />
           </div>
           {/* Seção de atividade recente */}
-          <div className=""
+          <div className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Atividade da Equipe</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <span className="text-lg">"Membros ativos hoje</span>
                     <Badge variant="secondary">{(teamStats as any)?.activeToday || 0}</Badge>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Performance média</span>
                     <Badge variant="outline">{(teamStats as any)?.averagePerformance || 0}%</Badge>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Novos membros (mês)</span>
                     <Badge variant="default">{(teamStats as any)?.newMembersThisMonth || 0}</Badge>
                   </div>
@@ -259,16 +259,16 @@ export default function TenantAdminGeral() {
                 <CardTitle>Resumo de Tickets</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <span className="text-lg">"Abertos</span>
                     <Badge variant="destructive">{(analytics as any)?.openTickets || 0}</Badge>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Em progresso</span>
                     <Badge variant="default">{(analytics as any)?.inProgressTickets || 0}</Badge>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Resolvidos (mês)</span>
                     <Badge variant="secondary">{(analytics as any)?.resolvedThisMonth || 0}</Badge>
                   </div>
@@ -277,19 +277,19 @@ export default function TenantAdminGeral() {
             </Card>
           </div>
         </TabsContent>
-        <TabsContent value="branding" className=""
+        <TabsContent value="branding" className="p-4"
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className=""
-              <div className=""
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+              <div className="p-4"
                 {/* Informações da Empresa */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className=""
+                    <CardTitle className="p-4"
                       <Building className="h-5 w-5" />
                       Informações da Empresa
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className=""
+                  <CardContent className="p-4"
                     <FormField
                       control={form.control}
                       name="companyName"
@@ -341,12 +341,12 @@ export default function TenantAdminGeral() {
                 {/* Configurações Visuais */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className=""
+                    <CardTitle className="p-4"
                       <Palette className="h-5 w-5" />
                       Configurações Visuais
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className=""
+                  <CardContent className="p-4"
                     <FormField
                       control={form.control}
                       name="logoUrl"
@@ -354,7 +354,7 @@ export default function TenantAdminGeral() {
                         <FormItem>
                           <FormLabel>URL do Logo</FormLabel>
                           <FormControl>
-                            <div className=""
+                            <div className="p-4"
                               <Input 
                                 placeholder="https://exemplo.com/logo.png"
                                 {...field}
@@ -368,7 +368,7 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="primaryColor"
@@ -376,7 +376,7 @@ export default function TenantAdminGeral() {
                           <FormItem>
                             <FormLabel>Cor Primária</FormLabel>
                             <FormControl>
-                              <div className=""
+                              <div className="p-4"
                                 <Input type="color" {...field} className="w-16 h-10" />
                                 <Input {...field} placeholder="#3b82f6" />
                               </div>
@@ -392,7 +392,7 @@ export default function TenantAdminGeral() {
                           <FormItem>
                             <FormLabel>Cor Secundária</FormLabel>
                             <FormControl>
-                              <div className=""
+                              <div className="p-4"
                                 <Input type="color" {...field} className="w-16 h-10" />
                                 <Input {...field} placeholder="#64748b" />
                               </div>
@@ -407,12 +407,12 @@ export default function TenantAdminGeral() {
                 {/* Informações de Contato */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className=""
+                    <CardTitle className="p-4"
                       <Mail className="h-5 w-5" />
                       Informações de Contato
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className=""
+                  <CardContent className="p-4"
                     <FormField
                       control={form.control}
                       name="supportEmail"
@@ -467,12 +467,12 @@ export default function TenantAdminGeral() {
                 {/* Configurações Regionais */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className=""
+                    <CardTitle className="p-4"
                       <Globe className="h-5 w-5" />
                       Configurações Regionais
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className=""
+                  <CardContent className="p-4"
                     <FormField
                       control={form.control}
                       name="timezone"
@@ -521,7 +521,7 @@ export default function TenantAdminGeral() {
                   </CardContent>
                 </Card>
               </div>
-              <div className=""
+              <div className="p-4"
                 <Button
                   type="submit"
                   disabled={updateBrandingMutation.isPending}

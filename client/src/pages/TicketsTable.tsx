@@ -78,9 +78,9 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
     return null;
   }
   return (
-    <div className=""
+    <div className="p-4"
       {!disabled && (
-        <div className=""
+        <div className="p-4"
           <Button
             type="button"
             variant="ghost"
@@ -144,7 +144,7 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
           </Button>
         </div>
       )}
-      <div className=""
+      <div className="p-4"
         <EditorContent
           editor={editor}
           className="prose prose-sm max-w-none focus:outline-none"
@@ -891,7 +891,7 @@ const TicketsTable = React.memo(() => {
         case 'created':
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <div className=""
+              <div className="p-4"
                 {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
                   ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
                       day: '2-digit',
@@ -901,7 +901,7 @@ const TicketsTable = React.memo(() => {
                   : 'N/A'
                 }
               </div>
-              <div className=""
+              <div className="p-4"
                 {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
                   ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleTimeString('pt-BR', {
                       hour: '2-digit',
@@ -914,7 +914,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'description':
           return (
-            <TableCell className=""
+            <TableCell className="p-4"
               {ticket.description?.substring(0, 100) || '-'}
             </TableCell>
           );
@@ -1454,9 +1454,9 @@ const TicketsTable = React.memo(() => {
                 description: errorText,
                 variant: "destructive",
               });
-            })} className=""
+            })} className="p-4"
         {/* Basic Information */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Basic Information</h3>
           <FormField
             control={form.control}
@@ -1475,7 +1475,7 @@ const TicketsTable = React.memo(() => {
               </FormItem>
             )}
           />
-          <div className=""
+          <div className="p-4"
             <FormField
               control={form.control}
               name="category"
@@ -1510,9 +1510,9 @@ const TicketsTable = React.memo(() => {
           </div>
         </div>
         {/* Priority & Impact */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Priority & Impact</h3>
-          <div className=""
+          <div className="p-4"
             <FormField
               control={form.control}
               name="priority"
@@ -1570,9 +1570,9 @@ const TicketsTable = React.memo(() => {
           </div>
         </div>
         {/* Assignment */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Assignment</h3>
-          <div className=""
+          <div className="p-4"
             <FormField
               control={form.control}
               name="callerId"
@@ -1704,7 +1704,7 @@ const TicketsTable = React.memo(() => {
           </div>
         </div>
         {/* Business Impact */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Business Impact & Analysis</h3>
           <FormField
             control={form.control}
@@ -1723,7 +1723,7 @@ const TicketsTable = React.memo(() => {
               </FormItem>
             )}
           />
-          <div className=""
+          <div className="p-4"
             <FormField
               control={form.control}
               name="symptoms"
@@ -1772,7 +1772,7 @@ const TicketsTable = React.memo(() => {
             />
           )}
         />
-        <div className=""
+        <div className="p-4"
           <Button
             type="button"
             variant="outline"
@@ -1804,12 +1804,12 @@ const TicketsTable = React.memo(() => {
         cursor: isResizing ? 'col-resize' : 'default'
       }}>
         {/* Header */}
-        <div className=""
+        <div className="p-4"
           <div>
             <h1 className="text-lg">"Support Tickets</h1>
             <p className="text-lg">"Manage and track customer support requests</p>
           </div>
-          <div className=""
+          <div className="p-4"
             <Button
               onClick={() => setIsNewTicketModalOpen(true)}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
@@ -1820,14 +1820,14 @@ const TicketsTable = React.memo(() => {
           </div>
         </div>
       {/* Seletor de Visualizações */}
-      <Card className=""
-        <CardHeader className=""
-          <div className=""
-            <CardTitle className=""
+      <Card className="p-4"
+        <CardHeader className="p-4"
+          <div className="p-4"
+            <CardTitle className="p-4"
               <Filter className="h-5 w-5" />
               Visualizações de Tickets
             </CardTitle>
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" size="sm" onClick={() => setIsNewViewDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Visualização
@@ -1839,9 +1839,9 @@ const TicketsTable = React.memo(() => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className=""
-          <div className=""
-            <div className=""
+        <CardContent className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <span className="text-lg">"Visualização Ativa:</span>
               <select
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
@@ -1865,12 +1865,12 @@ const TicketsTable = React.memo(() => {
       </Card>
       {/* Filters */}
       <Card>
-        <CardHeader className=""
+        <CardHeader className="p-4"
           <CardTitle className="text-lg">"Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -1906,9 +1906,9 @@ const TicketsTable = React.memo(() => {
       {/* Tickets Table */}
       <Card>
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <span>Tickets ({pagination.total})</span>
-            <span className=""
+            <span className="p-4"
               Page {currentPage} of {pagination.totalPages}
             </span>
           </CardTitle>
@@ -1931,7 +1931,7 @@ const TicketsTable = React.memo(() => {
         </CardContent>
       </Card>
       {/* Pagination */}
-      <div className=""
+      <div className="p-4"
         <Button
           variant="outline"
           onClick={() => setCurrentPage(currentPage - 1)}
@@ -1951,7 +1951,7 @@ const TicketsTable = React.memo(() => {
       </div>
       {/* Modals */}
       <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Novo Ticket</DialogTitle>
           </DialogHeader>
@@ -1960,16 +1960,16 @@ const TicketsTable = React.memo(() => {
       </Dialog>
       {/* Modal para criar nova visualização */}
       <Dialog open={isNewViewDialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>{editingView ? 'Editar Visualização' : 'Criar Nova Visualização'}</DialogTitle>
             <DialogDescription>
               Configure sua visualização personalizada de tickets
             </DialogDescription>
           </DialogHeader>
-          <div className=""
+          <div className="p-4"
             {/* Nome da visualização */}
-            <div className=""
+            <div className="p-4"
               <Label htmlFor="name">Nome da Visualização</Label>
               <Input
                 type="text"
@@ -1980,7 +1980,7 @@ const TicketsTable = React.memo(() => {
               />
             </div>
             {/* Descrição */}
-            <div className=""
+            <div className="p-4"
               <Label htmlFor="description">Descrição</Label>
               <Textarea
                 id="description"
@@ -1991,11 +1991,11 @@ const TicketsTable = React.memo(() => {
               />
             </div>
             {/* Seleção de colunas */}
-            <div className=""
+            <div className="p-4"
               <Label>Colunas Visíveis</Label>
-              <div className=""
+              <div className="p-4"
                 {availableColumns.map((column) => (
-                  <div key={column.id} className=""
+                  <div key={column.id} className="p-4"
                     <input
                       type="checkbox"
                       id={"
@@ -2017,9 +2017,9 @@ const TicketsTable = React.memo(() => {
               </div>
             </div>
             {/* Opções adicionais */}
-            <div className=""
+            <div className="p-4"
               <Label>Opções</Label>
-              <div className=""
+              <div className="p-4"
                 <input
                   type="checkbox"
                   id="public"
@@ -2027,13 +2027,13 @@ const TicketsTable = React.memo(() => {
                   checked={isPublicView}
                   onChange={() => setIsPublicView(!isPublicView)}
                 />
-                <label htmlFor="public" className=""
+                <label htmlFor="public" className="p-4"
                   Tornar esta visualização pública (visível para outros usuários)
                 </label>
               </div>
             </div>
           </div>
-          <div className=""
+          <div className="p-4"
             <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
               Cancelar
             </Button>
@@ -2045,21 +2045,21 @@ const TicketsTable = React.memo(() => {
       </Dialog>
       {/* Modal para gerenciar visualizações */}
       <Dialog open={isManageViewsOpen} onOpenChange={() => setIsManageViewsOpen((open) => !open)}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Gerenciar Visualizações</DialogTitle>
             <DialogDescription>
               Gerencie e personalize suas visualizações de tickets.
             </DialogDescription>
           </DialogHeader>
-          <div className=""
+          <div className="p-4"
             {ticketViews.map((view: any) => (
-              <div key={view.id} className=""
+              <div key={view.id} className="p-4"
                 <div>
                   <h3 className="text-lg">"{view.name}</h3>
                   <p className="text-lg">"{view.description || "Sem descrição"}</p>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button variant="outline" size="sm" onClick={() => handleEditView(view)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Editar
@@ -2076,17 +2076,17 @@ const TicketsTable = React.memo(() => {
       </Dialog>
       {/* Modal de Filtros Avançados */}
       <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Filtros Avançados</DialogTitle>
             <DialogDescription>
               Configure filtros detalhados para refinar sua busca de tickets
             </DialogDescription>
           </DialogHeader>
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               {/* Filtro por Status */}
-              <div className=""
+              <div className="p-4"
                 <Label>Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
@@ -2102,7 +2102,7 @@ const TicketsTable = React.memo(() => {
                 </Select>
               </div>
               {/* Filtro por Prioridade */}
-              <div className=""
+              <div className="p-4"
                 <Label>Prioridade</Label>
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                   <SelectTrigger>
@@ -2118,7 +2118,7 @@ const TicketsTable = React.memo(() => {
                 </Select>
               </div>
               {/* Filtro por Empresa */}
-              <div className=""
+              <div className="p-4"
                 <Label>Empresa</Label>
                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                   <SelectTrigger>
@@ -2135,7 +2135,7 @@ const TicketsTable = React.memo(() => {
                 </Select>
               </div>
               {/* Filtro por Categoria */}
-              <div className=""
+              <div className="p-4"
                 <Label>Categoria</Label>
                 <Select value="" onValueChange={() => {}}>
                   <SelectTrigger>
@@ -2151,7 +2151,7 @@ const TicketsTable = React.memo(() => {
                 </Select>
               </div>
               {/* Filtro por Responsável */}
-              <div className=""
+              <div className="p-4"
                 <Label>Responsável</Label>
                 <Select value="" onValueChange={() => {}}>
                   <SelectTrigger>
@@ -2166,9 +2166,9 @@ const TicketsTable = React.memo(() => {
                 </Select>
               </div>
               {/* Filtro por Data de Criação */}
-              <div className=""
+              <div className="p-4"
                 <Label>Data de Criação</Label>
-                <div className=""
+                <div className="p-4"
                   <Input
                     type="date"
                     placeholder="De"
@@ -2183,7 +2183,7 @@ const TicketsTable = React.memo(() => {
               </div>
             </div>
           </div>
-          <div className=""
+          <div className="p-4"
             <Button variant="outline" onClick={() => setIsAdvancedFiltersOpen(false)}>
               Cancelar
             </Button>

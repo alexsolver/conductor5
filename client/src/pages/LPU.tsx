@@ -343,10 +343,10 @@ export default function LPU() {
   });
   // Error display component
   const ErrorDisplay = ({ error, title }: { error: any, title: string }) => (
-    <Card className=""
-      <CardContent className=""
+    <Card className="p-4"
+      <CardContent className="p-4"
         <h3 className="text-lg">"{title}</h3>
-        <p className=""
+        <p className="p-4"
           {error?.message || '[TRANSLATION_NEEDED]'}
         </p>
       </CardContent>
@@ -355,10 +355,10 @@ export default function LPU() {
   // Improved loading state
   if (priceListsLoading || statsLoading || rulesLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg">"</div>
-          <div className=""
+          <div className="p-4"
             <p className="text-lg">"Carregando Sistema LPU</p>
             <p className="text-lg">"Preparando listas de preços e regras...</p>
           </div>
@@ -370,16 +370,16 @@ export default function LPU() {
   if (priceListsError || statsError || rulesError) {
     const errorMessage = (priceListsError as any)?.message || (statsError as any)?.message || (rulesError as any)?.message;
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg">"⚠️</div>
-          <div className=""
+          <div className="p-4"
             <h3 className="text-lg">"Erro no Sistema LPU</h3>
-            <p className=""
+            <p className="p-4"
               {errorMessage || '[TRANSLATION_NEEDED]'}
             </p>
           </div>
-          <div className=""
+          <div className="p-4"
             <Button onClick={() => window.location.reload()} variant="outline>
               Recarregar Página
             </Button>
@@ -396,16 +396,16 @@ export default function LPU() {
     );
   }
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"LPU - Lista de Preços Unitários</h1>
           <p className="text-lg">"Sistema completo de gestão de listas de preços e regras de precificação</p>
         </div>
       </div>
       {/* Error States - Removed as the main error handling is done above */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
-        <TabsList className=""
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+        <TabsList className="p-4"
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="price-lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="pricing-rules">Regras de Precificação</TabsTrigger>
@@ -414,61 +414,61 @@ export default function LPU() {
           <TabsTrigger value="versions">Versões</TabsTrigger>
           <TabsTrigger value="analytics">Análises</TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className=""
+        <TabsContent value="overview" className="p-4"
           {/* Statistics Cards */}
-          <div className=""
+          <div className="p-4"
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Total de Listas</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {stats?.totalLists || 0}
                 </div>
-                <p className=""
+                <p className="p-4"
                   {stats?.activeLists || 0} listas ativas
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Regras Ativas</CardTitle>
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {pricingRules.filter(r => r.isActive).length}
                 </div>
-                <p className=""
+                <p className="p-4"
                   {pricingRules.length} regras totais
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Taxa de Aprovação</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {"%"
                 </div>
-                <p className=""
+                <p className="p-4"
                   {stats?.approvedVersions || 0} aprovadas
                 </p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className=""
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Pendente Aprovação</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {stats?.pendingApproval || 0}
                 </div>
-                <p className=""
+                <p className="p-4"
                   aguardando análise
                 </p>
               </CardContent>
@@ -481,7 +481,7 @@ export default function LPU() {
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <Button
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="h-20 flex-col hover:scale-105 transition-transform"
@@ -541,9 +541,9 @@ export default function LPU() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="price-lists" className=""
-          <div className=""
-            <div className=""
+        <TabsContent value="price-lists" className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -557,28 +557,28 @@ export default function LPU() {
               Nova Lista de Preços
             </Button>
           </div>
-          <div className=""
+          <div className="p-4"
             {priceListsLoading ? (
               <div className="text-lg">"Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 {priceLists.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
               </div>
             ) : (
               filteredPriceLists.map((list: PriceList) => (
-                <Card key={list.id} className=""
-                  <CardHeader className=""
-                    <div className=""
+                <Card key={list.id} className="p-4"
+                  <CardHeader className="p-4"
+                    <div className="p-4"
                       <CardTitle className="text-lg">"{list.name}</CardTitle>
-                      <p className=""
+                      <p className="p-4"
                         Código: {list.code} • Versão: {list.version} • {list.currency}
                       </p>
-                      <p className=""
+                      <p className="p-4"
                         Válida de {new Date(list.validFrom).toLocaleDateString()}
                         {list.validTo && "
                       </p>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Badge
                         variant={list.isActive ? "default" : "secondary"
                         className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
@@ -645,9 +645,9 @@ export default function LPU() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="pricing-rules" className=""
-          <div className=""
-            <div className=""
+        <TabsContent value="pricing-rules" className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -661,23 +661,23 @@ export default function LPU() {
               Nova Regra
             </Button>
           </div>
-          <div className=""
+          <div className="p-4"
             {rulesLoading ? (
               <div className="text-lg">"Carregando regras...</div>
             ) : filteredPricingRules.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 {pricingRules.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
               </div>
             ) : (
               filteredPricingRules.map((rule: PricingRule) => (
-                <Card key={rule.id} className=""
-                  <CardHeader className=""
-                    <div className=""
+                <Card key={rule.id} className="p-4"
+                  <CardHeader className="p-4"
+                    <div className="p-4"
                       <CardTitle className="text-lg">"{rule.name}</CardTitle>
                       {rule.description && (
                         <p className="text-lg">"{rule.description}</p>
                       )}
-                      <div className=""
+                      <div className="p-4"
                         <Badge variant="outline" className="text-lg">"{rule.ruleType}</Badge>
                         <Badge variant="secondary">Prioridade: {rule.priority}</Badge>
                         <Badge
@@ -688,7 +688,7 @@ export default function LPU() {
                         </Badge>
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Button variant="outline" size="sm" onClick={() => handleEditPricingRule(rule)}>
                         <Edit className="mr-1 h-3 w-3" />
                         Editar
@@ -704,14 +704,14 @@ export default function LPU() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="associations" className=""
-          <div className=""
+        <TabsContent value="associations" className="p-4"
+          <div className="p-4"
             <div>
               <h2 className="text-lg">"Associação de Regras</h2>
               <p className="text-lg">"Associe regras de precificação às listas de preços</p>
             </div>
           </div>
-          <div className=""
+          <div className="p-4"
             {/* Lista de Preços */}
             <Card>
               <CardHeader>
@@ -719,7 +719,7 @@ export default function LPU() {
                 <CardDescription>Selecione uma lista para gerenciar suas regras</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {priceLists.map((list) => (
                     <div
                       key={list.id}
@@ -730,7 +730,7 @@ export default function LPU() {
                       "
                       onClick={() => setSelectedPriceListForRules(list.id)}
                     >
-                      <div className=""
+                      <div className="p-4"
                         <div>
                           <h4 className="text-lg">"{list.name}</h4>
                           <p className="text-lg">"{list.code}</p>
@@ -751,10 +751,10 @@ export default function LPU() {
                 <CardDescription>Regras disponíveis para associação</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {pricingRules.map((rule) => (
-                    <div key={rule.id} className=""
-                      <div className=""
+                    <div key={rule.id} className="p-4"
+                      <div className="p-4"
                         <div>
                           <h4 className="text-lg">"{rule.name}</h4>
                           <p className="text-lg">"{rule.ruleType} • Prioridade: {rule.priority}</p>
@@ -779,8 +779,8 @@ export default function LPU() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     Lista selecionada: <strong>{priceLists.find(l => l.id === selectedPriceListForRules)?.name}</strong>
                   </div>
                   <Button
@@ -795,13 +795,13 @@ export default function LPU() {
             </Card>
           )}
         </TabsContent>
-        <TabsContent value="advanced-config" className=""
-          <div className=""
+        <TabsContent value="advanced-config" className="p-4"
+          <div className="p-4"
             <div>
               <h2 className="text-lg">"Configurações Avançadas</h2>
               <p className="text-lg">"Configurações detalhadas de margens, fatores sazonais e simulações</p>
             </div>
-            <div className=""
+            <div className="p-4"
               <Button onClick={() => setIsPriceSimulatorOpen(true)} variant="outline>
                 <Calculator className="mr-2 h-4 w-4" />
                 Simulador
@@ -822,9 +822,9 @@ export default function LPU() {
             />
           ) : (
             <Card>
-              <CardContent className=""
+              <CardContent className="p-4"
                 <Settings className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className=""
+                <p className="p-4"
                   Selecione uma lista de preços para configurar margens avançadas
                 </p>
                 <Button 
@@ -837,8 +837,8 @@ export default function LPU() {
             </Card>
           )}
         </TabsContent>
-        <TabsContent value="versions" className=""
-          <div className=""
+        <TabsContent value="versions" className="p-4"
+          <div className="p-4"
             <div>
               <h2 className="text-lg">"Controle de Versões</h2>
               <p className="text-lg">"Gerenciar versões e histórico de listas de preços</p>
@@ -848,18 +848,18 @@ export default function LPU() {
               Nova Versão
             </Button>
           </div>
-          <div className=""
+          <div className="p-4"
             {priceLists.map((list: PriceList) => (
-              <Card key={list.id} className=""
+              <Card key={list.id} className="p-4"
                 <CardHeader>
-                  <div className=""
+                  <div className="p-4"
                     <div>
                       <CardTitle className="text-lg">"{list.name}</CardTitle>
-                      <p className=""
+                      <p className="p-4"
                         Versão Atual: {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Badge variant="outline">v{list.version}</Badge>
                       <Button variant="outline" size="sm" onClick={() => {
                         setSelectedPriceList(list);
@@ -872,19 +872,19 @@ export default function LPU() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <span className="text-lg">"Última modificação:</span>
                       <span>{new Date(list.updatedAt).toLocaleString()}</span>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span className="text-lg">"Status:</span>
                       <Badge variant={list.isActive ? "default" : "secondary>
                         {list.isActive ? "Ativa" : "Inativa"
                       </Badge>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <div>
                           <div className="text-lg">"1</div>
                           <div className="text-lg">"Versões</div>
@@ -899,7 +899,7 @@ export default function LPU() {
                         </div>
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => {
                         const newVersion = (parseFloat(list.version) + 0.1).toFixed(1);
                         duplicatePriceListMutation.mutate(list.id);
@@ -919,7 +919,7 @@ export default function LPU() {
             ))}
           </div>
           {priceLists.length === 0 && (
-            <div className=""
+            <div className="p-4"
               <History className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg">"Nenhuma lista de preços encontrada</h3>
               <p className="text-lg">"Crie sua primeira lista para começar o controle de versões</p>
@@ -930,13 +930,13 @@ export default function LPU() {
             </div>
           )}
         </TabsContent>
-        <TabsContent value="analytics" className=""
-          <div className=""
+        <TabsContent value="analytics" className="p-4"
+          <div className="p-4"
             <div>
               <h2 className="text-lg">"Análises e Relatórios</h2>
               <p className="text-lg">"Insights detalhados sobre precificação e performance</p>
             </div>
-            <div className=""
+            <div className="p-4"
               <Button variant="outline>
                 <Download className="mr-2 h-4 w-4" />
                 Exportar Dados
@@ -948,17 +948,17 @@ export default function LPU() {
             </div>
           </div>
           {/* Métricas Principais */}
-          <div className=""
+          <div className="p-4"
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Margem Média</p>
                     <p className="text-lg">"18.5%</p>
                   </div>
                   <Percent className="h-8 w-8 text-green-600" />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <ArrowUp className="h-4 w-4 text-green-600 mr-1" />
                   <span className="text-lg">"+2.3%</span>
                   <span className="text-lg">"vs mês anterior</span>
@@ -966,45 +966,45 @@ export default function LPU() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Regras Aplicadas</p>
                     <p className="text-lg">"{pricingRules.filter(r => r.isActive).length}</p>
                   </div>
                   <Calculator className="h-8 w-8 text-blue-600" />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <span className="text-lg">"{Math.round((pricingRules.filter(r => r.isActive).length / pricingRules.length) * 100)}%</span>
                   <span className="text-lg">"das regras estão ativas</span>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Itens com Preços</p>
                     <p className="text-lg">"{priceListItems.length}</p>
                   </div>
                   <Package className="h-8 w-8 text-purple-600" />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <span className="text-lg">"100%</span>
                   <span className="text-lg">"cobertura de preços</span>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <p className="text-lg">"Valor Médio</p>
                     <p className="text-lg">"R$ 125,50</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-orange-600" />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <ArrowUp className="h-4 w-4 text-orange-600 mr-1" />
                   <span className="text-lg">"+5.2%</span>
                   <span className="text-lg">"vs mês anterior</span>
@@ -1013,24 +1013,24 @@ export default function LPU() {
             </Card>
           </div>
           {/* Gráficos e Análises */}
-          <div className=""
+          <div className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Performance das Listas</CardTitle>
                 <CardDescription>Comparativo de utilização e eficiência</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {priceLists.slice(0, 5).map((list: PriceList, index) => (
-                    <div key={list.id} className=""
-                      <div className=""
+                    <div key={list.id} className="p-4"
+                      <div className="p-4"
                         <div className="w-3 h-3 rounded-full "" />
                         <div>
                           <p className="text-lg">"{list.name}</p>
                           <p className="text-lg">"v{list.version}</p>
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <p className="text-lg">"{Math.floor(Math.random() * 100) + 50}%</p>
                         <p className="text-lg">"utilização</p>
                       </div>
@@ -1045,44 +1045,44 @@ export default function LPU() {
                 <CardDescription>Evolução dos preços ao longo do tempo</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
-                    <div className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <div className="text-lg">"+12%</div>
                       <div className="text-lg">"Últimos 30 dias</div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div className="text-lg">"+8%</div>
                       <div className="text-lg">"Últimos 90 dias</div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div className="text-lg">"+15%</div>
                       <div className="text-lg">"Último ano</div>
                     </div>
                   </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <span className="text-lg">"Materiais</span>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <div className="bg-green-600 h-2 rounded-full" style={{ width: '75%' }}></div>
                         </div>
                         <span className="text-lg">"75%</span>
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span className="text-lg">"Serviços</span>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
                         </div>
                         <span className="text-lg">"60%</span>
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span className="text-lg">"Mão de Obra</span>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <div className="bg-purple-600 h-2 rounded-full" style={{ width: '85%' }}></div>
                         </div>
                         <span className="text-lg">"85%</span>
@@ -1100,16 +1100,16 @@ export default function LPU() {
               <CardDescription>Gere relatórios específicos para suas necessidades</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
-                <Button variant="outline" className=""
+              <div className="p-4"
+                <Button variant="outline" className="p-4"
                   <BarChart3 className="h-6 w-6 mb-2" />
                   Relatório de Margens
                 </Button>
-                <Button variant="outline" className=""
+                <Button variant="outline" className="p-4"
                   <TrendingUp className="h-6 w-6 mb-2" />
                   Análise de Tendências
                 </Button>
-                <Button variant="outline" className=""
+                <Button variant="outline" className="p-4"
                   <Target className="h-6 w-6 mb-2" />
                   Performance por Cliente
                 </Button>
@@ -1120,7 +1120,7 @@ export default function LPU() {
       </Tabs>
       {/* Create Price List Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Nova Lista de Preços</DialogTitle>
             <DialogDescription>
@@ -1136,7 +1136,7 @@ export default function LPU() {
       </Dialog>
       {/* Edit Price List Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Editar Lista de Preços</DialogTitle>
             <DialogDescription>
@@ -1196,7 +1196,7 @@ export default function LPU() {
       </Dialog>
       {/* View Items Dialog */}
       <Dialog open={isItemsDialogOpen} onOpenChange={setIsItemsDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Itens da Lista: {selectedPriceList?.name}</DialogTitle>
             <DialogDescription>
@@ -1216,7 +1216,7 @@ export default function LPU() {
       </Dialog>
       {/* Approval Workflow Dialog */}
       <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Workflow de Aprovação</DialogTitle>
             <DialogDescription>
@@ -1231,7 +1231,7 @@ export default function LPU() {
       </Dialog>
       {/* Version History Dialog */}
       <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>
               {selectedPriceList ? "
@@ -1261,7 +1261,7 @@ export default function LPU() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className=""
+            <AlertDialogAction onClick={confirmDelete} className="p-4"
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1349,8 +1349,8 @@ function PriceListForm({
     onSubmit(submitData);
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
         <div>
           <Label htmlFor="name">Nome da Lista</Label>
           <Input
@@ -1371,7 +1371,7 @@ function PriceListForm({
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <div>
           <Label htmlFor="validFrom">Válida a partir de</Label>
           <Input
@@ -1392,7 +1392,7 @@ function PriceListForm({
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <div>
           <Label htmlFor="currency">Moeda</Label>
           <Select
@@ -1458,8 +1458,8 @@ function PriceListForm({
           placeholder='[TRANSLATION_NEEDED]'
         />
       </div>
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <input
             type="checkbox"
             id="isActive"
@@ -1468,7 +1468,7 @@ function PriceListForm({
           />
           <Label htmlFor="isActive">Lista Ativa</Label>
         </div>
-        <div className=""
+        <div className="p-4"
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -1508,8 +1508,8 @@ function PricingRuleForm({
     onSubmit(formData);
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
         <div>
           <Label htmlFor="name">Nome da Regra</Label>
           <Input
@@ -1556,8 +1556,8 @@ function PricingRuleForm({
           onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 1 }))}
         />
       </div>
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <input
             type="checkbox"
             id="isActive"
@@ -1566,7 +1566,7 @@ function PricingRuleForm({
           />
           <Label htmlFor="isActive">Regra Ativa</Label>
         </div>
-        <div className=""
+        <div className="p-4"
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -1664,15 +1664,15 @@ function PriceListItemsView({
   });
   if (!priceList) return null;
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h3 className="text-lg">"{priceList.name}</h3>
-          <p className=""
+          <p className="p-4"
             {items.length} itens • Versão {priceList.version} • {priceList.currency}
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button onClick={() => setIsAddItemDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Item
@@ -1686,7 +1686,7 @@ function PriceListItemsView({
       {isLoading || catalogLoading ? (
         <div className="text-lg">"Carregando itens...</div>
       ) : items.length === 0 ? (
-        <div className=""
+        <div className="p-4"
           <Package className="w-12 h-12 mx-auto mb-4" />
           <p>Nenhum item encontrado nesta lista</p>
           <p className="text-lg">"Adicione itens para começar a usar a lista de preços</p>
@@ -1696,7 +1696,7 @@ function PriceListItemsView({
           </Button>
         </div>
       ) : (
-        <div className=""
+        <div className="p-4"
           <Table>
             <TableHeader>
               <TableRow>
@@ -1737,7 +1737,7 @@ function PriceListItemsView({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className=""
+                    <div className="p-4"
                       <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -1802,7 +1802,7 @@ function PriceListItemsView({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => itemToDelete && deleteItemMutation.mutate(itemToDelete.id)} className=""
+            <AlertDialogAction onClick={() => itemToDelete && deleteItemMutation.mutate(itemToDelete.id)} className="p-4"
               Remover
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1824,22 +1824,22 @@ function ApprovalWorkflowComponent({
   const { toast } = useToast();
   const pendingApprovals = priceLists.filter(list => !list.isActive);
   return (
-    <div className=""
-      <div className=""
-        <div className=""
+    <div className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <h3 className="text-lg">"Itens Pendentes de Aprovação</h3>
           <p className="text-lg">"{pendingApprovals.length} itens aguardando aprovação</p>
         </div>
-        <div className=""
+        <div className="p-4"
           {pendingApprovals.length === 0 ? (
-            <div className=""
+            <div className="p-4"
               <CheckCircle className="w-12 h-12 mx-auto mb-4" />
               <p>Nenhum item pendente de aprovação</p>
             </div>
           ) : (
-            <div className=""
+            <div className="p-4"
               {pendingApprovals.map((list) => (
-                <div key={list.id} className=""
+                <div key={list.id} className="p-4"
                   <input
                     type="checkbox"
                     checked={selectedForApproval.includes(list.id)}
@@ -1851,9 +1851,9 @@ function ApprovalWorkflowComponent({
                       }
                     }}
                   />
-                  <div className=""
+                  <div className="p-4"
                     <p className="text-lg">"{list.name}</p>
-                    <p className=""
+                    <p className="p-4"
                       Versão {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -1865,7 +1865,7 @@ function ApprovalWorkflowComponent({
         </div>
       </div>
       {selectedForApproval.length > 0 && (
-        <div className=""
+        <div className="p-4"
           <div>
             <Label htmlFor="approvalNotes">Observações da Aprovação</Label>
             <Textarea
@@ -1876,7 +1876,7 @@ function ApprovalWorkflowComponent({
               placeholder='[TRANSLATION_NEEDED]'
             />
           </div>
-          <div className=""
+          <div className="p-4"
             <Button
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() => {
@@ -1906,7 +1906,7 @@ function ApprovalWorkflowComponent({
           </div>
         </div>
       )}
-      <div className=""
+      <div className="p-4"
         <Button variant="outline" onClick={onClose}>
           Fechar
         </Button>
@@ -1924,7 +1924,7 @@ function VersionHistoryComponent({
 }) {
   if (!priceList) {
     return (
-      <div className=""
+      <div className="p-4"
         <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="text-lg">"Selecione uma lista de preços para ver o histórico</p>
         <Button className="mt-4" onClick={onClose}> Fechar</Button>
@@ -1956,27 +1956,27 @@ function VersionHistoryComponent({
     }
   ];
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h3 className="text-lg">"{priceList.name}</h3>
           <p className="text-lg">"Histórico completo de versões</p>
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         {versionHistory.map((version, index) => (
-          <div key={index} className=""
-            <div className=""
-              <div className=""
+          <div key={index} className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <Badge variant={index === 0 ? "default" : "secondary>
                   v{version.version}
                 </Badge>
                 <span className="text-lg">"{version.user}</span>
-                <span className=""
+                <span className="p-4"
                   {new Date(version.date).toLocaleString()}
                 </span>
               </div>
-              <div className=""
+              <div className="p-4"
                 {index === 0 && <Badge variant="default">Atual</Badge>}
                 {index > 0 && (
                   <Button variant="outline" size="sm" disabled={index === 0}>
@@ -1988,14 +1988,14 @@ function VersionHistoryComponent({
             </div>
             <p className="text-lg">"{version.changes}</p>
             {index < versionHistory.length - 1 && (
-              <div className=""
+              <div className="p-4"
                 <div className="text-lg">"</div>
               </div>
             )}
           </div>
         ))}
       </div>
-      <div className=""
+      <div className="p-4"
         <Button variant="outline" onClick={onClose}>
           Fechar
         </Button>
@@ -2039,7 +2039,7 @@ function PriceListItemForm({
     });
   };
   return (
-    <form onSubmit={handleSubmit} className=""
+    <form onSubmit={handleSubmit} className="p-4"
       {!initialData && (
         <div>
           <Label htmlFor="itemId">Item do Catálogo</Label>
@@ -2076,13 +2076,13 @@ function PriceListItemForm({
             </SelectContent>
           </Select>
           {selectedItem && (
-            <p className=""
+            <p className="p-4"
               {selectedItem.description}
             </p>
           )}
         </div>
       )}
-      <div className=""
+      <div className="p-4"
         <div>
           <Label htmlFor="unitPrice">Preço Unitário ({currency})</Label>
           <Input
@@ -2108,7 +2108,7 @@ function PriceListItemForm({
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <div>
           <Label htmlFor="hourlyRate">Taxa Horária ({currency})</Label>
           <Input
@@ -2134,8 +2134,8 @@ function PriceListItemForm({
           />
         </div>
       </div>
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <input
             type="checkbox"
             id="isActive"
@@ -2144,7 +2144,7 @@ function PriceListItemForm({
           />
           <Label htmlFor="isActive">Item Ativo</Label>
         </div>
-        <div className=""
+        <div className="p-4"
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar

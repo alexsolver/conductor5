@@ -418,8 +418,8 @@ export default function SlaManagement() {
   };
   if (isLoadingSlas) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg">"</div>
           <span>Carregando SLAs...</span>
         </div>
@@ -429,14 +429,14 @@ export default function SlaManagement() {
   return (
     <div className="container mx-auto p-6 space-y-6" data-testid="sla-management-page>
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Gestão de SLAs</h1>
-          <p className=""
+          <p className="p-4"
             Gerencie acordos de nível de serviço, operacional e contratos base
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button 
             onClick={() => checkBreachesMutation.mutate()}
             disabled={checkBreachesMutation.isPending}
@@ -453,7 +453,7 @@ export default function SlaManagement() {
                 Novo SLA
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Criar Novo SLA</DialogTitle>
               </DialogHeader>
@@ -468,55 +468,55 @@ export default function SlaManagement() {
       </div>
       {/* Statistics Cards */}
       {complianceStats && (
-        <div className=""
+        <div className="p-4"
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Compliance Total</CardTitle>
               <Target className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {complianceStats.compliancePercentage.toFixed(1)}%
               </div>
-              <p className=""
+              <p className="p-4"
                 {complianceStats.slaMetTickets} de {complianceStats.totalTickets} tickets
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Tempo Médio Resposta</CardTitle>
               <Clock className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {Math.round(complianceStats.avgResponseTimeMinutes)}min
               </div>
               <p className="text-lg">"Tempo médio de primeira resposta</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Tempo Médio Resolução</CardTitle>
               <CheckCircle className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {Math.round(complianceStats.avgResolutionTimeMinutes)}min
               </div>
               <p className="text-lg">"Tempo médio de resolução</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Violações</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {complianceStats.slaViolatedTickets}
               </div>
-              <p className=""
+              <p className="p-4"
                 Taxa de escalonamento: {complianceStats.escalationRate.toFixed(1)}%
               </p>
             </CardContent>
@@ -524,8 +524,8 @@ export default function SlaManagement() {
         </div>
       )}
       {/* Main Content Tabs */}
-      <Tabs defaultValue="definitions" className=""
-        <TabsList className=""
+      <Tabs defaultValue="definitions" className="p-4"
+        <TabsList className="p-4"
           <TabsTrigger value="definitions" data-testid="tab-definitions>
             <Settings className="w-4 h-4 mr-2" />
             Definições
@@ -548,9 +548,9 @@ export default function SlaManagement() {
           </TabsTrigger>
         </TabsList>
         {/* SLA Definitions Tab */}
-        <TabsContent value="definitions" className=""
+        <TabsContent value="definitions" className="p-4"
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <div>
                 <CardTitle>Definições de SLA</CardTitle>
                 <CardDescription>
@@ -563,15 +563,15 @@ export default function SlaManagement() {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {slaDefinitions?.data?.map((sla: SlaDefinition) => (
                   <div 
                     key={sla.id} 
                     className="flex items-center justify-between p-4 border rounded-lg"
                     data-testid={"
                   >
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <h3 className="text-lg">"{sla.name}</h3>
                         <Badge variant={getStatusBadgeVariant(sla.status)}>
                           {sla.status}
@@ -582,7 +582,7 @@ export default function SlaManagement() {
                         <Badge variant="outline">{sla.type}</Badge>
                       </div>
                       <p className="text-lg">"{sla.description}</p>
-                      <div className=""
+                      <div className="p-4"
                         {sla.responseTimeMinutes && (
                           <span>Resposta: {sla.responseTimeMinutes}min</span>
                         )}
@@ -594,7 +594,7 @@ export default function SlaManagement() {
                         )}
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -616,12 +616,12 @@ export default function SlaManagement() {
                 ))}
                 
                 {(!slaDefinitions?.data || slaDefinitions.data.length === 0) && (
-                  <div className=""
+                  <div className="p-4"
                     <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className=""
+                    <h3 className="p-4"
                       Nenhum SLA configurado
                     </h3>
-                    <p className=""
+                    <p className="p-4"
                       Crie seu primeiro SLA para começar o monitoramento
                     </p>
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -635,12 +635,12 @@ export default function SlaManagement() {
           </Card>
         </TabsContent>
         {/* Active Monitoring Tab */}
-        <TabsContent value="monitoring" className=""
-          <div className=""
+        <TabsContent value="monitoring" className="p-4"
+          <div className="p-4"
             {/* Active Instances */}
             <Card>
               <CardHeader>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   <PlayCircle className="w-5 h-5 mr-2 text-green-600" />
                   Instâncias Ativas
                 </CardTitle>
@@ -648,27 +648,27 @@ export default function SlaManagement() {
                   SLAs em andamento ({activeInstances?.total || 0})
                 </CardDescription>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   {activeInstances?.data?.map((instance: SlaInstance) => (
                     <div 
                       key={instance.id} 
                       className="p-3 border rounded-lg"
                       data-testid={"
                     >
-                      <div className=""
+                      <div className="p-4"
                         <span className="text-lg">"Ticket #{instance.ticketId.slice(-8)}</span>
                         <Badge variant={instance.status === 'running' ? 'default' : 'secondary'}>
                           {instance.status}
                         </Badge>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <div>Métrica: {instance.currentMetric}</div>
                         <div>Restante: {instance.remainingMinutes}min</div>
                         <div>Progresso: {((instance.elapsedMinutes / instance.targetMinutes) * 100).toFixed(1)}%</div>
                       </div>
                       {instance.isBreached && (
-                        <div className=""
+                        <div className="p-4"
                           ⚠️ Violação: +{instance.breachPercentage.toFixed(1)}%
                         </div>
                       )}
@@ -680,7 +680,7 @@ export default function SlaManagement() {
             {/* Breached Instances */}
             <Card>
               <CardHeader>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
                   Instâncias Violadas
                 </CardTitle>
@@ -688,19 +688,19 @@ export default function SlaManagement() {
                   SLAs que ultrapassaram o limite ({breachedInstances?.total || 0})
                 </CardDescription>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   {breachedInstances?.data?.map((instance: SlaInstance) => (
                     <div 
                       key={instance.id} 
                       className="p-3 border border-red-200 rounded-lg bg-red-50"
                       data-testid={"
                     >
-                      <div className=""
+                      <div className="p-4"
                         <span className="text-lg">"Ticket #{instance.ticketId.slice(-8)}</span>
                         <Badge variant="destructive">VIOLADO</Badge>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <div>Métrica: {instance.currentMetric}</div>
                         <div>Violação: +{instance.breachPercentage.toFixed(1)}%</div>
                         <div>Tempo excedido: {instance.elapsedMinutes - instance.targetMinutes}min</div>
@@ -713,7 +713,7 @@ export default function SlaManagement() {
           </div>
         </TabsContent>
         {/* Violations Tab */}
-        <TabsContent value="violations" className=""
+        <TabsContent value="violations" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Histórico de Violações</CardTitle>
@@ -722,22 +722,22 @@ export default function SlaManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {violations?.data?.map((violation: SlaViolation) => (
                   <div 
                     key={violation.id} 
                     className="p-4 border rounded-lg"
                     data-testid={"
                   >
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <span className="text-lg">"Ticket #{violation.ticketId.slice(-8)}</span>
                         <Badge variant="destructive">{violation.violationType}</Badge>
                         <Badge variant={violation.severityLevel === 'critical' ? 'destructive' : 'secondary'}>
                           {violation.severityLevel}
                         </Badge>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         {!violation.acknowledged && (
                           <Badge variant="outline">Não Reconhecida</Badge>
                         )}
@@ -746,7 +746,7 @@ export default function SlaManagement() {
                         )}
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>Meta: {violation.targetMinutes}min | Atual: {violation.actualMinutes}min</div>
                       <div>Violação: {violation.violationMinutes}min (+{violation.violationPercentage.toFixed(1)}%)</div>
                       <div>Data: {new Date(violation.createdAt).toLocaleString('pt-BR')}</div>
@@ -754,12 +754,12 @@ export default function SlaManagement() {
                   </div>
                 ))}
                 {(!violations?.data || violations.data.length === 0) && (
-                  <div className=""
+                  <div className="p-4"
                     <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                    <h3 className=""
+                    <h3 className="p-4"
                       Nenhuma violação registrada
                     </h3>
-                    <p className=""
+                    <p className="p-4"
                       Excelente! Todos os SLAs estão sendo cumpridos.
                     </p>
                   </div>
@@ -769,7 +769,7 @@ export default function SlaManagement() {
           </Card>
         </TabsContent>
         {/* Analytics Tab */}
-        <TabsContent value="analytics" className=""
+        <TabsContent value="analytics" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Analytics de Desempenho</CardTitle>
@@ -778,12 +778,12 @@ export default function SlaManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <TrendingUp className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                <h3 className=""
+                <h3 className="p-4"
                   Dashboard de Analytics
                 </h3>
-                <p className=""
+                <p className="p-4"
                   Gráficos e relatórios detalhados em desenvolvimento
                 </p>
               </div>
@@ -791,10 +791,10 @@ export default function SlaManagement() {
           </Card>
         </TabsContent>
         {/* Automation Tab */}
-        <TabsContent value="automation" className=""
-          <div className=""
+        <TabsContent value="automation" className="p-4"
+          <div className="p-4"
             {/* Header */}
-            <div className=""
+            <div className="p-4"
               <div>
                 <h2 className="text-lg">"Workflows de Automação SLA</h2>
                 <p className="text-lg">"Configure ações automáticas baseadas em eventos de SLA</p>
@@ -808,9 +808,9 @@ export default function SlaManagement() {
               </Button>
             </div>
             {/* Statistics */}
-            <div className=""
+            <div className="p-4"
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Total Workflows</CardTitle>
                   <GitBranch className="h-4 w-4 text-blue-600" />
                 </CardHeader>
@@ -820,7 +820,7 @@ export default function SlaManagement() {
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Execuções Hoje</CardTitle>
                   <Play className="h-4 w-4 text-green-600" />
                 </CardHeader>
@@ -830,7 +830,7 @@ export default function SlaManagement() {
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Taxa de Sucesso</CardTitle>
                   <CheckCircle className="h-4 w-4 text-purple-600" />
                 </CardHeader>
@@ -840,7 +840,7 @@ export default function SlaManagement() {
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Falhas</CardTitle>
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                 </CardHeader>
@@ -859,16 +859,16 @@ export default function SlaManagement() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className=""
+                  <h3 className="p-4"
                     Sistema de Workflows Implementado
                   </h3>
-                  <p className=""
+                  <p className="p-4"
                     Backend completo com Clean Architecture implementado. 
                     Frontend com interface completa para gerenciamento de workflows SLA.
                   </p>
-                  <div className=""
+                  <div className="p-4"
                     <p>✅ Tabelas de banco criadas (sla_workflows, sla_workflow_executions)</p>
                     <p>✅ Repositórios e casos de uso implementados</p>
                     <p>✅ Controllers e rotas configuradas</p>
@@ -882,7 +882,7 @@ export default function SlaManagement() {
       </Tabs>
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Editar SLA</DialogTitle>
           </DialogHeader>
@@ -896,7 +896,7 @@ export default function SlaManagement() {
       </Dialog>
       {/* Workflow Dialog */}
       <Dialog open={isWorkflowDialogOpen} onOpenChange={setIsWorkflowDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Novo Workflow de Automação</DialogTitle>
           </DialogHeader>
@@ -922,10 +922,10 @@ interface SlaFormProps {
 function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className=""
-        <div className=""
+      <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+        <div className="p-4"
           {/* Basic Information */}
-          <div className=""
+          <div className="p-4"
             <h3 className="text-lg">"Informações Básicas</h3>
             
             <FormField
@@ -1001,7 +1001,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             />
           </div>
           {/* Time Targets */}
-          <div className=""
+          <div className="p-4"
             <h3 className="text-lg">"Metas de Tempo</h3>
             
             <FormField
@@ -1079,17 +1079,17 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           </div>
         </div>
         {/* Working Hours */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Horário de Funcionamento</h3>
           
           <FormField
             control={form.control}
             name="businessHoursOnly"
             render={({ field }) => (
-              <FormItem className=""
-                <div className=""
+              <FormItem className="p-4"
+                <div className="p-4"
                   <FormLabel className="text-lg">"Apenas Horário Comercial</FormLabel>
-                  <div className=""
+                  <div className="p-4"
                     SLA será pausado fora do horário comercial
                   </div>
                 </div>
@@ -1103,7 +1103,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
               </FormItem>
             )}
           />
-          <div className=""
+          <div className="p-4"
             <FormField
               control={form.control}
               name="workingHours.start"
@@ -1133,17 +1133,17 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           </div>
         </div>
         {/* Escalation */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Configurações de Escalonamento</h3>
           
           <FormField
             control={form.control}
             name="escalationEnabled"
             render={({ field }) => (
-              <FormItem className=""
-                <div className=""
+              <FormItem className="p-4"
+                <div className="p-4"
                   <FormLabel className="text-lg">"Habilitar Escalonamento</FormLabel>
-                  <div className=""
+                  <div className="p-4"
                     Escalonar automaticamente quando próximo ao vencimento
                   </div>
                 </div>
@@ -1181,7 +1181,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           )}
         </div>
         {/* Application Rules */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Regras de Aplicação</h3>
           <FormField
             control={form.control}
@@ -1201,7 +1201,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           />
         </div>
         {/* Submit Button */}
-        <div className=""
+        <div className="p-4"
           <Button type="submit" disabled={isSubmitting} data-testid="button-save-sla>
             {isSubmitting ? (
               <>
@@ -1231,10 +1231,10 @@ interface WorkflowFormProps {
 function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className=""
-        <div className=""
+      <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+        <div className="p-4"
           {/* Basic Information */}
-          <div className=""
+          <div className="p-4"
             <h3 className="text-lg">"Informações Básicas</h3>
             
             <FormField
@@ -1309,16 +1309,16 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             />
           </div>
           {/* Configuration */}
-          <div className=""
+          <div className="p-4"
             <h3 className="text-lg">"Configuração</h3>
             <FormField
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className=""
-                  <div className=""
+                <FormItem className="p-4"
+                  <div className="p-4"
                     <FormLabel className="text-lg">"Workflow Ativo</FormLabel>
-                    <div className=""
+                    <div className="p-4"
                       Habilitar execução automática deste workflow
                     </div>
                   </div>
@@ -1332,9 +1332,9 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 </FormItem>
               )}
             />
-            <div className=""
+            <div className="p-4"
               <h4 className="text-lg">"Ações Rápidas</h4>
-              <div className=""
+              <div className="p-4"
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -1400,16 +1400,16 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
           </div>
         </div>
         {/* Current Actions Display */}
-        <div className=""
+        <div className="p-4"
           <h3 className="text-lg">"Ações Configuradas</h3>
-          <div className=""
+          <div className="p-4"
             {form.watch('actions')?.length > 0 ? (
-              <div className=""
+              <div className="p-4"
                 {form.watch('actions').map((action: any, index: number) => (
-                  <div key={index} className=""
+                  <div key={index} className="p-4"
                     <div>
                       <span className="text-lg">"{action.type.replace('_', ' ')}</span>
-                      <div className=""
+                      <div className="p-4"
                         {JSON.stringify(action.config, null, 2).substring(0, 100)}...
                       </div>
                     </div>
@@ -1430,7 +1430,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 ))}
               </div>
             ) : (
-              <div className=""
+              <div className="p-4"
                 <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                 <p>Nenhuma ação configurada</p>
                 <p className="text-lg">"Use os botões acima para adicionar ações</p>
@@ -1439,7 +1439,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
           </div>
         </div>
         {/* Submit Button */}
-        <div className=""
+        <div className="p-4"
           <Button type="submit" disabled={isSubmitting} data-testid="button-save-workflow>
             {isSubmitting ? (
               <>

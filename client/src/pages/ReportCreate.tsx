@@ -120,10 +120,10 @@ export default function ReportCreate() {
     return true;
   };
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <Button
             variant="ghost"
             onClick={() => setLocation("/reports")}
@@ -133,15 +133,15 @@ export default function ReportCreate() {
             Voltar aos Relatórios
           </Button>
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               Criar Novo Relatório
             </h1>
-            <p className=""
+            <p className="p-4"
               Configure seu relatório com todas as funcionalidades avançadas
             </p>
           </div>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button
             variant="outline"
             onClick={() => setActiveTab("preview")}
@@ -172,17 +172,17 @@ export default function ReportCreate() {
           <CardTitle>Tipo de Relatório</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""
+          <div className="p-4"
             <Card 
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'standard' ? 'ring-2 ring-primary' : ''
               "
               onClick={() => setReportType('standard')}
             >
-              <CardContent className=""
+              <CardContent className="p-4"
                 <BarChart3 className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="text-lg">"Relatório Padrão</h4>
-                <p className=""
+                <p className="p-4"
                   Seleção simples de fonte de dados e campos básicos
                 </p>
               </CardContent>
@@ -193,10 +193,10 @@ export default function ReportCreate() {
               "
               onClick={() => setReportType('advanced')}
             >
-              <CardContent className=""
+              <CardContent className="p-4"
                 <Database className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="text-lg">"Query Builder Avançado</h4>
-                <p className=""
+                <p className="p-4"
                   Construção completa com filtros, períodos, joins e SQL
                 </p>
               </CardContent>
@@ -207,10 +207,10 @@ export default function ReportCreate() {
               "
               onClick={() => setReportType('wysiwyg')}
             >
-              <CardContent className=""
+              <CardContent className="p-4"
                 <Palette className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="text-lg">"WYSIWYG Designer</h4>
-                <p className=""
+                <p className="p-4"
                   Designer visual para relatórios e PDFs personalizados
                 </p>
               </CardContent>
@@ -220,7 +220,7 @@ export default function ReportCreate() {
       </Card>
       {/* Main Configuration Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className=""
+        <TabsList className="p-4"
           <TabsTrigger value="basic" data-testid="tab-basic>
             <Settings className="w-4 h-4 mr-2" />
             Configurações Básicas
@@ -253,15 +253,15 @@ export default function ReportCreate() {
           </TabsTrigger>
         </TabsList>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleCreateReport)} className=""
+          <form onSubmit={form.handleSubmit(handleCreateReport)} className="p-4"
             {/* Basic Configuration Tab */}
-            <TabsContent value="basic" className=""
-              <div className=""
+            <TabsContent value="basic" className="p-4"
+              <div className="p-4"
                 <Card>
                   <CardHeader>
                     <CardTitle>Informações Básicas</CardTitle>
                   </CardHeader>
-                  <CardContent className=""
+                  <CardContent className="p-4"
                     <FormField
                       control={form.control}
                       name="name"
@@ -328,7 +328,7 @@ export default function ReportCreate() {
                   <CardHeader>
                     <CardTitle>Configurações de Acesso</CardTitle>
                   </CardHeader>
-                  <CardContent className=""
+                  <CardContent className="p-4"
                     <FormField
                       control={form.control}
                       name="accessLevel"
@@ -386,7 +386,7 @@ export default function ReportCreate() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Tipo de Visualização</FormLabel>
-                              <div className=""
+                              <div className="p-4"
                                 {[
                                   { value: 'table', icon: Grid, label: 'Tabela' },
                                   { value: 'bar', icon: BarChart3, label: 'Barras' },
@@ -400,7 +400,7 @@ export default function ReportCreate() {
                                     "
                                     onClick={() => field.onChange(type.value)}
                                   >
-                                    <CardContent className=""
+                                    <CardContent className="p-4"
                                       <type.icon className="w-6 h-6 mx-auto mb-1" />
                                       <div className="text-lg">"{type.label}</div>
                                     </CardContent>
@@ -418,14 +418,14 @@ export default function ReportCreate() {
               </div>
             </TabsContent>
             {/* Builder Tab */}
-            <TabsContent value="builder" className=""
+            <TabsContent value="builder" className="p-4"
               {reportType === 'wysiwyg' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>WYSIWYG Designer - Canvas A4 Profissional</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className=""
+                    <div className="p-4"
                       <AdvancedWYSIWYGDesigner 
                         onSave={handleWysiwygSave}
                         initialDesign={wysiwygDesign}
@@ -440,7 +440,7 @@ export default function ReportCreate() {
                     <CardTitle>Query Builder Avançado</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className=""
+                    <div className="p-4"
                       <AdvancedQueryBuilder 
                         onQueryChange={handleQueryChange}
                         onExecute={handleQueryChange}
@@ -456,15 +456,15 @@ export default function ReportCreate() {
                     <CardTitle>Configuração Padrão</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <CheckCircle2 className="w-5 h-5 text-blue-500 mt-0.5" />
                           <div>
-                            <h5 className=""
+                            <h5 className="p-4"
                               Configuração Básica
                             </h5>
-                            <p className=""
+                            <p className="p-4"
                               Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba '[TRANSLATION_NEEDED]'.
                             </p>
                           </div>
@@ -476,20 +476,20 @@ export default function ReportCreate() {
               )}
             </TabsContent>
             {/* Schedule Tab */}
-            <TabsContent value="schedule" className=""
+            <TabsContent value="schedule" className="p-4"
               <Card>
                 <CardHeader>
                   <CardTitle>Agendamento e Automação</CardTitle>
                 </CardHeader>
-                <CardContent className=""
+                <CardContent className="p-4"
                   <FormField
                     control={form.control}
                     name="schedulingEnabled"
                     render={({ field }) => (
-                      <FormItem className=""
-                        <div className=""
+                      <FormItem className="p-4"
+                        <div className="p-4"
                           <FormLabel className="text-lg">"Habilitar Agendamento</FormLabel>
-                          <div className=""
+                          <div className="p-4"
                             Execute este relatório automaticamente
                           </div>
                         </div>
@@ -553,20 +553,20 @@ export default function ReportCreate() {
               </Card>
             </TabsContent>
             {/* Preview Tab */}
-            <TabsContent value="preview" className=""
+            <TabsContent value="preview" className="p-4"
               <Card>
                 <CardHeader>
                   <CardTitle>Preview do Relatório</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <div>
                         <h4 className="text-lg">"{form.watch('name') || 'Nome do Relatório'}</h4>
                         <p className="text-lg">"{form.watch('description') || 'Sem descrição'}</p>
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         <div>
                           <span className="text-lg">"Tipo:</span>
                           <div className="text-lg">"{reportType}</div>
@@ -587,7 +587,7 @@ export default function ReportCreate() {
                       {reportType === 'wysiwyg' && wysiwygDesign.elements?.length > 0 && (
                         <div>
                           <span className="text-lg">"WYSIWYG Elements:</span>
-                          <div className=""
+                          <div className="p-4"
                             {wysiwygDesign.elements.length} elementos configurados
                           </div>
                         </div>
@@ -595,7 +595,7 @@ export default function ReportCreate() {
                       {reportType === 'advanced' && query.dataSource && (
                         <div>
                           <span className="text-lg">"Query Configuration:</span>
-                          <div className=""
+                          <div className="p-4"
                             Fonte: {query.dataSource}, Tabelas: {query.selectedTables?.length || 0}
                           </div>
                         </div>

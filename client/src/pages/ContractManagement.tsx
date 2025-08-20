@@ -152,15 +152,15 @@ export default function ContractManagement() {
     );
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         {/* Header */}
-        <div className=""
+        <div className="p-4"
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               Gestão de Contratos
             </h1>
-            <p className=""
+            <p className="p-4"
               Gerencie todo o ciclo de vida dos contratos empresariais
             </p>
           </div>
@@ -188,9 +188,9 @@ export default function ContractManagement() {
         </CreateContractDialog>
         {/* Métricas do Dashboard */}
         {dashboardMetrics?.data && (
-          <div className=""
-            <Card className=""
-              <CardHeader className=""
+          <div className="p-4"
+            <Card className="p-4"
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Contratos Ativos</CardTitle>
                 <FileText className="h-4 w-4 text-green-600" />
               </CardHeader>
@@ -200,8 +200,8 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-            <Card className=""
-              <CardHeader className=""
+            <Card className="p-4"
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Rascunhos</CardTitle>
                 <FileText className="h-4 w-4 text-gray-600" />
               </CardHeader>
@@ -211,8 +211,8 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-            <Card className=""
-              <CardHeader className=""
+            <Card className="p-4"
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Vencendo em 30 dias</CardTitle>
                 <Calendar className="h-4 w-4 text-orange-600" />
               </CardHeader>
@@ -222,8 +222,8 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-            <Card className=""
-              <CardHeader className=""
+            <Card className="p-4"
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Receita Mensal</CardTitle>
                 <DollarSign className="h-4 w-4 text-blue-600" />
               </CardHeader>
@@ -233,8 +233,8 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-            <Card className=""
-              <CardHeader className=""
+            <Card className="p-4"
+              <CardHeader className="p-4"
                 <CardTitle className="text-lg">"Receita Total</CardTitle>
                 <DollarSign className="h-4 w-4 text-purple-600" />
               </CardHeader>
@@ -247,16 +247,16 @@ export default function ContractManagement() {
           </div>
         )}
         {/* Filtros */}
-        <Card className=""
+        <Card className="p-4"
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <Filter className="h-5 w-5" />
               Filtros
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder='[TRANSLATION_NEEDED]'
@@ -318,32 +318,32 @@ export default function ContractManagement() {
           </CardContent>
         </Card>
         {/* Lista de Contratos */}
-        <Card className=""
+        <Card className="p-4"
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <span>Contratos ({total})</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className=""
+              <div className="p-4"
                 <div className="text-lg">"</div>
               </div>
             ) : contracts.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhum contrato encontrado
               </div>
             ) : (
-              <div className=""
+              <div className="p-4"
                 {contracts.map((contract: Contract) => (
                   <div 
                     key={contract.id} 
                     className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     data-testid={"
                   >
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <h3 className="font-semibold text-lg" data-testid={"
                             {contract.title}
                           </h3>
@@ -352,7 +352,7 @@ export default function ContractManagement() {
                           </span>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           {getStatusBadge(contract.status)}
                           {getTypeBadge(contract.contractType)}
                           {getPriorityBadge(contract.priority)}
@@ -360,7 +360,7 @@ export default function ContractManagement() {
                         <p className="text-sm text-muted-foreground mb-2" data-testid={"
                           {contract.description || 'Sem descrição'}
                         </p>
-                        <div className=""
+                        <div className="p-4"
                           <span data-testid={"
                             {new Date(contract.startDate).toLocaleDateString('pt-BR')} - {new Date(contract.endDate).toLocaleDateString('pt-BR')}
                           </span>
@@ -374,7 +374,7 @@ export default function ContractManagement() {
                           )}
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <ContractViewDialog contractId={contract.id}>
                           <Button 
                             variant="outline" 

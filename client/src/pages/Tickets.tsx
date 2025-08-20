@@ -333,16 +333,16 @@ export default function Tickets() {
   };
   if (isLoading || isFieldColorsLoading || !isReady) {
     return (
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"</div>
-        <div className=""
+        <div className="p-4"
           {[1, 2, 3].map((i) => (
-            <Card key={i} className=""
-              <CardContent className=""
-                <div className=""
+            <Card key={i} className="p-4"
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div className="text-lg">"</div>
                   <div className="text-lg">"</div>
-                  <div className=""
+                  <div className="p-4"
                     <div className="text-lg">"</div>
                     <div className="text-lg">"</div>
                     <div className="text-lg">"</div>
@@ -357,20 +357,20 @@ export default function Tickets() {
   }
   if (error) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               '[TRANSLATION_NEEDED]'
             </h1>
-            <p className=""
+            <p className="p-4"
               {(error as any)?.message || t('common.error')}
             </p>
           </div>
         </div>
         <Card>
-          <CardContent className=""
-            <div className=""
+          <CardContent className="p-4"
+            <div className="p-4"
               <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
               <p className="text-lg">"'[TRANSLATION_NEEDED]'</p>
               <Button 
@@ -433,31 +433,31 @@ export default function Tickets() {
     sampleTicket: ticketsList[0] || null
   });
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             '[TRANSLATION_NEEDED]' ({ticketsCount})
           </h1>
-          <p className=""
+          <p className="p-4"
             '[TRANSLATION_NEEDED]'
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className=""
+              <Button className="p-4"
                 <Plus className="h-4 w-4 mr-2" />
                 '[TRANSLATION_NEEDED]'
               </Button>
             </DialogTrigger>
-              <DialogContent className=""
-                <DialogHeader className=""
+              <DialogContent className="p-4"
+                <DialogHeader className="p-4"
                   <DialogTitle>'[TRANSLATION_NEEDED]'</DialogTitle>
                 </DialogHeader>
-                <div className=""
+                <div className="p-4"
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className=""
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
                   {/* Company Selection - Must be first */}
                     <FormField
                       control={form.control}
@@ -475,7 +475,7 @@ export default function Tickets() {
                             value={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className=""
+                              <SelectTrigger className="p-4"
                                 <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
@@ -510,7 +510,7 @@ export default function Tickets() {
                             disabled={!selectedCompanyId}
                           >
                             <FormControl>
-                              <SelectTrigger className=""
+                              <SelectTrigger className="p-4"
                                 <SelectValue 
                                   placeholder={
                                     !selectedCompanyId 
@@ -705,7 +705,7 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-                  <div className=""
+                  <div className="p-4"
                     {/* 8. PRIORIDADE */}
                     <FormField
                       control={form.control}
@@ -846,7 +846,7 @@ export default function Tickets() {
                   </form>
                   </Form>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button
                     type="button"
                     variant="outline"
@@ -868,24 +868,24 @@ export default function Tickets() {
         </div>
       </div>
       {/* Sistema de Visualizações de Tickets */}
-      <div className=""
+      <div className="p-4"
         <TicketViewSelector 
           currentViewId={currentViewId}
           onViewChange={handleViewChange}
         />
       </div>
-      <div className=""
+      <div className="p-4"
         {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
           ticketsList.map((ticket: any) => (
           <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("
-            <CardContent className=""
-              <div className=""
-                <div className=""
-                  <div className=""
-                    <h3 className=""
+            <CardContent className="p-4"
+              <div className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
+                    <h3 className="p-4"
                       #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
                     </h3>
-                    <div className=""
+                    <div className="p-4"
                       <DynamicBadge 
                         fieldName="priority" 
                         value={mapPriorityValue(ticket.priority)}
@@ -907,7 +907,7 @@ export default function Tickets() {
                     </div>
                   </div>
                   
-                  <div className=""
+                  <div className="p-4"
                     <DynamicBadge 
                       fieldName="category" 
                       value={mapCategoryValue(ticket.category)}
@@ -918,7 +918,7 @@ export default function Tickets() {
                       {getFieldLabel('category', ticket.category || 'suporte_tecnico')}
                     </DynamicBadge>
                   </div>
-                  <p className=""
+                  <p className="p-4"
                     {ticket.description ? 
                       (ticket.description.length > 150 ? 
                         ticket.description.substring(0, 150) + '...' : 
@@ -927,7 +927,7 @@ export default function Tickets() {
                       'Sem descrição disponível'
                     }
                   </p>
-                  <div className=""
+                  <div className="p-4"
                     <span>ID: {ticket.id}</span>
                     <span>•</span>
                     <span>Criado: {formatDate(ticket.created_at || ticket.opened_at)}</span>
@@ -955,8 +955,8 @@ export default function Tickets() {
         ))
         ) : (
           <Card>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <div className="text-lg">"📋 Nenhum ticket encontrado</div>
                 <p className="text-lg">"Não há tickets para exibir no momento.</p>
                 <Button 

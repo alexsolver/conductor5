@@ -196,16 +196,16 @@ export default function CustomFieldsAdministrator() {
   const renderFieldsList = () => {
     if (isLoading) {
       return (
-        <div className=""
+        <div className="p-4"
           {[1, 2, 3].map((i) => (
-            <Card key={i} className=""
-              <CardContent className=""
-                <div className=""
-                  <div className=""
+            <Card key={i} className="p-4"
+              <CardContent className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <div className="text-lg">"</div>
                     <div className="text-lg">"</div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <div className="text-lg">"</div>
                     <div className="text-lg">"</div>
                   </div>
@@ -217,15 +217,15 @@ export default function CustomFieldsAdministrator() {
       );
     }
     return (
-      <div className=""
+      <div className="p-4"
         {moduleFields.length === 0 ? (
-          <Card className=""
-            <CardContent className=""
+          <Card className="p-4"
+            <CardContent className="p-4"
               <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className=""
+              <h3 className="p-4"
                 Nenhum campo customizado encontrado
               </h3>
-              <p className=""
+              <p className="p-4"
                 Este módulo ainda não possui campos personalizados configurados.
               </p>
               <Button
@@ -239,50 +239,50 @@ export default function CustomFieldsAdministrator() {
           </Card>
         ) : (
           moduleFields.map((field: CustomFieldMetadata, index: number) => (
-            <Card key={field.id} className=""
-              <CardContent className=""
-                <div className=""
-                  <div className=""
-                    <div className=""
-                      <div className=""
+            <Card key={field.id} className="p-4"
+              <CardContent className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         <GripVertical className="w-4 h-4 cursor-move" />
-                        <span className=""
+                        <span className="p-4"
                           #{index + 1}
                         </span>
                       </div>
                       <h3 className="text-lg">"{field.fieldLabel}</h3>
-                      <Badge variant="secondary" className=""
+                      <Badge variant="secondary" className="p-4"
                         {FIELD_TYPE_CONFIG[field.fieldType as FieldType]?.label}
                       </Badge>
                       {field.isRequired && (
-                        <Badge variant="destructive" className=""
+                        <Badge variant="destructive" className="p-4"
                           Obrigatório
                         </Badge>
                       )}
                     </div>
                     
-                    <div className=""
-                      <p className=""
+                    <div className="p-4"
+                      <p className="p-4"
                         <span className="text-lg">"Campo técnico:</span>
-                        <code className=""
+                        <code className="p-4"
                           {field.fieldName}
                         </code>
                       </p>
                       
                       {field.fieldOptions?.helpText && (
-                        <p className=""
+                        <p className="p-4"
                           "{field.fieldOptions.helpText}"
                         </p>
                       )}
                       
-                      <div className=""
+                      <div className="p-4"
                         <span>Criado: {new Date(field.createdAt).toLocaleDateString('pt-BR')}</span>
                         <span>•</span>
                         <span>Ordem: {field.displayOrder}</span>
                       </div>
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Button
                       variant="ghost"
                       size="sm"
@@ -312,7 +312,7 @@ export default function CustomFieldsAdministrator() {
   };
   // Breadcrumb component
   const Breadcrumb = () => (
-    <nav className=""
+    <nav className="p-4"
       <Home className="w-4 h-4" />
       <ChevronRight className="w-4 h-4" />
       <span>Administração</span>
@@ -321,32 +321,32 @@ export default function CustomFieldsAdministrator() {
     </nav>
   );
   return (
-    <div className=""
+    <div className="p-4"
       <Breadcrumb />
       
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Administrador de Campos Customizados</h1>
-          <p className=""
+          <p className="p-4"
             Configure campos personalizados para diferentes módulos do sistema
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Settings className="w-5 h-5 text-gray-400" />
-          <Badge variant="outline" className=""
+          <Badge variant="outline" className="p-4"
             Beta
           </Badge>
         </div>
       </div>
-      <Card className=""
-        <CardContent className=""
-          <div className=""
-            <div className=""
-              <Label htmlFor="module-select" className=""
+      <Card className="p-4"
+        <CardContent className="p-4"
+          <div className="p-4"
+            <div className="p-4"
+              <Label htmlFor="module-select" className="p-4"
                 Módulo:
               </Label>
               <Select value={selectedModule} onValueChange={(value: ModuleType) => setSelectedModule(value)}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -359,7 +359,7 @@ export default function CustomFieldsAdministrator() {
               </Select>
               
               {isLoading && (
-                <div className=""
+                <div className="p-4"
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Carregando campos...
                 </div>
@@ -367,12 +367,12 @@ export default function CustomFieldsAdministrator() {
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className=""
+                <Button className="p-4"
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Campo
                 </Button>
               </DialogTrigger>
-              <DialogContent className=""
+              <DialogContent className="p-4"
                 <DialogHeader>
                   <DialogTitle>Criar Novo Campo Customizado</DialogTitle>
                   <DialogDescription>
@@ -395,38 +395,38 @@ export default function CustomFieldsAdministrator() {
           <TabsTrigger value="fields">Campos</TabsTrigger>
           <TabsTrigger value="statistics">Estatísticas</TabsTrigger>
         </TabsList>
-        <TabsContent value="fields" className=""
+        <TabsContent value="fields" className="p-4"
           {renderFieldsList()}
         </TabsContent>
         <TabsContent value="statistics>
-          <div className=""
+          <div className="p-4"
             <Card>
               <CardHeader>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   <Package className="w-5 h-5" />
                   Estatísticas do Módulo - {MODULE_TYPES.find(m => m.value === selectedModule)?.label}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <div className="text-lg">"{moduleFields.length}</div>
                     <div className="text-lg">"Total de Campos</div>
                   </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       {moduleFields.filter((f: CustomFieldMetadata) => f.isRequired).length}
                     </div>
                     <div className="text-lg">"Campos Obrigatórios</div>
                   </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'text').length}
                     </div>
                     <div className="text-lg">"Campos de Texto</div>
                   </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'select').length}
                     </div>
                     <div className="text-lg">"Campos de Seleção</div>
@@ -439,19 +439,19 @@ export default function CustomFieldsAdministrator() {
                 <CardTitle>Distribuição por Tipo de Campo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {Object.entries(FIELD_TYPE_CONFIG).map(([type, config]) => {
                     const count = moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === type).length;
                     const percentage = moduleFields.length > 0 ? (count / moduleFields.length) * 100 : 0;
                     
                     return (
-                      <div key={type} className=""
-                        <div className=""
+                      <div key={type} className="p-4"
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <span className="text-lg">"{config.label}</span>
                         </div>
-                        <div className=""
-                          <div className=""
+                        <div className="p-4"
+                          <div className="p-4"
                             <div 
                               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                               style={{ width: "%` }}
@@ -471,7 +471,7 @@ export default function CustomFieldsAdministrator() {
       {/* Edit Field Dialog */}
       {editingField && (
         <Dialog open={!!editingField} onOpenChange={() => setEditingField(null)}>
-          <DialogContent className=""
+          <DialogContent className="p-4"
             <DialogHeader>
               <DialogTitle>Editar Campo: {editingField.fieldLabel}</DialogTitle>
               <DialogDescription>
@@ -490,9 +490,9 @@ export default function CustomFieldsAdministrator() {
       {/* Delete Confirmation Dialog */}
       {fieldToDelete && (
         <Dialog open={!!fieldToDelete} onOpenChange={() => setFieldToDelete(null)}>
-          <DialogContent className=""
+          <DialogContent className="p-4"
             <DialogHeader>
-              <DialogTitle className=""
+              <DialogTitle className="p-4"
                 <AlertCircle className="w-5 h-5" />
                 Confirmar Exclusão
               </DialogTitle>
@@ -501,7 +501,7 @@ export default function CustomFieldsAdministrator() {
                 Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
               </DialogDescription>
             </DialogHeader>
-            <div className=""
+            <div className="p-4"
               <Button variant="outline" onClick={() => setFieldToDelete(null)}>
                 Cancelar
               </Button>
@@ -544,9 +544,9 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
     onSubmit(formData);
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
-        <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <Label htmlFor="fieldName">Nome do Campo (Técnico)</Label>
           <Input
             id="fieldName"
@@ -556,7 +556,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
             required
           />
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="fieldLabel">Label (Exibição)</Label>
           <Input
             id="fieldLabel"
@@ -567,7 +567,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <Label htmlFor="fieldType">Tipo de Campo</Label>
         <Select value={formData.fieldType} onValueChange={(value: FieldType) => setFormData({ ...formData, fieldType: value })}>
           <SelectTrigger>
@@ -585,7 +585,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
           </SelectContent>
         </Select>
       </div>
-      <div className=""
+      <div className="p-4"
         <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
         <Textarea
           id="helpText"
@@ -595,17 +595,17 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
           rows={3}
         />
       </div>
-      <div className=""
+      <div className="p-4"
         <Checkbox
           id="isRequired"
           checked={formData.isRequired}
           onCheckedChange={(checked) => setFormData({ ...formData, isRequired: !!checked })}
         />
-        <Label htmlFor="isRequired" className=""
+        <Label htmlFor="isRequired" className="p-4"
           Campo obrigatório
         </Label>
       </div>
-      <div className=""
+      <div className="p-4"
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
@@ -639,9 +639,9 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
     onSubmit(formData);
   };
   return (
-    <form onSubmit={handleSubmit} className=""
-      <div className=""
-        <div className=""
+    <form onSubmit={handleSubmit} className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           <Label htmlFor="fieldName">Nome do Campo (Técnico)</Label>
           <Input
             id="fieldName"
@@ -652,7 +652,7 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           />
           <p className="text-lg">"O nome técnico não pode ser alterado</p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Label htmlFor="fieldLabel">Label (Exibição)</Label>
           <Input
             id="fieldLabel"
@@ -662,7 +662,7 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           />
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         <Label htmlFor="fieldType">Tipo de Campo</Label>
         <Select value={formData.fieldType} onValueChange={(value: FieldType) => setFormData({ ...formData, fieldType: value })}>
           <SelectTrigger>
@@ -680,7 +680,7 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           </SelectContent>
         </Select>
       </div>
-      <div className=""
+      <div className="p-4"
         <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
         <Textarea
           id="helpText"
@@ -689,17 +689,17 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           rows={3}
         />
       </div>
-      <div className=""
+      <div className="p-4"
         <Checkbox
           id="isRequired"
           checked={formData.isRequired}
           onCheckedChange={(checked) => setFormData({ ...formData, isRequired: !!checked })}
         />
-        <Label htmlFor="isRequired" className=""
+        <Label htmlFor="isRequired" className="p-4"
           Campo obrigatório
         </Label>
       </div>
-      <div className=""
+      <div className="p-4"
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>

@@ -9,98 +9,98 @@ import { AlertTriangle, HardDrive, Clock, CheckCircle, Play, Pause, Download } f
 export default function SaasAdminDisasterRecovery() {
   // Localization temporarily disabled
   return (
-    <div className=""
+    <div className="p-4"
         {/* Header */}
-        <div className=""
-          <h1 className=""
+        <div className="p-4"
+          <h1 className="p-4"
             Disaster Recovery & Backup
           </h1>
-          <p className=""
+          <p className="p-4"
             Gestão de backups e recuperação de desastres para continuidade dos negócios
           </p>
         </div>
         {/* Status Overview */}
-        <div className=""
+        <div className="p-4"
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Status do Backup</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"Ativo</div>
-              <p className=""
+              <p className="p-4"
                 Último backup: 2 horas atrás
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Dados Protegidos</CardTitle>
               <HardDrive className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"2.4 TB</div>
-              <p className=""
+              <p className="p-4"
                 Crescimento: +15% este mês
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"RTO</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"15 min</div>
-              <p className=""
+              <p className="p-4"
                 Recovery Time Objective
               </p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"RPO</CardTitle>
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg">"5 min</div>
-              <p className=""
+              <p className="p-4"
                 Recovery Point Objective
               </p>
             </CardContent>
           </Card>
         </div>
-        <Tabs defaultValue="backup" className=""
-          <TabsList className=""
+        <Tabs defaultValue="backup" className="p-4"
+          <TabsList className="p-4"
             <TabsTrigger value="backup">Backup</TabsTrigger>
             <TabsTrigger value="recovery">Recovery</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoramento</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
-          <TabsContent value="backup" className=""
-            <div className=""
+          <TabsContent value="backup" className="p-4"
+            <div className="p-4"
               <Card>
                 <CardHeader>
                   <CardTitle>Backup Automático</CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <span className="text-lg">"Status</span>
                     <Badge className="text-lg">"Ativo</Badge>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Frequência</span>
                     <span className="text-lg">"A cada 4 horas</span>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Próximo backup</span>
                     <span className="text-lg">"Em 2h 15min</span>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Retenção</span>
                     <span className="text-lg">"30 dias</span>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Button size="sm" variant="outline>
                       <Pause className="h-4 w-4 mr-2" />
                       Pausar
@@ -116,18 +116,18 @@ export default function SaasAdminDisasterRecovery() {
                 <CardHeader>
                   <CardTitle>Progresso Atual</CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <span>Backup em progresso</span>
                       <span>67%</span>
                     </div>
                     <Progress value={67} className="h-2" />
-                    <div className=""
+                    <div className="p-4"
                       Processando tenant "acme-corp" (2.1 GB / 3.2 GB)
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <div>Início: 08:30</div>
                     <div>Estimativa de conclusão: 09:45</div>
                   </div>
@@ -187,7 +187,7 @@ export default function SaasAdminDisasterRecovery() {
                         <TableCell>{backup.size}</TableCell>
                         <TableCell>{backup.duration}</TableCell>
                         <TableCell>
-                          <Badge className=""
+                          <Badge className="p-4"
                             {backup.status}
                           </Badge>
                         </TableCell>
@@ -203,13 +203,13 @@ export default function SaasAdminDisasterRecovery() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="recovery" className=""
+          <TabsContent value="recovery" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Pontos de Recuperação</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {[
                     {
                       date: '16/01/2025 06:00',
@@ -233,15 +233,15 @@ export default function SaasAdminDisasterRecovery() {
                       verified: true
                     }
                   ].map((point, index) => (
-                    <div key={index} className=""
-                      <div className=""
+                    <div key={index} className="p-4"
+                      <div className="p-4"
                         <div className="w-3 h-3 rounded-full "" />
                         <div>
                           <div className="text-lg">"{point.date}</div>
                           <div className="text-lg">"{point.type} • {point.tenant} • {point.size}</div>
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Button variant="outline" size="sm>
                           Verificar
                         </Button>
@@ -258,41 +258,41 @@ export default function SaasAdminDisasterRecovery() {
               <CardHeader>
                 <CardTitle>Teste de Recuperação</CardTitle>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
-                  <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <div className="text-lg">"</div>
                     <span className="text-lg">"Último teste: 10/01/2025</span>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     Recovery completo do tenant "test-recovery" - Sucesso em 12 minutos
                   </div>
                 </div>
-                <Button className=""
+                <Button className="p-4"
                   Executar Teste de Recovery
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="monitoring" className=""
-            <div className=""
+          <TabsContent value="monitoring" className="p-4"
+            <div className="p-4"
               <Card>
                 <CardHeader>
                   <CardTitle>Métricas de Backup</CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <div className="text-lg">"99.8%</div>
                       <div className="text-lg">"Taxa de sucesso</div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div className="text-lg">"1.2h</div>
                       <div className="text-lg">"Tempo médio</div>
                     </div>
                   </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <span>Crescimento mensal</span>
                       <span>+15%</span>
                     </div>
@@ -305,7 +305,7 @@ export default function SaasAdminDisasterRecovery() {
                   <CardTitle>Alertas de Backup</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
+                  <div className="p-4"
                     {[
                       {
                         type: 'info',
@@ -323,13 +323,13 @@ export default function SaasAdminDisasterRecovery() {
                         time: '2h'
                       }
                     ].map((alert, index) => (
-                      <div key={index} className=""
+                      <div key={index} className="p-4"
                         <div className={`w-2 h-2 rounded-full ${
                           alert.type === 'error' ? 'bg-red-500' :
                           alert.type === 'warning' ? 'bg-yellow-500' :
                           alert.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
                         "} />
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"{alert.message}</div>
                           <div className="text-lg">"{alert.time}</div>
                         </div>
@@ -340,25 +340,25 @@ export default function SaasAdminDisasterRecovery() {
               </Card>
             </div>
           </TabsContent>
-          <TabsContent value="settings" className=""
+          <TabsContent value="settings" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Configurações de Backup</CardTitle>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
-                  <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <label className="text-lg">"Frequência</label>
-                    <select className=""
+                    <select className="p-4"
                       <option>A cada 4 horas</option>
                       <option>A cada 2 horas</option>
                       <option>A cada 6 horas</option>
                       <option>Diário</option>
                     </select>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <label className="text-lg">"Retenção</label>
-                    <select className=""
+                    <select className="p-4"
                       <option>30 dias</option>
                       <option>60 dias</option>
                       <option>90 dias</option>
@@ -366,15 +366,15 @@ export default function SaasAdminDisasterRecovery() {
                     </select>
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <input type="checkbox" id="compress" defaultChecked />
                   <label htmlFor="compress" className="text-lg">"Compressão habilitada</label>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <input type="checkbox" id="encrypt" defaultChecked />
                   <label htmlFor="encrypt" className="text-lg">"Criptografia habilitada</label>
                 </div>
-                <Button className=""
+                <Button className="p-4"
                   Salvar Configurações
                 </Button>
               </CardContent>

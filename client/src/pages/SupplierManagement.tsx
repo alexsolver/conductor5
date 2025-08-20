@@ -241,18 +241,18 @@ export function SupplierManagement() {
   };
   if (isLoadingSuppliers) {
     return (
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"Carregando fornecedores...</div>
       </div>
     );
   }
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Gestão de Fornecedores</h1>
-          <p className=""
+          <p className="p-4"
             Gerencie fornecedores, contratos e relacionamentos comerciais
           </p>
         </div>
@@ -262,62 +262,62 @@ export function SupplierManagement() {
         </Button>
       </div>
       {/* Statistics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Fornecedores</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{supplierStats.totalSuppliers}</div>
-            <p className=""
+            <p className="p-4"
               {supplierStats.activeSuppliers} ativos
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Fornecedores Preferenciais</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{supplierStats.preferredSuppliers}</div>
-            <p className=""
+            <p className="p-4"
               Classificação especial
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Pedidos</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{supplierStats.totalOrders}</div>
-            <p className=""
+            <p className="p-4"
               Este ano
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Avaliação Média</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {supplierStats.averageRating ? supplierStats.averageRating.toFixed(1) : '0.0'}/5
             </div>
-            <div className=""
+            <div className="p-4"
               {renderStarRating(Math.round(supplierStats.averageRating || 0))}
             </div>
           </CardContent>
         </Card>
       </div>
       {/* Filters and Search */}
-      <div className=""
-        <div className=""
-          <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder='[TRANSLATION_NEEDED]'
@@ -328,7 +328,7 @@ export function SupplierManagement() {
           </div>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className=""
+          <SelectTrigger className="p-4"
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -348,39 +348,39 @@ export function SupplierManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className=""
+          <div className="p-4"
             {filteredSuppliers.map((supplier) => (
               <div
                 key={supplier.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Building2 className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <div className=""
+                    <div className="p-4"
                       <h3 className="text-lg">"{supplier.name}</h3>
                       {supplier.isPreferred && (
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       )}
                     </div>
                     <p className="text-lg">"{supplier.code} • {supplier.documentNumber}</p>
-                    <div className=""
-                      <span className=""
+                    <div className="p-4"
+                      <span className="p-4"
                         <Mail className="h-3 w-3" />
                         {supplier.email}
                       </span>
-                      <span className=""
+                      <span className="p-4"
                         <Phone className="h-3 w-3" />
                         {supplier.phone}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className=""
-                  <div className=""
-                    <div className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       {renderStarRating(supplier.rating)}
                     </div>
                     <Badge className={getStatusColor(supplier.status)}>
@@ -388,7 +388,7 @@ export function SupplierManagement() {
                     </Badge>
                   </div>
                   
-                  <div className=""
+                  <div className="p-4"
                     <Button
                       variant="ghost"
                       size="sm"
@@ -425,7 +425,7 @@ export function SupplierManagement() {
               </div>
             ))}
             {filteredSuppliers.length === 0 && (
-              <div className=""
+              <div className="p-4"
                 Nenhum fornecedor encontrado
               </div>
             )}
@@ -434,7 +434,7 @@ export function SupplierManagement() {
       </Card>
       {/* Create Supplier Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Novo Fornecedor</DialogTitle>
             <DialogDescription>
@@ -446,70 +446,70 @@ export function SupplierManagement() {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             handleCreateSupplier(formData);
-          }} className=""
-            <div className=""
-              <div className=""
+          }} className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <Label htmlFor="name">Nome da Empresa *</Label>
                 <Input id="name" name="name" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="code">Código do Fornecedor *</Label>
                 <Input id="code" name="code" placeholder="FOR001" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="tradeName">Nome Fantasia *</Label>
                 <Input id="tradeName" name="tradeName" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="documentNumber">CNPJ</Label>
                 <Input id="documentNumber" name="documentNumber" placeholder="00.000.000/0000-00" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="email">Email *</Label>
                 <Input id="email" name="email" type="email" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="phone">Telefone</Label>
                 <Input id="phone" name="phone" placeholder="(11) 9999-9999" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="address">Endereço</Label>
                 <Input id="address" name="address" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="city">Cidade</Label>
                 <Input id="city" name="city" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="state">Estado</Label>
                 <Input id="state" name="state" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="postalCode">CEP</Label>
                 <Input id="postalCode" name="postalCode" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="contactPerson">Pessoa de Contato</Label>
                 <Input id="contactPerson" name="contactPerson" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="contactEmail">Email do Contato</Label>
                 <Input id="contactEmail" name="contactEmail" type="email" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="paymentTerms">Condições de Pagamento</Label>
                 <Input id="paymentTerms" name="paymentTerms" placeholder="30 dias" />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="deliveryTerms">Prazo de Entrega</Label>
                 <Input id="deliveryTerms" name="deliveryTerms" placeholder="5 dias úteis" />
               </div>
             </div>
-            <div className=""
+            <div className="p-4"
               <Label htmlFor="notes">Observações</Label>
               <Textarea id="notes" name="notes" rows={3} />
             </div>
-            <div className=""
+            <div className="p-4"
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancelar
               </Button>
@@ -522,7 +522,7 @@ export function SupplierManagement() {
       </Dialog>
       {/* Edit Supplier Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Editar Fornecedor</DialogTitle>
             <DialogDescription>
@@ -535,33 +535,33 @@ export function SupplierManagement() {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               handleEditSupplier(formData);
-            }} className=""
-              <div className=""
-                <div className=""
+            }} className="p-4"
+              <div className="p-4"
+                <div className="p-4"
                   <Label htmlFor="edit-name">Nome da Empresa *</Label>
                   <Input id="edit-name" name="name" defaultValue={selectedSupplier.name} required />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="edit-code">Código do Fornecedor *</Label>
                   <Input id="edit-code" name="code" defaultValue={selectedSupplier.code} required />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="edit-tradeName">Nome Fantasia *</Label>
                   <Input id="edit-tradeName" name="tradeName" defaultValue={selectedSupplier.tradeName} required />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="edit-documentNumber">CNPJ</Label>
                   <Input id="edit-documentNumber" name="documentNumber" defaultValue={selectedSupplier.documentNumber} />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="edit-email">Email *</Label>
                   <Input id="edit-email" name="email" type="email" defaultValue={selectedSupplier.email} required />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="edit-phone">Telefone</Label>
                   <Input id="edit-phone" name="phone" defaultValue={selectedSupplier.phone} />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="edit-status">Status</Label>
                   <Select name="status" defaultValue={selectedSupplier.status}>
                     <SelectTrigger>
@@ -574,7 +574,7 @@ export function SupplierManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Label htmlFor="edit-isPreferred">Fornecedor Preferencial</Label>
                   <Select name="isPreferred" defaultValue={selectedSupplier?.isPreferred?.toString() || "false>
                     <SelectTrigger>
@@ -587,7 +587,7 @@ export function SupplierManagement() {
                   </Select>
                 </div>
               </div>
-              <div className=""
+              <div className="p-4"
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                   Cancelar
                 </Button>

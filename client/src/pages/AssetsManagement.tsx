@@ -403,22 +403,22 @@ export function AssetsManagement() {
   };
   if (isLoadingAssets) {
     return (
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"Carregando ativos...</div>
       </div>
     );
   }
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Controle de Ativos</h1>
-          <p className=""
+          <p className="p-4"
             Gerencie equipamentos, computadores e ativos da empresa
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button onClick={() => setIsCreateCategoryOpen(true)} variant="outline>
             <Plus className="h-4 w-4 mr-2" />
             Nova Categoria
@@ -430,62 +430,62 @@ export function AssetsManagement() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Ativos</CardTitle>
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{assetStats.totalAssets}</div>
-            <p className=""
+            <p className="p-4"
               {assetStats.activeAssets} ativos
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Valor Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               R$ {assetStats.totalValue.toLocaleString()}
             </div>
-            <p className=""
+            <p className="p-4"
               R$ {assetStats.depreciatedValue.toLocaleString()} depreciado
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Manutenção</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{assetStats.underMaintenance}</div>
-            <p className=""
+            <p className="p-4"
               {assetStats.upcomingMaintenance} programadas
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Garantias</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"{assetStats.expiredWarranties}</div>
-            <p className=""
+            <p className="p-4"
               garantias expiradas
             </p>
           </CardContent>
         </Card>
       </div>
       {/* Filters and Search */}
-      <div className=""
-        <div className=""
-          <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder='[TRANSLATION_NEEDED]'
@@ -496,7 +496,7 @@ export function AssetsManagement() {
           </div>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className=""
+          <SelectTrigger className="p-4"
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -509,7 +509,7 @@ export function AssetsManagement() {
           </SelectContent>
         </Select>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className=""
+          <SelectTrigger className="p-4"
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -530,7 +530,7 @@ export function AssetsManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className=""
+          <div className="p-4"
             {filteredAssets.map((asset) => {
               const IconComponent = getCategoryIcon(asset.category);
               const depreciatedValue = calculateDepreciation(asset);
@@ -540,37 +540,37 @@ export function AssetsManagement() {
                   key={asset.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                 >
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <IconComponent className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <div className=""
+                      <div className="p-4"
                         <h3 className="text-lg">"{asset.name}</h3>
                         <Badge variant="outline">{asset.assetTag}</Badge>
                       </div>
                       <p className="text-lg">"{asset.brand} {asset.model}</p>
-                      <div className=""
-                        <span className=""
+                      <div className="p-4"
+                        <span className="p-4"
                           <MapPin className="h-3 w-3" />
                           {asset.location.name}
                         </span>
                         {asset.assignedTo && (
-                          <span className=""
+                          <span className="p-4"
                             <User className="h-3 w-3" />
                             {asset.assignedTo.name}
                           </span>
                         )}
-                        <span className=""
+                        <span className="p-4"
                           <DollarSign className="h-3 w-3" />
                           R$ {depreciatedValue.toFixed(2)}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className=""
-                    <div className=""
-                      <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         <Badge className={getStatusColor(asset.status)}>
                           {getStatusLabel(asset.status)}
                         </Badge>
@@ -578,12 +578,12 @@ export function AssetsManagement() {
                           {getConditionLabel(asset.condition)}
                         </Badge>
                       </div>
-                      <p className=""
+                      <p className="p-4"
                         SN: {asset.serialNumber}
                       </p>
                     </div>
                     
-                    <div className=""
+                    <div className="p-4"
                       <Button
                         variant="ghost"
                         size="sm"
@@ -620,7 +620,7 @@ export function AssetsManagement() {
               );
             })}
             {filteredAssets.length === 0 && (
-              <div className=""
+              <div className="p-4"
                 Nenhum ativo encontrado
               </div>
             )}
@@ -629,7 +629,7 @@ export function AssetsManagement() {
       </Card>
       {/* Create Asset Dialog */}
       <Dialog open={isCreateAssetOpen} onOpenChange={setIsCreateAssetOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Novo Ativo</DialogTitle>
             <DialogDescription>
@@ -641,17 +641,17 @@ export function AssetsManagement() {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             handleCreateAsset(formData);
-          }} className=""
-            <div className=""
-              <div className=""
+          }} className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <Label htmlFor="assetTag">Tag do Ativo *</Label>
                 <Input id="assetTag" name="assetTag" placeholder="Ex: PC001" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="name">Nome do Ativo *</Label>
                 <Input id="name" name="name" placeholder="Ex: Dell OptiPlex 7090" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="category">Categoria *</Label>
                 <Select name="category" required>
                   <SelectTrigger>
@@ -665,32 +665,32 @@ export function AssetsManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="brand">Marca *</Label>
                 <Input id="brand" name="brand" placeholder="Ex: Dell" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="model">Modelo *</Label>
                 <Input id="model" name="model" placeholder="Ex: OptiPlex 7090" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="serialNumber">Número de Série *</Label>
                 <Input id="serialNumber" name="serialNumber" placeholder="Ex: DELL7090-001" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="purchasePrice">Preço de Compra *</Label>
                 <Input id="purchasePrice" name="purchasePrice" type="number" step="0.01" placeholder="0.00" required />
               </div>
-              <div className=""
+              <div className="p-4"
                 <Label htmlFor="department">Departamento *</Label>
                 <Input id="department" name="department" placeholder="Ex: Administrativo" required />
               </div>
             </div>
-            <div className=""
+            <div className="p-4"
               <Label htmlFor="description">Descrição *</Label>
               <Textarea id="description" name="description" rows={3} required />
             </div>
-            <div className=""
+            <div className="p-4"
               <Button type="button" variant="outline" onClick={() => setIsCreateAssetOpen(false)}>
                 Cancelar
               </Button>

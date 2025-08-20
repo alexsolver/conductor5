@@ -562,11 +562,11 @@ export default function ItemCatalog() {
     setSelectedItems(newSelected);
   };
   const renderCatalogView = () => (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Catálogo de Itens</h1>
-          <p className=""
+          <p className="p-4"
             {items.length} {items.length === 1 ? 'item encontrado' : 'itens encontrados'}
             {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && ' (filtrado)'}
           </p>
@@ -581,9 +581,9 @@ export default function ItemCatalog() {
         </Button>
       </div>
       <Card>
-        <CardContent className=""
-          <div className=""
-            <div className=""
+        <CardContent className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder='[TRANSLATION_NEEDED]'
@@ -592,9 +592,9 @@ export default function ItemCatalog() {
                 className="pl-10"
               />
             </div>
-            <div className=""
+            <div className="p-4"
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -604,7 +604,7 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -614,7 +614,7 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
               <Select value={hierarchyFilter} onValueChange={setHierarchyFilter}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder="Hierarquia" />
                 </SelectTrigger>
                 <SelectContent>
@@ -624,7 +624,7 @@ export default function ItemCatalog() {
                   <SelectItem value="standalone">Independentes</SelectItem>
                 </SelectContent>
               </Select>
-              <div className=""
+              <div className="p-4"
                 <Button
                   variant={isBulkMode ? "default" : "outline"
                   onClick={() => setIsBulkMode(!isBulkMode)}
@@ -643,15 +643,15 @@ export default function ItemCatalog() {
         </CardContent>
       </Card>
       <Card>
-        <CardContent className=""
+        <CardContent className="p-4"
           {loading ? (
-            <div className=""
+            <div className="p-4"
               <div className="text-lg">"</div>
               <span className="text-lg">"Carregando itens...</span>
             </div>
           ) : items.length === 0 ? (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
                   ? '[TRANSLATION_NEEDED]'
                   : '[TRANSLATION_NEEDED]'}
@@ -668,7 +668,7 @@ export default function ItemCatalog() {
                 <TableHeader>
                   <TableRow>
                     {isBulkMode && (
-                      <TableHead className=""
+                      <TableHead className="p-4"
                         <Checkbox
                           checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
                           onCheckedChange={handleSelectAll}
@@ -706,7 +706,7 @@ export default function ItemCatalog() {
                         className="font-medium cursor-pointer hover:text-blue-600"
                         onClick={() => handleItemClick(item)}
                       >
-                        <div className=""
+                        <div className="p-4"
                           {item.type === 'material' ?
                             <Package className="h-4 w-4 text-blue-600" /> :
                             <Wrench className="h-4 w-4 text-green-600" />
@@ -714,7 +714,7 @@ export default function ItemCatalog() {
                           <div>
                             <div className="text-lg">"{item.name}</div>
                             {item.description && (
-                              <div className=""
+                              <div className="p-4"
                                 {item.description}
                               </div>
                             )}
@@ -726,22 +726,22 @@ export default function ItemCatalog() {
                           {item.type === 'material' ? 'Material' : 'Serviço'}
                         </Badge>
                       </TableCell>
-                      <TableCell className=""
+                      <TableCell className="p-4"
                         {item.integrationCode || '-'}
                       </TableCell>
-                      <TableCell className=""
+                      <TableCell className="p-4"
                         {item.measurementUnit}
                       </TableCell>
                       <TableCell>
-                        <div className=""
+                        <div className="p-4"
                           {item.isParent && (
-                            <Badge variant="outline" className=""
+                            <Badge variant="outline" className="p-4"
                               <Layers className="h-3 w-3 mr-1" />
                               Pai ({item.childrenCount || 0})
                             </Badge>
                           )}
                           {item.parentId && (
-                            <Badge variant="outline" className=""
+                            <Badge variant="outline" className="p-4"
                               <ChevronRight className="h-3 w-3 mr-1" />
                               Filho
                             </Badge>
@@ -753,7 +753,7 @@ export default function ItemCatalog() {
                       </TableCell>
                       <TableCell>
                         {(item.companiesCount || 0) > 0 ? (
-                          <div className=""
+                          <div className="p-4"
                             <Building className="h-3 w-3 text-blue-600" />
                             <span className="text-lg">"{item.companiesCount}</span>
                           </div>
@@ -763,7 +763,7 @@ export default function ItemCatalog() {
                       </TableCell>
                       <TableCell>
                         {(item.suppliersCount || 0) > 0 ? (
-                          <div className=""
+                          <div className="p-4"
                             <Truck className="h-3 w-3 text-amber-600" />
                             <span className="text-lg">"{item.suppliersCount}</span>
                           </div>
@@ -777,7 +777,7 @@ export default function ItemCatalog() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className=""
+                        <div className="p-4"
                           <Button
                             variant="ghost"
                             size="sm"
@@ -834,11 +834,11 @@ export default function ItemCatalog() {
                 </TableBody>
               </Table>
               {totalPages > 1 && (
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} de {filteredItems.length} itens
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Button
                       variant="outline"
                       size="sm"
@@ -847,7 +847,7 @@ export default function ItemCatalog() {
                     >
                       Anterior
                     </Button>
-                    <span className=""
+                    <span className="p-4"
                       Página {currentPage} de {totalPages}
                     </span>
                     <Button
@@ -870,9 +870,9 @@ export default function ItemCatalog() {
   const renderItemDetailsView = () => {
     if (!selectedItem) return null;
     return (
-      <div className=""
-        <div className=""
-          <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <Button
               variant="ghost"
               size="sm"
@@ -882,7 +882,7 @@ export default function ItemCatalog() {
               Voltar ao Catálogo
             </Button>
             <div className="h-6 w-px bg-gray-300" />
-            <div className=""
+            <div className="p-4"
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
               >
@@ -890,7 +890,7 @@ export default function ItemCatalog() {
               </div>
               <div>
                 <h1 className="text-lg">"{selectedItem.name}</h1>
-                <div className=""
+                <div className="p-4"
                   <Badge variant={selectedItem.active ? "default" : "secondary>
                     {selectedItem.active ? "Ativo" : "Inativo"
                   </Badge>
@@ -907,7 +907,7 @@ export default function ItemCatalog() {
               </div>
             </div>
           </div>
-          <div className=""
+          <div className="p-4"
             <Button
               variant="outline"
               onClick={() => handleEditItem(selectedItem)}
@@ -917,14 +917,14 @@ export default function ItemCatalog() {
             </Button>
           </div>
         </div>
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Informações Gerais</CardTitle>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   {selectedItem.integrationCode && (
                     <div>
                       <label className="text-lg">"Código de Integração</label>
@@ -962,24 +962,24 @@ export default function ItemCatalog() {
               <CardHeader>
                 <CardTitle>Vínculos</CardTitle>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
-                  <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <Building className="h-4 w-4 text-blue-600" />
                     <span className="text-lg">"Empresas</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.companiesCount || 0}</Badge>
                 </div>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <Truck className="h-4 w-4 text-amber-600" />
                     <span className="text-lg">"Fornecedores</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.suppliersCount || 0}</Badge>
                 </div>
                 {selectedItem.isParent && (
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <Layers className="h-4 w-4 text-purple-600" />
                       <span className="text-lg">"Itens Filhos</span>
                     </div>
@@ -991,27 +991,27 @@ export default function ItemCatalog() {
           </div>
         </div>
         <Card>
-          <CardContent className=""
-            <Tabs defaultValue="hierarchy" className=""
+          <CardContent className="p-4"
+            <Tabs defaultValue="hierarchy" className="p-4"
               <TabsList>
                 <TabsTrigger value="hierarchy">Hierarquia Pai-Filho</TabsTrigger>
                 <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                 <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
               </TabsList>
-              <TabsContent value="hierarchy" className=""
-                <div className=""
+              <TabsContent value="hierarchy" className="p-4"
+                <div className="p-4"
                   <Layers className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-lg">"Funcionalidade de vínculos pai-filho será implementada</p>
                 </div>
               </TabsContent>
-              <TabsContent value="companies" className=""
-                <div className=""
+              <TabsContent value="companies" className="p-4"
+                <div className="p-4"
                   <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-lg">"Lista de empresas vinculadas será implementada</p>
                 </div>
               </TabsContent>
-              <TabsContent value="suppliers" className=""
-                <div className=""
+              <TabsContent value="suppliers" className="p-4"
+                <div className="p-4"
                   <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-lg">"Lista de fornecedores será implementada</p>
                 </div>
@@ -1026,9 +1026,9 @@ export default function ItemCatalog() {
     if (!selectedItem) return null;
     const itemLinks = itemLinksData || { customers: [], suppliers: [] };
     return (
-      <div className=""
-        <div className=""
-          <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <Button
               variant="ghost"
               size="sm"
@@ -1038,7 +1038,7 @@ export default function ItemCatalog() {
               Cancelar Edição
             </Button>
             <div className="h-6 w-px bg-gray-300" />
-            <div className=""
+            <div className="p-4"
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
               >
@@ -1052,13 +1052,13 @@ export default function ItemCatalog() {
           </div>
         </div>
         <Form {...itemForm}>
-          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className=""
+          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Informações Básicas</CardTitle>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <FormField
                     control={itemForm.control}
                     name="name"
@@ -1146,8 +1146,8 @@ export default function ItemCatalog() {
                   control={itemForm.control}
                   name="active"
                   render={({ field }) => (
-                    <FormItem className=""
-                      <div className=""
+                    <FormItem className="p-4"
+                      <div className="p-4"
                         <FormLabel className="text-lg">"Status Ativo</FormLabel>
                         <FormDescription>
                           Item disponível para uso
@@ -1162,7 +1162,7 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <Button type="submit" disabled={updateItemMutation.isPending}>
                     {updateItemMutation.isPending ? (
                       <>
@@ -1183,12 +1183,12 @@ export default function ItemCatalog() {
               <CardHeader>
                 <CardTitle>Vínculos Hierárquicos</CardTitle>
               </CardHeader>
-              <CardContent className=""
+              <CardContent className="p-4"
                 {/* Campos para itens filhos com seleção múltipla */}
-                <div className=""
+                <div className="p-4"
                   <div>
                     <label className="text-lg">"Itens Filhos</label>
-                    <div className=""
+                    <div className="p-4"
                       <Select
                         value=""
                         onValueChange={(value) => {
@@ -1219,16 +1219,16 @@ export default function ItemCatalog() {
                       </Select>
                     </div>
                     {/* Lista dos itens filhos selecionados */}
-                    <div className=""
+                    <div className="p-4"
                       {(itemForm.watch("childrenIds") || []).map((childId) => {
                         const child = items.find(item => item.id === childId);
                         if (!child) return null;
                         return (
-                          <div key={childId} className=""
-                            <div className=""
+                          <div key={childId} className="p-4"
+                            <div className="p-4"
                               <ChevronRight className="h-3 w-3 text-blue-600" />
                               <span className="text-lg">"{child.name}</span>
-                              <Badge variant="outline" className=""
+                              <Badge variant="outline" className="p-4"
                                 {child.type === 'material' ? 'Material' : 'Serviço'}
                               </Badge>
                             </div>
@@ -1249,7 +1249,7 @@ export default function ItemCatalog() {
                         );
                       })}
                     </div>
-                    <p className=""
+                    <p className="p-4"
                       Selecione itens que serão filhos deste item. Os vínculos serão salvos automaticamente.
                     </p>
                   </div>
@@ -1260,14 +1260,14 @@ export default function ItemCatalog() {
               <CardHeader>
                 <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
               </CardHeader>
-              <CardContent className=""
-                <Tabs defaultValue="companies" className=""
-                  <TabsList className=""
+              <CardContent className="p-4"
+                <Tabs defaultValue="companies" className="p-4"
+                  <TabsList className="p-4"
                     <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                     <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="companies" className=""
-                    <div className=""
+                  <TabsContent value="companies" className="p-4"
+                    <div className="p-4"
                       <h3 className="text-lg">"Empresas Vinculadas</h3>
                       <Select
                         onValueChange={async (companyId) => {
@@ -1312,9 +1312,9 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       {itemLinks?.customers?.map((company: any) => (
-                        <div key={company.id} className=""
+                        <div key={company.id} className="p-4"
                           <span>{company.name}</span>
                           <Button
                             variant="outline"
@@ -1348,14 +1348,14 @@ export default function ItemCatalog() {
                         </div>
                       ))}
                       {(!itemLinks?.customers || itemLinks.customers.length === 0) && (
-                        <div className=""
+                        <div className="p-4"
                           Nenhuma empresa vinculada
                         </div>
                       )}
                     </div>
                   </TabsContent>
-                  <TabsContent value="suppliers" className=""
-                    <div className=""
+                  <TabsContent value="suppliers" className="p-4"
+                    <div className="p-4"
                       <h3 className="text-lg">"Fornecedores Vinculados</h3>
                       <Select
                         onValueChange={async (supplierId) => {
@@ -1400,9 +1400,9 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       {itemLinks?.suppliers?.map((supplier: any) => (
-                        <div key={supplier.id} className=""
+                        <div key={supplier.id} className="p-4"
                           <span>{supplier.name}</span>
                           <Button
                             variant="outline"
@@ -1436,7 +1436,7 @@ export default function ItemCatalog() {
                         </div>
                       ))}
                       {(!itemLinks?.suppliers || itemLinks.suppliers.length === 0) && (
-                        <div className=""
+                        <div className="p-4"
                           Nenhum fornecedor vinculado
                         </div>
                       )}
@@ -1451,8 +1451,8 @@ export default function ItemCatalog() {
     );
   };
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <span>Gestão</span>
         <ChevronRight className="h-4 w-4" />
         <span className="text-lg">"Catálogo de Itens</span>
@@ -1472,7 +1472,7 @@ export default function ItemCatalog() {
           itemForm.reset();
         }
       }}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Criar Novo Item</DialogTitle>
             <DialogDescription>
@@ -1480,8 +1480,8 @@ export default function ItemCatalog() {
             </DialogDescription>
           </DialogHeader>
           <Form {...itemForm}>
-            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className=""
-              <div className=""
+            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={itemForm.control}
                   name="name"
@@ -1569,8 +1569,8 @@ export default function ItemCatalog() {
                 control={itemForm.control}
                 name="active"
                 render={({ field }) => (
-                  <FormItem className=""
-                    <div className=""
+                  <FormItem className="p-4"
+                    <div className="p-4"
                       <FormLabel className="text-lg">"Status Ativo</FormLabel>
                       <FormDescription>
                         Item disponível para uso
@@ -1585,7 +1585,7 @@ export default function ItemCatalog() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button
                   type="button"
                   variant="outline"

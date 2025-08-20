@@ -83,7 +83,7 @@ export default function DragDropDemo() {
         }}
         className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
       >
-        <div className=""
+        <div className="p-4"
           <IconComponent className="h-4 w-4 text-blue-600" />
           <span className="text-lg">"{field.label}</span>
         </div>
@@ -122,9 +122,9 @@ export default function DragDropDemo() {
         {fieldsInZone.length === 0 ? (
           <p className="text-lg">"Arraste campos aqui</p>
         ) : (
-          <div className=""
+          <div className="p-4"
             {fieldsInZone.map((field) => (
-              <div key={field.id} className=""
+              <div key={field.id} className="p-4"
                 <span className="text-lg">"{field.label}</span>
                 <Button
                   variant="ghost"
@@ -142,10 +142,10 @@ export default function DragDropDemo() {
     );
   }
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <Button variant="outline" onClick={() => setLocation('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
@@ -156,13 +156,13 @@ export default function DragDropDemo() {
           </div>
         </div>
         
-        <div className=""
-          <div className=""
+        <div className="p-4"
+          <div className="p-4"
             <Layout className="h-5 w-5 text-blue-600" />
             <span className="text-lg">"Sistema Ativo</span>
             <Badge variant="secondary">{droppedFields.length} campos adicionados</Badge>
           </div>
-          <p className=""
+          <p className="p-4"
             Arraste campos da paleta (direita) para as seções do formulário (esquerda)
           </p>
         </div>
@@ -172,17 +172,17 @@ export default function DragDropDemo() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className=""
+        <div className="p-4"
           {/* Main Content Area - Form with Drop Zones */}
-          <div className=""
+          <div className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Formulário de Demonstração</CardTitle>
-                <p className=""
+                <p className="p-4"
                   Arraste campos da paleta para as seções abaixo
                 </p>
               </CardHeader>
-              <CardContent className=""
+              <CardContent className="p-4"
                 {dropZones.map((zone) => (
                   <DropZone key={zone.id} zone={zone} />
                 ))}
@@ -190,18 +190,18 @@ export default function DragDropDemo() {
             </Card>
           </div>
           {/* Sidebar - Fields Palette */}
-          <div className=""
-            <Card className=""
+          <div className="p-4"
+            <Card className="p-4"
               <CardHeader>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   <Layout className="h-5 w-5" />
                   Paleta de Campos
                 </CardTitle>
-                <p className=""
+                <p className="p-4"
                   Arraste para adicionar ao formulário
                 </p>
               </CardHeader>
-              <CardContent className=""
+              <CardContent className="p-4"
                 {availableFields.map((field) => (
                   <DraggableField key={field.id} field={field} />
                 ))}
@@ -212,10 +212,10 @@ export default function DragDropDemo() {
         {/* Drag Overlay */}
         <DragOverlay>
           {activeId ? (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <Layout className="h-4 w-4 text-blue-600" />
-                <span className=""
+                <span className="p-4"
                   {availableFields.find(f => f.id === activeId)?.label}
                 </span>
               </div>

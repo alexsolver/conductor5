@@ -91,24 +91,24 @@ export default function Analytics() {
     return null;
   }
   return (
-    <div className=""
-      <div className=""
-        <div className=""
+    <div className="p-4"
+      <div className="p-4"
+        <div className="p-4"
           {/* Page Header */}
-          <Card className=""
-            <CardContent className=""
-              <div className=""
+          <Card className="p-4"
+            <CardContent className="p-4"
+              <div className="p-4"
                 <div>
-                  <h1 className=""
+                  <h1 className="p-4"
                     Analytics
                   </h1>
-                  <p className=""
+                  <p className="p-4"
                     Detailed insights into your support performance and trends
                   </p>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Select defaultValue="30days>
-                    <SelectTrigger className=""
+                    <SelectTrigger className="p-4"
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -122,7 +122,7 @@ export default function Analytics() {
                     <Filter className="w-4 h-4 mr-2" />
                     Filter
                   </Button>
-                  <Button className=""
+                  <Button className="p-4"
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
@@ -131,30 +131,30 @@ export default function Analytics() {
             </CardContent>
           </Card>
           {/* Analytics Tabs */}
-          <Tabs defaultValue="overview" className=""
-            <TabsList className=""
+          <Tabs defaultValue="overview" className="p-4"
+            <TabsList className="p-4"
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="performance">Performance</TabsTrigger>
               <TabsTrigger value="channels">Channels</TabsTrigger>
               <TabsTrigger value="trends">Trends</TabsTrigger>
             </TabsList>
             {/* Overview Tab */}
-            <TabsContent value="overview" className=""
+            <TabsContent value="overview" className="p-4"
               {/* Key Metrics */}
-              <div className=""
-                <Card className=""
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+              <div className="p-4"
+                <Card className="p-4"
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <MessageCircle className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <p className="text-lg">"Total Tickets</p>
-                        <div className=""
+                        <div className="p-4"
                           <p className="text-lg">"1,247</p>
-                          <p className=""
+                          <p className="p-4"
                             <TrendingUp className="w-3 h-3 mr-1" />
                             8.2%
                           </p>
@@ -163,19 +163,19 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className=""
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                <Card className="p-4"
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <Clock className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <p className="text-lg">"Avg Response Time</p>
-                        <div className=""
+                        <div className="p-4"
                           <p className="text-lg">"2.3h</p>
-                          <p className=""
+                          <p className="p-4"
                             <TrendingDown className="w-3 h-3 mr-1" />
                             12%
                           </p>
@@ -184,19 +184,19 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className=""
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                <Card className="p-4"
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <Star className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <p className="text-lg">"CSAT Score</p>
-                        <div className=""
+                        <div className="p-4"
                           <p className="text-lg">"94%</p>
-                          <p className=""
+                          <p className="p-4"
                             <TrendingUp className="w-3 h-3 mr-1" />
                             2.1%
                           </p>
@@ -205,19 +205,19 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className=""
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                <Card className="p-4"
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <Users className="w-4 h-4 text-white" />
                         </div>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <p className="text-lg">"Resolution Rate</p>
-                        <div className=""
+                        <div className="p-4"
                           <p className="text-lg">"87%</p>
-                          <p className=""
+                          <p className="p-4"
                             <TrendingUp className="w-3 h-3 mr-1" />
                             3.5%
                           </p>
@@ -228,17 +228,17 @@ export default function Analytics() {
                 </Card>
               </div>
               {/* Charts */}
-              <div className=""
-                <Card className=""
+              <div className="p-4"
+                <Card className="p-4"
                   <CardHeader>
-                    <CardTitle className=""
+                    <CardTitle className="p-4"
                       <BarChart3 className="w-5 h-5 mr-2" />
                       Ticket Volume Trends
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <Activity className="h-16 w-16 text-purple-400 mb-4 mx-auto" />
                         <p className="text-lg">"Volume trend visualization</p>
                         <p className="text-lg">"Monthly ticket volume over time</p>
@@ -246,26 +246,26 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className=""
+                <Card className="p-4"
                   <CardHeader>
-                    <CardTitle className=""
+                    <CardTitle className="p-4"
                       <PieChart className="w-5 h-5 mr-2" />
                       Channel Distribution
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className=""
+                    <div className="p-4"
                       {channelData.map((channel) => (
-                        <div key={channel.name} className=""
-                          <div className=""
+                        <div key={channel.name} className="p-4"
+                          <div className="p-4"
                             <div className="w-3 h-3 rounded-full" />
-                            <span className=""
+                            <span className="p-4"
                               {channel.name}
                             </span>
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <Progress value={channel.value} className="w-20 h-2" />
-                            <span className=""
+                            <span className="p-4"
                               {channel.value}%
                             </span>
                           </div>
@@ -277,32 +277,32 @@ export default function Analytics() {
               </div>
             </TabsContent>
             {/* Performance Tab */}
-            <TabsContent value="performance" className=""
-              <div className=""
-                <Card className=""
+            <TabsContent value="performance" className="p-4"
+              <div className="p-4"
+                <Card className="p-4"
                   <CardHeader>
                     <CardTitle>Agent Performance</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className=""
+                    <div className="p-4"
                       {agentPerformance.map((agent, index) => (
-                        <div key={agent.name} className=""
-                          <div className=""
-                            <div className=""
-                              <span className=""
+                        <div key={agent.name} className="p-4"
+                          <div className="p-4"
+                            <div className="p-4"
+                              <span className="p-4"
                                 {agent.name.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
                             <div>
-                              <p className=""
+                              <p className="p-4"
                                 {agent.name}
                               </p>
-                              <p className=""
+                              <p className="p-4"
                                 {agent.resolved} resolved • {agent.avgTime} avg time
                               </p>
                             </div>
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <Badge variant={agent.satisfaction > 95 ? "default" : "secondary>
                               {agent.satisfaction}% CSAT
                             </Badge>
@@ -312,26 +312,26 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className=""
+                <Card className="p-4"
                   <CardHeader>
                     <CardTitle>Top Issues</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className=""
+                    <div className="p-4"
                       {topIssues.map((issue, index) => (
-                        <div key={issue.issue} className=""
-                          <div className=""
-                            <div className=""
-                              <span className=""
+                        <div key={issue.issue} className="p-4"
+                          <div className="p-4"
+                            <div className="p-4"
+                              <span className="p-4"
                                 {index + 1}
                               </span>
                             </div>
-                            <span className=""
+                            <span className="p-4"
                               {issue.issue}
                             </span>
                           </div>
-                          <div className=""
-                            <span className=""
+                          <div className="p-4"
+                            <span className="p-4"
                               {issue.count}
                             </span>
                             {issue.trend === "up" ? (
@@ -348,23 +348,23 @@ export default function Analytics() {
               </div>
             </TabsContent>
             {/* Channels Tab */}
-            <TabsContent value="channels" className=""
-              <Card className=""
+            <TabsContent value="channels" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
                   <CardTitle>Channel Performance</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
+                  <div className="p-4"
                     {channelData.map((channel) => (
-                      <div key={channel.name} className=""
-                        <div className=""
+                      <div key={channel.name} className="p-4"
+                        <div className="p-4"
                           <h4 className="text-lg">"{channel.name}</h4>
                           <div className="w-3 h-3 rounded-full" />
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           {channel.value}%
                         </p>
-                        <p className=""
+                        <p className="p-4"
                           of total volume
                         </p>
                       </div>
@@ -374,14 +374,14 @@ export default function Analytics() {
               </Card>
             </TabsContent>
             {/* Trends Tab */}
-            <TabsContent value="trends" className=""
-              <Card className=""
+            <TabsContent value="trends" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
                   <CardTitle>Satisfaction Trends</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <TrendingUp className="h-16 w-16 text-purple-400 mb-4 mx-auto" />
                       <p className="text-lg">"Satisfaction trend chart</p>
                       <p className="text-lg">"Customer satisfaction over time</p>

@@ -276,15 +276,15 @@ function LocationsNewContent() {
   const currentStats = getCurrentStats();
   const currentRecordType = RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES];
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header with stats */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div>
             <h1 className="text-lg">"Gerenciamento de Localizações</h1>
             <p className="text-lg">"Sistema completo para gestão de 7 tipos de registros geográficos</p>
           </div>
-          <div className=""
+          <div className="p-4"
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline>
@@ -292,9 +292,9 @@ function LocationsNewContent() {
                   Gerenciar Horários
                 </Button>
               </DialogTrigger>
-              <DialogContent className=""
+              <DialogContent className="p-4"
                 <DialogHeader>
-                  <DialogTitle className=""
+                  <DialogTitle className="p-4"
                     <Clock className="h-5 w-5 mr-2" />
                     Gerenciamento de Horários de Funcionamento
                   </DialogTitle>
@@ -303,15 +303,15 @@ function LocationsNewContent() {
                   </DialogDescription>
                 </DialogHeader>
                 
-                <Tabs defaultValue="padroes" className=""
-                  <TabsList className=""
+                <Tabs defaultValue="padroes" className="p-4"
+                  <TabsList className="p-4"
                     <TabsTrigger value="padroes">Padrões de Horários</TabsTrigger>
                     <TabsTrigger value="associacoes">Associações</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="padroes" className=""
-                    <div className=""
-                      <div className=""
+                  <TabsContent value="padroes" className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         <h3 className="text-lg">"Padrões Cadastrados</h3>
                         <Button size="sm>
                           <Plus className="h-4 w-4 mr-2" />
@@ -319,22 +319,22 @@ function LocationsNewContent() {
                         </Button>
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         {[
                           { id: 1, nome: "Comercial Padrão", horario: "08:00-18:00", dias: "Seg-Sex", entidades: 15 },
                           { id: 2, nome: "Shopping", horario: "10:00-22:00", dias: "Seg-Dom", entidades: 8 },
                           { id: 3, nome: "Técnico de Campo", horario: "07:00-17:00", dias: "Seg-Sáb", entidades: 12 }
                         ].map((padrao) => (
                           <Card key={padrao.id}>
-                            <CardContent className=""
-                              <div className=""
+                            <CardContent className="p-4"
+                              <div className="p-4"
                                 <div>
                                   <h4 className="text-lg">"{padrao.nome}</h4>
-                                  <p className=""
+                                  <p className="p-4"
                                     {padrao.horario} • {padrao.dias} • {padrao.entidades} entidades associadas
                                   </p>
                                 </div>
-                                <div className=""
+                                <div className="p-4"
                                   <Button variant="outline" size="sm>
                                     <Edit className="h-4 w-4" />
                                   </Button>
@@ -350,12 +350,12 @@ function LocationsNewContent() {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="associacoes" className=""
-                    <div className=""
+                  <TabsContent value="associacoes" className="p-4"
+                    <div className="p-4"
                       <h3 className="text-lg">"Associar Horários às Entidades</h3>
                       
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <h4 className="text-lg">"Selecionar Padrão de Horário</h4>
                           <Select>
                             <SelectTrigger>
@@ -369,18 +369,18 @@ function LocationsNewContent() {
                           </Select>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <h4 className="text-lg">"Aplicar a Entidades</h4>
-                          <div className=""
+                          <div className="p-4"
                             {[
                               { tipo: "Local", nome: "Matriz São Paulo", ativo: true },
                               { tipo: "Local", nome: "Filial Campinas", ativo: false },
                               { tipo: "Região", nome: "Grande SP", ativo: true },
                               { tipo: "Rota", nome: "Rota ABC", ativo: false }
                             ].map((entidade, index) => (
-                              <div key={index} className=""
+                              <div key={index} className="p-4"
                                 <Checkbox defaultChecked={entidade.ativo} />
-                                <Badge variant="outline" className=""
+                                <Badge variant="outline" className="p-4"
                                   {entidade.tipo}
                                 </Badge>
                                 <span className="text-lg">"{entidade.nome}</span>
@@ -390,7 +390,7 @@ function LocationsNewContent() {
                         </div>
                       </div>
                       
-                      <Button className=""
+                      <Button className="p-4"
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Aplicar Horários às Entidades Selecionadas
                       </Button>
@@ -406,7 +406,7 @@ function LocationsNewContent() {
                   Novo {currentRecordType.label}
                 </Button>
               </DialogTrigger>
-              <DialogContent className=""
+              <DialogContent className="p-4"
                 <DialogHeader>
                   <DialogTitle>Criar Novo {currentRecordType.label}</DialogTitle>
                   <DialogDescription>
@@ -414,18 +414,18 @@ function LocationsNewContent() {
                   </DialogDescription>
                 </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className=""
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
                   {/* RENDERIZAÇÃO CONDICIONAL BASEADA NO TIPO DE REGISTRO */}
                   {activeRecordType === 'local' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <MapPin className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg">"Identificação</h3>
                         </div>
                     
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="ativo"
@@ -452,7 +452,7 @@ function LocationsNewContent() {
                         control={form.control}
                         name="nome"
                         render={({ field }) => (
-                          <FormItem className=""
+                          <FormItem className="p-4"
                             <FormLabel>Nome *</FormLabel>
                             <FormControl>
                               <Input placeholder="Digite o nome do local" {...field} />
@@ -477,7 +477,7 @@ function LocationsNewContent() {
                       )}
                     />
                     
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="codigoIntegracao"
@@ -538,8 +538,8 @@ function LocationsNewContent() {
                     />
                   </div>
                   {/* SEÇÃO 2: CONTATO */}
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <Phone className="h-5 w-5 text-green-500" />
                       <h3 className="text-lg">"Contato</h3>
                     </div>
@@ -558,7 +558,7 @@ function LocationsNewContent() {
                       )}
                     />
                     
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="ddd"
@@ -577,7 +577,7 @@ function LocationsNewContent() {
                         control={form.control}
                         name="telefone"
                         render={({ field }) => (
-                          <FormItem className=""
+                          <FormItem className="p-4"
                             <FormLabel>Telefone</FormLabel>
                             <FormControl>
                               <Input placeholder="99999-9999" {...field} />
@@ -589,20 +589,20 @@ function LocationsNewContent() {
                     </div>
                   </div>
                   {/* SEÇÃO 3: ENDEREÇO COM CEP LOOKUP */}
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <MapPin className="h-5 w-5 text-purple-500" />
                       <h3 className="text-lg">"Endereço</h3>
                     </div>
                     
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="cep"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>CEP</FormLabel>
-                            <div className=""
+                            <div className="p-4"
                               <FormControl>
                                 <Input placeholder="00000-000" {...field} />
                               </FormControl>
@@ -658,7 +658,7 @@ function LocationsNewContent() {
                       />
                     </div>
                     
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="bairro"
@@ -700,12 +700,12 @@ function LocationsNewContent() {
                       />
                     </div>
                     
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="logradouro"
                         render={({ field }) => (
-                          <FormItem className=""
+                          <FormItem className="p-4"
                             <FormLabel>Logradouro</FormLabel>
                             <FormControl>
                               <Input placeholder="Nome da rua/avenida" {...field} />
@@ -745,8 +745,8 @@ function LocationsNewContent() {
                     />
                   </div>
                   {/* SEÇÃO 4: GEOLOCALIZAÇÃO COM MAPA INTERATIVO */}
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <Map className="h-5 w-5 text-red-500" />
                       <h3 className="text-lg">"Georreferenciamento</h3>
                     </div>
@@ -759,7 +759,7 @@ function LocationsNewContent() {
                       </AlertDescription>
                     </Alert>
                     
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={form.control}
                         name="latitude"
@@ -789,7 +789,7 @@ function LocationsNewContent() {
                       />
                     </div>
                     
-                    <div className=""
+                    <div className="p-4"
                       <Button type="button" variant="outline>
                         <Map className="h-4 w-4 mr-2" />
                         Abrir Mapa Interativo
@@ -797,8 +797,8 @@ function LocationsNewContent() {
                     </div>
                   </div>
                   {/* SEÇÃO 5: TEMPO E DISPONIBILIDADE */}
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <Clock className="h-5 w-5 text-orange-500" />
                       <h3 className="text-lg">"Tempo e Disponibilidade</h3>
                     </div>
@@ -826,9 +826,9 @@ function LocationsNewContent() {
                       )}
                     />
                     
-                    <div className=""
+                    <div className="p-4"
                       <h4 className="text-lg">"Feriados</h4>
-                      <div className=""
+                      <div className="p-4"
                         <Button type="button" variant="outline" size="sm>
                           Buscar Feriados Municipais
                         </Button>
@@ -847,13 +847,13 @@ function LocationsNewContent() {
                   {activeRecordType === 'regiao' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <MapPin className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="ativo"
@@ -880,7 +880,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="nome"
                             render={({ field }) => (
-                              <FormItem className=""
+                              <FormItem className="p-4"
                                 <FormLabel>Nome *</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Digite o nome da região" {...field} />
@@ -920,13 +920,13 @@ function LocationsNewContent() {
                         />
                       </div>
                       {/* SEÇÃO 2: RELACIONAMENTOS */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Users className="h-5 w-5 text-green-500" />
                           <h3 className="text-lg">"Relacionamentos</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="nome"
@@ -965,13 +965,13 @@ function LocationsNewContent() {
                         </div>
                       </div>
                       {/* SEÇÃO 3: GEOLOCALIZAÇÃO */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <MapPin className="h-5 w-5 text-red-500" />
                           <h3 className="text-lg">"Geolocalização</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="latitude"
@@ -1016,13 +1016,13 @@ function LocationsNewContent() {
                         />
                       </div>
                       {/* SEÇÃO 4: ENDEREÇO BASE */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Home className="h-5 w-5 text-orange-500" />
                           <h3 className="text-lg">"Endereço Base</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="cep"
@@ -1052,7 +1052,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="estado"
@@ -1082,7 +1082,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="bairro"
@@ -1124,7 +1124,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="logradouro"
@@ -1174,13 +1174,13 @@ function LocationsNewContent() {
                   {activeRecordType === 'rota-dinamica' && (
                     <>
                       {/* SEÇÃO 1: IDENTIFICAÇÃO */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Route className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="ativo"
@@ -1233,15 +1233,15 @@ function LocationsNewContent() {
                         </div>
                       </div>
                       {/* SEÇÃO 2: PLANEJAMENTO DA ROTA */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Calendar className="h-5 w-5 text-purple-500" />
                           <h3 className="text-lg">"Planejamento da Rota</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, index) => (
-                            <div key={index} className=""
+                            <div key={index} className="p-4"
                               <Checkbox id={"
                               <label htmlFor={"
                             </div>
@@ -1273,13 +1273,13 @@ function LocationsNewContent() {
                   {/* MODAL TRECHO */}
                   {activeRecordType === 'trecho' && (
                     <>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <ArrowRight className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg">"Identificação do Trecho</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="ativo"
@@ -1306,7 +1306,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="codigoIntegracao"
                             render={({ field }) => (
-                              <FormItem className=""
+                              <FormItem className="p-4"
                                 <FormLabel>Código de Integração</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Código do trecho" {...field} />
@@ -1317,7 +1317,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="localAId"
@@ -1368,13 +1368,13 @@ function LocationsNewContent() {
                   {/* MODAL ROTA DE TRECHO */}
                   {activeRecordType === 'rota-trecho' && (
                     <>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Network className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg">"Definição da Rota</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="ativo"
@@ -1412,9 +1412,9 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <h4 className="text-lg">"Definição do Trecho - Múltiplos Registros</h4>
-                          <div className=""
+                          <div className="p-4"
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -1430,7 +1430,7 @@ function LocationsNewContent() {
                                   <TableCell>Trecho Intermediário 1</TableCell>
                                   <TableCell>Local Intermédio</TableCell>
                                   <TableCell>
-                                    <div className=""
+                                    <div className="p-4"
                                       <Button variant="outline" size="sm>
                                         <Edit className="h-3 w-3" />
                                       </Button>
@@ -1445,7 +1445,7 @@ function LocationsNewContent() {
                                   <TableCell>Trecho Final</TableCell>
                                   <TableCell>Local B</TableCell>
                                   <TableCell>
-                                    <div className=""
+                                    <div className="p-4"
                                       <Button variant="outline" size="sm>
                                         <Edit className="h-3 w-3" />
                                       </Button>
@@ -1469,13 +1469,13 @@ function LocationsNewContent() {
                   {/* MODAL ÁREA */}
                   {activeRecordType === 'area' && (
                     <>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Layers className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="ativo"
@@ -1502,7 +1502,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="nome"
                             render={({ field }) => (
-                              <FormItem className=""
+                              <FormItem className="p-4"
                                 <FormLabel>Nome *</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Nome da área" {...field} />
@@ -1513,7 +1513,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="descricao"
@@ -1544,8 +1544,8 @@ function LocationsNewContent() {
                         </div>
                       </div>
                       {/* SEÇÃO 2: CLASSIFICAÇÃO */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Grid3X3 className="h-5 w-5 text-teal-500" />
                           <h3 className="text-lg">"Classificação</h3>
                         </div>
@@ -1582,7 +1582,7 @@ function LocationsNewContent() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Cor no Mapa</FormLabel>
-                              <div className=""
+                              <div className="p-4"
                                 <FormControl>
                                   <Input type="color" defaultValue="#3b82f6" {...field} />
                                 </FormControl>
@@ -1595,8 +1595,8 @@ function LocationsNewContent() {
                           )}
                         />
                         
-                        <div className=""
-                          <p className=""
+                        <div className="p-4"
+                          <p className="p-4"
                             A configuração específica dos parâmetros da área será baseada no tipo selecionado acima.
                           </p>
                         </div>
@@ -1606,13 +1606,13 @@ function LocationsNewContent() {
                   {/* MODAL AGRUPAMENTO */}
                   {activeRecordType === 'agrupamento' && (
                     <>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Folder className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="ativo"
@@ -1639,7 +1639,7 @@ function LocationsNewContent() {
                             control={form.control}
                             name="nome"
                             render={({ field }) => (
-                              <FormItem className=""
+                              <FormItem className="p-4"
                                 <FormLabel>Nome *</FormLabel>
                                 <FormControl>
                                   <Input placeholder="Nome do agrupamento" {...field} />
@@ -1650,7 +1650,7 @@ function LocationsNewContent() {
                           />
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <FormField
                             control={form.control}
                             name="descricao"
@@ -1681,17 +1681,17 @@ function LocationsNewContent() {
                         </div>
                       </div>
                       {/* SEÇÃO 2: SELEÇÃO DE ÁREAS */}
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <Map className="h-5 w-5 text-indigo-500" />
                           <h3 className="text-lg">"Seleção de Áreas</h3>
                         </div>
                         
-                        <div className=""
+                        <div className="p-4"
                           <h4 className="text-lg">"Áreas Disponíveis</h4>
-                          <div className=""
+                          <div className="p-4"
                             {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
-                              <div key={index} className=""
+                              <div key={index} className="p-4"
                                 <Checkbox id={"
                                 <label htmlFor={"
                                   <div className="text-lg">"</div>
@@ -1702,9 +1702,9 @@ function LocationsNewContent() {
                             ))}
                           </div>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <h4 className="text-lg">"Adicionar Faixas de CEP</h4>
-                          <div className=""
+                          <div className="p-4"
                             <FormField
                               control={form.control}
                               name="cepInicio"
@@ -1741,7 +1741,7 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-                  <div className=""
+                  <div className="p-4"
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -1760,9 +1760,9 @@ function LocationsNewContent() {
           </div>
         </div>
         {/* Stats cards */}
-        <div className=""
+        <div className="p-4"
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Total</CardTitle>
               <currentRecordType.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -1773,7 +1773,7 @@ function LocationsNewContent() {
           </Card>
           
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Ativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-green-500" />
             </CardHeader>
@@ -1784,7 +1784,7 @@ function LocationsNewContent() {
           </Card>
           
           <Card>
-            <CardHeader className=""
+            <CardHeader className="p-4"
               <CardTitle className="text-lg">"Inativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-gray-400" />
             </CardHeader>
@@ -1797,20 +1797,20 @@ function LocationsNewContent() {
       </div>
       {/* Tabs for record types */}
       <Tabs value={activeRecordType} onValueChange={setActiveRecordType}>
-        <TabsList className=""
+        <TabsList className="p-4"
           {Object.entries(RECORD_TYPES).map(([key, type]) => (
-            <TabsTrigger key={key} value={key} className=""
+            <TabsTrigger key={key} value={key} className="p-4"
               <type.icon className="h-4 w-4" />
               <span>{type.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
         {Object.keys(RECORD_TYPES).map((recordType) => (
-          <TabsContent key={recordType} value={recordType} className=""
+          <TabsContent key={recordType} value={recordType} className="p-4"
             {/* Search and filters */}
-            <div className=""
-              <div className=""
-                <div className=""
+            <div className="p-4"
+              <div className="p-4"
+                <div className="p-4"
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder='[TRANSLATION_NEEDED]'
@@ -1821,7 +1821,7 @@ function LocationsNewContent() {
                 </div>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className=""
+                <SelectTrigger className="p-4"
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
@@ -1867,12 +1867,12 @@ function LocationsNewContent() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className=""
+                  <div className="p-4"
                     <currentRecordType.icon className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className=""
+                    <h3 className="p-4"
                       Nenhum registro encontrado
                     </h3>
-                    <p className=""
+                    <p className="p-4"
                       Comece criando um novo {RECORD_TYPES[recordType as keyof typeof RECORD_TYPES].label.toLowerCase()}.
                     </p>
                   </div>

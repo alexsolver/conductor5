@@ -145,64 +145,64 @@ export default function GdprCompliancePage() {
   });
   return (
     <div className="container mx-auto py-6 space-y-6" data-testid="gdpr-compliance-page>
-      <div className=""
+      <div className="p-4"
         <Shield className="w-8 h-8 text-blue-600" />
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             Compliance GDPR/LGPD
           </h1>
-          <p className=""
+          <p className="p-4"
             Sistema completo de gestão e compliance para GDPR e LGPD
           </p>
         </div>
       </div>
       {/* ✅ Compliance Dashboard - seguindo padrão 1qa.md */}
       {metrics?.data && (
-        <div className=""
+        <div className="p-4"
           <Card data-testid="card-total-requests>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Total de Solicitações
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {metrics.data?.requests?.total || 0}
               </div>
             </CardContent>
           </Card>
           <Card data-testid="card-pending-requests>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Pendentes
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {metrics.data?.requests?.pending || 0}
               </div>
             </CardContent>
           </Card>
           <Card data-testid="card-overdue-requests>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Em Atraso
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {metrics.data?.requests?.overdue || 0}
               </div>
             </CardContent>
           </Card>
           <Card data-testid="card-compliance-score>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Score de Compliance
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 {metrics.data?.compliance?.score || 92}%
               </div>
             </CardContent>
@@ -211,10 +211,10 @@ export default function GdprCompliancePage() {
       )}
       {/* ✅ Fallback Dashboard quando não há métricas */}
       {!metrics?.data && !metricsLoading && (
-        <div className=""
+        <div className="p-4"
           <Card data-testid="card-total-requests>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Total de Solicitações
               </CardTitle>
             </CardHeader>
@@ -223,8 +223,8 @@ export default function GdprCompliancePage() {
             </CardContent>
           </Card>
           <Card data-testid="card-pending-requests>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Pendentes
               </CardTitle>
             </CardHeader>
@@ -233,8 +233,8 @@ export default function GdprCompliancePage() {
             </CardContent>
           </Card>
           <Card data-testid="card-overdue-requests>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Em Atraso
               </CardTitle>
             </CardHeader>
@@ -243,8 +243,8 @@ export default function GdprCompliancePage() {
             </CardContent>
           </Card>
           <Card data-testid="card-compliance-score>
-            <CardHeader className=""
-              <CardTitle className=""
+            <CardHeader className="p-4"
+              <CardTitle className="p-4"
                 Score de Compliance
               </CardTitle>
             </CardHeader>
@@ -254,8 +254,8 @@ export default function GdprCompliancePage() {
           </Card>
         </div>
       )}
-      <Tabs defaultValue="consents" className=""
-        <TabsList className=""
+      <Tabs defaultValue="consents" className="p-4"
+        <TabsList className="p-4"
           <TabsTrigger value="consents" data-testid="tab-consents>
             Consentimentos
           </TabsTrigger>
@@ -276,7 +276,7 @@ export default function GdprCompliancePage() {
           </TabsTrigger>
         </TabsList>
         {/* ✅ 1. Cookie Consents Tab */}
-        <TabsContent value="consents" className=""
+        <TabsContent value="consents" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Registrar Consentimento de Cookies</CardTitle>
@@ -320,7 +320,7 @@ export default function GdprCompliancePage() {
                     control={cookieForm.control}
                     name="granted"
                     render={({ field }) => (
-                      <FormItem className=""
+                      <FormItem className="p-4"
                         <FormControl>
                           <Switch
                             checked={field.value}
@@ -359,7 +359,7 @@ export default function GdprCompliancePage() {
           </Card>
         </TabsContent>
         {/* ✅ 3-7. Data Subject Requests Tab */}
-        <TabsContent value="requests" className=""
+        <TabsContent value="requests" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Nova Solicitação GDPR</CardTitle>
@@ -435,12 +435,12 @@ export default function GdprCompliancePage() {
                 <CardTitle>Minhas Solicitações GDPR</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   {dataRequests.data.map((request: any) => (
-                    <div key={request.id} className=""
+                    <div key={request.id} className="p-4"
                       <div>
                         <div className="text-lg">"{request.requestType}</div>
-                        <div className=""
+                        <div className="p-4"
                           Criado em: {new Date(request.createdAt).toLocaleDateString('pt-BR')}
                         </div>
                       </div>
@@ -455,7 +455,7 @@ export default function GdprCompliancePage() {
           )}
         </TabsContent>
         {/* ✅ 10. Security Incidents Tab */}
-        <TabsContent value="incidents" className=""
+        <TabsContent value="incidents" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Reportar Incidente de Segurança</CardTitle>
@@ -569,7 +569,7 @@ export default function GdprCompliancePage() {
           </Card>
         </TabsContent>
         {/* ✅ Admin Dashboard Tab */}
-        <TabsContent value="preferences" className=""
+        <TabsContent value="preferences" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Painel Administrativo GDPR/LGPD</CardTitle>
@@ -578,8 +578,8 @@ export default function GdprCompliancePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   Painel administrativo para monitoramento e gestão de compliance
                 </div>
                 
@@ -590,11 +590,11 @@ export default function GdprCompliancePage() {
           </Card>
         </TabsContent>
         {/* ✅ Reports Tab - Nova funcionalidade seguindo 1qa.md */}
-        <TabsContent value="reports" className=""
-          <div className=""
+        <TabsContent value="reports" className="p-4"
+          <div className="p-4"
             <Card>
               <CardHeader>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   <BarChart3 className="w-5 h-5" />
                   Relatório de Solicitações
                 </CardTitle>
@@ -604,26 +604,26 @@ export default function GdprCompliancePage() {
               </CardHeader>
               <CardContent>
                 {dataRequests?.data ? (
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <span className="text-lg">"Total de Solicitações:</span>
                       <Badge variant="secondary">{dataRequests.data.length || 0}</Badge>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span className="text-lg">"Acesso aos Dados:</span>
                       <Badge variant="outline">{dataRequests.data.filter(req => req.requestType === 'access').length}</Badge>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span className="text-lg">"Exclusão/Esquecimento:</span>
                       <Badge variant="outline">{dataRequests.data.filter(req => req.requestType === 'erasure').length}</Badge>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span className="text-lg">"Portabilidade:</span>
                       <Badge variant="outline">{dataRequests.data.filter(req => req.requestType === 'portability').length}</Badge>
                     </div>
                   </div>
                 ) : (
-                  <p className=""
+                  <p className="p-4"
                     Carregando relatórios...
                   </p>
                 )}
@@ -631,7 +631,7 @@ export default function GdprCompliancePage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   <FileText className="w-5 h-5" />
                   Compliance Score
                 </CardTitle>
@@ -640,27 +640,27 @@ export default function GdprCompliancePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <span className="text-lg">"Score Geral:</span>
-                    <div className=""
+                    <div className="p-4"
                       <Badge className="text-lg">"92%</Badge>
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Consentimentos:</span>
                     <Badge variant="secondary">Ativo</Badge>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Políticas Atualizadas:</span>
                     <Badge variant="secondary">Sim</Badge>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <span className="text-lg">"Auditoria:</span>
                     <Badge variant="secondary">Funcionando</Badge>
                   </div>
-                  <div className=""
-                    <p className=""
+                  <div className="p-4"
+                    <p className="p-4"
                       ✅ Sistema GDPR/LGPD totalmente operacional
                     </p>
                   </div>
@@ -670,7 +670,7 @@ export default function GdprCompliancePage() {
           </div>
         </TabsContent>
         {/* ✅ Export/Delete Data Tab */}
-        <TabsContent value="export" className=""
+        <TabsContent value="export" className="p-4"
           <Card>
             <CardHeader>
               <CardTitle>Direitos GDPR - Exportar e Deletar Dados</CardTitle>
@@ -678,7 +678,7 @@ export default function GdprCompliancePage() {
                 Exercer seus direitos de acesso e esquecimento dos dados
               </CardDescription>
             </CardHeader>
-            <CardContent className=""
+            <CardContent className="p-4"
               <Button 
                 onClick={() => exportUserData.mutate()}
                 disabled={exportUserData.isPending}
@@ -688,8 +688,8 @@ export default function GdprCompliancePage() {
                 <Download className="w-4 h-4 mr-2" />
                 {exportUserData.isPending ? 'Exportando...' : 'Exportar Meus Dados (Direito de Acesso)'}
               </Button>
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   ⚠️ Ação irreversível: Esta ação deletará todos os seus dados permanentemente
                 </div>
                 <Button 
@@ -821,12 +821,12 @@ function PrivacyPolicyManagement() {
     }
   });
   return (
-    <div className=""
+    <div className="p-4"
       {/* ✅ Header e Controles */}
-      <div className=""
+      <div className="p-4"
         <div>
           <h3 className="text-lg">"Gestão de Políticas de Privacidade</h3>
-          <p className=""
+          <p className="p-4"
             Gerencie políticas de privacidade, termos de uso e políticas de cookies
           </p>
         </div>
@@ -839,33 +839,33 @@ function PrivacyPolicyManagement() {
         </Button>
       </div>
       {/* ✅ Lista de Políticas Existentes */}
-      <div className=""
+      <div className="p-4"
         {(policies as any)?.data && (policies as any).data.length > 0 ? (
           (policies as any).data.map((policy: any) => (
-            <Card key={policy.id} className=""
-              <div className=""
-                <div className=""
-                  <div className=""
+            <Card key={policy.id} className="p-4"
+              <div className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <h4 className="text-lg">"{policy.title}</h4>
                     <Badge variant={policy.isActive ? "default" : "secondary>
                       {policy.isActive ? "Ativa" : "Inativa"
                     </Badge>
                     <Badge variant="outline">v{policy.version}</Badge>
                   </div>
-                  <p className=""
+                  <p className="p-4"
                     Tipo: {policy.policyType === 'privacy_policy' ? 'Política de Privacidade' : 
                            policy.policyType === 'terms_of_use' ? 'Termos de Uso' : 'Política de Cookies'}
                   </p>
-                  <p className=""
+                  <p className="p-4"
                     Data de criação: {new Date(policy.createdAt).toLocaleDateString('pt-BR')}
                   </p>
                   {policy.effectiveDate && (
-                    <p className=""
+                    <p className="p-4"
                       Vigência: {new Date(policy.effectiveDate).toLocaleDateString('pt-BR')}
                     </p>
                   )}
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button variant="outline" size="sm>
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -883,10 +883,10 @@ function PrivacyPolicyManagement() {
             </Card>
           ))
         ) : (
-          <Card className=""
+          <Card className="p-4"
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h4 className="text-lg">"Nenhuma política encontrada</h4>
-            <p className=""
+            <p className="p-4"
               Crie sua primeira política de privacidade
             </p>
             <Button onClick={() => setShowCreateForm(true)}>
@@ -897,7 +897,7 @@ function PrivacyPolicyManagement() {
       </div>
       {/* ✅ Dialog para Criar Nova Política */}
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Criar Nova Política</DialogTitle>
             <DialogDescription>
@@ -906,8 +906,8 @@ function PrivacyPolicyManagement() {
           </DialogHeader>
           
           <Form {...policyForm}>
-            <form onSubmit={policyForm.handleSubmit((data) => createPolicyMutation.mutate(data))} className=""
-              <div className=""
+            <form onSubmit={policyForm.handleSubmit((data) => createPolicyMutation.mutate(data))} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={policyForm.control}
                   name="title"
@@ -936,7 +936,7 @@ function PrivacyPolicyManagement() {
                   )}
                 />
               </div>
-              <div className=""
+              <div className="p-4"
                 <FormField
                   control={policyForm.control}
                   name="policyType"
@@ -998,8 +998,8 @@ function PrivacyPolicyManagement() {
                 control={policyForm.control}
                 name="requiresAcceptance"
                 render={({ field }) => (
-                  <FormItem className=""
-                    <div className=""
+                  <FormItem className="p-4"
+                    <div className="p-4"
                       <FormLabel className="text-lg">"Requer Aceitação</FormLabel>
                       <FormDescription>
                         Usuários precisarão aceitar esta política explicitamente

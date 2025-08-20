@@ -209,13 +209,13 @@ export default function Companies() {
   );
   if (isLoading) {
     return (
-      <div className=""
-        <div className=""
-          <div className=""
-            <div className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
+            <div className="p-4"
               <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             </div>
-            <p className=""
+            <p className="p-4"
               Carregando empresas...
             </p>
           </div>
@@ -224,18 +224,18 @@ export default function Companies() {
     );
   }
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
+      <div className="p-4"
         <div>
-          <h1 className=""
+          <h1 className="p-4"
             Empresas
           </h1>
-          <p className=""
+          <p className="p-4"
             Gerencie suas empresas e clientes associados
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -243,13 +243,13 @@ export default function Companies() {
                 Nova Empresa
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Criar Nova Empresa</DialogTitle>
               </DialogHeader>
               <Form {...companyForm}>
-                <form onSubmit={companyForm.handleSubmit(handleCreateCompany)} className=""
-                  <div className=""
+                <form onSubmit={companyForm.handleSubmit(handleCreateCompany)} className="p-4"
+                  <div className="p-4"
                     <FormField
                       control={companyForm.control}
                       name="name"
@@ -392,7 +392,7 @@ export default function Companies() {
                       </FormItem>
                     )}
                   />
-                  <div className=""
+                  <div className="p-4"
                     <Button
                       type="button"
                       variant="outline"
@@ -414,8 +414,8 @@ export default function Companies() {
         </div>
       </div>
       {/* Search */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder='[TRANSLATION_NEEDED]'
@@ -427,12 +427,12 @@ export default function Companies() {
       </div>
       {/* Companies Grid */}
       {filteredCompanies.length === 0 ? (
-        <div className=""
+        <div className="p-4"
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className=""
+          <h3 className="p-4"
             {searchTerm ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
           </h3>
-          <p className=""
+          <p className="p-4"
             {searchTerm 
               ? "Tente ajustar o termo de busca." 
               : "Comece criando sua primeira empresa para organizar seus clientes."
@@ -446,19 +446,19 @@ export default function Companies() {
           )}
         </div>
       ) : (
-        <div className=""
+        <div className="p-4"
           {filteredCompanies.map((company: Company) => (
-            <Card key={company.id} className=""
-              <CardHeader className=""
-                <div className=""
-                  <div className=""
-                    <CardTitle className=""
+            <Card key={company.id} className="p-4"
+              <CardHeader className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
+                    <CardTitle className="p-4"
                       {company.displayName || company.name}
                     </CardTitle>
                     {company.displayName && (
                       <p className="text-lg">"{company.name}</p>
                     )}
-                    <div className=""
+                    <div className="p-4"
                       <Badge 
                         variant={company.status === 'active' ? 'default' : 'secondary'}
                       >
@@ -471,7 +471,7 @@ export default function Companies() {
                       </Badge>
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Button
                       size="sm"
                       variant="ghost"
@@ -493,33 +493,33 @@ export default function Companies() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className=""
+              <CardContent className="p-4"
                 {company.description && (
-                  <p className=""
+                  <p className="p-4"
                     {company.description}
                   </p>
                 )}
-                <div className=""
+                <div className="p-4"
                   {company.industry && (
-                    <div className=""
+                    <div className="p-4"
                       <Building2 className="w-4 h-4" />
                       <span>{company.industry}</span>
                     </div>
                   )}
                   {company.email && (
-                    <div className=""
+                    <div className="p-4"
                       <Mail className="w-4 h-4" />
                       <span className="text-lg">"{company.email}</span>
                     </div>
                   )}
                   {company.phone && (
-                    <div className=""
+                    <div className="p-4"
                       <Phone className="w-4 h-4" />
                       <span>{company.phone}</span>
                     </div>
                   )}
                   {company.website && (
-                    <div className=""
+                    <div className="p-4"
                       <Globe className="w-4 h-4" />
                       <a 
                         href={company.website} 
@@ -547,13 +547,13 @@ export default function Companies() {
       )}
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
           <Form {...companyForm}>
-            <form onSubmit={companyForm.handleSubmit(handleEditCompany)} className=""
-              <div className=""
+            <form onSubmit={companyForm.handleSubmit(handleEditCompany)} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={companyForm.control}
                   name="name"
@@ -718,7 +718,7 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button
                   type="button"
                   variant="outline"

@@ -260,14 +260,14 @@ export default function NotificationsPage() {
   };
   return (
     <div className="container mx-auto p-6 space-y-6" data-testid="notifications-page>
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Notifications & Alerts</h1>
-          <p className=""
+          <p className="p-4"
             Manage system notifications and alerts delivery
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button
             onClick={handleProcessNotifications}
             disabled={processMutation.isPending}
@@ -284,7 +284,7 @@ export default function NotificationsPage() {
                 Create Notification
               </Button>
             </DialogTrigger>
-            <DialogContent className=""
+            <DialogContent className="p-4"
               <DialogHeader>
                 <DialogTitle>Create New Notification</DialogTitle>
                 <DialogDescription>
@@ -293,8 +293,8 @@ export default function NotificationsPage() {
               </DialogHeader>
               
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className=""
-                  <div className=""
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
+                  <div className="p-4"
                     <FormField
                       control={form.control}
                       name="type"
@@ -389,7 +389,7 @@ export default function NotificationsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Delivery Channels</FormLabel>
-                        <div className=""
+                        <div className="p-4"
                           {[
                             { value: 'in_app', label: 'In-App' },
                             { value: 'email', label: 'Email' },
@@ -421,7 +421,7 @@ export default function NotificationsPage() {
                       </FormItem>
                     )}
                   />
-                  <div className=""
+                  <div className="p-4"
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -455,17 +455,17 @@ export default function NotificationsPage() {
             Statistics
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="notifications" className=""
+        <TabsContent value="notifications" className="p-4"
           {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle className=""
+              <CardTitle className="p-4"
                 <Filter className="w-5 h-5" />
                 Filters
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className=""
+              <div className="p-4"
                 <div>
                   <Label htmlFor="status-filter">Status</Label>
                   <Select value={filters.status} onValueChange={(value) => 
@@ -520,7 +520,7 @@ export default function NotificationsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button 
                     onClick={() => setFilters({ status: '', type: '', severity: '', page: 1 })}
                     variant="outline"
@@ -533,20 +533,20 @@ export default function NotificationsPage() {
             </CardContent>
           </Card>
           {/* Notifications List */}
-          <div className=""
+          <div className="p-4"
             {notificationsLoading ? (
               <Card>
-                <CardContent className=""
+                <CardContent className="p-4"
                   <div className="text-lg">"Loading notifications...</div>
                 </CardContent>
               </Card>
             ) : notifications?.success && notifications.data?.notifications?.length > 0 ? (
               (notifications.data.notifications as Notification[]).map((notification: Notification) => (
-                <Card key={notification.id} className=""
-                  <CardContent className=""
-                    <div className=""
-                      <div className=""
-                        <div className=""
+                <Card key={notification.id} className="p-4"
+                  <CardContent className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           {getStatusIcon(notification.status)}
                           <h3 className="font-semibold text-lg" data-testid={"
                             {notification.title}
@@ -569,7 +569,7 @@ export default function NotificationsPage() {
                           {notification.message}
                         </p>
                         
-                        <div className=""
+                        <div className="p-4"
                           <span data-testid={"
                             Type: {notification.type}
                           </span>
@@ -587,8 +587,8 @@ export default function NotificationsPage() {
                         </div>
                         
                         {notification.requiresEscalation && (
-                          <div className=""
-                            <Badge className=""
+                          <div className="p-4"
+                            <Badge className="p-4"
                               <AlertTriangle className="w-3 h-3 mr-1" />
                               Requires Escalation
                             </Badge>
@@ -596,7 +596,7 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       
-                      <div className=""
+                      <div className="p-4"
                         {!notification.readAt && (
                           <Button
                             size="sm"
@@ -616,8 +616,8 @@ export default function NotificationsPage() {
               ))
             ) : (
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     No notifications found
                   </div>
                 </CardContent>
@@ -625,14 +625,14 @@ export default function NotificationsPage() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="stats" className=""
+        <TabsContent value="stats" className="p-4"
           {statsLoading ? (
             <div className="text-lg">"Loading statistics...</div>
           ) : stats?.success && stats.data ? (
-            <div className=""
+            <div className="p-4"
               {/* Overview Stats */}
               <Card data-testid="stats-total>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Total</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -642,7 +642,7 @@ export default function NotificationsPage() {
               </Card>
               
               <Card data-testid="stats-pending>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -652,7 +652,7 @@ export default function NotificationsPage() {
               </Card>
               
               <Card data-testid="stats-delivered>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Delivered</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -662,7 +662,7 @@ export default function NotificationsPage() {
               </Card>
               
               <Card data-testid="stats-failed>
-                <CardHeader className=""
+                <CardHeader className="p-4"
                   <CardTitle className="text-lg">"Failed</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -676,16 +676,16 @@ export default function NotificationsPage() {
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <span>Last 24 hours:</span>
                       <span className="text-lg">"{(stats.data as any).recentActivity?.last24Hours || 0}</span>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span>Last week:</span>
                       <span className="text-lg">"{(stats.data as any).recentActivity?.lastWeek || 0}</span>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span>Last month:</span>
                       <span className="text-lg">"{(stats.data as any).recentActivity?.lastMonth || 0}</span>
                     </div>
@@ -698,9 +698,9 @@ export default function NotificationsPage() {
                   <CardTitle>By Type</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className=""
+                  <div className="p-4"
                     {Object.entries((stats.data as any).distribution?.byType || {}).map(([type, count]) => (
-                      <div key={type} className=""
+                      <div key={type} className="p-4"
                         <span className="text-lg">"{type.replace('_', ' ')}:</span>
                         <span className="text-lg">"{count as number}</span>
                       </div>
@@ -710,7 +710,7 @@ export default function NotificationsPage() {
               </Card>
             </div>
           ) : (
-            <div className=""
+            <div className="p-4"
               No statistics available
             </div>
           )}

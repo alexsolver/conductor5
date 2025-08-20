@@ -65,12 +65,12 @@ export default function SaasAdminIntegrations() {
   // Verificar se usuário é SaaS admin
   if (!user || user.role !== 'saas_admin') {
     return (
-      <div className=""
+      <div className="p-4"
         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className=""
+        <h1 className="p-4"
           Acesso Negado
         </h1>
-        <p className=""
+        <p className="p-4"
           Esta página é restrita para administradores SaaS.
         </p>
       </div>
@@ -292,24 +292,24 @@ export default function SaasAdminIntegrations() {
     }
   };
   return (
-    <div className=""
+    <div className="p-4"
       {/* Header */}
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div>
-            <h1 className=""
+            <h1 className="p-4"
               Integrações de IA
             </h1>
-            <p className=""
+            <p className="p-4"
               Configurar e gerenciar integrações com provedores de IA
             </p>
           </div>
         </div>
       </div>
       {/* Stats Cards */}
-      <div className=""
+      <div className="p-4"
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Total de Integrações</CardTitle>
             <Plug className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -318,49 +318,49 @@ export default function SaasAdminIntegrations() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Conectadas</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {integrations.filter(i => i.status === 'connected').length}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Com Erro</CardTitle>
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {integrations.filter(i => i.status === 'error').length}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className=""
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Desconectadas</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className=""
+            <div className="p-4"
               {integrations.filter(i => i.status === 'disconnected').length}
             </div>
           </CardContent>
         </Card>
       </div>
       {/* Integrações Cards */}
-      <div className=""
+      <div className="p-4"
         {integrations.map((integration) => {
           const IconComponent = integration.icon || Plug; // Fallback para Plug se icon for undefined
           return (
-            <Card key={integration.id} className=""
+            <Card key={integration.id} className="p-4"
               <CardHeader>
-                <div className=""
-                  <div className=""
-                    <div className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <IconComponent className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
@@ -375,16 +375,16 @@ export default function SaasAdminIntegrations() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className=""
+                <p className="p-4"
                   {integration.description}
                 </p>
-                <div className=""
+                <div className="p-4"
                   <span className="text-lg">"API Key:</span>
                   <Badge variant={integration.apiKeyConfigured ? "default" : "secondary>
                     {integration.apiKeyConfigured ? "Configurada" : "Não configurada"
                   </Badge>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button 
                     size="sm" 
                     onClick={() => onConfigureIntegration(integration)}
@@ -404,7 +404,7 @@ export default function SaasAdminIntegrations() {
                   </Button>
                 </div>
                 {integration.lastTested && (
-                  <p className=""
+                  <p className="p-4"
                     Último teste: {new Date(integration.lastTested).toLocaleDateString()}
                   </p>
                 )}
@@ -415,14 +415,14 @@ export default function SaasAdminIntegrations() {
       </div>
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>
               Configurar {selectedIntegration?.name}
             </DialogTitle>
           </DialogHeader>
           <Form {...configForm}>
-            <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className=""
+            <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="p-4"
               <FormField
                 control={configForm.control}
                 name="apiKey"
@@ -456,7 +456,7 @@ export default function SaasAdminIntegrations() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <FormField
                   control={configForm.control}
                   name="maxTokens"
@@ -501,12 +501,12 @@ export default function SaasAdminIntegrations() {
                 control={configForm.control}
                 name="enabled"
                 render={({ field }) => (
-                  <FormItem className=""
-                    <div className=""
-                      <FormLabel className=""
+                  <FormItem className="p-4"
+                    <div className="p-4"
+                      <FormLabel className="p-4"
                         Habilitar Integração
                       </FormLabel>
-                      <div className=""
+                      <div className="p-4"
                         Permitir que esta integração seja usada no sistema
                       </div>
                     </div>
@@ -519,7 +519,7 @@ export default function SaasAdminIntegrations() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button 
                   type="button" 
                   variant="outline" 

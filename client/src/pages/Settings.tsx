@@ -62,17 +62,17 @@ export default function Settings() {
     return null;
   }
   return (
-    <div className=""
-        <div className=""
+    <div className="p-4"
+        <div className="p-4"
           {/* Page Header */}
-          <Card className=""
-            <CardContent className=""
-              <div className=""
+          <Card className="p-4"
+            <CardContent className="p-4"
+              <div className="p-4"
                 <div>
-                  <h1 className=""
+                  <h1 className="p-4"
                     Settings
                   </h1>
-                  <p className=""
+                  <p className="p-4"
                     Manage your account, team, and system preferences
                   </p>
                 </div>
@@ -84,8 +84,8 @@ export default function Settings() {
             </CardContent>
           </Card>
           {/* Settings Tabs */}
-          <Tabs defaultValue="profile" className=""
-            <TabsList className=""
+          <Tabs defaultValue="profile" className="p-4"
+            <TabsList className="p-4"
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="company">Company</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -94,33 +94,33 @@ export default function Settings() {
               <TabsTrigger value="integrations">Integrations</TabsTrigger>
             </TabsList>
             {/* Profile Tab */}
-            <TabsContent value="profile" className=""
-              <Card className=""
+            <TabsContent value="profile" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <User className="w-5 h-5 mr-2" />
                     Personal Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
-                      <span className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
+                      <span className="p-4"
                         {user?.firstName?.charAt(0) || 'U'}
                         {user?.lastName?.charAt(0) || 'S'}
                       </span>
                     </div>
                     <div>
-                      <Button variant="outline" className=""
+                      <Button variant="outline" className="p-4"
                         Change Avatar
                       </Button>
-                      <Button variant="ghost" className=""
+                      <Button variant="ghost" className="p-4"
                         Remove
                       </Button>
                     </div>
                   </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <Label htmlFor="firstName">First Name</Label>
                       <Input
                         id="firstName"
@@ -128,7 +128,7 @@ export default function Settings() {
                         placeholder="Enter your first name"
                       />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input
                         id="lastName"
@@ -136,7 +136,7 @@ export default function Settings() {
                         placeholder="Enter your last name"
                       />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="email">Email</Label>
                       <Input
                         id="email"
@@ -145,7 +145,7 @@ export default function Settings() {
                         placeholder="Enter your email"
                       />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="phone">Phone</Label>
                       <Input
                         id="phone"
@@ -154,7 +154,7 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="bio">Bio</Label>
                     <Textarea
                       id="bio"
@@ -162,7 +162,7 @@ export default function Settings() {
                       rows={3}
                     />
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="role">Role</Label>
                     <Select defaultValue={user?.role || 'agent'}>
                       <SelectTrigger>
@@ -179,17 +179,17 @@ export default function Settings() {
               </Card>
             </TabsContent>
             {/* Company Tab */}
-            <TabsContent value="company" className=""
-              <Card className=""
+            <TabsContent value="company" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <Building className="w-5 h-5 mr-2" />
                     Company Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <Label htmlFor="companyName">Company Name</Label>
                       <Input
                         id="companyName"
@@ -197,7 +197,7 @@ export default function Settings() {
                         placeholder="Enter company name"
                       />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="website">Website</Label>
                       <Input
                         id="website"
@@ -205,7 +205,7 @@ export default function Settings() {
                         placeholder="https://example.com"
                       />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="industry">Industry</Label>
                       <Select defaultValue="technology>
                         <SelectTrigger>
@@ -220,7 +220,7 @@ export default function Settings() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="size">Company Size</Label>
                       <Select defaultValue="50-200>
                         <SelectTrigger>
@@ -235,7 +235,7 @@ export default function Settings() {
                       </Select>
                     </div>
                   </div>
-                  <div className=""
+                  <div className="p-4"
                     <Label htmlFor="address">Address</Label>
                     <Textarea
                       id="address"
@@ -246,16 +246,16 @@ export default function Settings() {
                   <Separator />
                   <div>
                     <h4 className="text-lg">"Team Members</h4>
-                    <div className=""
+                    <div className="p-4"
                       {[
                         { name: "Sarah Adams", email: "sarah@acme.com", role: "Admin" },
                         { name: "Mike Johnson", email: "mike@acme.com", role: "Agent" },
                         { name: "Emma Martinez", email: "emma@acme.com", role: "Agent" },
                       ].map((member) => (
-                        <div key={member.email} className=""
-                          <div className=""
-                            <div className=""
-                              <span className=""
+                        <div key={member.email} className="p-4"
+                          <div className="p-4"
+                            <div className="p-4"
+                              <span className="p-4"
                                 {member.name.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
@@ -264,7 +264,7 @@ export default function Settings() {
                               <p className="text-lg">"{member.email}</p>
                             </div>
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <Badge variant="secondary">{member.role}</Badge>
                             <Button variant="ghost" size="sm>
                               <Edit className="w-4 h-4" />
@@ -273,7 +273,7 @@ export default function Settings() {
                         </div>
                       ))}
                     </div>
-                    <Button variant="outline" className=""
+                    <Button variant="outline" className="p-4"
                       <Plus className="w-4 h-4 mr-2" />
                       Invite Team Member
                     </Button>
@@ -282,56 +282,56 @@ export default function Settings() {
               </Card>
             </TabsContent>
             {/* Notifications Tab */}
-            <TabsContent value="notifications" className=""
-              <Card className=""
+            <TabsContent value="notifications" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <Bell className="w-5 h-5 mr-2" />
                     Notification Preferences
                   </CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Email notifications</p>
-                        <p className=""
+                        <p className="p-4"
                           Receive notifications via email
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Push notifications</p>
-                        <p className=""
+                        <p className="p-4"
                           Receive push notifications in browser
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"New ticket alerts</p>
-                        <p className=""
+                        <p className="p-4"
                           Get notified when new tickets are created
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Assignment notifications</p>
-                        <p className=""
+                        <p className="p-4"
                           Notify when tickets are assigned to you
                         </p>
                       </div>
                       <Switch defaultChecked />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Weekly reports</p>
-                        <p className=""
+                        <p className="p-4"
                           Receive weekly performance reports
                         </p>
                       </div>
@@ -342,19 +342,19 @@ export default function Settings() {
               </Card>
             </TabsContent>
             {/* Security Tab */}
-            <TabsContent value="security" className=""
-              <Card className=""
+            <TabsContent value="security" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <Shield className="w-5 h-5 mr-2" />
                     Security Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <Label htmlFor="currentPassword">Current Password</Label>
-                      <div className=""
+                      <div className="p-4"
                         <Input
                           id="currentPassword"
                           type={showPassword ? "text" : "password"
@@ -370,7 +370,7 @@ export default function Settings() {
                         </Button>
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="newPassword">New Password</Label>
                       <Input
                         id="newPassword"
@@ -378,7 +378,7 @@ export default function Settings() {
                         placeholder="Enter new password"
                       />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label htmlFor="confirmPassword">Confirm Password</Label>
                       <Input
                         id="confirmPassword"
@@ -388,11 +388,11 @@ export default function Settings() {
                     </div>
                   </div>
                   <Separator />
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Two-factor authentication</p>
-                        <p className=""
+                        <p className="p-4"
                           Add an extra layer of security to your account
                         </p>
                       </div>
@@ -400,15 +400,15 @@ export default function Settings() {
                         Enable 2FA
                       </Button>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Session timeout</p>
-                        <p className=""
+                        <p className="p-4"
                           Automatically log out after period of inactivity
                         </p>
                       </div>
                       <Select defaultValue="30>
-                        <SelectTrigger className=""
+                        <SelectTrigger className="p-4"
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -423,22 +423,22 @@ export default function Settings() {
                   <Separator />
                   <div>
                     <h4 className="text-lg">"Active Sessions</h4>
-                    <div className=""
+                    <div className="p-4"
                       {[
                         { device: "MacBook Pro", location: "New York, US", current: true },
                         { device: "iPhone 13", location: "New York, US", current: false },
                         { device: "Chrome on Windows", location: "San Francisco, US", current: false },
                       ].map((session, index) => (
-                        <div key={index} className=""
+                        <div key={index} className="p-4"
                           <div>
-                            <p className=""
+                            <p className="p-4"
                               {session.device}
                               {session.current && <Badge variant="default" className="text-lg">"Current</Badge>}
                             </p>
                             <p className="text-lg">"{session.location}</p>
                           </div>
                           {!session.current && (
-                            <Button variant="ghost" size="sm" className=""
+                            <Button variant="ghost" size="sm" className="p-4"
                               <X className="w-4 h-4 mr-1" />
                               Revoke
                             </Button>
@@ -451,28 +451,28 @@ export default function Settings() {
               </Card>
             </TabsContent>
             {/* Appearance Tab */}
-            <TabsContent value="appearance" className=""
-              <Card className=""
+            <TabsContent value="appearance" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <Palette className="w-5 h-5 mr-2" />
                     Appearance Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <div>
                       <Label>Theme</Label>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <p className="text-lg">"Light</p>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <p className="text-lg">"Dark</p>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <p className="text-lg">"Auto</p>
                         </div>
@@ -480,30 +480,30 @@ export default function Settings() {
                     </div>
                     <div>
                       <Label>Gradient Style</Label>
-                      <div className=""
-                        <div className=""
+                      <div className="p-4"
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <p className="text-lg">"Purple</p>
                         </div>
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <p className="text-lg">"Pink</p>
                         </div>
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Compact mode</p>
-                        <p className=""
+                        <p className="p-4"
                           Reduce spacing and padding throughout the interface
                         </p>
                       </div>
                       <Switch />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <div>
                         <p className="text-lg">"Sidebar animations</p>
-                        <p className=""
+                        <p className="p-4"
                           Enable smooth transitions for sidebar interactions
                         </p>
                       </div>
@@ -514,16 +514,16 @@ export default function Settings() {
               </Card>
             </TabsContent>
             {/* Integrations Tab */}
-            <TabsContent value="integrations" className=""
-              <Card className=""
+            <TabsContent value="integrations" className="p-4"
+              <Card className="p-4"
                 <CardHeader>
-                  <CardTitle className=""
+                  <CardTitle className="p-4"
                     <Globe className="w-5 h-5 mr-2" />
                     Integrations
                   </CardTitle>
                 </CardHeader>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     {[
                       { name: "Slack", description: "Send notifications to Slack channels", connected: true },
                       { name: "Microsoft Teams", description: "Integrate with Teams for collaboration", connected: false },
@@ -532,11 +532,11 @@ export default function Settings() {
                       { name: "HubSpot", description: "Sync contacts and deals", connected: false },
                       { name: "Jira", description: '[TRANSLATION_NEEDED]', connected: true },
                     ].map((integration) => (
-                      <div key={integration.name} className=""
-                        <div className=""
+                      <div key={integration.name} className="p-4"
+                        <div className="p-4"
                           <h4 className="text-lg">"{integration.name}</h4>
                           {integration.connected ? (
-                            <Badge variant="default" className=""
+                            <Badge variant="default" className="p-4"
                               <Check className="w-3 h-3 mr-1" />
                               Connected
                             </Badge>
@@ -546,7 +546,7 @@ export default function Settings() {
                             </Button>
                           )}
                         </div>
-                        <p className=""
+                        <p className="p-4"
                           {integration.description}
                         </p>
                       </div>

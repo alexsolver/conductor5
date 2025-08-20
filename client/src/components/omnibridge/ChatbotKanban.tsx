@@ -1426,7 +1426,7 @@ export default function ChatbotVisualEditor() {
                             </div>
                             <div>
                               <Label>Headers</Label>
-                              <Textarea placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"ation/json"ation/json"ation/json"ation/json"}' rows={3} />
+                              <Textarea placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"ation/json"ation/json"ation/json"ation/json"ation/json"}' rows={3} />
                             </div>
                             <div>
                               <Label>Body da Requisição</Label>

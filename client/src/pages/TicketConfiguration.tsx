@@ -674,17 +674,17 @@ const TicketConfiguration: React.FC = () => {
     }
   }, [numberingConfig, numberingForm]);
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <h1 className="text-lg">"Configurações de Tickets</h1>
-        <p className=""
+        <p className="p-4"
           Configure hierarquia, classificação e numeração dos tickets
         </p>
       </div>
       {/* Seletor de Empresa */}
-      <Card className=""
+      <Card className="p-4"
         <CardHeader>
-          <CardTitle className=""
+          <CardTitle className="p-4"
             <Building2 className="w-5 h-5" />
             <span>Empresa</span>
           </CardTitle>
@@ -692,9 +692,9 @@ const TicketConfiguration: React.FC = () => {
             Selecione a empresa para configurar os metadados dos tickets
           </CardDescription>
         </CardHeader>
-        <CardContent className=""
+        <CardContent className="p-4"
           <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-            <SelectTrigger className=""
+            <SelectTrigger className="p-4"
               <SelectValue placeholder="Selecione uma Empresa" />
             </SelectTrigger>
             <SelectContent>
@@ -708,10 +708,10 @@ const TicketConfiguration: React.FC = () => {
           
           {/* Botão para copiar estrutura da empresa Default */}
           {selectedCompany && selectedCompany !== '00000000-0000-0000-0000-000000000001' && (
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <h4 className="text-lg">"Copiar Estrutura Hierárquica</h4>
-                <p className=""
+                <p className="p-4"
                   Copie toda a estrutura hierárquica (categorias, subcategorias, ações e opções de campos) 
                   da empresa Default para esta empresa como ponto de partida.
                 </p>
@@ -738,28 +738,28 @@ const TicketConfiguration: React.FC = () => {
         </CardContent>
       </Card>
       {selectedCompany && (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className=""
-          <TabsList className=""
-            <TabsTrigger value="hierarchy" className=""
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
+          <TabsList className="p-4"
+            <TabsTrigger value="hierarchy" className="p-4"
               <FolderTree className="w-4 h-4" />
               <span>Categorização</span>
             </TabsTrigger>
-            <TabsTrigger value="classification" className=""
+            <TabsTrigger value="classification" className="p-4"
               <Settings className="w-4 h-4" />
               <span>Classificação</span>
             </TabsTrigger>
-            <TabsTrigger value="numbering" className=""
+            <TabsTrigger value="numbering" className="p-4"
               <Hash className="w-4 h-4" />
               <span>Numeração</span>
             </TabsTrigger>
           </TabsList>
           {/* Tab: Hierarquia */}
-          <TabsContent value="hierarchy" className=""
+          <TabsContent value="hierarchy" className="p-4"
             {/* Header com estatísticas e ações */}
-            <div className=""
+            <div className="p-4"
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <FolderTree className="w-5 h-5 text-blue-600" />
                     <div>
                       <p className="text-lg">"Categorias</p>
@@ -769,8 +769,8 @@ const TicketConfiguration: React.FC = () => {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <Settings className="w-5 h-5 text-green-600" />
                     <div>
                       <p className="text-lg">"Subcategorias</p>
@@ -780,8 +780,8 @@ const TicketConfiguration: React.FC = () => {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <Plus className="w-5 h-5 text-orange-600" />
                     <div>
                       <p className="text-lg">"Ações</p>
@@ -791,7 +791,7 @@ const TicketConfiguration: React.FC = () => {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className=""
+                <CardContent className="p-4"
                   <Button 
                     onClick={() => openDialog('category')} 
                     className="w-full h-full flex flex-col items-center justify-center space-y-2"
@@ -804,33 +804,33 @@ const TicketConfiguration: React.FC = () => {
             </div>
             <Card>
               <CardHeader>
-                <div className=""
+                <div className="p-4"
                   <div>
-                    <CardTitle className=""
+                    <CardTitle className="p-4"
                       <FolderTree className="w-5 h-5" />
                       <span>Estrutura Hierárquica</span>
                     </CardTitle>
-                    <CardDescription className=""
-                      <div className=""
-                        <div className=""
+                    <CardDescription className="p-4"
+                      <div className="p-4"
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <span>Categoria (Nível 1)</span>
                         </div>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <span>Subcategoria (Nível 2)</span>
                         </div>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
-                        <div className=""
+                        <div className="p-4"
                           <div className="text-lg">"</div>
                           <span>Ação (Nível 3)</span>
                         </div>
                       </div>
                     </CardDescription>
                   </div>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
                         placeholder="Buscar Categorias"
@@ -844,10 +844,10 @@ const TicketConfiguration: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {filteredCategories.length === 0 ? (
-                  <div className=""
+                  <div className="p-4"
                     <FolderTree className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg">"Nenhuma categoria encontrada</h3>
-                    <p className=""
+                    <p className="p-4"
                       {searchTerm ? 'Tente ajustar os termos da busca.' : 'Comece criando sua primeira categoria.'}
                     </p>
                     {!searchTerm && (
@@ -858,15 +858,15 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <div className=""
+                  <div className="p-4"
                     {filteredCategories.map((category: Category) => (
-                      <div key={category.id} className=""
+                      <div key={category.id} className="p-4"
                         {/* Header da Categoria */}
                         <div 
                           className="flex items-center justify-between p-4 bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors"
                           onClick={() => toggleCategoryExpansion(category.id)}
                         >
-                          <div className=""
+                          <div className="p-4"
                             {expandedCategories.has(category.id) ? (
                               <ChevronDown className="w-5 h-5 text-blue-600" />
                             ) : (
@@ -876,13 +876,13 @@ const TicketConfiguration: React.FC = () => {
                               className="w-5 h-5 rounded border-2 border-white shadow-sm"
                               style={{ backgroundColor: category.color }}
                             />
-                            <div className=""
-                              <div className=""
+                            <div className="p-4"
+                              <div className="p-4"
                                 <h4 className="text-lg">"{category.name}</h4>
-                                <Badge variant={category.active ? "default" : "secondary"} className=""
+                                <Badge variant={category.active ? "default" : "secondary"} className="p-4"
                                   {category.active ? "Ativo" : "Inativo"
                                 </Badge>
-                                <Badge variant="outline" className=""
+                                <Badge variant="outline" className="p-4"
                                   {subcategories.filter(sub => sub.categoryId === category.id).length} subcategorias
                                 </Badge>
                               </div>
@@ -891,7 +891,7 @@ const TicketConfiguration: React.FC = () => {
                               )}
                             </div>
                           </div>
-                          <div className=""
+                          <div className="p-4"
                             <Button
                               variant="outline"
                               size="sm"
@@ -931,22 +931,22 @@ const TicketConfiguration: React.FC = () => {
                         </div>
                         {/* Conteúdo Expandido - Subcategorias */}
                         {expandedCategories.has(category.id) && (
-                          <div className=""
+                          <div className="p-4"
                             {subcategories
                               .filter((sub: Subcategory) => sub.categoryId === category.id)
                               .map((subcategory: Subcategory) => (
-                                <div key={subcategory.id} className=""
+                                <div key={subcategory.id} className="p-4"
                                   {/* Header da Subcategoria */}
-                                  <div className=""
-                                    <div className=""
+                                  <div className="p-4"
+                                    <div className="p-4"
                                       <div 
                                         className="w-4 h-4 rounded border border-white shadow-sm"
                                         style={{ backgroundColor: subcategory.color }}
                                       />
-                                      <div className=""
-                                        <div className=""
+                                      <div className="p-4"
+                                        <div className="p-4"
                                           <span className="text-lg">"{subcategory.name}</span>
-                                          <Badge variant="outline" className=""
+                                          <Badge variant="outline" className="p-4"
                                             {actions.filter(action => action.subcategoryId === subcategory.id).length} ações
                                           </Badge>
                                         </div>
@@ -955,7 +955,7 @@ const TicketConfiguration: React.FC = () => {
                                         )}
                                       </div>
                                     </div>
-                                    <div className=""
+                                    <div className="p-4"
                                       <Button
                                         variant="outline"
                                         size="sm"
@@ -987,19 +987,19 @@ const TicketConfiguration: React.FC = () => {
                                     </div>
                                   </div>
                                   {/* Ações da Subcategoria */}
-                                  <div className=""
+                                  <div className="p-4"
                                     {actions
                                       .filter((action: Action) => action.subcategoryId === subcategory.id)
                                       .map((action: Action) => (
-                                        <div key={action.id} className=""
-                                          <div className=""
+                                        <div key={action.id} className="p-4"
+                                          <div className="p-4"
                                             <div 
                                               className="w-3 h-3 rounded border border-white shadow-sm"
                                               style={{ backgroundColor: action.color }}
                                             />
                                             <span className="text-lg">"{action.name}</span>
                                             {action.estimatedTimeMinutes && (
-                                              <Badge variant="outline" className=""
+                                              <Badge variant="outline" className="p-4"
                                                 {action.estimatedTimeMinutes}min
                                               </Badge>
                                             )}
@@ -1007,7 +1007,7 @@ const TicketConfiguration: React.FC = () => {
                                               <span className="text-lg">"- {action.description}</span>
                                             )}
                                           </div>
-                                          <div className=""
+                                          <div className="p-4"
                                             <Button
                                               variant="ghost"
                                               size="sm"
@@ -1031,7 +1031,7 @@ const TicketConfiguration: React.FC = () => {
                                         </div>
                                       ))}
                                     {actions.filter(action => action.subcategoryId === subcategory.id).length === 0 && (
-                                      <div className=""
+                                      <div className="p-4"
                                         <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                         <p className="text-lg">"Nenhuma ação cadastrada</p>
                                         <Button
@@ -1049,7 +1049,7 @@ const TicketConfiguration: React.FC = () => {
                                 </div>
                               ))}
                             {subcategories.filter(sub => sub.categoryId === category.id).length === 0 && (
-                              <div className=""
+                              <div className="p-4"
                                 <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                 <p className="text-lg">"Nenhuma subcategoria cadastrada nesta categoria</p>
                                 <Button
@@ -1072,16 +1072,16 @@ const TicketConfiguration: React.FC = () => {
             </Card>
           </TabsContent>
           {/* Tab: Classificação */}
-          <TabsContent value="classification" className=""
+          <TabsContent value="classification" className="p-4"
             {/* Header com estatísticas gerais */}
-            <div className=""
+            <div className="p-4"
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <Settings className="w-5 h-5 text-blue-600" />
                     <div>
                       <p className="text-lg">"Status</p>
-                      <p className=""
+                      <p className="p-4"
                         {fieldOptions.filter(opt => opt.fieldName === 'status').length}
                       </p>
                     </div>
@@ -1089,12 +1089,12 @@ const TicketConfiguration: React.FC = () => {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <AlertTriangle className="w-5 h-5 text-orange-600" />
                     <div>
                       <p className="text-lg">"Prioridades</p>
-                      <p className=""
+                      <p className="p-4"
                         {fieldOptions.filter(opt => opt.fieldName === 'priority').length}
                       </p>
                     </div>
@@ -1102,12 +1102,12 @@ const TicketConfiguration: React.FC = () => {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <Hash className="w-5 h-5 text-green-600" />
                     <div>
                       <p className="text-lg">"Impactos</p>
-                      <p className=""
+                      <p className="p-4"
                         {fieldOptions.filter(opt => opt.fieldName === 'impact').length}
                       </p>
                     </div>
@@ -1115,12 +1115,12 @@ const TicketConfiguration: React.FC = () => {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className=""
-                  <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
                     <AlertTriangle className="w-5 h-5 text-red-600" />
                     <div>
                       <p className="text-lg">"Urgências</p>
-                      <p className=""
+                      <p className="p-4"
                         {fieldOptions.filter(opt => opt.fieldName === 'urgency').length}
                       </p>
                     </div>
@@ -1197,22 +1197,22 @@ const TicketConfiguration: React.FC = () => {
                 options: fieldOptionsForType.map(o => ({ label: o.displayLabel, value: o.value }))
               });
               return (
-                <Card key={key} className=""
+                <Card key={key} className="p-4"
                   <CardHeader className="bg-"-50 border-b>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <div className="p-2 bg-"-100 rounded-lg>
                           <Icon className="w-5 h-5 text-"-600" />
                         </div>
                         <div>
                           <CardTitle className="text-lg">"{title}</CardTitle>
-                          <CardDescription className=""
+                          <CardDescription className="p-4"
                             {description}
                           </CardDescription>
                         </div>
                       </div>
-                      <div className=""
-                        <Badge variant="outline" className=""
+                      <div className="p-4"
+                        <Badge variant="outline" className="p-4"
                           {fieldOptionsForType.length} opções
                         </Badge>
                         <Button 
@@ -1225,16 +1225,16 @@ const TicketConfiguration: React.FC = () => {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className=""
+                  <CardContent className="p-4"
                     {fieldOptionsForType.length === 0 ? (
-                      <div className=""
+                      <div className="p-4"
                         <div className="w-16 h-16 mx-auto mb-4 bg-"-100 rounded-full flex items-center justify-center>
                           <Icon className="w-8 h-8 text-"-400" />
                         </div>
-                        <h3 className=""
+                        <h3 className="p-4"
                           Nenhuma opção configurada
                         </h3>
-                        <p className=""
+                        <p className="p-4"
                           Comece criando sua primeira opção para o campo {title.toLowerCase()}.
                         </p>
                         <Button 
@@ -1259,22 +1259,22 @@ const TicketConfiguration: React.FC = () => {
                         </TableHeader>
                         <TableBody>
                           {fieldOptionsForType.map((option: FieldOption, index: number) => (
-                            <TableRow key={option.id} className=""
-                              <TableCell className=""
+                            <TableRow key={option.id} className="p-4"
+                              <TableCell className="p-4"
                                 {option.sortOrder}
                               </TableCell>
                               <TableCell>
-                                <div className=""
+                                <div className="p-4"
                                   <div 
                                     className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"
                                     style={{ backgroundColor: option.color }}
                                   />
                                   <div>
-                                    <div className=""
+                                    <div className="p-4"
                                       {option.displayLabel}
                                     </div>
                                     {option.isDefault && (
-                                      <Badge variant="outline" className=""
+                                      <Badge variant="outline" className="p-4"
                                         Padrão
                                       </Badge>
                                     )}
@@ -1282,14 +1282,14 @@ const TicketConfiguration: React.FC = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <code className=""
+                                <code className="p-4"
                                   {option.value}
                                 </code>
                               </TableCell>
                               {key === 'status' && (
                                 <TableCell>
                                   {option.statusType ? (
-                                    <Badge variant="outline" className=""
+                                    <Badge variant="outline" className="p-4"
                                       {
                                         option.statusType === 'open' ? 'Aberto' :
                                         option.statusType === 'paused' ? 'Pausado' :
@@ -1303,7 +1303,7 @@ const TicketConfiguration: React.FC = () => {
                                 </TableCell>
                               )}
                               <TableCell>
-                                <div className=""
+                                <div className="p-4"
                                   <Switch 
                                     checked={option.active}
                                     onCheckedChange={(checked) => {
@@ -1314,13 +1314,13 @@ const TicketConfiguration: React.FC = () => {
                                     }}
                                     className="data-[state=checked]:bg-green-600"
                                   />
-                                  <Badge variant={option.active ? "default" : "secondary"} className=""
+                                  <Badge variant={option.active ? "default" : "secondary"} className="p-4"
                                     {option.active ? "Ativo" : "Inativo"
                                   </Badge>
                                 </div>
                               </TableCell>
-                              <TableCell className=""
-                                <div className=""
+                              <TableCell className="p-4"
+                                <div className="p-4"
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -1353,18 +1353,18 @@ const TicketConfiguration: React.FC = () => {
               );
             })}
             {/* Card de dicas e boas práticas */}
-            <Card className=""
+            <Card className="p-4"
               <CardHeader>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   <Settings className="w-5 h-5" />
                   <span>Dicas de Configuração</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
                   <div>
                     <h4 className="text-lg">"✨ Boas Práticas</h4>
-                    <ul className=""
+                    <ul className="p-4"
                       <li>• Mantenha o número de opções gerenciável (3-6 por campo)</li>
                       <li>• Use cores consistentes para facilitar identificação</li>
                       <li>• Configure sempre uma opção como padrão</li>
@@ -1373,7 +1373,7 @@ const TicketConfiguration: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="text-lg">"🎯 Ordem de Importância</h4>
-                    <ul className=""
+                    <ul className="p-4"
                       <li>• Prioridade: Crítica → Alta → Média → Baixa</li>
                       <li>• Urgência: Imediata → Alta → Normal → Baixa</li>
                       <li>• Impacto: Alto → Médio → Baixo → Mínimo</li>
@@ -1385,7 +1385,7 @@ const TicketConfiguration: React.FC = () => {
             </Card>
           </TabsContent>
           {/* Tab: Numeração */}
-          <TabsContent value="numbering" className=""
+          <TabsContent value="numbering" className="p-4"
             <Card>
               <CardHeader>
                 <CardTitle>Configuração de Numeração</CardTitle>
@@ -1395,8 +1395,8 @@ const TicketConfiguration: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <Form {...numberingForm}>
-                  <form onSubmit={numberingForm.handleSubmit((data) => saveNumberingMutation.mutate(data))} className=""
-                    <div className=""
+                  <form onSubmit={numberingForm.handleSubmit((data) => saveNumberingMutation.mutate(data))} className="p-4"
+                    <div className="p-4"
                       <FormField
                         control={numberingForm.control}
                         name="prefix"
@@ -1458,7 +1458,7 @@ const TicketConfiguration: React.FC = () => {
                         )}
                       />
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <FormField
                         control={numberingForm.control}
                         name="sequentialDigits"
@@ -1478,13 +1478,13 @@ const TicketConfiguration: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      <div className=""
+                      <div className="p-4"
                         <FormField
                           control={numberingForm.control}
                           name="resetYearly"
                           render={({ field }) => (
-                            <FormItem className=""
-                              <div className=""
+                            <FormItem className="p-4"
+                              <div className="p-4"
                                 <FormLabel>Resetar Numeração Anualmente</FormLabel>
                               </div>
                               <FormControl>
@@ -1498,12 +1498,12 @@ const TicketConfiguration: React.FC = () => {
                         />
                       </div>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Label className="text-lg">"Visualização:</Label>
-                      <div className=""
+                      <div className="p-4"
                         {numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || ''}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || ''}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -3)}123
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         Exemplo: <span className="text-lg">"{numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || ''}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || ''}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -6)}000123</span>
                       </div>
                     </div>
@@ -1520,7 +1520,7 @@ const TicketConfiguration: React.FC = () => {
       )}
       {/* Dialog para criação/edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>
               {editingItem?.type === 'category' && (editingItem.id ? 'Editar Categoria' : 'Nova Categoria')}
@@ -1532,7 +1532,7 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Categoria */}
           {editingItem?.type === 'category' && (
             <Form {...categoryForm}>
-              <form onSubmit={categoryForm.handleSubmit((data) => createCategoryMutation.mutate(data))} className=""
+              <form onSubmit={categoryForm.handleSubmit((data) => createCategoryMutation.mutate(data))} className="p-4"
                 <FormField
                   control={categoryForm.control}
                   name="name"
@@ -1559,7 +1559,7 @@ const TicketConfiguration: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={categoryForm.control}
                     name="color"
@@ -1591,8 +1591,8 @@ const TicketConfiguration: React.FC = () => {
                   control={categoryForm.control}
                   name="active"
                   render={({ field }) => (
-                    <FormItem className=""
-                      <div className=""
+                    <FormItem className="p-4"
+                      <div className="p-4"
                         <FormLabel>Ativo</FormLabel>
                       </div>
                       <FormControl>
@@ -1604,7 +1604,7 @@ const TicketConfiguration: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
@@ -1618,7 +1618,7 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Subcategoria */}
           {editingItem?.type === 'subcategory' && (
             <Form {...subcategoryForm}>
-              <form onSubmit={subcategoryForm.handleSubmit((data) => createSubcategoryMutation.mutate(data))} className=""
+              <form onSubmit={subcategoryForm.handleSubmit((data) => createSubcategoryMutation.mutate(data))} className="p-4"
                 <FormField
                   control={subcategoryForm.control}
                   name="categoryId"
@@ -1669,7 +1669,7 @@ const TicketConfiguration: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={subcategoryForm.control}
                     name="color"
@@ -1697,7 +1697,7 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 </div>
-                 <div className=""
+                 <div className="p-4"
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
@@ -1711,7 +1711,7 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Ação */}
           {editingItem?.type === 'action' && (
             <Form {...actionForm}>
-              <form onSubmit={actionForm.handleSubmit((data) => createActionMutation.mutate(data))} className=""
+              <form onSubmit={actionForm.handleSubmit((data) => createActionMutation.mutate(data))} className="p-4"
                 <FormField
                   control={actionForm.control}
                   name="subcategoryId"
@@ -1762,7 +1762,7 @@ const TicketConfiguration: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={actionForm.control}
                     name="color"
@@ -1790,7 +1790,7 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
@@ -1812,12 +1812,12 @@ const TicketConfiguration: React.FC = () => {
                   // Modo criação - usar createFieldOptionMutation
                   createFieldOptionMutation.mutate(data);
                 }
-              })} className=""
+              })} className="p-4"
                 {editingItem.fieldName ? (
-                  <div className=""
+                  <div className="p-4"
                     <FormLabel>Campo</FormLabel>
-                    <div className=""
-                      <span className=""
+                    <div className="p-4"
+                      <span className="p-4"
                         {editingItem.fieldName === 'status' && 'Status'}
                         {editingItem.fieldName === 'priority' && 'Prioridade'}
                         {editingItem.fieldName === 'impact' && 'Impacto'}
@@ -1851,7 +1851,7 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 )}
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={fieldOptionForm.control}
                     name="value"
@@ -1905,7 +1905,7 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 )}
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={fieldOptionForm.control}
                     name="color"
@@ -1937,8 +1937,8 @@ const TicketConfiguration: React.FC = () => {
                   control={fieldOptionForm.control}
                   name="isDefault"
                   render={({ field }) => (
-                    <FormItem className=""
-                      <div className=""
+                    <FormItem className="p-4"
+                      <div className="p-4"
                         <FormLabel>Opção Padrão</FormLabel>
                       </div>
                       <FormControl>
@@ -1950,7 +1950,7 @@ const TicketConfiguration: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>

@@ -37,30 +37,30 @@ const features = [
 ];
 export default function Landing() {
   return (
-    <div className=""
+    <div className="p-4"
       {/* Hero Section */}
-      <div className=""
+      <div className="p-4"
         <div className="text-lg">"</div>
-        <div className=""
-          <div className=""
-            <div className=""
-              <div className=""
+        <div className="p-4"
+          <div className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-lg">"Conductor</h1>
             </div>
             
-            <h2 className=""
+            <h2 className="p-4"
               Customer Support
               <span className="text-lg">"Reimagined</span>
             </h2>
             
-            <p className=""
+            <p className="p-4"
               The comprehensive SaaS platform that transforms how you handle customer support. 
               Multi-tenant architecture, enterprise-grade security, and beautiful gradient design.
             </p>
             
-            <div className=""
+            <div className="p-4"
               <Button 
                 size="lg" 
                 className="gradient-primary text-white hover:opacity-90 px-8 py-3"
@@ -80,29 +80,29 @@ export default function Landing() {
         </div>
       </div>
       {/* Features Section */}
-      <div className=""
-        <div className=""
-          <h3 className=""
+      <div className="p-4"
+        <div className="p-4"
+          <h3 className="p-4"
             Everything you need for world-class support
           </h3>
-          <p className=""
+          <p className="p-4"
             From ticket management to advanced analytics, Conductor provides all the tools 
             your team needs to deliver exceptional customer experiences.
           </p>
         </div>
-        <div className=""
+        <div className="p-4"
           {features.map((feature, index) => (
-            <Card key={index} className=""
+            <Card key={index} className="p-4"
               <CardHeader>
-                <div className=""
+                <div className="p-4"
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className=""
+                <CardTitle className="p-4"
                   {feature.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className=""
+                <p className="p-4"
                   {feature.description}
                 </p>
               </CardContent>
@@ -111,13 +111,13 @@ export default function Landing() {
         </div>
       </div>
       {/* CTA Section */}
-      <div className=""
-        <div className=""
-          <div className=""
-            <h3 className=""
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
+            <h3 className="p-4"
               Ready to transform your customer support?
             </h3>
-            <p className=""
+            <p className="p-4"
               Join thousands of teams already using Conductor to deliver 
               exceptional customer experiences at scale.
             </p>
@@ -133,16 +133,16 @@ export default function Landing() {
         </div>
       </div>
       {/* Footer */}
-      <footer className=""
-        <div className=""
-          <div className=""
-            <div className=""
-              <div className=""
+      <footer className="p-4"
+        <div className="p-4"
+          <div className="p-4"
+            <div className="p-4"
+              <div className="p-4"
                 <Zap className="w-4 h-4 text-white" />
               </div>
               <span className="text-lg">"Conductor</span>
             </div>
-            <p className=""
+            <p className="p-4"
               © 2025 Conductor. All rights reserved.
             </p>
           </div>

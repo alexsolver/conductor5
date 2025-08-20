@@ -12,7 +12,7 @@ export function ApprovalManagement() {
   const [activeTab, setActiveTab] = useState('dashboard');
   return (
     <div className="container mx-auto p-6" data-testid="approval-management-container>
-      <div className=""
+      <div className="p-4"
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="page-title>
             Gerenciamento de Aprovações
@@ -25,7 +25,7 @@ export function ApprovalManagement() {
           Sistema Ativo
         </Badge>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className=""
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
         <TabsList className="grid w-full grid-cols-4" data-testid="tabs-navigation>
           <TabsTrigger value="dashboard" className="flex items-center gap-2" data-testid="tab-dashboard>
             <BarChart3 className="h-4 w-4" />
@@ -44,7 +44,7 @@ export function ApprovalManagement() {
             Grupos
           </TabsTrigger>
         </TabsList>
-        <div className=""
+        <div className="p-4"
           <TabsContent value="dashboard" data-testid="content-dashboard>
             <ApprovalDashboard />
           </TabsContent>

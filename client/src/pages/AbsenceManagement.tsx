@@ -190,16 +190,16 @@ export default function AbsenceManagement() {
   };
   if (isLoading) {
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <div className="text-lg">"Carregando solicitações de ausência...</div>
         </div>
       </div>
     );
   }
   return (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <div>
           <h1 className="text-lg">"Gestão de Ausências</h1>
           <p className="text-lg">"Gerencie solicitações de férias, licenças e faltas</p>
@@ -212,7 +212,7 @@ export default function AbsenceManagement() {
               Nova Solicitação
             </Button>
           </DialogTrigger>
-          <DialogContent className=""
+          <DialogContent className="p-4"
             <DialogHeader>
               <DialogTitle>Nova Solicitação de Ausência</DialogTitle>
               <DialogDescription>
@@ -221,8 +221,8 @@ export default function AbsenceManagement() {
             </DialogHeader>
             
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className=""
-                <div className=""
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4"
+                <div className="p-4"
                   <FormField
                     control={form.control}
                     name="userId"
@@ -272,7 +272,7 @@ export default function AbsenceManagement() {
                     )}
                   />
                 </div>
-                <div className=""
+                <div className="p-4"
                   <FormField
                     control={form.control}
                     name="startDate"
@@ -358,7 +358,7 @@ export default function AbsenceManagement() {
                     </FormItem>
                   )}
                 />
-                <div className=""
+                <div className="p-4"
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>
@@ -371,10 +371,10 @@ export default function AbsenceManagement() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className=""
+      <div className="p-4"
         <Card>
           <CardHeader>
-            <CardTitle className=""
+            <CardTitle className="p-4"
               <AlertCircle className="h-5 w-5" />
               Solicitações Pendentes de Aprovação
             </CardTitle>
@@ -384,19 +384,19 @@ export default function AbsenceManagement() {
           </CardHeader>
           <CardContent>
             {pendingRequests.length === 0 ? (
-              <div className=""
+              <div className="p-4"
                 Nenhuma solicitação pendente
               </div>
             ) : (
-              <div className=""
+              <div className="p-4"
                 {pendingRequests.map((request: AbsenceRequest) => (
-                  <div key={request.id} className=""
-                    <div className=""
-                      <div className=""
+                  <div key={request.id} className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         <User className="h-4 w-4 text-gray-400" />
                         <div>
                           <h3 className="text-lg">"{request.userName || 'Usuário'}</h3>
-                          <p className=""
+                          <p className="p-4"
                             {absenceTypeLabels[request.absenceType as keyof typeof absenceTypeLabels]}
                           </p>
                         </div>
@@ -405,28 +405,28 @@ export default function AbsenceManagement() {
                         {statusLabels[request.status as keyof typeof statusLabels]}
                       </Badge>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className=""
+                        <span className="p-4"
                           {formatDate(request.startDate)} a {formatDate(request.endDate)}
                         </span>
                       </div>
-                      <div className=""
+                      <div className="p-4"
                         <Clock className="h-4 w-4 text-gray-400" />
-                        <span className=""
+                        <span className="p-4"
                           {calculateDays(request.startDate, request.endDate)} dia(s)
                         </span>
                       </div>
                     </div>
-                    <div className=""
-                      <div className=""
+                    <div className="p-4"
+                      <div className="p-4"
                         <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
                         <p className="text-lg">"{request.reason}</p>
                       </div>
                     </div>
                     {request.status === 'pending' && (
-                      <div className=""
+                      <div className="p-4"
                         <Button
                           variant="outline"
                           size="sm"

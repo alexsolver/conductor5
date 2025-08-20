@@ -252,18 +252,18 @@ export default function ActivityPlanner() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="button-create-asset" className=""
+          <Button data-testid="button-create-asset" className="p-4"
             <Plus className="w-4 h-4 mr-2" />
             Novo Ativo
           </Button>
         </DialogTrigger>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Criar Novo Ativo</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createAssetMutation.mutate(data))} className=""
-              <div className=""
+            <form onSubmit={form.handleSubmit((data) => createAssetMutation.mutate(data))} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={form.control}
                   name="tag"
@@ -450,7 +450,7 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
@@ -508,18 +508,18 @@ export default function ActivityPlanner() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="button-create-plan" className=""
+          <Button data-testid="button-create-plan" className="p-4"
             <Plus className="w-4 h-4 mr-2" />
             Novo Plano
           </Button>
         </DialogTrigger>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Criar Plano de Manutenção</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createPlanMutation.mutate(data))} className=""
-              <div className=""
+            <form onSubmit={form.handleSubmit((data) => createPlanMutation.mutate(data))} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={form.control}
                   name="name"
@@ -662,10 +662,10 @@ export default function ActivityPlanner() {
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className=""
-                    <div className=""
+                  <FormItem className="p-4"
+                    <div className="p-4"
                       <FormLabel className="text-lg">"Plano Ativo</FormLabel>
-                      <div className=""
+                      <div className="p-4"
                         Ativar agendamento automático de manutenções
                       </div>
                     </div>
@@ -679,7 +679,7 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
@@ -738,18 +738,18 @@ export default function ActivityPlanner() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="button-create-workorder" className=""
+          <Button data-testid="button-create-workorder" className="p-4"
             <Plus className="w-4 h-4 mr-2" />
             Nova OS
           </Button>
         </DialogTrigger>
-        <DialogContent className=""
+        <DialogContent className="p-4"
           <DialogHeader>
             <DialogTitle>Criar Ordem de Serviço</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => createWorkOrderMutation.mutate(data))} className=""
-              <div className=""
+            <form onSubmit={form.handleSubmit((data) => createWorkOrderMutation.mutate(data))} className="p-4"
+              <div className="p-4"
                 <FormField
                   control={form.control}
                   name="title"
@@ -934,7 +934,7 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-              <div className=""
+              <div className="p-4"
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
@@ -957,10 +957,10 @@ export default function ActivityPlanner() {
   function TechnicianAllocationPanel() {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <h3 className="text-lg">"Alocação de Técnicos</h3>
-          <div className=""
+          <div className="p-4"
             <Input 
               type="date" 
               value={selectedDate}
@@ -973,11 +973,11 @@ export default function ActivityPlanner() {
             </Button>
           </div>
         </div>
-        <div className=""
+        <div className="p-4"
           {(technicians as any)?.data?.map((tech: Technician) => (
             <Card key={tech.id} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
-              <CardHeader className=""
-                <div className=""
+              <CardHeader className="p-4"
+                <div className="p-4"
                   <div>
                     <CardTitle className="text-lg">"{tech.name}</CardTitle>
                     <p className="text-lg">"{tech.email}</p>
@@ -988,30 +988,30 @@ export default function ActivityPlanner() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className=""
+              <CardContent className="p-4"
                 <div>
                   <p className="text-lg">"Habilidades:</p>
-                  <div className=""
+                  <div className="p-4"
                     {tech.skills?.map((skill, idx) => (
                       <Badge key={idx} variant="outline" className="text-lg">"{skill}</Badge>
                     ))}
                   </div>
                 </div>
                 
-                <div className=""
+                <div className="p-4"
                   <p className="text-lg">"OS do Dia:</p>
-                  <div className=""
-                    <div className=""
+                  <div className="p-4"
+                    <div className="p-4"
                       <span>OS-001 (09:00-11:00)</span>
                       <Badge variant="outline" className="text-lg">"Em Andamento</Badge>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <span>OS-002 (14:00-16:00)</span>
                       <Badge variant="secondary" className="text-lg">"Agendada</Badge>
                     </div>
                   </div>
                 </div>
-                <div className=""
+                <div className="p-4"
                   <Button size="sm" variant="outline" className="flex-1" data-testid={"asset-card-
                     <Eye className="w-3 h-3 mr-1" />
                     Ver
@@ -1033,10 +1033,10 @@ export default function ActivityPlanner() {
     const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
     const [selectedWeek, setSelectedWeek] = useState(new Date().toISOString().split('T')[0]);
     return (
-      <div className=""
-        <div className=""
+      <div className="p-4"
+        <div className="p-4"
           <h3 className="text-lg">"Cronograma de Manutenções</h3>
-          <div className=""
+          <div className="p-4"
             <Select value={viewMode} onValueChange={(value: 'calendar' | 'list') => setViewMode(value)}>
               <SelectTrigger className="w-32" data-testid="select-schedule-view>
                 <SelectValue />
@@ -1053,15 +1053,15 @@ export default function ActivityPlanner() {
               data-testid="input-schedule-week"
               className="w-40"
             />
-            <Button data-testid="button-schedule-maintenance" className=""
+            <Button data-testid="button-schedule-maintenance" className="p-4"
               <CalendarDays className="w-4 h-4 mr-2" />
               Agendar
             </Button>
           </div>
         </div>
         {viewMode === 'calendar' ? (
-          <div className=""
-            <div className=""
+          <div className="p-4"
+            <div className="p-4"
               <div className="text-lg">"Horário</div>
               {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => (
                 <div key={day} className="text-lg">"{day}</div>
@@ -1069,7 +1069,7 @@ export default function ActivityPlanner() {
             </div>
             
             {Array.from({ length: 12 }, (_, hour) => (
-              <div key={hour} className=""
+              <div key={hour} className="p-4"
                 <div className="text-lg">"{(hour + 8).toString().padStart(2, '0')}:00</div>
                 {Array.from({ length: 7 }, (_, day) => (
                   <div 
@@ -1079,12 +1079,12 @@ export default function ActivityPlanner() {
                   >
                     {/* Sample maintenance blocks */}
                     {(day === 1 && hour === 2) && (
-                      <div className=""
+                      <div className="p-4"
                         OS-001
                       </div>
                     )}
                     {(day === 3 && hour === 4) && (
-                      <div className=""
+                      <div className="p-4"
                         OS-002
                       </div>
                     )}
@@ -1094,24 +1094,24 @@ export default function ActivityPlanner() {
             ))}
           </div>
         ) : (
-          <div className=""
+          <div className="p-4"
             {[1, 2, 3].map(i => (
               <Card key={i} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
-                <CardContent className=""
-                  <div className=""
-                    <div className=""
-                      <div className=""
+                <CardContent className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
+                      <div className="p-4"
                         <Badge className="text-lg">"OS-00{i}</Badge>
                         <span className="text-lg">"Manutenção Preventiva - Equipamento {i}</span>
                       </div>
-                      <p className=""
+                      <p className="p-4"
                         📍 Localização: Setor {i} | 👨‍🔧 Técnico: João Silva
                       </p>
-                      <p className=""
+                      <p className="p-4"
                         ⏰ {new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString()} às 09:00 - 11:00
                       </p>
                     </div>
-                    <div className=""
+                    <div className="p-4"
                       <Button size="sm" variant="outline" data-testid={"asset-card-
                         <Edit className="w-3 h-3" />
                       </Button>
@@ -1167,7 +1167,7 @@ export default function ActivityPlanner() {
       }
     };
     return (
-      <div className=""
+      <div className="p-4"
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
@@ -1222,53 +1222,53 @@ export default function ActivityPlanner() {
     );
   }
   const renderDashboard = () => (
-    <div className=""
-      <Card className=""
-        <CardHeader className=""
+    <div className="p-4"
+      <Card className="p-4"
+        <CardHeader className="p-4"
           <CardTitle className="text-lg">"Total de Ativos</CardTitle>
           <Settings className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
-          <div className=""
+          <div className="p-4"
             {(assetStats as any)?.data?.total || 0}
           </div>
-          <p className=""
+          <p className="p-4"
             {(assetStats as any)?.data?.needingMaintenance || 0} precisam manutenção
           </p>
         </CardContent>
       </Card>
-      <Card className=""
-        <CardHeader className=""
+      <Card className="p-4"
+        <CardHeader className="p-4"
           <CardTitle className="text-lg">"Planos Ativos</CardTitle>
           <Calendar className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
           <div className="text-lg">"0</div>
-          <p className=""
+          <p className="p-4"
             0 aguardando geração
           </p>
         </CardContent>
       </Card>
-      <Card className=""
-        <CardHeader className=""
+      <Card className="p-4"
+        <CardHeader className="p-4"
           <CardTitle className="text-lg">"OS em Andamento</CardTitle>
           <Wrench className="h-4 w-4 text-orange-600" />
         </CardHeader>
         <CardContent>
           <div className="text-lg">"0</div>
-          <p className=""
+          <p className="p-4"
             0 atrasadas
           </p>
         </CardContent>
       </Card>
-      <Card className=""
-        <CardHeader className=""
+      <Card className="p-4"
+        <CardHeader className="p-4"
           <CardTitle className="text-lg">"Eficiência</CardTitle>
           <CheckCircle className="h-4 w-4 text-purple-600" />
         </CardHeader>
         <CardContent>
           <div className="text-lg">"95%</div>
-          <p className=""
+          <p className="p-4"
             SLA cumprido
           </p>
         </CardContent>
@@ -1276,10 +1276,10 @@ export default function ActivityPlanner() {
     </div>
   );
   const renderAssets = () => (
-    <div className=""
-      <div className=""
-        <div className=""
-          <div className=""
+    <div className="p-4"
+      <div className="p-4"
+        <div className="p-4"
+          <div className="p-4"
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder='[TRANSLATION_NEEDED]'
@@ -1294,7 +1294,7 @@ export default function ActivityPlanner() {
             Filtros
           </Button>
         </div>
-        <div className=""
+        <div className="p-4"
           <Button variant="outline" size="sm" data-testid="button-export-assets>
             <Download className="h-4 w-4 mr-2" />
             Exportar
@@ -1305,16 +1305,16 @@ export default function ActivityPlanner() {
           </Button>
         </div>
       </div>
-      <div className=""
+      <div className="p-4"
         {loadingAssets ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className=""
+            <Card key={i} className="p-4"
               <CardHeader>
                 <div className="text-lg">"</div>
                 <div className="text-lg">"</div>
               </CardHeader>
               <CardContent>
-                <div className=""
+                <div className="p-4"
                   <div className="text-lg">"</div>
                   <div className="text-lg">"</div>
                 </div>
@@ -1325,7 +1325,7 @@ export default function ActivityPlanner() {
           assets.data.map((asset: Asset) => (
             <Card key={asset.id} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
               <CardHeader>
-                <div className=""
+                <div className="p-4"
                   <div>
                     <CardTitle className="text-lg">"{asset.tag}</CardTitle>
                     <CardDescription>{asset.name}</CardDescription>
@@ -1336,13 +1336,13 @@ export default function ActivityPlanner() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className=""
-                  <div className=""
+                <div className="p-4"
+                  <div className="p-4"
                     <MapPin className="h-4 w-4 mr-2" />
                     Status: {asset.status}
                   </div>
                   {asset.nextMaintenanceDate && (
-                    <div className=""
+                    <div className="p-4"
                       <Clock className="h-4 w-4 mr-2" />
                       Próxima manutenção: {new Date(asset.nextMaintenanceDate).toLocaleDateString()}
                     </div>
@@ -1352,12 +1352,12 @@ export default function ActivityPlanner() {
             </Card>
           ))
         ) : (
-          <div className=""
+          <div className="p-4"
             <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className=""
+            <h3 className="p-4"
               Nenhum ativo encontrado
             </h3>
-            <p className=""
+            <p className="p-4"
               Comece criando seu primeiro ativo para gerenciar manutenções.
             </p>
             <Button data-testid="button-create-first-asset>
@@ -1370,20 +1370,20 @@ export default function ActivityPlanner() {
     </div>
   );
   const renderMaintenancePlans = () => (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <h2 className="text-lg">"Planos de Manutenção</h2>
         <CreateMaintenancePlanDialog onSuccess={() => {}} />
       </div>
       
       <Card>
-        <CardContent className=""
-          <div className=""
+        <CardContent className="p-4"
+          <div className="p-4"
             <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className=""
+            <h3 className="p-4"
               Nenhum plano de manutenção
             </h3>
-            <p className=""
+            <p className="p-4"
               Configure planos preventivos para automatizar a manutenção dos seus ativos.
             </p>
           </div>
@@ -1392,19 +1392,19 @@ export default function ActivityPlanner() {
     </div>
   );
   const renderWorkOrders = () => (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <h2 className="text-lg">"Ordens de Serviço</h2>
         <CreateWorkOrderDialog onSuccess={() => {}} />
       </div>
-      <div className=""
+      <div className="p-4"
         {workOrders?.data && Array.isArray(workOrders.data) && workOrders.data.length > 0 ? (
           workOrders.data.map((workOrder: WorkOrder) => (
             <Card key={workOrder.id} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
               <CardHeader>
-                <div className=""
-                  <div className=""
-                    <div className=""
+                <div className="p-4"
+                  <div className="p-4"
+                    <div className="p-4"
                       <Badge 
                         variant={workOrder.priority === 'high' || workOrder.priority === 'critical' ? 'destructive' : 'default'}
                         className="text-xs"
@@ -1427,45 +1427,45 @@ export default function ActivityPlanner() {
                       </Badge>
                     </div>
                     <CardTitle className="text-lg">"{workOrder.title}</CardTitle>
-                    <CardDescription className=""
+                    <CardDescription className="p-4"
                       {workOrder.description}
                     </CardDescription>
                   </div>
                   <WorkOrderWorkflow workOrder={workOrder} />
                 </div>
               </CardHeader>
-              <CardContent className=""
-                <div className=""
-                  <div className=""
+              <CardContent className="p-4"
+                <div className="p-4"
+                  <div className="p-4"
                     <Settings className="h-4 w-4 text-gray-500" />
                     <span className="text-lg">"Ativo:</span>
                     <span className="text-lg">"Ativo-{workOrder.assetId}</span>
                   </div>
                   
-                  <div className=""
+                  <div className="p-4"
                     <User className="h-4 w-4 text-gray-500" />
                     <span className="text-lg">"Técnico:</span>
-                    <span className=""
+                    <span className="p-4"
                       {workOrder.assignedTechnicianId ? 'Atribuído' : 'Não atribuído'}
                     </span>
                   </div>
                   
-                  <div className=""
+                  <div className="p-4"
                     <Clock className="h-4 w-4 text-gray-500" />
                     <span className="text-lg">"Duração:</span>
                     <span className="text-lg">"{workOrder.estimatedDuration}h</span>
                   </div>
                 </div>
                 {workOrder.scheduledStart && (
-                  <div className=""
+                  <div className="p-4"
                     <Calendar className="h-4 w-4 text-gray-500" />
                     <span className="text-lg">"Agendado:</span>
-                    <span className=""
+                    <span className="p-4"
                       {new Date(workOrder.scheduledStart).toLocaleString()}
                     </span>
                   </div>
                 )}
-                <div className=""
+                <div className="p-4"
                   <Button size="sm" variant="outline" data-testid={"asset-card-
                     <Eye className="w-3 h-3 mr-1" />
                     Ver Detalhes
@@ -1480,13 +1480,13 @@ export default function ActivityPlanner() {
           ))
         ) : (
           <Card>
-            <CardContent className=""
-              <div className=""
+            <CardContent className="p-4"
+              <div className="p-4"
                 <Wrench className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className=""
+                <h3 className="p-4"
                   Nenhuma ordem de serviço
                 </h3>
-                <p className=""
+                <p className="p-4"
                   Crie ordens de serviço para gerenciar trabalhos de manutenção.
                 </p>
               </div>
@@ -1497,10 +1497,10 @@ export default function ActivityPlanner() {
     </div>
   );
   const renderAnalytics = () => (
-    <div className=""
-      <div className=""
+    <div className="p-4"
+      <div className="p-4"
         <h2 className="text-lg">"Analytics & Relatórios</h2>
-        <div className=""
+        <div className="p-4"
           <Button variant="outline" size="sm" data-testid="button-export-analytics>
             <Download className="h-4 w-4 mr-2" />
             Exportar
@@ -1512,66 +1512,66 @@ export default function ActivityPlanner() {
         </div>
       </div>
       {/* KPI Cards */}
-      <div className=""
-        <Card className=""
-          <CardHeader className=""
+      <div className="p-4"
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"MTBF Médio</CardTitle>
             <BarChart3 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"127h</div>
-            <p className=""
+            <p className="p-4"
               +12% vs mês anterior
             </p>
           </CardContent>
         </Card>
-        <Card className=""
-          <CardHeader className=""
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"MTTR Médio</CardTitle>
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"2.4h</div>
-            <p className=""
+            <p className="p-4"
               -18% vs mês anterior
             </p>
           </CardContent>
         </Card>
-        <Card className=""
-          <CardHeader className=""
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Disponibilidade</CardTitle>
             <CheckCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"98.7%</div>
-            <p className=""
+            <p className="p-4"
               +2.1% vs mês anterior
             </p>
           </CardContent>
         </Card>
-        <Card className=""
-          <CardHeader className=""
+        <Card className="p-4"
+          <CardHeader className="p-4"
             <CardTitle className="text-lg">"Custos Total</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-lg">"R$ 24.7k</div>
-            <p className=""
+            <p className="p-4"
               -8% vs mês anterior
             </p>
           </CardContent>
         </Card>
       </div>
       {/* Charts and Reports */}
-      <div className=""
+      <div className="p-4"
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">"Tendência de Manutenções</CardTitle>
             <CardDescription>Preventivas vs Corretivas (últimos 6 meses)</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className=""
-              <div className=""
+            <div className="p-4"
+              <div className="p-4"
                 <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <p className="text-lg">"Gráfico de tendências</p>
                 <p className="text-lg">"Dados simulados para demonstração</p>
@@ -1585,9 +1585,9 @@ export default function ActivityPlanner() {
             <CardDescription>Ativos por nível de criticidade</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className=""
-              <div className=""
-                <div className=""
+            <div className="p-4"
+              <div className="p-4"
+                <div className="p-4"
                   <div className="text-lg">"</div>
                   <span className="text-lg">"Crítica</span>
                 </div>
@@ -1595,8 +1595,8 @@ export default function ActivityPlanner() {
               </div>
               <Progress value={24} className="h-2" />
               
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <div className="text-lg">"</div>
                   <span className="text-lg">"Alta</span>
                 </div>
@@ -1604,8 +1604,8 @@ export default function ActivityPlanner() {
               </div>
               <Progress value={38} className="h-2" />
               
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <div className="text-lg">"</div>
                   <span className="text-lg">"Média</span>
                 </div>
@@ -1613,8 +1613,8 @@ export default function ActivityPlanner() {
               </div>
               <Progress value={26} className="h-2" />
               
-              <div className=""
-                <div className=""
+              <div className="p-4"
+                <div className="p-4"
                   <div className="text-lg">"</div>
                   <span className="text-lg">"Baixa</span>
                 </div>
@@ -1647,7 +1647,7 @@ export default function ActivityPlanner() {
               <TableRow>
                 <TableCell className="text-lg">"EQ-001 - Compressor Principal</TableCell>
                 <TableCell>
-                  <div className=""
+                  <div className="p-4"
                     <span>99.2%</span>
                     <Badge variant="outline" className="text-lg">"Excelente</Badge>
                   </div>
@@ -1662,7 +1662,7 @@ export default function ActivityPlanner() {
               <TableRow>
                 <TableCell className="text-lg">"EQ-002 - Bomba Hidráulica</TableCell>
                 <TableCell>
-                  <div className=""
+                  <div className="p-4"
                     <span>97.8%</span>
                     <Badge variant="outline" className="text-lg">"Bom</Badge>
                   </div>
@@ -1677,7 +1677,7 @@ export default function ActivityPlanner() {
               <TableRow>
                 <TableCell className="text-lg">"EQ-003 - Motor Elétrico</TableCell>
                 <TableCell>
-                  <div className=""
+                  <div className="p-4"
                     <span>94.5%</span>
                     <Badge variant="outline" className="text-lg">"Regular</Badge>
                   </div>
@@ -1696,17 +1696,17 @@ export default function ActivityPlanner() {
     </div>
   );
   return (
-    <div className=""
-      <div className=""
-        <h1 className=""
+    <div className="p-4"
+      <div className="p-4"
+        <h1 className="p-4"
           Planejador de Atividades
         </h1>
-        <p className=""
+        <p className="p-4"
           Gerencie ativos, planos de manutenção e ordens de serviço de forma integrada
         </p>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className=""
+        <TabsList className="p-4"
           <TabsTrigger value="dashboard" data-testid="tab-dashboard>
             Dashboard
           </TabsTrigger>
@@ -1729,25 +1729,25 @@ export default function ActivityPlanner() {
             Analytics
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="dashboard" className=""
+        <TabsContent value="dashboard" className="p-4"
           {renderDashboard()}
         </TabsContent>
-        <TabsContent value="assets" className=""
+        <TabsContent value="assets" className="p-4"
           {renderAssets()}
         </TabsContent>
-        <TabsContent value="plans" className=""
+        <TabsContent value="plans" className="p-4"
           {renderMaintenancePlans()}
         </TabsContent>
-        <TabsContent value="workorders" className=""
+        <TabsContent value="workorders" className="p-4"
           {renderWorkOrders()}
         </TabsContent>
-        <TabsContent value="technicians" className=""
+        <TabsContent value="technicians" className="p-4"
           <TechnicianAllocationPanel />
         </TabsContent>
-        <TabsContent value="scheduler" className=""
+        <TabsContent value="scheduler" className="p-4"
           <MaintenanceScheduler />
         </TabsContent>
-        <TabsContent value="analytics" className=""
+        <TabsContent value="analytics" className="p-4"
           {renderAnalytics()}
         </TabsContent>
       </Tabs>
