@@ -258,7 +258,7 @@ function LocationsNewContent() {
     },
     onSuccess: () => {
       toast({
-        title: {t('LocationsNew.sucesso')},
+        title: "Sucesso",
         description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} criado com sucesso!`
       });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
@@ -267,9 +267,9 @@ function LocationsNewContent() {
       form.reset();
     },
     onError: (error) => {
-      console.error({t('LocationsNew.errorCreatingRecord')}, error);
+      console.error("texto", error);
       toast({
-        title: {t('LocationsNew.erro')},
+        title: "texto",
         description: "Falha ao criar registro. Tente novamente.",
         variant: "destructive"
       });
@@ -391,7 +391,7 @@ function LocationsNewContent() {
                           <h4 className="font-medium">Selecionar Padrão de Horário</h4>
                           <Select>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('LocationsNew.escolhaUmPadrao')} />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="comercial">Comercial Padrão</SelectItem>
@@ -468,7 +468,7 @@ function LocationsNewContent() {
                             <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                  <SelectValue placeholder="texto" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -534,7 +534,7 @@ function LocationsNewContent() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                  <SelectValue placeholder="texto" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -557,7 +557,7 @@ function LocationsNewContent() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('LocationsNew.selecioneUmTecnico')} />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -717,7 +717,7 @@ function LocationsNewContent() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                  <SelectValue placeholder="texto" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -901,7 +901,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -973,7 +973,7 @@ function LocationsNewContent() {
                               <FormItem>
                                 <FormLabel>Clientes Vinculados</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('LocationsNew.multiselecaoDeClientes')} {...field} />
+                                  <Input placeholder="texto" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -989,7 +989,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1147,7 +1147,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1232,7 +1232,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1333,7 +1333,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1371,7 +1371,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecioneOrigem')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1393,7 +1393,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecioneDestino')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1429,7 +1429,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1531,7 +1531,7 @@ function LocationsNewContent() {
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1606,7 +1606,7 @@ function LocationsNewContent() {
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder={t('LocationsNew.selecioneOTipo')} />
+                                    <SelectValue placeholder="texto" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -1671,7 +1671,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('LocationsNew.selecione')} />
+                                      <SelectValue placeholder="texto" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1802,7 +1802,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createMutation.isPending}>
-                      {createMutation.isPending ? "Criando..." : {t('LocationsNew.criar')}}
+                      {createMutation.isPending ? "Criando..." : "texto"}
                     </Button>
                   </div>
                 </form>
@@ -1868,7 +1868,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={t('LocationsNew.buscarRegistros')}
+                    placeholder="texto"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -1877,7 +1877,7 @@ import { useLocalization } from '@/hooks/useLocalization';
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={t('LocationsNew.filtrarPorStatus')} />
+                  <SelectValue placeholder="texto" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>

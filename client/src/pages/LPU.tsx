@@ -207,8 +207,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoExcluirListaDePrecos')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "Erro ao excluir lista de preços",
+        description: error?.message || "Erro desconhecido",
         variant: "destructive"
       });
     }
@@ -226,8 +226,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoDuplicarListaDePrecos')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "Erro ao duplicar lista de preços",
+        description: error?.message || "Erro desconhecido",
         variant: "destructive"
       });
     }
@@ -247,8 +247,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoCriarRegraDePrecificacao')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "Erro ao criar regra de precificação",
+        description: error?.message || "Erro desconhecido",
         variant: "destructive"
       });
     }
@@ -268,8 +268,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoAtualizarRegraDePrecificacao')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "Erro ao atualizar regra de precificação",
+        description: error?.message || "Erro desconhecido",
         variant: "destructive"
       });
     }
@@ -288,8 +288,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoExcluirRegraDePrecificacao')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "Erro ao excluir regra de precificação",
+        description: error?.message || "Erro desconhecido",
         variant: "destructive"
       });
     }
@@ -304,14 +304,14 @@ export default function LPU() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({
-        title: {t('LPU.regrasAplicadasComSucesso')},
+        title: "Regras aplicadas com sucesso",
         description: `${data.affectedItems || 0} itens atualizados`
       });
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoAplicarRegras')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "Erro ao aplicar regras",
+        description: error?.message || "Erro desconhecido",
         variant: "destructive"
       });
     }
@@ -378,7 +378,7 @@ export default function LPU() {
       <CardContent className="p-4">
         <h3 className="text-red-800 font-medium">{title}</h3>
         <p className="text-red-600 text-sm mt-1">
-          {error?.message || {t('LPU.erroDesconhecido')}}
+          {error?.message || "Erro desconhecido"}
         </p>
       </CardContent>
     </Card>
@@ -409,7 +409,7 @@ export default function LPU() {
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-gray-900">Erro no Sistema LPU</h3>
             <p className="text-sm text-gray-600">
-              {errorMessage || {t('LPU.erroInternoDoServidor')}}
+              {errorMessage || "texto"}
             </p>
           </div>
           <div className="flex gap-2 justify-center">
@@ -589,7 +589,7 @@ export default function LPU() {
             <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('LPU.buscarListasDePrecos')}
+                placeholder="texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -606,7 +606,7 @@ export default function LPU() {
               <div className="text-center py-8">Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {priceLists.length === 0 ? {t('LPU.nenhumaListaEncontrada')} : {t('LPU.nenhumResultadoParaABusca')}}
+                {priceLists.length === 0 ? "texto" : "texto"}
               </div>
             ) : (
               filteredPriceLists.map((list: PriceList) => (
@@ -701,7 +701,7 @@ export default function LPU() {
             <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('LPU.buscarRegrasDePrecificacao')}
+                placeholder="texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -718,7 +718,7 @@ export default function LPU() {
               <div className="text-center py-8">Carregando regras...</div>
             ) : filteredPricingRules.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {pricingRules.length === 0 ? {t('LPU.nenhumaRegraConfigurada')} : {t('LPU.nenhumResultadoParaABusca')}}
+                {pricingRules.length === 0 ? "texto" : "texto"}
               </div>
             ) : (
               filteredPricingRules.map((rule: PricingRule) => (
@@ -1319,7 +1319,7 @@ export default function LPU() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name}` : {t('LPU.criarNovaVersao')}}
+              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name}` : "texto"}
             </DialogTitle>
             <DialogDescription>
               Visualize o histórico de alterações e gerencie versões
@@ -1420,7 +1420,7 @@ function PriceListForm({
     // Enhanced validation
     if (!formData.name.trim()) {
       toast({
-        title: {t('LPU.erroDeValidacao')},
+        title: "texto",
         description: "Nome da lista é obrigatório",
         variant: "destructive"
       });
@@ -1429,7 +1429,7 @@ function PriceListForm({
 
     if (formData.validTo && new Date(formData.validTo) <= new Date(formData.validFrom)) {
       toast({
-        title: {t('LPU.erroDeValidacao')},
+        title: "texto",
         description: "Data de término deve ser posterior à data de início",
         variant: "destructive"
       });
@@ -1498,7 +1498,7 @@ function PriceListForm({
             onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder={t('LPU.selecioneAMoeda')} />
+              <SelectValue placeholder="texto" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
@@ -1529,7 +1529,7 @@ function PriceListForm({
           onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value === 'none' ? undefined : value }))}
         >
           <SelectTrigger>
-            <SelectValue placeholder={companiesLoading ? {t('LPU.carregandoEmpresas')} : {t('LPU.selecioneUmaEmpresa')}} />
+            <SelectValue placeholder={companiesLoading ? "texto" : "texto"} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Nenhuma empresa específica</SelectItem>
@@ -1555,7 +1555,7 @@ function PriceListForm({
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           rows={3}
-          placeholder={t('LPU.observacoesSobreAListaDePrecos')}
+          placeholder="texto"
         />
       </div>
 
@@ -1577,7 +1577,7 @@ function PriceListForm({
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? (initialData ? "Atualizando..." : "Criando...") : (initialData ? "Atualizar Lista" : {t('LPU.criarLista')})}
+            {isLoading ? (initialData ? "Atualizando..." : "Criando...") : (initialData ? "Atualizar Lista" : "texto")}
           </Button>
         </div>
       </div>
@@ -1682,7 +1682,7 @@ function PricingRuleForm({
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? (initialData ? "Atualizando..." : "Criando...") : (initialData ? "Atualizar Regra" : {t('LPU.criarRegra')})}
+            {isLoading ? (initialData ? "Atualizando..." : "Criando...") : (initialData ? "Atualizar Regra" : "texto")}
           </Button>
         </div>
       </div>
@@ -1732,8 +1732,8 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoAdicionarItem')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "texto",
+        description: error?.message || "texto",
         variant: "destructive"
       });
     }
@@ -1752,8 +1752,8 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoAtualizarItem')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "texto",
+        description: error?.message || "texto",
         variant: "destructive"
       });
     }
@@ -1771,8 +1771,8 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: {t('LPU.erroAoRemoverItem')},
-        description: error?.message || {t('LPU.erroDesconhecido')},
+        title: "texto",
+        description: error?.message || "texto",
         variant: "destructive"
       });
     }
@@ -1999,7 +1999,7 @@ function ApprovalWorkflowComponent({
               value={approvalNotes}
               onChange={(e) => setApprovalNotes(e.target.value)}
               rows={3}
-              placeholder={t('LPU.adicioneObservacoesSobreAAprovacao')}
+              placeholder="texto"
             />
           </div>
 
@@ -2021,7 +2021,7 @@ function ApprovalWorkflowComponent({
               variant="destructive"
               onClick={() => {
                 toast({
-                  title: {t('LPU.selectedforapprovallengthItemsRejeitados')},
+                  title: "texto",
                   variant: "destructive"
                 });
                 setSelectedForApproval([]);
@@ -2202,7 +2202,7 @@ function PriceListItemForm({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder={t('LPU.selecioneUmItemDoCatalogo')} />
+              <SelectValue placeholder="texto" />
             </SelectTrigger>
             <SelectContent>
               {safeCatalogItems.length === 0 ? (

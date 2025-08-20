@@ -189,7 +189,7 @@ export default function AuthPage() {
               Creating account...
             </>
           ) : (
-Criar Conta
+            "Criar Conta"
           )}
         </Button>
       </form>

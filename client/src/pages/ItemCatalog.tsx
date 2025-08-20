@@ -345,7 +345,7 @@ export default function ItemCatalog() {
             responseText.trim().startsWith('<html') || 
             responseText.includes('<script') ||
             responseText.includes('import { createHotContext }') ||
-import { useLocalization } from '@/hooks/useLocalization';
+
             responseText.includes('vite') ||
             responseText.includes('@vite/client')) {
           console.error('❌ [ItemCatalog] Received HTML/JavaScript instead of JSON - Vite interception detected');
@@ -404,8 +404,8 @@ import { useLocalization } from '@/hooks/useLocalization';
         console.log('Authentication error detected - components will handle auth state');
       } else {
         toast({
-          title: {t('ItemCatalog.erroNoCatalogo')},
-          description: {t('ItemCatalog.erroAoCarregarItensDoCatalogoTenteNovamente')},
+          title: "Texto",
+          description: "Texto",
           variant: "destructive"
         });
       }
@@ -436,7 +436,7 @@ import { useLocalization } from '@/hooks/useLocalization';
         console.log('🔗 Links carregados:', result);
         return result?.data || { customers: [], suppliers: [] };
       } catch (error) {
-        console.error({t('ItemCatalog.erroAoCarregarVinculosDoItem')}, error);
+        console.error('Error:', error);
         return { customers: [], suppliers: [] };
       }
     },
@@ -449,7 +449,7 @@ import { useLocalization } from '@/hooks/useLocalization';
       const response = await apiRequest('POST', '/api/materials-services/items', data);
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || {t('ItemCatalog.erroAoCriarItem')});
+        throw new Error(error.message || "Texto");
       }
       return response.json();
     },
@@ -457,7 +457,7 @@ import { useLocalization } from '@/hooks/useLocalization';
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: {t('ItemCatalog.itemCriadoComSucesso')},
+        title: "Texto",
         description: "O item foi adicionado ao catálogo.",
       });
       setIsCreateModalOpen(false);
@@ -465,7 +465,7 @@ import { useLocalization } from '@/hooks/useLocalization';
     },
     onError: (error: Error) => {
       toast({
-        title: {t('ItemCatalog.erroAoCriarItem')},
+        title: "Texto",
         description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -481,14 +481,14 @@ import { useLocalization } from '@/hooks/useLocalization';
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: {t('ItemCatalog.itemAtualizadoComSucesso')},
+        title: "Texto",
         description: "As alterações foram salvas.",
       });
       setCurrentView('item-details');
     },
     onError: () => {
       toast({
-        title: {t('ItemCatalog.erroAoAtualizarItem')},
+        title: "Texto",
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -503,13 +503,13 @@ import { useLocalization } from '@/hooks/useLocalization';
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       toast({
-        title: {t('ItemCatalog.itemExcluidoComSucesso')},
+        title: "Texto",
         description: "O item foi removido do catálogo.",
       });
     },
     onError: () => {
       toast({
-        title: {t('ItemCatalog.erroAoExcluirItem')},
+        title: "Texto",
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -635,7 +635,7 @@ import { useLocalization } from '@/hooks/useLocalization';
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder={t('ItemCatalog.buscarPorNomeCodigoOuDescricao')}
+                placeholder="Texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -707,8 +707,8 @@ import { useLocalization } from '@/hooks/useLocalization';
             <div className="text-center py-8">
               <div className="text-gray-500 mb-4">
                 {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
-                  ? {t('ItemCatalog.nenhumItemEncontradoComOsFiltrosAplicados')}
-                  : {t('ItemCatalog.nenhumItemCadastradoNoCatalogo')}}
+                  ? "Texto"
+                  : "Texto"}
               </div>
               {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
                 <Button onClick={() => window.location.reload()} variant="outline">
@@ -1165,7 +1165,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('ItemCatalog.selecioneOTipo')} />
+                              <SelectValue placeholder="Texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1292,7 +1292,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('ItemCatalog.selecioneItensFilhos')} />
+                          <SelectValue placeholder="Texto" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecionar item...</SelectItem>
@@ -1377,7 +1377,7 @@ import { useLocalization } from '@/hooks/useLocalization';
 
                             if (response.ok) {
                               toast({
-                                title: {t('ItemCatalog.sucesso')},
+                                title: "Texto",
                                 description: "Empresa vinculada com sucesso"
                               });
                               refetchItemLinks();
@@ -1386,8 +1386,8 @@ import { useLocalization } from '@/hooks/useLocalization';
                             }
                           } catch (error) {
                             toast({
-                              title: {t('ItemCatalog.erro')},
-                              description: {t('ItemCatalog.erroAoVincularEmpresa')},
+                              title: "Texto",
+                              description: "Texto",
                               variant: "destructive"
                             });
                           }
@@ -1427,7 +1427,7 @@ import { useLocalization } from '@/hooks/useLocalization';
 
                                 if (response.ok) {
                                   toast({
-                                    title: {t('ItemCatalog.sucesso')},
+                                    title: "Texto",
                                     description: "Empresa desvinculada com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1436,8 +1436,8 @@ import { useLocalization } from '@/hooks/useLocalization';
                                 }
                               } catch (error) {
                                 toast({
-                                  title: {t('ItemCatalog.erro')},
-                                  description: {t('ItemCatalog.erroAoDesvincularEmpresa')},
+                                  title: "Texto",
+                                  description: "Texto",
                                   variant: "destructive"
                                 });
                               }
@@ -1472,7 +1472,7 @@ import { useLocalization } from '@/hooks/useLocalization';
 
                             if (response.ok) {
                               toast({
-                                title: {t('ItemCatalog.sucesso')},
+                                title: "Texto",
                                 description: "Fornecedor vinculado com sucesso"
                               });
                               refetchItemLinks();
@@ -1481,8 +1481,8 @@ import { useLocalization } from '@/hooks/useLocalization';
                             }
                           } catch (error) {
                             toast({
-                              title: {t('ItemCatalog.erro')},
-                              description: {t('ItemCatalog.erroAoVincularFornecedor')},
+                              title: "Texto",
+                              description: "Texto",
                               variant: "destructive"
                             });
                           }
@@ -1522,7 +1522,7 @@ import { useLocalization } from '@/hooks/useLocalization';
 
                                 if (response.ok) {
                                   toast({
-                                    title: {t('ItemCatalog.sucesso')},
+                                    title: "Texto",
                                     description: "Fornecedor desvinculado com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1531,8 +1531,8 @@ import { useLocalization } from '@/hooks/useLocalization';
                                 }
                               } catch (error) {
                                 toast({
-                                  title: {t('ItemCatalog.erro')},
-                                  description: {t('ItemCatalog.erroAoDesvincularFornecedor')},
+                                  title: "Texto",
+                                  description: "Texto",
                                   variant: "destructive"
                                 });
                               }
@@ -1617,7 +1617,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('ItemCatalog.selecioneOTipo')} />
+                            <SelectValue placeholder="Texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

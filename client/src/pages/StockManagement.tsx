@@ -130,7 +130,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
-              <SelectValue placeholder={t('StockManagement.selecioneUmItem')} />
+              <SelectValue placeholder="texto" />
             </SelectTrigger>
             <SelectContent>
               {items.map((item: any) => (
@@ -146,7 +146,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
-              <SelectValue placeholder={t('StockManagement.selecioneUmArmazem')} />
+              <SelectValue placeholder="texto" />
             </SelectTrigger>
             <SelectContent>
               {warehouses.map((warehouse: any) => (
@@ -239,7 +239,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
-              <SelectValue placeholder={t('StockManagement.selecioneUmItem')} />
+              <SelectValue placeholder="texto" />
             </SelectTrigger>
             <SelectContent>
               {items.map((item: any) => (
@@ -255,7 +255,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
-              <SelectValue placeholder={t('StockManagement.selecioneUmArmazem')} />
+              <SelectValue placeholder="texto" />
             </SelectTrigger>
             <SelectContent>
               {warehouses.map((warehouse: any) => (
@@ -791,7 +791,7 @@ export function StockManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('StockManagement.todosOsStatus')} />
+                      <SelectValue placeholder="texto" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
@@ -807,7 +807,7 @@ export function StockManagement() {
                   <Label htmlFor="warehouse">Armazém</Label>
                   <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('StockManagement.todosOsArmazens')} />
+                      <SelectValue placeholder="texto" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os armazéns</SelectItem>
@@ -1120,7 +1120,7 @@ export function StockManagement() {
             <EditItemForm 
               item={selectedItem}
               onSubmit={(data) => {
-                console.log({t('StockManagement.editandoItem')}, data);
+                console.log("Editando item:", data);
                 toast({ title: "Item atualizado com sucesso!" });
                 setIsEditItemOpen(false);
               }}
@@ -1190,7 +1190,7 @@ export function StockManagement() {
             <EditWarehouseForm 
               warehouse={selectedWarehouse}
               onSubmit={(data) => {
-                console.log({t('StockManagement.editandoArmazem')}, data);
+                console.log("texto", data);
                 toast({ title: "Armazém atualizado com sucesso!" });
                 setIsEditWarehouseOpen(false);
               }}
@@ -1220,7 +1220,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
     e.preventDefault();
     if (!name || !location) {
       toast({ 
-        title: {t('StockManagement.erro')}, 
+        title: "texto", 
         description: "Nome e localização são obrigatórios",
         variant: "destructive" 
       });
@@ -1299,7 +1299,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Criando...' : {t('StockManagement.criarArmazem')}}
+          {isLoading ? 'Criando...' : "texto"}
         </Button>
       </div>
     </form>
@@ -1406,7 +1406,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
     e.preventDefault();
     if (!name || !location) {
       toast({ 
-        title: {t('StockManagement.erro')}, 
+        title: "texto", 
         description: "Nome e localização são obrigatórios",
         variant: "destructive" 
       });

@@ -269,7 +269,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: {t('ActivityPlanner.erroAoCriarAtivo')}, 
+          title: "Erro ao criar ativo", 
           description: error.message,
           variant: "destructive" 
         });
@@ -329,7 +329,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-asset-location">
-                            <SelectValue placeholder={t('ActivityPlanner.selecioneUmaLocalizacao')} />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -352,7 +352,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-asset-category">
-                            <SelectValue placeholder={t('ActivityPlanner.selecioneUmaCategoria')} />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -499,7 +499,7 @@ export default function ActivityPlanner() {
                   data-testid="button-submit-asset"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
-                  {createAssetMutation.isPending ? "Criando..." : {t('ActivityPlanner.criarAtivo')}}
+                  {createAssetMutation.isPending ? "Criando..." : "texto"}
                 </Button>
               </div>
             </form>
@@ -540,7 +540,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: {t('ActivityPlanner.erroAoCriarPlano')}, 
+          title: "texto", 
           description: error.message,
           variant: "destructive" 
         });
@@ -586,7 +586,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-plan-asset">
-                            <SelectValue placeholder={t('ActivityPlanner.selecioneUmAtivo')} />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -741,7 +741,7 @@ export default function ActivityPlanner() {
                   data-testid="button-submit-plan"
                   className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                 >
-                  {createPlanMutation.isPending ? "Criando..." : {t('ActivityPlanner.criarPlano')}}
+                  {createPlanMutation.isPending ? "Criando..." : "texto"}
                 </Button>
               </div>
             </form>
@@ -783,7 +783,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: {t('ActivityPlanner.erroAoCriarOrdemDeServico')}, 
+          title: "texto", 
           description: error.message,
           variant: "destructive" 
         });
@@ -829,7 +829,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-asset">
-                            <SelectValue placeholder={t('ActivityPlanner.selecioneUmAtivo')} />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -933,7 +933,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-technician">
-                            <SelectValue placeholder={t('ActivityPlanner.selecioneUmTecnico')} />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -956,7 +956,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-plan">
-                            <SelectValue placeholder={t('ActivityPlanner.selecioneUmPlano')} />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1010,7 +1010,7 @@ export default function ActivityPlanner() {
                   data-testid="button-submit-wo"
                   className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                 >
-                  {createWorkOrderMutation.isPending ? "Criando..." : {t('ActivityPlanner.criarOs')}}
+                  {createWorkOrderMutation.isPending ? "Criando..." : "texto"}
                 </Button>
               </div>
             </form>
@@ -1213,7 +1213,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: {t('ActivityPlanner.erroAoAtualizarStatus')}, 
+          title: "texto", 
           description: error.message,
           variant: "destructive" 
         });
@@ -1258,7 +1258,7 @@ export default function ActivityPlanner() {
                workOrder.status === 'scheduled' ? 'Agendada' :
                workOrder.status === 'in_progress' ? 'Em Andamento' :
                workOrder.status === 'paused' ? 'Pausada' :
-               workOrder.status === 'completed' ? 'Concluída' : {t('ActivityPlanner.cancelada')}}
+               workOrder.status === 'completed' ? 'Concluída' : "texto"}
               <MoreHorizontal className="w-3 h-3 ml-1" />
             </Button>
           </DropdownMenuTrigger>
@@ -1364,7 +1364,7 @@ export default function ActivityPlanner() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder={t('ActivityPlanner.buscarAtivos')}
+              placeholder="texto"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"

@@ -843,10 +843,10 @@ export default function ChatbotVisualEditor() {
   });
 
   const nodeCategories = [
-    { id: 'all', name: {t('ChatbotKanban.todos')} },
+    { id: 'all', name: "Texto" },
     { id: 'trigger', name: 'Gatilhos' },
     { id: 'condition', name: 'Condições' },
-    { id: 'action', name: {t('ChatbotKanban.acoes')} },
+    { id: 'action', name: "Texto" },
     { id: 'response', name: 'Respostas' },
     { id: 'integration', name: 'Integrações' },
     { id: 'ai', name: 'Inteligência Artificial' },
@@ -891,7 +891,7 @@ export default function ChatbotVisualEditor() {
               setSelectedChatbot(chatbot || null);
             }}>
               <SelectTrigger>
-                <SelectValue placeholder={t('ChatbotKanban.selecioneUmChatbot')} />
+                <SelectValue placeholder="Texto" />
               </SelectTrigger>
               <SelectContent>
                 {chatbots.map(chatbot => (
@@ -911,7 +911,7 @@ export default function ChatbotVisualEditor() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('ChatbotKanban.buscarNos')}
+                placeholder="Texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -1327,7 +1327,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Prioridade do Gatilho</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('ChatbotKanban.selecioneAPrioridade')} />
+                                  <SelectValue placeholder="Texto" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="1">1 - Mais Alta</SelectItem>
@@ -1377,7 +1377,7 @@ export default function ChatbotVisualEditor() {
                             </div>
                             <div>
                               <Label>Palavras Excludentes</Label>
-                              <Textarea placeholder={t('ChatbotKanban.naoNuncaPareCancele')} rows={2} />
+                              <Textarea placeholder="Texto" rows={2} />
                               <p className="text-xs text-muted-foreground mt-1">Palavras que impedem a ativação do gatilho</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -1385,7 +1385,7 @@ export default function ChatbotVisualEditor() {
                                 <Label>Prioridade</Label>
                                 <Select>
                                   <SelectTrigger>
-                                    <SelectValue placeholder={t('ChatbotKanban.selecioneAPrioridade')} />
+                                    <SelectValue placeholder="Texto" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="1">1 - Crítica</SelectItem>
@@ -1424,7 +1424,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Modelo de IA</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('ChatbotKanban.selecioneOModelo')} />
+                                  <SelectValue placeholder="Texto" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
@@ -1478,7 +1478,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Método HTTP</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('ChatbotKanban.selecioneOMetodo')} />
+                                  <SelectValue placeholder="Texto" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="GET">GET</SelectItem>
@@ -1517,7 +1517,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Tipo de Valor</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('ChatbotKanban.selecioneOTipo')} />
+                                  <SelectValue placeholder="Texto" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="string">Texto</SelectItem>
@@ -1542,7 +1542,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Condição</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('ChatbotKanban.selecioneOTipo')} />
+                                <SelectValue placeholder="Texto" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="equals">Igual a</SelectItem>
@@ -1605,11 +1605,11 @@ export default function ChatbotVisualEditor() {
                           <div className="space-y-3">
                             <div>
                               <Label>Título do Menu</Label>
-                              <Input placeholder={t('ChatbotKanban.selecioneUmaOpcao')} />
+                              <Input placeholder="Texto" />
                             </div>
                             <div>
                               <Label>Descrição</Label>
-                              <Textarea placeholder={t('ChatbotKanban.escolhaUmaDasOpcoesAbaixo')} rows={2} />
+                              <Textarea placeholder="Texto" rows={2} />
                             </div>
                             <div>
                               <Label>Itens do Menu</Label>
@@ -1639,7 +1639,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Modelo de IA</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('ChatbotKanban.selecioneOModelo')} />
+                                <SelectValue placeholder="Texto" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
@@ -1680,7 +1680,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Integração</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('ChatbotKanban.selecioneAIntegracao')} />
+                                <SelectValue placeholder="Texto" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="whatsapp">WhatsApp Business</SelectItem>
@@ -1717,7 +1717,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Delay</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('ChatbotKanban.selecioneOTipo')} />
+                                <SelectValue placeholder="Texto" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="fixed">Tempo Fixo</SelectItem>
@@ -1732,7 +1732,7 @@ export default function ChatbotVisualEditor() {
                           </div>
                           <div>
                             <Label>Mensagem de Aguardo</Label>
-                            <Input placeholder={t('ChatbotKanban.aguardeUmMomento')} />
+                            <Input placeholder="Texto" />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="show-typing" />
@@ -1752,7 +1752,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Validação</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('ChatbotKanban.selecioneOTipo')} />
+                                <SelectValue placeholder="Texto" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="email">Email</SelectItem>
@@ -1786,7 +1786,7 @@ export default function ChatbotVisualEditor() {
                         <div className="space-y-3">
                           <div>
                             <Label>Configuração Personalizada</Label>
-                            <Textarea placeholder={t('ChatbotKanban.configuracoesEspecificasParaEsteTipoDeNo')} rows={4} />
+                            <Textarea placeholder="Texto" rows={4} />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="enabled" />
@@ -1885,7 +1885,7 @@ export default function ChatbotVisualEditor() {
                       <Label>Comportamento de Falha</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('ChatbotKanban.selecioneOComportamento')} />
+                          <SelectValue placeholder="Texto" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="stop">Parar fluxo</SelectItem>
@@ -1919,7 +1919,7 @@ export default function ChatbotVisualEditor() {
                       <Label>Condições para Ativação</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('ChatbotKanban.selecioneACondicao')} />
+                          <SelectValue placeholder="Texto" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="always">Sempre</SelectItem>

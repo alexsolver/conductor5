@@ -612,7 +612,7 @@ function TicketAdvancedConfiguration() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'field' && (editingItem.id ? {t('TicketAdvancedConfiguration.editarCampo')} : 'Novo Campo')}
+              {editingItem?.type === 'field' && (editingItem.id ? "Editar Campo" : 'Novo Campo')}
               {editingItem?.type === 'option' && 'Nova Opção'}
               {editingItem?.type === 'sla' && 'Configurar SLA'}
             </DialogTitle>
@@ -661,7 +661,7 @@ function TicketAdvancedConfiguration() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneOTipo')} />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -766,7 +766,7 @@ function TicketAdvancedConfiguration() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createFieldMutation.isPending || updateFieldMutation.isPending}>
-                    {editingItem.id ? 'Atualizar' : {t('TicketAdvancedConfiguration.criar')}} Campo
+                    {editingItem.id ? 'Atualizar' : "texto"} Campo
                   </Button>
                 </div>
               </form>
@@ -911,7 +911,7 @@ function TicketAdvancedConfiguration() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneAPrioridade')} />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
