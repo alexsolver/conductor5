@@ -97,12 +97,15 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // Additional fields matching DB exactly
   isDeleted: boolean("is_deleted").default(false), // boolean default false
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  summary: text("summary"), // text
+  slug: varchar("slug"), // character varying
   version: integer("version").default(1), // integer default 1
   contentType: varchar("content_type").default("article"), // character varying
   approvalStatus: text("approval_status").default("pending"), // text default 'pending'
-  ratingAverage: integer("rating_average").default(0), // rating_average exists as numeric in DB
+  ratingAverage: numeric("rating_average").default("0"), // numeric, not integer!
   ratingCount: integer("rating_count").default(0), // integer default 0
   attachmentCount: integer("attachment_count").default(0), // integer default 0
+  keywords: text("keywords").array().default(sql`ARRAY[]::text[]`), // ARRAY type
   lastViewedAt: timestamp("last_viewed_at", { withTimezone: false }), // timestamp without time zone
 
   // Audit - matching DB defaults exactly

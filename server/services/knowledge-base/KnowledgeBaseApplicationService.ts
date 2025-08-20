@@ -140,6 +140,9 @@ export class KnowledgeBaseApplicationService {
         publishedAt: articleData.published ? new Date() : null,
       };
 
+      // Debug: Log exactly what we're trying to insert
+      console.log('[KB-DEBUG] Attempting to insert:', JSON.stringify(newArticle, null, 2));
+      
       // Insert article
       const [createdArticle] = await db
         .insert(knowledgeBaseArticles)
