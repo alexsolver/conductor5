@@ -16,7 +16,6 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Users, 
   TrendingUp, 
   Ticket, 
@@ -34,8 +33,6 @@ import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema para configurações de branding
 const brandingSchema = z.object({
-  const { t } = useLocalization();
-
   companyName: z.string().min(1, "Nome da empresa é obrigatório"),
   logoUrl: z.string().url().optional().or(z.literal("")),
   primaryColor: z.string().min(1, "Cor primária é obrigatória"),
@@ -155,14 +152,14 @@ export default function TenantAdminGeral() {
     },
     onSuccess: () => {
       toast({
-        title: t('TenantAdminGeral.configuracoesSalvas'),
+        title: "Configurações salvas",
         description: "As configurações de branding foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/branding"] });
     },
     onError: () => {
       toast({
-        title: t('TenantAdminGeral.erro'),
+        title: "Erro",
         description: "Ocorreu um erro ao salvar as configurações.",
         variant: "destructive",
       });
@@ -224,13 +221,13 @@ export default function TenantAdminGeral() {
           {/* Estatísticas principais */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title=t('TenantAdminGeral.totalDeClientes')
+              title="Total de Clientes"
               value={(analytics as any)?.totalCustomers || 0}
               icon={Users}
               trend={12}
             />
             <StatCard
-              title=t('TenantAdminGeral.ticketsAtivos')
+              title="Tickets Ativos"
               value={(analytics as any)?.totalTickets || 0}
               icon={Ticket}
               trend={8}
@@ -510,7 +507,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('TenantAdminGeral.selecioneOFusoHorario') />
+                                <SelectValue placeholder="Selecione o fuso horário" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -534,7 +531,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('TenantAdminGeral.selecioneOIdioma') />
+                                <SelectValue placeholder="Selecione o idioma" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>

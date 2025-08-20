@@ -8,7 +8,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Person {
   id: string;
@@ -29,9 +28,7 @@ interface PersonSelectorProps {
   className?: string;
 }
 
-export function PersonSelector({
-  const { t } = useLocalization();
- 
+export function PersonSelector({ 
   value, 
   onValueChange, 
   placeholder = "Selecionar pessoa...", 
@@ -143,12 +140,12 @@ export function PersonSelector({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <CommandInput placeholder={t('PersonSelector.tsx.digiteParaBuscar')} />
+          <CommandInput placeholder="Digite para buscar..." />
           <CommandEmpty>
             {!companyFilter || companyFilter === 'unspecified' 
-              ? {t('PersonSelector.tsx.selecioneUmaEmpresaPrimeiroParaVerOsClientes')}
+              ? "Selecione uma empresa primeiro para ver os clientes"
               : people.length === 0 
-              ? {t('PersonSelector.tsx.nenhumaPessoaEncontradaParaEstaEmpresa')}
+              ? "Nenhuma pessoa encontrada para esta empresa"
               : "Digite para filtrar pessoas"
             }
           </CommandEmpty>
@@ -156,7 +153,7 @@ export function PersonSelector({
             {people.length > 0 && (
               <>
                 {allowedTypes.includes('user') && (
-                  <CommandGroup heading={t('PersonSelector.tsx.usuarios')}>
+                  <CommandGroup heading="Usuários">
                     {people
                       .filter((person: Person) => person.type === 'user')
                       .map((person: Person) => (
@@ -184,7 +181,7 @@ export function PersonSelector({
                 )}
 
                 {allowedTypes.includes('customer') && (
-                  <CommandGroup heading={t('PersonSelector.tsx.clientes')}>
+                  <CommandGroup heading="Clientes">
                     {people
                       .filter((person: Person) => person.type === 'customer')
                       .map((person: Person) => (

@@ -12,12 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Helper function to format currency
 function formatCurrency(amount: number | string | undefined): string {
-  const { t } = useLocalization();
-
   const numericAmount = parseFloat(String(amount));
   if (isNaN(numericAmount)) {
     return "R$ 0,00";
@@ -187,7 +184,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       toast({ title: "Material planejado adicionado com sucesso!" });
     },
     onError: (error) => {
-      console.error({t('MaterialsServicesMiniSystem.tsx.errorAddingPlannedMaterial')}, error);
+      console.error('Error adding planned material:', error);
       toast({ title: "Erro ao adicionar material planejado", variant: "destructive" });
     }
   });
@@ -224,7 +221,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       toast({ title: "Consumo registrado com sucesso!" });
     },
     onError: (error) => {
-      console.error({t('MaterialsServicesMiniSystem.tsx.errorAddingConsumedMaterial')}, error);
+      console.error('Error adding consumed material:', error);
       toast({ title: "Erro ao registrar consumo", variant: "destructive" });
     }
   });
@@ -240,7 +237,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       toast({ title: "Item planejado excluído com sucesso!" });
     },
     onError: (error) => {
-      console.error({t('MaterialsServicesMiniSystem.tsx.errorDeletingPlannedItem')}, error);
+      console.error('Error deleting planned item:', error);
       toast({ title: "Erro ao excluir item planejado", variant: "destructive" });
     }
   });
@@ -451,7 +448,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     <Label>Item</Label>
                     <Select value={selectedItem} onValueChange={setSelectedItem}>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('MaterialsServicesMiniSystem.tsx.selecioneUmItem')} />
+                        <SelectValue placeholder="Selecione um item" />
                       </SelectTrigger>
                       <SelectContent>
                         {(itemsData?.data?.items || []).map((item: any) => (
@@ -598,7 +595,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           variant="ghost"
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50"
                           onClick={() => handleDeletePlannedItem(item.id, item.itemName)}
-                          title={t('MaterialsServicesMiniSystem.tsx.excluirItemPlanejado')}
+                          title="Excluir item planejado"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -659,7 +656,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   ) : (
                     <Select value={selectedItem} onValueChange={setSelectedItem}>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('MaterialsServicesMiniSystem.tsx.selecioneUmItemPlanejado')} />
+                        <SelectValue placeholder="Selecione um item planejado" />
                       </SelectTrigger>
                       <SelectContent>
                         {Array.isArray(availableItemsData?.data) && availableItemsData.data.map((item: any, index: number) => {
@@ -852,7 +849,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                               deleteConsumedMutation.mutate(itemId);
                             }}
                             disabled={deleteConsumedMutation.isPending}
-                            title={t('MaterialsServicesMiniSystem.tsx.excluirItemConsumido')}
+                            title="Excluir item consumido"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

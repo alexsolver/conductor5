@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface AttachmentsModalProps {
   ticketId: string;
@@ -25,9 +24,7 @@ interface Attachment {
   source: 'user' | 'email';
 }
 
-export default function AttachmentsModal({
-  const { t } = useLocalization();
- ticketId, isOpen, onClose }: AttachmentsModalProps) {
+export default function AttachmentsModal({ ticketId, isOpen, onClose }: AttachmentsModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -64,7 +61,7 @@ export default function AttachmentsModal({
     },
     onSuccess: () => {
       toast({
-        title: {t('tickets.sucesso')},
+        title: "Sucesso",
         description: "Arquivo anexado com sucesso",
       });
       setSelectedFile(null);
@@ -72,7 +69,7 @@ export default function AttachmentsModal({
     },
     onError: (error: Error) => {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: error.message,
         variant: "destructive",
       });
@@ -87,14 +84,14 @@ export default function AttachmentsModal({
     },
     onSuccess: () => {
       toast({
-        title: {t('tickets.sucesso')},
+        title: "Sucesso",
         description: "Anexo removido com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "attachments"] });
     },
     onError: (error: Error) => {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: error.message,
         variant: "destructive",
       });
@@ -107,7 +104,7 @@ export default function AttachmentsModal({
       // Check file size (30MB limit)
       if (file.size > 30 * 1024 * 1024) {
         toast({
-          title: {t('tickets.erro')},
+          title: "Erro",
           description: "Arquivo muito grande. Limite máximo: 30MB",
           variant: "destructive",
         });

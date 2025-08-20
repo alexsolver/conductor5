@@ -81,8 +81,6 @@ interface TenantIntegration {
 
 // ✅ VALIDATION: Schema for integration configurations
 const integrationConfigSchema = z.object({
-  const { t } = useLocalization();
-
   enabled: z.boolean().default(false),
   useSSL: z.boolean().default(false),
   apiKey: z.string().optional(),
@@ -99,7 +97,7 @@ const integrationConfigSchema = z.object({
   // IMAP specific fields
   imapServer: z.string().optional(),
   imapPort: z.string().optional(),
-  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', t('TenantAdminIntegrations.none')]).optional(),
+  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', 'None']).optional(),
   emailAddress: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
     message: "Deve ser um email válido"
   }),
@@ -178,7 +176,7 @@ export default function TenantAdminIntegrations() {
     const response = await fetch('/api/tenant-admin/integrations', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         'Content-Type': 'application/json'
       },
       credentials: 'include'
@@ -210,7 +208,7 @@ export default function TenantAdminIntegrations() {
     },
     onError: (error: any) => {
       toast({
-        title: t('TenantAdminIntegrations.erroAoSalvarConfiguracao'),
+        title: "Erro ao salvar configuração",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -228,7 +226,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')`, // Use accessToken consistently
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Use accessToken consistently
           'Content-Type': 'application/json'
         }
       });
@@ -269,7 +267,7 @@ export default function TenantAdminIntegrations() {
       }
     } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro:', error);
-      let errorMessage = t('TenantAdminIntegrations.erroDesconhecido');
+      let errorMessage = 'Erro desconhecido';
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
@@ -312,7 +310,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ webhookUrl })
@@ -335,7 +333,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || t('TenantAdminIntegrations.erroAoConfigurarWebhook'),
+          message: result.message || result.error || 'Erro ao configurar webhook',
           details: result
         });
       }
@@ -343,7 +341,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: t('TenantAdminIntegrations.erroDeConexaoAoConfigurarWebhookErrormessage'),
+        message: `Erro de conexão ao configurar webhook: ${error.message}`,
         error: error
       });
     } finally {
@@ -363,7 +361,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
@@ -391,7 +389,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || t('TenantAdminIntegrations.erroAoConfigurarWebhookPadrao'),
+          message: result.message || result.error || 'Erro ao configurar webhook padrão',
           details: result
         });
       }
@@ -399,7 +397,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: t('TenantAdminIntegrations.erroDeConexaoAoConfigurarWebhookPadraoErrormessage'),
+        message: `Erro de conexão ao configurar webhook padrão: ${error.message}`,
         error: error
       });
     } finally {
@@ -419,7 +417,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         }
       });
@@ -441,7 +439,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-STATUS] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || t('TenantAdminIntegrations.erroAoObterStatusDoWebhook'),
+          message: result.message || result.error || 'Erro ao obter status do webhook',
           details: result
         });
       }
@@ -449,7 +447,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: t('TenantAdminIntegrations.erroDeConexaoAoVerificarStatusDoWebhookErrormessage'),
+        message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
         error: error
       });
     } finally {
@@ -497,7 +495,7 @@ export default function TenantAdminIntegrations() {
       icon: Mail,
       status: 'disconnected',
       configured: false,
-      features: ['Notificações por email', t('TenantAdminIntegrations.ticketsPorEmail'), t('TenantAdminIntegrations.relatoriosAutomaticos')]
+      features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
     },
     {
       id: 'imap-email',
@@ -534,7 +532,6 @@ export default function TenantAdminIntegrations() {
       name: 'Twilio SMS',
       category: 'Comunicação',
       description: 'Envio de SMS para notificações e alertas importantes',
-import { useLocalization } from '@/hooks/useLocalization';
       icon: Phone,
       status: 'disconnected',
       configured: false,
@@ -580,7 +577,7 @@ import { useLocalization } from '@/hooks/useLocalization';
       icon: BarChart3,
       status: 'disconnected',
       configured: false,
-      features: ['Métricas de conversão', 'Funis de atendimento', t('TenantAdminIntegrations.relatoriosCustomizados')]
+      features: ['Métricas de conversão', 'Funis de atendimento', 'Relatórios customizados']
     },
     {
       id: 'crm-integration',
@@ -724,14 +721,14 @@ import { useLocalization } from '@/hooks/useLocalization';
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         credentials: 'include'
       });
 
-      console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')`);
+      console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
 
       if (!response.ok) {
         // Handle case where config might not exist yet (e.g., return 404)
@@ -864,17 +861,17 @@ import { useLocalization } from '@/hooks/useLocalization';
       console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
 
       // ✅ IMPROVED: Tratamento de erro mais robusto
-      const errorMessage = error?.message || t('TenantAdminIntegrations.erroDesconhecido');
+      const errorMessage = error?.message || 'Erro desconhecido';
       const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('Network');
 
       // Fallback values if an error occurs during loading
       configForm.reset(getDefaultValues(integration.id));
 
       toast({
-        title: t('TenantAdminIntegrations.erroAoCarregarConfiguracao'),
+        title: "⚠️ Erro ao carregar configuração",
         description: isNetworkError 
           ? "Problema de conectividade. Usando valores padrão." 
-          : t('TenantAdminIntegrations.erroDoServidorErrormessageUsandoValoresPadrao'),
+          : `Erro do servidor: ${errorMessage}. Usando valores padrão.`,
         variant: "destructive",
       });
     }
@@ -946,7 +943,7 @@ import { useLocalization } from '@/hooks/useLocalization';
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ redirectUri }) // Send redirect URI to backend
@@ -967,8 +964,8 @@ import { useLocalization } from '@/hooks/useLocalization';
     } catch (error: any) {
       console.error('❌ [OAUTH-FLOW] Erro:', error);
       toast({
-        title: t('TenantAdminIntegrations.erroOauth2'),
-        description: error.message || t('TenantAdminIntegrations.erroAoIniciarFluxoOauth2'),
+        title: "Erro OAuth2",
+        description: error.message || "Erro ao iniciar fluxo OAuth2",
         variant: "destructive",
       });
     }
@@ -977,8 +974,8 @@ import { useLocalization } from '@/hooks/useLocalization';
   const onSubmitConfig = async (data: z.infer<typeof integrationConfigSchema>) => {
     if (!selectedIntegration) {
       toast({
-        title: t('TenantAdminIntegrations.erroDeValidacao'),
-        description: t('TenantAdminIntegrations.nenhumaIntegracaoSelecionada'),
+        title: "❌ Erro de validação",
+        description: "Nenhuma integração selecionada",
         variant: "destructive",
       });
       return;
@@ -1074,7 +1071,7 @@ import { useLocalization } from '@/hooks/useLocalization';
 
       if (validationErrors.length > 0) {
         toast({
-          title: t('TenantAdminIntegrations.erroDeValidacao'),
+          title: "❌ Erro de validação",
           description: validationErrors.join('. '),
           variant: "destructive",
         });
@@ -1115,7 +1112,7 @@ import { useLocalization } from '@/hooks/useLocalization';
         const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
             'Content-Type': 'application/json'
           }
         });
@@ -1209,8 +1206,8 @@ import { useLocalization } from '@/hooks/useLocalization';
       console.error('❌ [SUBMIT-CONFIG] Erro ao processar configuração:', error);
 
       toast({
-        title: t('TenantAdminIntegrations.erroInterno'),
-        description: t('TenantAdminIntegrations.erroAoProcessarAConfiguracaoTenteNovamente'),
+        title: "❌ Erro interno",
+        description: "Erro ao processar a configuração. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -1448,8 +1445,8 @@ import { useLocalization } from '@/hooks/useLocalization';
                       </div>
 
                       {integration.lastSync && (
-                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')`}>
-                          Sync: {new Date(integration.lastSync).toLocaleDateString('pt-BR')
+                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')}`}>
+                          Sync: {new Date(integration.lastSync).toLocaleDateString('pt-BR')}
                         </p>
                       )}
                     </CardContent>
@@ -1726,7 +1723,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                             >
                               <option value="SSL/TLS">SSL/TLS (Porta 993)</option>
                               <option value="STARTTLS">STARTTLS (Porta 143)</option>
-                              <option value=t('TenantAdminIntegrations.none')>Sem criptografia (Porta 143)</option>
+                              <option value="None">Sem criptografia (Porta 143)</option>
                             </select>
                           </FormControl>
                           <FormMessage />
@@ -2119,7 +2116,7 @@ Acompanhe pelo sistema Conductor."
                     type="submit"
                     disabled={saveConfigMutation.isPending || isTestingIntegration} // Disable if saving or testing
                   >
-                    {saveConfigMutation.isPending ? "Salvando..." : t('TenantAdminIntegrations.salvarConfiguracao')}
+                    {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                   </Button>
                 </div>
               </form>

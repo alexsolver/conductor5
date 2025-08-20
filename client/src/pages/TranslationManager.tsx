@@ -23,7 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Languages, 
   Save, 
   RotateCcw, 
@@ -38,8 +37,6 @@ import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
-  const { t } = useLocalization();
-
   translations: z.record(z.any())
 });
 
@@ -131,7 +128,7 @@ export default function TranslationManager() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('TranslationManager.erroAoSalvarTraducoes'),
+        title: "Erro ao salvar traduções",
         description: error.message,
         variant: "destructive",
       });
@@ -153,7 +150,7 @@ export default function TranslationManager() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('TranslationManager.erroAoRestaurarBackup'),
+        title: "Erro ao restaurar backup",
         description: error.message,
         variant: "destructive",
       });
@@ -216,7 +213,7 @@ export default function TranslationManager() {
             disabled={saveTranslationMutation.isPending}
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveTranslationMutation.isPending ? "Salvando..." : t('TranslationManager.salvarAlteracoes')}
+            {saveTranslationMutation.isPending ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </div>
       </div>
@@ -259,7 +256,7 @@ export default function TranslationManager() {
           <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
-              placeholder={t('TranslationManager.buscarChavesDeTraducao')
+              placeholder="Buscar chaves de tradução..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -335,7 +332,7 @@ export default function TranslationManager() {
 
                     {filteredKeys.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        {searchTerm ? t('TranslationManager.nenhumaChaveEncontradaParaABusca') : t('TranslationManager.nenhumaTraducaoEncontrada')}
+                        {searchTerm ? 'Nenhuma chave encontrada para a busca' : 'Nenhuma tradução encontrada'}
                       </div>
                     )}
                   </form>
@@ -354,7 +351,7 @@ export default function TranslationManager() {
                     const response = await fetch('/api/translation-completion/auto-complete-all', {
                       method: 'POST',
                       headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')`,
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'Content-Type': 'application/json'
                       }
                     });
@@ -363,7 +360,7 @@ export default function TranslationManager() {
                     
                     if (data.success) {
                       toast({
-                        title: t('TranslationManager.sucesso'),
+                        title: "Sucesso!",
                         description: data.message,
                       });
                       // Recarrega a página para ver as mudanças
@@ -373,11 +370,11 @@ export default function TranslationManager() {
                     }
                   } catch (error) {
                     toast({
-                      title: t('TranslationManager.erro'),
+                      title: "Erro",
                       description: "Falha ao completar traduções automaticamente",
                       variant: "destructive"
                     });
-                    console.error(t('TranslationManager.errorAutocompletingTranslations'), error);
+                    console.error('Error auto-completing translations:', error);
                   }
                 }}
                 className="bg-green-600 hover:bg-green-700"

@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-import { useLocalization } from '@/hooks/useLocalization';
   Building2,
   Phone,
   Mail,
@@ -71,8 +70,6 @@ interface SupplierStats {
 }
 
 export function SupplierManagement() {
-  const { t } = useLocalization();
-
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -117,8 +114,8 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('SupplierManagement.erro'),
-        description: error.message || t('SupplierManagement.erroAoCriarFornecedor'),
+        title: "Erro",
+        description: error.message || "Erro ao criar fornecedor",
         variant: "destructive"
       });
     }
@@ -138,8 +135,8 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('SupplierManagement.erro'),
-        description: error.message || t('SupplierManagement.erroAoAtualizarFornecedor'),
+        title: "Erro",
+        description: error.message || "Erro ao atualizar fornecedor",
         variant: "destructive"
       });
     }
@@ -157,8 +154,8 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('SupplierManagement.erro'),
-        description: error.message || t('SupplierManagement.erroAoRemoverFornecedor'),
+        title: "Erro",
+        description: error.message || "Erro ao remover fornecedor",
         variant: "destructive"
       });
     }
@@ -346,7 +343,7 @@ export function SupplierManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder={t('SupplierManagement.buscarFornecedores')
+              placeholder="Buscar fornecedores..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -546,7 +543,7 @@ export function SupplierManagement() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={createSupplierMutation.isPending}>
-                {createSupplierMutation.isPending ? 'Criando...' : t('SupplierManagement.criarFornecedor')}
+                {createSupplierMutation.isPending ? 'Criando...' : 'Criar Fornecedor'}
               </Button>
             </div>
           </form>

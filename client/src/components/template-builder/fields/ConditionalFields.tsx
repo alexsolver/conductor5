@@ -13,7 +13,6 @@ import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Eye, 
   EyeOff, 
   Lock, 
@@ -42,8 +41,6 @@ interface ConditionalFieldProps {
 }
 
 export const ConditionalField: React.FC<ConditionalFieldProps> = ({
-  const { t } = useLocalization();
-
   field,
   value,
   onChange,
@@ -165,7 +162,7 @@ export const ConditionalField: React.FC<ConditionalFieldProps> = ({
             disabled={!isEnabled}
           >
             <SelectTrigger>
-              <SelectValue placeholder={field.placeholder || {t('template-builder.selecioneUmaOpcao')}} />
+              <SelectValue placeholder={field.placeholder || 'Selecione uma opção'} />
             </SelectTrigger>
             <SelectContent>
               {field.fieldOptions?.map((option: any) => (

@@ -78,8 +78,8 @@ export default function Dashboard() {
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">t('dashboard.title')</h1>
-          <p className="text-gray-600 dark:text-gray-400">t('dashboard.welcome')</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('dashboard.welcome')}</p>
         </div>
       </div>
 

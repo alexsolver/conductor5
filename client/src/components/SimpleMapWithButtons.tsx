@@ -3,7 +3,6 @@ import { MapPin, Navigation, Search, Plus, Minus, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface SimpleMapProps {
   initialLat: number;
@@ -25,9 +24,7 @@ interface SearchResult {
   lon: string;
 }
 
-function SimpleMapWithButtons({
-  const { t } = useLocalization();
- initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
+function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
   const defaultLat = initialLat || -23.550520; // São Paulo default
   const defaultLng = initialLng || -46.633308; // São Paulo default
   
@@ -134,17 +131,17 @@ function SimpleMapWithButtons({
         });
       } else {
         toast({
-          title: {t('SimpleMapWithButtons.tsx.nenhumResultado')},
+          title: "Nenhum resultado",
           description: "Não foi possível encontrar o endereço. Tente ser mais específico.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.warn({t('SimpleMapWithButtons.tsx.erroNaBusca')}, error);
+      console.warn('Erro na busca:', error);
       
       toast({
-        title: {t('SimpleMapWithButtons.tsx.erroNaBusca')},
-        description: {t('SimpleMapWithButtons.tsx.erroAoConectarComOServicoDeBuscaTenteNovamente')},
+        title: "Erro na busca",
+        description: "Erro ao conectar com o serviço de busca. Tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -175,9 +172,9 @@ function SimpleMapWithButtons({
         });
       },
       (error) => {
-        console.error({t('SimpleMapWithButtons.tsx.erroNaGeolocalizacao')}, error.message || error);
+        console.error('Erro na geolocalização:', error.message || error);
         toast({
-          title: {t('SimpleMapWithButtons.tsx.erroNaGeolocalizacao')},
+          title: "Erro na geolocalização",
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
@@ -227,7 +224,7 @@ function SimpleMapWithButtons({
       <div className="flex gap-2">
         <div className="flex-1">
           <Input
-            placeholder={t('SimpleMapWithButtons.tsx.digiteUmEnderecoParaBuscar')}
+            placeholder="Digite um endereço para buscar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => {

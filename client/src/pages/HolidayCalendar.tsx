@@ -20,7 +20,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Types
 interface Holiday {
@@ -40,8 +39,6 @@ interface Holiday {
 
 // Zod schema for form validation
 const holidayFormSchema = z.object({
-  const { t } = useLocalization();
-
   name: z.string().min(1, 'Nome do feriado é obrigatório'),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
   type: z.enum(['national', 'regional', 'corporate', 'optional'], {
@@ -133,7 +130,7 @@ export default function HolidayCalendar() {
     onError: (error: any) => {
       toast({
         variant: 'destructive',
-        title: t('HolidayCalendar.erroAoCriarFeriado'),
+        title: 'Erro ao criar feriado',
         description: error.response?.data?.message || 'Ocorreu um erro ao criar o feriado.'
       });
     }
@@ -328,7 +325,7 @@ export default function HolidayCalendar() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createHolidayMutation.isPending}>
-                      {createHolidayMutation.isPending ? 'Criando...' : t('HolidayCalendar.criarFeriado')}
+                      {createHolidayMutation.isPending ? 'Criando...' : 'Criar Feriado'}
                     </Button>
                   </div>
                 </form>
@@ -383,7 +380,7 @@ export default function HolidayCalendar() {
               <label className="text-sm font-medium">Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('HolidayCalendar.todosOsTipos') />
+                  <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>
@@ -479,7 +476,7 @@ export default function HolidayCalendar() {
           ) : (
             <div className="space-y-6">
               {monthNames.map((monthName, index) => {
-                const monthKey = `${selectedYear}-${(index + 1).toString().padStart(2, '0')`;
+                const monthKey = `${selectedYear}-${(index + 1).toString().padStart(2, '0')}`;
                 const monthHolidays = holidaysByMonth[monthKey] || [];
                 
                 if (monthHolidays.length === 0) return null;

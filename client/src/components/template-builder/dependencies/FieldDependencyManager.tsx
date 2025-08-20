@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   GitBranch,
   Plus,
   Trash2,
@@ -81,12 +80,10 @@ const actionTypes = [
   { value: 'set_value', label: 'Definir Valor', description: 'Define valor específico' },
   { value: 'clear_value', label: 'Limpar Valor', description: 'Remove o valor' },
   { value: 'set_options', label: 'Definir Opções', description: 'Para campos select' },
-  { value: 'filter_options', label: {t('template-builder.filtrarOpcoes')}, description: 'Filtra opções existentes' }
+  { value: 'filter_options', label: 'Filtrar Opções', description: 'Filtra opções existentes' }
 ];
 
 export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
-  const { t } = useLocalization();
-
   fields,
   dependencies,
   onDependenciesChange,
@@ -348,7 +345,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    {editingDependency.id.includes('new-') ? 'Nova' : {t('template-builder.editar')}} Dependência
+                    {editingDependency.id.includes('new-') ? 'Nova' : 'Editar'} Dependência
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -374,7 +371,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                         })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('template-builder.selecioneOCampo')} />
+                          <SelectValue placeholder="Selecione o campo" />
                         </SelectTrigger>
                         <SelectContent>
                           {fields.map(field => (
@@ -396,7 +393,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                         })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('template-builder.selecioneOCampo')} />
+                          <SelectValue placeholder="Selecione o campo" />
                         </SelectTrigger>
                         <SelectContent>
                           {fields

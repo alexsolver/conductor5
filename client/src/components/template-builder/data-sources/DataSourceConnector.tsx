@@ -15,7 +15,6 @@ import { Badge } from '../../ui/badge'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Database, 
   Globe, 
   List, 
@@ -56,8 +55,6 @@ interface DataSourceConnectorProps {
 }
 
 export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
-  const { t } = useLocalization();
-
   field,
   onUpdate,
   onClose
@@ -107,7 +104,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       }))
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : {t('template-builder.erroDesconhecido')}
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
       setDataSource(prev => ({
         ...prev,
         status: 'error',
@@ -139,7 +136,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
     const response = await fetch(url, requestConfig)
 
     if (!response.ok) {
-      throw new Error({t('template-builder.erroHttpResponsestatusResponsestatustext')})
+      throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`)
     }
 
     const data = await response.json()
@@ -177,7 +174,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
     })
 
     if (!response.ok) {
-      throw new Error({t('template-builder.erroNaConsultaResponsestatustext')})
+      throw new Error(`Erro na consulta: ${response.statusText}`)
     }
 
     const result = await response.json()
@@ -231,7 +228,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       return Array.isArray(result) ? result : [result]
 
     } catch (error) {
-      throw new Error(`Erro na função: ${error instanceof Error ? error.message : {t('template-builder.erroDesconhecido')}}`)
+      throw new Error(`Erro na função: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
     }
   }
 
@@ -246,7 +243,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       
       return func(data) || []
     } catch (error) {
-      throw new Error(`Erro na transformação: ${error instanceof Error ? error.message : {t('template-builder.erroDesconhecido')}}`)
+      throw new Error(`Erro na transformação: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
     }
   }
 
@@ -437,7 +434,7 @@ Opção 3`}
                     ...prev,
                     config: { ...prev.config, query: e.target.value }
                   }))}
-                  placeholder={t('template-builder.selectIdNameFromTabelaWhereAtivoTrue')}
+                  placeholder="SELECT id, name FROM tabela WHERE ativo = true"
                   rows={6}
                   className="font-mono text-sm"
                 />
@@ -558,7 +555,7 @@ return data.map(item => ({
                 {dataSource.data && dataSource.data.length > 0 ? (
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('template-builder.selecioneUmaOpcao')} />
+                      <SelectValue placeholder="Selecione uma opção" />
                     </SelectTrigger>
                     <SelectContent>
                       {dataSource.data.slice(0, 10).map((item, index) => (

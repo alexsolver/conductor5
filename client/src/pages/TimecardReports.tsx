@@ -7,11 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarDays, Clock, FileText, Download, TrendingUp, Users } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocalization } from '@/hooks/useLocalization';
 
 export default function TimecardReports() {
-  const { t } = useLocalization();
-
   const [selectedPeriod, setSelectedPeriod] = useState(format(new Date(), 'yyyy-MM'));
   const [reportType, setReportType] = useState('attendance');
   const [startDate, setStartDate] = useState('2025-08-01');
@@ -203,7 +200,7 @@ export default function TimecardReports() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/users');
       if (!response.ok) {
-        throw new Error(t('TimecardReports.erroResponsestatusResponsestatustext'));
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
       return response.json();
     }
@@ -225,7 +222,7 @@ export default function TimecardReports() {
       isArray: Array.isArray(currentReport.data || currentReport.records),
       dataLength: (currentReport.data || currentReport.records)?.length,
       firstItem: (currentReport.data || currentReport.records)?.[0]
-    }) : null,
+    } : null,
     isLoading,
     currentError: currentError?.message
   });
@@ -637,7 +634,7 @@ export default function TimecardReports() {
                   </div>
                 </div>
                 <div className="text-center mt-4 text-xs text-gray-600">
-                  <div><strong>Data/Hora da Certificação:</strong> {new Date().toLocaleString('pt-BR') (UTC-3)</div>
+                  <div><strong>Data/Hora da Certificação:</strong> {new Date().toLocaleString('pt-BR')} (UTC-3)</div>
                   <div className="mt-1"><strong>Versão do Sistema:</strong> Conductor CLT v2025.08.06</div>
                 </div>
               </div>

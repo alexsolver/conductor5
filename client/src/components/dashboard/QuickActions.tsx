@@ -1,12 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, UserPlus, FileText, Settings } from "lucide-react";
-import { useLocalization } from '@/hooks/useLocalization';
 
 const quickActions = [
   {
     id: "create-ticket",
-    label: {t('dashboard.createTicket')}, 
+    label: "Create Ticket", 
     icon: Plus,
   },
   {
@@ -27,8 +26,6 @@ const quickActions = [
 ];
 
 export function QuickActions() {
-  const { t } = useLocalization();
-
   const handleQuickAction = (actionId: string) => {
     console.log(`Quick action: ${actionId}`);
     // TODO: Implement quick action handlers

@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tree, Plus, Link, Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { apiRequest } from '@/lib/utils';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface TemplateHierarchy {
   templateId: string;
@@ -30,9 +29,7 @@ interface TemplateHierarchyManagerProps {
   onTemplateSelect?: (templateId: string) => void;
 }
 
-export function TemplateHierarchyManager({
-  const { t } = useLocalization();
- templateId, onTemplateSelect }: TemplateHierarchyManagerProps) {
+export function TemplateHierarchyManager({ templateId, onTemplateSelect }: TemplateHierarchyManagerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -173,7 +170,7 @@ export function TemplateHierarchyManager({
           <Label htmlFor="category">Categoria</Label>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger>
-              <SelectValue placeholder={t('template-builder.selecioneUmaCategoria')} />
+              <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>
             <SelectContent>
               {categories?.data?.map((category: any) => (
@@ -275,7 +272,7 @@ function CreateHierarchicalTemplateForm({ onSubmit, categories, parentTemplates 
           onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
         >
           <SelectTrigger>
-            <SelectValue placeholder={t('template-builder.selecioneUmaCategoria')} />
+            <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
@@ -294,7 +291,7 @@ function CreateHierarchicalTemplateForm({ onSubmit, categories, parentTemplates 
           onValueChange={(value) => setFormData(prev => ({ ...prev, parentTemplateId: value }))}
         >
           <SelectTrigger>
-            <SelectValue placeholder={t('template-builder.nenhumTemplateRaiz')} />
+            <SelectValue placeholder="Nenhum (template raiz)" />
           </SelectTrigger>
           <SelectContent>
             {parentTemplates.map((template) => (

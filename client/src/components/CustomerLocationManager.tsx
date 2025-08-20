@@ -9,7 +9,6 @@ import { MapPin, Plus, Trash2, Star, StarOff, Navigation } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import MapSelector from './MapSelector';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface CustomerLocationManagerProps {
   customerId: string;
@@ -37,9 +36,7 @@ interface CustomerLocation {
   };
 }
 
-export function CustomerLocationManager({
-  const { t } = useLocalization();
- 
+export function CustomerLocationManager({ 
   customerId, 
   isOpen, 
   onClose, 
@@ -84,7 +81,7 @@ export function CustomerLocationManager({
     },
     onError: (error: any) => {
       toast({
-        title: {t('CustomerLocationManager.tsx.erroAoAdicionarLocalizacao')},
+        title: "Erro ao adicionar localização",
         description: error.message || "Não foi possível associar a localização ao cliente.",
         variant: "destructive"
       });
@@ -109,7 +106,7 @@ export function CustomerLocationManager({
     },
     onError: (error: any) => {
       toast({
-        title: {t('CustomerLocationManager.tsx.erroAoRemoverLocalizacao')},
+        title: "Erro ao remover localização",
         description: error.message || "Não foi possível remover a localização do cliente.",
         variant: "destructive"
       });
@@ -132,7 +129,7 @@ export function CustomerLocationManager({
     },
     onError: (error: any) => {
       toast({
-        title: {t('CustomerLocationManager.tsx.erroAoDefinirLocalizacaoPrincipal')},
+        title: "Erro ao definir localização principal",
         description: error.message || "Não foi possível definir a localização como principal.",
         variant: "destructive"
       });
@@ -142,8 +139,8 @@ export function CustomerLocationManager({
   const handleAddLocation = () => {
     if (!selectedLocationId) {
       toast({
-        title: {t('CustomerLocationManager.tsx.selecioneUmaLocalizacao')},
-        description: {t('CustomerLocationManager.tsx.escolhaUmaLocalizacaoParaAssociarAoCliente')},
+        title: "Selecione uma localização",
+        description: "Escolha uma localização para associar ao cliente.",
         variant: "destructive"
       });
       return;
@@ -157,7 +154,7 @@ export function CustomerLocationManager({
     console.log('Removing location:', locationId);
     if (!locationId) {
       toast({
-        title: {t('CustomerLocationManager.tsx.erro')},
+        title: "Erro",
         description: "ID da localização não encontrado.",
         variant: "destructive"
       });
@@ -224,7 +221,7 @@ export function CustomerLocationManager({
               <div className="flex-1">
                 <Select value={selectedLocationId} onValueChange={setSelectedLocationId}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('CustomerLocationManager.tsx.selecioneUmaLocalizacaoExistente')} />
+                    <SelectValue placeholder="Selecione uma localização existente..." />
                   </SelectTrigger>
                   <SelectContent>
                     {availableLocations.map((location: any) => (

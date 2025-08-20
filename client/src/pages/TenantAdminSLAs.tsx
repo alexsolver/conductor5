@@ -15,7 +15,6 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Clock, 
   AlertTriangle, 
   Target, 
@@ -87,8 +86,6 @@ interface SlaMetrics {
 
 // Validation schemas
 const slaFormSchema = z.object({
-  const { t } = useLocalization();
-
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   slaLevel: z.enum(['L1', 'L2', 'L3']),
@@ -165,7 +162,7 @@ export default function TenantAdminSLAs() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error(t('TenantAdminSLAs.erroAoCriarSla'));
+      if (!response.ok) throw new Error('Erro ao criar SLA');
       return response.json();
     },
     onSuccess: () => {
@@ -175,7 +172,7 @@ export default function TenantAdminSLAs() {
       setShowCreateDialog(false);
     },
     onError: () => {
-      toast({ title: t('TenantAdminSLAs.erroAoCriarSla'), variant: 'destructive' });
+      toast({ title: 'Erro ao criar SLA', variant: 'destructive' });
     }
   });
 
@@ -186,7 +183,7 @@ export default function TenantAdminSLAs() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error(t('TenantAdminSLAs.erroAoAtualizarSla'));
+      if (!response.ok) throw new Error('Erro ao atualizar SLA');
       return response.json();
     },
     onSuccess: () => {
@@ -194,7 +191,7 @@ export default function TenantAdminSLAs() {
       toast({ title: 'SLA atualizado com sucesso!' });
     },
     onError: () => {
-      toast({ title: t('TenantAdminSLAs.erroAoAtualizarSla'), variant: 'destructive' });
+      toast({ title: 'Erro ao atualizar SLA', variant: 'destructive' });
     }
   });
 
@@ -203,14 +200,14 @@ export default function TenantAdminSLAs() {
       const response = await fetch(`/api/sla/tickets-slas/${id}`, {
         method: 'DELETE'
       });
-      if (!response.ok) throw new Error(t('TenantAdminSLAs.erroAoExcluirSla'));
+      if (!response.ok) throw new Error('Erro ao excluir SLA');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/sla/tickets-slas'] });
       toast({ title: 'SLA excluído com sucesso!' });
     },
     onError: () => {
-      toast({ title: t('TenantAdminSLAs.erroAoExcluirSla'), variant: 'destructive' });
+      toast({ title: 'Erro ao excluir SLA', variant: 'destructive' });
     }
   });
 
@@ -364,10 +361,10 @@ export default function TenantAdminSLAs() {
                     )}
                     <div className="flex gap-2 text-xs text-muted-foreground">
                       {sla.metadata?.priority && (
-                        <span>Prioridades: {sla.metadata.priority.join(', ')</span>
+                        <span>Prioridades: {sla.metadata.priority.join(', ')}</span>
                       )}
                       {sla.metadata?.category && (
-                        <span>| Categorias: {sla.metadata.category.join(', ')</span>
+                        <span>| Categorias: {sla.metadata.category.join(', ')}</span>
                       )}
                     </div>
                   </div>
@@ -574,7 +571,7 @@ export default function TenantAdminSLAs() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TenantAdminSLAs.selecioneONivel') />
+                            <SelectValue placeholder="Selecione o nível" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -633,7 +630,7 @@ export default function TenantAdminSLAs() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createSlaMutation.isPending}>
-                  {createSlaMutation.isPending ? 'Criando...' : t('TenantAdminSLAs.criarSla')}
+                  {createSlaMutation.isPending ? 'Criando...' : 'Criar SLA'}
                 </Button>
               </div>
             </form>

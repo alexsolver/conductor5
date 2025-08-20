@@ -15,11 +15,8 @@ import { z } from "zod";
 import { Plus, Users, Building, Settings, BarChart3, Shield } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useLocalization } from '@/hooks/useLocalization';
 
 const createTenantSchema = z.object({
-  const { t } = useLocalization();
-
   name: z.string().min(1, "Nome é obrigatório"),
   subdomain: z.string().min(1, "Subdomínio é obrigatório").regex(/^[a-z0-9-]+$/, "Subdomínio deve conter apenas letras minúsculas, números e hífens"),
   settings: z.object({}).optional()
@@ -90,7 +87,7 @@ export default function SaasAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('SaasAdmin.erroAoCriarTenant'),
+        title: "Erro ao criar tenant",
         description: error.message,
         variant: "destructive",
       });
@@ -158,7 +155,7 @@ export default function SaasAdmin() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createTenantMutation.isPending}>
-                    {createTenantMutation.isPending ? 'Criando...' : t('SaasAdmin.criar')}
+                    {createTenantMutation.isPending ? 'Criando...' : 'Criar'}
                   </Button>
                 </div>
               </form>
@@ -248,7 +245,7 @@ export default function SaasAdmin() {
                       </div>
                       <div>
                         <span className="font-medium mr-2">Criado em:</span>
-                        {new Date(tenant.createdAt).toLocaleDateString('pt-BR')
+                        {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
                     <div className="mt-3">
@@ -285,7 +282,7 @@ export default function SaasAdmin() {
                         variant={user.role === 'saas_admin' ? 'default' : 'secondary'}
                         className={user.role === 'saas_admin' ? 'bg-red-100 text-red-700' : ''}
                       >
-                        {user.role.replace('_', ' ')
+                        {user.role.replace('_', ' ')}
                       </Badge>
                     </div>
                     <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -299,7 +296,7 @@ export default function SaasAdmin() {
                       {user.lastLoginAt && (
                         <div>
                           <span className="font-medium mr-2">Último login:</span>
-                          {new Date(user.lastLoginAt).toLocaleDateString('pt-BR')
+                          {new Date(user.lastLoginAt).toLocaleDateString('pt-BR')}
                         </div>
                       )}
                     </div>

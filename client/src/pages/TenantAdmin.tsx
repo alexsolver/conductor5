@@ -15,11 +15,8 @@ import { z } from "zod";
 import { Plus, Users, Settings, BarChart3, Shield, Building, Mail } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useLocalization } from '@/hooks/useLocalization';
 
 const createUserSchema = z.object({
-  const { t } = useLocalization();
-
   email: z.string().email("Email inválido"),
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().optional(),
@@ -111,7 +108,7 @@ export default function TenantAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('TenantAdmin.erroAoCriarUsuario'),
+        title: "Erro ao criar usuário",
         description: error.message,
         variant: "destructive",
       });
@@ -128,13 +125,13 @@ export default function TenantAdmin() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/settings'] });
       setIsSettingsDialogOpen(false);
       toast({
-        title: t('TenantAdmin.configuracoesAtualizadas'),
-        description: t('TenantAdmin.configuracoesDoWorkspaceAtualizadasComSucesso'),
+        title: "Configurações atualizadas",
+        description: "Configurações do workspace atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: t('TenantAdmin.erroAoAtualizarConfiguracoes'),
+        title: "Erro ao atualizar configurações",
         description: error.message,
         variant: "destructive",
       });
@@ -194,7 +191,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                      {updateSettingsMutation.isPending ? 'Salvando...' : t('TenantAdmin.salvar')}
+                      {updateSettingsMutation.isPending ? 'Salvando...' : 'Salvar'}
                     </Button>
                   </div>
                 </form>
@@ -280,7 +277,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createUserMutation.isPending}>
-                      {createUserMutation.isPending ? 'Criando...' : t('TenantAdmin.criar')}
+                      {createUserMutation.isPending ? 'Criando...' : 'Criar'}
                     </Button>
                   </div>
                 </form>

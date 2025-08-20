@@ -5,7 +5,6 @@ import { MapPin, Navigation, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -39,9 +38,7 @@ interface SearchResult {
   lon: string;
 }
 
-export function LeafletMap({
-  const { t } = useLocalization();
- initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
+export function LeafletMap({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -249,17 +246,17 @@ export function LeafletMap({
         });
       } else {
         toast({
-          title: {t('LeafletMap.tsx.nenhumResultado')},
+          title: "Nenhum resultado",
           description: "Não foi possível encontrar o endereço. Tente ser mais específico.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.warn({t('LeafletMap.tsx.searchError')}, error);
+      console.warn('Search error:', error);
       
       toast({
-        title: {t('LeafletMap.tsx.erroNaBusca')},
-        description: {t('LeafletMap.tsx.erroAoConectarComOServicoDeBuscaTenteNovamenteOuCliqueNoMapa')},
+        title: "Erro na busca",
+        description: "Erro ao conectar com o serviço de busca. Tente novamente ou clique no mapa.",
         variant: "destructive"
       });
     } finally {
@@ -297,7 +294,7 @@ export function LeafletMap({
       (error) => {
         console.error('Geolocation error:', error.message || error);
         toast({
-          title: {t('LeafletMap.tsx.erroNaGeolocalizacao')},
+          title: "Erro na geolocalização",
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
@@ -352,7 +349,7 @@ export function LeafletMap({
       <div className="flex gap-2">
         <div className="flex-1">
           <Input
-            placeholder={t('LeafletMap.tsx.digiteUmEnderecoParaBuscar')}
+            placeholder="Digite um endereço para buscar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchLocation()}

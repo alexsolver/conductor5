@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { apiRequest } from '@/lib/queryClient';
 import { Building2, Globe } from 'lucide-react';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Company {
   id: string;
@@ -22,9 +21,7 @@ interface CompanyTemplateSelectorProps {
   showStats?: boolean;
 }
 
-export default function CompanyTemplateSelector({
-  const { t } = useLocalization();
- 
+export default function CompanyTemplateSelector({ 
   selectedCompany, 
   onCompanyChange, 
   showStats = true 
@@ -55,7 +52,7 @@ export default function CompanyTemplateSelector({
   const getCompanyInfo = (companyId: string) => {
     if (companyId === 'all') {
       return {
-        name: {t('templates.todosOsClientes')},
+        name: 'Todos os Clientes',
         description: 'Templates globais disponíveis para todos',
         icon: <Globe className="w-4 h-4" />
       };
@@ -132,7 +129,7 @@ export default function CompanyTemplateSelector({
           <div className="space-y-4">
             <Select value={selectedCompany} onValueChange={onCompanyChange}>
               <SelectTrigger>
-                <SelectValue placeholder={t('templates.selecioneUmCliente')} />
+                <SelectValue placeholder="Selecione um cliente" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">

@@ -9,7 +9,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
 import { useState } from "react";
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   BarChart3, 
   Users, 
   Ticket, 
@@ -65,8 +64,6 @@ interface SidebarProps {
 
 // Base navigation with proper types
 const baseNavigation: Array<{
-  const { t } = useLocalization();
-
   name: string;
   href?: string;
   icon: any;
@@ -78,8 +75,8 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: {t('layout.clientes')}, href: "/customers", icon: Users },
-  { name: {t('layout.tickets')}, href: "/tickets", icon: Ticket },
+  { name: "Clientes", href: "/customers", icon: Users },
+  { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
   {
     name: "Controle de Jornadas",
@@ -89,7 +86,7 @@ const baseNavigation: Array<{
       { name: "Escalas de Trabalho", href: "/work-schedules", icon: Calendar },
       { name: "Banco de Horas", href: "/hour-bank", icon: CreditCard },
       { name: "Calendário de Feriados", href: "/holiday-calendar", icon: Calendar },
-      { name: {t('layout.relatorios')}, href: "/timecard-reports", icon: FileText },
+      { name: "Relatórios", href: "/timecard-reports", icon: FileText },
       { name: "CLT Compliance", href: "/clt-compliance", icon: Shield },
       { name: "Aprovação de Registros", href: "/timecard-approvals", icon: CheckCircle },
       { name: "Configuração de Aprovações", href: "/timecard-approval-settings", icon: Settings },
@@ -112,12 +109,12 @@ const baseNavigation: Array<{
       { name: "Gestão de Compliance", href: "/compliance-management", icon: Shield },
     ]
   },
-  { name: {t('layout.analytics')}, href: "/analytics", icon: BarChart3 },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Notificações", href: "/notifications", icon: Bell },
   { name: "Compliance", href: "/compliance", icon: Shield },
   { name: "GDPR Compliance", href: "/gdpr-compliance", icon: Shield },
   {
-    name: {t('layout.reports')},
+    name: "Reports",
     icon: PieChart,
     children: [
       { name: "Productivity Reports", href: "/productivity-reports", icon: PieChart },
@@ -135,10 +132,10 @@ const adminNavigation = [
     icon: Shield, 
     roles: ['saas_admin'],
     children: [
-      { name: {t('layout.dashboard')}, href: "/saas-admin", icon: BarChart3 },
+      { name: "Dashboard", href: "/saas-admin", icon: BarChart3 },
       { name: "Gestão de Tenants", href: "/saas-admin/tenants", icon: Database },
       { name: "Performance & Saúde", href: "/saas-admin/performance", icon: TrendingUp },
-      { name: {t('layout.configuracoesDeSeguranca')}, href: "/saas-admin/security", icon: Shield },
+      { name: "Configurações de Segurança", href: "/saas-admin/security", icon: Shield },
       { name: "Billing & Usage", href: "/saas-admin/billing", icon: CreditCard },
       { name: "Disaster Recovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
       { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug },
@@ -166,23 +163,23 @@ const adminNavigation = [
       { name: "Aprovações", href: "/approvals", icon: CheckCircle },
       { name: "Planejador de Atividades", href: "/activity-planner", icon: Calendar },
       { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
-      { name: {t('layout.configuracoesDeTickets')}, href: "/ticket-configuration", icon: Settings },
+      { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Templates de Tickets", href: "/ticket-templates", icon: FileText },
       { name: "Campos Customizados", href: "/custom-fields-admin", icon: Wrench },
-      { name: {t('layout.clientes')}, href: "/customers", icon: Users },
+      { name: "Clientes", href: "/customers", icon: Users },
       { name: "Favorecidos", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
       { name: "OmniBridge", href: "/omnibridge", icon: MessageSquare }, // Added OmniBridge link
       { name: "Empresas", href: "/companies", icon: Building2 },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
-      { name: {t('layout.relatoriosDashboards')}, href: "/reports", icon: BarChart3 },
-      { name: {t('layout.dashboardsInterativos')}, href: "/dashboards", icon: Activity },
+      { name: "Relatórios & Dashboards", href: "/reports", icon: BarChart3 },
+      { name: "Dashboards Interativos", href: "/dashboards", icon: Activity },
     ]
   },
 ];
 
 const secondaryNavigation = [
-  { name: {t('layout.settings')}, href: "/settings", icon: Settings },
+  { name: "Settings", href: "/settings", icon: Settings },
   { name: "Security", href: "/security", icon: Shield },
   { name: "Help & Support", href: "/help", icon: HelpCircle },
 ];
@@ -215,7 +212,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   // Create navigation with dynamic badges and employment-specific terminology
   const navigation = baseNavigation.map(item => {
-    if (item.name === {t('layout.tickets')} && activeTicketsCount > 0) {
+    if (item.name === "Tickets" && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
 
@@ -344,7 +341,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 </div>
                 {!collapsed && (
                   <span className="text-sm font-medium text-white transition-opacity duration-300">
-                    {tenantData?.name || {t('layout.carregando')}}
+                    {tenantData?.name || 'Carregando...'}
                   </span>
                 )}
               </div>

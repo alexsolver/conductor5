@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Users, BarChart3, Shield, Globe, Headphones } from "lucide-react";
-import { useLocalization } from '@/hooks/useLocalization';
 
 const features = [
   {
@@ -11,7 +10,7 @@ const features = [
   },
   {
     icon: BarChart3,
-    title: t('Landing.advancedAnalytics'),
+    title: "Advanced Analytics",
     description: "Get insights with real-time dashboards, performance metrics, and detailed reporting.",
   },
   {
@@ -37,8 +36,6 @@ const features = [
 ];
 
 export default function Landing() {
-  const { t } = useLocalization();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Hero Section */}

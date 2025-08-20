@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Status and types mapping
 const contractStatuses = [
@@ -25,7 +24,7 @@ const contractStatuses = [
   { value: 'approved', label: 'Aprovado', color: 'bg-blue-100 text-blue-800' },
   { value: 'active', label: 'Ativo', color: 'bg-green-100 text-green-800' },
   { value: 'finished', label: 'Finalizado', color: 'bg-gray-100 text-gray-800' },
-  { value: 'canceled', label: {t('forms.cancelado')}, color: 'bg-red-100 text-red-800' },
+  { value: 'canceled', label: 'Cancelado', color: 'bg-red-100 text-red-800' },
 ];
 
 const contractTypes = [
@@ -49,9 +48,7 @@ interface ContractViewDialogProps {
   children?: React.ReactNode;
 }
 
-export function ContractViewDialog({
-  const { t } = useLocalization();
- contractId, children }: ContractViewDialogProps) {
+export function ContractViewDialog({ contractId, children }: ContractViewDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   // ✅ 1QA.MD COMPLIANCE: FETCH CONTRACT DATA

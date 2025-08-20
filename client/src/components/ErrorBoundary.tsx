@@ -4,7 +4,6 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Props {
   children: ReactNode;
@@ -47,8 +46,8 @@ export class ErrorBoundary extends Component<Props, State> {
     });
 
     // Log error details
-    console.error({t('ErrorBoundary.tsx.errorboundaryCaughtAnError')}, error);
-    console.error({t('ErrorBoundary.tsx.errorInfo')}, errorInfo);
+    console.error('ErrorBoundary caught an error:', error);
+    console.error('Error info:', errorInfo);
 
     // Call custom error handler if provided
     if (this.props.onError) {
@@ -63,8 +62,6 @@ export class ErrorBoundary extends Component<Props, State> {
     // Implement error reporting logic here
     // This could send to Sentry, LogRocket, or custom logging service
     const errorReport = {
-  const { t } = useLocalization();
-
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
@@ -74,7 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
     };
 
     // For now, just log to console
-    console.warn({t('ErrorBoundary.tsx.errorReportGenerated')}, errorReport);
+    console.warn('Error report generated:', errorReport);
     
     // In production, you would send this to your error tracking service
     // Example: Sentry.captureException(error, { contexts: { errorInfo } });
@@ -205,7 +202,7 @@ export class ErrorBoundary extends Component<Props, State> {
 // Hook version for functional components
 export const useErrorHandler = () => {
   const handleError = React.useCallback((error: Error, errorInfo?: any) => {
-    console.error({t('ErrorBoundary.tsx.errorCaughtByUseerrorhandler')}, error);
+    console.error('Error caught by useErrorHandler:', error);
     
     // Report error
     const errorReport = {
@@ -217,7 +214,7 @@ export const useErrorHandler = () => {
       additionalInfo: errorInfo
     };
 
-    console.warn({t('ErrorBoundary.tsx.errorReportGenerated')}, errorReport);
+    console.warn('Error report generated:', errorReport);
   }, []);
 
   return { handleError };

@@ -12,8 +12,6 @@ import { useLocation } from "wouter";
 import { renderAddressSafely, formatCompanyDisplay, getFieldSafely, formatCustomerName } from "@/utils/addressFormatter";
 
 export default function Customers() {
-  const { t } = useLocalization();
-
   const [, setLocation] = useLocation();
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -22,10 +20,9 @@ export default function Customers() {
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const { apiRequest } = await import('../lib/queryClient');
-import { useLocalization } from '@/hooks/useLocalization';
       const response = await apiRequest('GET', '/api/customers');
       const data = await response.json();
-      console.log({t('Customers.customersApiResponse'), data);
+      console.log('Customers API Response:', data);
       return data;
     },
     retry: false,
@@ -102,7 +99,7 @@ import { useLocalization } from '@/hooks/useLocalization';
     }
   };
 
-  console.log({t('Customers.customersData'), { customers, total, error, isLoading });
+  console.log('Customers data:', { customers, total, error, isLoading });
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
@@ -270,14 +267,14 @@ import { useLocalization } from '@/hooks/useLocalization';
               </Button>
               {isSchemaError && (
                 <Button
-                  onClick={() => setLocation('/settings')
+                  onClick={() => setLocation('/settings')}
                   variant="secondary"
                 >
                   ⚙️ Verificar configurações
                 </Button>
               )}
               <Button
-                onClick={() => setLocation('/dashboard')
+                onClick={() => setLocation('/dashboard')}
                 variant="ghost"
               >
                 🏠 Voltar ao Dashboard
@@ -438,7 +435,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-gray-500">
-                      {new Date(customer.created_at).toLocaleDateString('pt-BR')
+                      {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                     </span>
                   </TableCell>
                   <TableCell>

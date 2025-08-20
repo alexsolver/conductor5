@@ -14,7 +14,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Shield, 
   FileSearch, 
   Award, 
@@ -107,8 +106,6 @@ interface ComplianceStats {
 }
 
 export default function ComplianceManagement() {
-  const { t } = useLocalization();
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -352,7 +349,7 @@ export default function ComplianceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAuditMutation.isPending}>
-                    {createAuditMutation.isPending ? 'Criando...' : t('ComplianceManagement.criarAuditoria')}
+                    {createAuditMutation.isPending ? 'Criando...' : 'Criar Auditoria'}
                   </Button>
                 </div>
               </form>
@@ -422,7 +419,7 @@ export default function ComplianceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createCertificationMutation.isPending}>
-                    {createCertificationMutation.isPending ? 'Criando...' : t('ComplianceManagement.criarCertificacao')}
+                    {createCertificationMutation.isPending ? 'Criando...' : 'Criar Certificação'}
                   </Button>
                 </div>
               </form>
@@ -536,7 +533,7 @@ export default function ComplianceManagement() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{audit.title}</h3>
-                          {getStatusBadge(audit.status, 'audit')
+                          {getStatusBadge(audit.status, 'audit')}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Tipo: {audit.type} | Auditor: {audit.auditor}
@@ -544,7 +541,7 @@ export default function ComplianceManagement() {
                         {audit.scheduledDate && (
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="w-4 h-4" />
-                            {new Date(audit.scheduledDate).toLocaleDateString('pt-BR')
+                            {new Date(audit.scheduledDate).toLocaleDateString('pt-BR')}
                           </div>
                         )}
                         {audit.score && (
@@ -583,15 +580,15 @@ export default function ComplianceManagement() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{cert.name}</h3>
-                          {getStatusBadge(cert.status, 'cert')
+                          {getStatusBadge(cert.status, 'cert')}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Padrão: {cert.standard} | Órgão: {cert.certifyingBody}
                         </p>
                         <div className="flex items-center gap-4 text-sm">
-                          <span>Emitido: {new Date(cert.issueDate).toLocaleDateString('pt-BR')</span>
+                          <span>Emitido: {new Date(cert.issueDate).toLocaleDateString('pt-BR')}</span>
                           {cert.expirationDate && (
-                            <span>Vence: {new Date(cert.expirationDate).toLocaleDateString('pt-BR')</span>
+                            <span>Vence: {new Date(cert.expirationDate).toLocaleDateString('pt-BR')}</span>
                           )}
                         </div>
                         <p className="text-sm">{cert.scope}</p>
@@ -632,16 +629,16 @@ export default function ComplianceManagement() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{alert.title}</h3>
                           {getSeverityBadge(alert.severity)}
-                          {getStatusBadge(alert.status, 'alert')
+                          {getStatusBadge(alert.status, 'alert')}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Tipo: {alert.type} | Disparado: {new Date(alert.triggerDate).toLocaleDateString('pt-BR')
+                          Tipo: {alert.type} | Disparado: {new Date(alert.triggerDate).toLocaleDateString('pt-BR')}
                         </p>
                         <p className="text-sm">{alert.description}</p>
                         {alert.dueDate && (
                           <div className="flex items-center gap-2 text-sm">
                             <Clock className="w-4 h-4" />
-                            Vencimento: {new Date(alert.dueDate).toLocaleDateString('pt-BR')
+                            Vencimento: {new Date(alert.dueDate).toLocaleDateString('pt-BR')}
                           </div>
                         )}
                       </div>
@@ -692,7 +689,7 @@ export default function ComplianceManagement() {
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Avaliado em: {new Date(score.assessedAt).toLocaleDateString('pt-BR')
+                          Avaliado em: {new Date(score.assessedAt).toLocaleDateString('pt-BR')}
                           {score.assessedBy && ` por ${score.assessedBy}`}
                         </p>
                         {score.notes && <p className="text-sm">{score.notes}</p>}

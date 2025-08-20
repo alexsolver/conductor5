@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2, Percent, Target, TrendingUp, Settings } from "lucide-react";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface MarginConfigurationPanelProps {
   priceListId: string;
@@ -18,8 +17,6 @@ interface MarginConfigurationPanelProps {
 }
 
 export default function MarginConfigurationPanel({
-  const { t } = useLocalization();
-
   priceListId,
   onSave
 }: MarginConfigurationPanelProps) {
@@ -137,7 +134,7 @@ export default function MarginConfigurationPanel({
                           onValueChange={(value) => updateMargin(index, 'category', value)}
                         >
                           <SelectTrigger className="w-48">
-                            <SelectValue placeholder={t('lpu.selecioneUmaCategoria')} />
+                            <SelectValue placeholder="Selecione uma categoria" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="materiais">Materiais</SelectItem>

@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-import { useLocalization } from '@/hooks/useLocalization';
   Monitor,
   Laptop,
   Smartphone,
@@ -110,8 +109,6 @@ interface MaintenanceRecord {
 }
 
 export function AssetsManagement() {
-  const { t } = useLocalization();
-
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -309,8 +306,8 @@ export function AssetsManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('AssetsManagement.erro'),
-        description: error.message || t('AssetsManagement.erroAoCriarAtivo'),
+        title: "Erro",
+        description: error.message || "Erro ao criar ativo",
         variant: "destructive"
       });
     }
@@ -329,8 +326,8 @@ export function AssetsManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('AssetsManagement.erro'),
-        description: error.message || t('AssetsManagement.erroAoAtualizarAtivo'),
+        title: "Erro",
+        description: error.message || "Erro ao atualizar ativo",
         variant: "destructive"
       });
     }
@@ -520,7 +517,7 @@ export function AssetsManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder={t('AssetsManagement.buscarAtivos')
+              placeholder="Buscar ativos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -691,7 +688,7 @@ export function AssetsManagement() {
                 <Label htmlFor="category">Categoria *</Label>
                 <Select name="category" required>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('AssetsManagement.selecioneACategoria') />
+                    <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="computer">Computadores</SelectItem>
@@ -733,7 +730,7 @@ export function AssetsManagement() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={createAssetMutation.isPending}>
-                {createAssetMutation.isPending ? 'Criando...' : t('AssetsManagement.criarAtivo')}
+                {createAssetMutation.isPending ? 'Criando...' : 'Criar Ativo'}
               </Button>
             </div>
           </form>

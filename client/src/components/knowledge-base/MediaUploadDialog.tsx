@@ -6,15 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Upload, File, Image, Video } from "lucide-react";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface MediaUploadDialogProps {
   onSuccess?: (file: any) => void;
 }
 
-export function MediaUploadDialog({
-  const { t } = useLocalization();
- onSuccess }: MediaUploadDialogProps) {
+export function MediaUploadDialog({ onSuccess }: MediaUploadDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -62,7 +59,7 @@ export function MediaUploadDialog({
       };
 
       toast({
-        title: {t('knowledge-base.sucesso')},
+        title: "Sucesso",
         description: `Arquivo "${file.name}" enviado com sucesso!`,
       });
 
@@ -70,8 +67,8 @@ export function MediaUploadDialog({
       onSuccess?.(uploadedFile);
     } catch (error) {
       toast({
-        title: {t('knowledge-base.erro')},
-        description: {t('knowledge-base.erroAoFazerUploadDoArquivoTenteNovamente')},
+        title: "Erro",
+        description: "Erro ao fazer upload do arquivo. Tente novamente.",
         variant: "destructive",
       });
     } finally {

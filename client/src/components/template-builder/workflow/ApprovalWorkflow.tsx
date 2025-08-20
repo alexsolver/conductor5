@@ -13,7 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { apiRequest } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface ApprovalRequest {
   id: string;
@@ -35,9 +34,7 @@ interface ApprovalWorkflowProps {
   onApprovalComplete?: () => void;
 }
 
-export function ApprovalWorkflow({
-  const { t } = useLocalization();
- templateId, onApprovalComplete }: ApprovalWorkflowProps) {
+export function ApprovalWorkflow({ templateId, onApprovalComplete }: ApprovalWorkflowProps) {
   const [selectedRequest, setSelectedRequest] = useState<ApprovalRequest | null>(null);
   const [approvalNotes, setApprovalNotes] = useState('');
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
@@ -329,7 +326,7 @@ function ApprovalDialog({
           disabled={isLoading || (approvalAction === 'reject' && !approvalNotes.trim())}
           variant={approvalAction === 'approve' ? 'default' : 'destructive'}
         >
-          {isLoading ? {t('template-builder.processando')} : (
+          {isLoading ? 'Processando...' : (
             approvalAction === 'approve' ? 'Aprovar' : 'Rejeitar'
           )}
         </Button>

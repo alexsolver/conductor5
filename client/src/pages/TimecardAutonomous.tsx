@@ -9,15 +9,12 @@ import { Clock, Play, Pause, Square, Calendar, FileText, CheckCircle } from 'luc
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useLocalization } from '@/hooks/useLocalization';
 
 /**
  * Timecard page specifically designed for Autonomous workers
  * Uses different terminology but same backend functionality as CLT timecard
  */
 export default function TimecardAutonomous() {
-  const { t } = useLocalization();
-
   const { terminology, isLoading: employmentLoading } = useEmploymentDetection();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -70,7 +67,7 @@ export default function TimecardAutonomous() {
     },
     onError: (error) => {
       toast({
-        title: t('TimecardAutonomous.erroNoRegistro'),
+        title: "❌ Erro no registro",
         description: "Não foi possível registrar a atividade",
         variant: "destructive",
       });
@@ -108,7 +105,7 @@ export default function TimecardAutonomous() {
         </div>
         <div className="text-right">
           <div className="text-2xl font-mono text-gray-900">
-            {format(currentTime, 'HH:mm:ss')
+            {format(currentTime, 'HH:mm:ss')}
           </div>
           <div className="text-sm text-gray-500">
             {format(currentTime, 'EEEE, dd \'de\' MMMM \'de\' yyyy', { locale: ptBR })}
@@ -141,7 +138,7 @@ export default function TimecardAutonomous() {
               </Badge>
               <span className="text-sm text-gray-600">
                 {timecardStatus?.lastAction && 
-                  `Última ação: ${format(new Date(timecardStatus.lastAction), 'HH:mm')`
+                  `Última ação: ${format(new Date(timecardStatus.lastAction), 'HH:mm')}`
                 }
               </span>
             </div>
@@ -165,7 +162,7 @@ export default function TimecardAutonomous() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Button
-              onClick={() => handleClockAction('clock_in')
+              onClick={() => handleClockAction('clock_in')}
               disabled={isWorking || clockActionMutation.isPending}
               className="h-16 flex flex-col gap-1 bg-green-600 hover:bg-green-700"
             >
@@ -174,7 +171,7 @@ export default function TimecardAutonomous() {
             </Button>
             
             <Button
-              onClick={() => handleClockAction('break_start')
+              onClick={() => handleClockAction('break_start')}
               disabled={!isWorking || clockActionMutation.isPending}
               variant="outline"
               className="h-16 flex flex-col gap-1"
@@ -184,7 +181,7 @@ export default function TimecardAutonomous() {
             </Button>
             
             <Button
-              onClick={() => handleClockAction('break_end')
+              onClick={() => handleClockAction('break_end')}
               disabled={!isOnBreak || clockActionMutation.isPending}
               variant="outline"
               className="h-16 flex flex-col gap-1"
@@ -194,7 +191,7 @@ export default function TimecardAutonomous() {
             </Button>
             
             <Button
-              onClick={() => handleClockAction('clock_out')
+              onClick={() => handleClockAction('clock_out')}
               disabled={!isWorking || clockActionMutation.isPending}
               className="h-16 flex flex-col gap-1 bg-red-600 hover:bg-red-700"
             >
@@ -233,7 +230,7 @@ export default function TimecardAutonomous() {
                     </span>
                   </div>
                   <div className="text-sm text-gray-600">
-                    {format(new Date(record.timestamp), 'HH:mm:ss')
+                    {format(new Date(record.timestamp), 'HH:mm:ss')}
                   </div>
                 </div>
               ))}

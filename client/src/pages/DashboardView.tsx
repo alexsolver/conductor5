@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { GovernedWidgetRenderer } from "@/components/dashboard/GovernedWidgetRenderer";
 import type { GovernedCard } from "@shared/dashboard-governance-schema";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface DashboardWidget {
   id: string;
@@ -56,8 +55,6 @@ interface Dashboard {
 }
 
 const widgetTypeIcons = {
-  const { t } = useLocalization();
-
   chart: BarChart3,
   table: Table,
   metric: LineChart,
@@ -101,7 +98,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           if (widgetType === 'table') {
             return {
               value: total,
-              label: t('DashboardView.totalDeTickets'),
+              label: 'Total de Tickets',
               data: tickets.slice(0, 5).map((ticket: any) => ({
                 id: ticket.id,
                 title: ticket.title || `Ticket ${ticket.ticketNumber}`,
@@ -114,7 +111,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           
           return {
             value: total,
-            label: t('DashboardView.totalDeTickets'),
+            label: 'Total de Tickets',
             change: Math.floor(Math.random() * 20) - 10, // Placeholder até implementar histórico
             lastUpdated: 'Dados reais do banco',
           };
@@ -137,7 +134,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: t('DashboardView.clientesAtivos'),
+            label: 'Clientes Ativos',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -148,7 +145,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: t('DashboardView.usuariosNoSistema'),
+            label: 'Usuários no Sistema',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -575,7 +572,7 @@ function DashboardView() {
           <p className="text-gray-500 dark:text-gray-400 mb-6">
             The dashboard you're looking for doesn't exist or you don't have permission to view it.
           </p>
-          <Button onClick={() => setLocation('/dashboards')>
+          <Button onClick={() => setLocation('/dashboards')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboards
           </Button>
@@ -616,7 +613,7 @@ function DashboardView() {
       console.log('Saving dashboard configuration:', updatedConfig);
       
       toast({ 
-        title: t('DashboardView.dashboardSaved'), 
+        title: "Dashboard saved", 
         description: "Your dashboard changes have been saved successfully." 
       });
       
@@ -624,7 +621,7 @@ function DashboardView() {
       setLocation(`/dashboard/${id}`);
     } catch (error) {
       toast({ 
-        title: t('DashboardView.saveFailed'), 
+        title: "Save failed", 
         description: "There was an error saving your dashboard changes." 
       });
     }
@@ -657,7 +654,7 @@ function DashboardView() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation('/dashboards')
+                onClick={() => setLocation('/dashboards')}
                 data-testid="button-back-to-dashboards"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

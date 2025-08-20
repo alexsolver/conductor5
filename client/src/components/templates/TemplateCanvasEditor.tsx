@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Save, 
   Eye, 
   Trash2, 
@@ -37,8 +36,6 @@ import { useLocalization } from '@/hooks/useLocalization';
 
 // Tipos de campos disponíveis
 const FIELD_TYPES = {
-  const { t } = useLocalization();
-
   text: { icon: Type, label: 'Texto' },
   textarea: { icon: FileText, label: 'Área de Texto' },
   select: { icon: List, label: 'Seleção' },
@@ -276,7 +273,7 @@ export default function TemplateCanvasEditor({
         ];
         setCustomFields(mockCustomFields);
       } catch (error) {
-        console.error({t('templates.erroAoCarregarCamposCustomizados')}, error);
+        console.error('Erro ao carregar campos customizados:', error);
       }
     };
 
@@ -319,7 +316,7 @@ export default function TemplateCanvasEditor({
   // Editar campo
   const handleEditField = useCallback((field: TemplateField) => {
     // TODO: Implementar modal de edição de campo
-    console.log({t('templates.editarCampo')}, field);
+    console.log('Editar campo:', field);
   }, []);
 
   // Salvar template

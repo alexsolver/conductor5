@@ -50,7 +50,6 @@ import { QueryBuilderComponent } from '@/components/QueryBuilder';
 
 // SLA Schema imports - following 1qa.md
 import type {
-import { useLocalization } from '@/hooks/useLocalization';
   QueryRule,
   QueryBuilder,
   QueryOperator,
@@ -140,8 +139,6 @@ interface SlaComplianceStats {
 }
 
 const slaDefinitionSchema = z.object({
-  const { t } = useLocalization();
-
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   type: z.enum(['SLA', 'OLA', 'UC']),
@@ -257,8 +254,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('SlaManagement.erro'),
-        description: error.message || t('SlaManagement.erroAoCriarSla'),
+        title: "Erro",
+        description: error.message || "Erro ao criar SLA",
         variant: "destructive",
       });
     },
@@ -282,8 +279,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('SlaManagement.erro'),
-        description: error.message || t('SlaManagement.erroAoAtualizarSla'),
+        title: "Erro",
+        description: error.message || "Erro ao atualizar SLA",
         variant: "destructive",
       });
     },
@@ -301,8 +298,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('SlaManagement.erro'),
-        description: error.message || t('SlaManagement.erroAoExcluirSla'),
+        title: "Erro",
+        description: error.message || "Erro ao excluir SLA",
         variant: "destructive",
       });
     },
@@ -338,8 +335,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: t('SlaManagement.erro'),
-        description: error.message || t('SlaManagement.erroAoCriarWorkflow'),
+        title: "Erro",
+        description: error.message || "Erro ao criar workflow",
         variant: "destructive",
       });
     },
@@ -791,7 +788,7 @@ export default function SlaManagement() {
                     <div className="text-sm text-gray-600">
                       <div>Meta: {violation.targetMinutes}min | Atual: {violation.actualMinutes}min</div>
                       <div>Violação: {violation.violationMinutes}min (+{violation.violationPercentage.toFixed(1)}%)</div>
-                      <div>Data: {new Date(violation.createdAt).toLocaleString('pt-BR')</div>
+                      <div>Data: {new Date(violation.createdAt).toLocaleString('pt-BR')}</div>
                     </div>
                   </div>
                 ))}
@@ -1020,7 +1017,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-type">
-                        <SelectValue placeholder={t('SlaManagement.selecioneOTipo') />
+                        <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1043,7 +1040,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-priority">
-                        <SelectValue placeholder={t('SlaManagement.selecioneAPrioridade') />
+                        <SelectValue placeholder="Selecione a prioridade" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1280,7 +1277,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {isEdit ? 'Atualizar SLA' : t('SlaManagement.criarSla')}
+                {isEdit ? 'Atualizar SLA' : 'Criar SLA'}
               </>
             )}
           </Button>
@@ -1346,7 +1343,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-workflow-trigger">
-                        <SelectValue placeholder={t('SlaManagement.selecioneOEvento') />
+                        <SelectValue placeholder="Selecione o evento" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1488,7 +1485,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 {form.watch('actions').map((action: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <div>
-                      <span className="font-medium capitalize">{action.type.replace('_', ' ')</span>
+                      <span className="font-medium capitalize">{action.type.replace('_', ' ')}</span>
                       <div className="text-sm text-gray-600">
                         {JSON.stringify(action.config, null, 2).substring(0, 100)}...
                       </div>

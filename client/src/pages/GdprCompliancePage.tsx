@@ -24,12 +24,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { FormDescription } from '@/components/ui/form';
 import { Shield, FileText, AlertTriangle, Settings, BarChart3, Download, Trash2, Edit } from 'lucide-react';
 import { z } from 'zod';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Schemas de validação
 const cookieConsentSchema = z.object({
-  const { t } = useLocalization();
-
   consentType: z.enum(['cookies_necessary', 'cookies_statistics', 'cookies_marketing', 'data_processing', 'communications', 'profiling', 'third_party_sharing']),
   granted: z.boolean(),
   consentVersion: z.string().min(1),
@@ -327,7 +324,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-consent-type">
-                              <SelectValue placeholder={t('GdprCompliancePage.selecioneOTipo') />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -414,7 +411,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-request-type">
-                              <SelectValue placeholder={t('GdprCompliancePage.selecioneOTipo') />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -456,7 +453,7 @@ export default function GdprCompliancePage() {
                     disabled={createDataSubjectRequest.isPending}
                     data-testid="button-create-request"
                   >
-                    {createDataSubjectRequest.isPending ? 'Criando...' : t('GdprCompliancePage.criarSolicitacao')}
+                    {createDataSubjectRequest.isPending ? 'Criando...' : 'Criar Solicitação'}
                   </Button>
                 </form>
               </Form>
@@ -476,7 +473,7 @@ export default function GdprCompliancePage() {
                       <div>
                         <div className="font-medium">{request.requestType}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-300">
-                          Criado em: {new Date(request.createdAt).toLocaleDateString('pt-BR')
+                          Criado em: {new Date(request.createdAt).toLocaleDateString('pt-BR')}
                         </div>
                       </div>
                       <Badge variant={request.status === 'completed' ? 'default' : 'secondary'}>
@@ -528,7 +525,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-incident-severity">
-                              <SelectValue placeholder={t('GdprCompliancePage.selecioneASeveridade') />
+                              <SelectValue placeholder="Selecione a severidade" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -839,8 +836,8 @@ function PrivacyPolicyManagement() {
     onError: (error: any) => {
       console.error('❌ [CREATE-POLICY] Error:', error);
       toast({ 
-        title: t('GdprCompliancePage.erroAoCriarPolitica'), 
-        description: error.message || t('GdprCompliancePage.erroDesconhecido'),
+        title: "Erro ao criar política", 
+        description: error.message || 'Erro desconhecido',
         variant: "destructive" 
       });
     }
@@ -916,11 +913,11 @@ function PrivacyPolicyManagement() {
                            policy.policyType === 'terms_of_use' ? 'Termos de Uso' : 'Política de Cookies'}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Data de criação: {new Date(policy.createdAt).toLocaleDateString('pt-BR')
+                    Data de criação: {new Date(policy.createdAt).toLocaleDateString('pt-BR')}
                   </p>
                   {policy.effectiveDate && (
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Vigência: {new Date(policy.effectiveDate).toLocaleDateString('pt-BR')
+                      Vigência: {new Date(policy.effectiveDate).toLocaleDateString('pt-BR')}
                     </p>
                   )}
                 </div>
@@ -1084,7 +1081,7 @@ function PrivacyPolicyManagement() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createPolicyMutation.isPending}>
-                  {createPolicyMutation.isPending ? "Criando..." : t('GdprCompliancePage.criarPolitica')}
+                  {createPolicyMutation.isPending ? "Criando..." : "Criar Política"}
                 </Button>
               </DialogFooter>
             </form>

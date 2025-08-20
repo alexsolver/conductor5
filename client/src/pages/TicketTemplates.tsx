@@ -25,7 +25,6 @@ import TemplateCanvasEditor from '@/components/templates/TemplateCanvasEditor';
 import { TemplateHierarchyManager } from '@/components/template-builder/hierarchy/TemplateHierarchyManager';
 import { ApprovalWorkflow } from '@/components/template-builder/workflow/ApprovalWorkflow';
 import { AuditTrail } from '@/components/template-builder/audit/AuditTrail';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema para validação do formulário
 const templateSchema = z.object({
@@ -169,7 +168,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: t('TicketTemplates.erroAoCriarTemplate'),
+        title: "Erro ao criar template",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -194,7 +193,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: t('TicketTemplates.erroAoAtualizarTemplate'),
+        title: "Erro ao atualizar template",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -214,7 +213,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: t('TicketTemplates.erroAoExcluirTemplate'),
+        title: "Erro ao excluir template",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -398,7 +397,7 @@ export default function TicketTemplates() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('TicketTemplates.buscarTemplates')
+                  placeholder="Buscar templates..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -432,8 +431,8 @@ export default function TicketTemplates() {
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {searchTerm || selectedCategory !== 'all' ? 
-              t('TicketTemplates.nenhumTemplateEncontradoComOsFiltrosAplicados') :
-              t('TicketTemplates.nenhumTemplateEncontradoCrieOPrimeiro')
+              'Nenhum template encontrado com os filtros aplicados.' :
+              'Nenhum template encontrado. Crie o primeiro!'
             }
           </p>
         </div>
@@ -487,7 +486,7 @@ export default function TicketTemplates() {
 
                   <div className="pt-2 border-t">
                     <p className="text-xs text-muted-foreground">
-                      Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')
+                      Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 </div>
@@ -722,7 +721,7 @@ export default function TicketTemplates() {
                 type="submit" 
                 disabled={createTemplateMutation.isPending}
               >
-                {createTemplateMutation.isPending ? 'Criando...' : t('TicketTemplates.criarTemplate')}
+                {createTemplateMutation.isPending ? 'Criando...' : 'Criar Template'}
               </Button>
             </div>
           </form>
@@ -803,7 +802,7 @@ export default function TicketTemplates() {
                   type="submit" 
                   disabled={updateTemplateMutation.isPending}
                 >
-                  {updateTemplateMutation.isPending ? 'Salvando...' : t('TicketTemplates.salvarAlteracoes')}
+                  {updateTemplateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </div>
             </form>

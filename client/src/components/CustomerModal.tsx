@@ -19,11 +19,8 @@ import { CustomerLocationManager } from './CustomerLocationManager';
 import { LocationModal } from './LocationModal';
 import DynamicCustomFields from '@/components/DynamicCustomFields';
 import { useCompanyFilter } from '@/hooks/useCompanyFilter';
-import { useLocalization } from '@/hooks/useLocalization';
 
 const customerSchema = z.object({
-  const { t } = useLocalization();
-
   // Tipo e status
   customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
   status: z.enum(['Ativo', 'Inativo', 'active', 'inactive']).transform((val) => {
@@ -152,14 +149,14 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       queryClient.refetchQueries({ queryKey: ["/api/customers"] });
       onClose();
       toast({
-        title: {t('CustomerModal.tsx.clienteSalvoComSucesso')},
+        title: "Cliente salvo com sucesso",
         description: customer ? "Cliente atualizado." : "Novo cliente criado."
       });
     },
     onError: (error: any) => {
       toast({
-        title: {t('CustomerModal.tsx.erro')},
-        description: error.message || {t('CustomerModal.tsx.erroAoSalvarCliente')},
+        title: "Erro",
+        description: error.message || "Erro ao salvar cliente",
         variant: "destructive"
       });
     }
@@ -339,7 +336,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Validações melhoradas
     if (!customer?.id) {
       toast({
-        title: {t('CustomerModal.tsx.erro')},
+        title: "Erro",
         description: "É necessário salvar o cliente antes de associar empresas",
         variant: "destructive"
       });
@@ -348,8 +345,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     if (!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated') {
       toast({
-        title: {t('CustomerModal.tsx.erro')},
-        description: {t('CustomerModal.tsx.selecioneUmaEmpresaValidaParaAssociar')},
+        title: "Erro",
+        description: "Selecione uma empresa válida para associar",
         variant: "destructive"
       });
       return;
@@ -361,7 +358,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     if (isAlreadyAssociated) {
       toast({
-        title: {t('CustomerModal.tsx.erro')},
+        title: "Erro",
         description: "Esta empresa já está associada ao cliente",
         variant: "destructive"
       });
@@ -388,14 +385,14 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       await refetchCompanies();
 
       toast({
-        title: {t('CustomerModal.tsx.sucesso')},
+        title: "Sucesso",
         description: "Empresa associada com sucesso!",
       });
     } catch (error: any) {
-      console.error({t('CustomerModal.tsx.errorAddingCompany')}, error);
+      console.error('Error adding company:', error);
       toast({
-        title: {t('CustomerModal.tsx.erro')},
-        description: error?.message || {t('CustomerModal.tsx.erroAoAssociarEmpresa')},
+        title: "Erro",
+        description: error?.message || "Erro ao associar empresa",
         variant: "destructive"
       });
     }
@@ -404,7 +401,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const handleRemoveCompany = async (companyId: string) => {
     if (!customer?.id) {
       toast({
-        title: {t('CustomerModal.tsx.erro')},
+        title: "Erro",
         description: "Cliente não encontrado",
         variant: "destructive"
       });
@@ -413,7 +410,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     if (!companyId || companyId === 'undefined' || companyId === 'null') {
       toast({
-        title: {t('CustomerModal.tsx.erro')},
+        title: "Erro",
         description: "ID da empresa não encontrado ou inválido",
         variant: "destructive"
       });
@@ -428,7 +425,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
       // Fazer a requisição de exclusão
       const result = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId}`);
-      console.log({t('CustomerModal.tsx.deleteResponse')}, result);
+      console.log('Delete response:', result);
 
       if (result && (result as any).success === false) {
         throw new Error((result as any).message || 'Falha ao remover empresa');
@@ -459,11 +456,11 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       await refetchAvailableCompanies();
 
       toast({
-        title: {t('CustomerModal.tsx.sucesso')},
+        title: "Sucesso",
         description: "Empresa removida com sucesso!",
       });
     } catch (error: any) {
-      console.error({t('CustomerModal.tsx.errorRemovingCompanyAssociation')}, {
+      console.error('Error removing company association:', {
         error,
         customerId: customer.id,
         companyId,
@@ -472,8 +469,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       });
 
       toast({
-        title: {t('CustomerModal.tsx.erro')},
-        description: error?.message || {t('CustomerModal.tsx.erroAoRemoverEmpresa')},
+        title: "Erro",
+        description: error?.message || "Erro ao remover empresa",
         variant: "destructive"
       });
     }
@@ -489,7 +486,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
           </div>
           <DialogHeader>
             <DialogTitle>
-              {customer?.id ? {t('CustomerModal.tsx.editarCliente')} : "Novo Cliente"}
+              {customer?.id ? "Editar Cliente" : "Novo Cliente"}
             </DialogTitle>
           </DialogHeader>
 
@@ -529,7 +526,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('CustomerModal.tsx.selecioneOTipo')} />
+                                <SelectValue placeholder="Selecione o tipo" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -550,7 +547,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('CustomerModal.tsx.selecioneOStatus')} />
+                                <SelectValue placeholder="Selecione o status" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -908,7 +905,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <FormLabel>Observações</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder={t('CustomerModal.tsx.observacoesSobreOCliente')}
+                              placeholder="Observações sobre o cliente..."
                               className="resize-none"
                               rows={3}
                               {...field}
@@ -1052,7 +1049,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                             return !associatedCompanyIds.includes(company.id);
                                           });
 
-                                          console.log({t('CustomerModal.tsx.filteredCompanies')}, {
+                                          console.log('Filtered companies:', {
                                             total: availableCompanies.length,
                                             associated: associatedCompanyIds.length,
                                             available: unassociatedCompanies.length,
@@ -1083,7 +1080,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               size="sm"
                               onClick={handleAddCompany}
                               disabled={!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated'}
-                              title={!selectedCompanyId ? {t('CustomerModal.tsx.selecioneUmaEmpresaPrimeiro')} : "Associar empresa"}
+                              title={!selectedCompanyId ? "Selecione uma empresa primeiro" : "Associar empresa"}
                             >
                               <Plus className="h-4 w-4" />
                               Associar
@@ -1115,7 +1112,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Salvando...' : customer?.id ? 'Atualizar' : {t('CustomerModal.tsx.criar')}}
+                  {mutation.isPending ? 'Salvando...' : customer?.id ? 'Atualizar' : 'Criar'}
                 </Button>
               </div>
             </form>

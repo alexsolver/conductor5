@@ -27,8 +27,6 @@ interface ComplianceItem {
 }
 
 function getStatusIcon(status: ComplianceItem["status"]) {
-  const { t } = useLocalization();
-
   switch (status) {
     case "implemented":
       return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -56,7 +54,7 @@ function getStatusBadge(status: ComplianceItem["status"]) {
 
 function getCategoryIcon(category: string) {
   switch (category) {
-    case t('Compliance.dashboard'):
+    case "Dashboard":
       return <BarChart className="h-5 w-5" />;
     case "Arquitetura":
       return <Layers className="h-5 w-5" />;
@@ -83,16 +81,15 @@ function getCategoryIcon(category: string) {
 
 const clearArchitectureItems: ComplianceItem[] = [
   // Dashboard de Monitoramento
-  { name: "Visualização em tempo real do status", status: "implemented", category: t('Compliance.dashboard') },
-  { name: "Score de saúde (0-100%) por módulo", status: "implemented", category: t('Compliance.dashboard') },
-  { name: "Indicadores visuais coloridos", status: "implemented", category: t('Compliance.dashboard') },
-  { name: "Métricas do sistema completas", status: "partial", category: t('Compliance.dashboard') },
+  { name: "Visualização em tempo real do status", status: "implemented", category: "Dashboard" },
+  { name: "Score de saúde (0-100%) por módulo", status: "implemented", category: "Dashboard" },
+  { name: "Indicadores visuais coloridos", status: "implemented", category: "Dashboard" },
+  { name: "Métricas do sistema completas", status: "partial", category: "Dashboard" },
   
   // Verificação Automática
   { name: "Escaneamento de arquivos críticos", status: "implemented", category: "Validação" },
   { name: "Validação de sintaxe TypeScript", status: "implemented", category: "Validação" },
   { name: "Verificação de imports/exports", status: "implemented", category: "Validação" },
-import { useLocalization } from '@/hooks/useLocalization';
   { name: "Detecção de dependências quebradas", status: "implemented", category: "Validação" },
   
   // Camada de Entidades (Domain Layer)

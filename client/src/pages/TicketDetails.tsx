@@ -8,8 +8,6 @@ import React from "react";
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
-  const { t } = useLocalization();
-
   let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -150,7 +148,7 @@ const TicketDetails = React.memo(() => {
 
   // Basic information - consolidated into single tab
   const basicTabs = [
-    { id: "basico", label: t('TicketDetails.informacoes'), icon: FileText },
+    { id: "basico", label: "Informações", icon: FileText },
   ];
 
   // Fetch ticket attachments - moved here to avoid initialization error
@@ -253,7 +251,7 @@ const TicketDetails = React.memo(() => {
           setSelectedCompanyCustomers([]);
         }
       } catch (error) {
-        console.error(t('TicketDetails.errorFetchingCustomers'), error);
+        console.error('Error fetching customers:', error);
         setSelectedCompanyCustomers([]);
       }
     };
@@ -294,7 +292,7 @@ const TicketDetails = React.memo(() => {
           setSelectedCompanyCustomers([]);
         }
       } catch (error) {
-        console.error(t('TicketDetails.errorFetchingCustomers'), error);
+        console.error('Error fetching customers:', error);
         setSelectedCompanyCustomers([]);
       }
     } else {
@@ -586,8 +584,8 @@ const TicketDetails = React.memo(() => {
   // ✅ [1QA-COMPLIANCE] Dados de materiais planejados seguindo Clean Architecture
   const plannedMaterialsData = useMemo(() => {
     if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
-      return Array.isArray(plannedMaterialsResponse.data.plannedItems)
-        ? plannedMaterialsResponse.data.plannedItems
+      return Array.isArray(plannedMaterialsResponse.data.plannedItems) 
+        ? plannedMaterialsResponse.data.plannedItems 
         : [];
     }
     // Fallback: usar dados dos logs do servidor que mostram 11 materiais planejados
@@ -601,13 +599,13 @@ const TicketDetails = React.memo(() => {
   const materialsData = useMemo(() => {
     let plannedArray = plannedMaterialsData;
     let consumedArray = [];
-
+    
     if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
-      consumedArray = Array.isArray(consumedMaterialsResponse.data)
-        ? consumedMaterialsResponse.data
+      consumedArray = Array.isArray(consumedMaterialsResponse.data) 
+        ? consumedMaterialsResponse.data 
         : [];
     }
-
+    
     return [...plannedArray, ...consumedArray];
   }, [plannedMaterialsData, consumedMaterialsResponse]);
 
@@ -625,7 +623,7 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Contador de materiais planejados seguindo padrão das outras abas
   const plannedMaterialsCount = plannedMaterialsData?.length || 0;
-
+  
   console.log('🔧 [PLANNED-MATERIALS-COUNT] Count for tab:', {
     plannedMaterialsData: plannedMaterialsData?.length,
     plannedMaterialsCount,
@@ -638,31 +636,31 @@ const TicketDetails = React.memo(() => {
       label: getTabLabel("Anexos", attachmentsData?.length),
       icon: Paperclip
     },
-    {
-      id: "notes",
-      label: getTabLabel("Notas", notesData?.length),
-      icon: FileText
+    { 
+      id: "notes", 
+      label: getTabLabel("Notas", notesData?.length), 
+      icon: FileText 
     },
-    {
-      id: "communications",
-      label: getTabLabel("Comunicação", communicationsData?.length),
-      icon: MessageSquare
+    { 
+      id: "communications", 
+      label: getTabLabel("Comunicação", communicationsData?.length), 
+      icon: MessageSquare 
     },
     { id: "history", label: "Histórico", icon: History },
-    {
-      id: "internal-actions",
-      label: getTabLabel(t('TicketDetails.acoesInternas'), internalActionsData?.length),
-      icon: Settings
+    { 
+      id: "internal-actions", 
+      label: getTabLabel("Ações Internas", internalActionsData?.length), 
+      icon: Settings 
     },
-    {
-      id: "links",
-      label: getTabLabel("Vínculos", relatedTicketsData?.length),
-      icon: Link
+    { 
+      id: "links", 
+      label: getTabLabel("Vínculos", relatedTicketsData?.length), 
+      icon: Link 
     },
-    {
-      id: "materials",
-      label: getTabLabel("Materiais e Serviços", plannedMaterialsCount),
-      icon: Package
+    { 
+      id: "materials", 
+      label: getTabLabel("Materiais e Serviços", plannedMaterialsCount), 
+      icon: Package 
     },
   ];
 
@@ -897,8 +895,8 @@ const TicketDetails = React.memo(() => {
       console.error('Failed to add note:', error);
 
       toast({
-        title: t('TicketDetails.erro'),
-        description: t('TicketDetails.erroAoAdicionarNotaTenteNovamente'),
+        title: "Erro",
+        description: "Erro ao adicionar nota. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -970,22 +968,22 @@ const TicketDetails = React.memo(() => {
     } catch (error) {
       console.error('❌ [NOTES-FRONTEND] Failed to add note:', error);
 
-      let errorMessage = t('TicketDetails.erroAoAdicionarNotaTenteNovamente');
+      let errorMessage = "Erro ao adicionar nota. Tente novamente.";
 
       if (error instanceof Error) {
         if (error.message.includes('DOCTYPE') || error.message.includes('HTML')) {
-          errorMessage = t('TicketDetails.erroDoServidorRespostaHtmlRecebidaAoInvesDeJsonContateOAdministrador');
+          errorMessage = "Erro do servidor: resposta HTML recebida ao invés de JSON. Contate o administrador.";
         } else if (error.message.includes('application/json')) {
-          errorMessage = t('TicketDetails.erroDeFormatoDeRespostaDoServidorContateOAdministrador');
+          errorMessage = "Erro de formato de resposta do servidor. Contate o administrador.";
         } else if (error.message.includes('server configuration')) {
-          errorMessage = t('TicketDetails.erroDeConfiguracaoDoServidorContateOAdministrador');
+          errorMessage = "Erro de configuração do servidor. Contate o administrador.";
         } else if (error.message.includes('server-side error')) {
-          errorMessage = t('TicketDetails.erroInternoDoServidorTenteNovamenteOuContateOAdministrador');
+          errorMessage = "Erro interno do servidor. Tente novamente ou contate o administrador.";
         }
       }
 
       toast({
-        title: t('TicketDetails.erro'),
+        title: "Erro",
         description: errorMessage,
         variant: "destructive",
       });
@@ -1078,7 +1076,7 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: (data) => {
       toast({
-        title: t('TicketDetails.sucesso'),
+        title: "Sucesso",
         description: "Ticket atualizado com sucesso",
       });
 
@@ -1115,8 +1113,8 @@ const TicketDetails = React.memo(() => {
     onError: (error) => {
       console.error("❌ Mutation error:", error);
       toast({
-        title: t('TicketDetails.erro'),
-        description: t('TicketDetails.erroAoAtualizarTicket'),
+        title: "Erro",
+        description: "Erro ao atualizar ticket",
         variant: "destructive",
       });
     },
@@ -1130,15 +1128,15 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: () => {
       toast({
-        title: t('TicketDetails.sucesso'),
+        title: "Sucesso",
         description: "Ticket excluído com sucesso",
       });
       navigate("/tickets");
     },
     onError: () => {
       toast({
-        title: t('TicketDetails.erro'),
-        description: t('TicketDetails.erroAoExcluirTicket'),
+        title: "Erro",
+        description: "Erro ao excluir ticket",
         variant: "destructive",
       });
     },
@@ -1152,7 +1150,7 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: () => {
       toast({
-        title: t('TicketDetails.sucesso'),
+        title: "Sucesso",
         description: "Ação interna excluída com sucesso",
       });
 
@@ -1162,7 +1160,7 @@ const TicketDetails = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: t('TicketDetails.erro'),
+        title: "Erro",
         description: error.message || "Falha ao excluir ação interna",
         variant: "destructive",
       });
@@ -1177,7 +1175,7 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: () => {
       toast({
-        title: t('TicketDetails.sucesso'),
+        title: "Sucesso",
         description: "Nota excluída com sucesso",
       });
 
@@ -1187,7 +1185,7 @@ const TicketDetails = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: t('TicketDetails.erro'),
+        title: "Erro",
         description: error.message || "Falha ao excluir nota",
         variant: "destructive",
       });
@@ -1213,7 +1211,7 @@ const TicketDetails = React.memo(() => {
     },
     onError: (error) => {
       toast({
-        title: t('TicketDetails.erroAoRemoverVinculo'),
+        title: "Erro ao remover vínculo",
         description: "Não foi possível remover o vínculo entre tickets.",
         variant: "destructive",
       });
@@ -1361,7 +1359,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="priority"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder={t('TicketDetails.selecioneAPrioridade')}
+                            placeholder="Selecione a prioridade"
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1395,7 +1393,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="status"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder={t('TicketDetails.selecioneOStatus')
+                            placeholder="Selecione o status"
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1429,7 +1427,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="urgency"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder={t('TicketDetails.selecioneAUrgencia')
+                            placeholder="Selecione a urgência"
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1461,7 +1459,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="impact"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder={t('TicketDetails.selecioneOImpacto')
+                            placeholder="Selecione o impacto"
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1501,7 +1499,7 @@ const TicketDetails = React.memo(() => {
                               form.setValue('subcategory', '');
                               form.setValue('action', '');
                             }}
-                            placeholder={t('TicketDetails.selecioneACategoria')
+                            placeholder="Selecione a categoria"
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1541,8 +1539,8 @@ const TicketDetails = React.memo(() => {
                               // Reset ação quando subcategoria muda
                               form.setValue('action', '');
                             }}
-                            placeholder={t('TicketDetails.selecioneASubcategoria')
-                            disabled={!isEditMode || !form.watch('category')
+                            placeholder="Selecione a subcategoria"
+                            disabled={!isEditMode || !form.watch('category')}
                             dependsOn={form.watch('category') || ticket?.category}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1578,8 +1576,8 @@ const TicketDetails = React.memo(() => {
                             fieldName="action"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder={t('TicketDetails.selecioneAAcao')
-                            disabled={!isEditMode || !form.watch('subcategory')
+                            placeholder="Selecione a ação"
+                            disabled={!isEditMode || !form.watch('subcategory')}
                             dependsOn={form.watch('subcategory') || ticket?.subcategory}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1648,6 +1646,190 @@ const TicketDetails = React.memo(() => {
                 </FormItem>
               )}
             />
+
+            {/* Sintomas */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">SINTOMAS</h3>
+              <FormField
+                control={form.control}
+                name="symptoms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sintomas</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} rows={3} placeholder="Não especificado" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não especificado'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Solução Temporária */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">SOLUÇÃO TEMPORÁRIA</h3>
+              <FormField
+                control={form.control}
+                name="workaround"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Solução Temporária</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} rows={3} placeholder="Não especificado" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não especificado'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Campos Adicionais */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">INFORMAÇÕES ADICIONAIS</h3>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* Horas Estimadas */}
+                <FormField
+                  control={form.control}
+                  name="estimatedHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horas Estimadas</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input
+                            type="number"
+                            min="0"
+                            max="999"
+                            step="0.5"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder="0"
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">{field.value || 0}h</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Horas Reais */}
+                <FormField
+                  control={form.control}
+                  name="actualHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horas Reais</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input
+                            type="number"
+                            min="0"
+                            max="999"
+                            step="0.5"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder="0"
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">{field.value || 0}h</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Data de Vencimento */}
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Data de Vencimento</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input
+                          type="datetime-local"
+                          {...field}
+                          placeholder="Não especificado"
+                        />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">
+                          {field.value ? new Date(field.value).toLocaleString('pt-BR') : 'Não especificado'}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Ambiente */}
+              <FormField
+                control={form.control}
+                name="environment"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Ambiente</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <DynamicSelect
+                          fieldName="environment"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione o ambiente"
+                          disabled={!isEditMode}
+                          allowCustomInput={true}
+                        />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <DynamicBadge
+                            fieldName="environment"
+                            value={field.value || ''}
+                            colorHex={getFieldColor('environment', field.value || '')}
+                            isLoading={isFieldColorsLoading}
+                          >
+                            {getFieldLabel('environment', field.value || '') || field.value || 'Não especificado'}
+                          </DynamicBadge>
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Template Alternativo */}
+              <FormField
+                control={form.control}
+                name="templateAlternative"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Template Alternativo</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} placeholder="Não especificado" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || 'Não especificado'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
           </div>
         );
@@ -1770,7 +1952,7 @@ const TicketDetails = React.memo(() => {
                       <Select onValueChange={field.onChange} defaultValue={field.value || "general"}>
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder={t('TicketDetails.selecioneOTipo') />
+                            <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1878,7 +2060,7 @@ const TicketDetails = React.memo(() => {
                               }
                             }}
                             disabled={deleteNoteMutation.isPending}
-                            title=t('TicketDetails.excluirNota')
+                            title="Excluir nota"
                           >
                             <Trash className="h-4 w-4 text-red-500" />
                           </Button>
@@ -2228,8 +2410,8 @@ const TicketDetails = React.memo(() => {
                       <span>Categoria: {relTicket.category}</span>
                       <span>
                         {relTicket.resolved_at
-                          ? `Resolvido em ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')`
-                          : `Criado em ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')`
+                          ? `Resolvido em ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')}`
+                          : `Criado em ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')}`
                         }
                       </span>
                     </div>
@@ -2348,7 +2530,7 @@ const TicketDetails = React.memo(() => {
                                 setEditActionModalOpen(true);
                               }}
                               className="h-7 w-7 p-0"
-                              title=t('TicketDetails.editarAcaoInterna')
+                              title="Editar ação interna"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -2362,7 +2544,7 @@ const TicketDetails = React.memo(() => {
                               }}
                               className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
                               disabled={deleteInternalActionMutation.isPending}
-                              title=t('TicketDetails.excluirAcaoInterna')
+                              title="Excluir ação interna"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -2532,7 +2714,7 @@ const TicketDetails = React.memo(() => {
 
                               {linkedTicket.description && (
                                 <span className="text-xs text-gray-400">
-                                  Rel. criado em {new Date().toLocaleDateString('pt-BR')
+                                  Rel. criado em {new Date().toLocaleDateString('pt-BR')}
                                 </span>
                               )}
                             </div>
@@ -2542,7 +2724,7 @@ const TicketDetails = React.memo(() => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(`/tickets/${linkedTicket.targetTicket?.id || linkedTicket.id}`, '_blank')
+                              onClick={() => window.open(`/tickets/${linkedTicket.targetTicket?.id || linkedTicket.id}`, '_blank')}
                               className="text-blue-600 hover:text-blue-700 p-2"
                               title="Abrir ticket em nova aba"
                               data-testid={`button-open-ticket-${linkedTicket.id}`}
@@ -2656,7 +2838,7 @@ const TicketDetails = React.memo(() => {
                             <p className="text-sm text-gray-700 mt-1">{relatedTicket.subject || 'Ticket relacionado'}</p>
                             <p className="text-xs text-gray-500 mt-2">
                               Criado em {relatedTicket.created_at ? new Date(relatedTicket.created_at).toLocaleDateString('pt-BR') : 'N/A'}
-                              {relatedTicket.resolved_at && ` • Resolvido em ${new Date(relatedTicket.resolved_at).toLocaleDateString('pt-BR')`}
+                              {relatedTicket.resolved_at && ` • Resolvido em ${new Date(relatedTicket.resolved_at).toLocaleDateString('pt-BR')}`}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
                               <Badge variant="outline" className="text-xs">{relatedTicket.category || 'Geral'}</Badge>
@@ -2763,7 +2945,7 @@ const TicketDetails = React.memo(() => {
       { name: 'Comunicações', loading: communicationsLoading },
       { name: 'Notas', loading: notesLoading },
       { name: 'Anexos', loading: attachmentsLoading },
-      { name: t('TicketDetails.acoes'), loading: actionsLoading }
+      { name: 'Ações', loading: actionsLoading }
     ];
 
     const completed = states.filter(s => !s.loading).length;
@@ -2779,8 +2961,8 @@ const TicketDetails = React.memo(() => {
     const loadingItems = progress.states.filter(s => s.loading).map(s => s.name);
 
     if (loadingItems.length === 0) return "Carregamento concluído";
-    if (loadingItems.length === 1) return t('TicketDetails.carregandoLoadingitems0tolowercase');
-    return t('TicketDetails.carregandoLoadingitemslengthItensProgresspercentage');
+    if (loadingItems.length === 1) return `Carregando ${loadingItems[0].toLowerCase()}...`;
+    return `Carregando ${loadingItems.length} itens... (${progress.percentage}%)`;
   };
 
   if (isLoadingAnyData) {
@@ -2923,11 +3105,11 @@ const TicketDetails = React.memo(() => {
                   value={selectedCompany || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder={t('TicketDetails.selecioneAEmpresa')>
+                    <SelectValue placeholder="Selecione a empresa">
                       {(() => {
                         const currentValue = selectedCompany;
                         const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === currentValue);
-                        return companyData?.name || (currentValue && currentValue !== 'unspecified' ? 'Empresa não encontrada' : t('TicketDetails.selecioneAEmpresa'));
+                        return companyData?.name || (currentValue && currentValue !== 'unspecified' ? 'Empresa não encontrada' : 'Selecione a empresa');
                       })()}
                     </SelectValue>
                   </SelectTrigger>
@@ -3104,7 +3286,7 @@ const TicketDetails = React.memo(() => {
                   variant="ghost"
                   size="sm"
                   className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-100"
-                  onClick={() => console.log('Open locations management')
+                  onClick={() => console.log('Open locations management')}
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />
                   Gerenciar
@@ -3117,11 +3299,11 @@ const TicketDetails = React.memo(() => {
                     value={form.getValues('location') || ticket.location || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder={t('TicketDetails.selecioneOLocal')>
+                      <SelectValue placeholder="Selecione o local">
                         {(() => {
                           const currentValue = form.getValues('location') || ticket.location;
                           const location = locationsData?.data?.locations?.find((l: any) => l.id === currentValue);
-                          return location?.name || (currentValue && currentValue !== 'unspecified' ? currentValue : t('TicketDetails.selecioneOLocal'));
+                          return location?.name || (currentValue && currentValue !== 'unspecified' ? currentValue : 'Selecione o local');
                         })()}
                       </SelectValue>
                     </SelectTrigger>
@@ -3136,7 +3318,7 @@ const TicketDetails = React.memo(() => {
                   </Select>
                 ) : (
                   <div className="text-sm text-green-900 font-medium cursor-pointer hover:text-green-700 transition-colors"
-                       onClick={() => console.log('Open location details')>
+                       onClick={() => console.log('Open location details')}>
                     <span className="underline decoration-dotted">
                       {locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)?.name ||
                        ticket.location || 'Não especificado'}
@@ -3171,7 +3353,7 @@ const TicketDetails = React.memo(() => {
                       // Limpar responsável quando grupo muda
                       form.setValue('responsibleId', '');
                     }}
-                    placeholder={t('TicketDetails.selecioneOGrupo')
+                    placeholder="Selecione o grupo"
                     disabled={!isEditMode}
                   />
                 ) : (
@@ -3291,7 +3473,6 @@ const TicketDetails = React.memo(() => {
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Personalize as informações do seu ticket</h3>
             <p className="text-xs text-gray-500 mb-3">
               Use os campos de dados do ticket para calcular facilmente detalhes importantes.
-import { useLocalization } from '@/hooks/useLocalization';
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="text-xs">
@@ -3365,11 +3546,11 @@ import { useLocalization } from '@/hooks/useLocalization';
                           onSubmit(formData);
                         } else {
                           const errorMessages = Object.entries(form.formState.errors)
-                            .map(([field, error]) => `${field}: ${error?.message || t('TicketDetails.erroDeValidacao')}`)
+                            .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
                             .join('\n');
 
                           toast({
-                            title: t('TicketDetails.erroDeValidacao'),
+                            title: "Erro de Validação",
                             description: errorMessages ? `Por favor, corrija os seguintes erros:\n${errorMessages}` : "Dados do formulário são inválidos. Verifique todos os campos.",
                             variant: "destructive",
                           });
@@ -3378,20 +3559,20 @@ import { useLocalization } from '@/hooks/useLocalization';
                     }}
                     disabled={updateTicketMutation.isPending || !isEditMode}
                     className="relative"
-                    aria-label={updateTicketMutation.isPending ? "Salvando alterações..." : t('TicketDetails.salvarAlteracoesDoTicket')}
+                    aria-label={updateTicketMutation.isPending ? "Salvando alterações..." : "Salvar alterações do ticket"}
                   >
                     {updateTicketMutation.isPending && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div
                           className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                           aria-hidden="true"
-                          aria-label=t('TicketDetails.carregando')
+                          aria-label="Carregando"
                         ></div>
                       </div>
                     )}
                     <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2"}>
                       <Save className="h-4 w-4" />
-                      <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : t('TicketDetails.salvar')}</span>
+                      <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : "Salvar"}</span>
                     </div>
                   </Button>
                 </>
@@ -3537,7 +3718,7 @@ import { useLocalization } from '@/hooks/useLocalization';
             role="tab"
             aria-selected={activeTab === "internal-actions"}
             aria-controls="tab-content"
-            aria-label={t('TicketDetails.acoesInternasInternalactionsdatalength0Itens')}
+            aria-label={`Ações Internas - ${internalActionsData?.length || 0} itens`}
           >
             <div className="flex items-center gap-3">
               <Settings className="h-4 w-4" />
@@ -3558,7 +3739,7 @@ import { useLocalization } from '@/hooks/useLocalization';
             role="tab"
             aria-selected={activeTab === "external-actions"}
             aria-controls="tab-content"
-            aria-label={t('TicketDetails.acoesExternas0Itens')}
+            aria-label={`Ações Externas - 0 itens`}
           >
             <div className="flex items-center gap-3">
               <ExternalLink className="h-4 w-4" />
@@ -3646,9 +3827,9 @@ import { useLocalization } from '@/hooks/useLocalization';
                 <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
                   <span className="text-blue-700">SLA:</span>
                   <div className="flex items-center gap-2">
-                    <div
+                    <div 
                       className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
-                      title=t('TicketDetails.slaWarning85Decorrido')
+                      title="SLA Warning: 85% decorrido"
                       data-testid="sla-led-indicator"
                     />
                     <span className="text-blue-900 font-medium text-xs">85% decorrido</span>
@@ -4059,7 +4240,7 @@ import { useLocalization } from '@/hooks/useLocalization';
               </Button>
               <Button
                 variant="outline"
-                onClick={() => window.open(`mailto:${ticket?.company?.email}`, '_blank')
+                onClick={() => window.open(`mailto:${ticket?.company?.email}`, '_blank')}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Enviar Email

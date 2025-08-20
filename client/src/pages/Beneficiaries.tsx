@@ -39,12 +39,9 @@ import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema for beneficiary creation/editing
 const beneficiarySchema = z.object({
-  const { t } = useLocalization();
-
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
@@ -191,7 +188,7 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: t('Beneficiaries.sucesso'),
+        title: "Sucesso",
         description: "Favorecido criado com sucesso",
       });
       setIsCreateDialogOpen(false);
@@ -200,7 +197,7 @@ export default function Beneficiaries() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('Beneficiaries.erro'),
+        title: "Erro",
         description: error.message || "Falha ao criar favorecido",
         variant: "destructive",
       });
@@ -222,12 +219,12 @@ export default function Beneficiaries() {
       
       setShowCustomerSelector(false);
       toast({
-        title: t('Beneficiaries.sucesso'),
+        title: "Sucesso",
         description: "Cliente associado com sucesso",
       });
     } catch (error) {
       toast({
-        title: t('Beneficiaries.erro'),
+        title: "Erro",
         description: "Falha ao associar cliente",
         variant: "destructive",
       });
@@ -244,12 +241,12 @@ export default function Beneficiaries() {
       setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
       
       toast({
-        title: t('Beneficiaries.sucesso'),
+        title: "Sucesso",
         description: "Cliente desassociado com sucesso",
       });
     } catch (error) {
       toast({
-        title: t('Beneficiaries.erro'),
+        title: "Erro",
         description: "Falha ao desassociar cliente",
         variant: "destructive",
       });
@@ -264,7 +261,7 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: t('Beneficiaries.sucesso'),
+        title: "Sucesso",
         description: "Favorecido atualizado com sucesso",
       });
       setEditingBeneficiary(null);
@@ -274,7 +271,7 @@ export default function Beneficiaries() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('Beneficiaries.erro'),
+        title: "Erro",
         description: error.message || "Falha ao atualizar favorecido",
         variant: "destructive",
       });
@@ -289,14 +286,14 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: t('Beneficiaries.sucesso'),
+        title: "Sucesso",
         description: "Favorecido excluído com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"], exact: false });
     },
     onError: (error: Error) => {
       toast({
-        title: t('Beneficiaries.erro'),
+        title: "Erro",
         description: error.message || "Falha ao excluir favorecido",
         variant: "destructive",
       });
@@ -366,7 +363,7 @@ export default function Beneficiaries() {
 
   // Handle edit
   const handleEdit = (beneficiary: Beneficiary) => {
-    console.log({t('Beneficiaries.editingBeneficiary'), beneficiary);
+    console.log('Editing beneficiary:', beneficiary);
     setEditingBeneficiary(beneficiary);
     
     // Map database fields to form fields
@@ -517,7 +514,7 @@ export default function Beneficiaries() {
                     </div>
                     <Select onValueChange={handleAddCustomer}>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('Beneficiaries.escolhaUmCliente') />
+                        <SelectValue placeholder="Escolha um cliente" />
                       </SelectTrigger>
                       <SelectContent>
                         {((customersData as any)?.customers || []).filter((customer: any) => 
@@ -545,7 +542,7 @@ export default function Beneficiaries() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('Beneficiaries.selecioneUmCliente') />
+                          <SelectValue placeholder="Selecione um cliente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -722,7 +719,7 @@ export default function Beneficiaries() {
             type="submit"
             disabled={createBeneficiaryMutation.isPending || updateBeneficiaryMutation.isPending}
           >
-            {editingBeneficiary ? "Atualizar" : t('Beneficiaries.criar')} Favorecido
+            {editingBeneficiary ? "Atualizar" : "Criar"} Favorecido
           </Button>
         </div>
       </form>
@@ -754,7 +751,7 @@ export default function Beneficiaries() {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingBeneficiary ? t('Beneficiaries.editar') : t('Beneficiaries.criar')} Favorecido
+                {editingBeneficiary ? "Editar" : "Criar"} Favorecido
               </DialogTitle>
               <DialogDescription>
                 {editingBeneficiary
@@ -816,7 +813,7 @@ export default function Beneficiaries() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={t('Beneficiaries.buscarFavorecidos')
+            placeholder="Buscar favorecidos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
@@ -889,7 +886,7 @@ export default function Beneficiaries() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {new Date(beneficiary.createdAt || beneficiary.created_at).toLocaleDateString('pt-BR')
+                    {new Date(beneficiary.createdAt || beneficiary.created_at).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

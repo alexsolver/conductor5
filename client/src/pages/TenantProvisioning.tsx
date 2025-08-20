@@ -133,7 +133,7 @@ export default function TenantProvisioning() {
     },
     onError: (error: Error) => {
       toast({
-        title: t('TenantProvisioning.erroAoCriarTenant'),
+        title: "Erro ao criar tenant",
         description: error.message,
         variant: "destructive",
       });
@@ -151,12 +151,12 @@ export default function TenantProvisioning() {
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
-        description: t('TenantProvisioning.configuracoesDeAutoprovisioningAtualizadasComSucesso'),
+        description: "Configurações de auto-provisioning atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: t('TenantProvisioning.erroAoAtualizarConfiguracao'),
+        title: "Erro ao atualizar configuração",
         description: error.message,
         variant: "destructive",
       });
@@ -263,7 +263,7 @@ export default function TenantProvisioning() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('TenantProvisioning.selecioneOMetodo')} />
+                              <SelectValue placeholder="Selecione o método" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -282,7 +282,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateConfigMutation.isPending}>
-                      {updateConfigMutation.isPending ? "Salvando..." : t('TenantProvisioning.salvarConfiguracao')}
+                      {updateConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                     </Button>
                   </div>
                 </form>
@@ -350,7 +350,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={provisionMutation.isPending}>
-                      {provisionMutation.isPending ? "Criando..." : t('TenantProvisioning.criarTenant')}
+                      {provisionMutation.isPending ? "Criando..." : "Criar Tenant"}
                     </Button>
                   </div>
                 </form>
@@ -465,7 +465,7 @@ export default function TenantProvisioning() {
                       <span className="font-medium">Máximo de Tickets:</span> {config.defaultTenantSettings.maxTickets}
                     </div>
                     <div>
-                      <span className="font-medium">Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')
+                      <span className="font-medium">Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')}
                     </div>
                     <div>
                       <span className="font-medium">Tema:</span> {config.defaultTenantSettings.theme}

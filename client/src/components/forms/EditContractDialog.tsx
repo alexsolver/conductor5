@@ -37,12 +37,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // ✅ 1QA.MD COMPLIANCE: ZOD SCHEMA VALIDATION FOR EDIT
 const editContractSchema = z.object({
-  const { t } = useLocalization();
-
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   contractType: z.enum(['service', 'supply', 'maintenance', 'rental', 'sla']),
   status: z.enum(['draft', 'analysis', 'approved', 'active', 'finished', 'canceled']),
@@ -76,7 +73,7 @@ const contractStatuses = [
   { value: 'approved', label: 'Aprovado' },
   { value: 'active', label: 'Ativo' },
   { value: 'finished', label: 'Finalizado' },
-  { value: 'canceled', label: {t('forms.cancelado')} },
+  { value: 'canceled', label: 'Cancelado' },
 ];
 
 const priorities = [
@@ -161,15 +158,15 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
       queryClient.invalidateQueries({ queryKey: ['/api/contracts', contractId] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
       toast({
-        title: {t('forms.sucesso')},
+        title: "Sucesso",
         description: "Contrato atualizado com sucesso",
       });
       setIsOpen(false);
     },
     onError: (error: any) => {
-      console.error({t('forms.errorUpdatingContract')}, error);
+      console.error('Error updating contract:', error);
       toast({
-        title: {t('forms.erro')},
+        title: "Erro",
         description: error?.message || "Falha ao atualizar contrato",
         variant: "destructive",
       });
@@ -236,7 +233,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-type">
-                              <SelectValue placeholder={t('forms.selecioneOTipo')} />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -261,7 +258,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-status">
-                              <SelectValue placeholder={t('forms.selecioneOStatus')} />
+                              <SelectValue placeholder="Selecione o status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -286,7 +283,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-priority">
-                              <SelectValue placeholder={t('forms.selecioneAPrioridade')} />
+                              <SelectValue placeholder="Selecione a prioridade" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -415,7 +412,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-currency">
-                              <SelectValue placeholder={t('forms.selecioneAMoeda')} />
+                              <SelectValue placeholder="Selecione a moeda" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -530,7 +527,7 @@ export function EditContractDialog({ contractId, children }: EditContractDialogP
                   disabled={updateContractMutation.isPending}
                   data-testid="button-save-edit"
                 >
-                  {updateContractMutation.isPending ? 'Salvando...' : {t('forms.salvarAlteracoes')}}
+                  {updateContractMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </DialogFooter>
             </form>

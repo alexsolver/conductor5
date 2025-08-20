@@ -20,7 +20,6 @@ import {
   Filter
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface ApprovalInstance {
   id: string;
@@ -47,8 +46,6 @@ interface PaginatedResponse {
 }
 
 export function ApprovalInstances() {
-  const { t } = useLocalization();
-
   const [selectedInstance, setSelectedInstance] = useState<ApprovalInstance | null>(null);
   const [decisionDialog, setDecisionDialog] = useState<ApprovalInstance | null>(null);
   const [decision, setDecision] = useState<'approved' | 'rejected' | 'delegated'>('approved');
@@ -191,7 +188,7 @@ export function ApprovalInstances() {
                 data-testid="filter-status"
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('approvals.todosOsStatus')} />
+                  <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os status</SelectItem>
@@ -212,7 +209,7 @@ export function ApprovalInstances() {
                 data-testid="filter-module"
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('approvals.todosOsModulos')} />
+                  <SelectValue placeholder="Todos os módulos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os módulos</SelectItem>
@@ -430,7 +427,7 @@ export function ApprovalInstances() {
                   disabled={processDecisionMutation.isPending || (decision === 'delegated' && !delegateTo)}
                   data-testid="button-confirm-decision"
                 >
-                  {processDecisionMutation.isPending ? {t('approvals.processando')} : 'Confirmar'}
+                  {processDecisionMutation.isPending ? 'Processando...' : 'Confirmar'}
                 </Button>
               </div>
             </div>

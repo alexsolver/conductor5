@@ -157,7 +157,7 @@ export default function DragDropDemo() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <Button variant="outline" onClick={() => setLocation('/tickets')>
+          <Button variant="outline" onClick={() => setLocation('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>

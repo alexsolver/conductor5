@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   DollarSign, 
   FileText, 
   TrendingUp, 
@@ -79,8 +78,6 @@ interface LPUStats {
 }
 
 export default function LPUManagement() {
-  const { t } = useLocalization();
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -103,9 +100,9 @@ export default function LPUManagement() {
     retry: 3,
     staleTime: 30000,
     onError: (error) => {
-      console.error(t('LPUManagement.errorFetchingLpuStats'), error);
+      console.error('Error fetching LPU stats:', error);
       toast({ 
-        title: t('LPUManagement.erroAoCarregarEstatisticas'), 
+        title: 'Erro ao carregar estatísticas', 
         description: 'Verifique sua conexão e tente novamente',
         variant: 'destructive' 
       });
@@ -304,7 +301,7 @@ export default function LPUManagement() {
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observações</Label>
-                  <Textarea name="notes" placeholder={t('LPUManagement.informacoesAdicionaisSobreEstaLista') />
+                  <Textarea name="notes" placeholder="Informações adicionais sobre esta lista..." />
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
@@ -312,7 +309,7 @@ export default function LPUManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createPriceListMutation.isPending}>
-                    {createPriceListMutation.isPending ? 'Criando...' : t('LPUManagement.criarLista')}
+                    {createPriceListMutation.isPending ? 'Criando...' : 'Criar Lista'}
                   </Button>
                 </div>
               </form>
@@ -399,7 +396,7 @@ export default function LPUManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createRuleMutation.isPending}>
-                    {createRuleMutation.isPending ? 'Criando...' : t('LPUManagement.criarRegra')}
+                    {createRuleMutation.isPending ? 'Criando...' : 'Criar Regra'}
                   </Button>
                 </div>
               </form>
@@ -478,7 +475,7 @@ export default function LPUManagement() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder={t('LPUManagement.buscarListasDePrecos')
+                placeholder="Buscar listas de preços..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -486,7 +483,7 @@ export default function LPUManagement() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder={t('LPUManagement.filtrarPorStatus') />
+                <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
@@ -520,9 +517,9 @@ export default function LPUManagement() {
                           Código: {list.code} | Versão: {list.version} | Moeda: {list.currency}
                         </p>
                         <div className="flex items-center gap-4 text-sm">
-                          <span>Válido: {new Date(list.validFrom).toLocaleDateString('pt-BR')</span>
+                          <span>Válido: {new Date(list.validFrom).toLocaleDateString('pt-BR')}</span>
                           {list.validTo && (
-                            <span>até {new Date(list.validTo).toLocaleDateString('pt-BR')</span>
+                            <span>até {new Date(list.validTo).toLocaleDateString('pt-BR')}</span>
                           )}
                           {list.automaticMargin && (
                             <span>Margem: {parseFloat(list.automaticMargin).toFixed(2)}%</span>
@@ -585,7 +582,7 @@ export default function LPUManagement() {
                           <TableCell className="font-medium">{version.version}</TableCell>
                           <TableCell>{getStatusBadge(version.status)}</TableCell>
                           <TableCell>
-                            {new Date(version.createdAt).toLocaleDateString('pt-BR')
+                            {new Date(version.createdAt).toLocaleDateString('pt-BR')}
                           </TableCell>
                           <TableCell>
                             {version.approvedAt ? 
@@ -666,8 +663,8 @@ export default function LPUManagement() {
                         {rule.validFrom && (
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="w-4 h-4" />
-                            Válido: {new Date(rule.validFrom).toLocaleDateString('pt-BR')
-                            {rule.validTo && ` até ${new Date(rule.validTo).toLocaleDateString('pt-BR')`}
+                            Válido: {new Date(rule.validFrom).toLocaleDateString('pt-BR')}
+                            {rule.validTo && ` até ${new Date(rule.validTo).toLocaleDateString('pt-BR')}`}
                           </div>
                         )}
                       </div>

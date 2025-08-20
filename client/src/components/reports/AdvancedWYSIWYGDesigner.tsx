@@ -20,7 +20,6 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Zendesk-style design components
 const DESIGN_COMPONENTS = [
@@ -89,7 +88,7 @@ const DESIGN_COMPONENTS = [
     category: 'data',
     description: 'Add KPI metric',
     defaultProps: {
-      title: {t('reports.totalTickets')},
+      title: 'Total Tickets',
       value: '1,234',
       trend: '+12%',
       trendDirection: 'up',
@@ -168,9 +167,7 @@ interface WYSIWYGDesignerProps {
   onSave: (report: { name?: string; description?: string; design?: any }) => void;
 }
 
-export default function AdvancedWYSIWYGDesigner({
-  const { t } = useLocalization();
- onDesignChange, initialDesign, data, onSave }: WYSIWYGDesignerProps) {
+export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign, data, onSave }: WYSIWYGDesignerProps) {
   const defaultDesign = {
     components: [],
     layout: {
@@ -432,7 +429,7 @@ export default function AdvancedWYSIWYGDesigner({
                   onClick={() => setPreviewMode(!previewMode)}
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  {previewMode ? {t('reports.edit')} : 'Preview'}
+                  {previewMode ? 'Edit' : 'Preview'}
                 </Button>
               </div>
             </div>

@@ -8,7 +8,6 @@ import { BookOpen, TrendingUp, Users, Clock, BarChart3, Eye, MessageSquare, Star
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface KnowledgeBaseMetrics {
   totalArticles: number;
@@ -41,8 +40,6 @@ interface KnowledgeBaseMetrics {
 }
 
 export function KnowledgeBaseWidget() {
-  const { t } = useLocalization();
-
   const [viewMode, setViewMode] = useState<'overview' | 'analytics' | 'activity'>('overview');
 
   const { data: metrics, isLoading, error } = useQuery({
@@ -90,14 +87,14 @@ export function KnowledgeBaseWidget() {
         popularArticles: [
           {
             id: '1',
-            title: {t('knowledge-base.comoCriarUmTicketDeSuporte')},
+            title: 'Como Criar um Ticket de Suporte',
             views: 324,
             rating: 4.8,
             category: 'Tutorial'
           },
           {
             id: '2',
-            title: {t('knowledge-base.configuracoesDeNotificacao')},
+            title: 'Configurações de Notificação',
             views: 298,
             rating: 4.5,
             category: 'Configuração'

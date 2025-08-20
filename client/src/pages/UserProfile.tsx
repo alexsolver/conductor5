@@ -45,7 +45,6 @@ import NotificationPreferencesTab from "@/components/NotificationPreferencesTab"
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { UploadResult } from "@uppy/core";
-import { useLocalization } from '@/hooks/useLocalization';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -174,7 +173,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
       toast({
-        title: t('UserProfile.erroAoAtualizar'),
+        title: "Erro ao atualizar",
         description: "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
@@ -233,7 +232,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
       toast({
-        title: t('UserProfile.erroAoAtualizarFoto'),
+        title: "Erro ao atualizar foto",
         description: "Não foi possível atualizar sua foto de perfil.",
         variant: "destructive",
       });
@@ -269,7 +268,7 @@ export default function UserProfile() {
     },
     onError: (error: any) => {
       toast({
-        title: t('UserProfile.erroAoAlterarSenha'),
+        title: "Erro ao alterar senha",
         description: error.message || "Não foi possível alterar a senha.",
         variant: "destructive",
       });
@@ -291,7 +290,7 @@ export default function UserProfile() {
     },
     onError: () => {
       toast({
-        title: t('UserProfile.erroAoSalvar'),
+        title: "Erro ao salvar",
         description: "Não foi possível salvar as preferências.",
         variant: "destructive",
       });
@@ -309,7 +308,7 @@ export default function UserProfile() {
       };
     } catch (error) {
       toast({
-        title: t('UserProfile.erroNoUpload'),
+        title: "Erro no upload",
         description: "Não foi possível obter URL de upload.",
         variant: "destructive",
       });
@@ -495,7 +494,7 @@ export default function UserProfile() {
                           <FormDescription>
                             {user?.role !== 'saas_admin' 
                               ? "Apenas administradores podem alterar o email" 
-                              : (!isEditing ? "Clique em t('UserProfile.editarPerfil') para alterar o email" : "Digite seu email")}
+                              : (!isEditing ? "Clique em 'Editar Perfil' para alterar o email" : "Digite seu email")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -579,7 +578,7 @@ export default function UserProfile() {
                           <Select disabled={!isEditing} value={field.value} onValueChange={field.onChange}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('UserProfile.selecioneOFusoHorario')} />
+                                <SelectValue placeholder="Selecione o fuso horário" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -771,7 +770,7 @@ export default function UserProfile() {
                                 <p className="font-medium">{session.device}</p>
                                 <p className="text-sm text-gray-600">{session.location}</p>
                                 <p className="text-xs text-gray-500">
-                                  Última atividade: {new Date(session.lastActivity).toLocaleString('pt-BR')
+                                  Última atividade: {new Date(session.lastActivity).toLocaleString('pt-BR')}
                                 </p>
                               </div>
                               {session.current && (
@@ -892,7 +891,7 @@ export default function UserProfile() {
                       <div className="flex-1">
                         <p className="text-sm font-medium">{item.description}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(item.timestamp).toLocaleString('pt-BR')
+                          {new Date(item.timestamp).toLocaleString('pt-BR')}
                         </p>
                       </div>
                     </div>
@@ -1194,12 +1193,12 @@ function PrivacyGdprTab() {
                   <div>
                     <p className="font-medium">{request.requestType}</p>
                     <p className="text-sm text-gray-600">
-                      {new Date(request.createdAt).toLocaleDateString('pt-BR')
+                      {new Date(request.createdAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <Badge variant={request.status === 'completed' ? 'default' : 'secondary'}>
                     {request.status === 'pending' ? 'Pendente' : 
-                     request.status === 'processing' ? t('UserProfile.processando') : 'Concluído'}
+                     request.status === 'processing' ? 'Processando' : 'Concluído'}
                   </Badge>
                 </div>
               ))}

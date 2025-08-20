@@ -11,7 +11,6 @@ import { Badge } from '../../ui/badge'
 import { Card, CardContent } from '../../ui/card'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   MapPin, 
   Navigation, 
   Search, 
@@ -41,8 +40,6 @@ interface LocationFieldProps {
 }
 
 export const LocationField: React.FC<LocationFieldProps> = ({
-  const { t } = useLocalization();
-
   field,
   value = {},
   onChange,
@@ -69,7 +66,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
       )
       
-      if (!response.ok) throw new Error({t('template-builder.erroNaBuscaDeEndereco')})
+      if (!response.ok) throw new Error('Erro na busca de endereço')
       
       const results = await response.json()
       
@@ -86,7 +83,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
       
       setSuggestions(formattedSuggestions)
     } catch (err) {
-      setError({t('template-builder.erroAoBuscarEnderecosTenteNovamente')})
+      setError('Erro ao buscar endereços. Tente novamente.')
       console.error('Geocoding error:', err)
     } finally {
       setIsSearching(false)
@@ -166,7 +163,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
         setIsGettingLocation(false)
       },
       (error) => {
-        setError({t('template-builder.erroAoObterLocalizacaoErrormessage')})
+        setError(`Erro ao obter localização: ${error.message}`)
         setIsGettingLocation(false)
       },
       {
@@ -223,7 +220,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('template-builder.digiteUmEnderecoParaBuscar')}
+              placeholder="Digite um endereço para buscar..."
               className="pl-10"
               disabled={disabled}
             />

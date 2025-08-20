@@ -45,7 +45,6 @@ import {
   Activity
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Channel {
   id: string;
@@ -121,8 +120,6 @@ interface Chatbot {
 
 // Helper functions for channel mapping
 function getChannelType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
-  const { t } = useLocalization();
-
   if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
     return 'email';
   }
@@ -226,7 +223,7 @@ export default function OmniBridge() {
 
       if (response.ok) {
         setAutomationRules(prev => prev.map(rule =>
-          rule.id === ruleId ? { ...rule, isEnabled: enabled }) : rule
+          rule.id === ruleId ? { ...rule, isEnabled: enabled } : rule
         ));
         console.log(`✅ [OmniBridge] Automation rule ${enabled ? 'enabled' : 'disabled'}: ${ruleId}`);
       }
@@ -250,7 +247,7 @@ export default function OmniBridge() {
           description: newRuleData.description || 'Regra criada pelo usuário',
           isEnabled: true,
           triggers: [{ type: newRuleData.triggerType, conditions: [] }],
-          actions: [{ type: newRuleData.actionType, parameters: {}) }],
+          actions: [{ type: newRuleData.actionType, parameters: {} }],
           priority: newRuleData.priority || 0
         })
       });
@@ -442,8 +439,8 @@ export default function OmniBridge() {
             description: 'Configuração de email via IMAP/SMTP',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: t('OmniBridge.erroAoCarregar'),
-            lastActivity: t('OmniBridge.erro')
+            lastMessage: 'Erro ao carregar',
+            lastActivity: 'Erro'
           },
           {
             id: 'whatsapp-business',
@@ -454,8 +451,8 @@ export default function OmniBridge() {
             description: 'API do WhatsApp Business',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: t('OmniBridge.erroAoCarregar'),
-            lastActivity: t('OmniBridge.erro')
+            lastMessage: 'Erro ao carregar',
+            lastActivity: 'Erro'
           },
           {
             id: 'telegram-bot',
@@ -466,8 +463,8 @@ export default function OmniBridge() {
             description: 'Bot do Telegram para atendimento',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: t('OmniBridge.erroAoCarregar'),
-            lastActivity: t('OmniBridge.erro')
+            lastMessage: 'Erro ao carregar',
+            lastActivity: 'Erro'
           }
         ]);
         setMessages([]);
@@ -546,10 +543,10 @@ export default function OmniBridge() {
 
         console.log(`✅ Canal ${channelId} ${enabled ? 'ativado' : 'desativado'} com sucesso`);
       } else {
-        console.error(t('OmniBridge.erroAoAlterarStatusDoCanal'), response.status);
+        console.error('Erro ao alterar status do canal:', response.status);
       }
     } catch (error) {
-      console.error(t('OmniBridge.errorTogglingChannel'), error);
+      console.error('Error toggling channel:', error);
     }
   };
 
@@ -645,7 +642,7 @@ export default function OmniBridge() {
         await refreshMessages();
         // Update message status to replied
         setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? { ...msg, status: 'replied' }) : msg
+          msg.id === messageId ? { ...msg, status: 'replied' } : msg
         ));
       } else {
         console.error('❌ [OMNIBRIDGE] Failed to send reply:', response.status);
@@ -703,7 +700,7 @@ export default function OmniBridge() {
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message archived successfully');
         setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? { ...msg, status: 'archived' }) : msg
+          msg.id === messageId ? { ...msg, status: 'archived' } : msg
         ));
       } else {
         console.error('❌ [OMNIBRIDGE] Failed to archive message:', response.status);
@@ -728,7 +725,7 @@ export default function OmniBridge() {
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message marked as read');
         setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? { ...msg, status: 'read' }) : msg
+          msg.id === messageId ? { ...msg, status: 'read' } : msg
         ));
       } else {
         console.error('❌ [OMNIBRIDGE] Failed to mark message as read:', response.status);
@@ -753,7 +750,7 @@ export default function OmniBridge() {
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message starred');
         setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? { ...msg, starred: !msg.starred }) : msg
+          msg.id === messageId ? { ...msg, starred: !msg.starred } : msg
         ));
       } else {
         console.error('❌ [OMNIBRIDGE] Failed to star message:', response.status);
@@ -864,7 +861,7 @@ export default function OmniBridge() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('OmniBridge.buscarMensagens')
+                placeholder="Buscar mensagens..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -1163,7 +1160,7 @@ export default function OmniBridge() {
                     Configure seus canais de comunicação no Workspace Admin para que eles apareçam aqui.
                   </p>
                   <Button
-                    onClick={() => window.open('/tenant-admin/integrations', '_blank')
+                    onClick={() => window.open('/tenant-admin/integrations', '_blank')}
                     className="gap-2"
                   >
                     <ExternalLink className="h-4 w-4" />
@@ -1218,7 +1215,7 @@ export default function OmniBridge() {
 
                         <div className="flex items-center justify-between text-sm">
                           <span>Última atividade:</span>
-                          <span className="text-muted-foreground">{channel.lastActivity || t('OmniBridge.nenhuma')}</span>
+                          <span className="text-muted-foreground">{channel.lastActivity || 'Nenhuma'}</span>
                         </div>
                       </div>
 
@@ -1229,7 +1226,7 @@ export default function OmniBridge() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => window.open('/tenant-admin/integrations', '_blank')
+                          onClick={() => window.open('/tenant-admin/integrations', '_blank')}
                         >
                           <Settings className="h-4 w-4 mr-2" />
                           Configurar
@@ -1341,7 +1338,7 @@ export default function OmniBridge() {
                                   <Badge key={index} variant="secondary" className="text-xs">
                                     {action.type === 'auto_reply' && 'Resposta automática'}
                                     {action.type === 'forward_message' && 'Encaminhar'}
-                                    {action.type === 'create_ticket' && t('OmniBridge.criarTicket')}
+                                    {action.type === 'create_ticket' && 'Criar ticket'}
                                     {action.type === 'send_notification' && 'Notificação'}
                                     {action.type === 'add_tags' && 'Adicionar tags'}
                                     {action.type === 'assign_agent' && 'Atribuir agente'}
@@ -1534,7 +1531,7 @@ export default function OmniBridge() {
               <Label htmlFor="rule-name">Nome da Regra</Label>
               <Input
                 id="rule-name"
-                placeholder={t('OmniBridge.exRespostaAutomaticaParaNovosClientes')
+                placeholder="Ex: Resposta automática para novos clientes"
                 value={newRuleData.name}
                 onChange={(e) => setNewRuleData(prev => ({ ...prev, name: e.target.value }))}
               />
@@ -1557,7 +1554,7 @@ export default function OmniBridge() {
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, triggerType: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t('OmniBridge.selecioneOGatilho') />
+                    <SelectValue placeholder="Selecione o gatilho" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="new_message">Nova mensagem</SelectItem>
@@ -1575,7 +1572,7 @@ export default function OmniBridge() {
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, actionType: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t('OmniBridge.selecioneAAcao') />
+                    <SelectValue placeholder="Selecione a ação" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="auto_reply">Resposta automática</SelectItem>

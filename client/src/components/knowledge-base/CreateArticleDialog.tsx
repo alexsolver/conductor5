@@ -11,7 +11,6 @@ import { Plus, X, BookOpen, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModernRichTextEditor } from "./ModernRichTextEditor";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface CreateArticleDialogProps {
   isOpen: boolean;
@@ -26,7 +25,7 @@ const categories = [
   { value: 'procedures', label: 'Procedimentos' },
   { value: 'faq', label: 'Perguntas Frequentes' },
   { value: 'training', label: 'Treinamento' },
-  { value: 'integrations', label: {t('knowledge-base.integracoes')} }
+  { value: 'integrations', label: 'Integrações' }
 ];
 
 const accessLevels = [
@@ -35,9 +34,7 @@ const accessLevels = [
   { value: 'restricted', label: 'Restrito' }
 ];
 
-export function CreateArticleDialog({
-  const { t } = useLocalization();
- isOpen, onClose }: CreateArticleDialogProps) {
+export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
@@ -61,7 +58,7 @@ export function CreateArticleDialog({
     onSuccess: (result) => {
       if (result.success) {
         toast({
-          title: {t('knowledge-base.artigoCriadoComSucesso')},
+          title: "✅ Artigo criado com sucesso!",
           description: "O artigo foi salvo na base de conhecimento.",
         });
 
@@ -77,7 +74,7 @@ export function CreateArticleDialog({
         onClose();
       } else {
         toast({
-          title: {t('knowledge-base.erroAoCriarArtigo')},
+          title: "❌ Erro ao criar artigo",
           description: result.message || "Ocorreu um erro inesperado.",
           variant: "destructive",
         });
@@ -86,7 +83,7 @@ export function CreateArticleDialog({
     onError: (error) => {
       console.error('❌ [CREATE-ARTICLE] Error:', error);
       toast({
-        title: {t('knowledge-base.erroAoCriarArtigo')},
+        title: "❌ Erro ao criar artigo",
         description: error instanceof Error ? error.message : "Não foi possível criar o artigo. Tente novamente.",
         variant: "destructive",
       });
@@ -147,21 +144,21 @@ export function CreateArticleDialog({
       if (error instanceof Error) {
         if (error.message.includes('column') && error.message.includes('does not exist')) {
           toast({
-            title: {t('knowledge-base.erroDeConfiguracaoDoBancoDeDados')},
-            description: {t('knowledge-base.erroDeConfiguracaoDoBancoDeDadosContacteOSuporte')},
+            title: "❌ Erro de configuração do banco de dados",
+            description: 'Erro de configuração do banco de dados. Contacte o suporte.',
             variant: "destructive",
           });
         } else {
           toast({
-            title: {t('knowledge-base.erroAoCriarArtigo')},
-            description: error.message || {t('knowledge-base.erroInternoDoServidor')},
+            title: "❌ Erro ao criar artigo",
+            description: error.message || 'Erro interno do servidor',
             variant: "destructive",
           });
         }
       } else {
         toast({
-          title: {t('knowledge-base.erroInternoDoServidor')},
-          description: {t('knowledge-base.erroInternoDoServidor')},
+          title: "❌ Erro interno do servidor",
+          description: 'Erro interno do servidor',
           variant: "destructive",
         });
       }
@@ -206,7 +203,7 @@ export function CreateArticleDialog({
             </Label>
             <Select value={category} onValueChange={setCategory} required>
               <SelectTrigger data-testid="select-article-category">
-                <SelectValue placeholder={t('knowledge-base.selecioneUmaCategoria')} />
+                <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
