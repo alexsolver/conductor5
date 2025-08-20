@@ -161,7 +161,7 @@ export function SlaLed({
   
   // LED com texto e informações detalhadas
   return (
-    <div className="flex items-center space-x-2 "`} data-testid={`sla-led-detailed-${finalStatus"}>
+    <div className="flex items-center space-x-2 "`} data-testid={`sla-led-detailed-${finalStatus">
       <div className="${sizeClasses[size]} " rounded-full shadow-sm`} />
       
       <div className="flex items-center space-x-2">
@@ -204,7 +204,7 @@ export function SlaProgressBar({
   const config = ledStyles[slaStatus];
   
   return (
-    <div className="space-y-1 "`} data-testid={`sla-progress-${slaStatus"}>
+    <div className="space-y-1 "`} data-testid={`sla-progress-${slaStatus">
       <div className="flex justify-between items-center text-xs">
         <span className={config.text}>SLA Progress</span>
         {showPercentage && (

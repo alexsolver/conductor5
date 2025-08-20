@@ -543,7 +543,7 @@ export function UnifiedApprovalConfigurator() {
                             </Select>
                           )}
 
-                          <div className={index === 0 ? "col-span-1" : ""}>
+                          <div className={index === 0 ? "col-span-1" : "">
                             <Label>Campo</Label>
                             <Select
                               value={condition.field}
@@ -815,7 +815,7 @@ export function UnifiedApprovalConfigurator() {
                 <div>
                   <span className="font-medium">Status:</span>
                   <div className="mt-1">
-                    <Badge variant={currentRule.isActive ? "default" : "secondary"}>
+                    <Badge variant={currentRule.isActive ? "default" : "secondary">
                       {currentRule.isActive ? 'Ativa' : 'Inativa'}
                     </Badge>
                   </div>

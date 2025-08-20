@@ -412,8 +412,8 @@ export default function TenantAdmin() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                        {user.isActive ? 'Ativo' : 'Inativo'}
+                      <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700">
+                        {user.isActive ? "Ativo" : "Inativo"}
                       </Badge>
                     </TableCell>
                     <TableCell>

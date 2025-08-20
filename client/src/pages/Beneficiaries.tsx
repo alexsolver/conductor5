@@ -879,7 +879,7 @@ export default function Beneficiaries() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={(beneficiary.isActive ?? beneficiary.is_active) ? "default" : "secondary"}>
+                    <Badge variant={(beneficiary.isActive ?? beneficiary.is_active) ? "default" : "secondary">
                       {(beneficiary.isActive ?? beneficiary.is_active) ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>

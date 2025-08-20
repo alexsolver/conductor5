@@ -222,7 +222,7 @@ function TicketAdvancedConfiguration() {
 
   const createOptionMutation = useMutation({
     mutationFn: async ({ fieldId, data }: { fieldId: string; data: z.infer<typeof fieldOptionSchema> }) => {
-      const response = await apiRequest('POST', `/api/ticket-metadata/field-options/${fieldId", data);
+      const response = await apiRequest('POST', "/api/ticket-metadata/field-options/" + fieldId, data);
       return response.json();
     },
     onSuccess: () => {

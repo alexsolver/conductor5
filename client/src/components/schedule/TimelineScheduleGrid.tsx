@@ -596,7 +596,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                     : isWorkingHour 
                                       ? 'bg-blue-400' 
                                       : 'bg-gray-300'
-                              "}></div>
+                              "></div>
 
                               {/* Render actions in their time slots */}
                               {plannedSchedules.length > 0 && 
@@ -767,7 +767,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                     : isWorkingHour 
                                       ? 'bg-blue-400' 
                                       : 'bg-gray-300'
-                              "}></div>
+                              "></div>
 
                               {/* Render actual actions in their time slots */}
                               {actualSchedules.length > 0 && 

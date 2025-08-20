@@ -136,7 +136,7 @@ export function CommentsSection({
       </CardHeader>
       
       <CardContent className="pt-0">
-        <p className="text-sm whitespace-pre-wrap" data-testid={`comment-content-${comment.id"}>
+        <p className="text-sm whitespace-pre-wrap" data-testid={`comment-content-${comment.id">
           {comment.content}
         </p>
         

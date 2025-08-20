@@ -560,7 +560,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                       </CardDescription>
                     )}
                   </div>
-                  <Badge variant={group.isActive ? "default" : "secondary"}>
+                  <Badge variant={group.isActive ? "default" : "secondary">
                     {group.isActive ? "Ativo" : "Inativo"}
                   </Badge>
                 </div>

@@ -685,7 +685,7 @@ export default function ItemCatalog() {
                 >
                   <div className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
                     isBulkMode ? 'bg-primary border-primary' : 'border-input'
-                  "}>
+                  ">
                     {isBulkMode && <div className="h-2 w-2 bg-primary-foreground rounded-sm" />}
                   </div>
                   Lote ({selectedItems.size})
@@ -834,7 +834,7 @@ export default function ItemCatalog() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge variant={item.active ? "default" : "secondary"}>
+                        <Badge variant={item.active ? "default" : "secondary">
                           {item.active ? "Ativo" : "Inativo"}
                         </Badge>
                       </TableCell>
@@ -951,13 +951,13 @@ export default function ItemCatalog() {
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              "}>
+              ">
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
                 <h1 className="text-2xl font-bold">{selectedItem.name}</h1>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant={selectedItem.active ? "default" : "secondary"}>
+                  <Badge variant={selectedItem.active ? "default" : "secondary">
                     {selectedItem.active ? "Ativo" : "Inativo"}
                   </Badge>
                   <Badge variant="outline">
@@ -1123,7 +1123,7 @@ export default function ItemCatalog() {
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-              "}>
+              ">
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>

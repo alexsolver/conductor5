@@ -466,7 +466,7 @@ function LocationsNewContent() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Ativo</FormLabel>
-                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                            <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false">
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -899,7 +899,7 @@ function LocationsNewContent() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false">
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -1230,7 +1230,7 @@ function LocationsNewContent() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false">
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -1331,7 +1331,7 @@ function LocationsNewContent() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false">
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -1427,7 +1427,7 @@ function LocationsNewContent() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false">
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -1529,7 +1529,7 @@ function LocationsNewContent() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false">
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -1668,7 +1668,7 @@ function LocationsNewContent() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Ativo</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false">
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -1909,7 +1909,7 @@ function LocationsNewContent() {
                           <TableCell className="font-medium">{item.nome}</TableCell>
                           <TableCell>{item.codigoIntegracao || item.codigo_integracao || "-"}</TableCell>
                           <TableCell>
-                            <Badge variant={item.ativo ? "default" : "secondary"}>
+                            <Badge variant={item.ativo ? "default" : "secondary">
                               {item.ativo ? "Ativo" : "Inativo"}
                             </Badge>
                           </TableCell>

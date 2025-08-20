@@ -410,7 +410,7 @@ export default function SaasAdminIntegrations() {
 
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium">API Key:</span>
-                  <Badge variant={integration.apiKeyConfigured ? "default" : "secondary"}>
+                  <Badge variant={integration.apiKeyConfigured ? "default" : "secondary">
                     {integration.apiKeyConfigured ? "Configurada" : "Não configurada"}
                   </Badge>
                 </div>

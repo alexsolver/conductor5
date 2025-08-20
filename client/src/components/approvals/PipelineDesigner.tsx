@@ -213,7 +213,7 @@ export function PipelineDesigner() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Badge className="bg-white text-gray-800" data-testid={`step-number-${step.id"}>
+                  <Badge className="bg-white text-gray-800" data-testid={`step-number-${step.id">
                     Etapa {step.stepNumber}
                   </Badge>
                   <Input
@@ -258,7 +258,7 @@ export function PipelineDesigner() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-testid={`step-config-${step.id"}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-testid={`step-config-${step.id">
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Tipo de Aprovador
@@ -381,7 +381,7 @@ export function PipelineDesigner() {
         <CardContent>
           <div className="flex flex-col items-center space-y-4" data-testid="visual-flow">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex flex-col items-center" data-testid={`visual-step-${step.id"}>
+              <div key={step.id} className="flex flex-col items-center" data-testid={`visual-step-${step.id">
                 <div className="p-4 rounded-lg border-2 " min-w-48 text-center`}>
                   <div className="font-medium">{step.name}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">

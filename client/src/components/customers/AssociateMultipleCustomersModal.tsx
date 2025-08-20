@@ -341,7 +341,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                           <div className="flex items-center gap-2">
                             <p className={`font-medium text-sm truncate ${
                               customer.isAssociated ? 'text-green-700' : ''
-                            "}>
+                            ">
                               {displayName || customer.email}
                             </p>
 
@@ -367,7 +367,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                           </div>
                           <p className={`text-xs truncate ${
                             customer.isAssociated ? 'text-green-600' : 'text-gray-500'
-                          "}>
+                          ">
                             {customer.email}
                           </p>
                           {customer.isAssociated && (

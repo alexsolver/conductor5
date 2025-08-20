@@ -105,7 +105,7 @@ export default function TicketTemplates() {
   const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ['"/api/ticket-templates/company', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', ""/api/ticket-templates/company/" + selectedCompany);
+      const response = await apiRequest('GET', "/api/ticket-templates/company/" + selectedCompany);
       return response.json();
     },
   });
@@ -137,7 +137,7 @@ export default function TicketTemplates() {
   // Mutation para criar template
   const createTemplateMutation = useMutation({
     mutationFn: (data: TemplateFormData & { customFields?: CustomField[] }) => 
-      apiRequest('POST', ""/api/ticket-templates/company/" + selectedCompany, {
+      apiRequest('POST', "/api/ticket-templates/company/" + selectedCompany, {
         ...data,
         // Required fields
         companyId: selectedCompany === 'all' ? null : selectedCompany,

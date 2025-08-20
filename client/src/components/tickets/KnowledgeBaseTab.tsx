@@ -80,7 +80,7 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
   };
 
   const renderArticleCard = (article: SuggestedArticle, isLinked = false) => (
-    <Card key={article.id} className="mb-3" data-testid={`article-${article.id"}>
+    <Card key={article.id} className="mb-3" data-testid={`article-${article.id">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-sm font-medium flex items-center gap-2">

@@ -172,7 +172,7 @@ export default function TechnicalSkills() {
 
   const updateSkillMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: SkillFormData }) =>
-      apiRequest("PUT", `/api/technical-skills/skills/${id", data),
+      apiRequest("PUT", "/api/technical-skills/skills/" + id, data),
     onSuccess: () => {
       toast({ title: "Habilidade atualizada com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
@@ -187,7 +187,7 @@ export default function TechnicalSkills() {
 
   const deleteSkillMutation = useMutation({
     mutationFn: (id: string) => 
-      apiRequest("DELETE", `/api/technical-skills/skills/${id"),
+      apiRequest("DELETE", "/api/technical-skills/skills/" + id),
     onSuccess: () => {
       toast({ title: "Habilidade desativada com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });

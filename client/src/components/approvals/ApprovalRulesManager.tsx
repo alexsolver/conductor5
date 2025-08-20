@@ -281,28 +281,28 @@ export function ApprovalRulesManager() {
                 </TableRow>
               ) : (
                 rules?.data?.map((rule) => (
-                  <TableRow key={rule.id} data-testid={`rule-row-${rule.id"}>
-                    <TableCell className="font-medium" data-testid={`rule-name-${rule.id"}>
+                  <TableRow key={rule.id} data-testid={`rule-row-${rule.id">
+                    <TableCell className="font-medium" data-testid={`rule-name-${rule.id">
                       {rule.name}
                     </TableCell>
-                    <TableCell data-testid={`rule-module-${rule.id"}>
+                    <TableCell data-testid={`rule-module-${rule.id">
                       <Badge variant="secondary">
                         {moduleTypes.find(t => t.value === rule.moduleType)?.label || rule.moduleType}
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={`rule-status-${rule.id"}>
-                      <Badge variant={rule.isActive ? "default" : "secondary"}>
+                    <TableCell data-testid={`rule-status-${rule.id">
+                      <Badge variant={rule.isActive ? "default" : "secondary">
                         {rule.isActive ? 'Ativa' : 'Inativa'}
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={`rule-priority-${rule.id"}>
+                    <TableCell data-testid={`rule-priority-${rule.id">
                       {rule.priority}
                     </TableCell>
-                    <TableCell data-testid={`rule-created-${rule.id"}>
+                    <TableCell data-testid={`rule-created-${rule.id">
                       {new Date(rule.createdAt).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2" data-testid={`rule-actions-${rule.id"}>
+                      <div className="flex items-center gap-2" data-testid={`rule-actions-${rule.id">
                         <Button
                           variant="ghost"
                           size="sm"

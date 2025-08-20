@@ -336,7 +336,7 @@ export default function HourBank() {
                             movement.movementType === 'credit' ? 'bg-green-500' :
                             movement.movementType === 'debit' ? 'bg-red-500' :
                             movement.movementType === 'expiration' ? 'bg-orange-500' : 'bg-blue-500'
-                          "}></div>
+                          "></div>
                           <div>
                             <div className="font-medium">{movement.description}</div>
                             <div className="text-sm text-gray-600">

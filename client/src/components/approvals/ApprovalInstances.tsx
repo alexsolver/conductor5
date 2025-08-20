@@ -269,14 +269,14 @@ export function ApprovalInstances() {
                 </TableRow>
               ) : (
                 instancesData?.data?.map((instance) => (
-                  <TableRow key={instance.id} data-testid={`instance-row-${instance.id"}>
-                    <TableCell data-testid={`instance-entity-${instance.id"}>
+                  <TableRow key={instance.id} data-testid={`instance-row-${instance.id">
+                    <TableCell data-testid={`instance-entity-${instance.id">
                       <div>
                         <div className="font-medium">{instance.entityType}</div>
                         <div className="text-sm text-gray-500">{instance.entityId}</div>
                       </div>
                     </TableCell>
-                    <TableCell data-testid={`instance-rule-${instance.id"}>
+                    <TableCell data-testid={`instance-rule-${instance.id">
                       <div>
                         <div className="font-medium">{instance.rule?.name || 'N/A'}</div>
                         <Badge variant="outline" className="text-xs">
@@ -284,7 +284,7 @@ export function ApprovalInstances() {
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell data-testid={`instance-status-${instance.id"}>
+                    <TableCell data-testid={`instance-status-${instance.id">
                       <Badge className={getStatusColor(instance.status)}>
                         <span className="flex items-center gap-1">
                           {getStatusIcon(instance.status)}
@@ -292,7 +292,7 @@ export function ApprovalInstances() {
                         </span>
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={`instance-sla-${instance.id"}>
+                    <TableCell data-testid={`instance-sla-${instance.id">
                       <div className="text-sm "`}>
                         {formatTimeRemaining(instance.slaDeadline)}
                       </div>
@@ -300,11 +300,11 @@ export function ApprovalInstances() {
                         {new Date(instance.slaDeadline).toLocaleDateString('pt-BR')}
                       </div>
                     </TableCell>
-                    <TableCell data-testid={`instance-created-${instance.id"}>
+                    <TableCell data-testid={`instance-created-${instance.id">
                       {new Date(instance.createdAt).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2" data-testid={`instance-actions-${instance.id"}>
+                      <div className="flex items-center gap-2" data-testid={`instance-actions-${instance.id">
                         <Button
                           variant="ghost"
                           size="sm"

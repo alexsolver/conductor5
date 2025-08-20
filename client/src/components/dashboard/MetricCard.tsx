@@ -30,7 +30,7 @@ export function MetricCard({ title, value, change, icon, gradientClass }: Metric
               {change && (
                 <p className={`ml-2 flex items-baseline text-sm font-semibold ${
                   change.type === "increase" ? "text-green-600" : "text-red-600"
-                "}>
+                ">
                   {change.type === "increase" ? (
                     <ArrowUp className="w-3 h-3 mr-1" />
                   ) : (

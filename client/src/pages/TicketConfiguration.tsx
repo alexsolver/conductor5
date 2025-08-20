@@ -630,7 +630,7 @@ const TicketConfiguration: React.FC = () => {
       
       toast({ 
         title: 'Estrutura Copiada com Sucesso',
-        description: `${result.summary || "Toda a estrutura hierárquica foi copiada da empresa Default.""
+        description: `${result.summary || "Toda a estrutura hierárquica foi copiada da empresa Default."
       });
     },
     onError: (error: any) => {
@@ -717,7 +717,7 @@ const TicketConfiguration: React.FC = () => {
   };
 
   const handleCopyHierarchy = () => {
-    if (confirm(`Tem certeza que deseja copiar toda a estrutura hierárquica da empresa Default para esta empresa?\n\nEsta ação irá:\n• Copiar todas as categorias, subcategorias e ações\n• Copiar todas as opções de campos (status, prioridade, impacto, urgência)\n• Copiar configuração de numeração\n\nEsta operação não pode ser desfeita.`)) {
+    if (confirm("Tem certeza que deseja copiar toda a estrutura hierárquica da empresa Default para esta empresa?\n\nEsta ação irá:\n• Copiar todas as categorias, subcategorias e ações\n• Copiar todas as opções de campos (status, prioridade, impacto, urgência)\n• Copiar configuração de numeração\n\nEsta operação não pode ser desfeita.")) {
       copyHierarchyMutation.mutate();
     }
   };
@@ -985,7 +985,7 @@ const TicketConfiguration: React.FC = () => {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (confirm(`Tem certeza que deseja excluir a categoria "${category.name}"? Esta ação não pode ser desfeita.`)) {
+                                if (confirm("Tem certeza que deseja excluir a categoria " + category.name + "? Esta ação não pode ser desfeita.")) {
                                   deleteCategoryMutation.mutate(category.id);
                                 }
                               }}
@@ -1043,7 +1043,7 @@ const TicketConfiguration: React.FC = () => {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
-                                          if (confirm(`Tem certeza que deseja excluir a subcategoria "${subcategory.name}"? Esta ação não pode ser desfeita.`)) {
+                                          if (confirm("Tem certeza que deseja excluir a subcategoria "${subcategory.name}"? Esta ação não pode ser desfeita.`)) {
                                             deleteSubcategoryMutation.mutate(subcategory.id);
                                           }
                                         }}
@@ -1087,7 +1087,7 @@ const TicketConfiguration: React.FC = () => {
                                               variant="ghost"
                                               size="sm"
                                               onClick={() => {
-                                                if (confirm(`Tem certeza que deseja excluir a ação "${action.name}"? Esta ação não pode ser desfeita.`)) {
+                                                if (confirm("Tem certeza que deseja excluir a ação "${action.name}"? Esta ação não pode ser desfeita.`)) {
                                                   deleteActionMutation.mutate(action.id);
                                                 }
                                               }}
@@ -1408,7 +1408,7 @@ const TicketConfiguration: React.FC = () => {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
-                                      if (confirm(`Tem certeza que deseja excluir a opção "${option.displayLabel}"? Esta ação não pode ser desfeita.`)) {
+                                      if (confirm("Tem certeza que deseja excluir a opção "${option.displayLabel}"? Esta ação não pode ser desfeita.`)) {
                                         deleteFieldOptionMutation.mutate(option.id);
                                       }
                                     }}

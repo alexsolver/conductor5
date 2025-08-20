@@ -212,7 +212,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
   const handleSave = () => {
     const customTemplate: Template = {
       ...template,
-      id: `${template.id}-custom-${Date.now()",
+      id: template.id + "-custom-" + Date.now(),
       name: customName,
       colors: customColors,
       preview: `linear-gradient(135deg, ${customColors.primary} 0%, ${customColors.secondary} 50%, ${customColors.accent} 100%)`
@@ -516,7 +516,7 @@ export function TemplateSelector() {
                 selectedTemplate === template.id 
                   ? 'ring-4 ring-blue-500 shadow-2xl' 
                   : 'hover:shadow-xl'
-              "}
+              "
               onMouseEnter={() => setHoveredTemplate(template.id)}
               onMouseLeave={() => setHoveredTemplate(null)}
               onClick={() => applyTemplate(template)}
@@ -595,7 +595,7 @@ export function TemplateSelector() {
                 <div className="flex gap-2 mt-4">
                   <Button 
                     className="flex-1" 
-                    variant={selectedTemplate === template.id ? "default" : "outline"}
+                    variant={selectedTemplate === template.id ? "default" : "outline"
                     onClick={(e) => {
                       e.stopPropagation();
                       applyTemplate(template);

@@ -292,7 +292,7 @@ export default function SaasAdmin() {
                       <div>{user.email}</div>
                       <div>
                         <span className="font-medium mr-2">Status:</span>
-                        <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                        <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700">
                           {user.isActive ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </div>

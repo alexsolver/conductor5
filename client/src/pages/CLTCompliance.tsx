@@ -223,7 +223,7 @@ export default function CLTCompliance() {
                 </div>
               ) : integrityCheck ? (
                 <div className="space-y-4">
-                  <Alert className={integrityCheck.isValid ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+                  <Alert className={integrityCheck.isValid ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50">
                     <div className="flex items-center gap-2">
                       {integrityCheck.isValid ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -250,7 +250,7 @@ export default function CLTCompliance() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="font-medium">Status:</span>
-                      <Badge className={integrityCheck.isValid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                      <Badge className={integrityCheck.isValid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800">
                         {integrityCheck.isValid ? 'VÁLIDA' : 'INVÁLIDA'}
                       </Badge>
                     </div>

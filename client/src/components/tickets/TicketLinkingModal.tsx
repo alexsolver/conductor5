@@ -458,7 +458,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                 ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
                                 ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
                                 'bg-gray-50 text-gray-700 border-gray-200'
-                              "}>
+                              ">
                                 {ticket.status === 'new' ? 'Novo' :
                                  ticket.status === 'open' ? 'Aberto' :
                                  ticket.status === 'in_progress' ? 'Em Andamento' :
@@ -478,7 +478,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                 ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
                                 ticket.priority === 'low' ? 'bg-green-500 text-white' :
                                 'bg-gray-500 text-white'
-                              "}>
+                              ">
                                 {ticket.priority === 'critical' ? 'Crítica' :
                                  ticket.priority === 'high' ? 'Alta' :
                                  ticket.priority === 'medium' ? 'Média' :
@@ -493,7 +493,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                   (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                                   (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
                                   'bg-gray-50 text-gray-700 border-gray-200'
-                                "}>
+                                ">
                                   {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
                                    (ticket as any).urgency === 'medium' ? 'Urgência Média' :
                                    (ticket as any).urgency === 'low' ? 'Urgência Baixa' :
@@ -548,7 +548,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
                             ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
                             'bg-gray-50 text-gray-700 border-gray-200'
-                          "}>
+                          ">
                             {ticket.status === 'new' ? 'Novo' :
                              ticket.status === 'open' ? 'Aberto' :
                              ticket.status === 'in_progress' ? 'Em Andamento' :
@@ -564,7 +564,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
                             ticket.priority === 'low' ? 'bg-green-500 text-white' :
                             'bg-gray-500 text-white'
-                          "}>
+                          ">
                             {ticket.priority === 'critical' ? 'Crítica' :
                              ticket.priority === 'high' ? 'Alta' :
                              ticket.priority === 'medium' ? 'Média' :
@@ -579,7 +579,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                               (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                               (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
                               'bg-gray-50 text-gray-700 border-gray-200'
-                            "}>
+                            ">
                               {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
                                (ticket as any).urgency === 'medium' ? 'Urgência Média' :
                                (ticket as any).urgency === 'low' ? 'Urgência Baixa' :

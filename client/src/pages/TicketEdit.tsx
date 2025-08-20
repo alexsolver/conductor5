@@ -829,7 +829,7 @@ export default function TicketEdit() {
                               </FormControl>
                               <SelectContent>
                                 {filteredCustomers.map((customer: any) => (
-                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id"}>
+                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id">
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
                                 ))}
@@ -855,7 +855,7 @@ export default function TicketEdit() {
                               <SelectContent>
                                 <SelectItem value="none">Nenhum</SelectItem>
                                 {filteredCustomers.map((customer: any) => (
-                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id"}>
+                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id">
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
                                 ))}

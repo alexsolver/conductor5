@@ -275,7 +275,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   return (
     <div className={`hidden lg:flex lg:flex-col transition-all duration-300 ${
       collapsed ? 'lg:w-16' : 'lg:w-64'
-    "}>
+    ">
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto" style={{
         background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
         color: 'white'
@@ -283,13 +283,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         {/* Logo */}
         <div className={`flex items-center flex-shrink-0 transition-all duration-300 ${
           collapsed ? 'px-2 justify-center' : 'px-4 justify-between'
-        "}>
+        ">
           <div className={`flex items-center transition-all duration-300 ${
             collapsed ? 'justify-center w-full' : ''
-          "}>
+          ">
             <div className={`bg-white rounded-lg flex items-center justify-center transition-all duration-300 ${
               collapsed ? 'w-10 h-10' : 'w-8 h-8 mr-3'
-            "}>
+            ">
               <Zap className={`text-purple-600 transition-all duration-300 ${
                 collapsed ? 'w-6 h-6' : 'w-5 h-5'
               "} />
@@ -340,16 +340,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           }}>
             <div className={`flex items-center transition-all duration-300 ${
               collapsed ? 'justify-center' : 'justify-between'
-            "}>
+            ">
               <div className={`flex items-center transition-all duration-300 ${
                 collapsed ? 'justify-center' : ''
-              "}>
+              ">
                 <div className={`bg-white rounded-full flex items-center justify-center transition-all duration-300 ${
                   collapsed ? 'w-8 h-8' : 'w-6 h-6 mr-2'
-                "}>
+                ">
                   <span className={`font-semibold text-purple-600 transition-all duration-300 ${
                     collapsed ? 'text-sm' : 'text-xs'
-                  "}>AC</span>
+                  ">AC</span>
                 </div>
                 {!collapsed && (
                   <span className="text-sm font-medium text-white transition-opacity duration-300">

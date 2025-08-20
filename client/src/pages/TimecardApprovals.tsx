@@ -316,7 +316,7 @@ export default function TimecardApprovals() {
             {pendingApprovals.map((approval) => (
               <Card key={approval.id} className={`transition-all ${
                 selectedApprovals.includes(approval.id) ? 'ring-2 ring-primary' : ''
-              "}>
+              ">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">

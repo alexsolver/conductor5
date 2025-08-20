@@ -248,7 +248,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                           entry.isPublic 
                             ? 'border-l-green-500 bg-green-50' 
                             : 'border-l-gray-400 bg-gray-50'
-                        "}>
+                        ">
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between mb-2">
                               <div>

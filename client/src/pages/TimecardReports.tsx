@@ -431,7 +431,7 @@ export default function TimecardReports() {
                       return dateA - dateB;
                     })
                     ?.map((record: any, index: number) => (
-                      <tr key={index} className="" h-14`}>
+                      <tr key={index} className="h-14">
                         <td className="border-2 border-black px-2 py-3 text-center font-bold text-sm">
                           {record.date}
                         </td>
@@ -455,12 +455,12 @@ export default function TimecardReports() {
                         </td>
                         <td className="border-2 border-black px-2 py-3 text-center">
                           <div className="flex flex-col items-center gap-1">
-                            <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full border-2 ${
+                            <span className={"inline-flex px-3 py-1 text-xs font-bold rounded-full border-2 ${
                               record.status === 'approved' ? 'bg-green-500 text-white border-green-600' :
                               record.status === 'pending' ? 'bg-yellow-500 text-white border-yellow-600' :
                               record.status === 'working' ? 'bg-blue-500 text-white border-blue-600' :
                               'bg-gray-500 text-white border-gray-600'
-                            "}>
+                            ">
                                {record.status === 'approved' ? '✅ OK' :
                                record.status === 'pending' ? '⏳ PEND' :
                                record.status === 'working' ? '🔄 TRAB' :

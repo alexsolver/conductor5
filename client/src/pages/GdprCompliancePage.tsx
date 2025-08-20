@@ -906,7 +906,7 @@ function PrivacyPolicyManagement() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-medium">{policy.title}</h4>
-                    <Badge variant={policy.isActive ? "default" : "secondary"}>
+                    <Badge variant={policy.isActive ? "default" : "secondary">
                       {policy.isActive ? "Ativa" : "Inativa"}
                     </Badge>
                     <Badge variant="outline">v{policy.version}</Badge>

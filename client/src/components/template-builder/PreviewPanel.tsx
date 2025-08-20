@@ -129,7 +129,7 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             {(properties.options || []).map((option: any, index: number) => (
               <div key={index} className="flex items-center space-x-2">
                 <RadioGroupItem value={option.value} id={`${field.id}-${index"} />
-                <Label htmlFor={`${field.id}-${index"}>{option.label}</Label>
+                <Label htmlFor={`${field.id}-${index">{option.label}</Label>
               </div>
             ))}
           </RadioGroup>

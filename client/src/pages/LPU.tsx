@@ -789,7 +789,7 @@ export default function LPU() {
                           <h4 className="font-medium">{list.name}</h4>
                           <p className="text-sm text-gray-500">{list.code}</p>
                         </div>
-                        <Badge variant={list.isActive ? "default" : "secondary"}>
+                        <Badge variant={list.isActive ? "default" : "secondary">
                           {list.isActive ? "Ativa" : "Inativa"}
                         </Badge>
                       </div>
@@ -814,7 +814,7 @@ export default function LPU() {
                           <h4 className="font-medium">{rule.name}</h4>
                           <p className="text-sm text-gray-500">{rule.ruleType} • Prioridade: {rule.priority}</p>
                         </div>
-                        <Badge variant={rule.isActive ? "default" : "secondary"}>
+                        <Badge variant={rule.isActive ? "default" : "secondary">
                           {rule.isActive ? "Ativa" : "Inativa"}
                         </Badge>
                       </div>
@@ -940,7 +940,7 @@ export default function LPU() {
 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Status:</span>
-                      <Badge variant={list.isActive ? "default" : "secondary"}>
+                      <Badge variant={list.isActive ? "default" : "secondary">
                         {list.isActive ? "Ativa" : "Inativa"}
                       </Badge>
                     </div>
@@ -2101,7 +2101,7 @@ function VersionHistoryComponent({
           <div key={index} className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
-                <Badge variant={index === 0 ? "default" : "secondary"}>
+                <Badge variant={index === 0 ? "default" : "secondary">
                   v{version.version}
                 </Badge>
                 <span className="text-sm font-medium">{version.user}</span>

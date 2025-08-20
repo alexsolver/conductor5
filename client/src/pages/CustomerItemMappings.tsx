@@ -491,7 +491,7 @@ export function CustomerItemMappings() {
                     </TableCell>
 
                     <TableCell>
-                      <Badge variant={mapping.is_active ? "default" : "secondary"}>
+                      <Badge variant={mapping.is_active ? "default" : "secondary">
                         {mapping.is_active ? "Ativo" : "Inativo"}
                       </Badge>
                     </TableCell>

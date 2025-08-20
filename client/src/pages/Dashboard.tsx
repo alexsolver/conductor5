@@ -68,7 +68,7 @@ export default function Dashboard() {
     },
     {
       title: t('dashboard.stats.online_agents'),
-      value: `${stats?.onlineAgents || 0}/${stats?.totalAgents || 0",
+      value: stats?.onlineAgents || 0 + "/" + stats?.totalAgents || 0,
       icon: Users,
       trend: "100%",
     },

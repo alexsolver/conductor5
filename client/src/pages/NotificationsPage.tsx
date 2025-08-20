@@ -577,7 +577,7 @@ export default function NotificationsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {getStatusIcon(notification.status)}
-                          <h3 className="font-semibold text-lg" data-testid={`notification-title-${notification.id"}>
+                          <h3 className="font-semibold text-lg" data-testid={`notification-title-${notification.id">
                             {notification.title}
                           </h3>
                           <Badge 
@@ -594,22 +594,22 @@ export default function NotificationsPage() {
                           </Badge>
                         </div>
                         
-                        <p className="text-muted-foreground mb-3" data-testid={`notification-message-${notification.id"}>
+                        <p className="text-muted-foreground mb-3" data-testid={`notification-message-${notification.id">
                           {notification.message}
                         </p>
                         
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span data-testid={`notification-type-${notification.id"}>
+                          <span data-testid={`notification-type-${notification.id">
                             Type: {notification.type}
                           </span>
-                          <span data-testid={`notification-channels-${notification.id"}>
+                          <span data-testid={`notification-channels-${notification.id">
                             Channels: {notification.channels.join(', ')}
                           </span>
-                          <span data-testid={`notification-created-${notification.id"}>
+                          <span data-testid={`notification-created-${notification.id">
                             Created: {formatDate(notification.createdAt)}
                           </span>
                           {notification.sentAt && (
-                            <span data-testid={`notification-sent-${notification.id"}>
+                            <span data-testid={`notification-sent-${notification.id">
                               Sent: {formatDate(notification.sentAt)}
                             </span>
                           )}

@@ -383,7 +383,7 @@ export default function TicketMaterials() {
                     <h3 className="text-sm font-medium text-gray-500">Variação</h3>
                     <p className={`text-2xl font-bold ${
                       parseFloat((costsSummary as any).data.summary.costVariance) >= 0 ? 'text-red-600' : 'text-green-600'
-                    "}>
+                    ">
                       {formatCurrency((costsSummary as any).data.summary.costVariance)}
                     </p>
                   </div>
@@ -522,14 +522,14 @@ export default function TicketMaterials() {
                         item.itemType === 'material' 
                           ? 'border-l-green-500 bg-gradient-to-r from-green-50/30 to-white hover:from-green-50/50' 
                           : 'border-l-purple-500 bg-gradient-to-r from-purple-50/30 to-white hover:from-purple-50/50'
-                      "}>
+                      ">
                         <CardContent className="p-5">
                           <div className="flex items-start justify-between">
                             <div className="space-y-3 flex-1">
                               <div className="flex items-center gap-3 flex-wrap">
                                 <div className={`p-2 rounded-lg ${
                                   item.itemType === 'material' ? 'bg-green-100' : 'bg-purple-100'
-                                "}>
+                                ">
                                   {item.itemType === 'material' ? (
                                     <Box className="w-5 h-5 text-green-600" />
                                   ) : (
@@ -544,7 +544,7 @@ export default function TicketMaterials() {
                                       item.itemType === 'material' 
                                         ? 'bg-green-100 text-green-800 border-green-200' 
                                         : 'bg-purple-100 text-purple-800 border-purple-200'
-                                    "}>
+                                    ">
                                       {item.itemType === 'material' ? 'Material' : 'Serviço'}
                                     </Badge>
                                     {getStatusBadge(item.status)}
@@ -604,7 +604,7 @@ export default function TicketMaterials() {
                           <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
                             plannedSubTab === 'material' ? 'bg-green-100' :
                             plannedSubTab === 'service' ? 'bg-purple-100' : 'bg-gray-100'
-                          "}>
+                          ">
                             {plannedSubTab === 'material' ? (
                               <Box className="w-12 h-12 text-green-400" />
                             ) : plannedSubTab === 'service' ? (

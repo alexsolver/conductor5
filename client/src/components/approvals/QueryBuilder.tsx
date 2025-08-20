@@ -222,7 +222,7 @@ export function QueryBuilder() {
       {/* Query Groups */}
       <div className="space-y-4" data-testid="query-groups">
         {queryGroups.map((group, groupIndex) => (
-          <Card key={group.id} data-testid={`query-group-${group.id"}>
+          <Card key={group.id} data-testid={`query-group-${group.id">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -260,9 +260,9 @@ export function QueryBuilder() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3" data-testid={`conditions-${group.id"}>
+              <div className="space-y-3" data-testid={`conditions-${group.id">
                 {group.conditions.map((condition, condIndex) => (
-                  <div key={condition.id} className="flex items-center gap-3" data-testid={`condition-${condition.id"}>
+                  <div key={condition.id} className="flex items-center gap-3" data-testid={`condition-${condition.id">
                     {condIndex > 0 && (
                       <Select 
                         value={condition.logic || 'AND'} 

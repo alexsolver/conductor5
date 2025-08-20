@@ -162,14 +162,14 @@ export default function TenantAdminIntegrations() {
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
       telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+      telegramAlertTemplate: "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+      telegramSummaryTemplate: "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
       whatsappWebhookUrl: '',
       whatsappVerifyToken: '',
-      whatsappNotificationTemplate: `Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
+      whatsappNotificationTemplate: "Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
       whatsappConfirmationTemplate: `Olá {customer_name}, confirmamos o recebimento da sua solicitação:\n\nProtocolo: {protocol}\nTipo: {type}\nStatus: {status}\n\nAcompanhe pelo sistema Conductor.`,
     },
   });
@@ -179,7 +179,7 @@ export default function TenantAdminIntegrations() {
     const response = await fetch('/api/tenant-admin/integrations', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+        'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
         'Content-Type': 'application/json'
       },
       credentials: 'include'
@@ -229,7 +229,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')", // Use accessToken consistently
+          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""), // Use accessToken consistently
           'Content-Type': 'application/json'
         }
       });
@@ -313,7 +313,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ webhookUrl })
@@ -364,7 +364,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
@@ -420,7 +420,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
           'Content-Type': 'application/json'
         }
       });
@@ -724,7 +724,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -819,8 +819,8 @@ export default function TenantAdminIntegrations() {
           telegramChatId: config.telegramChatId || '',
           telegramWebhookUrl: config.telegramWebhookUrl || '', // Load the webhook URL
           telegramNotificationTemplate: config.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-          telegramAlertTemplate: config.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-          telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+          telegramAlertTemplate: config.telegramAlertTemplate || "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+          telegramSummaryTemplate: config.telegramSummaryTemplate || "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
 
 
           // WhatsApp Business specific fields
@@ -910,14 +910,14 @@ export default function TenantAdminIntegrations() {
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
       telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+      telegramAlertTemplate: "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+      telegramSummaryTemplate: "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
       whatsappWebhookUrl: '',
       whatsappVerifyToken: '',
-      whatsappNotificationTemplate: `Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
+      whatsappNotificationTemplate: "Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
       whatsappConfirmationTemplate: `Olá {customer_name}, confirmamos o recebimento da sua solicitação:\n\nProtocolo: {protocol}\nTipo: {type}\nStatus: {status}\n\nAcompanhe pelo sistema Conductor.`,
     };
 
@@ -946,7 +946,7 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+          'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ redirectUri }) // Send redirect URI to backend
@@ -1115,7 +1115,7 @@ export default function TenantAdminIntegrations() {
         const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+            'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
             'Content-Type': 'application/json'
           }
         });
@@ -1162,8 +1162,8 @@ export default function TenantAdminIntegrations() {
             telegramChatId: data.telegramChatId || '',
             telegramWebhookUrl: data.telegramWebhookUrl || '', // Include the webhook URL
             telegramNotificationTemplate: data.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId",
-            telegramAlertTemplate: data.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
-            telegramSummaryTemplate: data.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
+            telegramAlertTemplate: data.telegramAlertTemplate || "🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action",
+            telegramSummaryTemplate: data.telegramSummaryTemplate || "📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime",
           };
           break;
 
@@ -1448,7 +1448,7 @@ export default function TenantAdminIntegrations() {
                       </div>
 
                       {integration.lastSync && (
-                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')"}>
+                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')">
                           Sync: {new Date(integration.lastSync).toLocaleDateString('pt-BR')}
                         </p>
                       )}

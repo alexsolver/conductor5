@@ -984,7 +984,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                       <span className="font-medium">
                                         {membership.display_name || membership.company_name || membership.name || `Empresa ${companyId || index + 1"}
                                       </span>
-                                      <Badge variant={membership.is_primary ? "default" : "secondary"}>
+                                      <Badge variant={membership.is_primary ? "default" : "secondary">
                                         {membership.role || 'member'}
                                       </Badge>
                                       {membership.is_primary && (

@@ -174,7 +174,7 @@ const TicketDetails = React.memo(() => {
       try {
         const response = await apiRequest("GET", "/api/tickets/" + id);
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText");
+          throw new Error("HTTP " + response.status + ": " + response.statusText);
         }
         const data = await response.json();
         if (!data.success && !data.data) {
@@ -444,8 +444,8 @@ const TicketDetails = React.memo(() => {
   // Transform users data for UserSelect and UserMultiSelect components
   const teamUsers = Array.isArray((usersData as any)?.users) ? (usersData as any).users.map((user: any) => ({
     id: user.id,
-    name: user.name || `${user.firstName || ''} ${user.lastName || ''".trim() || user.email?.split('@')[0] || 'Usuário',
-    email: user.email,
+    name: user.name || `${user.firstName || ''} ${user.lastName || ''.trim() || user.email?.split('@')[0] || 'Usuário',
+    email: user.email
     role: user.role || 'Usuário'
   })) : [];
 
@@ -1768,7 +1768,7 @@ const TicketDetails = React.memo(() => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value || "general"}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value || "general">
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -1929,7 +1929,7 @@ const TicketDetails = React.memo(() => {
                       comm.type === 'whatsapp' ? 'bg-green-100 text-green-600' :
                       comm.type === 'call' ? 'bg-purple-100 text-purple-600' :
                       'bg-gray-100 text-gray-600'
-                    "}>
+                    ">
                       {comm.type === 'email' && <MessageSquare className="h-4 w-4" />}
                       {comm.type === 'whatsapp' && <Send className="h-4 w-4" />}
                       {comm.type === 'call' && <Clock className="h-4 w-4" />}
@@ -2650,7 +2650,7 @@ const TicketDetails = React.memo(() => {
                         <div className="flex items-start gap-3">
                           <Badge variant="secondary" className={`${relatedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' :
                                                                     relatedTicket.status === 'closed' ? 'bg-yellow-100 text-yellow-700' :
-                                                                    'bg-blue-100 text-blue-700'"}>
+                                                                    'bg-blue-100 text-blue-700'">
                             {relatedTicket.status === 'resolved' ? 'RESOLVIDO' :
                              relatedTicket.status === 'closed' ? 'FECHADO' : 'ATIVO'}
                           </Badge>
@@ -3020,7 +3020,7 @@ const TicketDetails = React.memo(() => {
                       const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
                       if (fallbackCustomer) {
                         return fallbackCustomer.fullName || fallbackCustomer.name ||
-                               `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''".trim() ||
+                               `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''.trim() ||
                                fallbackCustomer.email || 'Cliente encontrado';
                       }
                       return 'Cliente não encontrado';
@@ -3031,7 +3031,7 @@ const TicketDetails = React.memo(() => {
                     }
 
                     return customer.fullName || customer.name ||
-                           `${customer.firstName || ''} ${customer.lastName || ''".trim() ||
+                           `${customer.firstName || ''} ${customer.lastName || ''.trim() ||
                            customer.email || 'Cliente sem nome';
                   })()}
                 </Badge>
@@ -3085,7 +3085,7 @@ const TicketDetails = React.memo(() => {
                     }
 
                     const displayName = beneficiary.fullName || beneficiary.name ||
-                           `${beneficiary.firstName || ''} ${beneficiary.lastName || ''".trim() ||
+                           `${beneficiary.firstName || ''} ${beneficiary.lastName || ''.trim() ||
                            beneficiary.email || 'Favorecido sem nome';
                     return displayName;
                   })()}
@@ -3391,7 +3391,7 @@ const TicketDetails = React.memo(() => {
                         ></div>
                       </div>
                     )}
-                    <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2"}>
+                    <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2">
                       <Save className="h-4 w-4" />
                       <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}</span>
                     </div>
@@ -3705,7 +3705,7 @@ const TicketDetails = React.memo(() => {
                                     (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
 
                   const name = beneficiary ? (beneficiary.fullName || beneficiary.name ||
-                             `${beneficiary.firstName || ''} ${beneficiary.lastName || ''".trim() || 'Nome não informado') : 'Não especificado';
+                             `${beneficiary.firstName || ''} ${beneficiary.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
                   const email = beneficiary?.email || 'Não informado';
                   const phone = beneficiary?.phone || beneficiary?.mobilePhone || 'Não informado';
 
@@ -3773,7 +3773,7 @@ const TicketDetails = React.memo(() => {
                   const customer = availableCustomers.find((c: any) => c.id === callerId);
 
                   const name = customer ? (customer.fullName || customer.name ||
-                             `${customer.firstName || ''} ${customer.lastName || ''".trim() || 'Nome não informado') : 'Não especificado';
+                             `${customer.firstName || ''} ${customer.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
                   const email = customer?.email || 'Não informado';
                   const address = typeof customer?.address === 'string' ? customer.address :
                                  customer?.address ?
@@ -4113,7 +4113,7 @@ const TicketDetails = React.memo(() => {
               }
 
               const customerName = customer.fullName || customer.name ||
-                                 `${customer.firstName || ''} ${customer.lastName || ''".trim() ||
+                                 `${customer.firstName || ''} ${customer.lastName || ''.trim() ||
                                  customer.email || 'Cliente sem nome';
 
               return (
@@ -4200,7 +4200,7 @@ const TicketDetails = React.memo(() => {
               }
 
               const beneficiaryName = beneficiary.fullName || beneficiary.name ||
-                                     `${beneficiary.firstName || ''} ${beneficiary.lastName || ''".trim() ||
+                                     `${beneficiary.firstName || ''} ${beneficiary.lastName || ''.trim() ||
                                      beneficiary.email || 'Favorecido sem nome';
 
               return (

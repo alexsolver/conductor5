@@ -980,7 +980,7 @@ const TicketsTable = React.memo(() => {
             <TableCell className="overflow-hidden" style={cellStyle}>
               {ticket.assignedTo ? (
                 <div>
-                  <div className="font-medium truncate" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName"}>
+                  <div className="font-medium truncate" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName">
                     {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
                   </div>
                   <div className="text-sm text-gray-500 truncate" title={ticket.assignedTo.email}>

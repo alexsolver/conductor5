@@ -108,7 +108,7 @@ export default function TimecardApprovalSettings() {
             counts[group.id] = data.members?.length || 0;
             console.log("Group " + group.name + " (" + group.id + ") has " + counts[group.id] + " members");
           } else {
-            console.error(`Failed to fetch members for group ${group.id}:`, response.status);
+            console.error("Failed to fetch members for group " + group.id + ":", response.status);
             counts[group.id] = 0;
           }
         } catch (error) {
@@ -184,7 +184,7 @@ export default function TimecardApprovalSettings() {
   // Update group mutation
   const updateGroupMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
-      return await apiRequest('PUT', `/api/timecard/approval/groups/${id", data);
+      return await apiRequest('PUT', /api/timecard/approval/groups/" + id, data);
     },
     onSuccess: () => {
       toast({
@@ -210,7 +210,7 @@ export default function TimecardApprovalSettings() {
   // Update group members mutation
   const updateMembersMutation = useMutation({
     mutationFn: async ({ groupId, userIds }: { groupId: string; userIds: string[] }) => {
-      return await apiRequest('PUT', `/api/timecard/approval/groups/${groupId}/members`, { userIds });
+      return await apiRequest('PUT', /api/timecard/approval/groups/" + groupId + "/members", { userIds });
     },
     onSuccess: () => {
       toast({
@@ -700,7 +700,7 @@ export default function TimecardApprovalSettings() {
                         )}
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline">{groupMemberCounts[group.id] || 0} membros</Badge>
-                          <Badge variant={group.isActive ? "default" : "secondary"}>
+                          <Badge variant={group.isActive ? "default" : "secondary">
                             {group.isActive ? "Ativo" : "Inativo"}
                           </Badge>
                         </div>

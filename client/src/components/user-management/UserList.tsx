@@ -213,7 +213,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.isActive ? "default" : "secondary"}>
+                      <Badge variant={user.isActive ? "default" : "secondary">
                         {user.isActive 
                           ? t("userManagement.active", "Ativo")
                           : t("userManagement.inactive", "Inativo")
@@ -343,7 +343,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                             <TableCell>{permission.resource}</TableCell>
                             <TableCell>{permission.action}</TableCell>
                             <TableCell>
-                              <Badge variant={permission.granted ? "default" : "destructive"}>
+                              <Badge variant={permission.granted ? "default" : "destructive">
                                 {permission.granted ? "Permitido" : "Negado"}
                               </Badge>
                             </TableCell>

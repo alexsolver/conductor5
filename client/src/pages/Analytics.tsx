@@ -322,7 +322,7 @@ export default function Analytics() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <Badge variant={agent.satisfaction > 95 ? "default" : "secondary"}>
+                            <Badge variant={agent.satisfaction > 95 ? "default" : "secondary">
                               {agent.satisfaction}% CSAT
                             </Badge>
                           </div>

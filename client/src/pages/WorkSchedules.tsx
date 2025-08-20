@@ -173,11 +173,11 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`weekly-break-${dayValue"} className="text-xs text-gray-600">
+                <Label htmlFor={"weekly-break-" + dayValue} className="text-xs text-gray-600">
                   Pausa (min)
                 </Label>
                 <Input
-                  id={`weekly-break-${dayValue"}
+                  id={"weekly-break-" + dayValue}
                   type="number"
                   value={weeklySchedule[dayValue]?.breakDurationMinutes || 60}
                   onChange={(e) => handleDayChange(dayValue, 'breakDurationMinutes', e.target.value)}
@@ -316,7 +316,7 @@ function WorkSchedulesContent() {
   // Update schedule mutation
   const updateScheduleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await apiRequest('PUT', `/api/timecard/work-schedules/${id", data);
+      const response = await apiRequest('PUT', /api/timecard/work-schedules/" + id, data);
       console.log('[SCHEDULE-UPDATE] Response:', response);
       return response;
     },
@@ -343,7 +343,7 @@ function WorkSchedulesContent() {
   // Delete schedule mutation
   const deleteScheduleMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest('DELETE', `/api/timecard/work-schedules/${id");
+      return await apiRequest('DELETE', /api/timecard/work-schedules/" + id);
     },
     onSuccess: () => {
       toast({
@@ -391,7 +391,7 @@ function WorkSchedulesContent() {
   // Update template mutation
   const updateTemplateMutation = useMutation({
     mutationFn: async (templateData: ScheduleTemplate) => {
-      const response = await apiRequest('PUT', `/api/timecard/schedule-templates/${templateData.id", templateData);
+      const response = await apiRequest('PUT', /api/timecard/schedule-templates/" + templateData.id, templateData);
       console.log('[TEMPLATE-UPDATE] Response:', response);
       return response;
     },
@@ -418,7 +418,7 @@ function WorkSchedulesContent() {
   // Delete template mutation
   const deleteTemplateMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/timecard/schedule-templates/${id");
+      const response = await apiRequest('DELETE', /api/timecard/schedule-templates/" + id);
       console.log('[TEMPLATE-DELETE] Response:', response);
       return response;
     },

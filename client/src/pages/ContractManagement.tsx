@@ -161,7 +161,7 @@ export default function ContractManagement() {
   const getTypeBadge = (type: string) => {
     const typeConfig = contractTypes.find(t => t.value === type);
     return (
-      <Badge variant="secondary" data-testid={`badge-type-${type"}>
+      <Badge variant="secondary" data-testid={`badge-type-${type">
         {typeConfig?.label || type}
       </Badge>
     );
@@ -371,10 +371,10 @@ export default function ContractManagement() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg" data-testid={`contract-title-${contract.id"}>
+                          <h3 className="font-semibold text-lg" data-testid={`contract-title-${contract.id">
                             {contract.title}
                           </h3>
-                          <span className="text-sm text-muted-foreground" data-testid={`contract-number-${contract.id"}>
+                          <span className="text-sm text-muted-foreground" data-testid={`contract-number-${contract.id">
                             {contract.contractNumber}
                           </span>
                         </div>
@@ -385,19 +385,19 @@ export default function ContractManagement() {
                           {getPriorityBadge(contract.priority)}
                         </div>
 
-                        <p className="text-sm text-muted-foreground mb-2" data-testid={`contract-description-${contract.id"}>
+                        <p className="text-sm text-muted-foreground mb-2" data-testid={`contract-description-${contract.id">
                           {contract.description || 'Sem descrição'}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          <span data-testid={`contract-period-${contract.id"}>
+                          <span data-testid={`contract-period-${contract.id">
                             {new Date(contract.startDate).toLocaleDateString('pt-BR')} - {new Date(contract.endDate).toLocaleDateString('pt-BR')}
                           </span>
-                          <span data-testid={`contract-total-value-${contract.id"}>
+                          <span data-testid={`contract-total-value-${contract.id">
                             Valor Total: {formatCurrency(contract.totalValue, contract.currency)}
                           </span>
                           {contract.monthlyValue > 0 && (
-                            <span data-testid={`contract-monthly-value-${contract.id"}>
+                            <span data-testid={`contract-monthly-value-${contract.id">
                               Mensal: {formatCurrency(contract.monthlyValue, contract.currency)}
                             </span>
                           )}

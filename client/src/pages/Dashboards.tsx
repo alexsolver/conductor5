@@ -233,7 +233,7 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
           >
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
-                <div className={"p-3 rounded-lg " + template.color + " text-white"}>
+                <div className={"p-3 rounded-lg " + template.color + " text-white">
                   <template.icon className="w-6 h-6" />
                 </div>
                 <Badge variant="secondary" className="text-xs">
@@ -818,12 +818,12 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             <div key={index} className="flex items-center">
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                 index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-              }Enter dashboard title"}>
+              }Enter dashboard title">
                 <step.icon className="w-5 h-5" />
               </div>
               <span className="ml-2 text-sm font-medium"
                 index <= currentStep ? 'text-blue-600' : 'text-gray-500'
-              }Enter dashboard title"}>
+              }Enter dashboard title">
                 {step.title}
               </span>
               {index < steps.length - 1 && (
@@ -874,7 +874,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start space-x-3">
-                          <div className={"p-2 rounded-lg " + template.color + " text-white flex-shrink-0"}>
+                          <div className={"p-2 rounded-lg " + template.color + " text-white flex-shrink-0">
                             <template.icon className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">

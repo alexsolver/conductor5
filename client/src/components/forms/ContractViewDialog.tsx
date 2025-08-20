@@ -105,7 +105,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild data-testid={`button-view-contract-${contractId"}>
+      <DialogTrigger asChild data-testid={`button-view-contract-${contractId">
         {children || (
           <Button variant="outline" size="sm">
             <Eye className="h-4 w-4" />
@@ -221,7 +221,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
                       <span className="text-sm font-medium">Renovação Automática:</span>
-                      <Badge variant={contractData.autoRenewal ? "default" : "secondary"}>
+                      <Badge variant={contractData.autoRenewal ? "default" : "secondary">
                         {contractData.autoRenewal ? "Sim" : "Não"}
                       </Badge>
                     </div>

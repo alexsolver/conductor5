@@ -259,7 +259,7 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={activity.success ? "default" : "destructive"}>
+                      <Badge variant={activity.success ? "default" : "destructive">
                         {activity.success 
                           ? t("userManagement.success", "Sucesso")
                           : t("userManagement.failed", "Falha")

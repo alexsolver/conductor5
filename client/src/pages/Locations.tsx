@@ -489,7 +489,7 @@ export default function Locations() {
                 <div className="space-y-2">
                   <div>
                     <label className="text-sm text-gray-600">Local pai:</label>
-                    <Select value={selectedLocation?.parent_location_id || "none"}>
+                    <Select value={selectedLocation?.parent_location_id || "none">
                       <SelectTrigger className="w-full mt-1">
                         <SelectValue placeholder="Selecionar local pai" />
                       </SelectTrigger>

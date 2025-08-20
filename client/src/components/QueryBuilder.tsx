@@ -143,7 +143,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                       value={rule.logicalOperator || 'AND'}
                       onValueChange={(val) => updateRule(index, { ...rule, logicalOperator: val as LogicalOperator })}
                     >
-                      <SelectTrigger className="w-full" data-testid={`select-logical-operator-${index"}>
+                      <SelectTrigger className="w-full" data-testid={`select-logical-operator-${index">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -155,12 +155,12 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                 )}
 
                 {/* Campo */}
-                <div className={index > 0 ? "col-span-3" : "col-span-4"}>
+                <div className={index > 0 ? "col-span-3" : "col-span-4">
                   <Select
                     value={rule.field}
                     onValueChange={(val) => updateRule(index, { ...rule, field: val as TicketField })}
                   >
-                    <SelectTrigger data-testid={`select-field-${index"}>
+                    <SelectTrigger data-testid={`select-field-${index">
                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
@@ -179,7 +179,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     value={rule.operator}
                     onValueChange={(val) => updateRule(index, { ...rule, operator: val as QueryOperator })}
                   >
-                    <SelectTrigger data-testid={`select-operator-${index"}>
+                    <SelectTrigger data-testid={`select-operator-${index">
                       <SelectValue placeholder="Operador" />
                     </SelectTrigger>
                     <SelectContent>

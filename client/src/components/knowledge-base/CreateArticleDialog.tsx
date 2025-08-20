@@ -270,7 +270,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
             {tags && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {tags.split(',').map((tag) => (
-                  <Badge key={tag.trim()} variant="secondary" className="flex items-center gap-1" data-testid={`tag-${tag.trim()"}>
+                  <Badge key={tag.trim()} variant="secondary" className="flex items-center gap-1" data-testid={`tag-${tag.trim()">
                     {tag.trim()}
                     <button
                       type="button"

@@ -1044,7 +1044,7 @@ export default function ActivityPlanner() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(technicians as any)?.data?.map((tech: Technician) => (
-            <Card key={tech.id} className="hover:shadow-md transition-shadow" data-testid={`card-technician-${tech.id"}>
+            <Card key={tech.id} className="hover:shadow-md transition-shadow" data-testid={`card-technician-${tech.id">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div>
@@ -1082,11 +1082,11 @@ export default function ActivityPlanner() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" className="flex-1" data-testid={`button-view-technician-${tech.id"}>
+                  <Button size="sm" variant="outline" className="flex-1" data-testid={`button-view-technician-${tech.id">
                     <Eye className="w-3 h-3 mr-1" />
                     Ver
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1" data-testid={`button-allocate-technician-${tech.id"}>
+                  <Button size="sm" variant="outline" className="flex-1" data-testid={`button-allocate-technician-${tech.id">
                     <Calendar className="w-3 h-3 mr-1" />
                     Alocar
                   </Button>
@@ -1169,7 +1169,7 @@ export default function ActivityPlanner() {
         ) : (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <Card key={i} className="hover:shadow-md transition-shadow" data-testid={`schedule-item-${i"}>
+              <Card key={i} className="hover:shadow-md transition-shadow" data-testid={`schedule-item-${i">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
@@ -1185,10 +1185,10 @@ export default function ActivityPlanner() {
                       </p>
                     </div>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" data-testid={`button-edit-schedule-${i"}>
+                      <Button size="sm" variant="outline" data-testid={`button-edit-schedule-${i">
                         <Edit className="w-3 h-3" />
                       </Button>
-                      <Button size="sm" variant="outline" data-testid={`button-delete-schedule-${i"}>
+                      <Button size="sm" variant="outline" data-testid={`button-delete-schedule-${i">
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
@@ -1406,7 +1406,7 @@ export default function ActivityPlanner() {
           ))
         ) : assets?.data && Array.isArray(assets.data) && assets.data.length > 0 ? (
           assets.data.map((asset: Asset) => (
-            <Card key={asset.id} className="hover:shadow-md transition-shadow" data-testid={`card-asset-${asset.id"}>
+            <Card key={asset.id} className="hover:shadow-md transition-shadow" data-testid={`card-asset-${asset.id">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
@@ -1486,7 +1486,7 @@ export default function ActivityPlanner() {
       <div className="grid gap-6">
         {workOrders?.data && Array.isArray(workOrders.data) && workOrders.data.length > 0 ? (
           workOrders.data.map((workOrder: WorkOrder) => (
-            <Card key={workOrder.id} className="hover:shadow-md transition-shadow" data-testid={`card-workorder-${workOrder.id"}>
+            <Card key={workOrder.id} className="hover:shadow-md transition-shadow" data-testid={`card-workorder-${workOrder.id">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
@@ -1555,11 +1555,11 @@ export default function ActivityPlanner() {
                 )}
 
                 <div className="flex justify-end space-x-2">
-                  <Button size="sm" variant="outline" data-testid={`button-view-workorder-${workOrder.id"}>
+                  <Button size="sm" variant="outline" data-testid={`button-view-workorder-${workOrder.id">
                     <Eye className="w-3 h-3 mr-1" />
                     Ver Detalhes
                   </Button>
-                  <Button size="sm" variant="outline" data-testid={`button-edit-workorder-${workOrder.id"}>
+                  <Button size="sm" variant="outline" data-testid={`button-edit-workorder-${workOrder.id">
                     <Edit className="w-3 h-3 mr-1" />
                     Editar
                   </Button>

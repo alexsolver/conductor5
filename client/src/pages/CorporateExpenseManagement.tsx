@@ -516,12 +516,12 @@ function ExpenseReportsList() {
                     Criado em {new Date(report.createdAt || new Date()).toLocaleDateString('pt-BR')}
                   </span>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" data-testid={`button-view-${report.id"}>
+                    <Button size="sm" variant="outline" data-testid={`button-view-${report.id">
                       <Eye className="h-3 w-3 mr-1" />
                       Ver
                     </Button>
                     {(report.status === 'draft' || report.status === 'rejected') && (
-                      <Button size="sm" variant="outline" data-testid={`button-edit-${report.id"}>
+                      <Button size="sm" variant="outline" data-testid={`button-edit-${report.id">
                         <Edit className="h-3 w-3 mr-1" />
                         Editar
                       </Button>

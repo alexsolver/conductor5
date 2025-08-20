@@ -623,7 +623,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                     <Shield className="h-4 w-4" />
                     <span>{role.name}</span>
                   </CardTitle>
-                  <Badge variant={role.isActive ? "default" : "secondary"}>
+                  <Badge variant={role.isActive ? "default" : "secondary">
                     {role.isActive ? "Ativo" : "Inativo"}
                   </Badge>
                 </div>

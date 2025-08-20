@@ -177,7 +177,7 @@ export default function EmailHistoryModal({
                     email.direction === 'inbound' 
                       ? 'border-l-blue-500 bg-blue-50' 
                       : 'border-l-green-500 bg-green-50'
-                  "}>
+                  ">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">

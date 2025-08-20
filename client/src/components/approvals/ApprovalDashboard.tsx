@@ -34,7 +34,7 @@ export function ApprovalDashboard() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="dashboard-loading">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="animate-pulse" data-testid={`skeleton-card-${i"}>
+          <Card key={i} className="animate-pulse" data-testid={`skeleton-card-${i">
             <CardHeader className="pb-2">
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
             </CardHeader>
@@ -136,7 +136,7 @@ export function ApprovalDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid={`value-${stat.testId"}>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid={`value-${stat.testId">
                 {stat.value}
                 {stat.total && (
                   <span className="text-sm text-gray-500 ml-1">/ {stat.total}</span>
@@ -167,7 +167,7 @@ export function ApprovalDashboard() {
             <div className="space-y-4">
               <div className="flex justify-between items-center" data-testid="sla-compliance">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Compliance Geral</span>
-                <Badge variant={metrics?.slaCompliance && metrics.slaCompliance > 90 ? "default" : "destructive"}>
+                <Badge variant={metrics?.slaCompliance && metrics.slaCompliance > 90 ? "default" : "destructive">
                   {Math.round(metrics?.slaCompliance || 0)}%
                 </Badge>
               </div>
