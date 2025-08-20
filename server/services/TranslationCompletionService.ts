@@ -621,8 +621,8 @@ export class TranslationCompletionService {
         }
 
         hardcodedPatterns.forEach(pattern => {
-          const matches = [...line.matchAll(pattern)];
-          matches.forEach(match => {
+          let match;
+          while ((match = pattern.exec(line)) !== null) {
             if (match[1] && this.isTranslatableText(match[1])) {
               const module = this.extractModuleFromPath(filePath);
               const suggestedKey = this.generateTranslationKey(match[1], module);
@@ -635,7 +635,7 @@ export class TranslationCompletionService {
                 context: line.trim()
               });
             }
-          });
+          }
         });
       });
     } catch (error) {
@@ -757,7 +757,7 @@ export class TranslationCompletionService {
             file: filePath,
             replacements: 0,
             success: false,
-            error: error.message || 'Unknown error'
+            error: (error as Error).message || 'Unknown error'
           });
         }
       }
@@ -769,7 +769,7 @@ export class TranslationCompletionService {
         file: 'global',
         replacements: 0,
         success: false,
-        error: globalError.message || 'Service unavailable'
+        error: (globalError as Error).message || 'Service unavailable'
       }];
     }
 
@@ -800,8 +800,8 @@ export class TranslationCompletionService {
       let replacements = 0;
 
       // Adiciona import do hook de tradução se não existir
-      if (!content.includes('useLocalization') && !content.includes('useTranslation')) {
-        const importLine = "import { useLocalization } from '@/hooks/useLocalization';\n";
+      if (!content.includes('useTranslation') && !content.includes('useLocalization')) {
+        const importLine = "import { useTranslation } from 'react-i18next';\n";
         // Find the position after the last import statement
         const importMatch = content.match(/^(import .*(\n|$))+/m);
         if (importMatch) {
@@ -819,12 +819,10 @@ export class TranslationCompletionService {
         if (componentMatch) {
           const componentName = componentMatch[1];
           const bracketPos = componentMatch.index! + componentMatch[0].indexOf('{');
-          const hookLine = `\n  const {{ t }} = useLocalization();\n`;
+          const hookLine = `\n  const { t } = useTranslation();\n`;
           // Ensure the hook is inserted correctly within the component's scope
           const insertPos = bracketPos + 1; // Insert after the opening bracket
           content = content.slice(0, insertPos) + hookLine + content.slice(insertPos);
-          // Replace the placeholder '{ t }' with the actual destructured 't'
-          content = content.replace(new RegExp(`const {{ t }} = useLocalization\\(\\);`, 's'), `const { t } = useLocalization();`);
         }
       }
 
@@ -833,7 +831,7 @@ export class TranslationCompletionService {
         // Escape special characters in the text to be used in RegExp
         const escapedText = item.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         // Use a more robust regex to find the exact text, considering different quote types and potential surrounding whitespace
-        const originalPattern = new RegExp(`(?<!t\\(['"\`])([\'"\`]${escapedText}[\'"\`])(?!\\))`, 'g');
+        const originalPattern = new RegExp(`([\'"\`]${escapedText}[\'"\`])`, 'g');
         const replacement = `{t('${item.suggestedKey}')}`;
 
         // Use a callback for replace to count replacements accurately and handle potential multiple occurrences on the same line
@@ -865,7 +863,7 @@ export class TranslationCompletionService {
         file: filePath,
         replacements: 0,
         success: false,
-        error: error.message || 'Unknown error during file processing'
+        error: (error as Error).message || 'Unknown error during file processing'
       };
     }
   }
@@ -906,7 +904,11 @@ export class TranslationCompletionService {
   ): Promise<void> {
     try {
       const content = await fs.readFile(filePath, 'utf8');
-      const matches = [...content.matchAll(pattern)];
+      const matches: RegExpExecArray[] = [];
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        matches.push(match);
+      }
       const module = this.extractModuleFromPath(filePath);
 
       for (const match of matches) {
@@ -1095,7 +1097,7 @@ export class TranslationCompletionService {
           results.push({
             language,
             addedKeys: [],
-            errors: [error.message || 'Unknown error occurred']
+            errors: [(error as Error).message || 'Unknown error occurred']
           });
         }
       }
@@ -1108,7 +1110,7 @@ export class TranslationCompletionService {
           results.push({
             language,
             addedKeys: [],
-            errors: [globalError.message || 'Translation service unavailable']
+            errors: [(globalError as Error).message || 'Translation service unavailable']
           });
         });
       }
@@ -1160,7 +1162,7 @@ export class TranslationCompletionService {
             result.addedKeys.push(missingKey);
           }
         } catch (error) {
-          result.errors.push(`Failed to generate translation for ${missingKey}: ${error.message || error}`);
+          result.errors.push(`Failed to generate translation for ${missingKey}: ${(error as Error).message || error}`);
         }
       }
 
@@ -1169,7 +1171,7 @@ export class TranslationCompletionService {
       await fs.writeFile(filePath, updatedContent, 'utf8');
 
     } catch (error) {
-      result.errors.push(`Failed to process ${language}: ${error.message || error}`);
+      result.errors.push(`Failed to process ${language}: ${(error as Error).message || error}`);
     }
 
     return result;

@@ -25,6 +25,31 @@ import { useCompanyFilter } from "@/hooks/useCompanyFilter";
 
 import { NewTicketModalData, newTicketModalSchema } from "../../../shared/ticket-validation";
 
+// Interface para tickets da API
+interface TicketData {
+  id: string;
+  number: string;
+  subject: string;
+  status: string;
+  priority: string;
+  category: string;
+  createdAt: string;
+  company_name?: string;
+  caller_name?: string;
+}
+
+interface TicketsResponse {
+  success: boolean;
+  data: {
+    tickets: TicketData[];
+  };
+}
+
+interface ViewsResponse {
+  success: boolean;
+  data: any[];
+}
+
 export default function Tickets() {
   const { t } = useTranslation();
   const { formatDate } = useLocalization();
@@ -87,17 +112,9 @@ export default function Tickets() {
   // Token management handled by auth hook
   // Remove debug code for production
 
-  const { data: tickets, isLoading, error } = useQuery({
+  const { data: tickets, isLoading, error } = useQuery<TicketsResponse>({
     queryKey: ["/api/tickets"],
-    retry: false,
-    onError: (error: any) => {
-      console.error('❌ [Tickets] API Error:', error);
-      toast({
-        title: t('tickets.messages.error_loading'),
-        description: t('tickets.messages.error_loading'),
-        variant: "destructive",
-      });
-    },
+    retry: false
   });
 
   // Fetch customers for the dropdown
@@ -441,21 +458,21 @@ export default function Tickets() {
     }
     
     // Standard Clean Architecture response structure
-    if (tickets.success && tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
+    if (tickets?.success && tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
       console.log('🎫 [Tickets] Using standard Clean Architecture structure');
       return tickets.data.tickets;
     }
     
     // Legacy support for direct data property
-    if (tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
+    if (tickets?.data?.tickets && Array.isArray(tickets.data.tickets)) {
       console.log('🎫 [Tickets] Using legacy data.tickets structure');
       return tickets.data.tickets;
     }
     
     // Direct tickets array (fallback)
-    if (tickets.tickets && Array.isArray(tickets.tickets)) {
+    if ((tickets as any)?.tickets && Array.isArray((tickets as any).tickets)) {
       console.log('🎫 [Tickets] Using direct tickets array');
-      return tickets.tickets;
+      return (tickets as any).tickets;
     }
     
     // Raw array (ultimate fallback)

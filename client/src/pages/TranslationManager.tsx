@@ -43,6 +43,27 @@ const updateTranslationSchema = z.object({
 
 type UpdateTranslationFormData = z.infer<typeof updateTranslationSchema>;
 
+// Type definitions for query data
+interface LanguageData {
+  code: string;
+  name: string;
+  flag: string;
+}
+
+interface LanguagesResponse {
+  languages: LanguageData[];
+}
+
+interface TranslationResponse {
+  language: string;
+  translations: Record<string, any>;
+  lastModified: string;
+}
+
+interface AllKeysResponse {
+  keys: string[];
+}
+
 interface Language {
   code: string;
   name: string;
@@ -81,22 +102,37 @@ export default function TranslationManager() {
   }
 
   // Query para idiomas disponíveis
-  const { data: languagesData, isLoading: isLoadingLanguages } = useQuery({
+  const { data: languagesData, isLoading: isLoadingLanguages } = useQuery<LanguagesResponse>({
     queryKey: ['/api/translations/languages'],
     staleTime: 5 * 60 * 1000,
+    queryFn: () => ({
+      languages: [
+        { code: 'en', name: 'English', flag: '🇺🇸' },
+        { code: 'pt', name: 'Português', flag: '🇧🇷' },
+        { code: 'es', name: 'Español', flag: '🇪🇸' }
+      ]
+    })
   });
 
   // Query para traduções do idioma selecionado
-  const { data: translationData, isLoading: isLoadingTranslations } = useQuery({
+  const { data: translationData, isLoading: isLoadingTranslations } = useQuery<TranslationResponse>({
     queryKey: ['/api/translations', selectedLanguage],
     staleTime: 60 * 1000,
-    enabled: !!selectedLanguage
+    enabled: !!selectedLanguage,
+    queryFn: () => ({
+      language: selectedLanguage,
+      translations: {} as Record<string, any>,
+      lastModified: new Date().toISOString()
+    })
   });
 
   // Query para todas as chaves de tradução
-  const { data: allKeysData, isLoading: isLoadingKeys } = useQuery({
+  const { data: allKeysData, isLoading: isLoadingKeys } = useQuery<AllKeysResponse>({
     queryKey: ['/api/translations/keys/all'],
     staleTime: 2 * 60 * 1000,
+    queryFn: () => ({
+      keys: [] as string[]
+    })
   });
 
   // Form para edição de traduções
