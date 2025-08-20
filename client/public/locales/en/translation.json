@@ -324,5 +324,100 @@
     "templates": "Notification Templates",
     "history": "Notification History",
     "preferences": "User Preferences"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "description": "Manage and track customer support tickets",
+    "new_ticket": "New Ticket",
+    "create_ticket": "Create Ticket",
+    "all_tickets": "All Tickets",
+    "my_tickets": "My Tickets",
+    "assigned_tickets": "Assigned Tickets",
+    "ticket_number": "Ticket #",
+    "subject": "Subject",
+    "status": "Status",
+    "priority": "Priority",
+    "category": "Category",
+    "subcategory": "Subcategory",
+    "assigned_to": "Assigned To",
+    "customer": "Customer",
+    "company": "Company",
+    "location": "Location",
+    "created_at": "Created",
+    "updated_at": "Updated",
+    "description": "Description",
+    "caller": "Caller",
+    "beneficiary": "Beneficiary",
+    "attachment": "Attachment",
+    "attachments": "Attachments",
+    "history": "History",
+    "communications": "Communications",
+    "notes": "Notes",
+    "internal_notes": "Internal Notes",
+    "resolution": "Resolution",
+    "close_ticket": "Close Ticket",
+    "reopen_ticket": "Reopen Ticket",
+    "assign_ticket": "Assign Ticket",
+    "escalate_ticket": "Escalate Ticket",
+    "link_ticket": "Link Ticket",
+    "edit_ticket": "Edit Ticket",
+    "delete_ticket": "Delete Ticket",
+    "duplicate_ticket": "Duplicate Ticket",
+    "merge_ticket": "Merge Ticket",
+    "status_options": {
+      "new": "New",
+      "open": "Open", 
+      "in_progress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "priority_options": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "forms": {
+      "create": {
+        "title": "Create New Ticket",
+        "subject_placeholder": "Enter ticket subject...",
+        "description_placeholder": "Describe the issue in detail..."
+      },
+      "edit": {
+        "title": "Edit Ticket"
+      }
+    },
+    "messages": {
+      "created_success": "Ticket created successfully",
+      "updated_success": "Ticket updated successfully",
+      "loading": "Loading tickets...",
+      "no_tickets": "No tickets found",
+      "error_loading": "Error loading tickets"
+    },
+    "validation": {
+      "subject_required": "Subject is required",
+      "customer_required": "Customer is required"
+    },
+    "forms": {
+      "create": {
+        "title": "Create New Ticket",
+        "subject_placeholder": "Enter ticket subject...",
+        "description_placeholder": "Describe the issue in detail...",
+        "select_company": "Select a company",
+        "select_customer": "Select a customer",
+        "first_select_company": "First select a company",
+        "no_companies": "No companies found",
+        "no_customers_for_company": "No customers found for this company"
+      }
+    },
+    "messages": {
+      "error_creating": "Failed to create ticket",
+      "created_success": "Ticket created successfully",
+      "updated_success": "Ticket updated successfully",
+      "loading": "Loading tickets...",
+      "no_tickets": "No tickets found",
+      "error_loading": "Error loading tickets"
+    }
   }
 }

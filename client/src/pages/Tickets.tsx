@@ -93,8 +93,8 @@ export default function Tickets() {
     onError: (error: any) => {
       console.error('❌ [Tickets] API Error:', error);
       toast({
-        title: "Erro ao carregar tickets",
-        description: "Falha na conexão com a API de tickets",
+        title: t('tickets.messages.error_loading'),
+        description: t('tickets.messages.error_loading'),
         variant: "destructive",
       });
     },
@@ -296,8 +296,8 @@ export default function Tickets() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
-        description: "Ticket criado com sucesso",
+        title: t('common.save'),
+        description: t('tickets.messages.created_success'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
@@ -306,8 +306,8 @@ export default function Tickets() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
-        description: error.message || "Falha ao criar ticket",
+        title: t('common.error'),
+        description: error.message || t('tickets.messages.error_creating'),
         variant: "destructive",
       });
     },
@@ -406,23 +406,23 @@ export default function Tickets() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Erro ao Carregar Tickets
+              {t('tickets.messages.error_loading')}
             </h1>
             <p className="text-red-600 dark:text-red-400">
-              Falha na comunicação com a API: {(error as any)?.message || 'Erro desconhecido'}
+              {(error as any)?.message || t('common.error')}
             </p>
           </div>
         </div>
         <Card>
           <CardContent className="p-12 text-center">
             <div className="text-red-500">
-              <div className="text-lg font-medium mb-2">🚨 Erro na API</div>
-              <p className="text-sm mb-4">Não foi possível carregar os tickets.</p>
+              <div className="text-lg font-medium mb-2">{t('common.error')}</div>
+              <p className="text-sm mb-4">{t('tickets.messages.error_loading')}</p>
               <Button 
                 onClick={() => window.location.reload()}
                 variant="outline"
               >
-                Tentar Novamente
+                {t('common.retry')}
               </Button>
             </div>
           </CardContent>
@@ -484,10 +484,10 @@ export default function Tickets() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Tickets de Suporte ({ticketsCount})
+            {t('tickets.title')} ({ticketsCount})
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Gerencie e acompanhe solicitações de suporte ao cliente
+            {t('tickets.description')}
           </p>
         </div>
         <div className="flex space-x-2">
@@ -495,12 +495,12 @@ export default function Tickets() {
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
-                Novo Ticket
+                {t('tickets.new_ticket')}
               </Button>
             </DialogTrigger>
               <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader className="flex-shrink-0 pb-4 border-b">
-                  <DialogTitle>Criar Novo Ticket</DialogTitle>
+                  <DialogTitle>{t('tickets.forms.create.title')}</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                   <Form {...form}>
@@ -511,7 +511,7 @@ export default function Tickets() {
                       name="companyId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Empresa *</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.company')} *</FormLabel>
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -523,13 +523,13 @@ export default function Tickets() {
                           >
                             <FormControl>
                               <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Selecione uma empresa" />
+                                <SelectValue placeholder={t('tickets.forms.create.select_company')} />
                               </SelectTrigger>
                             </FormControl>
                           <SelectContent>
                             {companies.length === 0 ? (
                               <SelectItem value="no-companies" disabled>
-                                Nenhuma empresa encontrada
+                                {t('tickets.forms.create.no_companies')}
                               </SelectItem>
                             ) : (
                               companies.map((company: any) => (
@@ -551,7 +551,7 @@ export default function Tickets() {
                       name="customerId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Cliente *</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.customer')} *</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             value={field.value}
@@ -562,22 +562,22 @@ export default function Tickets() {
                                 <SelectValue 
                                   placeholder={
                                     !selectedCompanyId 
-                                      ? "Primeiro selecione uma empresa" 
-                                      : "Selecione o cliente"
+                                      ? t('tickets.forms.create.first_select_company') 
+                                      : t('tickets.forms.create.select_customer')
                                   } 
                                 />
                               </SelectTrigger>
                             </FormControl>
                           <SelectContent>
                             {customersLoading ? (
-                              <SelectItem value="loading" disabled>Carregando clientes...</SelectItem>
+                              <SelectItem value="loading" disabled>{t('tickets.messages.loading')}</SelectItem>
                             ) : !selectedCompanyId ? (
                               <SelectItem value="no-company" disabled>
-                                Selecione uma empresa primeiro
+                                {t('tickets.forms.create.first_select_company')}
                               </SelectItem>
                             ) : filteredCustomers.length === 0 ? (
                               <SelectItem value="no-customers" disabled>
-                                Nenhum cliente encontrado para esta empresa
+                                {t('tickets.forms.create.no_customers_for_company')}
                               </SelectItem>
                             ) : (
                               filteredCustomers.map((customer: any) => (

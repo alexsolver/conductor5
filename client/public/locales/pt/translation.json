@@ -324,5 +324,100 @@
     "templates": "Modelos de Notificação",
     "history": "Histórico de Notificações",
     "preferences": "Preferências do Usuário"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "description": "Gerencie e acompanhe tickets de suporte ao cliente",
+    "new_ticket": "Novo Ticket",
+    "create_ticket": "Criar Ticket",
+    "all_tickets": "Todos os Tickets",
+    "my_tickets": "Meus Tickets",
+    "assigned_tickets": "Tickets Atribuídos",
+    "ticket_number": "Ticket #",
+    "subject": "Assunto",
+    "status": "Status",
+    "priority": "Prioridade",
+    "category": "Categoria",
+    "subcategory": "Subcategoria",
+    "assigned_to": "Atribuído para",
+    "customer": "Cliente",
+    "company": "Empresa",
+    "location": "Localização",
+    "created_at": "Criado",
+    "updated_at": "Atualizado",
+    "description": "Descrição",
+    "caller": "Solicitante",
+    "beneficiary": "Beneficiário",
+    "attachment": "Anexo",
+    "attachments": "Anexos",
+    "history": "Histórico",
+    "communications": "Comunicações",
+    "notes": "Notas",
+    "internal_notes": "Notas Internas",
+    "resolution": "Resolução",
+    "close_ticket": "Fechar Ticket",
+    "reopen_ticket": "Reabrir Ticket",
+    "assign_ticket": "Atribuir Ticket",
+    "escalate_ticket": "Escalar Ticket",
+    "link_ticket": "Vincular Ticket",
+    "edit_ticket": "Editar Ticket",
+    "delete_ticket": "Excluir Ticket",
+    "duplicate_ticket": "Duplicar Ticket",
+    "merge_ticket": "Mesclar Ticket",
+    "status_options": {
+      "new": "Novo",
+      "open": "Aberto", 
+      "in_progress": "Em Andamento",
+      "resolved": "Resolvido",
+      "closed": "Fechado",
+      "cancelled": "Cancelado"
+    },
+    "priority_options": {
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+    "forms": {
+      "create": {
+        "title": "Criar Novo Ticket",
+        "subject_placeholder": "Digite o assunto do ticket...",
+        "description_placeholder": "Descreva o problema em detalhes..."
+      },
+      "edit": {
+        "title": "Editar Ticket"
+      }
+    },
+    "messages": {
+      "created_success": "Ticket criado com sucesso",
+      "updated_success": "Ticket atualizado com sucesso",
+      "loading": "Carregando tickets...",
+      "no_tickets": "Nenhum ticket encontrado",
+      "error_loading": "Erro ao carregar tickets"
+    },
+    "validation": {
+      "subject_required": "Assunto é obrigatório",
+      "customer_required": "Cliente é obrigatório"
+    },
+    "forms": {
+      "create": {
+        "title": "Criar Novo Ticket",
+        "subject_placeholder": "Digite o assunto do ticket...",
+        "description_placeholder": "Descreva o problema em detalhes...",
+        "select_company": "Selecione uma empresa",
+        "select_customer": "Selecione um cliente",
+        "first_select_company": "Primeiro selecione uma empresa",
+        "no_companies": "Nenhuma empresa encontrada",
+        "no_customers_for_company": "Nenhum cliente encontrado para esta empresa"
+      }
+    },
+    "messages": {
+      "error_creating": "Falha ao criar ticket",
+      "created_success": "Ticket criado com sucesso",
+      "updated_success": "Ticket atualizado com sucesso",
+      "loading": "Carregando tickets...",
+      "no_tickets": "Nenhum ticket encontrado",
+      "error_loading": "Erro ao carregar tickets"
+    }
   }
 }
