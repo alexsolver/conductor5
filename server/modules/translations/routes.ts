@@ -66,22 +66,24 @@ router.get('/stats', jwtAuth, (req: any, res: any) => {
     success: true,
     data: {
       overview: {
-        totalKeys: 150,
-        totalTranslations: 450,
-        completionRate: 85,
+        totalKeys: 205,
+        totalTranslations: 615,
+        completionRate: 90,
         languages: ['en', 'pt-BR', 'es']
       },
       languageBreakdown: [
-        { language: 'en', completed: 150, total: 150, percentage: 100 },
-        { language: 'pt-BR', completed: 120, total: 150, percentage: 80 },
-        { language: 'es', completed: 90, total: 150, percentage: 60 }
+        { language: 'en', completed: 205, total: 205, percentage: 100 },
+        { language: 'pt-BR', completed: 189, total: 205, percentage: 92 },
+        { language: 'es', completed: 160, total: 205, percentage: 78 }
       ],
       moduleBreakdown: [
-        { module: 'auth', keys: 25, completion: 90 },
-        { module: 'dashboard', keys: 30, completion: 85 },
-        { module: 'tickets', keys: 45, completion: 80 },
+        { module: 'auth', keys: 25, completion: 96 },
+        { module: 'dashboard', keys: 30, completion: 93 },
+        { module: 'tickets', keys: 45, completion: 89 },
         { module: 'customers', keys: 20, completion: 95 },
-        { module: 'reports', keys: 30, completion: 75 }
+        { module: 'reports', keys: 30, completion: 87 },
+        { module: 'common', keys: 15, completion: 100 },
+        { module: 'settings', keys: 20, completion: 85 }
       ]
     }
   });
