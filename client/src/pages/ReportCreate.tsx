@@ -22,7 +22,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useTranslation } from 'react-i18next';
 
 // Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
@@ -75,7 +74,7 @@ export default function ReportCreate() {
     },
     onSuccess: () => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Relatório criado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -83,7 +82,7 @@ export default function ReportCreate() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error?.message || "Falha ao criar relatório.",
         variant: "destructive",
       });
@@ -326,7 +325,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder="[Translation]" />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -359,7 +358,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-access-level">
-                                <SelectValue placeholder="[Translation]" />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -385,7 +384,7 @@ export default function ReportCreate() {
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-data-source">
-                                    <SelectValue placeholder="[Translation]" />
+                                    <SelectValue placeholder="texto" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -491,7 +490,7 @@ export default function ReportCreate() {
                               Configuração Básica
                             </h5>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "[Translation]".
+                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "texto".
                             </p>
                           </div>
                         </div>
@@ -543,7 +542,7 @@ export default function ReportCreate() {
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-schedule-type">
-                                  <SelectValue placeholder="[Translation]" />
+                                  <SelectValue placeholder="texto" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

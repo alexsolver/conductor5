@@ -15,7 +15,6 @@ import { z } from "zod";
 import { Plus, Users, Building, Settings, BarChart3, Shield } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from 'react-i18next';
 
 const createTenantSchema = z.object({
 
@@ -89,7 +88,7 @@ export default function SaasAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -157,7 +156,7 @@ export default function SaasAdmin() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createTenantMutation.isPending}>
-                    {createTenantMutation.isPending ? 'Criando...' : "[Translation]"}
+                    {createTenantMutation.isPending ? 'Criando...' : "texto"}
                   </Button>
                 </div>
               </form>

@@ -24,7 +24,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { FormDescription } from '@/components/ui/form';
 import { Shield, FileText, AlertTriangle, Settings, BarChart3, Download, Trash2, Edit } from 'lucide-react';
 import { z } from 'zod';
-import { useTranslation } from 'react-i18next';
 
 // Schemas de validação
 const cookieConsentSchema = z.object({
@@ -326,7 +325,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-consent-type">
-                              <SelectValue placeholder="[Translation]" />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -413,7 +412,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-request-type">
-                              <SelectValue placeholder="[Translation]" />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -455,7 +454,7 @@ export default function GdprCompliancePage() {
                     disabled={createDataSubjectRequest.isPending}
                     data-testid="button-create-request"
                   >
-                    {createDataSubjectRequest.isPending ? 'Criando...' : "[Translation]"}
+                    {createDataSubjectRequest.isPending ? 'Criando...' : "texto"}
                   </Button>
                 </form>
               </Form>
@@ -527,7 +526,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-incident-severity">
-                              <SelectValue placeholder="[Translation]" />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -838,8 +837,8 @@ function PrivacyPolicyManagement() {
     onError: (error: any) => {
       console.error('❌ [CREATE-POLICY] Error:', error);
       toast({ 
-        title: "[Translation]", 
-        description: error.message || "[Translation]",
+        title: "texto", 
+        description: error.message || "texto",
         variant: "destructive" 
       });
     }
@@ -1083,7 +1082,7 @@ function PrivacyPolicyManagement() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createPolicyMutation.isPending}>
-                  {createPolicyMutation.isPending ? "Criando..." : "[Translation]"}
+                  {createPolicyMutation.isPending ? "Criando..." : "texto"}
                 </Button>
               </DialogFooter>
             </form>

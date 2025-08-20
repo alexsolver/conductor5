@@ -15,7 +15,6 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { 
-import { useTranslation } from 'react-i18next';
   Clock, 
   AlertTriangle, 
   Target, 
@@ -164,7 +163,7 @@ export default function TenantAdminSLAs() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error("[Translation]");
+      if (!response.ok) throw new Error("texto");
       return response.json();
     },
     onSuccess: () => {
@@ -174,7 +173,7 @@ export default function TenantAdminSLAs() {
       setShowCreateDialog(false);
     },
     onError: () => {
-      toast({ title: "[Translation]", variant: 'destructive' });
+      toast({ title: "texto", variant: 'destructive' });
     }
   });
 
@@ -185,7 +184,7 @@ export default function TenantAdminSLAs() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error("[Translation]");
+      if (!response.ok) throw new Error("texto");
       return response.json();
     },
     onSuccess: () => {
@@ -193,7 +192,7 @@ export default function TenantAdminSLAs() {
       toast({ title: 'SLA atualizado com sucesso!' });
     },
     onError: () => {
-      toast({ title: "[Translation]", variant: 'destructive' });
+      toast({ title: "texto", variant: 'destructive' });
     }
   });
 
@@ -202,14 +201,14 @@ export default function TenantAdminSLAs() {
       const response = await fetch(`/api/sla/tickets-slas/${id}`, {
         method: 'DELETE'
       });
-      if (!response.ok) throw new Error("[Translation]");
+      if (!response.ok) throw new Error("texto");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/sla/tickets-slas'] });
       toast({ title: 'SLA excluído com sucesso!' });
     },
     onError: () => {
-      toast({ title: "[Translation]", variant: 'destructive' });
+      toast({ title: "texto", variant: 'destructive' });
     }
   });
 
@@ -573,7 +572,7 @@ export default function TenantAdminSLAs() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="[Translation]" />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -632,7 +631,7 @@ export default function TenantAdminSLAs() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createSlaMutation.isPending}>
-                  {createSlaMutation.isPending ? 'Criando...' : "[Translation]"}
+                  {createSlaMutation.isPending ? 'Criando...' : "texto"}
                 </Button>
               </div>
             </form>

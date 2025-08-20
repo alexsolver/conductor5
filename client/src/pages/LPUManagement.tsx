@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { 
-import { useTranslation } from 'react-i18next';
   DollarSign, 
   FileText, 
   TrendingUp, 
@@ -102,9 +101,9 @@ export default function LPUManagement() {
     retry: 3,
     staleTime: 30000,
     onError: (error) => {
-      console.error("[Translation]", error);
+      console.error("texto", error);
       toast({ 
-        title: "[Translation]", 
+        title: "texto", 
         description: 'Verifique sua conexão e tente novamente',
         variant: 'destructive' 
       });
@@ -303,7 +302,7 @@ export default function LPUManagement() {
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observações</Label>
-                  <Textarea name="notes" placeholder="[Translation]" />
+                  <Textarea name="notes" placeholder="texto" />
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
@@ -311,7 +310,7 @@ export default function LPUManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createPriceListMutation.isPending}>
-                    {createPriceListMutation.isPending ? 'Criando...' : "[Translation]"}
+                    {createPriceListMutation.isPending ? 'Criando...' : "texto"}
                   </Button>
                 </div>
               </form>
@@ -398,7 +397,7 @@ export default function LPUManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createRuleMutation.isPending}>
-                    {createRuleMutation.isPending ? 'Criando...' : "[Translation]"}
+                    {createRuleMutation.isPending ? 'Criando...' : "texto"}
                   </Button>
                 </div>
               </form>
@@ -477,7 +476,7 @@ export default function LPUManagement() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="[Translation]"
+                placeholder="texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -485,7 +484,7 @@ export default function LPUManagement() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="[Translation]" />
+                <SelectValue placeholder="texto" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>

@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useTranslation } from 'react-i18next';
 
 const absenceFormSchema = z.object({
 
@@ -67,7 +66,7 @@ const statusLabels = {
   pending: 'Pendente',
   approved: 'Aprovada',
   rejected: 'Rejeitada',
-  cancelled: "[Translation]"
+  cancelled: "texto"
 };
 
 const statusColors = {
@@ -129,8 +128,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: 'destructive',
       });
     },
@@ -150,8 +149,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: 'destructive',
       });
     },
@@ -171,8 +170,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: 'destructive',
       });
     },
@@ -255,7 +254,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="[Translation]" />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -280,7 +279,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="[Translation]" />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -371,7 +370,7 @@ export default function AbsenceManagement() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="[Translation]" />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -393,7 +392,7 @@ export default function AbsenceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAbsenceRequestMutation.isPending}>
-                    {createAbsenceRequestMutation.isPending ? 'Criando...' : "[Translation]"}
+                    {createAbsenceRequestMutation.isPending ? 'Criando...' : "texto"}
                   </Button>
                 </div>
               </form>

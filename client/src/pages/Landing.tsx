@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Users, BarChart3, Shield, Globe, Headphones } from "lucide-react";
-import { useTranslation } from 'react-i18next';
 
 const features = [
   {
@@ -11,7 +10,7 @@ const features = [
   },
   {
     icon: BarChart3,
-    title: "[Translation]",
+    title: "texto",
     description: "Get insights with real-time dashboards, performance metrics, and detailed reporting.",
   },
   {

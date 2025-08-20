@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { GovernedWidgetRenderer } from "@/components/dashboard/GovernedWidgetRenderer";
 import type { GovernedCard } from "@shared/dashboard-governance-schema";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from 'react-i18next';
 
 interface DashboardWidget {
   id: string;
@@ -100,7 +99,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           if (widgetType === 'table') {
             return {
               value: total,
-              label: "[Translation]",
+              label: "texto",
               data: tickets.slice(0, 5).map((ticket: any) => ({
                 id: ticket.id,
                 title: ticket.title || `Ticket ${ticket.ticketNumber}`,
@@ -113,7 +112,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           
           return {
             value: total,
-            label: "[Translation]",
+            label: "texto",
             change: Math.floor(Math.random() * 20) - 10, // Placeholder até implementar histórico
             lastUpdated: 'Dados reais do banco',
           };
@@ -136,7 +135,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: "[Translation]",
+            label: "texto",
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -147,7 +146,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: "[Translation]",
+            label: "texto",
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -615,7 +614,7 @@ function DashboardView() {
       console.log('Saving dashboard configuration:', updatedConfig);
       
       toast({ 
-        title: "[Translation]", 
+        title: "texto", 
         description: "Your dashboard changes have been saved successfully." 
       });
       
@@ -623,7 +622,7 @@ function DashboardView() {
       setLocation(`/dashboard/${id}`);
     } catch (error) {
       toast({ 
-        title: "[Translation]", 
+        title: "texto", 
         description: "There was an error saving your dashboard changes." 
       });
     }

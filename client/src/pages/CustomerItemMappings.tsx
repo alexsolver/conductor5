@@ -12,7 +12,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Search, Package, DollarSign, User, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useTranslation } from 'react-i18next';
 
 interface CustomerItemMapping {
   id: string;
@@ -125,14 +124,14 @@ export function CustomerItemMappings() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "[Translation]");
+        throw new Error(errorData.message || "texto");
       }
       
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: editingMapping ? "Mapeamento atualizado com sucesso!" : "Novo mapeamento criado com sucesso!"
       });
       setDialogOpen(false);
@@ -142,7 +141,7 @@ export function CustomerItemMappings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive"
       });
@@ -155,20 +154,20 @@ export function CustomerItemMappings() {
       const response = await apiRequest('DELETE', `/api/materials-services/customer-item-mappings/${mappingId}?tenantId=${tenantId}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "[Translation]");
+        throw new Error(errorData.message || "texto");
       }
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Mapeamento deletado com sucesso!"
       });
       refetch();
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive"
       });
@@ -230,7 +229,7 @@ export function CustomerItemMappings() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingMapping ? "[Translation]"}
+                  {editingMapping ? "Editar" : "Novo"}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -243,7 +242,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="[Translation]" />
+                        <SelectValue placeholder="texto" />
                       </SelectTrigger>
                       <SelectContent>
                         {customerCompaniesData?.map((company: any) => (
@@ -262,7 +261,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="[Translation]" />
+                        <SelectValue placeholder="texto" />
                       </SelectTrigger>
                       <SelectContent>
                         {itemsData?.data?.map((item: any) => (
@@ -332,7 +331,7 @@ export function CustomerItemMappings() {
                     id="notes"
                     value={formData.notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="[Translation]"
+                    placeholder="texto"
                   />
                 </div>
 
@@ -341,7 +340,7 @@ export function CustomerItemMappings() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createMappingMutation.isPending}>
-                    {createMappingMutation.isPending ? "Salvando..." : "[Translation]"}
+                    {createMappingMutation.isPending ? "Salvando..." : "texto"}
                   </Button>
                 </div>
               </form>
@@ -359,7 +358,7 @@ export function CustomerItemMappings() {
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="[Translation]"
+                    placeholder="texto"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -386,7 +385,7 @@ export function CustomerItemMappings() {
                 <Label htmlFor="type-filter">Tipo de Item</Label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="[Translation]" />
+                    <SelectValue placeholder="texto" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-types">Todos os tipos</SelectItem>

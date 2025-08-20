@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-import { useTranslation } from 'react-i18next';
   Building2,
   Phone,
   Mail,
@@ -116,8 +115,8 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive"
       });
     }
@@ -137,8 +136,8 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive"
       });
     }
@@ -156,8 +155,8 @@ export function SupplierManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive"
       });
     }
@@ -345,7 +344,7 @@ export function SupplierManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="[Translation]"
+              placeholder="texto"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -545,7 +544,7 @@ export function SupplierManagement() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={createSupplierMutation.isPending}>
-                {createSupplierMutation.isPending ? 'Criando...' : "[Translation]"}
+                {createSupplierMutation.isPending ? 'Criando...' : "texto"}
               </Button>
             </div>
           </form>

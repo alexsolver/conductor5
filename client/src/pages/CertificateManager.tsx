@@ -6,7 +6,6 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
 import { Shield, Upload, Key, CheckCircle, AlertTriangle } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 export default function CertificateManager() {
 
@@ -56,11 +55,11 @@ export default function CertificateManager() {
         setPassword('');
         setCertificateName('');
       } else {
-        throw new Error("[Translation]");
+        throw new Error("texto");
       }
     } catch (error) {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Falha ao instalar o certificado digital",
         variant: "destructive"
       });

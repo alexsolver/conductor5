@@ -48,7 +48,6 @@ import {
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { QueryBuilderComponent } from '@/components/QueryBuilder';
 
-import { useTranslation } from 'react-i18next';
 
 // SLA Schema imports - following 1qa.md
 import type {
@@ -257,8 +256,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     },
@@ -282,8 +281,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     },
@@ -301,8 +300,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     },
@@ -338,8 +337,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     },
@@ -1020,7 +1019,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-type">
-                        <SelectValue placeholder="[Translation]" />
+                        <SelectValue placeholder="texto" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1043,7 +1042,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-priority">
-                        <SelectValue placeholder="[Translation]" />
+                        <SelectValue placeholder="texto" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1280,7 +1279,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {isEdit ? 'Atualizar SLA' : "[Translation]"}
+                {isEdit ? 'Atualizar SLA' : "texto"}
               </>
             )}
           </Button>
@@ -1346,7 +1345,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-workflow-trigger">
-                        <SelectValue placeholder="[Translation]" />
+                        <SelectValue placeholder="texto" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

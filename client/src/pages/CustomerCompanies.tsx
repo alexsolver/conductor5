@@ -32,7 +32,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
-import { useTranslation } from 'react-i18next';
 
 const companySchema = z.object({
 
@@ -116,14 +115,14 @@ export default function Companies() {
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Empresa criada com sucesso!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     }
@@ -144,15 +143,15 @@ export default function Companies() {
       editForm.reset();
       if (!isOptimisticUpdate) {
         toast({
-          title: "[Translation]",
+          title: "texto",
           description: "Empresa atualizada com sucesso!",
         });
       }
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     }
@@ -187,22 +186,22 @@ export default function Companies() {
       ]);
 
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Empresa excluída com sucesso!",
       });
     },
     onError: (error: any) => {
-      console.error("[Translation]", error);
+      console.error("texto", error);
 
       // Revert optimistic update if it was applied
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
 
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
-                          "[Translation]";
+                          "texto";
 
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: errorMessage,
         variant: "destructive",
       });
@@ -450,7 +449,7 @@ export default function Companies() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="[Translation]" />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -570,7 +569,7 @@ export default function Companies() {
                     disabled={createCompanyMutation.isPending}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
-                    {createCompanyMutation.isPending ? "Criando..." : "[Translation]"}
+                    {createCompanyMutation.isPending ? "Criando..." : "texto"}
                   </Button>
                 </div>
               </form>
@@ -584,7 +583,7 @@ export default function Companies() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="[Translation]"
+            placeholder="texto"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -785,11 +784,11 @@ export default function Companies() {
                               });
                               
                             } catch (error) {
-                              console.error("[Translation]", error);
+                              console.error("texto", error);
                               // Revert optimistic update on error
                               queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
                               toast({
-                                title: "[Translation]",
+                                title: "texto",
                                 description: "Falha ao atualizar empresa. Tente novamente.",
                                 variant: "destructive"
                               });
@@ -814,7 +813,7 @@ export default function Companies() {
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        {deleteCompanyMutation.isPending ? "Excluindo..." : "[Translation]"}
+                        {deleteCompanyMutation.isPending ? "Excluindo..." : "texto"}
                       </Button>
                     );
                   })()}
@@ -923,7 +922,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="[Translation]" />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1046,7 +1045,7 @@ export default function Companies() {
                   disabled={updateCompanyMutation.isPending}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  {updateCompanyMutation.isPending ? "Salvando..." : "[Translation]"}
+                  {updateCompanyMutation.isPending ? "Salvando..." : "texto"}
                 </Button>
               </div>
             </form>

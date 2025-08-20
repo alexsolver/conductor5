@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from 'react-i18next';
 
 interface IntegrityCheck {
   isValid: boolean;
@@ -93,11 +92,11 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Falha ao reconstituir cadeia de integridade",
         variant: "destructive"
       });
-      console.error("[Translation]", error);
+      console.error("texto", error);
     }
   });
   const [selectedPeriod, setSelectedPeriod] = useState({
@@ -150,7 +149,7 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: `Falha ao gerar relatório: ${error.message}`,
         variant: "destructive"
       });

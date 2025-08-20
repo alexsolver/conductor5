@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { 
-import { useTranslation } from 'react-i18next';
   CheckCircle, 
   XCircle, 
   AlertTriangle, 
@@ -141,7 +140,7 @@ export default function ModuleIntegrityControl() {
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });

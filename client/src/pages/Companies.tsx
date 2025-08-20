@@ -32,7 +32,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
-import { useTranslation } from 'react-i18next';
 
 const companySchema = z.object({
 
@@ -137,7 +136,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -160,7 +159,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -180,7 +179,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -317,7 +316,7 @@ export default function Companies() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="[Translation]" />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -429,7 +428,7 @@ export default function Companies() {
                       type="submit"
                       disabled={createCompanyMutation.isPending}
                     >
-                      {createCompanyMutation.isPending ? "Criando..." : "[Translation]"}
+                      {createCompanyMutation.isPending ? "Criando..." : "texto"}
                     </Button>
                   </div>
                 </form>
@@ -444,7 +443,7 @@ export default function Companies() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
-            placeholder="[Translation]"
+            placeholder="texto"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -457,7 +456,7 @@ export default function Companies() {
         <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {searchTerm ? "[Translation]"}
+            {searchTerm ? "Buscar" : "Todas"}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             {searchTerm 
@@ -637,7 +636,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="[Translation]" />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -772,7 +771,7 @@ export default function Companies() {
                   type="submit"
                   disabled={editCompanyMutation.isPending}
                 >
-                  {editCompanyMutation.isPending ? "Salvando..." : "[Translation]"}
+                  {editCompanyMutation.isPending ? "Salvando..." : "texto"}
                 </Button>
               </div>
             </form>

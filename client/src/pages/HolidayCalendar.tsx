@@ -20,7 +20,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from 'react-i18next';
 
 // Types
 interface Holiday {
@@ -132,7 +131,7 @@ export default function HolidayCalendar() {
     onError: (error: any) => {
       toast({
         variant: 'destructive',
-        title: "[Translation]",
+        title: "texto",
         description: error.response?.data?.message || 'Ocorreu um erro ao criar o feriado.'
       });
     }
@@ -327,7 +326,7 @@ export default function HolidayCalendar() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createHolidayMutation.isPending}>
-                      {createHolidayMutation.isPending ? 'Criando...' : "[Translation]"}
+                      {createHolidayMutation.isPending ? 'Criando...' : "texto"}
                     </Button>
                   </div>
                 </form>
@@ -382,7 +381,7 @@ export default function HolidayCalendar() {
               <label className="text-sm font-medium">Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="[Translation]" />
+                  <SelectValue placeholder="texto" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>

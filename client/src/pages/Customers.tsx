@@ -21,10 +21,9 @@ export default function Customers() {
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const { apiRequest } = await import('../lib/queryClient');
-import { useTranslation } from 'react-i18next';
       const response = await apiRequest('GET', '/api/customers');
       const data = await response.json();
-      console.log("[Translation]", data);
+      console.log("texto", data);
       return data;
     },
     retry: false,
@@ -101,7 +100,7 @@ import { useTranslation } from 'react-i18next';
     }
   };
 
-  console.log("[Translation]", { customers, total, error, isLoading });
+  console.log("texto", { customers, total, error, isLoading });
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);

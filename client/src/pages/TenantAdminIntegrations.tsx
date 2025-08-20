@@ -98,7 +98,7 @@ const integrationConfigSchema = z.object({
   // IMAP specific fields
   imapServer: z.string().optional(),
   imapPort: z.string().optional(),
-  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', "[Translation]"]).optional(),
+  imapSecurity: z.enum(['SSL/TLS', 'STARTTLS', "texto"]).optional(),
   emailAddress: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
     message: "Deve ser um email válido"
   }),
@@ -209,7 +209,7 @@ export default function TenantAdminIntegrations() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -268,7 +268,7 @@ export default function TenantAdminIntegrations() {
       }
     } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro:', error);
-      let errorMessage = "[Translation]";
+      let errorMessage = "texto";
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
@@ -334,7 +334,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || "[Translation]",
+          message: result.message || result.error || "texto",
           details: result
         });
       }
@@ -342,7 +342,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: "[Translation]",
+        message: "texto",
         error: error
       });
     } finally {
@@ -390,7 +390,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || "[Translation]",
+          message: result.message || result.error || "texto",
           details: result
         });
       }
@@ -398,7 +398,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: "[Translation]",
+        message: "texto",
         error: error
       });
     } finally {
@@ -440,7 +440,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-STATUS] Erro:', result);
         setTestResult({
           success: false,
-          message: result.message || result.error || "[Translation]",
+          message: result.message || result.error || "texto",
           details: result
         });
       }
@@ -448,7 +448,7 @@ export default function TenantAdminIntegrations() {
       console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: "[Translation]",
+        message: "texto",
         error: error
       });
     } finally {
@@ -496,7 +496,7 @@ export default function TenantAdminIntegrations() {
       icon: Mail,
       status: 'disconnected',
       configured: false,
-      features: ['Notificações por email', "[Translation]"]
+      features: ['Notificações por email', "texto"]
     },
     {
       id: 'imap-email',
@@ -533,7 +533,6 @@ export default function TenantAdminIntegrations() {
       name: 'Twilio SMS',
       category: 'Comunicação',
       description: 'Envio de SMS para notificações e alertas importantes',
-import { useTranslation } from 'react-i18next';
       icon: Phone,
       status: 'disconnected',
       configured: false,
@@ -579,7 +578,7 @@ import { useTranslation } from 'react-i18next';
       icon: BarChart3,
       status: 'disconnected',
       configured: false,
-      features: ['Métricas de conversão', 'Funis de atendimento', "[Translation]"]
+      features: ['Métricas de conversão', 'Funis de atendimento', "texto"]
     },
     {
       id: 'crm-integration',
@@ -863,17 +862,17 @@ import { useTranslation } from 'react-i18next';
       console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
 
       // ✅ IMPROVED: Tratamento de erro mais robusto
-      const errorMessage = error?.message || "[Translation]";
+      const errorMessage = error?.message || "texto";
       const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('Network');
 
       // Fallback values if an error occurs during loading
       configForm.reset(getDefaultValues(integration.id));
 
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: isNetworkError 
           ? "Problema de conectividade. Usando valores padrão." 
-          : "[Translation]",
+          : "texto",
         variant: "destructive",
       });
     }
@@ -966,8 +965,8 @@ import { useTranslation } from 'react-i18next';
     } catch (error: any) {
       console.error('❌ [OAUTH-FLOW] Erro:', error);
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     }
@@ -976,8 +975,8 @@ import { useTranslation } from 'react-i18next';
   const onSubmitConfig = async (data: z.infer<typeof integrationConfigSchema>) => {
     if (!selectedIntegration) {
       toast({
-        title: "[Translation]",
-        description: "[Translation]",
+        title: "texto",
+        description: "texto",
         variant: "destructive",
       });
       return;
@@ -1073,7 +1072,7 @@ import { useTranslation } from 'react-i18next';
 
       if (validationErrors.length > 0) {
         toast({
-          title: "[Translation]",
+          title: "texto",
           description: validationErrors.join('. '),
           variant: "destructive",
         });
@@ -1208,8 +1207,8 @@ import { useTranslation } from 'react-i18next';
       console.error('❌ [SUBMIT-CONFIG] Erro ao processar configuração:', error);
 
       toast({
-        title: "[Translation]",
-        description: "[Translation]",
+        title: "texto",
+        description: "texto",
         variant: "destructive",
       });
     }
@@ -1725,7 +1724,7 @@ import { useTranslation } from 'react-i18next';
                             >
                               <option value="SSL/TLS">SSL/TLS (Porta 993)</option>
                               <option value="STARTTLS">STARTTLS (Porta 143)</option>
-                              <option value="[Translation]">Sem criptografia (Porta 143)</option>
+                              <option value="texto">Sem criptografia (Porta 143)</option>
                             </select>
                           </FormControl>
                           <FormMessage />
@@ -2118,7 +2117,7 @@ Acompanhe pelo sistema Conductor."
                     type="submit"
                     disabled={saveConfigMutation.isPending || isTestingIntegration} // Disable if saving or testing
                   >
-                    {saveConfigMutation.isPending ? "Salvando..." : "[Translation]"}
+                    {saveConfigMutation.isPending ? "Salvando..." : "texto"}
                   </Button>
                 </div>
               </form>

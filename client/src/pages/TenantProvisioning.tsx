@@ -5,7 +5,6 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -132,7 +131,7 @@ export default function TenantProvisioning() {
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -150,12 +149,12 @@ export default function TenantProvisioning() {
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
-        description: "[Translation]",
+        description: "texto",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -262,7 +261,7 @@ export default function TenantProvisioning() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="[Translation]" />
+                              <SelectValue placeholder="texto" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -281,7 +280,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateConfigMutation.isPending}>
-                      {updateConfigMutation.isPending ? "Salvando..." : "[Translation]"}
+                      {updateConfigMutation.isPending ? "Salvando..." : "texto"}
                     </Button>
                   </div>
                 </form>
@@ -349,7 +348,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={provisionMutation.isPending}>
-                      {provisionMutation.isPending ? "Criando..." : "[Translation]"}
+                      {provisionMutation.isPending ? "Criando..." : "texto"}
                     </Button>
                   </div>
                 </form>

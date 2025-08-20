@@ -45,7 +45,6 @@ import {
   Activity
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useTranslation } from 'react-i18next';
 
 interface Channel {
   id: string;
@@ -441,8 +440,8 @@ export default function OmniBridge() {
             description: 'Configuração de email via IMAP/SMTP',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: "[Translation]",
-            lastActivity: "[Translation]"
+            lastMessage: "texto",
+            lastActivity: "texto"
           },
           {
             id: 'whatsapp-business',
@@ -453,8 +452,8 @@ export default function OmniBridge() {
             description: 'API do WhatsApp Business',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: "[Translation]",
-            lastActivity: "[Translation]"
+            lastMessage: "texto",
+            lastActivity: "texto"
           },
           {
             id: 'telegram-bot',
@@ -465,8 +464,8 @@ export default function OmniBridge() {
             description: 'Bot do Telegram para atendimento',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: "[Translation]",
-            lastActivity: "[Translation]"
+            lastMessage: "texto",
+            lastActivity: "texto"
           }
         ]);
         setMessages([]);
@@ -545,10 +544,10 @@ export default function OmniBridge() {
 
         console.log(`✅ Canal ${channelId} ${enabled ? 'ativado' : 'desativado'} com sucesso`);
       } else {
-        console.error("[Translation]", response.status);
+        console.error("texto", response.status);
       }
     } catch (error) {
-      console.error("[Translation]", error);
+      console.error("texto", error);
     }
   };
 
@@ -863,7 +862,7 @@ export default function OmniBridge() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="[Translation]"
+                placeholder="texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -1217,7 +1216,7 @@ export default function OmniBridge() {
 
                         <div className="flex items-center justify-between text-sm">
                           <span>Última atividade:</span>
-                          <span className="text-muted-foreground">{channel.lastActivity || "[Translation]"}</span>
+                          <span className="text-muted-foreground">{channel.lastActivity || "texto"}</span>
                         </div>
                       </div>
 
@@ -1340,7 +1339,7 @@ export default function OmniBridge() {
                                   <Badge key={index} variant="secondary" className="text-xs">
                                     {action.type === 'auto_reply' && 'Resposta automática'}
                                     {action.type === 'forward_message' && 'Encaminhar'}
-                                    {action.type === 'create_ticket' && "[Translation]"}
+                                    {action.type === 'create_ticket' && "texto"}
                                     {action.type === 'send_notification' && 'Notificação'}
                                     {action.type === 'add_tags' && 'Adicionar tags'}
                                     {action.type === 'assign_agent' && 'Atribuir agente'}
@@ -1533,7 +1532,7 @@ export default function OmniBridge() {
               <Label htmlFor="rule-name">Nome da Regra</Label>
               <Input
                 id="rule-name"
-                placeholder="[Translation]"
+                placeholder="texto"
                 value={newRuleData.name}
                 onChange={(e) => setNewRuleData(prev => ({ ...prev, name: e.target.value }))}
               />
@@ -1556,7 +1555,7 @@ export default function OmniBridge() {
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, triggerType: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="[Translation]" />
+                    <SelectValue placeholder="texto" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="new_message">Nova mensagem</SelectItem>
@@ -1574,7 +1573,7 @@ export default function OmniBridge() {
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, actionType: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="[Translation]" />
+                    <SelectValue placeholder="texto" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="auto_reply">Resposta automática</SelectItem>

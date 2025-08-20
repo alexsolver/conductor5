@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from 'react-i18next';
 
 interface BrandingSettings {
   logo: {
@@ -161,13 +160,13 @@ export default function TenantAdminBranding() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/branding'] });
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "As configurações de branding foram atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -251,7 +250,7 @@ export default function TenantAdminBranding() {
             className="gradient-primary text-white hover:opacity-90"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveSettingsMutation.isPending ? 'Salvando...' : "[Translation]"}
+            {saveSettingsMutation.isPending ? 'Salvando...' : "texto"}
           </Button>
         </div>
       </div>
@@ -638,7 +637,7 @@ export default function TenantAdminBranding() {
                   <Input
                     value={settings.customization.footerText}
                     onChange={(e) => updateSetting('customization.footerText', e.target.value)}
-                    placeholder="[Translation]"
+                    placeholder="texto"
                   />
                 </div>
               </CardContent>

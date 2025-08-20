@@ -35,7 +35,6 @@ import {
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from 'react-i18next';
 
 const automationRuleSchema = z.object({
 
@@ -118,7 +117,7 @@ export default function AutomationRules() {
     refetchOnWindowFocus: false,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Final error after retries:', error);
-      setLoadingError("[Translation]"Serviço temporariamente indisponível'}`);
+      setLoadingError("texto"Serviço temporariamente indisponível'}`);
     },
     onSuccess: (data) => {
       console.log('✅ [AutomationRules] Rules query successful:', data);
@@ -159,8 +158,8 @@ export default function AutomationRules() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: 'destructive'
       });
     }
@@ -206,7 +205,7 @@ export default function AutomationRules() {
       testRuleMutation.mutate({ ruleId, testData: parsedTestData });
     } catch (error) {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: 'Dados de teste inválidos (JSON malformado)',
         variant: 'destructive'
       });

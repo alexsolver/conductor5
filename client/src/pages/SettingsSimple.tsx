@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LocalizationSettings } from '@/components/LocalizationSettings';
@@ -10,7 +9,7 @@ export default function Settings() {
   return (
     <div className="p-4 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">"[Translation]"</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">"texto"</h1>
         <p className="text-gray-600 dark:text-gray-400">
           Manage your account, localization, and application preferences.
         </p>

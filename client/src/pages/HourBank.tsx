@@ -11,7 +11,6 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { apiRequest } from '@/lib/queryClient';
-import { useTranslation } from 'react-i18next';
 
 interface HourBankEntry {
   id: string;
@@ -131,7 +130,7 @@ export default function HourBank() {
               <Label htmlFor="userId">Funcionário</Label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="[Translation]" />
+                  <SelectValue placeholder="texto" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="default">Selecione o funcionário</SelectItem>

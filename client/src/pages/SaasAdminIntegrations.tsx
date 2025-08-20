@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from 'react-i18next';
 
 const integrationConfigSchema = z.object({
 
@@ -148,7 +147,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: errorMessage,
         variant: "destructive",
       });
@@ -190,7 +189,7 @@ export default function SaasAdminIntegrations() {
         console.error('❌ [SAAS-ADMIN-TEST] Test failed with data:', data);
         toast({
           title: "Teste falhou", 
-          description: data.error || data.message || "[Translation]",
+          description: data.error || data.message || "texto",
           variant: "destructive",
         });
       }
@@ -198,7 +197,7 @@ export default function SaasAdminIntegrations() {
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
 
-      let errorMessage = "[Translation]";
+      let errorMessage = "texto";
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -206,7 +205,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: errorMessage,
         variant: "destructive",
       });
@@ -567,7 +566,7 @@ export default function SaasAdminIntegrations() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={saveConfigMutation.isPending}>
-                  {saveConfigMutation.isPending ? "Salvando..." : "[Translation]"}
+                  {saveConfigMutation.isPending ? "Salvando..." : "texto"}
                 </Button>
               </div>
             </form>

@@ -12,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
-import { useTranslation } from 'react-i18next';
   Package2, 
   MapPin, 
   Wrench, 
@@ -271,7 +270,7 @@ export default function AssetManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAssetMutation.isPending}>
-                    {createAssetMutation.isPending ? 'Criando...' : "[Translation]"}
+                    {createAssetMutation.isPending ? 'Criando...' : "texto"}
                   </Button>
                 </div>
               </form>
@@ -307,7 +306,7 @@ export default function AssetManagement() {
                   <Label htmlFor="assetId">Ativo</Label>
                   <Select name="assetId" required>
                     <SelectTrigger>
-                      <SelectValue placeholder="[Translation]" />
+                      <SelectValue placeholder="texto" />
                     </SelectTrigger>
                     <SelectContent>
                       {filteredAssets.map((asset: Asset) => (
@@ -445,7 +444,7 @@ export default function AssetManagement() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="[Translation]"
+                placeholder="texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -453,7 +452,7 @@ export default function AssetManagement() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="[Translation]" />
+                <SelectValue placeholder="texto" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>

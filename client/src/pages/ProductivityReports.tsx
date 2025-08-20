@@ -27,7 +27,6 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { apiRequest } from '@/lib/queryClient';
-import { useTranslation } from 'react-i18next';
 
 interface ProductivitySummary {
   totalActivities: number;
@@ -86,15 +85,15 @@ export default function ProductivityReports() {
   const getActivityTypeLabel = (type: string) => {
     const labels = {
       'view_ticket': 'Visualizar Tickets',
-      'edit_ticket': "[Translation]",
-      'create_ticket': "[Translation]",
+      'edit_ticket': "texto",
+      'create_ticket': "texto",
       'send_message': 'Enviar Mensagens',
       'view_customer': 'Visualizar Clientes',
-      'create_note': "[Translation]",
-      'edit_note': "[Translation]",
+      'create_note': "texto",
+      'edit_note': "texto",
       'view_notes': 'Visualizar Notas',
-      'create_internal_action': "[Translation]",
-      'edit_internal_action': "[Translation]",
+      'create_internal_action': "texto",
+      'edit_internal_action': "texto",
       'view_actions': 'Visualizar Ações',
     };
     return labels[type] || type;

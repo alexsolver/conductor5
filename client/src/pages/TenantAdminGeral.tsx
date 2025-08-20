@@ -16,7 +16,6 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
-import { useTranslation } from 'react-i18next';
   Users, 
   TrendingUp, 
   Ticket, 
@@ -154,14 +153,14 @@ export default function TenantAdminGeral() {
     },
     onSuccess: () => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "As configurações de branding foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/branding"] });
     },
     onError: () => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Ocorreu um erro ao salvar as configurações.",
         variant: "destructive",
       });
@@ -223,13 +222,13 @@ export default function TenantAdminGeral() {
           {/* Estatísticas principais */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title="[Translation]"
+              title="texto"
               value={(analytics as any)?.totalCustomers || 0}
               icon={Users}
               trend={12}
             />
             <StatCard
-              title="[Translation]"
+              title="texto"
               value={(analytics as any)?.totalTickets || 0}
               icon={Ticket}
               trend={8}
@@ -509,7 +508,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="[Translation]" />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -533,7 +532,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="[Translation]" />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>

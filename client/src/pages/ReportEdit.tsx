@@ -21,7 +21,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useTranslation } from 'react-i18next';
 
 // Schema for report editing
 const reportSchema = z.object({
@@ -109,7 +108,7 @@ export default function ReportEdit() {
     },
     onSuccess: () => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Relatório atualizado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -118,7 +117,7 @@ export default function ReportEdit() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error?.message || "Falha ao atualizar relatório.",
         variant: "destructive",
       });
@@ -129,7 +128,7 @@ export default function ReportEdit() {
     mutationFn: () => apiRequest("DELETE", `/api/reports-dashboards/reports/${reportId}`),
     onSuccess: () => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Relatório excluído com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -137,7 +136,7 @@ export default function ReportEdit() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error?.message || "Falha ao excluir relatório.",
         variant: "destructive",
       });
@@ -227,7 +226,7 @@ export default function ReportEdit() {
               Editar Relatório
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              {reportData?.data?.name || "[Translation]"}
+              {reportData?.data?.name || "texto"}
             </p>
           </div>
         </div>
@@ -247,7 +246,7 @@ export default function ReportEdit() {
             data-testid="button-delete-report"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            {deleteReportMutation.isPending ? "Excluindo..." : "[Translation]"}
+            {deleteReportMutation.isPending ? "Excluindo..." : "texto"}
           </Button>
           <Button
             onClick={form.handleSubmit(handleUpdateReport)}
@@ -398,7 +397,7 @@ export default function ReportEdit() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder="[Translation]" />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -431,7 +430,7 @@ export default function ReportEdit() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-access-level">
-                                <SelectValue placeholder="[Translation]" />
+                                <SelectValue placeholder="texto" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -457,7 +456,7 @@ export default function ReportEdit() {
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-data-source">
-                                    <SelectValue placeholder="[Translation]" />
+                                    <SelectValue placeholder="texto" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -563,7 +562,7 @@ export default function ReportEdit() {
                               Configuração Básica
                             </h5>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "[Translation]".
+                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "texto".
                             </p>
                           </div>
                         </div>
@@ -615,7 +614,7 @@ export default function ReportEdit() {
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-schedule-type">
-                                  <SelectValue placeholder="[Translation]" />
+                                  <SelectValue placeholder="texto" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

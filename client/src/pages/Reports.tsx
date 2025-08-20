@@ -22,7 +22,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useTranslation } from 'react-i18next';
 
 // Zendesk-style Quick Start Templates
 const ZENDESK_QUICK_TEMPLATES = [
@@ -68,7 +67,7 @@ const ZENDESK_QUICK_TEMPLATES = [
 const ZENDESK_DATA_SOURCES = [
   {
     id: "tickets",
-    name: "[Translation]",
+    name: "texto",
     description: "Support tickets and related data",
     icon: Grid,
     tables: 45,
@@ -76,7 +75,7 @@ const ZENDESK_DATA_SOURCES = [
   },
   {
     id: "users",
-    name: "[Translation]", 
+    name: "texto", 
     description: "Customer and agent information",
     icon: Users,
     tables: 12,
@@ -123,7 +122,7 @@ export default function Reports() {
 
   // Zendesk-style Categories
   const categories = [
-    { id: "all", name: "[Translation]", count: reports.length },
+    { id: "all", name: "texto", count: reports.length },
     { id: "performance", name: "Performance", count: reports.filter(r => r.category === 'operational').length },
     { id: "team", name: "Team Analytics", count: reports.filter(r => r.category === 'hr').length },
     { id: "customer", name: "Customer Insights", count: reports.filter(r => r.category === 'analytical').length },
@@ -388,7 +387,7 @@ export default function Reports() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="[Translation]"
+                placeholder="texto"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -398,7 +397,7 @@ export default function Reports() {
           <div className="flex items-center space-x-4">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="[Translation]" />
+                <SelectValue placeholder="texto" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (

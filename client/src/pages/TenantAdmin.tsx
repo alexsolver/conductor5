@@ -15,7 +15,6 @@ import { z } from "zod";
 import { Plus, Users, Settings, BarChart3, Shield, Building, Mail } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from 'react-i18next';
 
 const createUserSchema = z.object({
 
@@ -110,7 +109,7 @@ export default function TenantAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -127,13 +126,13 @@ export default function TenantAdmin() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/settings'] });
       setIsSettingsDialogOpen(false);
       toast({
-        title: "[Translation]",
-        description: "[Translation]",
+        title: "texto",
+        description: "texto",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -193,7 +192,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                      {updateSettingsMutation.isPending ? 'Salvando...' : "[Translation]"}
+                      {updateSettingsMutation.isPending ? 'Salvando...' : "texto"}
                     </Button>
                   </div>
                 </form>
@@ -279,7 +278,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createUserMutation.isPending}>
-                      {createUserMutation.isPending ? 'Criando...' : "[Translation]"}
+                      {createUserMutation.isPending ? 'Criando...' : "texto"}
                     </Button>
                   </div>
                 </form>

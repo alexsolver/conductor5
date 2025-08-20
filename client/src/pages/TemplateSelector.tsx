@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe, Loader2, Settings, Moon, Sun, Sunset, Camera, Brush, Heart } from "lucide-react";
-import { useTranslation } from 'react-i18next';
 
 interface Template {
   id: string;
@@ -434,7 +433,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -462,7 +461,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error.message,
         variant: "destructive",
       });
@@ -629,7 +628,7 @@ export function TemplateSelector() {
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             disabled={!selectedTemplate || applyTemplateMutation.isPending}
           >
-            {selectedTemplate ? 'Tema Selecionado' : "[Translation]"}
+            {selectedTemplate ? 'Tema Selecionado' : "texto"}
           </Button>
           <Button 
             size="lg" 

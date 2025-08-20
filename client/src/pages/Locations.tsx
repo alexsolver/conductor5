@@ -16,7 +16,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useTranslation } from 'react-i18next';
 
 // Location form schema
 const locationFormSchema = z.object({
@@ -114,14 +113,14 @@ export default function Locations() {
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: "Local criado com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     }
@@ -134,14 +133,14 @@ export default function Locations() {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
       toast({
-        title: "[Translation]", 
+        title: "texto", 
         description: "Local excluído com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
-        description: error.message || "[Translation]",
+        title: "texto",
+        description: error.message || "texto",
         variant: "destructive",
       });
     }
@@ -169,7 +168,7 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error?.message || "Não foi possível alterar favorito.",
         variant: "destructive",
       });
@@ -193,7 +192,7 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: "[Translation]",
+        title: "texto",
         description: error?.message || "Não foi possível anexar o arquivo.",
         variant: "destructive",
       });
@@ -412,7 +411,7 @@ export default function Locations() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createLocationMutation.isPending}>
-                    {createLocationMutation.isPending ? "Criando..." : "[Translation]"}
+                    {createLocationMutation.isPending ? "Criando..." : "texto"}
                   </Button>
                 </div>
               </form>
@@ -715,7 +714,7 @@ export default function Locations() {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="[Translation]"
+                    placeholder="texto"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -765,7 +764,7 @@ export default function Locations() {
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="[Translation]"
+                  placeholder="texto"
                   value={tagFilter}
                   onChange={(e) => setTagFilter(e.target.value)}
                   className="w-48 h-8"
@@ -810,7 +809,7 @@ export default function Locations() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum local encontrado</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm || locationTypeFilter || statusFilter
-                  ? "[Translation]"
+                  ? "texto"
                   : "Comece criando seu primeiro local no sistema."}
               </p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -909,7 +908,7 @@ export default function Locations() {
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" title="[Translation]">
+                        <Button variant="ghost" size="sm" title="texto">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 

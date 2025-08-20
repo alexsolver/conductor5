@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-import { useTranslation } from 'react-i18next';
   User, 
   Building, 
   Bell, 
@@ -58,7 +57,7 @@ export default function Settings() {
 
   const handleSave = () => {
     toast({
-      title: "[Translation]",
+      title: "texto",
       description: "Your settings have been updated successfully.",
     });
   };
@@ -556,7 +555,7 @@ export default function Settings() {
                       { name: "Salesforce", description: "Sync customer data with Salesforce", connected: true },
                       { name: "Shopify", description: "Connect with your Shopify store", connected: false },
                       { name: "HubSpot", description: "Sync contacts and deals", connected: false },
-                      { name: "Jira", description: "[Translation]", connected: true },
+                      { name: "Jira", description: "texto", connected: true },
                     ].map((integration) => (
                       <div key={integration.name} className="p-4 border rounded-lg">
                         <div className="flex items-center justify-between mb-2">

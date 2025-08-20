@@ -23,7 +23,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
-import { useTranslation } from 'react-i18next';
   Shield, 
   FileText, 
   AlertTriangle, 
@@ -242,7 +241,7 @@ export default function GdprCompliance() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-report-type">
-                          <SelectValue placeholder="[Translation]" />
+                          <SelectValue placeholder="texto" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -300,7 +299,7 @@ export default function GdprCompliance() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-risk-level">
-                            <SelectValue placeholder="[Translation]" />
+                            <SelectValue placeholder="texto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -347,7 +346,7 @@ export default function GdprCompliance() {
 
               <div className="flex justify-end space-x-2">
                 <Button type="submit" disabled={createReportMutation.isPending} data-testid="button-submit-report">
-                  {createReportMutation.isPending ? 'Criando...' : "[Translation]"}
+                  {createReportMutation.isPending ? 'Criando...' : "texto"}
                 </Button>
               </div>
             </form>
@@ -487,7 +486,7 @@ export default function GdprCompliance() {
         <div className="flex space-x-4">
           <div className="flex-1">
             <Input
-              placeholder="[Translation]"
+              placeholder="texto"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
