@@ -1,0 +1,84 @@
+{
+  "common": {
+    "selectOption": "Seleccionar opción",
+    "noOptions": "Sin opciones",
+    "search": "Buscar...",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "open": "Abrir",
+    "showMore": "Mostrar más",
+    "showLess": "Mostrar menos"
+  },
+  "navigation": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "home": "Inicio",
+    "dashboard": "Panel"
+  },
+  "components": {
+    "userSelect": {
+      "placeholder": "Seleccionar usuario...",
+      "noResults": "No se encontraron usuarios",
+      "searchPlaceholder": "Buscar usuarios..."
+    },
+    "button": {
+      "loading": "Cargando...",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "close": "Cerrar",
+      "submit": "Enviar",
+      "reset": "Resetear",
+      "confirm": "Confirmar"
+    },
+    "breadcrumb": {
+      "home": "Inicio",
+      "dashboard": "Panel"
+    },
+    "input": {
+      "placeholder": "Ingrese texto...",
+      "required": "Este campo es obligatorio",
+      "invalid": "Entrada inválida",
+      "clear": "Limpiar",
+      "search": "Buscar..."
+    },
+    "select": {
+      "placeholder": "Seleccionar opción...",
+      "noOptions": "No hay opciones disponibles",
+      "search": "Buscar opciones...",
+      "clear": "Limpiar selección"
+    },
+    "dialog": {
+      "close": "Cerrar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "confirm": "Confirmar",
+      "delete": "Eliminar"
+    },
+    "table": {
+      "noData": "No hay datos disponibles",
+      "loading": "Cargando...",
+      "sortAsc": "Ordenar ascendente",
+      "sortDesc": "Ordenar descendente",
+      "filter": "Filtrar",
+      "search": "Buscar en tabla...",
+      "rowsPerPage": "Filas por página",
+      "showing": "Mostrando",
+      "of": "de",
+      "entries": "entradas"
+    }
+  },
+  "app": {
+    "name": "Conductor",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  }
+}

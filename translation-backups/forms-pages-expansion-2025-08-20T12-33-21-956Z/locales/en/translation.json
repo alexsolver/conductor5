@@ -1,0 +1,84 @@
+{
+  "common": {
+    "selectOption": "Select option",
+    "noOptions": "No options",
+    "search": "Search...",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "open": "Open",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "navigation": {
+    "previous": "Previous",
+    "next": "Next",
+    "home": "Home",
+    "dashboard": "Dashboard"
+  },
+  "components": {
+    "userSelect": {
+      "placeholder": "Select user...",
+      "noResults": "No users found",
+      "searchPlaceholder": "Search users..."
+    },
+    "button": {
+      "loading": "Loading...",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "close": "Close",
+      "submit": "Submit",
+      "reset": "Reset",
+      "confirm": "Confirm"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "dashboard": "Dashboard"
+    },
+    "input": {
+      "placeholder": "Enter text...",
+      "required": "This field is required",
+      "invalid": "Invalid input",
+      "clear": "Clear",
+      "search": "Search..."
+    },
+    "select": {
+      "placeholder": "Select option...",
+      "noOptions": "No options available",
+      "search": "Search options...",
+      "clear": "Clear selection"
+    },
+    "dialog": {
+      "close": "Close",
+      "cancel": "Cancel",
+      "save": "Save",
+      "confirm": "Confirm",
+      "delete": "Delete"
+    },
+    "table": {
+      "noData": "No data available",
+      "loading": "Loading...",
+      "sortAsc": "Sort ascending",
+      "sortDesc": "Sort descending",
+      "filter": "Filter",
+      "search": "Search in table...",
+      "rowsPerPage": "Rows per page",
+      "showing": "Showing",
+      "of": "of",
+      "entries": "entries"
+    }
+  },
+  "app": {
+    "name": "Conductor",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete"
+  }
+}

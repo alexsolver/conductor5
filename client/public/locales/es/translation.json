@@ -39,6 +39,38 @@
     "breadcrumb": {
       "home": "Inicio",
       "dashboard": "Panel"
+    },
+    "input": {
+      "placeholder": "Ingrese texto...",
+      "required": "Este campo es obligatorio",
+      "invalid": "Entrada inválida",
+      "clear": "Limpiar",
+      "search": "Buscar..."
+    },
+    "select": {
+      "placeholder": "Seleccionar opción...",
+      "noOptions": "No hay opciones disponibles",
+      "search": "Buscar opciones...",
+      "clear": "Limpiar selección"
+    },
+    "dialog": {
+      "close": "Cerrar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "confirm": "Confirmar",
+      "delete": "Eliminar"
+    },
+    "table": {
+      "noData": "No hay datos disponibles",
+      "loading": "Cargando...",
+      "sortAsc": "Ordenar ascendente",
+      "sortDesc": "Ordenar descendente",
+      "filter": "Filtrar",
+      "search": "Buscar en tabla...",
+      "rowsPerPage": "Filas por página",
+      "showing": "Mostrando",
+      "of": "de",
+      "entries": "entradas"
     }
   },
   "app": {
@@ -48,5 +80,85 @@
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Eliminar"
+  },
+  "forms": {
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "email": "Por favor, ingrese una dirección de correo válida",
+      "minLength": "Se requieren mínimo {{count}} caracteres",
+      "maxLength": "Máximo {{count}} caracteres permitidos",
+      "numeric": "Por favor, ingrese un número válido",
+      "phone": "Por favor, ingrese un teléfono válido",
+      "date": "Por favor, ingrese una fecha válida"
+    },
+    "actions": {
+      "submit": "Enviar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "reset": "Restablecer",
+      "clear": "Limpiar Formulario",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "create": "Crear",
+      "update": "Actualizar",
+      "search": "Buscar",
+      "filter": "Filtrar"
+    },
+    "status": {
+      "saving": "Guardando...",
+      "loading": "Cargando...",
+      "success": "¡Éxito!",
+      "error": "Ocurrió un error",
+      "updated": "Actualizado exitosamente",
+      "created": "Creado exitosamente",
+      "deleted": "Eliminado exitosamente"
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Panel",
+      "welcome": "Bienvenido a Conductor",
+      "overview": "Resumen",
+      "statistics": "Estadísticas",
+      "recentActivity": "Actividad Reciente",
+      "quickActions": "Acciones Rápidas"
+    },
+    "customers": {
+      "title": "Clientes",
+      "list": "Lista de Clientes",
+      "add": "Agregar Cliente",
+      "edit": "Editar Cliente",
+      "search": "Buscar clientes...",
+      "noResults": "No se encontraron clientes",
+      "total": "Total de clientes"
+    },
+    "tickets": {
+      "title": "Tickets",
+      "list": "Lista de Tickets",
+      "create": "Crear Ticket",
+      "edit": "Editar Ticket",
+      "details": "Detalles del Ticket",
+      "status": "Estado",
+      "priority": "Prioridad",
+      "assignedTo": "Asignado a"
+    },
+    "users": {
+      "title": "Usuarios",
+      "list": "Lista de Usuarios",
+      "add": "Agregar Usuario",
+      "edit": "Editar Usuario",
+      "invite": "Invitar Usuario",
+      "roles": "Roles",
+      "permissions": "Permisos"
+    }
+  },
+  "modals": {
+    "confirm": {
+      "title": "Confirmar Acción",
+      "message": "¿Está seguro de que desea continuar?",
+      "delete": "¿Está seguro de que desea eliminar este elemento?",
+      "save": "¿Está seguro de que desea guardar los cambios?",
+      "cancel": "¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."
+    }
   }
 }

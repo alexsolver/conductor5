@@ -1,0 +1,52 @@
+{
+  "common": {
+    "selectOption": "Seleccionar opción",
+    "noOptions": "Sin opciones",
+    "search": "Buscar...",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "open": "Abrir",
+    "showMore": "Mostrar más",
+    "showLess": "Mostrar menos"
+  },
+  "navigation": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "home": "Inicio",
+    "dashboard": "Panel"
+  },
+  "components": {
+    "userSelect": {
+      "placeholder": "Seleccionar usuario...",
+      "noResults": "No se encontraron usuarios",
+      "searchPlaceholder": "Buscar usuarios..."
+    },
+    "button": {
+      "loading": "Cargando...",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "close": "Cerrar",
+      "submit": "Enviar",
+      "reset": "Resetear",
+      "confirm": "Confirmar"
+    },
+    "breadcrumb": {
+      "home": "Inicio",
+      "dashboard": "Panel"
+    }
+  },
+  "app": {
+    "name": "Conductor",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  }
+}

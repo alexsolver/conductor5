@@ -39,6 +39,38 @@
     "breadcrumb": {
       "home": "Home",
       "dashboard": "Dashboard"
+    },
+    "input": {
+      "placeholder": "Enter text...",
+      "required": "This field is required",
+      "invalid": "Invalid input",
+      "clear": "Clear",
+      "search": "Search..."
+    },
+    "select": {
+      "placeholder": "Select option...",
+      "noOptions": "No options available",
+      "search": "Search options...",
+      "clear": "Clear selection"
+    },
+    "dialog": {
+      "close": "Close",
+      "cancel": "Cancel",
+      "save": "Save",
+      "confirm": "Confirm",
+      "delete": "Delete"
+    },
+    "table": {
+      "noData": "No data available",
+      "loading": "Loading...",
+      "sortAsc": "Sort ascending",
+      "sortDesc": "Sort descending",
+      "filter": "Filter",
+      "search": "Search in table...",
+      "rowsPerPage": "Rows per page",
+      "showing": "Showing",
+      "of": "of",
+      "entries": "entries"
     }
   },
   "app": {
@@ -48,5 +80,85 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete"
+  },
+  "forms": {
+    "validation": {
+      "required": "This field is required",
+      "email": "Please enter a valid email address",
+      "minLength": "Minimum {{count}} characters required",
+      "maxLength": "Maximum {{count}} characters allowed",
+      "numeric": "Please enter a valid number",
+      "phone": "Please enter a valid phone number",
+      "date": "Please enter a valid date"
+    },
+    "actions": {
+      "submit": "Submit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "reset": "Reset",
+      "clear": "Clear Form",
+      "edit": "Edit",
+      "delete": "Delete",
+      "create": "Create",
+      "update": "Update",
+      "search": "Search",
+      "filter": "Filter"
+    },
+    "status": {
+      "saving": "Saving...",
+      "loading": "Loading...",
+      "success": "Success!",
+      "error": "Error occurred",
+      "updated": "Updated successfully",
+      "created": "Created successfully",
+      "deleted": "Deleted successfully"
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome to Conductor",
+      "overview": "Overview",
+      "statistics": "Statistics",
+      "recentActivity": "Recent Activity",
+      "quickActions": "Quick Actions"
+    },
+    "customers": {
+      "title": "Customers",
+      "list": "Customer List",
+      "add": "Add Customer",
+      "edit": "Edit Customer",
+      "search": "Search customers...",
+      "noResults": "No customers found",
+      "total": "Total customers"
+    },
+    "tickets": {
+      "title": "Tickets",
+      "list": "Ticket List",
+      "create": "Create Ticket",
+      "edit": "Edit Ticket",
+      "details": "Ticket Details",
+      "status": "Status",
+      "priority": "Priority",
+      "assignedTo": "Assigned To"
+    },
+    "users": {
+      "title": "Users",
+      "list": "User List",
+      "add": "Add User",
+      "edit": "Edit User",
+      "invite": "Invite User",
+      "roles": "Roles",
+      "permissions": "Permissions"
+    }
+  },
+  "modals": {
+    "confirm": {
+      "title": "Confirm Action",
+      "message": "Are you sure you want to proceed?",
+      "delete": "Are you sure you want to delete this item?",
+      "save": "Are you sure you want to save changes?",
+      "cancel": "Are you sure you want to cancel? Unsaved changes will be lost."
+    }
   }
 }

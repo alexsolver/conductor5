@@ -1,0 +1,84 @@
+{
+  "common": {
+    "selectOption": "Selecionar opção",
+    "noOptions": "Nenhuma opção",
+    "search": "Buscar...",
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "open": "Abrir",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
+  },
+  "navigation": {
+    "previous": "Anterior",
+    "next": "Próximo",
+    "home": "Início",
+    "dashboard": "Painel"
+  },
+  "components": {
+    "userSelect": {
+      "placeholder": "Selecionar usuário...",
+      "noResults": "Nenhum usuário encontrado",
+      "searchPlaceholder": "Buscar usuários..."
+    },
+    "button": {
+      "loading": "Carregando...",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "delete": "Excluir",
+      "edit": "Editar",
+      "close": "Fechar",
+      "submit": "Enviar",
+      "reset": "Resetar",
+      "confirm": "Confirmar"
+    },
+    "breadcrumb": {
+      "home": "Início",
+      "dashboard": "Painel"
+    },
+    "input": {
+      "placeholder": "Digite o texto...",
+      "required": "Este campo é obrigatório",
+      "invalid": "Entrada inválida",
+      "clear": "Limpar",
+      "search": "Pesquisar..."
+    },
+    "select": {
+      "placeholder": "Selecionar opção...",
+      "noOptions": "Nenhuma opção disponível",
+      "search": "Buscar opções...",
+      "clear": "Limpar seleção"
+    },
+    "dialog": {
+      "close": "Fechar",
+      "cancel": "Cancelar",
+      "save": "Salvar",
+      "confirm": "Confirmar",
+      "delete": "Excluir"
+    },
+    "table": {
+      "noData": "Nenhum dado disponível",
+      "loading": "Carregando...",
+      "sortAsc": "Ordenar crescente",
+      "sortDesc": "Ordenar decrescente",
+      "filter": "Filtrar",
+      "search": "Pesquisar na tabela...",
+      "rowsPerPage": "Linhas por página",
+      "showing": "Mostrando",
+      "of": "de",
+      "entries": "entradas"
+    }
+  },
+  "app": {
+    "name": "Conductor",
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir"
+  }
+}
