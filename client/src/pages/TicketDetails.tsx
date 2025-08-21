@@ -1905,7 +1905,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">💬 {t('tickets.tabs.communication')}</h2>
               <Badge variant="outline" className="text-xs">
-                {communicationsData.length} interação(ões)
+                {communicationsData.length} {t('tickets.interactions', { count: communicationsData.length })}
               </Badge>
             </div>
 
@@ -2760,12 +2760,12 @@ const TicketDetails = React.memo(() => {
   // Calculate loading progress
   const getLoadingProgress = () => {
     const states = [
-      { name: 'Dados básicos', loading: isLoading },
-      { name: 'Histórico', loading: historyLoading },
-      { name: 'Comunicações', loading: communicationsLoading },
-      { name: 'Notas', loading: notesLoading },
-      { name: 'Anexos', loading: attachmentsLoading },
-      { name: 'Ações', loading: actionsLoading }
+      { name: t('tickets.basicData'), loading: isLoading },
+      { name: t('tickets.history'), loading: historyLoading },
+      { name: t('tickets.tabs.communication'), loading: communicationsLoading },
+      { name: t('tickets.notes'), loading: notesLoading },
+      { name: t('tickets.tabs.attachments'), loading: attachmentsLoading },
+      { name: t('tickets.actions.title'), loading: actionsLoading }
     ];
 
     const completed = states.filter(s => !s.loading).length;
@@ -2834,16 +2834,16 @@ const TicketDetails = React.memo(() => {
             <div className="border-t pt-4">
               <div className="space-y-2 text-xs text-gray-500">
                 <div className={`flex items-center gap-2 ${!isLoading ? 'text-green-600' : ''}`}>
-                  {!isLoading ? '✅' : '⏳'} Dados básicos
+                  {!isLoading ? '✅' : '⏳'} {t('tickets.basicData')}
                 </div>
                 <div className={`flex items-center gap-2 ${!historyLoading ? 'text-green-600' : ''}`}>
-                  {!historyLoading ? '✅' : '⏳'} Histórico
+                  {!historyLoading ? '✅' : '⏳'} {t('tickets.history')}
                 </div>
                 <div className={`flex items-center gap-2 ${!notesLoading ? 'text-green-600' : ''}`}>
-                  {!notesLoading ? '✅' : '⏳'} Notas
+                  {!notesLoading ? '✅' : '⏳'} {t('tickets.notes')}
                 </div>
                 <div className={`flex items-center gap-2 ${!communicationsLoading ? 'text-green-600' : ''}`}>
-                  {!communicationsLoading ? '✅' : '⏳'} Comunicações
+                  {!communicationsLoading ? '✅' : '⏳'} {t('tickets.tabs.communication')}
                 </div>
               </div>
             </div>
@@ -3448,7 +3448,7 @@ const TicketDetails = React.memo(() => {
           >
             <div className="flex items-center gap-3">
               <MessageSquare className="h-4 w-4" />
-              <span className="text-sm font-medium">Comunicação</span>
+              <span className="text-sm font-medium">{t('tickets.tabs.communication')}</span>
             </div>
             <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
               {communicationsData?.length || 0}
@@ -3468,7 +3468,7 @@ const TicketDetails = React.memo(() => {
           >
             <div className="flex items-center gap-3">
               <Paperclip className="h-4 w-4" />
-              <span className="text-sm font-medium">Anexos</span>
+              <span className="text-sm font-medium">{t('tickets.tabs.attachments')}</span>
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
               {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}

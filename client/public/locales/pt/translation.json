@@ -1100,13 +1100,29 @@
     "reports": "Relatórios"
   },
   "tickets": {
+    "basicData": "Dados básicos",
+    "history": "Histórico", 
+    "notes": "Notas",
+    "interactions": "interação",
+    "interactions_plural": "interações",
+    "actions": {
+      "title": "Ações"
+    },
     "fields": {
       "datesTimeTitle": "DATAS E TEMPO",
       "companyDetails": "Detalhes da Empresa", 
       "companyName": "Nome da Empresa",
       "companyNotSpecified": "Empresa Não Especificada",
       "technicalResponsible": "Responsável Técnico",
-      "beneficiaryDetails": "Detalhes do Favorecido"
+      "beneficiaryDetails": "Detalhes do Favorecido",
+      "subcategory": "Subcategoria",
+      "subject": "Assunto",
+      "description": "Descrição",
+      "action": "Ação"
+    },
+    "priority": "Prioridade",
+    "internal_actions": {
+      "detailed_description_placeholder": "Descreva detalhadamente a ação realizada"
     }
   }
 }

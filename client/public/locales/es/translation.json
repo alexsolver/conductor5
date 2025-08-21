@@ -1127,13 +1127,29 @@
     "userManagement": "Gestión de Usuarios"
   },
   "tickets": {
+    "basicData": "Datos básicos",
+    "history": "Historial", 
+    "notes": "Notas",
+    "interactions": "interacción",
+    "interactions_plural": "interacciones",
+    "actions": {
+      "title": "Acciones"
+    },
     "fields": {
       "datesTimeTitle": "FECHAS Y TIEMPO",
       "companyDetails": "Detalles de la Empresa",
       "companyName": "Nombre de la Empresa",
       "companyNotSpecified": "Empresa No Especificada",
       "technicalResponsible": "Responsable Técnico",
-      "beneficiaryDetails": "Detalles del Beneficiario"
+      "beneficiaryDetails": "Detalles del Beneficiario",
+      "subcategory": "Subcategoría",
+      "subject": "Asunto",
+      "description": "Descripción",
+      "action": "Acción"
+    },
+    "priority": "Prioridad",
+    "internal_actions": {
+      "detailed_description_placeholder": "Describe detalladamente la acción realizada"
     }
   }
 }

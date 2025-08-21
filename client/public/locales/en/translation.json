@@ -1171,13 +1171,29 @@
     "userManagement": "User Management"
   },
   "tickets": {
+    "basicData": "Basic Data",
+    "history": "History", 
+    "notes": "Notes",
+    "interactions": "interaction",
+    "interactions_plural": "interactions",
+    "actions": {
+      "title": "Actions"
+    },
     "fields": {
       "datesTimeTitle": "DATES & TIME",
       "companyDetails": "Company Details",
       "companyName": "Company Name", 
       "companyNotSpecified": "Company Not Specified",
       "technicalResponsible": "Technical Responsible",
-      "beneficiaryDetails": "Beneficiary Details"
+      "beneficiaryDetails": "Beneficiary Details",
+      "subcategory": "Subcategory",
+      "subject": "Subject",
+      "description": "Description",
+      "action": "Action"
+    },
+    "priority": "Priority",
+    "internal_actions": {
+      "detailed_description_placeholder": "Describe the action performed in detail"
     }
   }
 }
