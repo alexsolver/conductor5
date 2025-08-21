@@ -18,22 +18,34 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     // Verificar se usuário é SaaS admin
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'SaaS admin access required' 
+      });
     }
 
+    console.log('🔍 [ANALYZE] Starting translation completeness analysis...');
+    
     const report = await translationService.generateCompletenessReport();
 
-    res.json({
+    console.log('✅ [ANALYZE] Analysis completed successfully');
+
+    // Ensure we always return valid JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json({
       success: true,
       data: report,
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('Error analyzing translation completeness:', error);
+    console.error('❌ [ANALYZE] Error analyzing translation completeness:', error);
+    
+    res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
       success: false,
-      message: 'Failed to analyze translation completeness'
+      message: 'Failed to analyze translation completeness',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });

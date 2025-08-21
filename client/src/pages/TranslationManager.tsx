@@ -221,15 +221,33 @@ export default function TranslationManager() {
     console.log('🔍 [FRONTEND-SAFE] Analyzing translation completeness...');
     try {
       const response = await fetch('/api/translation-completion/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         credentials: 'include',
       });
+
+      console.log('📡 [FRONTEND] Analysis response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ [FRONTEND] Non-JSON response received:', text.substring(0, 200));
+        throw new Error('Server returned non-JSON response');
+      }
+
       const data = await response.json();
       console.log('✅ [FRONTEND-SAFE] Analysis successful:', data);
+      
       toast({
         title: t('TranslationManager.analysisSuccess') || "Analysis completed!",
-        description: data.message,
+        description: data.message || `Found ${data.data?.summary?.totalKeys || 0} translation keys`,
       });
     } catch (error) {
       console.error('❌ [FRONTEND-SAFE] Analysis error:', error);

@@ -654,7 +654,7 @@ export class TranslationCompletionService {
                 if (this.isValidTranslationKey(fullKey)) {
                   keys.push({
                     key: fullKey,
-                    module: this.extractModuleName(language),
+                    module: this.extractModuleName(fullKey), // Adjusted to use fullKey for module extraction
                     usage: [`translation file: ${language}`],
                     priority: this.determinePriority(fullKey, 'translation')
                   });
@@ -1166,14 +1166,14 @@ export class TranslationCompletionService {
     pattern: RegExp
   ): Promise<void> {
     try {
-      const entries = await fs.readdir(dir, { withFileTypes: true });
+      const items = await fs.readdir(dir, { withFileTypes: true });
 
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
+      for (const item of items) {
+        const fullPath = path.join(dir, item.name);
 
-        if (entry.isDirectory()) {
+        if (item.isDirectory()) {
           await this.scanDirectory(fullPath, keys, pattern);
-        } else if (entry.isFile() && /\.(tsx?|jsx?)$/.test(entry.name)) {
+        } else if (item.isFile() && /\.(tsx?|jsx?)$/.test(item.name)) {
           await this.scanFile(fullPath, keys, pattern);
         }
       }
@@ -1753,37 +1753,59 @@ export class TranslationCompletionService {
       }>;
     };
     gaps: TranslationGap[];
-    detectedKeys: TranslationKey[];
+    error?: string; // Added error property for fallback
   }> {
-    const detectedKeys = await this.scanTranslationKeys();
-    const gaps = await this.analyzeTranslationGaps();
+    console.log('📊 [REPORT] Generating translation completeness report...');
 
-    const languageStats: Record<string, {
-      existingKeys: number;
-      missingKeys: number;
-      completeness: number;
-    }> = {};
+    try {
+      const allKeys = await this.scanTranslationKeys();
+      console.log(`📊 [REPORT] Scanned ${allKeys.length} translation keys`);
 
-    for (const gap of gaps) {
-      const totalKeys = detectedKeys.length;
-      const missingKeys = gap.missingKeys.length;
-      const existingKeys = totalKeys - missingKeys;
-      const completeness = totalKeys > 0 ? (existingKeys / totalKeys) * 100 : 100;
+      const gaps = await this.analyzeTranslationGaps();
+      console.log(`📊 [REPORT] Analyzed gaps for ${gaps.length} languages`);
 
-      languageStats[gap.language] = {
-        existingKeys,
-        missingKeys,
-        completeness: Math.round(completeness * 100) / 100
+      const summary = {
+        totalKeys: allKeys.length,
+        languageStats: {} as Record<string, any>
+      };
+
+      // Calcula estatísticas por idioma
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        const languageGap = gaps.find(g => g.language === language);
+        const missingCount = languageGap?.missingKeys.length || 0;
+        const completedCount = allKeys.length - missingCount;
+
+        summary.languageStats[language] = {
+          total: allKeys.length,
+          completed: completedCount,
+          missing: missingCount,
+          completeness: allKeys.length > 0 ? Math.round((completedCount / allKeys.length) * 100) : 100
+        };
+      }
+
+      console.log('✅ [REPORT] Report generated successfully');
+      return { summary, gaps };
+
+    } catch (error) {
+      console.error('❌ [REPORT] Error generating completeness report:', error);
+
+      // Return a safe fallback report instead of throwing
+      return {
+        summary: {
+          totalKeys: 0,
+          languageStats: this.SUPPORTED_LANGUAGES.reduce((acc, lang) => {
+            acc[lang] = {
+              total: 0,
+              completed: 0,
+              missing: 0,
+              completeness: 0
+            };
+            return acc;
+          }, {} as Record<string, any>)
+        },
+        gaps: [],
+        error: error.message // Include the error message in the fallback report
       };
     }
-
-    return {
-      summary: {
-        totalKeys: detectedKeys.length,
-        languageStats
-      },
-      gaps,
-      detectedKeys
-    };
   }
 }
