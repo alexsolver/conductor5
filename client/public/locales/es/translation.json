@@ -112,7 +112,7 @@
       "updated_success": "[ES] tickets.messages.updated_success",
       "no_tickets": "[ES] tickets.messages.no_tickets"
     },
-    "title": "[ES] tickets.title",
+    "title": "Tickets",
     "forms": {
       "create": {
         "title": "Crear Nuevo Ticket",
@@ -173,15 +173,15 @@
     "company": "[ES] tickets.company",
     "customer": "[ES] tickets.customer",
     "beneficiary": "[ES] tickets.beneficiary",
-    "subject": "[ES] tickets.subject",
-    "category": "[ES] tickets.category",
-    "subcategory": "[ES] tickets.subcategory",
-    "action": "[ES] tickets.action",
-    "urgency": "[ES] tickets.urgency",
-    "symptoms": "[ES] tickets.symptoms",
-    "business_impact": "[ES] tickets.business_impact",
-    "workaround": "[ES] tickets.workaround",
-    "location": "[ES] tickets.location",
+    "subject": "Asunto",
+    "category": "Categoría",
+    "subcategory": "Subcategoría",
+    "action": "Acción",
+    "urgency": "Urgencia",
+    "symptoms": "Síntomas",
+    "business_impact": "Impacto de Negocio",
+    "workaround": "Solución Temporal",
+    "location": "Ubicación",
     "validation": {
       "subject_required": "[ES] tickets.validation.subject_required",
       "customer_required": "[ES] tickets.validation.customer_required"
