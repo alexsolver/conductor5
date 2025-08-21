@@ -26,10 +26,10 @@ interface LanguageSelectorProps {
   className?: string;
 }
 
-export function LanguageSelector({ 
-  variant = 'default', 
+export function LanguageSelector({
+  variant = 'default',
   showFlag = true,
-  className = '' 
+  className = ''
 }: LanguageSelectorProps) {
   const { i18n } = useTranslation();
 

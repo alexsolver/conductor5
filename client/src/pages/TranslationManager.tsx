@@ -222,7 +222,7 @@ export default function TranslationManager() {
     try {
       const response = await fetch('/api/translation-completion/analyze', {
         method: 'GET',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -230,7 +230,7 @@ export default function TranslationManager() {
       });
 
       console.log('📡 [FRONTEND] Analysis response status:', response.status);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -244,7 +244,7 @@ export default function TranslationManager() {
 
       const data = await response.json();
       console.log('✅ [FRONTEND-SAFE] Analysis successful:', data);
-      
+
       toast({
         title: t('TranslationManager.analysisSuccess') || "Analysis completed!",
         description: data.message || `Found ${data.data?.summary?.totalKeys || 0} translation keys`,
