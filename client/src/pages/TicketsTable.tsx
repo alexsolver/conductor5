@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from 'react-i18next';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useLocation, Link } from "wouter";
@@ -205,6 +206,7 @@ interface Ticket {
 }
 
 const TicketsTable = React.memo(() => {
+  const { t } = useTranslation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
@@ -2024,16 +2026,16 @@ const TicketsTable = React.memo(() => {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Visualizações de Tickets
+{t('tickets.views.title')}
             </CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setIsNewViewDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Nova Visualização
+{t('tickets.views.newView')}
               </Button>
               <Button variant="outline" size="sm" onClick={() => setIsManageViewsOpen(true)}>
                 <Settings className="h-4 w-4 mr-2" />
-                Gerenciar
+{t('tickets.views.manage')}
               </Button>
             </div>
           </div>
@@ -2041,13 +2043,13 @@ const TicketsTable = React.memo(() => {
         <CardContent className="p-6 pt-[0px] pb-[0px]">
           <div className="flex items-center gap-4 pt-[10px] pb-[10px]">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Visualização Ativa:</span>
+              <span className="text-sm font-medium">{t('tickets.views.activeView')}:</span>
               <select
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
                 value={selectedViewId}
                 onChange={(e) => setSelectedViewId(e.target.value)}
               >
-                <option value="default">Visualização Padrão</option>
+                <option value="default">{t('tickets.views.defaultView')}</option>
                 {ticketViews.map((view: any) => (
                   <option key={view.id} value={view.id}>
                     {view.name}
@@ -2057,7 +2059,7 @@ const TicketsTable = React.memo(() => {
             </div>
             <Button variant="outline" size="sm" onClick={() => setIsAdvancedFiltersOpen(true)}>
               <Filter className="h-4 w-4 mr-2" />
-              Filtros Avançados
+{t('tickets.views.advancedFilters')}
             </Button>
           </div>
         </CardContent>
@@ -2286,7 +2288,7 @@ const TicketsTable = React.memo(() => {
       <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Filtros Avançados</DialogTitle>
+            <DialogTitle>{t('tickets.views.advancedFilters')}</DialogTitle>
             <DialogDescription>
               Configure filtros detalhados para refinar sua busca de tickets
             </DialogDescription>

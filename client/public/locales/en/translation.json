@@ -29,7 +29,8 @@
     "view": "View",
     "close": "Close",
     "open": "Open",
-    "description": "Description"
+    "description": "Description",
+    "use": "Use"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -69,10 +70,10 @@
     "gdprCompliance": "GDPR Compliance",
     "reports": "Reports",
     "itemCatalog": "Item Catalog",
-    "stockManagement": "Stock Management", 
+    "stockManagement": "Stock Management",
     "supplierManagement": "Supplier Management",
     "assetControl": "Asset Control",
-    "lpuPriceList": "LPU Price List",
+    "lpuPriceList": "LPU - Price List",
     "complianceManagement": "Compliance Management",
     "timecardRegistry": "Time Registry",
     "workSchedules": "Work Schedules",
@@ -83,16 +84,6 @@
     "approvalConfiguration": "Approval Configuration",
     "absenceManagement": "Absence Management",
     "scheduleTemplates": "Schedule Templates",
-    "locations": "Locations",
-    "materialsAndServices": "Materials and Services",
-    "itemCatalog": "Item Catalog",
-    "stockManagement": "Stock Management",
-    "supplierManagement": "Supplier Management",
-    "assetControl": "Asset Control",
-    "lpuPriceList": "LPU - Price List",
-    "complianceManagement": "Compliance Management",
-    "notifications": "Notifications",
-    "gdprCompliance": "GDPR Compliance",
     "productivityReports": "Productivity Reports",
     "teamPerformance": "Team Performance",
     "systemAnalytics": "System Analytics"
@@ -283,6 +274,23 @@
         "select_location_optional": "Select location optional",
         "no_specific_location": "No specific location",
         "select_location": "Select Location"
+      },
+      "views": {
+        "title": "Ticket Views",
+        "newView": "New View", 
+        "manage": "Manage",
+        "defaultView": "Default View",
+        "public": "Public",
+        "default": "Default",
+        "noViewsAvailable": "No views available", 
+        "viewName": "View Name",
+        "description": "Description (optional)",
+        "descriptionPlaceholder": "View description...",
+        "createNewView": "Create New View",
+        "manageViews": "Manage Views",
+        "advancedFilters": "Advanced Filters",
+        "activeView": "Active View",
+        "view": "View"
       }
     },
     "actions": {
@@ -309,7 +317,7 @@
     "new_ticket": "New ticket",
     "ticket_information": "Ticket Information",
     "created": "Created",
-    "updated": "Updated", 
+    "updated": "Updated",
     "assigned_to": "Assigned To",
     "internal_actions": {
       "description_placeholder": "Internal action description...",
@@ -339,7 +347,6 @@
     "assigned_tickets": "Assigned Tickets",
     "ticket_number": "Ticket Number",
     "status": "Status",
-    "assigned_to": "Assigned To",
     "created_at": "Created At",
     "updated_at": "Updated At",
     "caller": "Caller",
@@ -689,12 +696,12 @@
     "roles": "Roles"
   },
   "customers": {
-    "title": "Title",
-    "list": "List",
-    "add": "Add",
-    "edit": "Edit",
-    "companies": "Companies",
-    "mappings": "Mappings"
+    "title": "Customers",
+    "list": "customers.list",
+    "add": "customers.add",
+    "edit": "customers.edit",
+    "companies": "customers.companies",
+    "mappings": "customers.mappings"
   },
   "timecard": {
     "title": "Title",
@@ -854,9 +861,6 @@
       "email_integration": "Integration with email system",
       "approval_reports": "Approval time reports"
     }
-  },
-  "customers": {
-    "title": "Customers"
   },
   "ticketSystem": {
     "title": "Support System"

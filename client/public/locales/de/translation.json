@@ -83,7 +83,9 @@
     "gdprCompliance": "GDPR Compliance",
     "productivityReports": "Productivity Reports",
     "teamPerformance": "Team Performance",
-    "systemAnalytics": "System Analytics"
+    "systemAnalytics": "System Analytics",
+    "compliance": "Compliance",
+    "reports": "Reports"
   },
   "errors": {
     "general": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
@@ -240,6 +242,23 @@
         "select_location_optional": "Select location optional",
         "no_specific_location": "No specific location",
         "select_location": "Select Location"
+      },
+      "views": {
+        "title": "Ticket Views",
+        "newView": "New View",
+        "manage": "Manage",
+        "defaultView": "Default View",
+        "public": "Public",
+        "default": "Default",
+        "noViewsAvailable": "No views available",
+        "viewName": "View Name",
+        "description": "Description (optional)",
+        "descriptionPlaceholder": "View description...",
+        "createNewView": "Create New View",
+        "manageViews": "Manage Views",
+        "advancedFilters": "Advanced Filters",
+        "activeView": "Active View",
+        "view": "View"
       }
     },
     "actions": {
@@ -833,5 +852,23 @@
   },
   "": {
     "": "."
+  },
+  "approvals": {
+    "title": "Approval Requests",
+    "development_description": "Module in development - Management of approval workflows for tickets.",
+    "under_development": "Module Under Development",
+    "development_message": "The approval request system is being developed and will be available soon.",
+    "planned_features": "Planned features",
+    "features": {
+      "custom_workflows": "Creation of custom approval workflows",
+      "approvers_by_category": "Definition of approvers by category or value",
+      "automatic_notifications": "Automatic notifications for approvers",
+      "approval_history": "History of approvals and rejections",
+      "email_integration": "Integration with email system",
+      "approval_reports": "Approval time reports"
+    }
+  },
+  "ticketSystem": {
+    "title": "Support System"
   }
 }

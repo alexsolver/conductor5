@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Settings, Plus, Eye, Users, Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface TicketViewSelectorProps {
   currentViewId?: string;
@@ -13,6 +14,7 @@ interface TicketViewSelectorProps {
 }
 
 export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSelectorProps) {
+  const { t } = useTranslation();
   const [isNewViewModalOpen, setIsNewViewModalOpen] = useState(false);
   const [isManageViewsOpen, setIsManageViewsOpen] = useState(false);
 
@@ -27,7 +29,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
   // Find current view
   const currentView = ticketViews.find((view: any) => view.id === currentViewId) || 
                      ticketViews.find((view: any) => view.is_default) ||
-                     { id: 'default', name: 'Visualização Padrão' };
+                     { id: 'default', name: t('tickets.views.defaultView') };
 
   if (isLoading) {
     return (
@@ -44,7 +46,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
         <div className="flex items-center gap-2">
           <Eye className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Visualização:
+{t('tickets.views.view')}:
           </span>
         </div>
 
@@ -56,7 +58,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                 {currentView.is_public && (
                   <Badge variant="secondary" className="text-xs">
                     <Users className="h-3 w-3 mr-1" />
-                    Pública
+                    {t('tickets.views.public')}
                   </Badge>
                 )}
               </div>
@@ -65,7 +67,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           <SelectContent>
             {ticketViews.length === 0 ? (
               <SelectItem value="default" disabled>
-                Nenhuma visualização disponível
+{t('tickets.views.noViewsAvailable')}
               </SelectItem>
             ) : (
               ticketViews.map((view: any) => (
@@ -75,12 +77,12 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                     {view.is_public && (
                       <Badge variant="secondary" className="text-xs">
                         <Users className="h-3 w-3 mr-1" />
-                        Pública
+                        {t('tickets.views.public')}
                       </Badge>
                     )}
                     {view.is_default && (
                       <Badge variant="outline" className="text-xs">
-                        Padrão
+{t('tickets.views.default')}
                       </Badge>
                     )}
                   </div>
@@ -102,28 +104,28 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Nova Visualização
+{t('tickets.views.newView')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Criar Nova Visualização</DialogTitle>
+              <DialogTitle>{t('tickets.views.createNewView')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Nome da Visualização</label>
-                <Input placeholder="Ex: Meus Tickets Urgentes" />
+                <label className="text-sm font-medium">{t('tickets.views.viewName')}</label>
+                <Input placeholder={t('tickets.views.descriptionPlaceholder')} />
               </div>
               <div>
-                <label className="text-sm font-medium">Descrição (opcional)</label>
-                <Input placeholder="Descrição da visualização..." />
+                <label className="text-sm font-medium">{t('tickets.views.description')}</label>
+                <Input placeholder={t('tickets.views.descriptionPlaceholder')} />
               </div>
               <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsNewViewModalOpen(false)}>
-                  Cancelar
+{t('common.cancel')}
                 </Button>
                 <Button>
-                  Criar Visualização
+{t('tickets.views.createNewView')}
                 </Button>
               </div>
             </div>
@@ -134,22 +136,22 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               <Settings className="h-4 w-4 mr-2" />
-              Gerenciar
+              {t('tickets.views.manage')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Gerenciar Visualizações
+{t('tickets.views.manageViews')}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               {ticketViews.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Filter className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>Nenhuma visualização personalizada criada ainda.</p>
-                  <p className="text-sm">Clique em "Nova Visualização" para criar sua primeira visualização.</p>
+                  <p>{t('tickets.views.noViewsAvailable')}</p>
+                  <p className="text-sm">Clique em "{t('tickets.views.newView')}" para criar sua primeira visualização.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -162,11 +164,11 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                             {view.is_public && (
                               <Badge variant="secondary">
                                 <Users className="h-3 w-3 mr-1" />
-                                Pública
+{t('tickets.views.public')}
                               </Badge>
                             )}
                             {view.is_default && (
-                              <Badge variant="outline">Padrão</Badge>
+                              <Badge variant="outline">{t('tickets.views.default')}</Badge>
                             )}
                           </div>
                         </div>
@@ -176,10 +178,10 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm">
-                          Editar
+{t('common.edit')}
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => onViewChange(view.id)}>
-                          Usar
+{t('common.use')}
                         </Button>
                       </div>
                     </div>

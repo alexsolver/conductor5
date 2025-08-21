@@ -27,9 +27,10 @@
     "error": "Erro",
     "back": "Back",
     "retry": "Retry",
-    "creating": "Creating",
-    "view": "View",
-    "description": "Descrição"
+    "creating": "Criando",
+    "view": "Visualizar", 
+    "description": "Descrição",
+    "use": "Usar"
   },
   "TranslationManager": {
     "title": "Gerenciamento de Traduções",
@@ -440,6 +441,23 @@
         "workaround_placeholder": "Descreva alguma solução temporária aplicada (opcional)",
         "select_location_optional": "Selecione o local de atendimento (opcional)",
         "no_specific_location": "Nenhum local específico"
+      },
+      "views": {
+        "title": "Visualizações de Tickets",
+        "newView": "Nova Visualização", 
+        "manage": "Gerenciar",
+        "defaultView": "Visualização Padrão",
+        "public": "Pública",
+        "default": "Padrão",
+        "noViewsAvailable": "Nenhuma visualização disponível", 
+        "viewName": "Nome da Visualização",
+        "description": "Descrição (opcional)",
+        "descriptionPlaceholder": "Descrição da visualização...",
+        "createNewView": "Criar Nova Visualização",
+        "manageViews": "Gerenciar Visualizações",
+        "advancedFilters": "Filtros Avançados",
+        "activeView": "Visualização Ativa",
+        "view": "Visualização"
       }
     },
     "messages": {
