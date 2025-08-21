@@ -102,7 +102,12 @@
     "moduleIntegrity": "Module Integrity Control",
     "multilocationSettings": "Multilocation Settings",
     "workspaceAdmin": "Workspace Administration",
-    "timecardReports": "Timecard Reports"
+    "timecardReports": "Timecard Reports",
+    "appearance": "Appearance",
+    "security": "Security",
+    "helpAndSupport": "Help & Support",
+    "administration": "Administration",
+    "logout": "Logout"
   },
   "errors": {
     "general": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
@@ -361,6 +366,22 @@
       "description_placeholder": "Internal action description...",
       "detailed_description_placeholder": "Detailed description of the action performed...",
       "description_too_long": "Description too long"
+    },
+    "views": {
+      "title": "Views",
+      "newView": "New View",
+      "manage": "Manage",
+      "activeView": "Active View",
+      "defaultView": "Default View",
+      "advancedFilters": "Advanced Filters",
+      "public": "Public",
+      "private": "Private",
+      "createNewView": "Create New View",
+      "manageViews": "Manage Views",
+      "name": "Name",
+      "description": "Description",
+      "descriptionPlaceholder": "View description",
+      "default": "Default"
     }
   },
   "userManagement": {
