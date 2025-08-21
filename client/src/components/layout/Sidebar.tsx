@@ -76,8 +76,8 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: "customers.title", href: "/customers", icon: Users },
-  { name: "ticketSystem.title", href: "/tickets", icon: Ticket },
+  { name: "customers", href: "/customers", icon: Users },
+  { name: "tickets", href: "/tickets", icon: Ticket },
   { name: "knowledgeBase", href: "/knowledge-base", icon: BookOpen },
   {
     name: "timecardControl",
@@ -166,7 +166,7 @@ const adminNavigation = [
       { name: "navigation.ticketConfiguration", href: "/ticket-configuration", icon: Settings },
       { name: "navigation.ticketTemplates", href: "/ticket-templates", icon: FileText },
       { name: "navigation.customFields", href: "/custom-fields-admin", icon: Wrench },
-      { name: "customers.title", href: "/customers", icon: Users },
+      { name: "customers", href: "/customers", icon: Users },
       { name: "navigation.beneficiaries", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "navigation.internalForms", href: "/internal-forms", icon: FileText },
       { name: "navigation.omniBridge", href: "/omnibridge", icon: MessageSquare },
@@ -224,7 +224,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   // Create navigation with dynamic badges and employment-specific terminology
   const navigation = baseNavigation.map(item => {
-    if (item.name.includes('ticketSystem.title') && activeTicketsCount > 0) {
+    if (item.name === 'tickets' && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
 
