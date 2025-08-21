@@ -1006,7 +1006,10 @@
     "interactions": "interacción",
     "interactions_plural": "interacciones",
     "actions": {
-      "title": "Acciones"
+      "title": "Acciones",
+      "back": "Atrás", 
+      "edit": "Editar",
+      "delete": "Eliminar"
     },
     "fields": {
       "datesTimeTitle": "FECHAS Y TIEMPO",

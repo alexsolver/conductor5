@@ -1039,7 +1039,10 @@
     "interactions": "interaction",
     "interactions_plural": "interactions",
     "actions": {
-      "title": "Actions"
+      "title": "Actions",
+      "back": "Back",
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "fields": {
       "datesTimeTitle": "DATES & TIME",
