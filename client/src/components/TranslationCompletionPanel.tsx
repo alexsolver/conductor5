@@ -69,31 +69,47 @@ export function TranslationCompletionPanel() {
 
   const autoCompleteTranslations = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/translation-completion/auto-complete-all');
+      console.log('🚀 [FRONTEND] Starting auto-completion process...');
+      
+      const response = await apiRequest('POST', '/api/translation-completion/auto-complete-all', {
+        body: JSON.stringify({ force: true }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [FRONTEND] Auto-completion failed:', errorData);
         throw new Error(errorData.message || 'Failed to auto-complete translations');
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log('✅ [FRONTEND] Auto-completion successful:', result);
+      return result;
     },
     onSuccess: (data) => {
+      const translationsAdded = data.data?.summary?.translationsAdded || 0;
+      console.log(`🎯 [FRONTEND] Added ${translationsAdded} translations`);
+      
       toast({
-        title: "Success",
-        description: `Auto-completion completed! Added ${data.data?.summary?.translationsAdded || 0} translations`,
+        title: "Sucesso!",
+        description: `Auto-completar concluído! Adicionadas ${translationsAdded} traduções`,
       });
 
       // Force multiple refreshes to ensure data is updated
-      setTimeout(() => refetch(), 500);
-      setTimeout(() => refetch(), 1500);
-      setTimeout(() => refetch(), 3000);
+      setTimeout(() => {
+        console.log('🔄 [FRONTEND] Refreshing data...');
+        refetch();
+      }, 1000);
+      setTimeout(() => refetch(), 2000);
+      setTimeout(() => refetch(), 4000);
     },
     onError: (error) => {
-      console.error('Auto-completion error:', error);
+      console.error('❌ [FRONTEND] Auto-completion error:', error);
       toast({
-        title: "Error", 
-        description: error.message || "Failed to complete translations automatically",
+        title: "Erro", 
+        description: error.message || "Falha ao completar traduções automaticamente",
         variant: "destructive",
       });
     }

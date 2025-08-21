@@ -348,17 +348,21 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
+    const { force = true } = req.body; // Default to force mode
+
     console.log('🔄 [TRANSLATION-COMPLETION] Starting comprehensive translation completion...');
+    console.log(`🚨 [SAFETY] Force mode enabled: ${force}`);
     console.log('🚨 [SAFETY] Only JSON translation files will be modified, source code is protected');
 
     console.log('📝 [STEP-1] Applying translations to all JSON files...');
 
     // Force completion to ensure translations are applied
-    const completionResults = await translationService.completeTranslations(true);
+    const completionResults = await translationService.completeTranslations(force);
 
     // Count total translations added
-    const totalAdded = completionResults.reduce((sum, result) => sum + result.added, 0);
+    const totalAdded = completionResults.reduce((sum, result) => sum + (result.added || 0), 0);
 
+    console.log(`🎯 [STEP-1] Completed: Added ${totalAdded} translations`);
     console.log('📊 [STEP-2] Generating completion report...');
 
     // Generate final report using the existing method
@@ -373,7 +377,13 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
         summary: {
           translationsAdded: totalAdded,
           languagesProcessed: translationService.SUPPORTED_LANGUAGES.length,
-          completionResults: completionResults
+          completionResults: completionResults,
+          detailedResults: completionResults.map(result => ({
+            language: result.language,
+            added: result.added || 0,
+            errors: result.errors || [],
+            totalTranslations: result.totalTranslations || 0
+          }))
         },
         safetyInfo: {
           codeFilesProtected: completionResults.reduce((sum, result) => sum + (result.successfulFiles || 0), 0),
@@ -387,6 +397,14 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
     console.log('🎯 [AUTO-COMPLETE-ALL] Process completed successfully');
     console.log('📋 [AUTO-COMPLETE-ALL] Final summary:', response.data.summary);
     console.log(`🔥 [AUTO-COMPLETE-ALL] Added ${totalAdded} total translations`);
+
+    // Log detailed results for debugging
+    completionResults.forEach(result => {
+      console.log(`📊 [RESULT] ${result.language}: +${result.added || 0} translations, ${(result.errors || []).length} errors`);
+      if (result.errors && result.errors.length > 0) {
+        console.log(`❌ [ERRORS] ${result.language}:`, result.errors.slice(0, 3));
+      }
+    });
 
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json(response);
