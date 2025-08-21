@@ -518,6 +518,14 @@
       "subject_required": "Subject Required",
       "customer_required": "Customer Required"
     },
+    "explore": "Explorar",
+    "details": "Detalhes", 
+    "materialsServices": "Materiais e Serviços",
+    "knowledgeBase": "Base de Conhecimento",
+    "internalActions": "Ações Internas",
+    "externalActions": "Ações Externas",
+    "links": "Vínculos",
+    "latestInteractions": "Últimas Interações",
     "actions": {
       "create": "Criar Ticket",
       "creating": "Criando...",

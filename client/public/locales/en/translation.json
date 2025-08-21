@@ -698,7 +698,16 @@
       "edit": "Edit",
       "details": "Details",
       "status": "Status",
-      "priority": "Priority"
+      "priority": "Priority",
+      "explore": "Explore",
+      "materialsServices": "Materials & Services",
+      "knowledgeBase": "Knowledge Base",
+      "internalActions": "Internal Actions",
+      "externalActions": "External Actions",
+      "links": "Links",
+      "latestInteractions": "Latest Interactions",
+      "notes": "Notes",
+      "history": "History"
     },
     "users": {
       "title": "Title",

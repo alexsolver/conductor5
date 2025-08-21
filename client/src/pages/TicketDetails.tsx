@@ -36,6 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from "react-i18next";
 
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
@@ -61,6 +62,7 @@ import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-va
 import { Checkbox } from "@/components/ui/checkbox";
 
 const TicketDetails = React.memo(() => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [location, navigate] = useLocation();
   const { toast } = useToast();
@@ -3411,7 +3413,7 @@ const TicketDetails = React.memo(() => {
       {/* Right Sidebar - Navigation Tabs - Responsivo */}
       <div className="w-full lg:w-80 bg-white border-l lg:border-l flex-shrink-0 h-full overflow-y-auto order-3">
         <div className="p-4 lg:p-6 border-b">
-          <h3 className="font-semibold text-lg">Explorar</h3>
+          <h3 className="font-semibold text-lg">{t('tickets.explore')}</h3>
         </div>
         <div
           className="p-2 lg:p-4 space-y-2"
@@ -3432,7 +3434,7 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
           >
             <FileText className="h-4 w-4" />
-            <span className="text-sm font-medium">Detalhes</span>
+            <span className="text-sm font-medium">{t('tickets.details')}</span>
           </button>
 
           {/* Campos Especiais - Nova ordem */}
@@ -3487,7 +3489,7 @@ const TicketDetails = React.memo(() => {
           >
             <div className="flex items-center gap-3">
               <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium">Notas</span>
+              <span className="text-sm font-medium">{t('tickets.notes')}</span>
             </div>
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
               {notesData?.length || 0}
@@ -3506,7 +3508,7 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
           >
             <Package className="h-4 w-4" />
-            <span className="text-sm font-medium">Materiais e Serviços</span>
+            <span className="text-sm font-medium">{t('tickets.materialsServices')}</span>
           </button>
 
           {/* Base de Conhecimento Tab */}
@@ -3523,7 +3525,7 @@ const TicketDetails = React.memo(() => {
             data-testid="tab-knowledge-base"
           >
             <BookOpen className="h-4 w-4" />
-            <span className="text-sm font-medium">Base de Conhecimento</span>
+            <span className="text-sm font-medium">{t('tickets.knowledgeBase')}</span>
           </button>
 
           <button
@@ -3540,7 +3542,7 @@ const TicketDetails = React.memo(() => {
           >
             <div className="flex items-center gap-3">
               <Settings className="h-4 w-4" />
-              <span className="text-sm font-medium">Ações Internas</span>
+              <span className="text-sm font-medium">{t('tickets.internalActions')}</span>
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
               {internalActionsData?.length || 0}
@@ -3561,7 +3563,7 @@ const TicketDetails = React.memo(() => {
           >
             <div className="flex items-center gap-3">
               <ExternalLink className="h-4 w-4" />
-              <span className="text-sm font-medium">Ações Externas</span>
+              <span className="text-sm font-medium">{t('tickets.externalActions')}</span>
             </div>
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
               0
@@ -3580,7 +3582,7 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
           >
             <History className="h-4 w-4" />
-            <span className="text-sm font-medium">Histórico</span>
+            <span className="text-sm font-medium">{t('tickets.history')}</span>
           </button>
 
           <button
@@ -3597,7 +3599,7 @@ const TicketDetails = React.memo(() => {
           >
             <div className="flex items-center gap-3">
               <Link className="h-4 w-4" />
-              <span className="text-sm font-medium">Vínculos</span>
+              <span className="text-sm font-medium">{t('tickets.links')}</span>
             </div>
             <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-600 border-cyan-300">
               {relatedTicketsData?.length || 0}
@@ -3613,7 +3615,7 @@ const TicketDetails = React.memo(() => {
             }`}
           >
             <Clock className="h-4 w-4" />
-            <span className="text-sm font-medium">Últimas Interações</span>
+            <span className="text-sm font-medium">{t('tickets.latestInteractions')}</span>
           </button>
         </div>
 

@@ -52,6 +52,16 @@
       "descriptionPlaceholder": "Descripción de la vista",
       "default": "Predeterminado"
     },
+    "explore": "Explorar",
+    "details": "Detalles", 
+    "materialsServices": "Materiales y Servicios",
+    "knowledgeBase": "Base de Conocimientos",
+    "internalActions": "Acciones Internas",
+    "externalActions": "Acciones Externas",
+    "links": "Vínculos",
+    "latestInteractions": "Últimas Interacciones",
+    "notes": "Notas",
+    "history": "Historial",
     "messages": {
       "error_creating": "[ES] tickets.messages.error_creating",
       "error_loading": "[ES] tickets.messages.error_loading",
