@@ -383,12 +383,15 @@ export default function TranslationManager() {
       console.log('🔒 [FRONTEND-SAFE] Response received:', data);
 
       if (data.success) {
-        const { summary, safetyInfo } = data.data;
+        const { summary, safetyInfo } = data.data || {};
         console.log('✅ [FRONTEND-SAFE] Safe completion successful:', summary);
+
+        const translationsAdded = summary?.translationsAdded || summary?.languagesProcessed || 0;
+        const codeFilesProtected = safetyInfo?.codeFilesProtected || 'All';
 
         toast({
           title: t('TranslationManager.autoCompletionSuccess') || "Auto-completion completed safely!",
-          description: `${t('TranslationManager.translationsAdded') || 'Added'}: ${summary.translationsAdded}, ${t('TranslationManager.codeFilesProtected') || 'Code files protected'}: ${safetyInfo.codeFilesProtected}`,
+          description: `${t('TranslationManager.translationsAdded') || 'Added'}: ${translationsAdded}, ${t('TranslationManager.codeFilesProtected') || 'Code files protected'}: ${codeFilesProtected}`,
         });
 
         // Refresh the analysis

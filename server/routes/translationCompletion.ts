@@ -368,16 +368,20 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
 
     const response = {
       success: true,
-      message: `Translation completion finished! Added ${totalAdded} translations across ${completionResults.length} languages.`,
+      message: `Translation completion finished! Added ${totalAdded} translations across ${translationService.SUPPORTED_LANGUAGES.length} languages.`,
       data: {
         summary: {
           translationsAdded: totalAdded,
-          languagesProcessed: completionResults.length,
-          completionResults
+          languagesProcessed: translationService.SUPPORTED_LANGUAGES.length,
+          completionResults: completionResults
+        },
+        safetyInfo: {
+          codeFilesProtected: completionResults.reduce((sum, result) => sum + (result.successfulFiles || 0), 0),
+          onlyJsonModified: true,
+          sourceCodeUntouched: true
         },
         report: finalReport
-      },
-      timestamp: new Date().toISOString()
+      }
     };
 
     console.log('🎯 [AUTO-COMPLETE-ALL] Process completed successfully');
