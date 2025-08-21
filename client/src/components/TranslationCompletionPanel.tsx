@@ -236,6 +236,7 @@ export function TranslationCompletionPanel() {
               const totalKeys = isNaN(stats.totalKeys) ? 0 : stats.totalKeys;
               const missingKeys = isNaN(stats.missingKeys) ? 0 : stats.missingKeys;
               const completeness = isNaN(stats.completeness) ? 0 : stats.completeness;
+              const existingKeys = totalKeys - missingKeys;
 
               return (
                 <div key={language} className="space-y-2">
