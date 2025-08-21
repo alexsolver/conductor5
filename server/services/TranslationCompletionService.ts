@@ -901,6 +901,7 @@ export class TranslationCompletionService {
     successfulFiles: number;
   }>> {
     console.log('🔄 [COMPLETE-TRANSLATIONS] Starting translation completion process...');
+    console.log(`🚨 [SAFETY] Force mode enabled: ${force}`);
     
     const results = [];
     
@@ -925,31 +926,48 @@ export class TranslationCompletionService {
         // Get all available keys from scanner
         const allKeysData = await this.scanExistingTranslationFiles();
         const allKeys = allKeysData.map(keyData => keyData.key);
+        
+        // Find missing keys (those that don't exist in current translation file)
+        const missingKeys = allKeys.filter(key => !this.hasTranslation(existingTranslations, key));
+        
+        console.log(`📊 [COMPLETE-TRANSLATIONS] Found ${missingKeys.length} missing keys for ${language}`);
+        
         let addedCount = 0;
         const errors: string[] = [];
 
         // Add missing keys with intelligent translations
-        for (const key of allKeys) {
-          if (!this.hasTranslation(existingTranslations, key)) {
-            const translation = await this.generateTranslation(key, language);
-            if (translation) {
-              this.setNestedProperty(existingTranslations, key, translation);
-              addedCount++;
-            } else {
-              errors.push(`Failed to generate translation for key: ${key}`);
+        if (force && missingKeys.length > 0) {
+          console.log(`🚀 [COMPLETE-TRANSLATIONS] Force mode - adding ${missingKeys.length} missing translations for ${language}`);
+          
+          for (const key of missingKeys) {
+            try {
+              const translation = this.generateTranslation(key, language);
+              if (translation) {
+                this.setNestedProperty(existingTranslations, key, translation);
+                addedCount++;
+                
+                if (addedCount % 100 === 0) {
+                  console.log(`🔄 [COMPLETE-TRANSLATIONS] Progress: ${addedCount}/${missingKeys.length} for ${language}`);
+                }
+              } else {
+                errors.push(`Failed to generate translation for key: ${key}`);
+              }
+            } catch (error) {
+              console.error(`❌ [COMPLETE-TRANSLATIONS] Error processing key ${key}:`, error);
+              errors.push(`Error with key ${key}: ${(error as Error).message}`);
             }
           }
-        }
 
-        // Write back to file if changes were made
-        if (addedCount > 0 || force) {
-          const dirPath = path.dirname(filePath);
-          if (!fsSync.existsSync(dirPath)) {
-            fsSync.mkdirSync(dirPath, { recursive: true });
+          // Write back to file if changes were made
+          if (addedCount > 0) {
+            const dirPath = path.dirname(filePath);
+            if (!fsSync.existsSync(dirPath)) {
+              fsSync.mkdirSync(dirPath, { recursive: true });
+            }
+            
+            fsSync.writeFileSync(filePath, JSON.stringify(existingTranslations, null, 2), 'utf-8');
+            console.log(`✅ [COMPLETE-TRANSLATIONS] Successfully added ${addedCount} translations to ${language}`);
           }
-          
-          fsSync.writeFileSync(filePath, JSON.stringify(existingTranslations, null, 2), 'utf-8');
-          console.log(`✅ [COMPLETE-TRANSLATIONS] Added ${addedCount} translations to ${language}`);
         }
 
         results.push({
@@ -972,14 +990,16 @@ export class TranslationCompletionService {
       }
     }
 
-    console.log(`🎯 [COMPLETE-TRANSLATIONS] Completed processing ${this.SUPPORTED_LANGUAGES.length} languages`);
+    const totalAdded = results.reduce((sum, result) => sum + result.added, 0);
+    console.log(`🎯 [COMPLETE-TRANSLATIONS] Process complete! Added ${totalAdded} total translations across ${this.SUPPORTED_LANGUAGES.length} languages`);
+    
     return results;
   }
 
   /**
    * Generate translation for a key in target language
    */
-  private async generateTranslation(key: string, targetLanguage: string): Promise<string | null> {
+  private generateTranslation(key: string, targetLanguage: string): string {
     try {
       // Try to find the translation in English first as a base
       const englishPath = path.join(this.TRANSLATIONS_DIR, 'en', 'translation.json');
@@ -1011,7 +1031,7 @@ export class TranslationCompletionService {
       }
     } catch (error) {
       console.warn(`⚠️ [GENERATE-TRANSLATION] Error generating translation for ${key}:`, (error as Error).message);
-      return null;
+      return key; // Fallback to the key itself
     }
   }
 
