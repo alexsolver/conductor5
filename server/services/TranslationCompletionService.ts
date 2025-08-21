@@ -539,49 +539,82 @@ export class TranslationCompletionService {
     console.log('📊 [COMPLETENESS-REPORT] Generating translation completeness report...');
 
     try {
-      // Escanear todas as chaves necessárias
-      const scannedKeys = await this.scanTranslationKeys();
-      console.log(`📋 [COMPLETENESS-REPORT] Found ${scannedKeys.length} total translation keys`);
+      // Get all keys from expansion scanner
+      const allKeys = await this.scanTranslationKeys();
 
-      // Analisar gaps de tradução
-      const gaps = await this.analyzeTranslationGaps();
+      // Also include keys from existing files
+      const existingKeys = await this.scanExistingTranslationFiles();
 
-      // Calcular estatísticas por idioma
-      const languageStats: Record<string, any> = {};
+      // Combine and deduplicate all keys
+      const combinedKeys = [...allKeys, ...existingKeys];
+      const uniqueKeysMap = new Map<string, TranslationKey>();
 
-      for (const language of this.SUPPORTED_LANGUAGES) {
-        const translations = await this.loadTranslations(language);
-        const totalKeys = scannedKeys.length;
-        const existingKeys = this.countExistingKeys(translations, scannedKeys.map(k => k.key));
-        const completeness = totalKeys > 0 ? Math.round((existingKeys / totalKeys) * 100) : 0;
-
-        // Ensure all values are valid numbers
-        const validTotalKeys = Number.isInteger(totalKeys) && totalKeys >= 0 ? totalKeys : 0;
-        const validExistingKeys = Number.isInteger(existingKeys) && existingKeys >= 0 ? existingKeys : 0;
-        const validMissingKeys = validTotalKeys - validExistingKeys;
-        const validCompleteness = validTotalKeys > 0 ? Math.round((validExistingKeys / validTotalKeys) * 100) : 0;
-
-        languageStats[language] = {
-          totalKeys: validExistingKeys,
-          missingKeys: validMissingKeys >= 0 ? validMissingKeys : 0,
-          completeness: validCompleteness >= 0 && validCompleteness <= 100 ? validCompleteness : 0,
-          translationsLoaded: Object.keys(translations).length || 0
-        };
+      for (const key of combinedKeys) {
+        if (!uniqueKeysMap.has(key.key)) {
+          uniqueKeysMap.set(key.key, key);
+        }
       }
 
-      const report = {
+      const finalKeys = Array.from(uniqueKeysMap.values());
+      const totalKeys = finalKeys.length;
+
+      console.log(`📋 [COMPLETENESS-REPORT] Total unique keys found: ${totalKeys}`);
+
+      const report: any = {
         summary: {
-          totalKeys: scannedKeys.length,
-          languageStats: languageStats,
-          overallCompleteness: Math.round(
-            Object.values(languageStats).reduce((sum, stats: any) => sum + stats.completeness, 0) / 
-            this.SUPPORTED_LANGUAGES.length
-          )
+          totalKeys,
+          languageStats: {},
+          scannedAt: new Date().toISOString(),
+          keysSources: {
+            fromScanner: allKeys.length,
+            fromExistingFiles: existingKeys.length,
+            totalUnique: totalKeys
+          }
         },
-        gaps: gaps,
-        generatedAt: new Date().toISOString(),
-        supportedLanguages: this.SUPPORTED_LANGUAGES
+        gaps: []
       };
+
+      // Analyze each supported language
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        const translations = await this.loadTranslations(language);
+        const missingKeys: string[] = [];
+        const moduleGaps: Record<string, string[]> = {};
+
+        // Check each key using the final combined key list
+        for (const keyObj of finalKeys) {
+          const keyPath = keyObj.key;
+          const value = this.getNestedValue(translations, keyPath);
+
+          if (value === undefined || value === null || value === '') {
+            missingKeys.push(keyPath);
+
+            // Group by module
+            const module = keyObj.module || 'common';
+            if (!moduleGaps[module]) {
+              moduleGaps[module] = [];
+            }
+            moduleGaps[module].push(keyPath);
+          }
+        }
+
+        const existingKeys = totalKeys - missingKeys.length;
+        const completeness = totalKeys > 0 ? Math.round((existingKeys / totalKeys) * 100) : 0;
+
+        report.summary.languageStats[language] = {
+          totalKeys,
+          existingKeys,
+          missingKeys: missingKeys.length,
+          completeness
+        };
+
+        if (missingKeys.length > 0) {
+          report.gaps.push({
+            language,
+            missingKeys,
+            moduleGaps
+          });
+        }
+      }
 
       console.log('✅ [COMPLETENESS-REPORT] Report generated successfully');
       return report;
@@ -820,47 +853,61 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Escaneia arquivos de tradução existentes para extrair todas as chaves
+   * Escaneia arquivos de tradução existentes para obter todas as chaves já definidas
    */
   private async scanExistingTranslationFiles(): Promise<TranslationKey[]> {
-    console.log('📁 [TRANSLATION-SCAN] Scanning existing translation files...');
     const keys: TranslationKey[] = [];
+    const uniqueKeys = new Set<string>();
 
-    for (const language of this.SUPPORTED_LANGUAGES) {
-      try {
-        const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
+    try {
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
 
-        if (await fs.access(filePath).then(() => true).catch(() => false)) {
-          const fileContent = await fs.readFile(filePath, 'utf8');
-          const translations = JSON.parse(fileContent);
-
-          // Recursively extract all keys from nested objects
-          const extractKeys = (obj: any, prefix = '') => {
-            Object.keys(obj).forEach(key => {
-              const fullKey = prefix ? `${prefix}.${key}` : key;
-              if (typeof obj[key] === 'object' && obj[key] !== null) {
-                extractKeys(obj[key], fullKey);
-              } else {
-                if (this.isValidTranslationKey(fullKey)) {
-                  keys.push({
-                    key: fullKey,
-                    module: this.extractModuleName(fullKey), // Adjusted to use fullKey for module extraction
-                    usage: [`translation file: ${language}`],
-                    priority: this.determinePriority(fullKey, 'translation')
-                  });
-                }
-              }
-            });
-          };
-
-          extractKeys(translations);
+        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+        if (!fileExists) {
+          console.warn(`⚠️ [EXISTING-SCAN] Translation file not found: ${filePath}`);
+          continue;
         }
-      } catch (error) {
-        console.warn(`⚠️ [TRANSLATION-SCAN] Could not scan ${language} translations:`, error);
+
+        const content = await fs.readFile(filePath, 'utf-8');
+        const translations = JSON.parse(content);
+
+        // Extract all nested keys recursively
+        const extractKeys = (obj: any, prefix = ''): string[] => {
+          const keys: string[] = [];
+          if (obj && typeof obj === 'object') {
+            for (const [key, value] of Object.entries(obj)) {
+              const fullKey = prefix ? `${prefix}.${key}` : key;
+              if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                keys.push(...extractKeys(value, fullKey));
+              } else {
+                keys.push(fullKey);
+              }
+            }
+          }
+          return keys;
+        };
+
+        const translationKeys = extractKeys(translations);
+
+        for (const key of translationKeys) {
+          if (!uniqueKeys.has(key)) {
+            uniqueKeys.add(key);
+            keys.push({
+              key,
+              module: this.detectModule(key),
+              usage: [`existing-${mappedLanguage}`],
+              priority: 'medium'
+            });
+          }
+        }
       }
+    } catch (error) {
+      console.error('❌ [EXISTING-SCAN] Error scanning existing translation files:', error);
     }
 
-    console.log(`📋 [TRANSLATION-SCAN] Found ${keys.length} keys from existing translation files`);
+    console.log(`📋 [TRANSLATION-SCAN] Found ${keys.length} unique keys from existing translation files`);
     return keys;
   }
 
@@ -937,29 +984,26 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Remove duplicatas e prioriza as chaves
+   * Remove duplicatas e prioriza chaves por frequência de uso
    */
   private deduplicateAndPrioritize(keys: TranslationKey[]): TranslationKey[] {
     const keyMap = new Map<string, TranslationKey>();
 
     for (const key of keys) {
-      const existing = keyMap.get(key.key);
-      if (!existing) {
-        keyMap.set(key.key, key);
-      } else {
-        // Merge usage arrays and keep highest priority
-        existing.usage = [...new Set([...existing.usage, ...key.usage])];
-        if (this.getPriorityWeight(key.priority) > this.getPriorityWeight(existing.priority)) {
-          existing.priority = key.priority;
+      if (keyMap.has(key.key)) {
+        const existing = keyMap.get(key.key)!;
+        // Merge usage arrays and increase priority if found in multiple places
+        existing.usage = Array.from(new Set([...existing.usage, ...key.usage]));
+        if (existing.usage.length > 1) {
+          existing.priority = 'high';
         }
+      } else {
+        keyMap.set(key.key, { ...key });
       }
     }
 
-    return Array.from(keyMap.values()).sort((a, b) => {
-      const priorityDiff = this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority);
-      if (priorityDiff !== 0) return priorityDiff;
-      return a.key.localeCompare(b.key);
-    });
+    // Return all unique keys - don't over-filter
+    return Array.from(keyMap.values());
   }
 
   /**
@@ -1468,7 +1512,7 @@ export class TranslationCompletionService {
           existing.priority = key.priority;
         }
       } else {
-        keyMap.set(key.key, key);
+        keyMap.set(key.key, { ...key });
       }
     }
 
