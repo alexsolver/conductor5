@@ -63,26 +63,28 @@ export function TranslationCompletionPanel() {
   const autoCompleteTranslations = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/translation-completion/auto-complete-all');
+
       if (!response.ok) {
-        throw new Error('Failed to auto-complete translations');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to auto-complete translations');
       }
-      const result = await response.json();
-      return result.data;
+
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "✅ Tradução Automática Concluída!",
-        description: data.message,
+        title: "Success",
+        description: `Auto-completion completed! Added ${data.data?.summary?.translationsAdded || 0} translations`,
       });
       refetch();
     },
     onError: (error) => {
-      toast({
-        title: "Erro na Tradução Automática",
-        description: "Falha ao completar traduções automaticamente",
-        variant: "destructive"
-      });
       console.error('Auto-completion error:', error);
+      toast({
+        title: "Error", 
+        description: error.message || "Failed to complete translations automatically",
+        variant: "destructive",
+      });
     }
   });
 
