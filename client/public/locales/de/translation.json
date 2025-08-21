@@ -290,7 +290,8 @@
       "edit": "Bearbeiten",
       "delete": "Löschen",
       "save": "Speichern",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "title": "Actions"
     },
     "description": "Beschreibung",
     "attachments": "Attachments",
@@ -382,6 +383,21 @@
       "description": "Description",
       "descriptionPlaceholder": "View description",
       "default": "Default"
+    },
+    "basicData": "Basic Data",
+    "interactions": "interaction",
+    "interactions_plural": "interactions",
+    "fields": {
+      "datesTimeTitle": "DATES & TIME",
+      "companyDetails": "Company Details",
+      "companyName": "Company Name",
+      "companyNotSpecified": "Company Not Specified",
+      "technicalResponsible": "Technical Responsible",
+      "beneficiaryDetails": "Beneficiary Details",
+      "subcategory": "Subcategory",
+      "subject": "Subject",
+      "description": "Description",
+      "action": "Action"
     }
   },
   "userManagement": {
@@ -667,7 +683,16 @@
       "edit": "Bearbeiten",
       "details": "Details",
       "status": "Status",
-      "priority": "Priority"
+      "priority": "Priority",
+      "explore": "Explore",
+      "materialsServices": "Materials & Services",
+      "knowledgeBase": "Knowledge Base",
+      "internalActions": "Internal Actions",
+      "externalActions": "External Actions",
+      "links": "Links",
+      "latestInteractions": "Latest Interactions",
+      "notes": "Notes",
+      "history": "History"
     },
     "users": {
       "title": "Titel",

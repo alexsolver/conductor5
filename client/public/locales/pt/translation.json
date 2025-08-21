@@ -651,7 +651,7 @@
       "subcategory": "Subcategoria"
     },
     "tabs": {
-      "communication": "Comunicação",
+      "communication": "Comunicação", 
       "attachments": "Anexos"
     },
     "actions": {
@@ -1118,7 +1118,8 @@
       "subcategory": "Subcategoria",
       "subject": "Assunto",
       "description": "Descrição",
-      "action": "Ação"
+      "action": "Ação",
+      "category": "Categoria"
     },
     "priority": "Prioridade",
     "internal_actions": {

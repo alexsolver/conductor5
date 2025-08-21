@@ -1905,7 +1905,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">💬 {t('tickets.tabs.communication')}</h2>
               <Badge variant="outline" className="text-xs">
-                {communicationsData.length} {t('tickets.interactions', { count: communicationsData.length })}
+                {communicationsData.length} {communicationsData.length === 1 ? t('tickets.interactions') : t('tickets.interactions_plural')}
               </Badge>
             </div>
 
