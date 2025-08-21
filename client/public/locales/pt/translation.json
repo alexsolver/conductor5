@@ -132,7 +132,21 @@
     "systemAnalytics": "Analytics do Sistema",
     "customers": "Clientes",
     "analytics": "Análises",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "saasAdmin": "Administração SaaS",
+    "tenantManagement": "Gestão de Tenants",
+    "performanceHealth": "Saúde e Performance",
+    "securitySettings": "Configurações de Segurança",
+    "billingUsage": "Faturamento e Uso",
+    "disasterRecovery": "Recuperação de Desastres",
+    "autoProvisioning": "Provisionamento Automático",
+    "translationManagement": "Gestão de Traduções",
+    "userManagement": "Gestão de Usuários",
+    "integrations": "Integrações",
+    "moduleIntegrity": "Controle de Integridade",
+    "multilocationSettings": "Configurações Multilocação",
+    "workspaceAdmin": "Administração do Workspace",
+    "timecardReports": "Relatórios de Ponto"
   },
   "components": {
     "button": {

@@ -89,7 +89,19 @@
     "scheduleTemplates": "[ES] Schedule Templates",
     "productivityReports": "[ES] Productivity Reports",
     "teamPerformance": "[ES] Team Performance",
-    "systemAnalytics": "[ES] System Analytics"
+    "systemAnalytics": "[ES] System Analytics",
+    "saasAdmin": "Administración SaaS",
+    "tenantManagement": "Gestión de Inquilinos", 
+    "performanceHealth": "Salud y Rendimiento",
+    "securitySettings": "Configuración de Seguridad",
+    "billingUsage": "Facturación y Uso",
+    "disasterRecovery": "Recuperación de Desastres",
+    "autoProvisioning": "Aprovisionamiento Automático",
+    "translationManagement": "Gestión de Traducciones",
+    "userManagement": "Gestión de Usuarios",
+    "moduleIntegrity": "Control de Integridad del Módulo",
+    "multilocationSettings": "Configuración de Múltiples Ubicaciones",
+    "workspaceAdmin": "Administración del Espacio de Trabajo"
   },
   "errors": {
     "general": "[ES] An unexpected error occurred. Please try again.",

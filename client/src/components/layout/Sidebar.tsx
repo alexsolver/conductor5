@@ -143,13 +143,13 @@ const adminNavigation = [
       { name: "translationManagement", href: "/translation-manager", icon: Languages },
       { name: "userManagement", href: "/user-management", icon: UserCog },
       // Removed: Multi-Tenant management - functionality eliminated from system
-      { name: "Integrações", href: "/saas-admin/integrations", icon: Plug },
-      { name: "Controle de Integridade", href: "/module-integrity", icon: Shield },
-      { name: "Multilocation Settings", href: "/tenant-admin/multilocation", icon: Globe2 },
+      { name: "integrations", href: "/saas-admin/integrations", icon: Plug },
+      { name: "moduleIntegrity", href: "/module-integrity", icon: Shield },
+      { name: "multilocationSettings", href: "/tenant-admin/multilocation", icon: Globe2 },
     ]
   },
   { 
-    name: "Workspace Admin", 
+    name: "workspaceAdmin", 
     icon: Settings, 
     roles: ['saas_admin', 'tenant_admin'],
     children: [
@@ -235,30 +235,30 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         ...item,
         children: [
           { 
-            name: terminology.recordLabel, 
+            name: "timecardRegistry", 
             href: timecardRoute, 
             icon: Clock 
           },
-          { name: t('navigation.workSchedules'), href: "/work-schedules", icon: Calendar },
+          { name: "workSchedules", href: "/work-schedules", icon: Calendar },
           { 
-            name: terminology.timeControlLabel, 
+            name: "hourBank", 
             href: "/hour-bank", 
             icon: CreditCard 
           },
-          { name: t('navigation.holidayCalendar'), href: "/holiday-calendar", icon: Calendar },
+          { name: "holidayCalendar", href: "/holiday-calendar", icon: Calendar },
           { 
-            name: terminology.reportLabel, 
+            name: "timecardReports", 
             href: "/timecard-reports", 
             icon: FileText 
           },
-          { name: t('navigation.cltCompliance'), href: "/clt-compliance", icon: Shield },
+          { name: "cltCompliance", href: "/clt-compliance", icon: Shield },
           { 
-            name: terminology.approvalLabel, 
+            name: "timecardApprovals", 
             href: "/timecard-approvals", 
             icon: CheckCircle 
           },
-          { name: t('navigation.approvalConfiguration'), href: "/timecard-approval-settings", icon: Settings },
-          { name: t('navigation.absenceManagement'), href: "/absence-management", icon: Calendar },
+          { name: "approvalConfiguration", href: "/timecard-approval-settings", icon: Settings },
+          { name: "absenceManagement", href: "/absence-management", icon: Calendar },
         ]
       };
     }

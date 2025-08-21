@@ -89,7 +89,20 @@
     "scheduleTemplates": "Schedule Templates",
     "productivityReports": "Productivity Reports",
     "teamPerformance": "Team Performance",
-    "systemAnalytics": "System Analytics"
+    "systemAnalytics": "System Analytics",
+    "saasAdmin": "SaaS Administration",
+    "tenantManagement": "Tenant Management", 
+    "performanceHealth": "Performance & Health",
+    "securitySettings": "Security Settings",
+    "billingUsage": "Billing & Usage",
+    "disasterRecovery": "Disaster Recovery",
+    "autoProvisioning": "Auto Provisioning",
+    "translationManagement": "Translation Management",
+    "userManagement": "User Management",
+    "moduleIntegrity": "Module Integrity Control",
+    "multilocationSettings": "Multilocation Settings",
+    "workspaceAdmin": "Workspace Administration",
+    "timecardReports": "Timecard Reports"
   },
   "errors": {
     "general": "An unexpected error occurred. Please try again.",
