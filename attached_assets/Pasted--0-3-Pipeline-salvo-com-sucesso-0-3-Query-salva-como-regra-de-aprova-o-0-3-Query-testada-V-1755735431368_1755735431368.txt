@@ -1,0 +1,1963 @@
+
+0 / 3
+Pipeline salvo com sucesso!
+0 / 3
+Query salva como regra de aprovação!
+0 / 3
+Query testada! Verifique o console para detalhes.
+0 / 3
+T
+0 / 3
+TranslationManager.allKeys
+3 / 3
+TranslationManager.allKeysDescription
+3 / 3
+TranslationManager.allKeysTitle
+3 / 3
+TranslationManager.analysisError
+3 / 3
+TranslationManager.analysisSuccess
+3 / 3
+TranslationManager.analyzeCompleteness
+3 / 3
+TranslationManager.autoCompleteAll
+3 / 3
+TranslationManager.autoCompletion
+3 / 3
+TranslationManager.autoCompletionError
+2 / 3
+TranslationManager.autoCompletionErrorDesc
+2 / 3
+TranslationManager.autoCompletionFailed
+2 / 3
+TranslationManager.autoCompletionSuccess
+2 / 3
+TranslationManager.autoCompletionTitle
+3 / 3
+TranslationManager.chooseLanguage
+3 / 3
+TranslationManager.codeFilesProtected
+2 / 3
+TranslationManager.description
+1 / 3
+TranslationManager.editorTitle
+3 / 3
+TranslationManager.expandedScan
+0 / 3
+TranslationManager.expansionError
+0 / 3
+TranslationManager.expansionSuccess
+0 / 3
+TranslationManager.languageSelection
+3 / 3
+TranslationManager.lastModified
+3 / 3
+TranslationManager.noKeysAvailable
+0 / 3
+TranslationManager.noKeysFound
+3 / 3
+TranslationManager.reanalyze
+2 / 3
+TranslationManager.restoreBackup
+3 / 3
+TranslationManager.saveChanges
+3 / 3
+TranslationManager.saving
+0 / 3
+TranslationManager.scanError
+3 / 3
+TranslationManager.scanKeys
+3 / 3
+TranslationManager.scanSuccess
+3 / 3
+TranslationManager.searchPlaceholder
+3 / 3
+TranslationManager.title
+3 / 3
+TranslationManager.translationEditor
+3 / 3
+TranslationManager.translationsAdded
+2 / 3
+TranslationManager.ultraSafeMode
+3 / 3
+\n
+0 / 3
+\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}\n\n${email.content}
+0 / 3
+a
+0 / 3
+absence
+0 / 3
+accessDenied
+0 / 3
+accessDeniedDescription
+0 / 3
+acquisitionCost
+0 / 3
+action
+0 / 3
+actions
+0 / 3
+active
+0 / 3
+add
+0 / 3
+address
+0 / 3
+admin.branding
+3 / 3
+admin.disaster
+3 / 3
+admin.integrations
+3 / 3
+admin.performance
+3 / 3
+admin.provisioning
+3 / 3
+admin.saas
+3 / 3
+admin.tenant
+3 / 3
+admin.title
+3 / 3
+admin.workflows
+3 / 3
+agenda
+0 / 3
+agent
+0 / 3
+all
+0 / 3
+allKeys
+0 / 3
+allKeysDescription
+0 / 3
+allKeysTitle
+0 / 3
+allTranslationKeys
+0 / 3
+all_tickets
+0 / 3
+analysisError
+0 / 3
+analysisSuccess
+0 / 3
+analytics
+3 / 3
+analytics.insights
+3 / 3
+analytics.performance
+3 / 3
+analytics.reports
+3 / 3
+analytics.satisfaction
+3 / 3
+analytics.title
+3 / 3
+analytics.trends
+3 / 3
+analyzeCompleteness
+0 / 3
+app.cancel
+3 / 3
+app.delete
+3 / 3
+app.edit
+3 / 3
+app.loading
+3 / 3
+app.name
+3 / 3
+app.save
+3 / 3
+approvals
+0 / 3
+articles
+0 / 3
+assetId
+0 / 3
+assetLevel
+0 / 3
+assetTag
+0 / 3
+assets.maintenance
+3 / 3
+assets.management
+3 / 3
+assets.planner
+3 / 3
+assets.title
+3 / 3
+assets.tracking
+3 / 3
+assign_ticket
+0 / 3
+assignedTo
+0 / 3
+assigned_tickets
+0 / 3
+assigned_to
+0 / 3
+ativo
+0 / 3
+attachment
+0 / 3
+attachments
+0 / 3
+auditor
+0 / 3
+auth.email
+3 / 3
+auth.forgotPassword
+3 / 3
+auth.invalidCredentials
+3 / 3
+auth.login
+3 / 3
+auth.loginError
+3 / 3
+auth.loginSuccess
+3 / 3
+auth.logout
+3 / 3
+auth.password
+3 / 3
+auth.rememberMe
+3 / 3
+auth.sessionExpired
+3 / 3
+auth.signIn
+3 / 3
+autoCompleteAll
+0 / 3
+autoCompleteButton
+0 / 3
+autoCompleteError
+0 / 3
+autoCompleteTitle
+0 / 3
+autoCompletion
+0 / 3
+autoCompletionError
+0 / 3
+autoCompletionErrorDesc
+0 / 3
+autoCompletionFailed
+0 / 3
+autoCompletionSuccess
+0 / 3
+autoCompletionTitle
+0 / 3
+automaticMargin
+0 / 3
+automation
+0 / 3
+autonomous
+0 / 3
+availableLanguages
+0 / 3
+back_to_tickets
+0 / 3
+backupRestored
+0 / 3
+backupRestoredDescription
+0 / 3
+basic
+0 / 3
+beneficiaries
+3 / 3
+beneficiaries.add
+3 / 3
+beneficiaries.contact
+3 / 3
+beneficiaries.details
+3 / 3
+beneficiaries.document
+3 / 3
+beneficiaries.edit
+3 / 3
+beneficiaries.list
+3 / 3
+beneficiaries.title
+3 / 3
+beneficiary
+0 / 3
+billing
+0 / 3
+branches
+0 / 3
+brand
+0 / 3
+branding
+0 / 3
+business_impact_placeholder
+0 / 3
+buttons.add
+2 / 3
+buttons.close
+2 / 3
+buttons.remove
+2 / 3
+buttons.submit
+2 / 3
+by
+0 / 3
+calendar
+0 / 3
+caller
+0 / 3
+cancel
+0 / 3
+cancelled
+0 / 3
+catalog
+0 / 3
+category
+0 / 3
+certificates
+0 / 3
+certifyingBody
+0 / 3
+change_history
+0 / 3
+channels
+0 / 3
+choose
+0 / 3
+chooseLanguage
+0 / 3
+city
+0 / 3
+clear
+0 / 3
+close
+0 / 3
+close_ticket
+0 / 3
+closed
+0 / 3
+code
+0 / 3
+codeFilesProtected
+0 / 3
+common.actions
+2 / 3
+common.all
+2 / 3
+common.back
+0 / 3
+common.by
+3 / 3
+common.cancel
+3 / 3
+common.choose
+2 / 3
+common.close
+3 / 3
+common.create
+2 / 3
+common.creating
+0 / 3
+common.delete
+3 / 3
+common.download
+3 / 3
+common.edit
+3 / 3
+common.error
+0 / 3
+common.filter
+2 / 3
+common.loading
+3 / 3
+common.loading_attachments
+3 / 3
+common.loading_communications
+3 / 3
+common.loading_history
+3 / 3
+common.loading_notes
+3 / 3
+common.none
+2 / 3
+common.open
+3 / 3
+common.pleaseWait
+2 / 3
+common.processing
+2 / 3
+common.retry
+0 / 3
+common.save
+3 / 3
+common.search
+3 / 3
+common.select
+2 / 3
+common.update
+2 / 3
+common.view
+0 / 3
+communications
+0 / 3
+companies
+3 / 3
+companies.branches
+3 / 3
+companies.departments
+3 / 3
+companies.hierarchy
+3 / 3
+companies.profile
+3 / 3
+companies.subsidiaries
+3 / 3
+companies.title
+3 / 3
+company
+0 / 3
+compliance
+3 / 3
+compliance.certificates
+3 / 3
+compliance.gdpr
+3 / 3
+compliance.integrity
+3 / 3
+compliance.management
+3 / 3
+compliance.security
+3 / 3
+compliance.title
+3 / 3
+components.breadcrumb.dashboard
+3 / 3
+components.breadcrumb.home
+3 / 3
+components.button.cancel
+3 / 3
+components.button.close
+3 / 3
+components.button.confirm
+3 / 3
+components.button.delete
+3 / 3
+components.button.edit
+3 / 3
+components.button.loading
+3 / 3
+components.button.reset
+3 / 3
+components.button.save
+3 / 3
+components.button.submit
+3 / 3
+components.dialog.cancel
+3 / 3
+components.dialog.close
+3 / 3
+components.dialog.confirm
+3 / 3
+components.dialog.delete
+3 / 3
+components.dialog.save
+3 / 3
+components.input.clear
+3 / 3
+components.input.invalid
+3 / 3
+components.input.placeholder
+3 / 3
+components.input.required
+3 / 3
+components.input.search
+3 / 3
+components.select.clear
+3 / 3
+components.select.placeholder
+3 / 3
+components.select.search
+3 / 3
+components.table.entries
+3 / 3
+components.table.filter
+3 / 3
+components.table.loading
+3 / 3
+components.table.of
+3 / 3
+components.table.search
+3 / 3
+components.table.showing
+3 / 3
+conditions
+0 / 3
+configuration.fields
+3 / 3
+configuration.notifications
+3 / 3
+configuration.settings
+3 / 3
+configuration.simple
+3 / 3
+configuration.templates
+3 / 3
+configuration.title
+3 / 3
+configuration.translations
+3 / 3
+confirm
+0 / 3
+confirmDelete
+0 / 3
+confirmRestore
+0 / 3
+contact
+0 / 3
+contactEmail
+0 / 3
+contactPerson
+0 / 3
+contactPhone
+0 / 3
+content-type
+0 / 3
+contracts
+0 / 3
+country
+0 / 3
+create
+0 / 3
+create_ticket
+0 / 3
+created
+0 / 3
+createdAt
+0 / 3
+created_at
+0 / 3
+created_success
+0 / 3
+creating
+0 / 3
+critical
+0 / 3
+currency
+0 / 3
+currentLanguage
+0 / 3
+customer
+0 / 3
+customer_required
+0 / 3
+customers
+3 / 3
+customers.add
+3 / 3
+customers.companies
+3 / 3
+customers.edit
+3 / 3
+customers.list
+3 / 3
+customers.mappings
+3 / 3
+customers.title
+3 / 3
+dashboard
+3 / 3
+dashboard.overview
+3 / 3
+dashboard.statistics
+3 / 3
+dashboard.stats
+3 / 3
+dashboard.stats.active_tickets
+0 / 3
+dashboard.stats.avg_resolution_time
+0 / 3
+dashboard.stats.online_agents
+0 / 3
+dashboard.stats.resolved_today
+0 / 3
+dashboard.title
+3 / 3
+dashboard.welcome
+3 / 3
+dashboards
+3 / 3
+dashboards.create
+3 / 3
+dashboards.layout
+3 / 3
+dashboards.sharing
+3 / 3
+dashboards.template
+3 / 3
+dashboards.title
+3 / 3
+dashboards.widget
+3 / 3
+date
+0 / 3
+default
+0 / 3
+delete
+0 / 3
+delete_ticket
+0 / 3
+deleted
+0 / 3
+deliveryTerms
+0 / 3
+demo
+0 / 3
+department
+0 / 3
+departments
+0 / 3
+description
+0 / 3
+description_placeholder
+0 / 3
+details
+0 / 3
+disaster
+0 / 3
+documentNumber
+0 / 3
+download
+0 / 3
+draft
+0 / 3
+duplicate_ticket
+0 / 3
+edit
+0 / 3
+edit_ticket
+0 / 3
+editorTitle
+0 / 3
+email
+0 / 3
+en
+0 / 3
+enterText
+0 / 3
+entries
+0 / 3
+error
+0 / 3
+errorRestoringBackup
+0 / 3
+errorSavingTranslations
+0 / 3
+error_creating
+0 / 3
+error_loading
+0 / 3
+errors.general
+2 / 3
+errors.generic
+0 / 3
+escalate_ticket
+0 / 3
+existing_attachments
+0 / 3
+expenses
+0 / 3
+expirationDate
+0 / 3
+features
+0 / 3
+field
+0 / 3
+fields
+0 / 3
+filter
+0 / 3
+financial.billing
+3 / 3
+financial.contracts
+3 / 3
+financial.expenses
+3 / 3
+financial.title
+3 / 3
+first_select_category
+0 / 3
+first_select_company
+0 / 3
+first_select_subcategory
+0 / 3
+forgotPassword
+0 / 3
+forms
+3 / 3
+forms.actions.cancel
+3 / 3
+forms.actions.clear
+3 / 3
+forms.actions.create
+3 / 3
+forms.actions.delete
+3 / 3
+forms.actions.edit
+3 / 3
+forms.actions.filter
+3 / 3
+forms.actions.reset
+3 / 3
+forms.actions.save
+3 / 3
+forms.actions.search
+3 / 3
+forms.actions.submit
+3 / 3
+forms.actions.update
+3 / 3
+forms.assignedTo
+2 / 3
+forms.category
+2 / 3
+forms.createdAt
+2 / 3
+forms.description
+2 / 3
+forms.email
+2 / 3
+forms.name
+2 / 3
+forms.priority
+2 / 3
+forms.status
+3 / 3
+forms.status.created
+3 / 3
+forms.status.deleted
+3 / 3
+forms.status.error
+3 / 3
+forms.status.loading
+3 / 3
+forms.status.saving
+3 / 3
+forms.status.success
+3 / 3
+forms.status.updated
+3 / 3
+forms.updatedAt
+2 / 3
+forms.validation.date
+3 / 3
+forms.validation.email
+3 / 3
+forms.validation.numeric
+3 / 3
+forms.validation.phone
+3 / 3
+forms.validation.required
+3 / 3
+gdpr
+0 / 3
+general
+0 / 3
+hierarchy
+0 / 3
+high
+0 / 3
+history
+0 / 3
+home
+0 / 3
+hr.absence
+3 / 3
+hr.calendar
+3 / 3
+hr.schedules
+3 / 3
+hr.skills
+3 / 3
+hr.teams
+3 / 3
+in_progress
+0 / 3
+info
+0 / 3
+insights
+0 / 3
+integrations
+0 / 3
+integrity
+0 / 3
+internal_notes
+0 / 3
+invalid
+0 / 3
+invalidCredentials
+0 / 3
+inventory.catalog
+3 / 3
+inventory.stock
+3 / 3
+inventory.suppliers
+3 / 3
+inventory.title
+3 / 3
+invite
+0 / 3
+isPreferred
+0 / 3
+issueDate
+0 / 3
+keysInSystem
+0 / 3
+knowledge.articles
+3 / 3
+knowledge.search
+3 / 3
+knowledge.title
+3 / 3
+landing
+3 / 3
+landing.features
+3 / 3
+landing.title
+3 / 3
+landing.welcome
+3 / 3
+languageBeingEdited
+0 / 3
+languageSelection
+0 / 3
+lastModified
+0 / 3
+layout
+0 / 3
+link_ticket
+0 / 3
+list
+0 / 3
+loading
+0 / 3
+loadingKeys
+0 / 3
+loadingLanguages
+0 / 3
+loadingTranslations
+0 / 3
+loading_attachments
+0 / 3
+loading_communications
+0 / 3
+loading_history
+0 / 3
+loading_notes
+0 / 3
+location
+0 / 3
+locations.management
+3 / 3
+locations.new
+3 / 3
+locations.title
+3 / 3
+login
+0 / 3
+loginError
+0 / 3
+loginSuccess
+0 / 3
+logout
+0 / 3
+low
+0 / 3
+lpu
+0 / 3
+maintenance
+0 / 3
+management
+0 / 3
+mappings
+0 / 3
+medium
+0 / 3
+merge_ticket
+0 / 3
+message
+0 / 3
+messages.error
+2 / 3
+messages.info
+2 / 3
+messages.success
+2 / 3
+messages.warning
+2 / 3
+modals.confirm
+3 / 3
+modals.confirm.cancel
+3 / 3
+modals.confirm.delete
+3 / 3
+modals.confirm.message
+3 / 3
+modals.confirm.save
+3 / 3
+modals.confirm.title
+3 / 3
+modals.confirmDelete
+2 / 3
+model
+0 / 3
+my_tickets
+0 / 3
+name
+0 / 3
+navigation.analytics
+2 / 3
+navigation.customers
+2 / 3
+navigation.dashboard
+3 / 3
+navigation.home
+3 / 3
+navigation.next
+3 / 3
+navigation.previous
+3 / 3
+navigation.settings
+2 / 3
+navigation.tickets
+2 / 3
+nested
+0 / 3
+new
+0 / 3
+new_ticket
+0 / 3
+next
+0 / 3
+noKeysFound
+0 / 3
+noTranslationsFound
+0 / 3
+no_actions
+0 / 3
+no_attachments
+0 / 3
+no_beneficiary
+0 / 3
+no_communications
+0 / 3
+no_companies
+0 / 3
+no_customers_for_company
+0 / 3
+no_description
+0 / 3
+no_history
+0 / 3
+no_notes
+0 / 3
+no_specific_location
+0 / 3
+no_subcategories
+0 / 3
+no_tickets
+0 / 3
+none
+0 / 3
+not_found
+0 / 3
+note_internal
+0 / 3
+note_public
+0 / 3
+notes
+0 / 3
+notifications
+3 / 3
+notifications.channels
+3 / 3
+notifications.history
+3 / 3
+notifications.preferences
+3 / 3
+notifications.settings
+3 / 3
+notifications.templates
+3 / 3
+notifications.title
+3 / 3
+numeric
+0 / 3
+object
+0 / 3
+objectives
+0 / 3
+of
+0 / 3
+omnibridge
+0 / 3
+open
+0 / 3
+openAction
+0 / 3
+operations.agenda
+3 / 3
+operations.automation
+3 / 3
+operations.lpu
+3 / 3
+operations.omnibridge
+3 / 3
+operations.sla
+3 / 3
+operations.title
+3 / 3
+overview
+0 / 3
+pages.customers.add
+3 / 3
+pages.customers.edit
+3 / 3
+pages.customers.list
+3 / 3
+pages.customers.search
+3 / 3
+pages.customers.title
+3 / 3
+pages.customers.total
+3 / 3
+pages.dashboard.overview
+3 / 3
+pages.dashboard.statistics
+3 / 3
+pages.dashboard.title
+3 / 3
+pages.dashboard.welcome
+3 / 3
+pages.tickets.create
+3 / 3
+pages.tickets.details
+3 / 3
+pages.tickets.edit
+3 / 3
+pages.tickets.list
+3 / 3
+pages.tickets.priority
+3 / 3
+pages.tickets.status
+3 / 3
+pages.tickets.title
+3 / 3
+pages.users.add
+3 / 3
+pages.users.edit
+3 / 3
+pages.users.invite
+3 / 3
+pages.users.list
+3 / 3
+pages.users.permissions
+3 / 3
+pages.users.roles
+3 / 3
+pages.users.title
+3 / 3
+password
+0 / 3
+paymentTerms
+0 / 3
+performance
+0 / 3
+permissions
+0 / 3
+phone
+0 / 3
+placeholder
+0 / 3
+placeholders.enterText
+2 / 3
+placeholders.searchHere
+2 / 3
+placeholders.selectOption
+2 / 3
+planner
+0 / 3
+pleaseWait
+0 / 3
+postalCode
+0 / 3
+preferences
+0 / 3
+previous
+0 / 3
+priority
+0 / 3
+private
+0 / 3
+processing
+0 / 3
+productivity
+0 / 3
+profile
+0 / 3
+provisioning
+0 / 3
+pt
+0 / 3
+pt-BR
+0 / 3
+purchasePrice
+0 / 3
+reanalyze
+0 / 3
+rememberMe
+0 / 3
+remove
+0 / 3
+reopen_ticket
+0 / 3
+reporting.analytics
+3 / 3
+reporting.create
+3 / 3
+reporting.dashboards
+3 / 3
+reporting.edit
+3 / 3
+reporting.productivity
+3 / 3
+reporting.reports
+3 / 3
+reporting.title
+3 / 3
+reports
+0 / 3
+required
+0 / 3
+reset
+0 / 3
+resolution
+0 / 3
+resolved
+0 / 3
+restoreBackup
+0 / 3
+roles
+0 / 3
+saas
+0 / 3
+satisfaction
+0 / 3
+save
+0 / 3
+saveChanges
+0 / 3
+saved
+0 / 3
+saving
+0 / 3
+scanError
+0 / 3
+scanKeys
+0 / 3
+scanSuccess
+0 / 3
+scheduledDate
+0 / 3
+schedules
+0 / 3
+scope
+0 / 3
+search
+0 / 3
+searchHere
+0 / 3
+searchPlaceholder
+0 / 3
+security
+0 / 3
+select
+0 / 3
+selectLanguage
+0 / 3
+selectLanguageDescription
+0 / 3
+selectOption
+0 / 3
+select_action
+0 / 3
+select_beneficiary
+0 / 3
+select_category
+0 / 3
+select_company
+0 / 3
+select_customer
+0 / 3
+select_location
+0 / 3
+select_location_optional
+0 / 3
+select_priority
+0 / 3
+select_subcategory
+0 / 3
+select_urgency
+0 / 3
+serialNumber
+0 / 3
+sessionExpired
+0 / 3
+settings
+0 / 3
+settings.currency
+0 / 3
+settings.language
+0 / 3
+settings.timezone
+0 / 3
+settings.title
+0 / 3
+sharing
+0 / 3
+showing
+0 / 3
+signIn
+0 / 3
+simple
+0 / 3
+skills
+0 / 3
+sla
+0 / 3
+specialized.approvals
+3 / 3
+specialized.beneficiaries
+3 / 3
+specialized.companies
+3 / 3
+specialized.demo
+3 / 3
+specialized.forms
+3 / 3
+specialized.landing
+3 / 3
+specialized.title
+3 / 3
+standard
+0 / 3
+state
+0 / 3
+statistics
+0 / 3
+stats
+0 / 3
+status
+0 / 3
+stock
+0 / 3
+subcategory
+0 / 3
+subject
+0 / 3
+subject_placeholder
+0 / 3
+subject_required
+0 / 3
+submit
+0 / 3
+subsidiaries
+0 / 3
+success
+2 / 3
+success.saved
+2 / 3
+suppliers
+0 / 3
+supportedLanguages
+0 / 3
+symptoms_placeholder
+0 / 3
+teams
+0 / 3
+template
+0 / 3
+templates
+0 / 3
+tenant
+0 / 3
+text
+0 / 3
+ticket_number
+0 / 3
+tickets
+3 / 3
+tickets.action
+0 / 3
+tickets.actions.back_to_tickets
+3 / 3
+tickets.actions.cancel
+3 / 3
+tickets.actions.create
+3 / 3
+tickets.actions.creating
+3 / 3
+tickets.actions.delete
+3 / 3
+tickets.actions.edit
+3 / 3
+tickets.actions.save
+3 / 3
+tickets.all_tickets
+3 / 3
+tickets.assign_ticket
+3 / 3
+tickets.assigned_tickets
+3 / 3
+tickets.assigned_to
+3 / 3
+tickets.attachment
+3 / 3
+tickets.attachments
+3 / 3
+tickets.beneficiary
+3 / 3
+tickets.business_impact
+0 / 3
+tickets.caller
+3 / 3
+tickets.category
+3 / 3
+tickets.change_history
+3 / 3
+tickets.close_ticket
+3 / 3
+tickets.communication
+0 / 3
+tickets.communications
+3 / 3
+tickets.company
+3 / 3
+tickets.create_ticket
+3 / 3
+tickets.created_at
+3 / 3
+tickets.customer
+3 / 3
+tickets.delete_ticket
+3 / 3
+tickets.description
+3 / 3
+tickets.duplicate_ticket
+3 / 3
+tickets.edit_ticket
+3 / 3
+tickets.escalate_ticket
+3 / 3
+tickets.existing_attachments
+3 / 3
+tickets.field
+3 / 3
+tickets.forms.create.business_impact_placeholder
+3 / 3
+tickets.forms.create.description_placeholder
+3 / 3
+tickets.forms.create.first_select_category
+3 / 3
+tickets.forms.create.first_select_company
+3 / 3
+tickets.forms.create.first_select_subcategory
+3 / 3
+tickets.forms.create.no_actions
+3 / 3
+tickets.forms.create.no_beneficiary
+3 / 3
+tickets.forms.create.no_companies
+3 / 3
+tickets.forms.create.no_customers_for_company
+3 / 3
+tickets.forms.create.no_specific_location
+3 / 3
+tickets.forms.create.no_subcategories
+3 / 3
+tickets.forms.create.select_action
+3 / 3
+tickets.forms.create.select_beneficiary
+3 / 3
+tickets.forms.create.select_category
+3 / 3
+tickets.forms.create.select_company
+3 / 3
+tickets.forms.create.select_customer
+3 / 3
+tickets.forms.create.select_location
+3 / 3
+tickets.forms.create.select_location_optional
+3 / 3
+tickets.forms.create.select_priority
+3 / 3
+tickets.forms.create.select_subcategory
+3 / 3
+tickets.forms.create.select_urgency
+3 / 3
+tickets.forms.create.subject_placeholder
+3 / 3
+tickets.forms.create.symptoms_placeholder
+3 / 3
+tickets.forms.create.title
+3 / 3
+tickets.forms.create.workaround_placeholder
+3 / 3
+tickets.history
+3 / 3
+tickets.internal_notes
+3 / 3
+tickets.link_ticket
+3 / 3
+tickets.location
+3 / 3
+tickets.merge_ticket
+3 / 3
+tickets.messages.created_success
+3 / 3
+tickets.messages.error_creating
+3 / 3
+tickets.messages.error_loading
+3 / 3
+tickets.messages.loading
+3 / 3
+tickets.messages.no_attachments
+3 / 3
+tickets.messages.no_communications
+3 / 3
+tickets.messages.no_description
+3 / 3
+tickets.messages.no_history
+3 / 3
+tickets.messages.no_notes
+3 / 3
+tickets.messages.no_tickets
+3 / 3
+tickets.messages.not_found
+3 / 3
+tickets.messages.updated_success
+3 / 3
+tickets.my_tickets
+3 / 3
+tickets.new_ticket
+3 / 3
+tickets.note_internal
+3 / 3
+tickets.note_public
+3 / 3
+tickets.notes
+3 / 3
+tickets.priority
+3 / 3
+tickets.priority_options.critical
+3 / 3
+tickets.priority_options.high
+3 / 3
+tickets.priority_options.low
+3 / 3
+tickets.priority_options.medium
+3 / 3
+tickets.reopen_ticket
+3 / 3
+tickets.resolution
+3 / 3
+tickets.status
+3 / 3
+tickets.status_options.cancelled
+3 / 3
+tickets.status_options.closed
+3 / 3
+tickets.status_options.in_progress
+3 / 3
+tickets.status_options.new
+3 / 3
+tickets.status_options.open
+3 / 3
+tickets.status_options.resolved
+3 / 3
+tickets.subcategory
+3 / 3
+tickets.subject
+3 / 3
+tickets.symptoms
+0 / 3
+tickets.ticket_number
+3 / 3
+tickets.title
+3 / 3
+tickets.updated_at
+3 / 3
+tickets.upload_attachments
+3 / 3
+tickets.uploaded_by
+3 / 3
+tickets.urgency
+0 / 3
+tickets.validation.customer_required
+3 / 3
+tickets.validation.subject_required
+3 / 3
+tickets.workaround
+0 / 3
+timecard.approvals
+3 / 3
+timecard.autonomous
+3 / 3
+timecard.compliance
+3 / 3
+timecard.reports
+3 / 3
+timecard.settings
+3 / 3
+timecard.title
+3 / 3
+title
+0 / 3
+topLevel
+0 / 3
+total
+0 / 3
+totalKeys
+0 / 3
+tracking
+0 / 3
+tradeName
+0 / 3
+translationEditor
+0 / 3
+translationFor
+0 / 3
+translationManager.accessDenied
+3 / 3
+translationManager.accessDeniedDescription
+3 / 3
+translationManager.allKeys
+3 / 3
+translationManager.allKeysDescription
+3 / 3
+translationManager.allTranslationKeys
+3 / 3
+translationManager.autoCompleteButton
+3 / 3
+translationManager.autoCompleteError
+3 / 3
+translationManager.autoCompleteTitle
+3 / 3
+translationManager.autoCompletion
+3 / 3
+translationManager.availableLanguages
+3 / 3
+translationManager.backupRestored
+3 / 3
+translationManager.backupRestoredDescription
+3 / 3
+translationManager.confirmRestore
+3 / 3
+translationManager.currentLanguage
+3 / 3
+translationManager.description
+3 / 3
+translationManager.error
+3 / 3
+translationManager.errorRestoringBackup
+3 / 3
+translationManager.errorSavingTranslations
+3 / 3
+translationManager.keysInSystem
+3 / 3
+translationManager.languageBeingEdited
+3 / 3
+translationManager.lastModified
+3 / 3
+translationManager.loadingKeys
+3 / 3
+translationManager.loadingLanguages
+3 / 3
+translationManager.loadingTranslations
+3 / 3
+translationManager.nested
+1 / 3
+translationManager.noKeysFound
+3 / 3
+translationManager.noTranslationsFound
+3 / 3
+translationManager.object
+3 / 3
+translationManager.restoreBackup
+3 / 3
+translationManager.saveChanges
+3 / 3
+translationManager.saving
+3 / 3
+translationManager.searchPlaceholder
+3 / 3
+translationManager.selectLanguage
+3 / 3
+translationManager.selectLanguageDescription
+3 / 3
+translationManager.success
+3 / 3
+translationManager.supportedLanguages
+3 / 3
+translationManager.text
+3 / 3
+translationManager.title
+3 / 3
+translationManager.topLevel
+1 / 3
+translationManager.totalKeys
+3 / 3
+translationManager.translationEditor
+3 / 3
+translationManager.translationFor
+3 / 3
+translationManager.translationsSaved
+3 / 3
+translationManager.translationsUpdated
+3 / 3
+translations
+0 / 3
+translationsAdded
+0 / 3
+translationsSaved
+0 / 3
+translationsUpdated
+0 / 3
+trends
+0 / 3
+type
+0 / 3
+ultraSafeMode
+0 / 3
+update
+0 / 3
+updated
+0 / 3
+updatedAt
+0 / 3
+updated_at
+0 / 3
+updated_success
+0 / 3
+upload_attachments
+0 / 3
+uploaded_by
+0 / 3
+userManagement.acceptedInvitations
+0 / 3
+userManagement.accountInfo
+0 / 3
+userManagement.action
+0 / 3
+userManagement.activate
+0 / 3
+userManagement.active
+0 / 3
+userManagement.activeSessions
+0 / 3
+userManagement.activeSessionsDesc
+0 / 3
+userManagement.activeSessionsList
+0 / 3
+userManagement.activityLog
+0 / 3
+userManagement.activityLogDesc
+0 / 3
+userManagement.allActions
+0 / 3
+userManagement.allSessionsTerminateError
+0 / 3
+userManagement.allSessionsTerminated
+0 / 3
+userManagement.basicInfo
+0 / 3
+userManagement.copyLink
+0 / 3
+userManagement.createActions
+0 / 3
+userManagement.createUser
+0 / 3
+userManagement.deactivate
+0 / 3
+userManagement.deleteActions
+0 / 3
+userManagement.device
+0 / 3
+userManagement.duration
+0 / 3
+userManagement.email
+0 / 3
+userManagement.emailPlaceholder
+0 / 3
+userManagement.error
+0 / 3
+userManagement.expiration
+0 / 3
+userManagement.expiredInvitations
+0 / 3
+userManagement.expires14Days
+0 / 3
+userManagement.expires1Day
+0 / 3
+userManagement.expires30Days
+0 / 3
+userManagement.expires3Days
+0 / 3
+userManagement.expires7Days
+0 / 3
+userManagement.expiresAt
+0 / 3
+userManagement.expiresOn
+0 / 3
+userManagement.failed
+0 / 3
+userManagement.failedActivities
+0 / 3
+userManagement.filterByAction
+0 / 3
+userManagement.filters
+0 / 3
+userManagement.groups
+0 / 3
+userManagement.inactive
+0 / 3
+userManagement.invitationLinkCopied
+0 / 3
+userManagement.invitationNotesPlaceholder
+0 / 3
+userManagement.invitationResendError
+0 / 3
+userManagement.invitationResent
+0 / 3
+userManagement.invitationRevokeError
+0 / 3
+userManagement.invitationRevoked
+0 / 3
+userManagement.invitationSendError
+0 / 3
+userManagement.invitationSent
+0 / 3
+userManagement.invitationsList
+0 / 3
+userManagement.invitationsListDesc
+0 / 3
+userManagement.inviteUser
+0 / 3
+userManagement.inviteUserDesc
+0 / 3
+userManagement.invitedAt
+0 / 3
+userManagement.invitedBy
+0 / 3
+userManagement.ipAddress
+0 / 3
+userManagement.last24h
+0 / 3
+userManagement.last30days
+0 / 3
+userManagement.last7days
+0 / 3
+userManagement.last90days
+0 / 3
+userManagement.lastActivity
+0 / 3
+userManagement.lastLogin
+0 / 3
+userManagement.location
+0 / 3
+userManagement.loginActions
+0 / 3
+userManagement.name
+0 / 3
+userManagement.neverLoggedIn
+0 / 3
+userManagement.noActiveSessions
+0 / 3
+userManagement.noActivity
+0 / 3
+userManagement.noActivityMatch
+0 / 3
+userManagement.noInvitations
+0 / 3
+userManagement.noName
+0 / 3
+userManagement.noSessionsMatch
+0 / 3
+userManagement.notes
+0 / 3
+userManagement.pendingInvitations
+0 / 3
+userManagement.performedAt
+0 / 3
+userManagement.permissionActions
+0 / 3
+userManagement.permissions
+0 / 3
+userManagement.recentActivity
+0 / 3
+userManagement.renewInvitation
+0 / 3
+userManagement.resendInvitation
+0 / 3
+userManagement.resource
+0 / 3
+userManagement.revokeInvitation
+0 / 3
+userManagement.revokedInvitations
+0 / 3
+userManagement.role
+0 / 3
+userManagement.roleDistribution
+0 / 3
+userManagement.roleDistributionDesc
+0 / 3
+userManagement.roles.agent
+0 / 3
+userManagement.roles.customer
+0 / 3
+userManagement.roles.saasAdmin
+0 / 3
+userManagement.roles.workspaceAdmin
+0 / 3
+userManagement.searchActivity
+0 / 3
+userManagement.searchSessions
+0 / 3
+userManagement.searchUsers
+0 / 3
+userManagement.sendInvitation
+0 / 3
+userManagement.sendInvitationEmail
+0 / 3
+userManagement.sending
+0 / 3
+userManagement.sessionManagement
+0 / 3
+userManagement.sessionTerminateError
+0 / 3
+userManagement.sessionTerminated
+0 / 3
+userManagement.stats.activeSessions
+0 / 3
+userManagement.stats.activeSessionsDesc
+0 / 3
+userManagement.stats.activeUsers
+0 / 3
+userManagement.stats.activeUsersDesc
+0 / 3
+userManagement.stats.pendingInvitations
+0 / 3
+userManagement.stats.pendingInvitationsDesc
+0 / 3
+userManagement.stats.totalUsers
+0 / 3
+userManagement.stats.totalUsersDesc
+0 / 3
+userManagement.status
+0 / 3
+userManagement.success
+0 / 3
+userManagement.successfulActivities
+0 / 3
+userManagement.system
+0 / 3
+userManagement.tabs.activity
+0 / 3
+userManagement.tabs.groups
+0 / 3
+userManagement.tabs.invitations
+0 / 3
+userManagement.tabs.roles
+0 / 3
+userManagement.tabs.sessions
+0 / 3
+userManagement.tabs.users
+0 / 3
+userManagement.terminateAllSessions
+0 / 3
+userManagement.terminateSession
+0 / 3
+userManagement.title
+0 / 3
+userManagement.totalActivities
+0 / 3
+userManagement.uniqueUsers
+0 / 3
+userManagement.unknownLocation
+0 / 3
+userManagement.unknownUser
+0 / 3
+userManagement.updateActions
+0 / 3
+userManagement.user
+0 / 3
+userManagement.userActivity
+0 / 3
+userManagement.userActivityDesc
+0 / 3
+userManagement.userCreateError
+0 / 3
+userManagement.userCreated
+0 / 3
+userManagement.userDetails
+0 / 3
+userManagement.userInvitations
+0 / 3
+userManagement.userInvitationsDesc
+0 / 3
+userManagement.userList
+0 / 3
+userManagement.userListDesc
+0 / 3
+userManagement.userSessions
+0 / 3
+userManagement.userSessionsDesc
+0 / 3
+userManagement.userStatusUpdateError
+0 / 3
+userManagement.userStatusUpdated
+0 / 3
+users.add
+3 / 3
+users.edit
+3 / 3
+users.list
+3 / 3
+users.permissions
+3 / 3
+users.profile
+3 / 3
+users.roles
+3 / 3
+users.title
+3 / 3
+validFrom
+0 / 3
+validTo
+0 / 3
+version
+0 / 3
+warning
+0 / 3
+warrantyExpiry
+0 / 3
+website
+0 / 3
+welcome
+0 / 3
+widget
+0 / 3
+workaround_placeholder
+0 / 3
+workflows
+0 / 3
+TranslationManager.analyzeCompleteness
