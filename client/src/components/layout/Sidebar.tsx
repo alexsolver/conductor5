@@ -84,16 +84,16 @@ const baseNavigation: Array<{
     name: "timecardControl",
     icon: Clock,
     children: [
-      { name: "navigation.timecardRegistry", href: "/timecard", icon: Clock },
+      { name: "timecardRegistry", href: "/timecard", icon: Clock },
       { name: "workSchedules", href: "/work-schedules", icon: Calendar },
-      { name: "navigation.hourBank", href: "/hour-bank", icon: CreditCard },
+      { name: "hourBank", href: "/hour-bank", icon: CreditCard },
       { name: "holidayCalendar", href: "/holiday-calendar", icon: Calendar },
-      { name: "navigation.reports", href: "/timecard-reports", icon: FileText },
+      { name: "timecardReports", href: "/timecard-reports", icon: FileText },
       { name: "cltCompliance", href: "/clt-compliance", icon: Shield },
-      { name: "navigation.timecardApprovals", href: "/timecard-approvals", icon: CheckCircle },
-      { name: "navigation.approvalConfiguration", href: "/timecard-approval-settings", icon: Settings },
-      { name: "navigation.absenceManagement", href: "/absence-management", icon: Calendar },
-      { name: "navigation.scheduleTemplates", href: "/schedule-templates", icon: Settings },
+      { name: "timecardApprovals", href: "/timecard-approvals", icon: CheckCircle },
+      { name: "approvalConfiguration", href: "/timecard-approval-settings", icon: Settings },
+      { name: "absenceManagement", href: "/absence-management", icon: Calendar },
+      { name: "scheduleTemplates", href: "/schedule-templates", icon: Settings },
     ]
   },
   { name: "locations", href: "/locations", icon: MapPin },
@@ -196,15 +196,34 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   // Helper function to translate menu items
   const translateName = (name: string): string => {
     let translated = '';
-    // Check if it's a translation key
+    
+    // Check if it's already a full translation key (contains namespace)
     if (name.includes('.')) {
       translated = t(name);
     } else {
-      // For navigation items without namespace, add the navigation prefix
-      translated = t(`navigation.${name}`);
+      // Try navigation namespace first
+      const navKey = `navigation.${name}`;
+      translated = t(navKey);
+      
+      // If translation returns the key itself (meaning not found), try without namespace
+      if (translated === navKey) {
+        translated = t(name);
+        
+        // If still not found, try common namespace
+        if (translated === name) {
+          const commonKey = `common.${name}`;
+          translated = t(commonKey);
+          
+          // If still not found, return the original name
+          if (translated === commonKey) {
+            translated = name;
+          }
+        }
+      }
     }
-    // Capitalize first letter for proper UI display
-    return translated.charAt(0).toUpperCase() + translated.slice(1);
+    
+    // Don't capitalize if it's already a proper translation
+    return translated;
   };
 
   // Fetch tickets count for badge
