@@ -749,6 +749,18 @@
     "companies": "customers.companies",
     "mappings": "customers.mappings"
   },
+  "tickets": {
+    "explore": "Explore",
+    "details": "Details", 
+    "materialsServices": "Materials & Services",
+    "knowledgeBase": "Knowledge Base",
+    "internalActions": "Internal Actions",
+    "externalActions": "External Actions",
+    "links": "Links",
+    "latestInteractions": "Latest Interactions",
+    "notes": "Notes",
+    "history": "History"
+  },
   "timecard": {
     "recordPoint": "Record Point",
     "pointMirror": "Point Mirror",
