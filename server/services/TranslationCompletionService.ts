@@ -1386,78 +1386,78 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Completa traduções faltantes automaticamente
+   * Completa traduções faltantes usando o dicionário automático
    */
-  async completeTranslations(force = false): Promise<Array<{
-    language: string;
-    addedKeys: string[];
-    errors: string[];
-    success: boolean;
-  }>> {
-    console.log('🚀 [AUTO-COMPLETE] Starting automatic translation completion...');
+  async completeTranslations(force: boolean = false): Promise<any[]> {
+    console.log('🔄 [COMPLETE-TRANSLATIONS] Starting enhanced translation completion process...');
 
     const results = [];
+
+    // Get all translation keys from scanning
     const allKeys = await this.scanTranslationKeys();
+    console.log(`📋 [COMPLETE-TRANSLATIONS] Found ${allKeys.length} keys to process`);
 
     for (const language of this.SUPPORTED_LANGUAGES) {
-      console.log(`🌍 [AUTO-COMPLETE] Processing language: ${language}`);
+      console.log(`🌐 [COMPLETE-TRANSLATIONS] Processing language: ${language}`);
 
-      const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-      const currentTranslations = await this.loadTranslations(language);
-      const missingKeys = this.findMissingKeys(allKeys, currentTranslations);
+      try {
+        const currentTranslations = await this.loadTranslations(language);
+        let addedCount = 0;
+        const addedKeys = [];
+        const errors = [];
 
-      if (missingKeys.length === 0) {
-        console.log(`✅ [AUTO-COMPLETE] No missing keys for ${language}`);
+        // Add missing translations from our dictionary
+        for (const [key, translations] of Object.entries(this.AUTO_TRANSLATIONS)) {
+          if (translations[language] && !this.getNestedValue(currentTranslations, key)) {
+            this.setNestedValue(currentTranslations, key, translations[language]);
+            addedCount++;
+            addedKeys.push(key);
+            console.log(`✅ [COMPLETE-TRANSLATIONS] Added ${language}: ${key} = ${translations[language]}`);
+          }
+        }
+
+        // Generate automatic translations for missing keys not in dictionary
+        for (const keyObj of allKeys) {
+          const key = keyObj.key;
+          if (!this.getNestedValue(currentTranslations, key)) {
+            // Generate a basic translation based on the key
+            const autoTranslation = this.generateAutoTranslation(key, language);
+            if (autoTranslation) {
+              this.setNestedValue(currentTranslations, key, autoTranslation);
+              addedCount++;
+              addedKeys.push(key);
+              console.log(`🤖 [AUTO-GENERATE] Added ${language}: ${key} = ${autoTranslation}`);
+            }
+          }
+        }
+
+        // Save updated translations if we added any
+        if (addedCount > 0 || force) {
+          await this.saveTranslations(language, currentTranslations);
+          console.log(`💾 [COMPLETE-TRANSLATIONS] Saved ${addedCount} translations for ${language}`);
+        }
+
+        results.push({
+          language,
+          added: addedCount,
+          addedKeys,
+          errors,
+          successfulFiles: 1
+        });
+
+      } catch (error) {
+        console.error(`❌ [COMPLETE-TRANSLATIONS] Error processing ${language}:`, error);
         results.push({
           language,
           added: 0,
-          total: Object.keys(currentTranslations).length,
-          status: 'complete'
+          addedKeys: [],
+          errors: [error.message],
+          successfulFiles: 0
         });
-        continue;
       }
-
-      console.log(`📝 [AUTO-COMPLETE] Found ${missingKeys.length} missing keys for ${language}`);
-
-      let addedCount = 0;
-      const updatedTranslations = { ...currentTranslations };
-
-      for (const missingKey of missingKeys) {
-        // Try to get auto-translation first
-        const autoTranslation = this.getAutoTranslation(missingKey.key, language);
-
-        if (autoTranslation) {
-          this.setNestedValue(updatedTranslations, missingKey.key, autoTranslation);
-          addedCount++;
-          console.log(`✅ [AUTO-COMPLETE] Added ${language}: ${missingKey.key} = "${autoTranslation}"`);
-        } else {
-          // Always add a fallback translation - use the key itself as translation
-          const fallbackTranslation = this.generateFallbackTranslation(missingKey.key, language);
-          this.setNestedValue(updatedTranslations, missingKey.key, fallbackTranslation);
-          addedCount++;
-          console.log(`⚠️ [AUTO-COMPLETE] Added fallback ${language}: ${missingKey.key} = "${fallbackTranslation}"`);
-        }
-      }
-
-      // Always save the updated translations if we have changes
-      if (addedCount > 0) {
-        const success = await this.saveTranslations(language, updatedTranslations);
-        if (success) {
-          console.log(`💾 [AUTO-COMPLETE] Successfully saved ${addedCount} translations for ${language}`);
-        } else {
-          console.error(`❌ [AUTO-COMPLETE] Failed to save translations for ${language}`);
-        }
-      }
-
-      results.push({
-        language,
-        added: addedCount,
-        total: Object.keys(updatedTranslations).length,
-        status: addedCount > 0 ? 'updated' : 'no_changes'
-      });
     }
 
-    console.log('🎉 [AUTO-COMPLETE] Automatic translation completion finished');
+    console.log(`🎉 [COMPLETE-TRANSLATIONS] Completion finished. Total languages processed: ${results.length}`);
     return results;
   }
 
@@ -1599,7 +1599,7 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Gera tradução fallback baseada no texto em inglês
+   * Gera tradução fallback baseada na chave
    */
   private generateFallbackTranslation(key: string, language: string): string {
     // Extract the last part of the key as a readable text
@@ -1742,16 +1742,16 @@ export class TranslationCompletionService {
   /**
    * Verifica se uma chave aninhada existe em um objeto de tradução
    */
-  private hasNestedKey(obj: any, key: string): boolean {
+  private hasNestedValue(translations: Record<string, any>, key: string): boolean {
     const keys = key.split('.');
-    let current = obj;
+    let current = translations;
     for (const k of keys) {
       if (current === null || typeof current !== 'object' || !current.hasOwnProperty(k)) {
         return false;
       }
       current = current[k];
     }
-    return true;
+    return current !== undefined && current !== null;
   }
 
   /**
@@ -1876,144 +1876,133 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Completa traduções faltantes automaticamente
+   * Completa traduções faltantes usando o dicionário automático
    */
-  async completeTranslations(force = false): Promise<Array<{
-    language: string;
-    addedKeys: string[];
-    errors: string[];
-    success: boolean;
-  }>> {
-    console.log('🚀 [AUTO-COMPLETE] Starting automatic translation completion...');
+  async completeTranslations(force: boolean = false): Promise<any[]> {
+    console.log('🔄 [COMPLETE-TRANSLATIONS] Starting enhanced translation completion process...');
 
-    const results: Array<{
-      language: string;
-      addedKeys: string[];
-      errors: string[];
-      success: boolean;
-    }> = [];
+    const results = [];
 
-    // First, get all translation keys from scanning
-    const scannedKeys = await this.scanTranslationKeys();
-    console.log(`📊 [TRANSLATION-COMPLETION] Found ${scannedKeys.length} keys from scanning`);
+    // Get all translation keys from scanning
+    const allKeys = await this.scanTranslationKeys();
+    console.log(`📋 [COMPLETE-TRANSLATIONS] Found ${allKeys.length} keys to process`);
 
     for (const language of this.SUPPORTED_LANGUAGES) {
-      console.log(`🔍 [TRANSLATION-COMPLETION] Processing ${language} translation file...`);
-      const result = {
-        language,
-        addedKeys: [] as string[],
-        errors: [] as string[],
-        success: true
-      };
+      console.log(`🌐 [COMPLETE-TRANSLATIONS] Processing language: ${language}`);
 
       try {
-        const filePath = path.join(this.TRANSLATIONS_DIR, `${language}/translation.json`);
+        const currentTranslations = await this.loadTranslations(language);
+        let addedCount = 0;
+        const addedKeys = [];
+        const errors = [];
 
-        // Check if file exists, create if not
-        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
-        if (!fileExists) {
-          const dirPath = path.dirname(filePath);
-          await fs.mkdir(dirPath, { recursive: true });
-          await fs.writeFile(filePath, '{}');
+        // Add missing translations from our dictionary
+        for (const [key, translations] of Object.entries(this.AUTO_TRANSLATIONS)) {
+          if (translations[language] && !this.getNestedValue(currentTranslations, key)) {
+            this.setNestedValue(currentTranslations, key, translations[language]);
+            addedCount++;
+            addedKeys.push(key);
+            console.log(`✅ [COMPLETE-TRANSLATIONS] Added ${language}: ${key} = ${translations[language]}`);
+          }
         }
 
-        // Read existing translations
-        const fileContent = await fs.readFile(filePath, 'utf8');
-        let existingTranslations: Record<string, any> = {};
-
-        try {
-          existingTranslations = JSON.parse(fileContent);
-        } catch (parseError) {
-          console.warn(`⚠️ [TRANSLATION-COMPLETION] Could not parse ${language} translations, starting fresh`);
-          existingTranslations = {};
-        }
-
-        let translationsAdded = 0;
-
-        // 1. Add from AUTO_TRANSLATIONS dictionary
-        for (const translationKey of Object.keys(this.AUTO_TRANSLATIONS)) {
-          if (force || !this.hasTranslationKey(existingTranslations, translationKey)) {
-            const translation = this.AUTO_TRANSLATIONS[translationKey][language];
-            if (translation) {
-              this.setNestedKey(existingTranslations, translationKey, translation);
-              result.addedKeys.push(translationKey);
-              translationsAdded++;
+        // Generate automatic translations for missing keys not in dictionary
+        for (const keyObj of allKeys) {
+          const key = keyObj.key;
+          if (!this.getNestedValue(currentTranslations, key)) {
+            // Generate a basic translation based on the key
+            const autoTranslation = this.generateAutoTranslation(key, language);
+            if (autoTranslation) {
+              this.setNestedValue(currentTranslations, key, autoTranslation);
+              addedCount++;
+              addedKeys.push(key);
+              console.log(`🤖 [AUTO-GENERATE] Added ${language}: ${key} = ${autoTranslation}`);
             }
           }
         }
 
-        // 2. Add missing keys from scanned keys with auto-generated translations
-        for (const scannedKey of scannedKeys) {
-          const keyName = scannedKey.key;
-          if (force || !this.hasTranslationKey(existingTranslations, keyName)) {
-            // Check if we have it in AUTO_TRANSLATIONS first
-            if (this.AUTO_TRANSLATIONS[keyName] && this.AUTO_TRANSLATIONS[keyName][language]) {
-              this.setNestedKey(existingTranslations, keyName, this.AUTO_TRANSLATIONS[keyName][language]);
-            } else {
-              // Generate a translation based on the key structure
-              const generatedTranslation = this.generateTranslationFromKey(keyName, language);
-              this.setNestedKey(existingTranslations, keyName, generatedTranslation);
-            }
-            result.addedKeys.push(keyName);
-            translationsAdded++;
-          }
+        // Save updated translations if we added any
+        if (addedCount > 0 || force) {
+          await this.saveTranslations(language, currentTranslations);
+          console.log(`💾 [COMPLETE-TRANSLATIONS] Saved ${addedCount} translations for ${language}`);
         }
 
-        // 3. Force write the updated content
-        const updatedContent = JSON.stringify(existingTranslations, null, 2);
-        await fs.writeFile(filePath, updatedContent, 'utf8');
-        console.log(`✅ [TRANSLATION-COMPLETION] Updated ${language}/translation.json with ${translationsAdded} new translations`);
-
-        results.push(result);
+        results.push({
+          language,
+          added: addedCount,
+          addedKeys,
+          errors,
+          successfulFiles: 1
+        });
 
       } catch (error) {
-        console.error(`❌ [TRANSLATION-COMPLETION] Error processing ${language}:`, error);
-        result.errors.push(error.message || 'Unknown error');
-        result.success = false;
-        results.push(result);
+        console.error(`❌ [COMPLETE-TRANSLATIONS] Error processing ${language}:`, error);
+        results.push({
+          language,
+          added: 0,
+          addedKeys: [],
+          errors: [error.message],
+          successfulFiles: 0
+        });
       }
     }
 
-    console.log('🎉 [TRANSLATION-COMPLETION] Translation completion finished');
+    console.log(`🎉 [COMPLETE-TRANSLATIONS] Completion finished. Total languages processed: ${results.length}`);
     return results;
   }
 
   /**
-   * Verifica se uma chave de tradução existe no objeto (suporta notação com pontos)
+   * Salva traduções em um arquivo de idioma específico
    */
-  private hasTranslationKey(translations: Record<string, any>, key: string): boolean {
-    const keys = key.split('.');
-    let current = translations;
-    for (const k of keys) {
-      if (current === null || typeof current !== 'object' || !current.hasOwnProperty(k)) {
-        return false;
-      }
-      current = current[k];
+  private async saveTranslations(language: string, translations: Record<string, any>): Promise<void> {
+    try {
+      const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+      const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+
+      // Ensure directory exists
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+      // Write translations with proper formatting
+      await fs.writeFile(filePath, JSON.stringify(translations, null, 2), 'utf-8');
+      console.log(`💾 [SAVE-TRANSLATIONS] Saved translations to: ${filePath}`);
+    } catch (error) {
+      console.error(`❌ [SAVE-TRANSLATIONS] Error saving translations for ${language}:`, error);
+      throw error;
     }
-    return current !== undefined && current !== null;
   }
 
   /**
-   * Gera uma tradução baseada na estrutura da chave
+   * Gera tradução automática baseada na chave
    */
-  private generateTranslationFromKey(key: string, language: string): string {
-    // Split the key and get the last part
-    const parts = key.split('.');
-    const lastPart = parts[parts.length - 1];
+  private generateAutoTranslation(key: string, language: string): string | null {
+    try {
+      // Extract meaningful words from the key
+      const parts = key.split('.');
+      const lastPart = parts[parts.length - 1];
 
-    // Convert camelCase or snake_case to human readable
-    const humanReadable = lastPart
-      .replace(/([A-Z])/g, ' $1') // camelCase
-      .replace(/_/g, ' ') // snake_case
-      .toLowerCase()
-      .replace(/^\w/, c => c.toUpperCase()); // Capitalize first letter
-
-    // Language-specific adjustments
-    switch (language) {
-      case 'pt-BR':
-      case 'pt':
-        // Simple Portuguese translations for common patterns
-        const ptTranslations: Record<string, string> = {
+      // Basic transformations based on key patterns
+      const keyTransformations: Record<string, Record<string, string>> = {
+        'en': {
+          'title': 'Title',
+          'description': 'Description',
+          'name': 'Name',
+          'email': 'Email',
+          'save': 'Save',
+          'cancel': 'Cancel',
+          'delete': 'Delete',
+          'edit': 'Edit',
+          'create': 'Create',
+          'update': 'Update',
+          'search': 'Search',
+          'filter': 'Filter',
+          'actions': 'Actions',
+          'loading': 'Loading...',
+          'success': 'Success',
+          'error': 'Error',
+          'warning': 'Warning',
+          'info': 'Information'
+        },
+        'pt-BR': {
           'title': 'Título',
           'description': 'Descrição',
           'name': 'Nome',
@@ -2024,17 +2013,16 @@ export class TranslationCompletionService {
           'edit': 'Editar',
           'create': 'Criar',
           'update': 'Atualizar',
-          'loading': 'Carregando',
+          'search': 'Pesquisar',
+          'filter': 'Filtrar',
+          'actions': 'Ações',
+          'loading': 'Carregando...',
           'success': 'Sucesso',
           'error': 'Erro',
           'warning': 'Aviso',
           'info': 'Informação'
-        };
-        return ptTranslations[lastPart.toLowerCase()] || humanReadable;
-
-      case 'es':
-        // Simple Spanish translations
-        const esTranslations: Record<string, string> = {
+        },
+        'es': {
           'title': 'Título',
           'description': 'Descripción',
           'name': 'Nombre',
@@ -2045,17 +2033,16 @@ export class TranslationCompletionService {
           'edit': 'Editar',
           'create': 'Crear',
           'update': 'Actualizar',
-          'loading': 'Cargando',
+          'search': 'Buscar',
+          'filter': 'Filtrar',
+          'actions': 'Acciones',
+          'loading': 'Cargando...',
           'success': 'Éxito',
           'error': 'Error',
           'warning': 'Advertencia',
           'info': 'Información'
-        };
-        return esTranslations[lastPart.toLowerCase()] || humanReadable;
-
-      case 'fr':
-        // Simple French translations
-        const frTranslations: Record<string, string> = {
+        },
+        'fr': {
           'title': 'Titre',
           'description': 'Description',
           'name': 'Nom',
@@ -2066,17 +2053,16 @@ export class TranslationCompletionService {
           'edit': 'Modifier',
           'create': 'Créer',
           'update': 'Mettre à jour',
-          'loading': 'Chargement',
+          'search': 'Rechercher',
+          'filter': 'Filtrer',
+          'actions': 'Actions',
+          'loading': 'Chargement...',
           'success': 'Succès',
           'error': 'Erreur',
           'warning': 'Avertissement',
           'info': 'Information'
-        };
-        return frTranslations[lastPart.toLowerCase()] || humanReadable;
-
-      case 'de':
-        // Simple German translations
-        const deTranslations: Record<string, string> = {
+        },
+        'de': {
           'title': 'Titel',
           'description': 'Beschreibung',
           'name': 'Name',
@@ -2087,154 +2073,33 @@ export class TranslationCompletionService {
           'edit': 'Bearbeiten',
           'create': 'Erstellen',
           'update': 'Aktualisieren',
-          'loading': 'Laden',
+          'search': 'Suchen',
+          'filter': 'Filtern',
+          'actions': 'Aktionen',
+          'loading': 'Laden...',
           'success': 'Erfolg',
           'error': 'Fehler',
           'warning': 'Warnung',
           'info': 'Information'
-        };
-        return deTranslations[lastPart.toLowerCase()] || humanReadable;
-
-      default:
-        return humanReadable;
-    }
-  }
-
-  /**
-   * Obtém uma tradução automática para uma chave específica
-   */
-  private getAutoTranslation(key: string, language: string): string | null {
-    return this.AUTO_TRANSLATIONS[key]?.[language] || null;
-  }
-
-  /**
-   * Gera uma tradução de fallback baseada na chave
-   */
-  private generateFallbackTranslation(key: string, language: string): string {
-    // Extract the last part of the key as a readable text
-    const parts = key.split('.');
-    const lastPart = parts[parts.length - 1];
-
-    // Convert camelCase/PascalCase to readable text
-    const readable = lastPart
-      .replace(/([A-Z])/g, ' $1') // Add space before capitals
-      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-      .trim();
-
-    // Use existing specific translations if available
-    const specificTranslations: Record<string, Record<string, string>> = {
-      'pt-BR': {
-        'title': 'Título', 'description': 'Descrição', 'name': 'Nome', 'email': 'Email',
-        'save': 'Salvar', 'cancel': 'Cancelar', 'delete': 'Excluir', 'edit': 'Editar',
-        'create': 'Criar', 'update': 'Atualizar', 'loading': 'Carregando', 'success': 'Sucesso',
-        'error': 'Erro', 'warning': 'Aviso', 'info': 'Informação', 'search': 'Pesquisar',
-        'filter': 'Filtrar', 'actions': 'Ações', 'settings': 'Configurações', 'profile': 'Perfil',
-        'dashboard': 'Painel', 'reports': 'Relatórios', 'analytics': 'Análises', 'customers': 'Clientes',
-        'tickets': 'Tickets', 'users': 'Usuários', 'management': 'Gestão', 'administration': 'Administração'
-      },
-      'es': {
-        'title': 'Título', 'description': 'Descripción', 'name': 'Nombre', 'email': 'Correo',
-        'save': 'Guardar', 'cancel': 'Cancelar', 'delete': 'Eliminar', 'edit': 'Editar',
-        'create': 'Crear', 'update': 'Actualizar', 'loading': 'Cargando', 'success': 'Éxito',
-        'error': 'Error', 'warning': 'Advertencia', 'info': 'Información', 'search': 'Buscar',
-        'filter': 'Filtrar', 'actions': 'Acciones', 'settings': 'Configuración', 'profile': 'Perfil',
-        'dashboard': 'Panel', 'reports': 'Informes', 'analytics': 'Análisis', 'customers': 'Clientes',
-        'tickets': 'Tickets', 'users': 'Usuarios', 'management': 'Gestión', 'administration': 'Administración'
-      },
-      'fr': {
-        'title': 'Titre', 'description': 'Description', 'name': 'Nom', 'email': 'Email',
-        'save': 'Enregistrer', 'cancel': 'Annuler', 'delete': 'Supprimer', 'edit': 'Modifier',
-        'create': 'Créer', 'update': 'Mettre à jour', 'loading': 'Chargement', 'success': 'Succès',
-        'error': 'Erreur', 'warning': 'Avertissement', 'info': 'Information', 'search': 'Rechercher',
-        'filter': 'Filtrer', 'actions': 'Actions', 'settings': 'Paramètres', 'profile': 'Profil',
-        'dashboard': 'Tableau de bord', 'reports': 'Rapports', 'analytics': 'Analyses', 'customers': 'Clients',
-        'tickets': 'Tickets', 'users': 'Utilisateurs', 'management': 'Gestion', 'administration': 'Administration'
-      },
-      'de': {
-        'title': 'Titel', 'description': 'Beschreibung', 'name': 'Name', 'email': 'E-Mail',
-        'save': 'Speichern', 'cancel': 'Abbrechen', 'delete': 'Löschen', 'edit': 'Bearbeiten',
-        'create': 'Erstellen', 'update': 'Aktualisieren', 'loading': 'Laden', 'success': 'Erfolg',
-        'error': 'Fehler', 'warning': 'Warnung', 'info': 'Information', 'search': 'Suchen',
-        'filter': 'Filtern', 'actions': 'Aktionen', 'settings': 'Einstellungen', 'profile': 'Profil',
-        'dashboard': 'Dashboard', 'reports': 'Berichte', 'analytics': 'Analysen', 'customers': 'Kunden',
-        'tickets': 'Tickets', 'users': 'Benutzer', 'management': 'Verwaltung', 'administration': 'Administration'
-      }
-    };
-
-    if (specificTranslations[language] && specificTranslations[language][lastPart.toLowerCase()]) {
-      return specificTranslations[language][lastPart.toLowerCase()];
-    }
-
-    // Fallback: returns the readable text, possibly with language prefix if not found
-    return readable || key;
-  }
-
-  /**
-   * Salva traduções no arquivo correspondente
-   */
-  private async saveTranslations(language: string, translations: Record<string, any>): Promise<boolean> {
-    try {
-      const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-      const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
-
-      // Create directory if it doesn't exist
-      const dir = path.dirname(filePath);
-      await fs.mkdir(dir, { recursive: true });
-
-      // Create backup
-      try {
-        const backupPath = `${filePath}.backup-${Date.now()}`;
-        const existingContent = await fs.readFile(filePath, 'utf-8');
-        await fs.writeFile(backupPath, existingContent);
-      } catch (backupError) {
-        console.warn(`⚠️ Could not create backup for ${language}:`, backupError);
-      }
-
-      // Write new translations
-      const jsonContent = JSON.stringify(translations, null, 2);
-      await fs.writeFile(filePath, jsonContent, 'utf-8');
-
-      console.log(`💾 [SAVE-TRANSLATIONS] Successfully saved ${language} translations to ${filePath}`);
-      return true;
-    } catch (error) {
-      console.error(`❌ [SAVE-TRANSLATIONS] Error saving translations for ${language}:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Encontra chaves faltantes comparando com as traduções existentes
-   */
-  private findMissingKeys(allKeys: TranslationKey[], currentTranslations: Record<string, any>): TranslationKey[] {
-    const flattenedExisting = this.flattenObject(currentTranslations);
-    const existingKeys = new Set(Object.keys(flattenedExisting));
-
-    const missing = allKeys.filter(keyObj => {
-      const hasKey = existingKeys.has(keyObj.key);
-      if (!hasKey) {
-        console.log(`🔍 [MISSING-KEY] ${keyObj.key} not found in existing translations`);
-      }
-      return !hasKey;
-    });
-
-    console.log(`📊 [MISSING-KEYS] Found ${missing.length} missing keys out of ${allKeys.length} total keys`);
-    return missing;
-  }
-
-  /**
-   * Achata um objeto aninhado em um objeto de chave única
-   */
-  private flattenObject(obj: Record<string, any>, prefix = '', res: Record<string, any> = {}): Record<string, any> {
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const newKey = prefix ? `${prefix}.${key}` : key;
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          this.flattenObject(obj[key], newKey, res);
-        } else {
-          res[newKey] = obj[key];
         }
+      };
+
+      // Try to find a direct match
+      const langTransformations = keyTransformations[language];
+      if (langTransformations && langTransformations[lastPart.toLowerCase()]) {
+        return langTransformations[lastPart.toLowerCase()];
       }
+
+      // Fallback: capitalize and format the last part of the key
+      const formatted = lastPart
+        .replace(/([A-Z])/g, ' $1') // Add space before capitals
+        .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+        .trim();
+
+      return formatted || key;
+    } catch (error) {
+      console.warn(`⚠️ [AUTO-TRANSLATE] Could not generate translation for key: ${key}`);
+      return null;
     }
-    return res;
   }
 }
