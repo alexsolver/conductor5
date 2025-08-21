@@ -1741,72 +1741,141 @@ export class TranslationCompletionService {
   }
 
   /**
+   * Carrega traduções de um arquivo JSON para um idioma específico
+   */
+  private async loadTranslations(language: string): Promise<any> {
+    const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
+    try {
+      const content = await fs.readFile(filePath, 'utf8');
+      return JSON.parse(content);
+    } catch (error) {
+      // Se o arquivo não existir ou for inválido, retorna um objeto vazio
+      if (error.code === 'ENOENT' || error instanceof SyntaxError) {
+        console.warn(`[TRANSLATION-LOAD] File ${filePath} not found or invalid, returning empty object.`);
+        return {};
+      }
+      throw error; // Re-lança outros erros
+    }
+  }
+
+  /**
+   * Conta o número total de chaves aninhadas em um objeto de tradução
+   */
+  private countNestedKeys(obj: any, count = 0): number {
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          count = this.countNestedKeys(obj[key], count);
+        } else {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Verifica se uma chave aninhada existe em um objeto de tradução
+   */
+  private hasNestedKey(obj: any, key: string): boolean {
+    const keys = key.split('.');
+    let current = obj;
+    for (const k of keys) {
+      if (current === null || typeof current !== 'object' || !current.hasOwnProperty(k)) {
+        return false;
+      }
+      current = current[k];
+    }
+    return true;
+  }
+
+  /**
    * Gera relatório de completude
    */
   async generateCompletenessReport(): Promise<{
-    summary: {
-      totalKeys: number;
-      languageStats: Record<string, {
-        existingKeys: number;
-        missingKeys: number;
-        completeness: number;
-      }>;
+    success: boolean;
+    data: {
+      summary: {
+        totalKeys: number;
+        languageStats: Record<string, {
+          existingKeys: number;
+          missingKeys: number;
+          completeness: number;
+        }>;
+      };
+      gaps: TranslationGap[];
     };
-    gaps: TranslationGap[];
-    error?: string; // Added error property for fallback
+    error?: string;
   }> {
     console.log('📊 [REPORT] Generating translation completeness report...');
 
-    try {
-      const allKeys = await this.scanTranslationKeys();
-      console.log(`📊 [REPORT] Scanned ${allKeys.length} translation keys`);
+    const allKeys = await this.scanTranslationKeys();
+    console.log(`📊 [REPORT] Scanned ${allKeys.length} translation keys`);
 
-      const gaps = await this.analyzeTranslationGaps();
-      console.log(`📊 [REPORT] Analyzed gaps for ${gaps.length} languages`);
+    const languageStats: Record<string, any> = {};
+    const gaps: TranslationGap[] = [];
 
-      const summary = {
-        totalKeys: allKeys.length,
-        languageStats: {} as Record<string, any>
-      };
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      try {
+        const existingTranslations = await this.loadTranslations(language);
+        const existingKeysCount = this.countNestedKeys(existingTranslations);
+        const missingKeys = allKeys
+          .map(key => key.key)
+          .filter(key => !this.hasNestedKey(existingTranslations, key));
 
-      // Calcula estatísticas por idioma
-      for (const gap of gaps) {
-        const totalKeys = Number(allKeys.length) || 0;
-        const missingCount = Number(gap.missingKeys.length) || 0;
-        const completed = Math.max(0, totalKeys - missingCount);
-        const completeness = totalKeys > 0 ? Math.round((completed / totalKeys) * 100) : 0;
+        const completeness = existingKeysCount > 0
+          ? Math.round((existingKeysCount / (existingKeysCount + missingKeys.length)) * 100)
+          : 0;
 
-        languageStats[gap.language] = {
-          total: totalKeys,
-          completed: completed,
-          missing: missingCount,
-          completeness: completeness
+        languageStats[language] = {
+          existingKeys: existingKeysCount,
+          missingKeys: missingKeys.length,
+          completeness
+        };
+
+        if (missingKeys.length > 0) {
+          const moduleGaps: Record<string, string[]> = {};
+
+          for (const key of missingKeys) {
+            const module = key.split('.')[0] || 'general';
+            if (!moduleGaps[module]) {
+              moduleGaps[module] = [];
+            }
+            moduleGaps[module].push(key);
+          }
+
+          gaps.push({
+            language,
+            missingKeys,
+            moduleGaps
+          });
+        }
+
+        console.log(`📊 [REPORT] ${language}: ${existingKeysCount} existing, ${missingKeys.length} missing, ${completeness}% complete`);
+
+      } catch (error) {
+        console.error(`❌ [REPORT] Error processing language ${language}:`, error);
+        languageStats[language] = {
+          existingKeys: 0,
+          missingKeys: allKeys.length,
+          completeness: 0
         };
       }
-
-      console.log('✅ [REPORT] Report generated successfully');
-      return { summary, gaps };
-
-    } catch (error) {
-      console.error('❌ [REPORT] Error generating completeness report:', error);
-
-      // Return a safe fallback report instead of throwing
-      return {
-        summary: {
-          totalKeys: 0,
-          languageStats: this.SUPPORTED_LANGUAGES.reduce((acc, lang) => {
-            acc[lang] = {
-              total: 0,
-              completed: 0,
-              missing: 0,
-              completeness: 0
-            };
-            return acc;
-          }, {} as Record<string, any>)
-        },
-        gaps: [],
-        error: error.message // Include the error message in the fallback report
-      };
     }
+
+    const summary = {
+      totalKeys: allKeys.length,
+      languageStats
+    };
+
+    console.log(`📊 [REPORT] Analyzed gaps for ${this.SUPPORTED_LANGUAGES.length} languages`);
+
+    return {
+      success: true,
+      data: {
+        summary,
+        gaps
+      }
+    };
   }
 }
