@@ -18,14 +18,14 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     // Verificar se usuário é SaaS admin
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: 'SaaS admin access required' 
+        message: 'SaaS admin access required'
       });
     }
 
     console.log('🔍 [ANALYZE] Starting translation completeness analysis...');
-    
+
     const report = await translationService.generateCompletenessReport();
 
     console.log('✅ [ANALYZE] Analysis completed successfully');
@@ -40,7 +40,7 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
   } catch (error) {
     console.error('❌ [ANALYZE] Error analyzing translation completeness:', error);
-    
+
     res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
       success: false,
@@ -340,7 +340,7 @@ router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res
 
 /**
  * POST /api/translation-completion/auto-complete-all
- * Completa automaticamente todas as traduções faltantes - MODO ULTRA SEGURO
+ * Auto-completa todas as traduções faltantes de forma ultra-segura
  */
 router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -348,106 +348,61 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
-    console.log('🔒 [ULTRA-SAFE-MODE] Starting ultra-safe translation completion...');
-    console.log('🚨 [CRITICAL-SAFETY] NO source code files will be touched');
-    console.log('✅ [SAFE-OPERATION] Only JSON translation files will be modified');
+    console.log('🔄 [TRANSLATION-COMPLETION] Starting comprehensive translation completion...');
+    console.log('🚨 [SAFETY] Only JSON translation files will be modified, source code is protected');
 
-    let completionResults = [];
-    let finalReport = { summary: { languageStats: {} }, gaps: [] };
+    console.log('📝 [STEP-1] Applying translations to all JSON files...');
 
-    try {
-      // OPERAÇÃO 1: Completa apenas arquivos JSON de tradução (super seguro)
-      console.log('📝 [SAFE-STEP-1] Completing translation JSON files only...');
+    // Force completion to ensure translations are applied
+    const completionResults = await translationService.completeTranslations(true);
 
-      const completionPromise = translationService.completeAllTranslations();
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Safe timeout - operation took too long')), 20000)
-      );
+    console.log('✅ [STEP-1] Translation files updated successfully');
 
-      completionResults = await Promise.race([completionPromise, timeoutPromise]) as any[];
-      console.log('✅ [SAFE-STEP-1] Translation files completed successfully');
+    console.log('📊 [STEP-2] Generating completion report...');
 
-    } catch (completionError) {
-      console.warn('⚠️ [SAFE-STEP-1] Translation completion had issues:', completionError.message);
-      completionResults = [];
-    }
+    // Generate final report
+    const finalReport = await translationService.generateCompletionReport();
 
-    try {
-      // OPERAÇÃO 2: Gera relatório final (super seguro)
-      console.log('📊 [SAFE-STEP-2] Generating completion report...');
+    console.log('✅ [STEP-2] Report generated successfully');
 
-      const reportPromise = translationService.generateCompletenessReport();
-      const reportTimeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Report timeout')), 8000)
-      );
+    console.log('🛡️ [CODE-PROTECTION] Source code files remain protected');
 
-      finalReport = await Promise.race([reportPromise, reportTimeout]) as any;
-      console.log('✅ [SAFE-STEP-2] Report generated successfully');
+    const totalTranslationsAdded = completionResults.reduce((sum, r) => sum + r.addedKeys.length, 0);
 
-    } catch (reportError) {
-      console.warn('⚠️ [SAFE-STEP-2] Report generation had issues:', reportError.message);
-    }
-
-    // PERMANENTEMENTE DESABILITADO: Qualquer modificação de código TypeScript/JSX
-    console.log('🚫 [PERMANENT-DISABLE] Hardcoded text replacement permanently disabled');
-    console.log('🛡️ [CODE-PROTECTION] Source code files are protected from modification');
-
-    const summary = {
-      translationsAdded: Array.isArray(completionResults) ?
-        completionResults.reduce((sum, r) => sum + (r?.addedKeys?.length || 0), 0) : 0,
-      hardcodedTextsReplaced: 0, // Sempre 0 por segurança
-      filesModified: 0, // Sempre 0 por segurança
-      finalCompleteness: finalReport?.summary?.languageStats || {},
-      safetyMode: 'ULTRA_SAFE',
-      codeFilesProtected: true
-    };
-
-    console.log('🎉 [ULTRA-SAFE-MODE] Operation completed safely:', summary);
-
-    res.json({
+    const response = {
       success: true,
       data: {
-        summary,
-        completionResults: Array.isArray(completionResults) ? completionResults : [],
-        hardcodedResults: [], // Sempre vazio por segurança
-        finalReport: finalReport || { summary: { languageStats: {} }, gaps: [] },
-        safetyInfo: {
-          mode: 'ULTRA_SAFE',
-          codeFilesProtected: true,
-          onlyJsonFilesModified: true,
-          crashRiskEliminated: true
-        }
-      },
-      message: `✅ Safe auto-translation completed! Added ${summary.translationsAdded} translations to JSON files. All source code files protected from modification.`
-    });
-
-  } catch (error) {
-    console.error('❌ [ULTRA-SAFE-MODE] Even ultra-safe mode had an error:', error);
-
-    // Resposta de emergência ultra segura
-    res.json({
-      success: false,
-      data: {
         summary: {
-          translationsAdded: 0,
-          hardcodedTextsReplaced: 0,
-          filesModified: 0,
+          translationsAdded: totalTranslationsAdded,
+          hardcodedTextsReplaced: 0, // Always 0 in safe mode
+          filesModified: completionResults.filter(r => r.addedKeys.length > 0).length,
           finalCompleteness: {},
-          safetyMode: 'EMERGENCY',
+          safetyMode: 'SAFE',
           codeFilesProtected: true
         },
-        completionResults: [],
-        hardcodedResults: [],
-        finalReport: { summary: { languageStats: {} }, gaps: [] },
-        safetyInfo: {
-          mode: 'EMERGENCY_SAFE',
-          codeFilesProtected: true,
-          onlyJsonFilesModified: false,
-          crashRiskEliminated: true
-        }
-      },
-      message: `⚠️ Translation system encountered an issue but your code is safe. Error: ${error.message}`,
-      error: error.message
+        completionResults,
+        hardcodedResults: [], // Always empty in safe mode
+        finalReport
+      }
+    };
+
+    console.log('🎉 [TRANSLATION-COMPLETION] Operation completed successfully:', {
+      translationsAdded: totalTranslationsAdded,
+      hardcodedTextsReplaced: 0,
+      filesModified: response.data.summary.filesModified,
+      finalCompleteness: {},
+      safetyMode: 'SAFE',
+      codeFilesProtected: true
+    });
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('❌ [TRANSLATION-COMPLETION] Error in translation completion:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to complete translations',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });

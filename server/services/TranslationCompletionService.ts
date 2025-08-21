@@ -1878,4 +1878,228 @@ export class TranslationCompletionService {
       }
     };
   }
+
+  /**
+   * Auto-completa traduções faltantes usando o dicionário interno
+   */
+  async completeTranslations(force = false): Promise<Array<{
+    language: string;
+    addedKeys: string[];
+    errors: string[];
+    success: boolean;
+  }>> {
+    console.log('🔄 [TRANSLATION-COMPLETION] Starting comprehensive translation completion...');
+    const results: Array<{
+      language: string;
+      addedKeys: string[];
+      errors: string[];
+      success: boolean;
+    }> = [];
+
+    // First, get all translation keys from scanning
+    const scannedKeys = await this.scanTranslationKeys();
+    console.log(`📊 [TRANSLATION-COMPLETION] Found ${scannedKeys.length} keys from scanning`);
+
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      console.log(`🔍 [TRANSLATION-COMPLETION] Processing ${language} translation file...`);
+      const result = {
+        language,
+        addedKeys: [] as string[],
+        errors: [] as string[],
+        success: true
+      };
+
+      try {
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${language}/translation.json`);
+
+        // Check if file exists, create if not
+        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+        if (!fileExists) {
+          const dirPath = path.dirname(filePath);
+          await fs.mkdir(dirPath, { recursive: true });
+          await fs.writeFile(filePath, '{}');
+        }
+
+        // Read existing translations
+        const fileContent = await fs.readFile(filePath, 'utf8');
+        let existingTranslations: Record<string, any> = {};
+
+        try {
+          existingTranslations = JSON.parse(fileContent);
+        } catch (parseError) {
+          console.warn(`⚠️ [TRANSLATION-COMPLETION] Could not parse ${language} translations, starting fresh`);
+          existingTranslations = {};
+        }
+
+        let translationsAdded = 0;
+
+        // 1. Add from AUTO_TRANSLATIONS dictionary
+        for (const translationKey of Object.keys(this.AUTO_TRANSLATIONS)) {
+          if (force || !this.hasTranslationKey(existingTranslations, translationKey)) {
+            const translation = this.AUTO_TRANSLATIONS[translationKey][language];
+            if (translation) {
+              this.setNestedKey(existingTranslations, translationKey, translation);
+              result.addedKeys.push(translationKey);
+              translationsAdded++;
+            }
+          }
+        }
+
+        // 2. Add missing keys from scanned keys with auto-generated translations
+        for (const scannedKey of scannedKeys) {
+          const keyName = scannedKey.key;
+          if (force || !this.hasTranslationKey(existingTranslations, keyName)) {
+            // Check if we have it in AUTO_TRANSLATIONS first
+            if (this.AUTO_TRANSLATIONS[keyName] && this.AUTO_TRANSLATIONS[keyName][language]) {
+              this.setNestedKey(existingTranslations, keyName, this.AUTO_TRANSLATIONS[keyName][language]);
+            } else {
+              // Generate a translation based on the key structure
+              const generatedTranslation = this.generateTranslationFromKey(keyName, language);
+              this.setNestedKey(existingTranslations, keyName, generatedTranslation);
+            }
+            result.addedKeys.push(keyName);
+            translationsAdded++;
+          }
+        }
+
+        // 3. Force write the updated content
+        const updatedContent = JSON.stringify(existingTranslations, null, 2);
+        await fs.writeFile(filePath, updatedContent, 'utf8');
+        console.log(`✅ [TRANSLATION-COMPLETION] Updated ${language}/translation.json with ${translationsAdded} new translations`);
+
+        results.push(result);
+
+      } catch (error) {
+        console.error(`❌ [TRANSLATION-COMPLETION] Error processing ${language}:`, error);
+        result.errors.push(error.message || 'Unknown error');
+        result.success = false;
+        results.push(result);
+      }
+    }
+
+    console.log('🎉 [TRANSLATION-COMPLETION] Translation completion finished successfully');
+    return results;
+  }
+
+  /**
+   * Verifica se uma chave de tradução existe no objeto (suporta notação com pontos)
+   */
+  private hasTranslationKey(translations: Record<string, any>, key: string): boolean {
+    const keys = key.split('.');
+    let current = translations;
+    for (const k of keys) {
+      if (current === null || typeof current !== 'object' || !current.hasOwnProperty(k)) {
+        return false;
+      }
+      current = current[k];
+    }
+    return current !== undefined && current !== null;
+  }
+
+  /**
+   * Gera uma tradução baseada na estrutura da chave
+   */
+  private generateTranslationFromKey(key: string, language: string): string {
+    // Split the key and get the last part
+    const parts = key.split('.');
+    const lastPart = parts[parts.length - 1];
+
+    // Convert camelCase or snake_case to human readable
+    const humanReadable = lastPart
+      .replace(/([A-Z])/g, ' $1') // camelCase
+      .replace(/_/g, ' ') // snake_case
+      .toLowerCase()
+      .replace(/^\w/, c => c.toUpperCase()); // Capitalize first letter
+
+    // Language-specific adjustments
+    switch (language) {
+      case 'pt-BR':
+      case 'pt':
+        // Simple Portuguese translations for common patterns
+        const ptTranslations: Record<string, string> = {
+          'title': 'Título',
+          'description': 'Descrição',
+          'name': 'Nome',
+          'email': 'Email',
+          'save': 'Salvar',
+          'cancel': 'Cancelar',
+          'delete': 'Excluir',
+          'edit': 'Editar',
+          'create': 'Criar',
+          'update': 'Atualizar',
+          'loading': 'Carregando',
+          'success': 'Sucesso',
+          'error': 'Erro',
+          'warning': 'Aviso',
+          'info': 'Informação'
+        };
+        return ptTranslations[lastPart.toLowerCase()] || humanReadable;
+
+      case 'es':
+        // Simple Spanish translations
+        const esTranslations: Record<string, string> = {
+          'title': 'Título',
+          'description': 'Descripción',
+          'name': 'Nombre',
+          'email': 'Correo',
+          'save': 'Guardar',
+          'cancel': 'Cancelar',
+          'delete': 'Eliminar',
+          'edit': 'Editar',
+          'create': 'Crear',
+          'update': 'Actualizar',
+          'loading': 'Cargando',
+          'success': 'Éxito',
+          'error': 'Error',
+          'warning': 'Advertencia',
+          'info': 'Información'
+        };
+        return esTranslations[lastPart.toLowerCase()] || humanReadable;
+
+      case 'fr':
+        // Simple French translations
+        const frTranslations: Record<string, string> = {
+          'title': 'Titre',
+          'description': 'Description',
+          'name': 'Nom',
+          'email': 'Email',
+          'save': 'Enregistrer',
+          'cancel': 'Annuler',
+          'delete': 'Supprimer',
+          'edit': 'Modifier',
+          'create': 'Créer',
+          'update': 'Mettre à jour',
+          'loading': 'Chargement',
+          'success': 'Succès',
+          'error': 'Erreur',
+          'warning': 'Avertissement',
+          'info': 'Information'
+        };
+        return frTranslations[lastPart.toLowerCase()] || humanReadable;
+
+      case 'de':
+        // Simple German translations
+        const deTranslations: Record<string, string> = {
+          'title': 'Titel',
+          'description': 'Beschreibung',
+          'name': 'Name',
+          'email': 'E-Mail',
+          'save': 'Speichern',
+          'cancel': 'Abbrechen',
+          'delete': 'Löschen',
+          'edit': 'Bearbeiten',
+          'create': 'Erstellen',
+          'update': 'Aktualisieren',
+          'loading': 'Laden',
+          'success': 'Erfolg',
+          'error': 'Fehler',
+          'warning': 'Warnung',
+          'info': 'Information'
+        };
+        return deTranslations[lastPart.toLowerCase()] || humanReadable;
+
+      default:
+        return humanReadable;
+    }
+  }
 }
