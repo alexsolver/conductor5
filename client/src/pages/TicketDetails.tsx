@@ -1346,7 +1346,7 @@ const TicketDetails = React.memo(() => {
 
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">{t('tickets.fields.classification').toUpperCase()}</h3>
 
               <div className="grid grid-cols-4 gap-4 mb-4">
                 <FormField
@@ -1354,7 +1354,7 @@ const TicketDetails = React.memo(() => {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Prioridade *</FormLabel>
+                      <FormLabel>{t('tickets.fields.priority')} *</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <DynamicSelect
@@ -1388,7 +1388,7 @@ const TicketDetails = React.memo(() => {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status *</FormLabel>
+                      <FormLabel>{t('tickets.fields.status')} *</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <DynamicSelect
@@ -1422,7 +1422,7 @@ const TicketDetails = React.memo(() => {
                   name="urgency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Urgência</FormLabel>
+                      <FormLabel>{t('tickets.fields.urgency')}</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <DynamicSelect
@@ -1556,7 +1556,7 @@ const TicketDetails = React.memo(() => {
                                 {field.value || ticket?.subcategory}
                               </DynamicBadge>
                             ) : (
-                              <span className="text-gray-400 text-sm">Não especificado</span>
+                              <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
                             )}
                           </div>
                         )}
@@ -1571,14 +1571,14 @@ const TicketDetails = React.memo(() => {
                   name="action"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Ação</FormLabel>
+                      <FormLabel>{t('tickets.fields.action')}</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <DynamicSelect
                             fieldName="action"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione a ação"
+                            placeholder={t('tickets.placeholders.selectAction')}
                             disabled={!isEditMode || !form.watch('subcategory')}
                             dependsOn={form.watch('subcategory') || ticket?.subcategory}
                             customerId={ticket?.companyId || ticket?.company_id}
@@ -1593,7 +1593,7 @@ const TicketDetails = React.memo(() => {
                                 {field.value || ticket?.action}
                               </DynamicBadge>
                             ) : (
-                              <span className="text-gray-400 text-sm">Não especificado</span>
+                              <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
                             )}
                           </div>
                         )}
@@ -1610,13 +1610,13 @@ const TicketDetails = React.memo(() => {
               name="subject"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assunto *</FormLabel>
+                  <FormLabel>{t('tickets.fields.subject')} *</FormLabel>
                   <FormControl>
                     {isEditMode ? (
                       <Input {...field} />
                     ) : (
                       <div className="p-2 bg-gray-50 rounded">
-                        {ticket?.subject || field.value || 'Não informado'}
+                        {ticket?.subject || field.value || t('tickets.fields.notInformed')}
                       </div>
                     )}
                   </FormControl>
@@ -1630,17 +1630,17 @@ const TicketDetails = React.memo(() => {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição *</FormLabel>
+                  <FormLabel>{t('tickets.fields.description')} *</FormLabel>
                   <FormControl>
                     {isEditMode ? (
                       <TicketDescriptionEditor
                         content={field.value || ticket?.description || ''}
                         onChange={field.onChange}
-                        placeholder="Digite a descrição do ticket..."
+                        placeholder={t('tickets.placeholders.ticketDescription')}
                       />
                     ) : (
                       <div className="p-3 bg-gray-50 rounded min-h-[100px]" dangerouslySetInnerHTML={{
-                        __html: ticket?.description || field.value || '<p>Não informado</p>'
+                        __html: ticket?.description || field.value || `<p>${t('tickets.fields.notInformed')}</p>`
                       }} />
                     )}
                   </FormControl>
@@ -1656,9 +1656,9 @@ const TicketDetails = React.memo(() => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">📎 Anexos</h2>
+              <h2 className="text-xl font-semibold">📎 {t('tickets.fields.attachments')}</h2>
               <Badge variant="outline" className="text-xs">
-                {(attachmentsData && attachmentsData.length) || 0} anexo(s)
+                {(attachmentsData && attachmentsData.length) || 0} {t('tickets.fields.attachmentCount')}
               </Badge>
             </div>
 
@@ -1675,27 +1675,27 @@ const TicketDetails = React.memo(() => {
             {/* Existing Attachments List */}
             {(attachmentsData && attachmentsData.length > 0) && (
               <div className="space-y-3">
-                <h3 className="text-lg font-medium">Anexos Existentes ({attachmentsData.length})</h3>
+                <h3 className="text-lg font-medium">{t('tickets.fields.existingAttachments')} ({attachmentsData.length})</h3>
                 {attachmentsData.map((attachment: any) => (
                   <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <FileText className="h-8 w-8 text-gray-400" />
                       <div>
-                        <p className="font-medium">{attachment.filename || attachment.original_filename || attachment.name || 'Arquivo sem nome'}</p>
+                        <p className="font-medium">{attachment.filename || attachment.original_filename || attachment.name || t('tickets.fields.fileNoName')}</p>
                         <p className="text-sm text-gray-500">
                           {attachment.file_size && !isNaN(Number(attachment.file_size))
                             ? formatFileSize(Number(attachment.file_size))
                             : attachment.size && !isNaN(Number(attachment.size))
                             ? formatFileSize(Number(attachment.size))
-                            : 'Tamanho desconhecido'
-                          } • Adicionado em {
+                            : t('tickets.fields.unknownSize')
+                          } • {t('tickets.fields.addedOn')} {
                             attachment.created_at
                               ? new Date(attachment.created_at).toLocaleDateString('pt-BR')
                               : attachment.uploadedAt instanceof Date
                               ? attachment.uploadedAt.toLocaleDateString('pt-BR')
                               : typeof attachment.uploadedAt === 'string'
                               ? new Date(attachment.uploadedAt).toLocaleDateString('pt-BR')
-                              : 'Data não disponível'
+                              : t('tickets.fields.dateNotAvailable')
                           }
                         </p>
                         {attachment.description && (
@@ -1706,7 +1706,7 @@ const TicketDetails = React.memo(() => {
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="sm">
                         <Download className="h-4 w-4 mr-2" />
-                        Download
+                        {t('tickets.actions.download')}
                       </Button>
                       <Button
                         variant="outline"
@@ -1727,9 +1727,9 @@ const TicketDetails = React.memo(() => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">📝 Notas</h2>
+              <h2 className="text-xl font-semibold">📝 {t('tickets.notes')}</h2>
               <Badge variant="outline" className="text-xs">
-                {notesData.length} nota(s)
+                {notesData.length} {t('tickets.fields.noteCount')}
               </Badge>
             </div>
 
@@ -1741,10 +1741,10 @@ const TicketDetails = React.memo(() => {
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nova Nota</FormLabel>
+                    <FormLabel>{t('tickets.fields.newNote')}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Digite sua nota aqui..."
+                        placeholder={t('tickets.placeholders.noteText')}
                         className="min-h-[100px]"
                         maxLength={5000}
                         {...field}
@@ -1774,10 +1774,10 @@ const TicketDetails = React.memo(() => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="general">Geral</SelectItem>
-                          <SelectItem value="internal">Interna</SelectItem>
-                          <SelectItem value="resolution">Resolução</SelectItem>
-                          <SelectItem value="escalation">Escalação</SelectItem>
+                          <SelectItem value="general">{t('tickets.fields.general')}</SelectItem>
+                          <SelectItem value="internal">{t('tickets.fields.internal')}</SelectItem>
+                          <SelectItem value="resolution">{t('tickets.fields.resolution')}</SelectItem>
+                          <SelectItem value="escalation">{t('tickets.fields.escalation')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -1864,7 +1864,7 @@ const TicketDetails = React.memo(() => {
                               <span className="text-xs text-gray-500">
                                 {note.created_at ? new Date(note.created_at).toLocaleString('pt-BR') :
                                  note.createdAt ? new Date(note.createdAt).toLocaleString('pt-BR') :
-                                 'Data não disponível'}
+                                 t('tickets.fields.dateNotAvailable')}
                               </span>
                             </div>
                             <p className="text-gray-800 whitespace-pre-wrap">{note.content}</p>
@@ -1946,7 +1946,7 @@ const TicketDetails = React.memo(() => {
                           </span>
                         </div>
                         <span className="text-xs text-gray-500">
-                          {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : 'Data não disponível'}
+                          {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : t('tickets.fields.dateNotAvailable')}
                         </span>
                       </div>
 
@@ -1984,7 +1984,7 @@ const TicketDetails = React.memo(() => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">📜 Histórico Completo</h2>
+              <h2 className="text-xl font-semibold">📜 {t('tickets.fields.historyComplete')}</h2>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -1996,7 +1996,7 @@ const TicketDetails = React.memo(() => {
                     setHistoryViewMode('simple');
                   }}
                 >
-                  Simples
+                  {t('tickets.actions.simple')}
                 </Button>
                 <Button
                   type="button"
@@ -2008,7 +2008,7 @@ const TicketDetails = React.memo(() => {
                     setHistoryViewMode('advanced');
                   }}
                 >
-                  Detalhado
+                  {t('tickets.actions.detailed')}
                 </Button>
               </div>
             </div>
@@ -2096,19 +2096,19 @@ const TicketDetails = React.memo(() => {
                               {historyItem.action_type === 'email_received' && 'Email Recebido'}
                               {historyItem.action_type === 'communication' && 'Comunicação'}
                               {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
-                              {historyItem.action_type === 'internal_action' && 'Ação Interna'}
-                              {historyItem.action_type === 'internal_action_created' && 'Ação Interna Criada'}
-                              {historyItem.action_type === 'internal_action_updated' && 'Ação Interna Atualizada'}
-                              {historyItem.action_type === 'internal_action_deleted' && 'Ação Interna Excluída'}
+                              {historyItem.action_type === 'internal_action' && t('tickets.fields.internalAction')}
+                              {historyItem.action_type === 'internal_action_created' && t('tickets.fields.internalActionCreated')}
+                              {historyItem.action_type === 'internal_action_updated' && t('tickets.fields.internalActionUpdated')}
+                              {historyItem.action_type === 'internal_action_deleted' && t('tickets.fields.internalActionDeleted')}
                               {historyItem.action_type === 'action_updated' && 'Ação Atualizada'}
                               {historyItem.action_type === 'action_deleted' && 'Ação Excluída'}
-                              {historyItem.action_type === 'ação interna' && 'Ação Interna'}
+                              {historyItem.action_type === 'ação interna' && t('tickets.fields.internalAction')}
                               {historyItem.action_type === 'note_added' && 'Nota Adicionada'}
                               {historyItem.action_type === 'note_created' && 'Nota Criada'}
                               {historyItem.action_type === 'note_deleted' && 'Nota Excluída'}
                               {historyItem.action_type === 'relationship_created' && 'Vínculo Criado'}
                               {historyItem.action_type === 'relationship_deleted' && 'Vínculo Removido'}
-                              {historyItem.action_type === 'resolution' && 'Resolução'}
+                              {historyItem.action_type === 'resolution' && t('tickets.fields.resolution')}
                               {historyItem.action_type === 'investigation' && 'Investigação'}
                               {historyItem.action_type === 'analysis' && 'Análise'}
                               {historyItem.action_type === 'work_log' && 'Log de Trabalho'}
@@ -2124,11 +2124,11 @@ const TicketDetails = React.memo(() => {
                             )}
                           </div>
                           <span className="text-xs text-gray-500">
-                            {historyItem.created_at ? new Date(historyItem.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
+                            {historyItem.created_at ? new Date(historyItem.created_at).toLocaleString('pt-BR') : t('tickets.fields.dateNotAvailable')}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          {historyItem.description || `Ação realizada por ${historyItem.performed_by_name}`}
+                          {historyItem.description || `${t('tickets.fields.actionPerformedBy')} ${historyItem.performed_by_name}`}
                           {historyItem.field_name && historyItem.old_value && historyItem.new_value && (
                             ` - ${historyItem.field_name}: "${historyItem.old_value}" → "${historyItem.new_value}"`
                           )}
@@ -2226,11 +2226,11 @@ const TicketDetails = React.memo(() => {
                       <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
                       <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
                       <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                        <span>Categoria: {relTicket.category}</span>
+                        <span>{t('tickets.fields.category')} {relTicket.category}</span>
                         <span>
                           {relTicket.resolved_at
-                            ? `Resolvido em ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')}`
-                            : `Criado em ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')}`
+                            ? `${t('tickets.fields.resolvedOn')} ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')}`
+                            : `${t('tickets.fields.createdOn')} ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')}`
                           }
                         </span>
                       </div>
@@ -2251,7 +2251,7 @@ const TicketDetails = React.memo(() => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
+              <h2 className="text-xl font-semibold">⚙️ {t('tickets.fields.internalActions')}</h2>
               <div className="flex gap-2">
 
                 <Button
@@ -2321,11 +2321,11 @@ const TicketDetails = React.memo(() => {
                                 className="text-xs bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-blue-100"
                               >
                                 <User className="w-3 h-3 mr-1" />
-                                Responsável: {action.assigned_to_name}
+                                {t('tickets.fields.assignedTo')} {action.assigned_to_name}
                               </Badge>
                             )}
                             <span className="text-xs text-gray-500">
-                              {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
+                              {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : t('tickets.fields.dateNotAvailable')}
                             </span>
                           </div>
 
@@ -2384,10 +2384,10 @@ const TicketDetails = React.memo(() => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">🔗 Vínculos</h2>
+              <h2 className="text-xl font-semibold">🔗 {t('tickets.links')}</h2>
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
-                  {relatedTicketsData.length} ticket(s) vinculado(s)
+                  {relatedTicketsData.length} {t('tickets.fields.ticketsLinkedCount')}
                 </Badge>
                 <Button
                   onClick={() => setIsLinkingModalOpen(true)}
@@ -2397,7 +2397,7 @@ const TicketDetails = React.memo(() => {
                   data-testid="button-link-ticket"
                 >
                   <Link2 className="h-4 w-4 mr-2" />
-                  Vincular Ticket
+                  {t('tickets.actions.linkTicket')}
                 </Button>
               </div>
             </div>
@@ -2406,12 +2406,12 @@ const TicketDetails = React.memo(() => {
               {relatedTicketsData.length === 0 ? (
                 <div className="text-center py-8">
                   <Link className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">Nenhum ticket vinculado</p>
-                  <p className="text-xs text-gray-400">Use o botão "Vincular" para conectar tickets relacionados</p>
+                  <p className="mt-2 text-sm text-gray-500">{t('tickets.fields.noTicketLinked')}</p>
+                  <p className="text-xs text-gray-400">{t('tickets.fields.linkButtonHint')}</p>
                 </div>
               ) : (
                 relatedTicketsData.map((linkedTicket) => {
-                  // Obter ícone e cor baseado no tipo de relacionamento
+                  // Get icon and color based on relationship type
                   const getRelationshipIcon = (type: string) => {
                     switch (type) {
                       case 'related':
@@ -2434,19 +2434,19 @@ const TicketDetails = React.memo(() => {
                   const getRelationshipLabel = (type: string) => {
                     switch (type) {
                       case 'related':
-                        return 'Relacionado';
+                        return t('tickets.relationships.related');
                       case 'duplicates':
-                        return 'Duplicado';
+                        return t('tickets.relationships.duplicates');
                       case 'blocks':
-                        return 'Bloqueia';
+                        return t('tickets.relationships.blocks');
                       case 'caused_by':
-                        return 'Causado por';
+                        return t('tickets.relationships.causedBy');
                       case 'parent_child':
-                        return 'Pai/Filho';
+                        return t('tickets.relationships.parentChild');
                       case 'follows':
-                        return 'Segue';
+                        return t('tickets.relationships.follows');
                       default:
-                        return 'Vinculado';
+                        return t('tickets.relationships.linked');
                     }
                   };
 
@@ -2521,7 +2521,7 @@ const TicketDetails = React.memo(() => {
                             <div className="flex items-center justify-between text-xs text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
-                                Criado em {(linkedTicket.targetTicket?.createdAt || linkedTicket.createdAt)
+                                {t('tickets.fields.createdOn')} {(linkedTicket.targetTicket?.createdAt || linkedTicket.createdAt)
                                   ? new Date(linkedTicket.targetTicket?.createdAt || linkedTicket.createdAt).toLocaleDateString('pt-BR', {
                                       day: '2-digit',
                                       month: '2-digit',
@@ -2529,7 +2529,7 @@ const TicketDetails = React.memo(() => {
                                       hour: '2-digit',
                                       minute: '2-digit'
                                     })
-                                  : 'Data não disponível'}
+                                  : t('tickets.fields.dateNotAvailable')}
                               </span>
 
                               {linkedTicket.description && (
@@ -2598,10 +2598,10 @@ const TicketDetails = React.memo(() => {
                   <User className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-blue-900">{ticket.customerName || 'Cliente'}</h3>
+                  <h3 className="font-semibold text-blue-900">{ticket.customerName || t('tickets.fields.customer')}</h3>
                   <p className="text-sm text-blue-700">{ticket.customerEmail || ticket.contactEmail}</p>
                   <p className="text-xs text-blue-600 mt-1">
-                    Cliente desde: {ticketRelationships?.customer_since || 'Data não disponível'} • Total de tickets: {ticketRelationships?.total_tickets || 0}
+                    {t('tickets.fields.customerSince')} {ticketRelationships?.customer_since || t('tickets.fields.dateNotAvailable')} • {t('tickets.fields.totalTickets')} {ticketRelationships?.total_tickets || 0}
                   </p>
                 </div>
               </div>
@@ -2611,7 +2611,7 @@ const TicketDetails = React.memo(() => {
             <div className="space-y-4">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
                 <History className="h-4 w-4" />
-                Últimos Tickets Abertos por {ticket.customerName || 'Este Cliente'}
+                {t('tickets.fields.lastOpenedTickets')} {ticket.customerName || t('tickets.fields.thisCustomer')}
               </h3>
 
               <div className="space-y-3">
@@ -2620,13 +2620,13 @@ const TicketDetails = React.memo(() => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
                       <Badge variant="default" className="bg-blue-600">
-                        ATUAL
+                        {t('tickets.fields.current')}
                       </Badge>
                       <div className="flex-1">
                         <p className="font-medium text-sm">#{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'T-2024-001'}</p>
-                        <p className="text-sm text-gray-700 mt-1">{ticket.subject || 'Problema com sistema'}</p>
+                        <p className="text-sm text-gray-700 mt-1">{ticket.subject || t('tickets.fields.systemProblem')}</p>
                         <p className="text-xs text-gray-500 mt-2">
-                          Criado em {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'hoje'}
+                          {t('tickets.fields.createdOn')} {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : t('tickets.fields.today')}
                         </p>
                       </div>
                     </div>
@@ -2650,20 +2650,20 @@ const TicketDetails = React.memo(() => {
                           <Badge variant="secondary" className={`${relatedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' :
                                                                     relatedTicket.status === 'closed' ? 'bg-yellow-100 text-yellow-700' :
                                                                     'bg-blue-100 text-blue-700'}`}>
-                            {relatedTicket.status === 'resolved' ? 'RESOLVIDO' :
-                             relatedTicket.status === 'closed' ? 'FECHADO' : 'ATIVO'}
+                            {relatedTicket.status === 'resolved' ? t('tickets.fields.resolved') :
+                             relatedTicket.status === 'closed' ? t('tickets.fields.closed') : t('tickets.fields.active')}
                           </Badge>
                           <div className="flex-1">
                             <p className="font-medium text-sm">#{relatedTicket.ticket_number || relatedTicket.id?.slice(0, 8)}</p>
-                            <p className="text-sm text-gray-700 mt-1">{relatedTicket.subject || 'Ticket relacionado'}</p>
+                            <p className="text-sm text-gray-700 mt-1">{relatedTicket.subject || t('tickets.fields.relatedTicket')}</p>
                             <p className="text-xs text-gray-500 mt-2">
-                              Criado em {relatedTicket.created_at ? new Date(relatedTicket.created_at).toLocaleDateString('pt-BR') : 'N/A'}
-                              {relatedTicket.resolved_at && ` • Resolvido em ${new Date(relatedTicket.resolved_at).toLocaleDateString('pt-BR')}`}
+                              {t('tickets.fields.createdOn')} {relatedTicket.created_at ? new Date(relatedTicket.created_at).toLocaleDateString('pt-BR') : 'N/A'}
+                              {relatedTicket.resolved_at && ` • ${t('tickets.fields.resolvedOn')} ${new Date(relatedTicket.resolved_at).toLocaleDateString('pt-BR')}`}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
-                              <Badge variant="outline" className="text-xs">{relatedTicket.category || 'Geral'}</Badge>
+                              <Badge variant="outline" className="text-xs">{relatedTicket.category || t('tickets.fields.general')}</Badge>
                               <span className="text-xs text-gray-500">
-                                {relatedTicket.assigned_to_name && `Responsável: ${relatedTicket.assigned_to_name}`}
+                                {relatedTicket.assigned_to_name && `${t('tickets.fields.assignedTo')} ${relatedTicket.assigned_to_name}`}
                               </span>
                             </div>
                           </div>
@@ -2723,7 +2723,7 @@ const TicketDetails = React.memo(() => {
               <Card className="p-4">
                 <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4" />
-                  Insights do Cliente
+                  {t('tickets.fields.customerInsights')}
                 </h4>
                 <div className="space-y-2 text-sm">
                   {ticketRelationships.customer_insights.map((insight: any, idx: number) => (
@@ -2904,7 +2904,7 @@ const TicketDetails = React.memo(() => {
       <div className="w-full lg:w-72 bg-white border-r flex-shrink-0 h-auto lg:h-screen overflow-y-auto order-2 lg:order-1">
         <div className="p-4 lg:p-6 h-full">
 
-          {/* Empresa Cliente Section - Badge Destacado */}
+          {/* Customer Company Section - Badge Destacado */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <Building2 className="h-4 w-4 text-blue-600" />
@@ -2980,13 +2980,13 @@ const TicketDetails = React.memo(() => {
             )}
           </div>
 
-          {/* Cliente/Solicitante e Favorecido Section */}
+          {/* Customer/Requester e Favorecido Section */}
           <div className="mb-6 space-y-4">
-            {/* Cliente/Solicitante */}
+            {/* Customer/Requester */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <User className="h-4 w-4 text-purple-600" />
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Cliente</span>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">{t('tickets.fields.customer')}</span>
               </div>
 
               {isEditMode ? (
@@ -2999,7 +2999,7 @@ const TicketDetails = React.memo(() => {
                     handleCustomerChange(value, 'caller');
                   }}
                   selectedCompanyId={form.getValues('companyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
-                  placeholder="Selecionar cliente"
+                  placeholder={t('tickets.fields.selectCustomer')}
                   disabled={false}
                   className="h-8 text-xs text-left"
                 />
@@ -3020,18 +3020,18 @@ const TicketDetails = React.memo(() => {
                       if (fallbackCustomer) {
                         return fallbackCustomer.fullName || fallbackCustomer.name ||
                                `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() ||
-                               fallbackCustomer.email || 'Cliente encontrado';
+                               fallbackCustomer.email || t('tickets.fields.customerFound');
                       }
-                      return 'Cliente não encontrado';
+                      return t('tickets.fields.customerNotFound');
                     }
 
                     if (!customer) {
-                      return (callerId === 'unspecified' || !callerId) ? 'Não especificado' : 'Cliente não encontrado';
+                      return (callerId === 'unspecified' || !callerId) ? t('tickets.fields.notSpecified') : t('tickets.fields.customerNotFound');
                     }
 
                     return customer.fullName || customer.name ||
                            `${customer.firstName || ''} ${customer.lastName || ''}`.trim() ||
-                           customer.email || 'Cliente sem nome';
+                           customer.email || t('tickets.fields.customerNoName');
                   })()}
                 </Badge>
               )}
@@ -3630,29 +3630,29 @@ const TicketDetails = React.memo(() => {
               </h4>
               <div className="grid grid-cols-1 gap-1 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-blue-700">Criação:</span>
+                  <span className="text-blue-700">{t('tickets.fields.creation')}</span>
                   <span className="text-blue-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-700">Vencimento:</span>
+                  <span className="text-blue-700">{t('tickets.fields.dueDate')}</span>
                   <span className="text-blue-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-700">Status:</span>
+                  <span className="text-blue-700">{t('tickets.fields.statusField')}</span>
                   <Badge variant="outline" className="text-xs h-4">
                     {ticket.status} - {ticket.daysInStatus || 0}d
                   </Badge>
                 </div>
                 {/* SLA Information */}
                 <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
-                  <span className="text-blue-700">SLA:</span>
+                  <span className="text-blue-700">{t('tickets.fields.sla')}</span>
                   <div className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
                       title="SLA Warning: 85% decorrido"
                       data-testid="sla-led-indicator"
                     />
-                    <span className="text-blue-900 font-medium text-xs">85% decorrido</span>
+                    <span className="text-blue-900 font-medium text-xs">{t('tickets.fields.slaElapsed')}</span>
                   </div>
                 </div>
               </div>
@@ -3661,25 +3661,25 @@ const TicketDetails = React.memo(() => {
             {/* Favorecido - Compacto */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
-                <h4 className="text-xs font-semibold text-gray-700">FAVORECIDO</h4>
+                <h4 className="text-xs font-semibold text-gray-700">{t('tickets.fields.beneficiary')}</h4>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
-                      🔐 Dados Sensíveis
+                      🔐 {t('tickets.fields.sensitiveData')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Verificação de Segurança</DialogTitle>
+                      <DialogTitle>{t('tickets.fields.securityVerification')}</DialogTitle>
                       <DialogDescription>
-                        Digite sua senha para acessar dados sensíveis do favorecido
+                        {t('tickets.fields.enterPasswordAccess')}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <Input
                         id="agent-password"
                         type="password"
-                        placeholder="Digite sua senha"
+                        placeholder={t('tickets.fields.enterPasswordPlaceholder')}
                         value={agentPassword}
                         onChange={(e) => setAgentPassword(e.target.value)}
                       />
@@ -3711,15 +3711,15 @@ const TicketDetails = React.memo(() => {
                   return (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Nome:</span>
+                        <span className="text-gray-600">{t('tickets.fields.name')}</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">E-mail:</span>
+                        <span className="text-gray-600">{t('tickets.fields.email')}</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Telefone:</span>
+                        <span className="text-gray-600">{t('tickets.fields.phone')}</span>
                         <span className="text-gray-900 font-medium">{phone}</span>
                       </div>
                     </>
@@ -3731,24 +3731,24 @@ const TicketDetails = React.memo(() => {
             {/* Solicitante - Compacto */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <h4 className="text-xs font-semibold text-gray-700">CLIENTE</h4>
+                <h4 className="text-xs font-semibold text-gray-700">{t('tickets.fields.customerUpper')}</h4>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
-                      🔐 Dados Sensíveis
+                      🔐 {t('tickets.fields.sensitiveData')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Verificação de Segurança</DialogTitle>
+                      <DialogTitle>{t('tickets.fields.securityVerification')}</DialogTitle>
                       <DialogDescription>
-                        Digite sua senha para acessar dados sensíveis do cliente
+                        {t('tickets.fields.accessSensitiveData')}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <Input
                         type="password"
-                        placeholder="Digite sua senha"
+                        placeholder={t('tickets.fields.enterPasswordPlaceholder')}
                         value={agentPassword}
                         onChange={(e) => setAgentPassword(e.target.value)}
                       />
@@ -3782,15 +3782,15 @@ const TicketDetails = React.memo(() => {
                   return (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Nome:</span>
+                        <span className="text-gray-600">{t('tickets.fields.name')}</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">E-mail:</span>
+                        <span className="text-gray-600">{t('tickets.fields.email')}</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Endereço:</span>
+                        <span className="text-gray-600">{t('tickets.fields.address')}</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && `, ${addressNumber}`}</span>
                       </div>
                     </>
@@ -3806,20 +3806,20 @@ const TicketDetails = React.memo(() => {
       <Dialog open={showPasswordDialog.open} onOpenChange={(open) => setShowPasswordDialog({...showPasswordDialog, open})}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Verificação de Segurança</DialogTitle>
+            <DialogTitle>{t('tickets.fields.securityVerification')}</DialogTitle>
             <DialogDescription>
-              Para visualizar informações sensíveis ({showPasswordDialog.type === 'rg' ? 'RG' : 'CPF/CNPJ'}), digite sua senha de agente:
+              {t('tickets.fields.sensitiveDataAccess')} ({showPasswordDialog.type === 'rg' ? 'RG' : 'CPF/CNPJ'}), {t('tickets.fields.enterPasswordAgent')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="agent-password">Senha do Agente</Label>
+              <Label htmlFor="agent-password">{t('tickets.fields.agentPassword')}</Label>
               <Input
                 id="agent-password"
                 type="password"
                 value={agentPassword}
                 onChange={(e) => setAgentPassword(e.target.value)}
-                placeholder="Digite sua senha"
+                placeholder={t('tickets.fields.enterPasswordPlaceholder')}
               />
             </div>
           </div>
@@ -3831,22 +3831,22 @@ const TicketDetails = React.memo(() => {
                 setAgentPassword('');
               }}
             >
-              Cancelar
+              {t('tickets.fields.cancel')}
             </Button>
             <Button
               onClick={() => {
                 // Aqui você faria a verificação da senha
                 // Por enquanto, apenas fechamos o modal
                 if (agentPassword) {
-                  alert(`Dados sensíveis revelados para o campo: ${showPasswordDialog.field}`);
+                  alert(`${t('tickets.fields.sensitiveDataRevealed')} ${showPasswordDialog.field}`);
                   setShowPasswordDialog({open: false, field: '', type: 'rg'});
                   setAgentPassword('');
                 } else {
-                  alert('Digite sua senha');
+                  alert(t('tickets.fields.enterPassword'));
                 }
               }}
             >
-              Verificar
+              {t('tickets.fields.verify')}
             </Button>
           </div>
         </DialogContent>
@@ -4042,7 +4042,7 @@ const TicketDetails = React.memo(() => {
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Users className="h-4 w-4 mr-2" />
-                Gerenciar Clientes
+                {t('tickets.fields.manageCustomers')}
               </Button>
               <Button
                 variant="outline"
@@ -4085,7 +4085,7 @@ const TicketDetails = React.memo(() => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <User className="h-5 w-5 text-purple-600" />
-              Detalhes do Cliente
+              {t('tickets.fields.customerDetails')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -4097,7 +4097,7 @@ const TicketDetails = React.memo(() => {
                 return (
                   <div className="text-center py-8 text-gray-500">
                     <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>Nenhum cliente especificado</p>
+                    <p>{t('tickets.fields.noCustomerSpecified')}</p>
                   </div>
                 );
               }
@@ -4106,14 +4106,14 @@ const TicketDetails = React.memo(() => {
                 return (
                   <div className="text-center py-8 text-gray-500">
                     <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>Cliente não encontrado</p>
+                    <p>{t('tickets.fields.customerNotFound')}</p>
                   </div>
                 );
               }
 
               const customerName = customer.fullName || customer.name ||
                                  `${customer.firstName || ''} ${customer.lastName || ''}`.trim() ||
-                                 customer.email || 'Cliente sem nome';
+                                 customer.email || t('tickets.fields.customerNoName');
 
               return (
                 <div className="space-y-3">
