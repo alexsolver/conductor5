@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { MessageSquare, Save, X, User, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ interface EditInternalActionModalProps {
 }
 
 export default function EditInternalActionModal({ ticketId, action, isOpen, onClose }: EditInternalActionModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     startDateTime: "",
     endDateTime: "",
@@ -286,12 +288,12 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
 
               {/* Description */}
               <div>
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description">{t('common.description')}</Label>
                 <Input
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descrição da ação interna..."
+                  placeholder={t('tickets.internal_actions.description_placeholder')}
                   className="mt-1"
                 />
               </div>

@@ -562,7 +562,7 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* Customer/Cliente Selection - Filtered by Company */}
+                  {/* Customer Selection - Filtered by Company */}
                     <FormField
                       control={form.control}
                       name="customerId"

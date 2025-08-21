@@ -520,25 +520,25 @@ export default function TicketDetail() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Ticket</CardTitle>
+              <CardTitle>{t('tickets.ticket_information')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center text-sm">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-500">Criado:</span>
+                <span className="text-gray-500">{t('tickets.created')}:</span>
                 <span className="ml-2 font-medium">{formatDate(ticket.createdAt)}</span>
               </div>
               
               <div className="flex items-center text-sm">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-500">Atualizado:</span>
+                <span className="text-gray-500">{t('tickets.updated')}:</span>
                 <span className="ml-2 font-medium">{formatDate(ticket.updatedAt)}</span>
               </div>
 
               {ticket.assignedToId && (
                 <div className="flex items-center text-sm">
                   <User className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-500">Responsável:</span>
+                  <span className="text-gray-500">{t('tickets.assigned_to')}:</span>
                   <span className="ml-2 font-medium">
                     {assignedUser?.firstName && assignedUser?.lastName 
                       ? `${assignedUser.firstName} ${assignedUser.lastName}`
@@ -551,7 +551,7 @@ export default function TicketDetail() {
               {ticket.companyId && (
                 <div className="flex items-center text-sm">
                   <Building className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-500">Empresa:</span>
+                  <span className="text-gray-500">{t('tickets.company')}:</span>
                   <span className="ml-2 font-medium">
                     {(ticket as any)?.company_name || (ticket as any)?.company_display_name || company?.name || ticket.companyId}
                   </span>
@@ -561,7 +561,7 @@ export default function TicketDetail() {
               {ticket.locationId && (
                 <div className="flex items-center text-sm">
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-500">Local:</span>
+                  <span className="text-gray-500">{t('tickets.location')}:</span>
                   <span className="ml-2 font-medium">
                     {location?.name || location?.address || ticket.locationId}
                   </span>

@@ -28,7 +28,8 @@
     "back": "Back",
     "retry": "Retry",
     "creating": "Creating",
-    "view": "View"
+    "view": "View",
+    "description": "Descrição"
   },
   "TranslationManager": {
     "title": "Gerenciamento de Traduções",
@@ -347,6 +348,19 @@
   "tickets": {
     "title": "Tickets",
     "description": "Descrição",
+    "ticket_information": "Informações do Ticket",
+    "created": "Criado",
+    "updated": "Atualizado", 
+    "assigned_to": "Responsável",
+    "company": "Empresa",
+    "location": "Local",
+    "priority": "Prioridade",
+    "category": "Categoria",
+    "internal_actions": {
+      "description_placeholder": "Descrição da ação interna...",
+      "detailed_description_placeholder": "Descrição detalhada da ação realizada...",
+      "description_too_long": "Descrição muito longa"
+    },
     "new_ticket": "Novo Ticket",
     "create_ticket": "Create Ticket",
     "all_tickets": "All Tickets",
@@ -355,13 +369,8 @@
     "ticket_number": "Ticket Number",
     "subject": "Assunto",
     "status": "Status",
-    "priority": "Prioridade",
-    "category": "Categoria",
     "subcategory": "Subcategoria",
-    "assigned_to": "Assigned To",
     "customer": "Cliente",
-    "company": "Empresa",
-    "location": "Localização",
     "created_at": "Created At",
     "updated_at": "Updated At",
     "caller": "Caller",

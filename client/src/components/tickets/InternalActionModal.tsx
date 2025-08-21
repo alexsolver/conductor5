@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -49,6 +50,7 @@ interface InternalActionModalProps {
 }
 
 export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
@@ -430,7 +432,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   </div>
                 </div>
 
-                {/* Status e Prioridade */}
+                {/* Status and Priority */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="status">Status</Label>
@@ -447,7 +449,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="priority">Prioridade</Label>
+                    <Label htmlFor="priority">{t('tickets.priority')}</Label>
                     <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -483,10 +485,10 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   )}
                 </div>
 
-                {/* Descrição */}
+                {/* Description */}
                 <div>
                   <div className="flex justify-between">
-                    <Label htmlFor="description">Descrição</Label>
+                    <Label htmlFor="description">{t('common.description')}</Label>
                     <span className={`text-xs ${formData.description.length > 1000 ? 'text-red-600' : 'text-gray-500'}`}>
                       {formData.description.length}/1000
                     </span>
@@ -495,13 +497,13 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Descrição detalhada da ação realizada..."
+                    placeholder={t('tickets.internal_actions.detailed_description_placeholder')}
                     rows={4}
                     className={`mt-1 ${formData.description.length > 1000 ? 'border-red-500' : ''}`}
                     maxLength={1000}
                   />
                   {formData.description.length > 1000 && (
-                    <p className="text-sm text-red-600 mt-1">Descrição muito longa</p>
+                    <p className="text-sm text-red-600 mt-1">{t('tickets.internal_actions.description_too_long')}</p>
                   )}
                 </div>
 

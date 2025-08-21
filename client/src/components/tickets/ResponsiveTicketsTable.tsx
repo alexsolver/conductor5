@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import {
   Table,
   TableBody,
@@ -99,6 +100,7 @@ export const ResponsiveTicketsTable = ({
   ticketsWithRelationships = new Set(),
   ticketRelationships = {},
 }: ResponsiveTicketsTableProps) => {
+  const { t } = useTranslation();
   // Component loading state
   const isComponentLoading = isLoading || !tickets;
 
@@ -131,7 +133,7 @@ export const ResponsiveTicketsTable = ({
             <TableHead scope="col">Assunto</TableHead>
             <TableHead className="hidden lg:table-cell" scope="col">Empresa</TableHead>
             <TableHead className="hidden md:table-cell" scope="col">Cliente</TableHead>
-            <TableHead className="hidden lg:table-cell" scope="col">Categoria</TableHead>
+            <TableHead className="hidden lg:table-cell" scope="col">{t('tickets.category')}</TableHead>
             <TableHead className="hidden lg:table-cell" scope="col">Status</TableHead>
             <TableHead className="hidden sm:table-cell" scope="col">Prioridade</TableHead>
             <TableHead className="w-12" scope="col">

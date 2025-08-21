@@ -28,7 +28,8 @@
     "creating": "Creating",
     "view": "View",
     "close": "Close",
-    "open": "Open"
+    "open": "Open",
+    "description": "Description"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -294,6 +295,15 @@
     "change_history": "Change history",
     "field": "Field",
     "new_ticket": "New ticket",
+    "ticket_information": "Ticket Information",
+    "created": "Created",
+    "updated": "Updated", 
+    "assigned_to": "Assigned To",
+    "internal_actions": {
+      "description_placeholder": "Internal action description...",
+      "detailed_description_placeholder": "Detailed description of the action performed...",
+      "description_too_long": "Description too long"
+    },
     "company": "Company",
     "customer": "Customer",
     "beneficiary": "Beneficiary",
