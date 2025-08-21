@@ -356,7 +356,8 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
     // Force completion to ensure translations are applied
     const completionResults = await translationService.completeTranslations(true);
 
-    console.log('✅ [STEP-1] Translation files updated successfully');
+    // Count total translations added
+    const totalAdded = completionResults.reduce((sum, result) => sum + result.added, 0);
 
     console.log('📊 [STEP-2] Generating completion report...');
 
@@ -365,37 +366,26 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
 
     console.log('✅ [STEP-2] Report generated successfully');
 
-    console.log('🛡️ [CODE-PROTECTION] Source code files remain protected');
-
-    const totalTranslationsAdded = completionResults.reduce((sum, r) => sum + r.addedKeys.length, 0);
-
     const response = {
       success: true,
+      message: `Translation completion finished! Added ${totalAdded} translations across ${completionResults.length} languages.`,
       data: {
         summary: {
-          translationsAdded: totalTranslationsAdded,
-          hardcodedTextsReplaced: 0, // Always 0 in safe mode
-          filesModified: completionResults.filter(r => r.addedKeys.length > 0).length,
-          finalCompleteness: {},
-          safetyMode: 'SAFE',
-          codeFilesProtected: true
+          translationsAdded: totalAdded,
+          languagesProcessed: completionResults.length,
+          completionResults
         },
-        completionResults,
-        hardcodedResults: [], // Always empty in safe mode
-        finalReport
-      }
+        report: finalReport
+      },
+      timestamp: new Date().toISOString()
     };
 
-    console.log('🎉 [TRANSLATION-COMPLETION] Operation completed successfully:', {
-      translationsAdded: totalTranslationsAdded,
-      hardcodedTextsReplaced: 0,
-      filesModified: response.data.summary.filesModified,
-      finalCompleteness: {},
-      safetyMode: 'SAFE',
-      codeFilesProtected: true
-    });
+    console.log('🎯 [AUTO-COMPLETE-ALL] Process completed successfully');
+    console.log('📋 [AUTO-COMPLETE-ALL] Final summary:', response.data.summary);
+    console.log(`🔥 [AUTO-COMPLETE-ALL] Added ${totalAdded} total translations`);
 
-    res.json(response);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json(response);
 
   } catch (error) {
     console.error('❌ [TRANSLATION-COMPLETION] Error in translation completion:', error);

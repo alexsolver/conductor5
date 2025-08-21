@@ -31,20 +31,20 @@ i18n
     resources,
     fallbackLng: 'en',
     debug: import.meta.env.DEV,
-    
+
     interpolation: {
       escapeValue: false, // React already escapes
     },
-    
+
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
     },
-    
+
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
-    
+
     react: {
       useSuspense: false,
     }

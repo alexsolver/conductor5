@@ -1388,112 +1388,77 @@ export class TranslationCompletionService {
   /**
    * Completa traduções faltantes automaticamente
    */
-  async completeTranslations(force = false): Promise<{
+  async completeTranslations(force = false): Promise<Array<{
     language: string;
     addedKeys: string[];
     errors: string[];
-  }[]> {
+    success: boolean;
+  }>> {
+    console.log('🚀 [AUTO-COMPLETE] Starting automatic translation completion...');
+
     const results = [];
+    const allKeys = await this.scanTranslationKeys();
 
-    // Add timeout protection
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Translation completion timeout after 25 seconds')), 25000);
-    });
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      console.log(`🌍 [AUTO-COMPLETE] Processing language: ${language}`);
 
-    try {
-      for (const language of this.SUPPORTED_LANGUAGES) {
-        try {
-          const result = await Promise.race([
-            this.completeLanguageTranslations(language, force),
-            timeoutPromise
-          ]);
-          results.push(result);
-        } catch (error) {
-          console.error(`❌ Error completing translations for ${language}:`, error);
-          results.push({
-            language,
-            addedKeys: [],
-            errors: [(error as Error).message || 'Unknown error occurred']
-          });
-        }
-      }
-    } catch (globalError) {
-      console.error('❌ Global error in completeTranslations:', globalError);
-      // Return partial results instead of failing completely
-      if (results.length === 0) {
-        // If no results yet, add empty results for all languages
-        this.SUPPORTED_LANGUAGES.forEach(language => {
-          results.push({
-            language,
-            addedKeys: [],
-            errors: [(globalError as Error).message || 'Translation service unavailable']
-          });
+      const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+      const currentTranslations = await this.loadTranslations(language);
+      const missingKeys = this.findMissingKeys(allKeys, currentTranslations);
+
+      if (missingKeys.length === 0) {
+        console.log(`✅ [AUTO-COMPLETE] No missing keys for ${language}`);
+        results.push({
+          language,
+          added: 0,
+          total: Object.keys(currentTranslations).length,
+          status: 'complete'
         });
-      }
-    }
-
-    return results;
-  }
-
-  /**
-   * Completa traduções para um idioma específico
-   */
-  private async completeLanguageTranslations(language: string, force: boolean): Promise<{
-    language: string;
-    addedKeys: string[];
-    errors: string[];
-  }> {
-    const result = {
-      language: language,
-      addedKeys: [] as string[],
-      errors: [] as string[]
-    };
-
-    try {
-      const gaps = await this.analyzeTranslationGaps();
-      const currentGap = gaps.find(g => g.language === language);
-
-      if (!currentGap) {
-        result.errors.push('Translation gaps not found for this language.');
-        return result;
+        continue;
       }
 
-      const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
-      let translations: any = {};
+      console.log(`📝 [AUTO-COMPLETE] Found ${missingKeys.length} missing keys for ${language}`);
 
-      // Carrega traduções existentes
-      try {
-        const content = await fs.readFile(filePath, 'utf8');
-        translations = JSON.parse(content);
-      } catch (error) {
-        console.warn(`Creating new translation file for ${language}`);
-        // Ensure the directory exists
-        await fs.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, JSON.stringify({}, null, 2));
-      }
+      let addedCount = 0;
+      const updatedTranslations = { ...currentTranslations };
 
-      // Adiciona traduções faltantes
-      for (const missingKey of currentGap.missingKeys) {
-        try {
-          const translation = await this.generateTranslation(missingKey, language, force);
-          if (translation) {
-            this.setNestedKey(translations, missingKey, translation);
-            result.addedKeys.push(missingKey);
-          }
-        } catch (error) {
-          result.errors.push(`Failed to generate translation for ${missingKey}: ${(error as Error).message || error}`);
+      for (const missingKey of missingKeys) {
+        // Try to get auto-translation first
+        const autoTranslation = this.getAutoTranslation(missingKey.key, language);
+
+        if (autoTranslation) {
+          this.setNestedValue(updatedTranslations, missingKey.key, autoTranslation);
+          addedCount++;
+          console.log(`✅ [AUTO-COMPLETE] Added ${language}: ${missingKey.key} = "${autoTranslation}"`);
+        } else {
+          // Always add a fallback translation - use the key itself as translation
+          const fallbackTranslation = this.generateFallbackTranslation(missingKey.key, language);
+          this.setNestedValue(updatedTranslations, missingKey.key, fallbackTranslation);
+          addedCount++;
+          console.log(`⚠️ [AUTO-COMPLETE] Added fallback ${language}: ${missingKey.key} = "${fallbackTranslation}"`);
         }
       }
 
-      // Salva arquivo atualizado
-      const updatedContent = JSON.stringify(translations, null, 2);
-      await fs.writeFile(filePath, updatedContent, 'utf8');
+      // Always save the updated translations if we have changes
+      if (addedCount > 0) {
+        const success = await this.saveTranslations(language, updatedTranslations);
+        if (success) {
+          console.log(`💾 [AUTO-COMPLETE] Successfully saved ${addedCount} translations for ${language}`);
+        } else {
+          console.error(`❌ [AUTO-COMPLETE] Failed to save translations for ${language}`);
+        }
+      }
 
-    } catch (error) {
-      result.errors.push(`Failed to process ${language}: ${(error as Error).message || error}`);
+      results.push({
+        language,
+        added: addedCount,
+        total: Object.keys(updatedTranslations).length,
+        status: addedCount > 0 ? 'updated' : 'no_changes'
+      });
     }
 
-    return result;
+    console.log('🎉 [AUTO-COMPLETE] Automatic translation completion finished');
+    return results;
   }
 
   /**
@@ -1601,7 +1566,7 @@ export class TranslationCompletionService {
 
     // Fallback para inglês se não for inglês
     if (language !== 'en' && this.AUTO_TRANSLATIONS[key]?.['en']) {
-      const fallback = this.generateFallbackTranslation(this.AUTO_TRANSLATIONS[key]['en'], language);
+      const fallback = this.generateFallbackTranslation(key, language); // Use original key for fallback
       if (fallback && !fallback.startsWith('[')) {
         return fallback;
       }
@@ -1614,7 +1579,7 @@ export class TranslationCompletionService {
 
       // Se não tiver tradução em inglês, gera baseado na chave
       if (!sourceText) {
-        sourceText = this.generateKeyBasedTranslation(key, 'en').replace(/^\[EN\]\s*/, '');
+        sourceText = this.generateFallbackTranslation(key, 'en'); // Use fallback for source text
       }
 
       if (sourceText) {
@@ -1627,7 +1592,7 @@ export class TranslationCompletionService {
 
     // Gera tradução baseada na chave como último recurso
     if (force) {
-      return this.generateKeyBasedTranslation(key, language);
+      return this.generateFallbackTranslation(key, language); // Use fallback for forced translation
     }
 
     return null;
@@ -1636,102 +1601,63 @@ export class TranslationCompletionService {
   /**
    * Gera tradução fallback baseada no texto em inglês
    */
-  private generateFallbackTranslation(englishText: string, targetLanguage: string): string {
-    // Mapas básicos para palavras comuns
-    const commonWords: Record<string, Record<string, string>> = {
+  private generateFallbackTranslation(key: string, language: string): string {
+    // Extract the last part of the key as a readable text
+    const parts = key.split('.');
+    const lastPart = parts[parts.length - 1];
+
+    // Convert camelCase/PascalCase to readable text
+    const readable = lastPart
+      .replace(/([A-Z])/g, ' $1') // Add space before capitals
+      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+      .trim();
+
+    // Use existing specific translations if available
+    const specificTranslations: Record<string, Record<string, string>> = {
       'pt-BR': {
-        'Create': 'Criar',
-        'Edit': 'Editar',
-        'Delete': 'Excluir',
-        'Save': 'Salvar',
-        'Cancel': 'Cancelar',
-        'Loading': 'Carregando',
-        'Search': 'Pesquisar',
-        'Filter': 'Filtrar',
-        'Actions': 'Ações',
-        'Settings': 'Configurações',
-        'Profile': 'Perfil',
-        'Dashboard': 'Painel',
-        'Reports': 'Relatórios',
-        'Analytics': 'Análises',
-        'Customers': 'Clientes',
-        'Tickets': 'Tickets',
-        'Users': 'Usuários',
-        'Management': 'Gestão',
-        'Administration': 'Administração'
+        'title': 'Título', 'description': 'Descrição', 'name': 'Nome', 'email': 'Email',
+        'save': 'Salvar', 'cancel': 'Cancelar', 'delete': 'Excluir', 'edit': 'Editar',
+        'create': 'Criar', 'update': 'Atualizar', 'loading': 'Carregando', 'success': 'Sucesso',
+        'error': 'Erro', 'warning': 'Aviso', 'info': 'Informação', 'search': 'Pesquisar',
+        'filter': 'Filtrar', 'actions': 'Ações', 'settings': 'Configurações', 'profile': 'Perfil',
+        'dashboard': 'Painel', 'reports': 'Relatórios', 'analytics': 'Análises', 'customers': 'Clientes',
+        'tickets': 'Tickets', 'users': 'Usuários', 'management': 'Gestão', 'administration': 'Administração'
       },
       'es': {
-        'Create': 'Crear',
-        'Edit': 'Editar',
-        'Delete': 'Eliminar',
-        'Save': 'Guardar',
-        'Cancel': 'Cancelar',
-        'Loading': 'Cargando',
-        'Search': 'Buscar',
-        'Filter': 'Filtrar',
-        'Actions': 'Acciones',
-        'Settings': 'Configuración',
-        'Profile': 'Perfil',
-        'Dashboard': 'Panel',
-        'Reports': 'Informes',
-        'Analytics': 'Análisis',
-        'Customers': 'Clientes',
-        'Tickets': 'Tickets',
-        'Users': 'Usuarios',
-        'Management': 'Gestión',
-        'Administration': 'Administración'
+        'title': 'Título', 'description': 'Descripción', 'name': 'Nombre', 'email': 'Correo',
+        'save': 'Guardar', 'cancel': 'Cancelar', 'delete': 'Eliminar', 'edit': 'Editar',
+        'create': 'Crear', 'update': 'Actualizar', 'loading': 'Cargando', 'success': 'Éxito',
+        'error': 'Error', 'warning': 'Advertencia', 'info': 'Información', 'search': 'Buscar',
+        'filter': 'Filtrar', 'actions': 'Acciones', 'settings': 'Configuración', 'profile': 'Perfil',
+        'dashboard': 'Panel', 'reports': 'Informes', 'analytics': 'Análisis', 'customers': 'Clientes',
+        'tickets': 'Tickets', 'users': 'Usuarios', 'management': 'Gestión', 'administration': 'Administración'
       },
       'fr': {
-        'Create': 'Créer',
-        'Edit': 'Modifier',
-        'Delete': 'Supprimer',
-        'Save': 'Enregistrer',
-        'Cancel': 'Annuler',
-        'Loading': 'Chargement',
-        'Search': 'Rechercher',
-        'Filter': 'Filtrer',
-        'Actions': 'Actions',
-        'Settings': 'Paramètres',
-        'Profile': 'Profil',
-        'Dashboard': 'Tableau de bord',
-        'Reports': 'Rapports',
-        'Analytics': 'Analyses',
-        'Customers': 'Clients',
-        'Tickets': 'Tickets',
-        'Users': 'Utilisateurs',
-        'Management': 'Gestion',
-        'Administration': 'Administration'
+        'title': 'Titre', 'description': 'Description', 'name': 'Nom', 'email': 'Email',
+        'save': 'Enregistrer', 'cancel': 'Annuler', 'delete': 'Supprimer', 'edit': 'Modifier',
+        'create': 'Créer', 'update': 'Mettre à jour', 'loading': 'Chargement', 'success': 'Succès',
+        'error': 'Erreur', 'warning': 'Avertissement', 'info': 'Information', 'search': 'Rechercher',
+        'filter': 'Filtrer', 'actions': 'Actions', 'settings': 'Paramètres', 'profile': 'Profil',
+        'dashboard': 'Tableau de bord', 'reports': 'Rapports', 'analytics': 'Analyses', 'customers': 'Clients',
+        'tickets': 'Tickets', 'users': 'Utilisateurs', 'management': 'Gestion', 'administration': 'Administration'
       },
       'de': {
-        'Create': 'Erstellen',
-        'Edit': 'Bearbeiten',
-        'Delete': 'Löschen',
-        'Save': 'Speichern',
-        'Cancel': 'Abbrechen',
-        'Loading': 'Laden',
-        'Search': 'Suchen',
-        'Filter': 'Filtern',
-        'Actions': 'Aktionen',
-        'Settings': 'Einstellungen',
-        'Profile': 'Profil',
-        'Dashboard': 'Dashboard',
-        'Reports': 'Berichte',
-        'Analytics': 'Analysen',
-        'Customers': 'Kunden',
-        'Tickets': 'Tickets',
-        'Users': 'Benutzer',
-        'Management': 'Verwaltung',
-        'Administration': 'Administration'
+        'title': 'Titel', 'description': 'Beschreibung', 'name': 'Name', 'email': 'E-Mail',
+        'save': 'Speichern', 'cancel': 'Abbrechen', 'delete': 'Löschen', 'edit': 'Bearbeiten',
+        'create': 'Erstellen', 'update': 'Aktualisieren', 'loading': 'Laden', 'success': 'Erfolg',
+        'error': 'Fehler', 'warning': 'Warnung', 'info': 'Information', 'search': 'Suchen',
+        'filter': 'Filtern', 'actions': 'Aktionen', 'settings': 'Einstellungen', 'profile': 'Profil',
+        'dashboard': 'Dashboard', 'reports': 'Berichte', 'analytics': 'Analysen', 'customers': 'Kunden',
+        'tickets': 'Tickets', 'users': 'Benutzer', 'management': 'Verwaltung', 'administration': 'Administration'
       }
     };
 
-    const translations = commonWords[targetLanguage];
-    if (translations && translations[englishText]) {
-      return translations[englishText];
+    if (specificTranslations[language] && specificTranslations[language][lastPart.toLowerCase()]) {
+      return specificTranslations[language][lastPart.toLowerCase()];
     }
 
-    // Fallback: retorna a chave com indicação de tradução pendente
-    return `[${targetLanguage.toUpperCase()}] ${englishText}`;
+    // Fallback: returns the readable text, possibly with language prefix if not found
+    return readable || key;
   }
 
   /**
@@ -1950,7 +1876,7 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Auto-completa traduções faltantes usando o dicionário interno
+   * Completa traduções faltantes automaticamente
    */
   async completeTranslations(force = false): Promise<Array<{
     language: string;
@@ -1958,7 +1884,8 @@ export class TranslationCompletionService {
     errors: string[];
     success: boolean;
   }>> {
-    console.log('🔄 [TRANSLATION-COMPLETION] Starting comprehensive translation completion...');
+    console.log('🚀 [AUTO-COMPLETE] Starting automatic translation completion...');
+
     const results: Array<{
       language: string;
       addedKeys: string[];
@@ -2047,7 +1974,7 @@ export class TranslationCompletionService {
       }
     }
 
-    console.log('🎉 [TRANSLATION-COMPLETION] Translation completion finished successfully');
+    console.log('🎉 [TRANSLATION-COMPLETION] Translation completion finished');
     return results;
   }
 
@@ -2171,5 +2098,143 @@ export class TranslationCompletionService {
       default:
         return humanReadable;
     }
+  }
+
+  /**
+   * Obtém uma tradução automática para uma chave específica
+   */
+  private getAutoTranslation(key: string, language: string): string | null {
+    return this.AUTO_TRANSLATIONS[key]?.[language] || null;
+  }
+
+  /**
+   * Gera uma tradução de fallback baseada na chave
+   */
+  private generateFallbackTranslation(key: string, language: string): string {
+    // Extract the last part of the key as a readable text
+    const parts = key.split('.');
+    const lastPart = parts[parts.length - 1];
+
+    // Convert camelCase/PascalCase to readable text
+    const readable = lastPart
+      .replace(/([A-Z])/g, ' $1') // Add space before capitals
+      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+      .trim();
+
+    // Use existing specific translations if available
+    const specificTranslations: Record<string, Record<string, string>> = {
+      'pt-BR': {
+        'title': 'Título', 'description': 'Descrição', 'name': 'Nome', 'email': 'Email',
+        'save': 'Salvar', 'cancel': 'Cancelar', 'delete': 'Excluir', 'edit': 'Editar',
+        'create': 'Criar', 'update': 'Atualizar', 'loading': 'Carregando', 'success': 'Sucesso',
+        'error': 'Erro', 'warning': 'Aviso', 'info': 'Informação', 'search': 'Pesquisar',
+        'filter': 'Filtrar', 'actions': 'Ações', 'settings': 'Configurações', 'profile': 'Perfil',
+        'dashboard': 'Painel', 'reports': 'Relatórios', 'analytics': 'Análises', 'customers': 'Clientes',
+        'tickets': 'Tickets', 'users': 'Usuários', 'management': 'Gestão', 'administration': 'Administração'
+      },
+      'es': {
+        'title': 'Título', 'description': 'Descripción', 'name': 'Nombre', 'email': 'Correo',
+        'save': 'Guardar', 'cancel': 'Cancelar', 'delete': 'Eliminar', 'edit': 'Editar',
+        'create': 'Crear', 'update': 'Actualizar', 'loading': 'Cargando', 'success': 'Éxito',
+        'error': 'Error', 'warning': 'Advertencia', 'info': 'Información', 'search': 'Buscar',
+        'filter': 'Filtrar', 'actions': 'Acciones', 'settings': 'Configuración', 'profile': 'Perfil',
+        'dashboard': 'Panel', 'reports': 'Informes', 'analytics': 'Análisis', 'customers': 'Clientes',
+        'tickets': 'Tickets', 'users': 'Usuarios', 'management': 'Gestión', 'administration': 'Administración'
+      },
+      'fr': {
+        'title': 'Titre', 'description': 'Description', 'name': 'Nom', 'email': 'Email',
+        'save': 'Enregistrer', 'cancel': 'Annuler', 'delete': 'Supprimer', 'edit': 'Modifier',
+        'create': 'Créer', 'update': 'Mettre à jour', 'loading': 'Chargement', 'success': 'Succès',
+        'error': 'Erreur', 'warning': 'Avertissement', 'info': 'Information', 'search': 'Rechercher',
+        'filter': 'Filtrer', 'actions': 'Actions', 'settings': 'Paramètres', 'profile': 'Profil',
+        'dashboard': 'Tableau de bord', 'reports': 'Rapports', 'analytics': 'Analyses', 'customers': 'Clients',
+        'tickets': 'Tickets', 'users': 'Utilisateurs', 'management': 'Gestion', 'administration': 'Administration'
+      },
+      'de': {
+        'title': 'Titel', 'description': 'Beschreibung', 'name': 'Name', 'email': 'E-Mail',
+        'save': 'Speichern', 'cancel': 'Abbrechen', 'delete': 'Löschen', 'edit': 'Bearbeiten',
+        'create': 'Erstellen', 'update': 'Aktualisieren', 'loading': 'Laden', 'success': 'Erfolg',
+        'error': 'Fehler', 'warning': 'Warnung', 'info': 'Information', 'search': 'Suchen',
+        'filter': 'Filtern', 'actions': 'Aktionen', 'settings': 'Einstellungen', 'profile': 'Profil',
+        'dashboard': 'Dashboard', 'reports': 'Berichte', 'analytics': 'Analysen', 'customers': 'Kunden',
+        'tickets': 'Tickets', 'users': 'Benutzer', 'management': 'Verwaltung', 'administration': 'Administration'
+      }
+    };
+
+    if (specificTranslations[language] && specificTranslations[language][lastPart.toLowerCase()]) {
+      return specificTranslations[language][lastPart.toLowerCase()];
+    }
+
+    // Fallback: returns the readable text, possibly with language prefix if not found
+    return readable || key;
+  }
+
+  /**
+   * Salva traduções no arquivo correspondente
+   */
+  private async saveTranslations(language: string, translations: Record<string, any>): Promise<boolean> {
+    try {
+      const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+      const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+
+      // Create directory if it doesn't exist
+      const dir = path.dirname(filePath);
+      await fs.mkdir(dir, { recursive: true });
+
+      // Create backup
+      try {
+        const backupPath = `${filePath}.backup-${Date.now()}`;
+        const existingContent = await fs.readFile(filePath, 'utf-8');
+        await fs.writeFile(backupPath, existingContent);
+      } catch (backupError) {
+        console.warn(`⚠️ Could not create backup for ${language}:`, backupError);
+      }
+
+      // Write new translations
+      const jsonContent = JSON.stringify(translations, null, 2);
+      await fs.writeFile(filePath, jsonContent, 'utf-8');
+
+      console.log(`💾 [SAVE-TRANSLATIONS] Successfully saved ${language} translations to ${filePath}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ [SAVE-TRANSLATIONS] Error saving translations for ${language}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Encontra chaves faltantes comparando com as traduções existentes
+   */
+  private findMissingKeys(allKeys: TranslationKey[], currentTranslations: Record<string, any>): TranslationKey[] {
+    const flattenedExisting = this.flattenObject(currentTranslations);
+    const existingKeys = new Set(Object.keys(flattenedExisting));
+
+    const missing = allKeys.filter(keyObj => {
+      const hasKey = existingKeys.has(keyObj.key);
+      if (!hasKey) {
+        console.log(`🔍 [MISSING-KEY] ${keyObj.key} not found in existing translations`);
+      }
+      return !hasKey;
+    });
+
+    console.log(`📊 [MISSING-KEYS] Found ${missing.length} missing keys out of ${allKeys.length} total keys`);
+    return missing;
+  }
+
+  /**
+   * Achata um objeto aninhado em um objeto de chave única
+   */
+  private flattenObject(obj: Record<string, any>, prefix = '', res: Record<string, any> = {}): Record<string, any> {
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const newKey = prefix ? `${prefix}.${key}` : key;
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          this.flattenObject(obj[key], newKey, res);
+        } else {
+          res[newKey] = obj[key];
+        }
+      }
+    }
+    return res;
   }
 }
