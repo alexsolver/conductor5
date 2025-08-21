@@ -550,7 +550,7 @@ export class TranslationCompletionService {
     for (const sourceDir of this.SOURCE_DIRS) {
       try {
         await this.scanDirectoryForHardcoded(
-          path.join(process.cwd(), sourceDir), 
+          path.join(process.cwd(), sourceDir),
           hardcodedTexts
         );
       } catch (error) {
@@ -1130,7 +1130,7 @@ export class TranslationCompletionService {
     const words = normalized.split(' ');
 
     // Gera camelCase
-    const camelCase = words[0] + words.slice(1).map(w => 
+    const camelCase = words[0] + words.slice(1).map(w =>
       w.charAt(0).toUpperCase() + w.slice(1)
     ).join('');
 
@@ -1161,8 +1161,8 @@ export class TranslationCompletionService {
    * Escaneia diretório recursivamente
    */
   private async scanDirectory(
-    dir: string, 
-    keys: TranslationKey[], 
+    dir: string,
+    keys: TranslationKey[],
     pattern: RegExp
   ): Promise<void> {
     try {
@@ -1186,8 +1186,8 @@ export class TranslationCompletionService {
    * Escaneia arquivo individual
    */
   private async scanFile(
-    filePath: string, 
-    keys: TranslationKey[], 
+    filePath: string,
+    keys: TranslationKey[],
     pattern: RegExp
   ): Promise<void> {
     try {
@@ -1245,8 +1245,8 @@ export class TranslationCompletionService {
    */
   private determinePriority(key: string, filePath: string): 'high' | 'medium' | 'low' {
     // High priority: navegação, erros, ações críticas
-    if (key.startsWith('navigation.') || 
-        key.startsWith('errors.') || 
+    if (key.startsWith('navigation.') ||
+        key.startsWith('errors.') ||
         key.includes('error') ||
         key.includes('save') ||
         key.includes('delete')) {
@@ -1254,7 +1254,7 @@ export class TranslationCompletionService {
     }
 
     // Medium priority: formulários, labels comuns
-    if (key.startsWith('common.') || 
+    if (key.startsWith('common.') ||
         key.includes('title') ||
         key.includes('label')) {
       return 'medium';
@@ -1282,7 +1282,7 @@ export class TranslationCompletionService {
       }
     }
 
-    return Array.from(keyMap.values()).sort((a, b) => 
+    return Array.from(keyMap.values()).sort((a, b) =>
       this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority)
     );
   }
@@ -1474,7 +1474,7 @@ export class TranslationCompletionService {
   private async getOpenAIConfig(): Promise<{ apiKey: string; baseUrl: string } | null> {
     try {
       const result = await pool.query(`
-        SELECT config FROM "public"."system_integrations" 
+        SELECT config FROM "public"."system_integrations"
         WHERE integration_id = $1
       `, ['openai']);
 
@@ -1613,7 +1613,7 @@ export class TranslationCompletionService {
     const commonWords: Record<string, Record<string, string>> = {
       'pt-BR': {
         'Create': 'Criar',
-        'Edit': 'Editar', 
+        'Edit': 'Editar',
         'Delete': 'Excluir',
         'Save': 'Salvar',
         'Cancel': 'Cancelar',
@@ -1635,7 +1635,7 @@ export class TranslationCompletionService {
       'es': {
         'Create': 'Crear',
         'Edit': 'Editar',
-        'Delete': 'Eliminar', 
+        'Delete': 'Eliminar',
         'Save': 'Guardar',
         'Cancel': 'Cancelar',
         'Loading': 'Cargando',
@@ -1770,16 +1770,17 @@ export class TranslationCompletionService {
       };
 
       // Calcula estatísticas por idioma
-      for (const language of this.SUPPORTED_LANGUAGES) {
-        const languageGap = gaps.find(g => g.language === language);
-        const missingCount = languageGap?.missingKeys.length || 0;
-        const completedCount = allKeys.length - missingCount;
+      for (const gap of gaps) {
+        const totalKeys = Number(allKeys.length) || 0;
+        const missingCount = Number(gap.missingKeys.length) || 0;
+        const completed = Math.max(0, totalKeys - missingCount);
+        const completeness = totalKeys > 0 ? Math.round((completed / totalKeys) * 100) : 0;
 
-        summary.languageStats[language] = {
-          total: allKeys.length,
-          completed: completedCount,
+        languageStats[gap.language] = {
+          total: totalKeys,
+          completed: completed,
           missing: missingCount,
-          completeness: allKeys.length > 0 ? Math.round((completedCount / allKeys.length) * 100) : 100
+          completeness: completeness
         };
       }
 
