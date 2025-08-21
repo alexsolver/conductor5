@@ -443,9 +443,7 @@ export default function TranslationManager() {
         </div>
       </div>
 
-      {/* Language Selector */}
-      <Card>
-      </Card>
+      
 
       {/* Search */}
       <Card>
