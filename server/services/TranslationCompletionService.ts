@@ -370,6 +370,28 @@ export class TranslationCompletionService {
   };
 
   /**
+   * Carrega traduções de um arquivo de idioma específico
+   */
+  private async loadTranslations(language: string): Promise<Record<string, any>> {
+    try {
+      const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+      const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+      
+      const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+      if (!fileExists) {
+        console.warn(`⚠️ [LOAD-TRANSLATIONS] Translation file not found: ${filePath}`);
+        return {};
+      }
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      return JSON.parse(content);
+    } catch (error) {
+      console.error(`❌ [LOAD-TRANSLATIONS] Error loading translations for ${language}:`, error);
+      return {};
+    }
+  }
+
+  /**
    * Escaneia todos os arquivos fonte para detectar chaves de tradução e textos hardcoded
    */
   async scanTranslationKeys(): Promise<TranslationKey[]> {
