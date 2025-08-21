@@ -635,7 +635,7 @@ const TicketDetails = React.memo(() => {
   const specialTabs = [
     {
       id: "attachments",
-      label: getTabLabel("Anexos", attachmentsData?.length),
+      label: getTabLabel(t('tickets.tabs.attachments'), attachmentsData?.length),
       icon: Paperclip
     },
     {
@@ -645,7 +645,7 @@ const TicketDetails = React.memo(() => {
     },
     {
       id: "communications",
-      label: getTabLabel("Comunicação", communicationsData?.length),
+      label: getTabLabel(t('tickets.tabs.communication'), communicationsData?.length),
       icon: MessageSquare
     },
     { id: "history", label: "Histórico", icon: History },
@@ -1330,7 +1330,7 @@ const TicketDetails = React.memo(() => {
             className="mt-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar aos Tickets
+            {t('tickets.actions.back')} aos Tickets
           </Button>
         </div>
       </div>
@@ -1489,7 +1489,7 @@ const TicketDetails = React.memo(() => {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categoria</FormLabel>
+                      <FormLabel>{t('tickets.fields.category')}</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <DynamicSelect
@@ -1530,7 +1530,7 @@ const TicketDetails = React.memo(() => {
                   name="subcategory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subcategoria</FormLabel>
+                      <FormLabel>{t('tickets.fields.subcategory')}</FormLabel>
                       <FormControl>
                         {isEditMode ? (
                           <DynamicSelect
@@ -1878,7 +1878,7 @@ const TicketDetails = React.memo(() => {
                               }
                             }}
                             disabled={deleteNoteMutation.isPending}
-                            title="Excluir nota"
+                            title={t('tickets.actions.delete') + " nota"}
                           >
                             <Trash className="h-4 w-4 text-red-500" />
                           </Button>
@@ -1903,7 +1903,7 @@ const TicketDetails = React.memo(() => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">💬 Comunicação</h2>
+              <h2 className="text-xl font-semibold">💬 {t('tickets.tabs.communication')}</h2>
               <Badge variant="outline" className="text-xs">
                 {communicationsData.length} interação(ões)
               </Badge>
@@ -1911,7 +1911,7 @@ const TicketDetails = React.memo(() => {
 
             <div className="space-y-4">
               <div className="flex items-center gap-4 mb-4">
-                <h3 className="font-medium text-gray-700">Timeline de Comunicação</h3>
+                <h3 className="font-medium text-gray-700">{t('tickets.fields.communicationTimeline')}</h3>
                 <div className="flex gap-2">
                   <Badge variant="secondary" className="text-xs">Email</Badge>
                   <Badge variant="secondary" className="text-xs">WhatsApp</Badge>
@@ -2094,7 +2094,7 @@ const TicketDetails = React.memo(() => {
                               {historyItem.action_type === 'viewed' && 'Visualização'}
                               {historyItem.action_type === 'email_sent' && 'Email Enviado'}
                               {historyItem.action_type === 'email_received' && 'Email Recebido'}
-                              {historyItem.action_type === 'communication' && 'Comunicação'}
+                              {historyItem.action_type === 'communication' && t('tickets.tabs.communication')}
                               {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
                               {historyItem.action_type === 'internal_action' && t('tickets.fields.internalAction')}
                               {historyItem.action_type === 'internal_action_created' && t('tickets.fields.internalActionCreated')}
@@ -2350,7 +2350,7 @@ const TicketDetails = React.memo(() => {
                                 setEditActionModalOpen(true);
                               }}
                               className="h-7 w-7 p-0"
-                              title="Editar ação interna"
+                              title={t('tickets.actions.edit') + " ação interna"}
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -2364,7 +2364,7 @@ const TicketDetails = React.memo(() => {
                               }}
                               className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
                               disabled={deleteInternalActionMutation.isPending}
-                              title="Excluir ação interna"
+                              title={t('tickets.actions.delete') + " ação interna"}
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -2855,7 +2855,7 @@ const TicketDetails = React.memo(() => {
           <div className="flex items-center mb-6">
             <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
+              {t('tickets.actions.back')}
             </Button>
             <div className="ml-4 flex items-center gap-2">
               <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
@@ -2890,7 +2890,7 @@ const TicketDetails = React.memo(() => {
         <div className="flex items-center mb-6">
           <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
+            {t('tickets.actions.back')}
           </Button>
         </div>
         <div>Ticket não encontrado</div>
@@ -2908,7 +2908,7 @@ const TicketDetails = React.memo(() => {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <Building2 className="h-4 w-4 text-blue-600" />
-              <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Empresa</span>
+              <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">{t('tickets.fields.company')}</span>
             </div>
 
             {isEditMode ? (
@@ -3041,7 +3041,7 @@ const TicketDetails = React.memo(() => {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Users className="h-4 w-4 text-indigo-600" />
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">{t('tickets.fields.beneficiary')}</span>
               </div>
 
               {isEditMode ? (
@@ -3100,7 +3100,7 @@ const TicketDetails = React.memo(() => {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-green-800 flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  LOCAL
+                  {t('tickets.fields.location')}
                 </h3>
                 <Button
                   variant="ghost"
@@ -3163,7 +3163,7 @@ const TicketDetails = React.memo(() => {
             {/* Grupo de Atribuição */}
             <div className="mb-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Grupo de Atribuição</label>
+                <label className="text-sm font-medium text-gray-700">{t('tickets.fields.assignmentGroup')}</label>
                 {isEditMode ? (
                   <GroupSelect
                     value={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id || ''}
@@ -3192,7 +3192,7 @@ const TicketDetails = React.memo(() => {
 
             {/* Responsável */}
             <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">{t('tickets.fields.responsible')}</label>
               {isEditMode ? (
                 <FilteredUserSelect
                   value={form.getValues('responsibleId') || ticket.assigned_to_id || ticket.responsibleId || ''}
@@ -3320,7 +3320,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex flex-col lg:flex-row lg:items-center gap-4">
               <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")} className="self-start">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
+                {t('tickets.actions.back')}
               </Button>
               <div className="flex flex-col lg:flex-row lg:items-center gap-2">
                 <h1 className="text-lg lg:text-xl font-semibold break-words">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
@@ -3337,7 +3337,7 @@ const TicketDetails = React.memo(() => {
                     className="flex items-center gap-2"
                   >
                     <Edit className="h-4 w-4" />
-                    <span className="hidden sm:inline">Editar</span>
+                    <span className="hidden sm:inline">{t('tickets.actions.edit')}</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -3346,7 +3346,7 @@ const TicketDetails = React.memo(() => {
                     className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Excluir</span>
+                    <span className="hidden sm:inline">{t('tickets.actions.delete')}</span>
                   </Button>
                 </>
               ) : (
@@ -3626,7 +3626,7 @@ const TicketDetails = React.memo(() => {
             <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
               <h4 className="text-xs font-bold text-blue-800 mb-2 flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                DATAS E TEMPO
+                {t('tickets.fields.datesTimeTitle')}
               </h4>
               <div className="grid grid-cols-1 gap-1 text-xs">
                 <div className="flex justify-between">
@@ -3877,7 +3877,7 @@ const TicketDetails = React.memo(() => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-blue-600" />
-              Detalhes da Empresa
+              {t('tickets.fields.companyDetails')}
             </DialogTitle>
             <DialogDescription>
               Informações completas e gestão da empresa vinculada ao ticket
@@ -3896,9 +3896,9 @@ const TicketDetails = React.memo(() => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Nome da Empresa</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('tickets.fields.companyName')}</Label>
                     <p className="text-lg font-semibold text-gray-900">
-                      {ticket?.company?.name || ticket?.company || 'Empresa Não Especificada'}
+                      {ticket?.company?.name || ticket?.company || t('tickets.fields.companyNotSpecified')}
                     </p>
                   </div>
                   <div>
@@ -3946,7 +3946,7 @@ const TicketDetails = React.memo(() => {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-600">Responsável Técnico</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('tickets.fields.technicalResponsible')}</Label>
                     <p className="text-sm text-gray-900">
                       {ticket?.company?.techContact || 'Não designado'}
                     </p>
@@ -4171,7 +4171,7 @@ const TicketDetails = React.memo(() => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-indigo-600" />
-              Detalhes do Favorecido
+              {t('tickets.fields.beneficiaryDetails')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">

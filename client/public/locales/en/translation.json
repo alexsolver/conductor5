@@ -868,7 +868,25 @@
       "enterPasswordPlaceholder": "Enter your password",
       "resolved": "RESOLVED",
       "sensitiveDataRevealed": "Sensitive data revealed for field:",
-      "enterPasswordAgent": "enter your agent password:"
+      "enterPasswordAgent": "enter your agent password:",
+      "communicationTimeline": "Communication Timeline",
+      "company": "Company",
+      "beneficiary": "Beneficiary",
+      "location": "Location",
+      "responsible": "Responsible",
+      "assignmentGroup": "Assignment Group",
+      "datesTimeTitle": "Dates and Time",
+      "category": "Category",
+      "subcategory": "Subcategory"
+    },
+    "tabs": {
+      "communication": "Communication",
+      "attachments": "Attachments"
+    },
+    "actions": {
+      "back": "Back",
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "placeholders": {
       "selectAction": "Select action",
@@ -1151,5 +1169,15 @@
     "autoProvisioning": "Auto-Provisioning",
     "translationManagement": "Manage Translations",
     "userManagement": "User Management"
+  },
+  "tickets": {
+    "fields": {
+      "datesTimeTitle": "DATES & TIME",
+      "companyDetails": "Company Details",
+      "companyName": "Company Name", 
+      "companyNotSpecified": "Company Not Specified",
+      "technicalResponsible": "Technical Responsible",
+      "beneficiaryDetails": "Beneficiary Details"
+    }
   }
 }

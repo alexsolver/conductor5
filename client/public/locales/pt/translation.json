@@ -639,7 +639,25 @@
       "enterPasswordPlaceholder": "Digite sua senha",
       "resolved": "RESOLVIDO",
       "sensitiveDataRevealed": "Dados sensíveis revelados para o campo:",
-      "enterPasswordAgent": "digite sua senha de agente:"
+      "enterPasswordAgent": "digite sua senha de agente:",
+      "communicationTimeline": "Timeline de Comunicação",
+      "company": "Empresa",
+      "beneficiary": "Favorecido",
+      "location": "Local",
+      "responsible": "Responsável",
+      "assignmentGroup": "Grupo de Atribuição",
+      "datesTimeTitle": "Datas e Tempo",
+      "category": "Categoria",
+      "subcategory": "Subcategoria"
+    },
+    "tabs": {
+      "communication": "Comunicação",
+      "attachments": "Anexos"
+    },
+    "actions": {
+      "back": "Voltar",
+      "edit": "Editar",
+      "delete": "Excluir"
     },
     "placeholders": {
       "selectAction": "Selecione a ação",
@@ -1080,5 +1098,15 @@
     "pointMirror": "Espelho de Ponto", 
     "approval": "Aprovação de Ponto",
     "reports": "Relatórios"
+  },
+  "tickets": {
+    "fields": {
+      "datesTimeTitle": "DATAS E TEMPO",
+      "companyDetails": "Detalhes da Empresa", 
+      "companyName": "Nome da Empresa",
+      "companyNotSpecified": "Empresa Não Especificada",
+      "technicalResponsible": "Responsável Técnico",
+      "beneficiaryDetails": "Detalhes do Favorecido"
+    }
   }
 }
