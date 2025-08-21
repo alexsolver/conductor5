@@ -360,8 +360,8 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
 
     console.log('📊 [STEP-2] Generating completion report...');
 
-    // Generate final report
-    const finalReport = await translationService.generateCompletionReport();
+    // Generate final report using the existing method
+    const finalReport = await translationService.generateCompletenessReport();
 
     console.log('✅ [STEP-2] Report generated successfully');
 
