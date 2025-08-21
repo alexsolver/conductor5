@@ -490,6 +490,49 @@ export class TranslationCompletionService {
   }
 
   /**
+   * Obtém um valor aninhado de um objeto usando uma chave com pontos
+   */
+  private getNestedValue(obj: any, key: string): any {
+    if (!obj || typeof obj !== 'object') {
+      return undefined;
+    }
+
+    const keys = key.split('.');
+    let current = obj;
+
+    for (const k of keys) {
+      if (current === null || current === undefined || typeof current !== 'object') {
+        return undefined;
+      }
+      current = current[k];
+    }
+
+    return current;
+  }
+
+  /**
+   * Define um valor aninhado em um objeto usando uma chave com pontos
+   */
+  private setNestedValue(obj: any, key: string, value: any): void {
+    if (!obj || typeof obj !== 'object') {
+      return;
+    }
+
+    const keys = key.split('.');
+    let current = obj;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      const k = keys[i];
+      if (!(k in current) || typeof current[k] !== 'object' || current[k] === null) {
+        current[k] = {};
+      }
+      current = current[k];
+    }
+
+    current[keys[keys.length - 1]] = value;
+  }
+
+  /**
    * Verifica se uma chave é uma chave de tradução válida
    */
   private isValidTranslationKey(key: string): boolean {
