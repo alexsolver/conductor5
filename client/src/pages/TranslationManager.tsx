@@ -234,7 +234,7 @@ export default function TranslationManager() {
       console.error('❌ [FRONTEND-SAFE] Analysis error:', error);
       toast({
         title: t('TranslationManager.analysisError') || "Analysis failed",
-        description: error.message || 'Failed to analyze translations',
+        description: (error as Error).message || 'Failed to analyze translations',
         variant: "destructive",
       });
     } finally {
@@ -286,7 +286,7 @@ export default function TranslationManager() {
       console.error('❌ [FRONTEND] Key scanning error:', error);
       toast({
         title: t('TranslationManager.scanError') || "Key scanning failed",
-        description: error.message || 'Failed to scan translation keys',
+        description: (error as Error).message || 'Failed to scan translation keys',
         variant: "destructive",
       });
     } finally {
@@ -327,7 +327,7 @@ export default function TranslationManager() {
       console.error('❌ [FRONTEND-SAFE] Auto-completion error:', error);
       toast({
         title: t('TranslationManager.autoCompletionError') || "Auto-completion failed",
-        description: error.message || t('TranslationManager.autoCompletionErrorDesc') || 'Failed to auto-complete translations',
+        description: (error as Error).message || t('TranslationManager.autoCompletionErrorDesc') || 'Failed to auto-complete translations',
         variant: "destructive",
       });
     } finally {

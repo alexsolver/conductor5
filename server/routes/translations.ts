@@ -27,9 +27,9 @@ const updateTranslationSchema = z.object({
  */
 router.get('/languages', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    // Only SaaS admins can manage translations
-    if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+    // Allow all authenticated users to view translations
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
     const languages = SUPPORTED_LANGUAGES.map(lang => ({
@@ -52,9 +52,9 @@ router.get('/languages', jwtAuth, async (req: AuthenticatedRequest, res) => {
  */
 router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    // Only SaaS admins can manage translations
-    if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
+    // Allow all authenticated users to view translations
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
     const { language } = req.params;
