@@ -194,12 +194,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   // Helper function to translate menu items
   const translateName = (name: string): string => {
+    let translated = '';
     // Check if it's a translation key
     if (name.includes('.')) {
-      return t(name);
+      translated = t(name);
+    } else {
+      // For navigation items without namespace, add the navigation prefix
+      translated = t(`navigation.${name}`);
     }
-    // For navigation items without namespace, add the navigation prefix
-    return t(`navigation.${name}`);
+    // Capitalize first letter for proper UI display
+    return translated.charAt(0).toUpperCase() + translated.slice(1);
   };
 
   // Fetch tickets count for badge
