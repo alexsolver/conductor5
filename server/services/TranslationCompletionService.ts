@@ -37,6 +37,12 @@ export class TranslationCompletionService {
     'client/src/hooks'
   ];
 
+  // Map for language directory names, e.g., 'pt' for 'pt-BR'
+  private readonly LANGUAGE_MAPPING: Record<string, string> = {
+    'pt-BR': 'pt'
+  };
+
+
   // Mapeamento automático expandido de traduções baseado em contexto
   private readonly AUTO_TRANSLATIONS: Record<string, Record<string, string>> = {
     'common.loading': {
@@ -1716,8 +1722,9 @@ export class TranslationCompletionService {
     // Capitaliza e retorna com indicação de tradução pendente
     const formatted = lastPart
       .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase())
-      .trim();
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/^./, str => str.toUpperCase());
 
     return `[${language.toUpperCase()}] ${formatted}`;
   }
@@ -1743,18 +1750,28 @@ export class TranslationCompletionService {
   /**
    * Carrega traduções de um arquivo JSON para um idioma específico
    */
-  private async loadTranslations(language: string): Promise<any> {
-    const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
+  private async loadTranslationFile(language: string): Promise<Record<string, any>> {
+    // Map language to correct directory name
+    const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+    const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+
     try {
-      const content = await fs.readFile(filePath, 'utf8');
+      const content = await fs.readFile(filePath, 'utf-8');
       return JSON.parse(content);
     } catch (error) {
-      // Se o arquivo não existir ou for inválido, retorna um objeto vazio
-      if (error.code === 'ENOENT' || error instanceof SyntaxError) {
-        console.warn(`[TRANSLATION-LOAD] File ${filePath} not found or invalid, returning empty object.`);
-        return {};
+      // Try alternative path for pt vs pt-BR
+      if (language === 'pt-BR') {
+        try {
+          const altPath = path.join(this.TRANSLATIONS_DIR, 'pt', 'translation.json');
+          const content = await fs.readFile(altPath, 'utf-8');
+          return JSON.parse(content);
+        } catch (altError) {
+          console.warn(`⚠️ [TRANSLATION-LOAD] Could not load ${language} translations from either path:`, error.message);
+        }
       }
-      throw error; // Re-lança outros erros
+
+      console.warn(`⚠️ [TRANSLATION-LOAD] Could not load ${language} translations:`, error.message);
+      return {};
     }
   }
 
