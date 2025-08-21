@@ -376,7 +376,7 @@ export class TranslationCompletionService {
     try {
       const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
       const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
-      
+
       const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
       if (!fileExists) {
         console.warn(`⚠️ [LOAD-TRANSLATIONS] Translation file not found: ${filePath}`);
@@ -1831,91 +1831,122 @@ export class TranslationCompletionService {
   /**
    * Gera relatório de completude
    */
-  async generateCompletenessReport(): Promise<{
-    success: boolean;
-    data: {
-      summary: {
-        totalKeys: number;
-        languageStats: Record<string, {
-          existingKeys: number;
-          missingKeys: number;
-          completeness: number;
-        }>;
-      };
-      gaps: TranslationGap[];
-    };
-    error?: string;
-  }> {
+  async generateCompletenessReport(): Promise<any> {
     console.log('📊 [REPORT] Generating translation completeness report...');
 
-    const allKeys = await this.scanTranslationKeys();
-    console.log(`📊 [REPORT] Scanned ${allKeys.length} translation keys`);
+    try {
+      // Primeiro, carregamos as traduções existentes para obter o estado real
+      const languageFiles: Record<string, Record<string, any>> = {};
+      const allKeys = new Set<string>();
 
-    const languageStats: Record<string, any> = {};
-    const gaps: TranslationGap[] = [];
+      // Carrega todas as traduções e coleta todas as chaves únicas
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        const translations = await this.loadTranslations(language);
+        languageFiles[language] = translations;
 
-    for (const language of this.SUPPORTED_LANGUAGES) {
-      try {
-        const existingTranslations = await this.loadTranslations(language);
-        const existingKeysCount = this.countNestedKeys(existingTranslations);
-        const missingKeys = allKeys
-          .map(key => key.key)
-          .filter(key => !this.hasNestedKey(existingTranslations, key));
-
-        const completeness = existingKeysCount > 0
-          ? Math.round((existingKeysCount / (existingKeysCount + missingKeys.length)) * 100)
-          : 0;
-
-        languageStats[language] = {
-          existingKeys: existingKeysCount,
-          missingKeys: missingKeys.length,
-          completeness
+        // Coleta todas as chaves de forma recursiva
+        const collectKeys = (obj: any, prefix = ''): string[] => {
+          const keys: string[] = [];
+          for (const [key, value] of Object.entries(obj)) {
+            const fullKey = prefix ? `${prefix}.${key}` : key;
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+              keys.push(...collectKeys(value, fullKey));
+            } else {
+              keys.push(fullKey);
+            }
+          }
+          return keys;
         };
 
-        if (missingKeys.length > 0) {
-          const moduleGaps: Record<string, string[]> = {};
+        const translationKeys = collectKeys(translations);
+        translationKeys.forEach(key => allKeys.add(key));
+      }
 
-          for (const key of missingKeys) {
-            const module = key.split('.')[0] || 'general';
-            if (!moduleGaps[module]) {
-              moduleGaps[module] = [];
+      // Também escaneia as chaves do código fonte
+      const scannedKeys = await this.scanTranslationKeys();
+      scannedKeys.forEach(key => allKeys.add(key.key));
+
+      const totalUniqueKeys = allKeys.size;
+      console.log(`📊 [REPORT] Found ${totalUniqueKeys} unique translation keys across all sources`);
+
+      const summary = {
+        totalKeys: totalUniqueKeys,
+        languageStats: {} as Record<string, any>
+      };
+
+      const gaps: TranslationGap[] = [];
+
+      // Análise por idioma usando as chaves reais
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        const translations = languageFiles[language];
+
+        // Coleta chaves existentes de forma recursiva
+        const getNestedKeys = (obj: any, prefix = ''): Set<string> => {
+          const keys = new Set<string>();
+          for (const [key, value] of Object.entries(obj)) {
+            const fullKey = prefix ? `${prefix}.${key}` : key;
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+              const nestedKeys = getNestedKeys(value, fullKey);
+              nestedKeys.forEach(k => keys.add(k));
+            } else {
+              keys.add(fullKey);
             }
-            moduleGaps[module].push(key);
           }
+          return keys;
+        };
 
-          gaps.push({
-            language,
-            missingKeys,
-            moduleGaps
-          });
+        const existingKeysSet = getNestedKeys(translations);
+        const missingKeysArray = Array.from(allKeys).filter(key => !existingKeysSet.has(key));
+
+        const existingCount = existingKeysSet.size;
+        const missingCount = missingKeysArray.length;
+        const completeness = totalUniqueKeys > 0 ?
+          Math.round((existingCount / totalUniqueKeys) * 100) : 0;
+
+        summary.languageStats[language] = {
+          existingKeys: existingCount,
+          missingKeys: missingCount,
+          completeness: completeness
+        };
+
+        console.log(`📊 [REPORT] ${language}: ${existingCount} existing, ${missingCount} missing, ${completeness}% complete`);
+
+        // Organizar gaps por módulo
+        const moduleGaps: Record<string, string[]> = {};
+        for (const missingKey of missingKeysArray) {
+          const module = missingKey.split('.')[0] || 'general';
+          if (!moduleGaps[module]) {
+            moduleGaps[module] = [];
+          }
+          moduleGaps[module].push(missingKey);
         }
 
-        console.log(`📊 [REPORT] ${language}: ${existingKeysCount} existing, ${missingKeys.length} missing, ${completeness}% complete`);
-
-      } catch (error) {
-        console.error(`❌ [REPORT] Error processing language ${language}:`, error);
-        languageStats[language] = {
-          existingKeys: 0,
-          missingKeys: allKeys.length,
-          completeness: 0
-        };
+        gaps.push({
+          language,
+          missingKeys: missingKeysArray,
+          moduleGaps
+        });
       }
-    }
 
-    const summary = {
-      totalKeys: allKeys.length,
-      languageStats
-    };
+      console.log(`📊 [REPORT] Analyzed gaps for ${this.SUPPORTED_LANGUAGES.length} languages`);
 
-    console.log(`📊 [REPORT] Analyzed gaps for ${this.SUPPORTED_LANGUAGES.length} languages`);
-
-    return {
-      success: true,
-      data: {
+      const result = {
         summary,
-        gaps
-      }
-    };
+        gaps,
+        generatedAt: new Date().toISOString(),
+        debug: {
+          totalUniqueKeys,
+          sourceInfo: 'Combined from translation files and source code scan'
+        }
+      };
+
+      console.log('📊 [REPORT] Final summary:', JSON.stringify(summary, null, 2));
+      return result;
+
+    } catch (error) {
+      console.error('❌ [REPORT] Error generating completeness report:', error);
+      throw error;
+    }
   }
 
   /**

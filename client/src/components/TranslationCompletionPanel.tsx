@@ -76,7 +76,11 @@ export function TranslationCompletionPanel() {
         title: "Success",
         description: `Auto-completion completed! Added ${data.data?.summary?.translationsAdded || 0} translations`,
       });
-      refetch();
+      
+      // Force multiple refreshes to ensure data is updated
+      setTimeout(() => refetch(), 500);
+      setTimeout(() => refetch(), 1500);
+      setTimeout(() => refetch(), 3000);
     },
     onError: (error) => {
       console.error('Auto-completion error:', error);
