@@ -49,6 +49,17 @@ interface TranslationKey {
   module?: string;
 }
 
+// Interface for the allKeysData to include fromScanner and fromFiles
+interface AllKeysData {
+  keys: string[];
+  languages: string[];
+  translations?: Record<string, Record<string, any>>;
+  totalKeys?: number;
+  fromScanner?: number;
+  fromFiles?: number;
+}
+
+
 export default function TranslationManager() {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -100,7 +111,7 @@ export default function TranslationManager() {
   });
 
   // Get all translation keys
-  const { data: allKeysData, isLoading: isLoadingKeys } = useQuery({
+  const { data: allKeysData, isLoading: isLoadingKeys } = useQuery<AllKeysData>({
     queryKey: ['/api/translations/keys/all'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/translations/keys/all');
@@ -443,7 +454,7 @@ export default function TranslationManager() {
         </div>
       </div>
 
-      
+
 
       {/* Search */}
       <Card>
@@ -571,11 +582,18 @@ export default function TranslationManager() {
                   {allKeysData?.keys?.map((key: string) => (
                     <div key={key} className="flex items-center justify-between p-2 border rounded">
                       <span className="font-mono text-sm">{key}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {allKeysData.languages?.filter((lang: string) =>
-                          getNestedValue(allKeysData.translations?.[lang], key)
-                        ).length} / {allKeysData.languages?.length || 0}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {allKeysData.languages?.filter((lang: string) =>
+                            getNestedValue(allKeysData.translations?.[lang], key)
+                          ).length} / {allKeysData.languages?.length || 0}
+                        </Badge>
+                        {!getNestedValue(allKeysData.translations?.en, key) && (
+                          <Badge variant="destructive" className="text-xs">
+                            Missing
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   )) || []}
                 </div>
@@ -621,6 +639,35 @@ export default function TranslationManager() {
           {t('TranslationManager.expandedScan') || 'Full Expansion Scan'}
         </Button>
       </div>
+
+      {/* Statistics Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            {t('TranslationManager.statisticsTitle') || 'Statistics'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoadingKeys ? (
+            <div className="text-center py-8">Loading statistics...</div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="space-y-2">
+                <div className="text-2xl font-bold">{allKeysData?.totalKeys || 0}</div>
+                <div className="text-sm text-gray-500">
+                  {t('TranslationManager.totalKeys') || 'Total Keys'}
+                </div>
+                {allKeysData?.fromScanner && (
+                  <div className="text-xs text-blue-500">
+                    ({allKeysData.fromScanner} from scanner, {allKeysData.fromFiles || 0} from files)
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -69,7 +69,7 @@ router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
       const fileContent = await fs.readFile(filePath, 'utf8');
       const translations = JSON.parse(fileContent);
 
-      res.json({ 
+      res.json({
         language,
         translations,
         lastModified: (await fs.stat(filePath)).mtime
@@ -234,132 +234,102 @@ function isValidTranslationKey(key: string): boolean {
   return true;
 }
 
+// Helper to extract all keys from a nested object
+function extractKeysFromObject(obj: any, prefix = ''): string[] {
+  let keys: string[] = [];
+  if (!obj || typeof obj !== 'object') {
+    return keys;
+  }
+
+  Object.keys(obj).forEach(key => {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+      keys = keys.concat(extractKeysFromObject(obj[key], fullKey));
+    } else {
+      if (key && typeof key === 'string' && key.trim().length > 0) {
+        if (isValidTranslationKey(fullKey)) {
+          keys.push(fullKey);
+        }
+        // Also add the bare key without prefix in case it's useful
+        if (isValidTranslationKey(key)) {
+          keys.push(key);
+        }
+      }
+    }
+  });
+  return keys;
+}
+
 /**
- * GET /api/translations/keys/all
- * Get all translation keys across all languages (filtered)
+ * GET /api/translations/keys/all - Get all available translation keys (including scanned keys)
  */
 router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    // Only SaaS admins can manage translations
-    if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ message: 'SaaS admin access required' });
-    }
-
-    const allKeys = new Set<string>();
+    const allLanguages = ['en', 'pt', 'es', 'fr', 'de'];
+    const allKeysSet = new Set<string>();
     const translations: Record<string, any> = {};
 
-    // Scan all supported language directories (including pt-BR, de, fr)
-    const allLanguages = ['en', 'pt', 'pt-BR', 'es', 'de', 'fr'];
-
+    // First, get all keys from existing translation files
     for (const lang of allLanguages) {
       try {
-        const filePath = path.join(TRANSLATIONS_DIR, `${lang}/translation.json`);
-        
-        // Check if file exists
+        const langDir = lang === 'pt-BR' ? 'pt' : lang;
+        const filePath = path.join(process.cwd(), 'client/public/locales', langDir, 'translation.json');
+
         const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
-        if (!fileExists) {
-          console.log(`Translation file not found for ${lang}, skipping...`);
-          continue;
+        if (fileExists) {
+          const content = await fs.readFile(filePath, 'utf-8');
+          const langTranslations = JSON.parse(content);
+          translations[lang] = langTranslations;
+
+          // Extract all keys from this language file
+          const keys = extractKeysFromObject(langTranslations);
+          keys.forEach(key => allKeysSet.add(key));
         }
-
-        const fileContent = await fs.readFile(filePath, 'utf8');
-        const langTranslations = JSON.parse(fileContent);
-
-        translations[lang] = langTranslations;
-
-        // Extract all keys recursively with very minimal filtering
-        const extractKeys = (obj: any, prefix = '') => {
-          if (!obj || typeof obj !== 'object') return;
-          
-          Object.keys(obj).forEach(key => {
-            const fullKey = prefix ? `${prefix}.${key}` : key;
-            if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-              extractKeys(obj[key], fullKey);
-            } else {
-              // Add key with very minimal filtering - much more permissive
-              if (key && typeof key === 'string' && key.trim().length > 0) {
-                if (isValidTranslationKey(fullKey)) {
-                  allKeys.add(fullKey);
-                }
-                // Also add the bare key without prefix in case it's useful
-                if (isValidTranslationKey(key)) {
-                  allKeys.add(key);
-                }
-              }
-            }
-          });
-        };
-
-        extractKeys(langTranslations);
       } catch (error) {
-        console.warn(`Could not read ${lang} translations:`, error);
+        console.warn(`Failed to load translations for ${lang}:`, error);
       }
     }
 
-    // Also scan source code files for additional keys
-    const sourceDirectories = [
-      path.join(process.cwd(), 'client/src/pages'),
-      path.join(process.cwd(), 'client/src/components'),
-      path.join(process.cwd(), 'client/src/hooks'),
-      path.join(process.cwd(), 'client/src/utils')
-    ];
+    // Additionally, get scanned keys from the scanner
+    try {
+      const { TranslationCompletionService } = await import('../services/TranslationCompletionService');
+      const translationService = new TranslationCompletionService();
+      const scannedKeys = await translationService.scanTranslationKeys();
 
-    for (const sourceDir of sourceDirectories) {
-      try {
-        const files = await fs.readdir(sourceDir, { recursive: true });
-        
-        for (const file of files) {
-          if (typeof file === 'string' && /\.(tsx?|jsx?)$/.test(file)) {
-            try {
-              const filePath = path.join(sourceDir, file);
-              const content = await fs.readFile(filePath, 'utf8');
-              
-              // Look for translation keys in source code
-              const translationPatterns = [
-                /t\(\s*['"`]([^'"`\n]+)['"`]/g,
-                /useTranslation\(\).*?t\(\s*['"`]([^'"`\n]+)['"`]/g,
-                /\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-              ];
-
-              for (const pattern of translationPatterns) {
-                const matches = [...content.matchAll(pattern)];
-                for (const match of matches) {
-                  if (match[1] && isValidTranslationKey(match[1])) {
-                    allKeys.add(match[1]);
-                  }
-                }
-              }
-            } catch (fileError) {
-              // Continue if we can't read a specific file
-            }
-          }
+      // Add all scanned keys
+      scannedKeys.forEach(keyObj => {
+        if (keyObj.key && typeof keyObj.key === 'string') {
+          allKeysSet.add(keyObj.key);
         }
-      } catch (dirError) {
-        console.warn(`Could not scan source directory ${sourceDir}:`, dirError);
-      }
+      });
+
+      console.log(`📊 [TRANSLATIONS] Loaded ${allKeysSet.size} total keys (${scannedKeys.length} from scanner)`);
+    } catch (error) {
+      console.warn('Failed to get scanned keys:', error);
     }
 
-    const allKeysArray = Array.from(allKeys);
-    const validKeys = allKeysArray.filter(key => isValidTranslationKey(key)).sort();
-
-    console.log(`🔍 [TRANSLATION-KEYS] Total keys found: ${allKeysArray.length}`);
-    console.log(`✅ [TRANSLATION-KEYS] Valid keys after filtering: ${validKeys.length}`);
-    console.log(`❌ [TRANSLATION-KEYS] Filtered out: ${allKeysArray.length - validKeys.length}`);
+    const allKeys = Array.from(allKeysSet).sort();
 
     res.json({
-      keys: validKeys,
-      translations,
-      languages: SUPPORTED_LANGUAGES,
-      debug: {
-        totalFound: allKeysArray.length,
-        validAfterFilter: validKeys.length,
-        filteredOut: allKeysArray.length - validKeys.length
+      success: true,
+      data: {
+        keys: allKeys,
+        languages: allLanguages,
+        translations,
+        totalKeys: allKeys.length,
+        fromFiles: allKeys.length - allKeysSet.size,
+        fromScanner: allKeysSet.size - (allKeys.length - allKeysSet.size),
+        timestamp: new Date().toISOString()
       }
     });
 
   } catch (error) {
-    console.error('Error getting all translation keys:', error);
-    res.status(500).json({ message: 'Failed to get translation keys' });
+    console.error('Error fetching all translation keys:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch translation keys',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
