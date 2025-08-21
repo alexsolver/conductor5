@@ -828,6 +828,21 @@
     "history": "History",
     "preferences": "Preferences"
   },
+  "approvals": {
+    "title": "Solicitudes de Aprobación",
+    "development_description": "Módulo en desarrollo - Gestión de flujos de aprobación para tickets.",
+    "under_development": "Módulo en Desarrollo",
+    "development_message": "El sistema de solicitudes de aprobación está siendo desarrollado y estará disponible pronto.",
+    "planned_features": "Características planificadas",
+    "features": {
+      "custom_workflows": "Creación de flujos de aprobación personalizados",
+      "approvers_by_category": "Definición de aprobadores por categoría o valor",
+      "automatic_notifications": "Notificaciones automáticas para aprobadores",
+      "approval_history": "Historial de aprobaciones y rechazos",
+      "email_integration": "Integración con sistema de correos",
+      "approval_reports": "Reportes de tiempo de aprobación"
+    }
+  },
   "Erro ao criar regra: ${errorData": {
     "error || response": {
       "statusText}": "Status text}"

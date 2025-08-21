@@ -317,6 +317,14 @@
       "medium": "Medium",
       "high": "High",
       "critical": "Critical"
+    },
+    "ticket_information": "Ticket Information",
+    "created": "Created",
+    "updated": "Updated",
+    "internal_actions": {
+      "description_placeholder": "Internal action description...",
+      "detailed_description_placeholder": "Detailed description of the action performed...",
+      "description_too_long": "Description too long"
     }
   },
   "userManagement": {

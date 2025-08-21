@@ -619,6 +619,21 @@
     "history": "History",
     "preferences": "Preferences"
   },
+  "approvals": {
+    "title": "Pedidos de Aprovação",
+    "development_description": "Módulo em desenvolvimento - Gerenciamento de fluxos de aprovação para tickets.",
+    "under_development": "Módulo em Desenvolvimento",
+    "development_message": "O sistema de pedidos de aprovação está sendo desenvolvido e será disponibilizado em breve.",
+    "planned_features": "Funcionalidades planejadas",
+    "features": {
+      "custom_workflows": "Criação de fluxos de aprovação personalizados",
+      "approvers_by_category": "Definição de aprovadores por categoria ou valor",
+      "automatic_notifications": "Notificações automáticas para aprovadores",
+      "approval_history": "Histórico de aprovações e rejeições",
+      "email_integration": "Integração com sistema de e-mails",
+      "approval_reports": "Relatórios de tempo de aprovação"
+    }
+  },
   "errors": {
     "general": "Ocorreu um erro inesperado. Tente novamente.",
     "generic": "Generic"

@@ -828,6 +828,21 @@
     "history": "History",
     "preferences": "Preferences"
   },
+  "approvals": {
+    "title": "Approval Requests",
+    "development_description": "Module in development - Management of approval workflows for tickets.",
+    "under_development": "Module Under Development",
+    "development_message": "The approval request system is being developed and will be available soon.",
+    "planned_features": "Planned features",
+    "features": {
+      "custom_workflows": "Creation of custom approval workflows",
+      "approvers_by_category": "Definition of approvers by category or value",
+      "automatic_notifications": "Automatic notifications for approvers",
+      "approval_history": "History of approvals and rejections",
+      "email_integration": "Integration with email system",
+      "approval_reports": "Approval time reports"
+    }
+  },
   "Erro ao criar regra: ${errorData": {
     "error || response": {
       "statusText}": "Status text}"
