@@ -129,19 +129,19 @@ const baseNavigation: Array<{
 // Admin navigation with hierarchical structure
 const adminNavigation = [
   { 
-    name: "SaaS Admin", 
+    name: "navigation.saasAdmin", 
     icon: Shield, 
     roles: ['saas_admin'],
     children: [
       { name: "dashboard.title", href: "/saas-admin", icon: BarChart3 },
-      { name: "Gestão de Tenants", href: "/saas-admin/tenants", icon: Database },
-      { name: "Performance & Saúde", href: "/saas-admin/performance", icon: TrendingUp },
-      { name: "Configurações de Segurança", href: "/saas-admin/security", icon: Shield },
-      { name: "Billing & Usage", href: "/saas-admin/billing", icon: CreditCard },
-      { name: "Disaster Recovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
-      { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug },
-      { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages },
-      { name: "Gestão de Usuários", href: "/user-management", icon: UserCog },
+      { name: "navigation.tenantManagement", href: "/saas-admin/tenants", icon: Database },
+      { name: "navigation.performanceHealth", href: "/saas-admin/performance", icon: TrendingUp },
+      { name: "navigation.securitySettings", href: "/saas-admin/security", icon: Shield },
+      { name: "navigation.billingUsage", href: "/saas-admin/billing", icon: CreditCard },
+      { name: "navigation.disasterRecovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
+      { name: "navigation.autoProvisioning", href: "/tenant-provisioning", icon: Plug },
+      { name: "navigation.translationManagement", href: "/translation-manager", icon: Languages },
+      { name: "navigation.userManagement", href: "/user-management", icon: UserCog },
       // Removed: Multi-Tenant management - functionality eliminated from system
       { name: "Integrações", href: "/saas-admin/integrations", icon: Plug },
       { name: "Controle de Integridade", href: "/module-integrity", icon: Shield },
@@ -179,9 +179,9 @@ const adminNavigation = [
 ];
 
 const secondaryNavigation = [
-  { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Security", href: "/security", icon: Shield },
-  { name: "Help & Support", href: "/help", icon: HelpCircle },
+  { name: "navigation.settings", href: "/settings", icon: Settings },
+  { name: "navigation.security", href: "/security", icon: Shield },
+  { name: "navigation.helpAndSupport", href: "/help", icon: HelpCircle },
 ];
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
@@ -228,37 +228,36 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     }
 
     // Update timecard section based on employment type
-    if (item.name === "Controle de Jornadas") {
+    if (item.name === "navigation.timecardControl") {
       const timecardRoute = employmentType === 'autonomo' ? '/timecard-autonomous' : '/timecard';
       return {
         ...item,
-        name: employmentType === 'autonomo' ? 'Controle de Jornada' : 'Controle de Jornadas',
         children: [
           { 
             name: terminology.recordLabel, 
             href: timecardRoute, 
             icon: Clock 
           },
-          { name: "Escalas de Trabalho", href: "/work-schedules", icon: Calendar },
+          { name: "navigation.workSchedules", href: "/work-schedules", icon: Calendar },
           { 
             name: terminology.timeControlLabel, 
             href: "/hour-bank", 
             icon: CreditCard 
           },
-          { name: "Calendário de Feriados", href: "/holiday-calendar", icon: Calendar },
+          { name: "navigation.holidayCalendar", href: "/holiday-calendar", icon: Calendar },
           { 
             name: terminology.reportLabel, 
             href: "/timecard-reports", 
             icon: FileText 
           },
-          { name: "CLT Compliance", href: "/clt-compliance", icon: Shield },
+          { name: "navigation.cltCompliance", href: "/clt-compliance", icon: Shield },
           { 
             name: terminology.approvalLabel, 
             href: "/timecard-approvals", 
             icon: CheckCircle 
           },
-          { name: "Configuração de Aprovações", href: "/timecard-approval-settings", icon: Settings },
-          { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
+          { name: "navigation.approvalConfiguration", href: "/timecard-approval-settings", icon: Settings },
+          { name: "navigation.absenceManagement", href: "/absence-management", icon: Calendar },
         ]
       };
     }

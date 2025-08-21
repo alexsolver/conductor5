@@ -895,5 +895,19 @@
     "addCustomer": "Adicionar Cliente", 
     "generateReport": "Gerar Relatório",
     "automation": "Automação"
+  },
+  "sidebar": {
+    "settings": "Configurações",
+    "security": "Segurança",
+    "helpAndSupport": "Ajuda & Suporte",
+    "saasAdmin": "Admin SaaS",
+    "tenantManagement": "Gestão de Tenants",
+    "performanceHealth": "Performance & Saúde",
+    "securitySettings": "Configurações de Segurança",
+    "billingUsage": "Billing & Uso",
+    "disasterRecovery": "Recuperação de Desastres",
+    "autoProvisioning": "Auto-Provisionamento",
+    "translationManagement": "Gerenciar Traduções",
+    "userManagement": "Gestão de Usuários"
   }
 }

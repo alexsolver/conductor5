@@ -29,7 +29,11 @@
     "view": "View",
     "close": "Close",
     "open": "Open",
-    "description": "Description"
+    "description": "Description",
+    "use": "Use",
+    "active": "Active",
+    "inactive": "Inactive",
+    "saving": "Saving..."
   },
   "navigation": {
     "dashboard": "Painel",
@@ -753,7 +757,8 @@
   "locations": {
     "title": "Title",
     "new": "New",
-    "management": "Management"
+    "management": "Management",
+    "saveLocation": "Save Location"
   },
   "knowledge": {
     "title": "Title",
@@ -870,5 +875,54 @@
   },
   "ticketSystem": {
     "title": "Support System"
+  },
+  "userGroups": {
+    "title": "User Groups",
+    "description": "Organize users into groups for easier permission management",
+    "createGroup": "Create Group",
+    "editGroup": "Edit Group",
+    "deleteGroup": "Delete Group",
+    "createNewGroup": "Create New Group",
+    "createNewGroupDescription": "Create a new group to organize users",
+    "editGroupTitle": "Edit Group",
+    "groupName": "Group Name",
+    "groupDescription": "Description",
+    "groupDescriptionPlaceholder": "Optional group description",
+    "noGroupsFound": "No groups found",
+    "noGroupsDescription": "Create your first group to organize users",
+    "createFirstGroup": "Create First Group",
+    "groupCreated": "Group created",
+    "groupCreatedSuccess": "Group created successfully!",
+    "groupUpdated": "Group updated",
+    "groupUpdatedSuccess": "Group updated successfully!",
+    "groupDeleted": "Group deleted",
+    "groupDeletedSuccess": "Group deleted successfully!",
+    "errorCreatingGroup": "Error creating group",
+    "errorUpdatingGroup": "Error updating group",
+    "errorDeletingGroup": "Error deleting group",
+    "confirmDelete": "Are you sure you want to delete the group \"{name}\"?",
+    "loadingGroups": "Loading groups...",
+    "creating": "Creating...",
+    "updating": "Updating...",
+    "members": "Members"
+  },
+  "customFields": {
+    "hide": "Hide",
+    "show": "Show",
+    "fields": "Fields",
+    "field": "field",
+    "exitDesign": "Exit Design",
+    "editLayout": "Edit Layout",
+    "activeCustomFields": "Active Custom Fields",
+    "title": "Custom Fields",
+    "noFieldsConfigured": "No custom fields configured for {{moduleType}}",
+    "configureFields": "Configure Fields"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "createTicket": "Create Ticket",
+    "addCustomer": "Add Customer",
+    "generateReport": "Generate Report",
+    "automation": "Automation"
   }
 }

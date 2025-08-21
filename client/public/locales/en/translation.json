@@ -280,12 +280,12 @@
       },
       "views": {
         "title": "Ticket Views",
-        "newView": "New View", 
+        "newView": "New View",
         "manage": "Manage",
         "defaultView": "Default View",
         "public": "Public",
         "default": "Default",
-        "noViewsAvailable": "No views available", 
+        "noViewsAvailable": "No views available",
         "viewName": "View Name",
         "description": "Description (optional)",
         "descriptionPlaceholder": "View description...",
@@ -786,9 +786,10 @@
     "translations": "Translations"
   },
   "locations": {
-    "title": "Title",
-    "new": "New",
-    "management": "Management"
+    "saveLocation": "Save Location",
+    "title": "locations.title",
+    "new": "locations.new",
+    "management": "locations.management"
   },
   "knowledge": {
     "title": "Title",
@@ -928,16 +929,13 @@
     "groupDeleted": "Group deleted",
     "groupDeletedSuccess": "Group deleted successfully!",
     "errorCreatingGroup": "Error creating group",
-    "errorUpdatingGroup": "Error updating group", 
+    "errorUpdatingGroup": "Error updating group",
     "errorDeletingGroup": "Error deleting group",
     "confirmDelete": "Are you sure you want to delete the group \"{name}\"?",
     "loadingGroups": "Loading groups...",
     "creating": "Creating...",
     "updating": "Updating...",
     "members": "Members"
-  },
-  "locations": {
-    "saveLocation": "Save Location"
   },
   "customFields": {
     "hide": "Hide",
@@ -954,8 +952,22 @@
   "quickActions": {
     "title": "Quick Actions",
     "createTicket": "Create Ticket",
-    "addCustomer": "Add Customer", 
+    "addCustomer": "Add Customer",
     "generateReport": "Generate Report",
     "automation": "Automation"
+  },
+  "sidebar": {
+    "settings": "Settings",
+    "security": "Security",
+    "helpAndSupport": "Help & Support",
+    "saasAdmin": "SaaS Admin",
+    "tenantManagement": "Tenant Management",
+    "performanceHealth": "Performance & Health",
+    "securitySettings": "Security Settings",
+    "billingUsage": "Billing & Usage",
+    "disasterRecovery": "Disaster Recovery",
+    "autoProvisioning": "Auto-Provisioning",
+    "translationManagement": "Manage Translations",
+    "userManagement": "User Management"
   }
 }
