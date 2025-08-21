@@ -181,7 +181,7 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
- * Check if a translation key is valid - MUCH MORE PERMISSIVE VERSION
+ * Check if a translation key is valid - ULTRA PERMISSIVE VERSION
  */
 function isValidTranslationKey(key: string): boolean {
   if (!key || typeof key !== 'string') {
@@ -195,15 +195,13 @@ function isValidTranslationKey(key: string): boolean {
     return false;
   }
 
-  // Only exclude VERY obvious technical patterns - much more permissive
+  // Only exclude EXTREMELY obvious technical patterns - ultra permissive
   const technicalPatterns = [
-    /^\/api\/.*$/,        // Full API routes only
-    /^https?:\/\/.*$/,    // Full URLs only
-    /^\d{3,4}$/,          // HTTP status codes (3-4 digits)
-    /^#[0-9a-fA-F]{6}$/,  // Hex colors (6 digits exactly)
-    /^\$\{[^}]+\}$/,      // Complete template variables only
-    /^[A-Z_]{4,}_[A-Z_]{3,}$/, // Long constants only (more restrictive)
-    /^0x[0-9a-fA-F]+$/,   // Hex numbers
+    /^\/api\/[^/]+\/[^/]+.*$/,  // Only deep API routes
+    /^https?:\/\/[^/]+\/.*$/,   // Only full URLs with paths
+    /^\d{3}:$/,                 // HTTP status codes with colon
+    /^#[0-9a-fA-F]{6}$/,        // Hex colors (exact 6 digits)
+    /^0x[0-9a-fA-F]{8,}$/,      // Long hex numbers only
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUIDs
   ];
 
@@ -213,24 +211,21 @@ function isValidTranslationKey(key: string): boolean {
     }
   }
 
-  // Allow numbers in keys (they might be valid translation keys)
-  // Only skip pure long numbers
-  if (/^\d{10,}$/.test(trimmedKey)) {
+  // Only skip extremely long pure numbers
+  if (/^\d{15,}$/.test(trimmedKey)) {
     return false;
   }
 
-  // Much smaller list of technical constants to exclude
+  // Minimal list of technical constants to exclude
   const technicalConstants = [
-    'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD',
-    'console', 'window', 'document', 'undefined', 'function',
-    'import', 'export', 'const', 'let', 'var', 'class', 'extends'
+    'console', 'window', 'document', 'undefined', 'function'
   ];
 
   if (technicalConstants.includes(trimmedKey)) {
     return false;
   }
 
-  // Accept almost everything else - very permissive
+  // Accept almost everything - ultra permissive
   return true;
 }
 
@@ -261,15 +256,36 @@ function extractKeysFromObject(obj: any, prefix = ''): string[] {
 }
 
 /**
- * GET /api/translations/keys/all - Get all available translation keys (including scanned keys)
+ * GET /api/translations/keys/all - Get all available translation keys (prioritizing scanned keys)
  */
 router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const allLanguages = ['en', 'pt', 'es', 'fr', 'de'];
     const allKeysSet = new Set<string>();
     const translations: Record<string, any> = {};
+    let fromScanner = 0;
+    let fromFiles = 0;
 
-    // First, get all keys from existing translation files
+    // FIRST: Get scanned keys from the scanner (priority)
+    try {
+      const { TranslationCompletionService } = await import('../services/TranslationCompletionService');
+      const translationService = new TranslationCompletionService();
+      const scannedKeys = await translationService.scanTranslationKeys();
+
+      // Add all scanned keys with ultra-permissive validation
+      scannedKeys.forEach(keyObj => {
+        if (keyObj.key && typeof keyObj.key === 'string' && isValidTranslationKey(keyObj.key)) {
+          allKeysSet.add(keyObj.key);
+          fromScanner++;
+        }
+      });
+
+      console.log(`📊 [TRANSLATIONS] Added ${fromScanner} keys from scanner out of ${scannedKeys.length} scanned`);
+    } catch (error) {
+      console.warn('Failed to get scanned keys:', error);
+    }
+
+    // SECOND: Get keys from existing translation files
     for (const lang of allLanguages) {
       try {
         const langDir = lang === 'pt-BR' ? 'pt' : lang;
@@ -283,32 +299,21 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
           // Extract all keys from this language file
           const keys = extractKeysFromObject(langTranslations);
-          keys.forEach(key => allKeysSet.add(key));
+          keys.forEach(key => {
+            if (isValidTranslationKey(key) && !allKeysSet.has(key)) {
+              allKeysSet.add(key);
+              fromFiles++;
+            }
+          });
         }
       } catch (error) {
         console.warn(`Failed to load translations for ${lang}:`, error);
       }
     }
 
-    // Additionally, get scanned keys from the scanner
-    try {
-      const { TranslationCompletionService } = await import('../services/TranslationCompletionService');
-      const translationService = new TranslationCompletionService();
-      const scannedKeys = await translationService.scanTranslationKeys();
-
-      // Add all scanned keys
-      scannedKeys.forEach(keyObj => {
-        if (keyObj.key && typeof keyObj.key === 'string') {
-          allKeysSet.add(keyObj.key);
-        }
-      });
-
-      console.log(`📊 [TRANSLATIONS] Loaded ${allKeysSet.size} total keys (${scannedKeys.length} from scanner)`);
-    } catch (error) {
-      console.warn('Failed to get scanned keys:', error);
-    }
-
     const allKeys = Array.from(allKeysSet).sort();
+
+    console.log(`📊 [TRANSLATIONS] FINAL COUNT: ${allKeys.length} total keys (${fromScanner} from scanner, ${fromFiles} from files)`);
 
     res.json({
       success: true,
@@ -317,8 +322,14 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
         languages: allLanguages,
         translations,
         totalKeys: allKeys.length,
-        fromFiles: allKeys.length - allKeysSet.size,
-        fromScanner: allKeysSet.size - (allKeys.length - allKeysSet.size),
+        fromFiles: fromFiles,
+        fromScanner: fromScanner,
+        scannerVsFiles: {
+          scannerFound: fromScanner,
+          filesFound: fromFiles,
+          total: allKeys.length,
+          note: 'Scanner keys have priority'
+        },
         timestamp: new Date().toISOString()
       }
     });
