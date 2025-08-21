@@ -68,9 +68,9 @@
     "noKeysAvailable": "No Keys Available"
   },
   "navigation": {
-    "previous": "Previous",
-    "next": "Next",
-    "home": "Home",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "home": "Início",
     "dashboard": "Painel",
     "tickets": "Tickets",
     "customers": "Clientes",
@@ -86,24 +86,24 @@
       "edit": "Editar",
       "close": "Fechar",
       "submit": "Enviar",
-      "reset": "Reset",
+      "reset": "Resetar",
       "confirm": "Confirmar"
     },
     "breadcrumb": {
-      "home": "Home",
-      "dashboard": "Dashboard"
+      "home": "Início",
+      "dashboard": "Painel"
     },
     "input": {
-      "placeholder": "Placeholder",
-      "required": "Required",
-      "invalid": "Invalid",
-      "clear": "Clear",
-      "search": "Pesquisar"
+      "placeholder": "Digite o texto...",
+      "required": "Este campo é obrigatório",
+      "invalid": "Entrada inválida",
+      "clear": "Limpar",
+      "search": "Pesquisar..."
     },
     "select": {
-      "placeholder": "Placeholder",
-      "search": "Pesquisar",
-      "clear": "Clear"
+      "placeholder": "Selecionar opção...",
+      "search": "Buscar opções...",
+      "clear": "Limpar seleção"
     },
     "dialog": {
       "close": "Fechar",
@@ -115,14 +115,14 @@
     "table": {
       "loading": "Carregando...",
       "filter": "Filtrar",
-      "search": "Pesquisar",
-      "showing": "Showing",
-      "of": "Of",
-      "entries": "Entries"
+      "search": "Pesquisar na tabela...",
+      "showing": "Mostrando",
+      "of": "de",
+      "entries": "entradas"
     }
   },
   "app": {
-    "name": "Nome",
+    "name": "Conductor",
     "loading": "Carregando...",
     "save": "Salvar",
     "cancel": "Cancelar",
@@ -130,65 +130,65 @@
     "delete": "Excluir"
   },
   "translationManager": {
-    "title": "Título",
-    "description": "Descrição",
-    "accessDenied": "Access Denied",
-    "accessDeniedDescription": "Access Denied Description",
-    "selectLanguage": "Select Language",
-    "selectLanguageDescription": "Select Language Description",
-    "loadingLanguages": "Loading Languages",
-    "searchPlaceholder": "Search Placeholder",
-    "translationEditor": "Translation Editor",
-    "autoCompletion": "Auto Completion",
-    "allKeys": "All Keys",
-    "restoreBackup": "Restore Backup",
-    "saving": "Saving",
-    "saveChanges": "Save Changes",
-    "lastModified": "Last Modified",
-    "loadingTranslations": "Loading Translations",
-    "text": "Text",
-    "object": "Object",
-    "translationFor": "Translation For",
-    "noKeysFound": "No Keys Found",
-    "noTranslationsFound": "No Translations Found",
-    "autoCompleteTitle": "Auto Complete Title",
-    "autoCompleteButton": "Auto Complete Button",
-    "success": "Success",
-    "error": "Error",
-    "autoCompleteError": "Auto Complete Error",
-    "allTranslationKeys": "All Translation Keys",
-    "allKeysDescription": "All Keys Description",
-    "loadingKeys": "Loading Keys",
-    "nested": "Nested",
-    "topLevel": "Top Level",
-    "totalKeys": "Total Keys",
-    "keysInSystem": "Keys In System",
-    "supportedLanguages": "Supported Languages",
-    "availableLanguages": "Available Languages",
-    "currentLanguage": "Current Language",
-    "languageBeingEdited": "Language Being Edited",
-    "translationsSaved": "Translations Saved",
-    "translationsUpdated": "Translations Updated",
-    "errorSavingTranslations": "Error Saving Translations",
-    "backupRestored": "Backup Restored",
-    "backupRestoredDescription": "Backup Restored Description",
-    "errorRestoringBackup": "Error Restoring Backup",
-    "confirmRestore": "Confirm Restore"
+    "title": "Gerenciamento de Traduções",
+    "description": "Gerenciar traduções do sistema em todos os idiomas suportados",
+    "accessDenied": "Acesso Negado",
+    "accessDeniedDescription": "Acesso de administrador SaaS necessário para gerenciar traduções.",
+    "selectLanguage": "Seleção de Idioma",
+    "selectLanguageDescription": "Escolha o idioma para editar as traduções",
+    "loadingLanguages": "Carregando idiomas...",
+    "searchPlaceholder": "Buscar chaves de tradução...",
+    "translationEditor": "Editor de Traduções",
+    "autoCompletion": "Completar Automaticamente",
+    "allKeys": "Todas as Chaves",
+    "restoreBackup": "Restaurar Backup",
+    "saving": "Salvando...",
+    "saveChanges": "Salvar Alterações",
+    "lastModified": "Última modificação",
+    "loadingTranslations": "Carregando traduções...",
+    "text": "Texto",
+    "object": "Objeto",
+    "translationFor": "Tradução para",
+    "noKeysFound": "Nenhuma chave encontrada para sua busca",
+    "noTranslationsFound": "Nenhuma chave de tradução disponível",
+    "autoCompleteTitle": "Completar Traduções Automaticamente",
+    "autoCompleteButton": "Completar Todas",
+    "success": "Sucesso",
+    "error": "Erro",
+    "autoCompleteError": "Falha ao completar traduções automaticamente",
+    "allTranslationKeys": "Todas as Chaves de Tradução",
+    "allKeysDescription": "Visão geral de todas as chaves de tradução disponíveis no sistema",
+    "loadingKeys": "Carregando chaves...",
+    "nested": "Aninhada",
+    "topLevel": "Nível Superior",
+    "totalKeys": "Total de Chaves",
+    "keysInSystem": "chaves no sistema",
+    "supportedLanguages": "Idiomas Suportados",
+    "availableLanguages": "Idiomas Disponíveis",
+    "currentLanguage": "Idioma Atual",
+    "languageBeingEdited": "Idioma sendo editado",
+    "translationsSaved": "Traduções Salvas",
+    "translationsUpdated": "Traduções atualizadas com sucesso",
+    "errorSavingTranslations": "Erro ao Salvar Traduções",
+    "backupRestored": "Backup Restaurado",
+    "backupRestoredDescription": "Backup restaurado com sucesso",
+    "errorRestoringBackup": "Erro ao Restaurar Backup",
+    "confirmRestore": "Tem certeza que deseja restaurar o backup? Isso substituirá as alterações atuais."
   },
   "forms": {
     "validation": {
-      "required": "Required",
-      "email": "Email",
-      "numeric": "Numeric",
-      "phone": "Phone",
-      "date": "Date"
+      "required": "Este campo é obrigatório",
+      "email": "Por favor, insira um endereço de email válido",
+      "numeric": "Por favor, insira um número válido",
+      "phone": "Por favor, insira um telefone válido",
+      "date": "Por favor, insira uma data válida"
     },
     "actions": {
       "submit": "Enviar",
       "save": "Salvar",
       "cancel": "Cancelar",
-      "reset": "Reset",
-      "clear": "Clear",
+      "reset": "Redefinir",
+      "clear": "Limpar Formulário",
       "edit": "Editar",
       "delete": "Excluir",
       "create": "Criar",
@@ -197,13 +197,13 @@
       "filter": "Filtrar"
     },
     "status": {
-      "saving": "Saving",
+      "saving": "Salvando...",
       "loading": "Carregando...",
-      "success": "Success",
-      "error": "Error",
-      "updated": "Updated",
-      "created": "Created",
-      "deleted": "Deleted"
+      "success": "Sucesso!",
+      "error": "Ocorreu um erro",
+      "updated": "Atualizado com sucesso",
+      "created": "Criado com sucesso",
+      "deleted": "Excluído com sucesso"
     },
     "name": "Nome",
     "email": "Email",
@@ -216,141 +216,141 @@
   },
   "pages": {
     "dashboard": {
-      "title": "Título",
-      "welcome": "Welcome",
-      "overview": "Overview",
-      "statistics": "Statistics"
+      "title": "Painel",
+      "welcome": "Bem-vindo ao Conductor",
+      "overview": "Visão Geral",
+      "statistics": "Estatísticas"
     },
     "customers": {
-      "title": "Título",
-      "list": "List",
-      "add": "Adicionar",
-      "edit": "Editar",
-      "search": "Pesquisar",
-      "total": "Total"
+      "title": "Clientes",
+      "list": "Lista de Clientes",
+      "add": "Adicionar Cliente",
+      "edit": "Editar Cliente",
+      "search": "Buscar clientes...",
+      "total": "Total de clientes"
     },
     "tickets": {
-      "title": "Título",
-      "list": "List",
-      "create": "Criar",
-      "edit": "Editar",
-      "details": "Details",
+      "title": "Tickets",
+      "list": "Lista de Tickets",
+      "create": "Criar Ticket",
+      "edit": "Editar Ticket",
+      "details": "Detalhes do Ticket",
       "status": "Status",
-      "priority": "Priority"
+      "priority": "Prioridade"
     },
     "users": {
-      "title": "Título",
-      "list": "List",
-      "add": "Adicionar",
-      "edit": "Editar",
-      "invite": "Invite",
-      "roles": "Roles",
-      "permissions": "Permissions"
+      "title": "Usuários",
+      "list": "Lista de Usuários",
+      "add": "Adicionar Usuário",
+      "edit": "Editar Usuário",
+      "invite": "Convidar Usuário",
+      "roles": "Funções",
+      "permissions": "Permissões"
     }
   },
   "modals": {
     "confirm": {
-      "title": "Título",
-      "message": "Message",
-      "delete": "Excluir",
-      "save": "Salvar",
-      "cancel": "Cancelar"
+      "title": "Confirmar Ação",
+      "message": "Tem certeza de que deseja continuar?",
+      "delete": "Tem certeza de que deseja excluir este item?",
+      "save": "Tem certeza de que deseja salvar as alterações?",
+      "cancel": "Tem certeza de que deseja cancelar? As alterações não salvas serão perdidas."
     },
     "confirmDelete": "Tem certeza que deseja excluir este item?"
   },
   "dashboard": {
     "title": "Painel",
-    "overview": "Overview",
+    "overview": "Visão Geral",
     "stats": {
       "active_tickets": "Active_tickets",
       "resolved_today": "Resolved_today",
       "avg_resolution_time": "Avg_resolution_time",
       "online_agents": "Online_agents"
     },
-    "statistics": "Statistics",
+    "statistics": "Estatísticas",
     "welcome": "Bem-vindo ao Conductor"
   },
   "auth": {
-    "login": "Login",
-    "logout": "Logout",
-    "email": "Email",
-    "password": "Password",
-    "rememberMe": "Remember Me",
-    "forgotPassword": "Forgot Password",
-    "signIn": "Sign In",
-    "loginSuccess": "Login Success",
-    "loginError": "Login Error",
-    "invalidCredentials": "Invalid Credentials",
-    "sessionExpired": "Session Expired"
+    "login": "Entrar",
+    "logout": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "rememberMe": "Lembrar de mim",
+    "forgotPassword": "Esqueceu sua senha?",
+    "signIn": "Entrar",
+    "loginSuccess": "Login realizado com sucesso",
+    "loginError": "Falha no login",
+    "invalidCredentials": "Credenciais inválidas",
+    "sessionExpired": "Sessão expirada, faça login novamente"
   },
   "users": {
-    "title": "Título",
-    "list": "List",
-    "add": "Adicionar",
-    "edit": "Editar",
-    "profile": "Profile",
-    "permissions": "Permissions",
-    "roles": "Roles"
+    "title": "Usuários",
+    "list": "Lista de Usuários",
+    "add": "Adicionar Usuário",
+    "edit": "Editar Usuário",
+    "profile": "Perfil do Usuário",
+    "permissions": "Permissões",
+    "roles": "Funções"
   },
   "customers": {
-    "title": "Título",
-    "list": "List",
-    "add": "Adicionar",
-    "edit": "Editar",
-    "companies": "Companies",
-    "mappings": "Mappings"
+    "title": "Clientes",
+    "list": "Lista de Clientes",
+    "add": "Adicionar Cliente",
+    "edit": "Editar Cliente",
+    "companies": "Empresas do Cliente",
+    "mappings": "Mapeamentos de Itens"
   },
   "tickets": {
     "title": "Tickets",
     "description": "Descrição",
     "new_ticket": "Novo Ticket",
-    "create_ticket": "Create Ticket",
-    "all_tickets": "All Tickets",
-    "my_tickets": "My Tickets",
-    "assigned_tickets": "Assigned Tickets",
-    "ticket_number": "Ticket Number",
+    "create_ticket": "Criar Ticket",
+    "all_tickets": "Todos os Tickets",
+    "my_tickets": "Meus Tickets",
+    "assigned_tickets": "Tickets Atribuídos",
+    "ticket_number": "Ticket #",
     "subject": "Assunto",
     "status": "Status",
     "priority": "Prioridade",
     "category": "Categoria",
     "subcategory": "Subcategoria",
-    "assigned_to": "Assigned To",
+    "assigned_to": "Atribuído para",
     "customer": "Cliente",
     "company": "Empresa",
     "location": "Localização",
-    "created_at": "Created At",
-    "updated_at": "Updated At",
-    "caller": "Caller",
+    "created_at": "Criado",
+    "updated_at": "Atualizado",
+    "caller": "Solicitante",
     "beneficiary": "Beneficiário",
-    "attachment": "Attachment",
+    "attachment": "Anexo",
     "attachments": "Anexos",
     "history": "Histórico",
-    "communications": "Communications",
+    "communications": "Comunicações",
     "notes": "Notas",
-    "internal_notes": "Internal Notes",
-    "resolution": "Resolution",
-    "close_ticket": "Close Ticket",
-    "reopen_ticket": "Reopen Ticket",
-    "assign_ticket": "Assign Ticket",
-    "escalate_ticket": "Escalate Ticket",
-    "link_ticket": "Link Ticket",
-    "edit_ticket": "Edit Ticket",
-    "delete_ticket": "Delete Ticket",
-    "duplicate_ticket": "Duplicate Ticket",
-    "merge_ticket": "Merge Ticket",
+    "internal_notes": "Notas Internas",
+    "resolution": "Resolução",
+    "close_ticket": "Fechar Ticket",
+    "reopen_ticket": "Reabrir Ticket",
+    "assign_ticket": "Atribuir Ticket",
+    "escalate_ticket": "Escalar Ticket",
+    "link_ticket": "Vincular Ticket",
+    "edit_ticket": "Editar Ticket",
+    "delete_ticket": "Excluir Ticket",
+    "duplicate_ticket": "Duplicar Ticket",
+    "merge_ticket": "Mesclar Ticket",
     "status_options": {
-      "new": "New",
-      "open": "Abrir",
-      "in_progress": "In Progress",
-      "resolved": "Resolved",
-      "closed": "Closed",
-      "cancelled": "Cancelled"
+      "new": "Novo",
+      "open": "Aberto",
+      "in_progress": "Em Andamento",
+      "resolved": "Resolvido",
+      "closed": "Fechado",
+      "cancelled": "Cancelado"
     },
     "priority_options": {
-      "low": "Low",
-      "medium": "Medium",
-      "high": "High",
-      "critical": "Critical"
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
+      "critical": "Crítica"
     },
     "forms": {
       "create": {
@@ -369,7 +369,7 @@
         "select_action": "Selecione a ação",
         "select_priority": "Selecione a prioridade",
         "select_urgency": "Selecione a urgência",
-        "select_location": "Select Location",
+        "select_location": "Selecione a localização",
         "first_select_category": "Primeiro selecione uma categoria",
         "no_subcategories": "Nenhuma subcategoria encontrada",
         "first_select_subcategory": "Primeiro selecione uma subcategoria",
@@ -384,9 +384,9 @@
     "messages": {
       "error_creating": "Falha ao criar ticket",
       "created_success": "Ticket criado com sucesso",
-      "updated_success": "Updated Success",
+      "updated_success": "Ticket atualizado com sucesso",
       "loading": "Carregando tickets...",
-      "no_tickets": "No Tickets",
+      "no_tickets": "Nenhum ticket encontrado",
       "error_loading": "Erro ao carregar tickets",
       "not_found": "Ticket não encontrado",
       "no_description": "Nenhuma descrição fornecida.",
@@ -396,8 +396,8 @@
       "no_history": "Nenhum histórico encontrado."
     },
     "validation": {
-      "subject_required": "Subject Required",
-      "customer_required": "Customer Required"
+      "subject_required": "Assunto é obrigatório",
+      "customer_required": "Cliente é obrigatório"
     },
     "actions": {
       "create": "Criar Ticket",
@@ -423,148 +423,148 @@
     "workaround": "Workaround"
   },
   "timecard": {
-    "title": "Título",
-    "autonomous": "Autonomous",
-    "approvals": "Approvals",
-    "settings": "Settings",
-    "reports": "Reports",
-    "compliance": "Compliance"
+    "title": "Cartão de Ponto",
+    "autonomous": "Cartão Autônomo",
+    "approvals": "Aprovações de Ponto",
+    "settings": "Configurações de Aprovação",
+    "reports": "Relatórios de Ponto",
+    "compliance": "Compliance CLT"
   },
   "assets": {
-    "title": "Título",
-    "management": "Management",
-    "planner": "Planner",
-    "maintenance": "Maintenance",
-    "tracking": "Tracking"
+    "title": "Ativos",
+    "management": "Gestão de Ativos",
+    "planner": "Planejador de Atividades",
+    "maintenance": "Manutenção",
+    "tracking": "Rastreamento de Ativos"
   },
   "inventory": {
-    "title": "Título",
-    "catalog": "Catalog",
-    "stock": "Stock",
-    "suppliers": "Suppliers"
+    "title": "Estoque",
+    "catalog": "Catálogo de Itens",
+    "stock": "Gestão de Estoque",
+    "suppliers": "Gestão de Fornecedores"
   },
   "financial": {
-    "title": "Título",
-    "expenses": "Expenses",
-    "contracts": "Contracts",
-    "billing": "Billing"
+    "title": "Financeiro",
+    "expenses": "Despesas Corporativas",
+    "contracts": "Gestão de Contratos",
+    "billing": "Faturamento"
   },
   "hr": {
-    "absence": "Absence",
-    "teams": "Teams",
-    "skills": "Skills",
-    "schedules": "Schedules",
-    "calendar": "Calendar"
+    "absence": "Gestão de Ausências",
+    "teams": "Gestão de Equipes",
+    "skills": "Habilidades Técnicas",
+    "schedules": "Cronogramas de Trabalho",
+    "calendar": "Calendário de Feriados"
   },
   "operations": {
-    "title": "Título",
-    "agenda": "Agenda",
-    "automation": "Automation",
-    "omnibridge": "Omnibridge",
-    "lpu": "Lpu",
-    "sla": "Sla"
+    "title": "Operações",
+    "agenda": "Gestor de Agenda",
+    "automation": "Regras de Automação",
+    "omnibridge": "OmniBridge",
+    "lpu": "Gestão LPU",
+    "sla": "Gestão de SLA"
   },
   "admin": {
-    "title": "Título",
-    "tenant": "Tenant",
-    "saas": "Saas",
-    "provisioning": "Provisioning",
-    "branding": "Branding",
-    "integrations": "Integrations",
-    "workflows": "Workflows",
+    "title": "Administração",
+    "tenant": "Admin do Tenant",
+    "saas": "Admin SaaS",
+    "provisioning": "Provisionamento de Tenant",
+    "branding": "Marca",
+    "integrations": "Integrações",
+    "workflows": "Fluxos de Trabalho",
     "performance": "Performance",
-    "disaster": "Disaster"
+    "disaster": "Recuperação de Desastres"
   },
   "compliance": {
-    "title": "Título",
-    "management": "Management",
-    "gdpr": "Gdpr",
-    "security": "Security",
-    "certificates": "Certificates",
-    "integrity": "Integrity"
+    "title": "Conformidade",
+    "management": "Gestão de Conformidade",
+    "gdpr": "Conformidade GDPR",
+    "security": "Configurações de Segurança",
+    "certificates": "Gestor de Certificados",
+    "integrity": "Controle de Integridade"
   },
   "reporting": {
-    "title": "Título",
-    "reports": "Reports",
-    "create": "Criar",
-    "edit": "Editar",
-    "analytics": "Analytics",
-    "dashboards": "Dashboards",
-    "productivity": "Productivity"
+    "title": "Relatórios",
+    "reports": "Relatórios",
+    "create": "Criar Relatório",
+    "edit": "Editar Relatório",
+    "analytics": "Análises",
+    "dashboards": "Painéis",
+    "productivity": "Relatórios de Produtividade"
   },
   "configuration": {
-    "title": "Título",
-    "settings": "Settings",
-    "simple": "Simple",
-    "fields": "Fields",
-    "templates": "Templates",
-    "notifications": "Notifications",
-    "translations": "Translations"
+    "title": "Configuração",
+    "settings": "Configurações",
+    "simple": "Configurações Simples",
+    "fields": "Campos Personalizados",
+    "templates": "Seletor de Modelos",
+    "notifications": "Notificações",
+    "translations": "Gestor de Traduções"
   },
   "locations": {
-    "title": "Título",
-    "new": "New",
-    "management": "Management"
+    "title": "Localizações",
+    "new": "Novas Localizações",
+    "management": "Gestão de Localizações"
   },
   "knowledge": {
-    "title": "Título",
-    "articles": "Articles",
-    "search": "Pesquisar"
+    "title": "Base de Conhecimento",
+    "articles": "Artigos",
+    "search": "Buscar Conhecimento"
   },
   "specialized": {
-    "title": "Título",
-    "approvals": "Approvals",
-    "beneficiaries": "Beneficiaries",
-    "companies": "Companies",
-    "forms": "Forms",
-    "landing": "Landing",
+    "title": "Especializado",
+    "approvals": "Gestão de Aprovações",
+    "beneficiaries": "Beneficiários",
+    "companies": "Empresas",
+    "forms": "Formulários Internos",
+    "landing": "Página Inicial",
     "demo": "Demo"
   },
   "analytics": {
-    "title": "Título",
-    "insights": "Insights",
-    "performance": "Performance",
-    "trends": "Trends",
-    "reports": "Reports",
-    "satisfaction": "Satisfaction"
+    "title": "Análises",
+    "insights": "Insights detalhados sobre seu desempenho de suporte",
+    "performance": "Métricas de Performance",
+    "trends": "Análise de Tendências",
+    "reports": "Relatórios de Análise",
+    "satisfaction": "Satisfação do Cliente"
   },
   "beneficiaries": {
-    "title": "Título",
-    "list": "List",
-    "add": "Adicionar",
-    "edit": "Editar",
-    "details": "Details",
-    "document": "Document",
-    "contact": "Contact"
+    "title": "Beneficiários",
+    "list": "Lista de Beneficiários",
+    "add": "Adicionar Beneficiário",
+    "edit": "Editar Beneficiário",
+    "details": "Detalhes do Beneficiário",
+    "document": "Documentos",
+    "contact": "Informações de Contato"
   },
   "companies": {
-    "title": "Título",
-    "profile": "Profile",
-    "hierarchy": "Hierarchy",
-    "branches": "Branches",
-    "departments": "Departments",
-    "subsidiaries": "Subsidiaries"
+    "title": "Empresas",
+    "profile": "Perfil da Empresa",
+    "hierarchy": "Hierarquia da Empresa",
+    "branches": "Filiais",
+    "departments": "Departamentos",
+    "subsidiaries": "Subsidiárias"
   },
   "dashboards": {
-    "title": "Título",
-    "create": "Criar",
-    "widget": "Widget",
-    "layout": "Layout",
-    "sharing": "Sharing",
-    "template": "Template"
+    "title": "Painéis",
+    "create": "Criar Painel",
+    "widget": "Widgets do Painel",
+    "layout": "Layout do Painel",
+    "sharing": "Compartilhamento de Painel",
+    "template": "Modelos de Painel"
   },
   "landing": {
-    "title": "Título",
-    "welcome": "Welcome",
-    "features": "Features"
+    "title": "Página Inicial",
+    "welcome": "Bem-vindo",
+    "features": "Recursos da Plataforma"
   },
   "notifications": {
-    "title": "Título",
-    "settings": "Settings",
-    "channels": "Channels",
-    "templates": "Templates",
-    "history": "History",
-    "preferences": "Preferences"
+    "title": "Notificações",
+    "settings": "Configurações de Notificação",
+    "channels": "Canais de Notificação",
+    "templates": "Modelos de Notificação",
+    "history": "Histórico de Notificações",
+    "preferences": "Preferências do Usuário"
   },
   "errors": {
     "general": "Ocorreu um erro inesperado. Tente novamente.",

@@ -26,19 +26,14 @@
     "loading_history": "Loading history",
     "retry": "Retry",
     "creating": "Creating",
-    "view": "View",
-    "close": "Cerrar",
-    "open": "Abrir"
+    "view": "View"
   },
   "navigation": {
     "dashboard": "Panel",
     "tickets": "Tickets",
     "customers": "Clientes",
     "analytics": "Análisis",
-    "settings": "Configuración",
-    "previous": "Previous",
-    "next": "Next",
-    "home": "Home"
+    "settings": "Configuración"
   },
   "errors": {
     "general": "Ocurrió un error inesperado. Inténtalo de nuevo.",
@@ -51,49 +46,15 @@
     "name": "Nombre",
     "email": "Correo",
     "description": "Descripción",
-    "status": {
-      "error": "Error",
-      "saving": "Saving",
-      "loading": "Cargando...",
-      "success": "Success",
-      "updated": "Updated",
-      "created": "Created",
-      "deleted": "Deleted"
-    },
+    "status": "Estado",
     "priority": "Prioridad",
     "category": "Categoría",
     "assignedTo": "Asignado a",
     "createdAt": "Creado en",
-    "updatedAt": "Actualizado en",
-    "validation": {
-      "required": "Required",
-      "email": "Email",
-      "numeric": "Numeric",
-      "phone": "Phone",
-      "date": "Date"
-    },
-    "actions": {
-      "submit": "Enviar",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "reset": "Reset",
-      "clear": "Clear",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "create": "Crear",
-      "update": "Actualizar",
-      "search": "Buscar",
-      "filter": "Filtrar"
-    }
+    "updatedAt": "Actualizado en"
   },
   "modals": {
-    "confirm": {
-      "title": "Título",
-      "message": "Message",
-      "delete": "Eliminar",
-      "save": "Guardar",
-      "cancel": "Cancelar"
-    },
+    "confirm": "Confirmar",
     "confirmDelete": "¿Está seguro de que desea eliminar este elemento?"
   },
   "placeholders": {
@@ -192,9 +153,7 @@
       "no_notes": "No notes",
       "no_history": "No history",
       "created_success": "Created success",
-      "loading": "Cargando",
-      "updated_success": "Updated Success",
-      "no_tickets": "No Tickets"
+      "loading": "Cargando"
     },
     "title": "Título",
     "forms": {
@@ -222,18 +181,13 @@
         "business_impact_placeholder": "Business impact placeholder",
         "workaround_placeholder": "Workaround placeholder",
         "select_location_optional": "Select location optional",
-        "no_specific_location": "No specific location",
-        "select_location": "Select Location"
+        "no_specific_location": "No specific location"
       }
     },
     "actions": {
       "back_to_tickets": "Back to tickets",
       "creating": "Creating",
-      "create": "Crear",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "save": "Guardar",
-      "cancel": "Cancelar"
+      "create": "Crear"
     },
     "description": "Descripción",
     "attachments": "Attachments",
@@ -260,48 +214,7 @@
     "symptoms": "Symptoms",
     "business_impact": "Business impact",
     "workaround": "Workaround",
-    "location": "Location",
-    "validation": {
-      "subject_required": "Subject Required",
-      "customer_required": "Customer Required"
-    },
-    "create_ticket": "Create Ticket",
-    "all_tickets": "All Tickets",
-    "my_tickets": "My Tickets",
-    "assigned_tickets": "Assigned Tickets",
-    "ticket_number": "Ticket Number",
-    "status": "Status",
-    "assigned_to": "Assigned To",
-    "created_at": "Created At",
-    "updated_at": "Updated At",
-    "caller": "Caller",
-    "attachment": "Attachment",
-    "communications": "Communications",
-    "internal_notes": "Internal Notes",
-    "resolution": "Resolution",
-    "close_ticket": "Close Ticket",
-    "reopen_ticket": "Reopen Ticket",
-    "assign_ticket": "Assign Ticket",
-    "escalate_ticket": "Escalate Ticket",
-    "link_ticket": "Link Ticket",
-    "edit_ticket": "Edit Ticket",
-    "delete_ticket": "Delete Ticket",
-    "duplicate_ticket": "Duplicate Ticket",
-    "merge_ticket": "Merge Ticket",
-    "status_options": {
-      "new": "New",
-      "open": "Abrir",
-      "in_progress": "In Progress",
-      "resolved": "Resolved",
-      "closed": "Closed",
-      "cancelled": "Cancelled"
-    },
-    "priority_options": {
-      "low": "Low",
-      "medium": "Medium",
-      "high": "High",
-      "critical": "Critical"
-    }
+    "location": "Location"
   },
   "userManagement": {
     "error": "Error",
@@ -456,320 +369,12 @@
       "avg_resolution_time": "Avg resolution time",
       "online_agents": "Online agents"
     },
-    "welcome": "Welcome",
-    "overview": "Overview",
-    "statistics": "Statistics"
+    "welcome": "Welcome"
   },
   "settings": {
     "title": "Título",
     "language": "Language",
     "timezone": "Timezone",
     "currency": "Currency"
-  },
-  "components": {
-    "button": {
-      "loading": "Cargando...",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "delete": "Eliminar",
-      "edit": "Editar",
-      "close": "Cerrar",
-      "submit": "Enviar",
-      "reset": "Reset",
-      "confirm": "Confirmar"
-    },
-    "input": {
-      "required": "Required",
-      "invalid": "Invalid",
-      "clear": "Clear",
-      "search": "Buscar",
-      "placeholder": "Placeholder"
-    },
-    "breadcrumb": {
-      "home": "Home",
-      "dashboard": "Dashboard"
-    },
-    "select": {
-      "search": "Buscar",
-      "clear": "Clear",
-      "placeholder": "Placeholder"
-    },
-    "dialog": {
-      "close": "Cerrar",
-      "cancel": "Cancelar",
-      "save": "Guardar",
-      "confirm": "Confirmar",
-      "delete": "Eliminar"
-    },
-    "table": {
-      "loading": "Cargando...",
-      "filter": "Filtrar",
-      "search": "Buscar",
-      "showing": "Showing",
-      "of": "Of",
-      "entries": "Entries"
-    }
-  },
-  "translationManager": {
-    "error": "Error",
-    "errorSavingTranslations": "Error Saving Translations",
-    "errorRestoringBackup": "Error Restoring Backup",
-    "title": "Título",
-    "description": "Descripción",
-    "accessDenied": "Access Denied",
-    "accessDeniedDescription": "Access Denied Description",
-    "selectLanguage": "Select Language",
-    "selectLanguageDescription": "Select Language Description",
-    "loadingLanguages": "Loading Languages",
-    "searchPlaceholder": "Search Placeholder",
-    "translationEditor": "Translation Editor",
-    "autoCompletion": "Auto Completion",
-    "allKeys": "All Keys",
-    "restoreBackup": "Restore Backup",
-    "saving": "Saving",
-    "saveChanges": "Save Changes",
-    "lastModified": "Last Modified",
-    "loadingTranslations": "Loading Translations",
-    "text": "Text",
-    "object": "Object",
-    "translationFor": "Translation For",
-    "noKeysFound": "No Keys Found",
-    "noTranslationsFound": "No Translations Found",
-    "autoCompleteTitle": "Auto Complete Title",
-    "autoCompleteButton": "Auto Complete Button",
-    "success": "Success",
-    "autoCompleteError": "Auto Complete Error",
-    "allTranslationKeys": "All Translation Keys",
-    "allKeysDescription": "All Keys Description",
-    "loadingKeys": "Loading Keys",
-    "nested": "Nested",
-    "topLevel": "Top Level",
-    "totalKeys": "Total Keys",
-    "keysInSystem": "Keys In System",
-    "supportedLanguages": "Supported Languages",
-    "availableLanguages": "Available Languages",
-    "currentLanguage": "Current Language",
-    "languageBeingEdited": "Language Being Edited",
-    "translationsSaved": "Translations Saved",
-    "translationsUpdated": "Translations Updated",
-    "backupRestored": "Backup Restored",
-    "backupRestoredDescription": "Backup Restored Description",
-    "confirmRestore": "Confirm Restore"
-  },
-  "app": {
-    "name": "Nombre",
-    "loading": "Cargando...",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "edit": "Editar",
-    "delete": "Eliminar"
-  },
-  "pages": {
-    "dashboard": {
-      "title": "Título",
-      "welcome": "Welcome",
-      "overview": "Overview",
-      "statistics": "Statistics"
-    },
-    "customers": {
-      "title": "Título",
-      "list": "List",
-      "add": "Agregar",
-      "edit": "Editar",
-      "search": "Buscar",
-      "total": "Total"
-    },
-    "tickets": {
-      "title": "Título",
-      "list": "List",
-      "create": "Crear",
-      "edit": "Editar",
-      "details": "Details",
-      "status": "Status",
-      "priority": "Priority"
-    },
-    "users": {
-      "title": "Título",
-      "list": "List",
-      "add": "Agregar",
-      "edit": "Editar",
-      "invite": "Invite",
-      "roles": "Roles",
-      "permissions": "Permissions"
-    }
-  },
-  "auth": {
-    "login": "Login",
-    "logout": "Logout",
-    "email": "Email",
-    "password": "Password",
-    "rememberMe": "Remember Me",
-    "forgotPassword": "Forgot Password",
-    "signIn": "Sign In",
-    "loginSuccess": "Login Success",
-    "loginError": "Login Error",
-    "invalidCredentials": "Invalid Credentials",
-    "sessionExpired": "Session Expired"
-  },
-  "users": {
-    "title": "Título",
-    "list": "List",
-    "add": "Agregar",
-    "edit": "Editar",
-    "profile": "Profile",
-    "permissions": "Permissions",
-    "roles": "Roles"
-  },
-  "customers": {
-    "title": "Título",
-    "list": "List",
-    "add": "Agregar",
-    "edit": "Editar",
-    "companies": "Companies",
-    "mappings": "Mappings"
-  },
-  "timecard": {
-    "title": "Título",
-    "autonomous": "Autonomous",
-    "approvals": "Approvals",
-    "settings": "Settings",
-    "reports": "Reports",
-    "compliance": "Compliance"
-  },
-  "assets": {
-    "title": "Título",
-    "management": "Management",
-    "planner": "Planner",
-    "maintenance": "Maintenance",
-    "tracking": "Tracking"
-  },
-  "inventory": {
-    "title": "Título",
-    "catalog": "Catalog",
-    "stock": "Stock",
-    "suppliers": "Suppliers"
-  },
-  "financial": {
-    "title": "Título",
-    "expenses": "Expenses",
-    "contracts": "Contracts",
-    "billing": "Billing"
-  },
-  "hr": {
-    "absence": "Absence",
-    "teams": "Teams",
-    "skills": "Skills",
-    "schedules": "Schedules",
-    "calendar": "Calendar"
-  },
-  "operations": {
-    "title": "Título",
-    "agenda": "Agenda",
-    "automation": "Automation",
-    "omnibridge": "Omnibridge",
-    "lpu": "Lpu",
-    "sla": "Sla"
-  },
-  "admin": {
-    "title": "Título",
-    "tenant": "Tenant",
-    "saas": "Saas",
-    "provisioning": "Provisioning",
-    "branding": "Branding",
-    "integrations": "Integrations",
-    "workflows": "Workflows",
-    "performance": "Performance",
-    "disaster": "Disaster"
-  },
-  "compliance": {
-    "title": "Título",
-    "management": "Management",
-    "gdpr": "Gdpr",
-    "security": "Security",
-    "certificates": "Certificates",
-    "integrity": "Integrity"
-  },
-  "reporting": {
-    "title": "Título",
-    "reports": "Reports",
-    "create": "Crear",
-    "edit": "Editar",
-    "analytics": "Analytics",
-    "dashboards": "Dashboards",
-    "productivity": "Productivity"
-  },
-  "configuration": {
-    "title": "Título",
-    "settings": "Settings",
-    "simple": "Simple",
-    "fields": "Fields",
-    "templates": "Templates",
-    "notifications": "Notifications",
-    "translations": "Translations"
-  },
-  "locations": {
-    "title": "Título",
-    "new": "New",
-    "management": "Management"
-  },
-  "knowledge": {
-    "title": "Título",
-    "articles": "Articles",
-    "search": "Buscar"
-  },
-  "specialized": {
-    "title": "Título",
-    "approvals": "Approvals",
-    "beneficiaries": "Beneficiaries",
-    "companies": "Companies",
-    "forms": "Forms",
-    "landing": "Landing",
-    "demo": "Demo"
-  },
-  "analytics": {
-    "title": "Título",
-    "insights": "Insights",
-    "performance": "Performance",
-    "trends": "Trends",
-    "reports": "Reports",
-    "satisfaction": "Satisfaction"
-  },
-  "beneficiaries": {
-    "title": "Título",
-    "list": "List",
-    "add": "Agregar",
-    "edit": "Editar",
-    "details": "Details",
-    "document": "Document",
-    "contact": "Contact"
-  },
-  "companies": {
-    "title": "Título",
-    "profile": "Profile",
-    "hierarchy": "Hierarchy",
-    "branches": "Branches",
-    "departments": "Departments",
-    "subsidiaries": "Subsidiaries"
-  },
-  "dashboards": {
-    "title": "Título",
-    "create": "Crear",
-    "widget": "Widget",
-    "layout": "Layout",
-    "sharing": "Sharing",
-    "template": "Template"
-  },
-  "landing": {
-    "title": "Título",
-    "welcome": "Welcome",
-    "features": "Features"
-  },
-  "notifications": {
-    "title": "Título",
-    "settings": "Settings",
-    "channels": "Channels",
-    "templates": "Templates",
-    "history": "History",
-    "preferences": "Preferences"
   }
 }

@@ -48,7 +48,8 @@ export function TranslationCompletionPanel() {
   const { toast } = useToast();
   const [isCompleting, setIsCompleting] = useState(false);
 
-  
+  // State for selected language filter, initialized to 'en' (English)
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
 
   const queryClient = useQueryClient();
 
@@ -200,7 +201,41 @@ export function TranslationCompletionPanel() {
         </div>
       </div>
 
-      
+      {/* Language Selection Filter */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Selecione um Idioma
+          </CardTitle>
+          <CardDescription>
+            Filtre as estatísticas por idioma
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {['en', 'pt-BR', 'es', 'fr', 'de'].map((language) => {
+              const stats = completionReport?.summary?.languageStats?.[language] || { totalKeys: 0, missingKeys: 0, completeness: 0 };
+              const totalKeys = isNaN(stats.totalKeys) ? 0 : stats.totalKeys;
+              const missingKeys = isNaN(stats.missingKeys) ? 0 : stats.missingKeys;
+              const completeness = isNaN(stats.completeness) ? 0 : stats.completeness;
+              const existingKeys = totalKeys - missingKeys;
+
+              return (
+                <div key={language} className="space-y-2">
+                  <Button
+                    variant={selectedLanguage === language ? "default" : "outline"}
+                    className="w-full"
+                    onClick={() => setSelectedLanguage(language)}
+                  >
+                    {getLanguageFlag(language)} {getLanguageName(language)}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -265,27 +300,31 @@ export function TranslationCompletionPanel() {
               const completeness = isNaN(stats.completeness) ? 0 : stats.completeness;
               const existingKeys = totalKeys - missingKeys;
 
-              return (
-                <div key={language} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={completeness >= 90 ? 'default' : 'destructive'}>
-                        {language}
-                      </Badge>
-                      <span className="text-sm text-gray-500">
-                        {existingKeys} de {totalKeys} chaves
+              // Only render if it's the selected language or if no language is selected
+              if (selectedLanguage === 'all' || language === selectedLanguage) {
+                return (
+                  <div key={language} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={completeness >= 90 ? 'default' : 'destructive'}>
+                          {language}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          {existingKeys} de {totalKeys} chaves
+                        </span>
+                      </div>
+                      <span className={`font-medium ${
+                        completeness >= 90 ? 'text-green-600' : 
+                        completeness >= 70 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        {completeness.toFixed(1)}%
                       </span>
                     </div>
-                    <span className={`font-medium ${
-                      completeness >= 90 ? 'text-green-600' : 
-                      completeness >= 70 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {completeness.toFixed(1)}%
-                    </span>
+                    <Progress value={completeness} className="h-2" />
                   </div>
-                  <Progress value={completeness} className="h-2" />
-                </div>
-              );
+                );
+              }
+              return null; // Don't render if not the selected language
             })
           }
         </CardContent>
@@ -301,7 +340,7 @@ export function TranslationCompletionPanel() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {completionReport.gaps?.map((gap: any) => (
+            {completionReport.gaps?.filter(gap => selectedLanguage === 'all' || gap.language === selectedLanguage).map((gap: any) => (
               <div key={gap.language} className="space-y-2">
                 <h4 className="font-medium">{gap.language}</h4>
                 {Object.entries(gap.moduleGaps).length > 0 ? (
