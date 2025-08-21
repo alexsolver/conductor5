@@ -104,7 +104,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-2" />
-{t('tickets.views.newView')}
+              {t('tickets.views.newView')}
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -122,10 +122,10 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
               </div>
               <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsNewViewModalOpen(false)}>
-{t('common.cancel')}
+                  {t('common.cancel')}
                 </Button>
                 <Button>
-{t('tickets.views.createNewView')}
+                  {t('tickets.views.createNewView')}
                 </Button>
               </div>
             </div>
@@ -143,7 +143,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-{t('tickets.views.manageViews')}
+                {t('tickets.views.manageViews')}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
@@ -164,7 +164,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                             {view.is_public && (
                               <Badge variant="secondary">
                                 <Users className="h-3 w-3 mr-1" />
-{t('tickets.views.public')}
+                                {t('tickets.views.public')}
                               </Badge>
                             )}
                             {view.is_default && (

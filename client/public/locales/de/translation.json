@@ -89,7 +89,20 @@
     "teamPerformance": "Team Performance",
     "systemAnalytics": "System Analytics",
     "compliance": "Compliance",
-    "reports": "Reports"
+    "reports": "Reports",
+    "saasAdmin": "SaaS Administration",
+    "tenantManagement": "Tenant Management",
+    "performanceHealth": "Performance & Health",
+    "securitySettings": "Security Settings",
+    "billingUsage": "Billing & Usage",
+    "disasterRecovery": "Disaster Recovery",
+    "autoProvisioning": "Auto Provisioning",
+    "translationManagement": "Translation Management",
+    "userManagement": "User Management",
+    "moduleIntegrity": "Module Integrity Control",
+    "multilocationSettings": "Multilocation Settings",
+    "workspaceAdmin": "Workspace Administration",
+    "timecardReports": "Timecard Reports"
   },
   "errors": {
     "general": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",

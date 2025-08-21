@@ -1161,8 +1161,8 @@ const TicketsTable = React.memo(() => {
   });
 
   // Função de renderização otimizada
-  const renderCell = useCallback((column: any, ticket: Ticket, key?: string) => (
-    <TableCellComponent key={key || `${ticket.id}-${column.id}`} column={column} ticket={ticket} />
+  const renderCell = useCallback((ticket: any, key: string) => (
+    <TableCellComponent key={key} column={{ id: key }} ticket={ticket} />
   ), []);
 
   // Otimizar comparação do TableCellComponent com comparação personalizada
@@ -2026,16 +2026,16 @@ const TicketsTable = React.memo(() => {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Filter className="h-5 w-5" />
-{t('tickets.views.title')}
+              {t('tickets.views.title')}
             </CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setIsNewViewDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-{t('tickets.views.newView')}
+                {t('tickets.views.newView')}
               </Button>
               <Button variant="outline" size="sm" onClick={() => setIsManageViewsOpen(true)}>
                 <Settings className="h-4 w-4 mr-2" />
-{t('tickets.views.manage')}
+                {t('tickets.views.manage')}
               </Button>
             </div>
           </div>
@@ -2059,7 +2059,7 @@ const TicketsTable = React.memo(() => {
             </div>
             <Button variant="outline" size="sm" onClick={() => setIsAdvancedFiltersOpen(true)}>
               <Filter className="h-4 w-4 mr-2" />
-{t('tickets.views.advancedFilters')}
+              {t('tickets.views.advancedFilters')}
             </Button>
           </div>
         </CardContent>

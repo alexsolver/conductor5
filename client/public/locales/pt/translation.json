@@ -148,6 +148,16 @@
     "workspaceAdmin": "Administração do Workspace",
     "timecardReports": "Relatórios de Ponto"
   },
+  "tickets": {
+    "views": {
+      "title": "Visualizações",
+      "newView": "Nova Visualização", 
+      "manage": "Gerenciar",
+      "activeView": "Visualização Ativa",
+      "defaultView": "Visualização Padrão",
+      "advancedFilters": "Filtros Avançados"
+    }
+  },
   "components": {
     "button": {
       "loading": "Carregando...",

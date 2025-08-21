@@ -104,6 +104,16 @@
     "workspaceAdmin": "Workspace Administration",
     "timecardReports": "Timecard Reports"
   },
+  "tickets": {
+    "views": {
+      "title": "Views",
+      "newView": "New View",
+      "manage": "Manage",
+      "activeView": "Active View", 
+      "defaultView": "Default View",
+      "advancedFilters": "Advanced Filters"
+    }
+  },
   "errors": {
     "general": "An unexpected error occurred. Please try again.",
     "generic": "Generic"
