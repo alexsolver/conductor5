@@ -1,22 +1,22 @@
 {
   "common": {
-    "loading": "Cargando...",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
-    "edit": "Editar",
-    "create": "Crear",
-    "update": "Actualizar",
-    "search": "Buscar",
-    "filter": "Filtrar",
-    "actions": "Acciones",
-    "processing": "Procesando...",
-    "pleaseWait": "Por favor espere",
-    "none": "Ninguno",
-    "all": "Todos",
-    "select": "Seleccione",
-    "choose": "Elegir",
-    "error": "Error",
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "actions": "Aktionen",
+    "processing": "Verarbeitung...",
+    "pleaseWait": "Bitte warten",
+    "none": "Keine",
+    "all": "Alle",
+    "select": "Auswählen",
+    "choose": "Wählen",
+    "error": "Fehler",
     "back": "Back",
     "loading_attachments": "Loading attachments",
     "download": "Download",
@@ -27,44 +27,44 @@
     "retry": "Retry",
     "creating": "Creating",
     "view": "View",
-    "close": "Cerrar",
-    "open": "Abrir"
+    "close": "Schließen",
+    "open": "Öffnen"
   },
   "navigation": {
-    "dashboard": "Panel",
+    "dashboard": "Dashboard",
     "tickets": "Tickets",
-    "customers": "Clientes",
-    "analytics": "Análisis",
-    "settings": "Configuración",
+    "customers": "Kunden",
+    "analytics": "Analysen",
+    "settings": "Einstellungen",
     "previous": "Previous",
     "next": "Next",
     "home": "Home"
   },
   "errors": {
-    "general": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+    "general": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
     "generic": "Generic"
   },
   "success": {
-    "saved": "Cambios guardados exitosamente"
+    "saved": "Änderungen erfolgreich gespeichert"
   },
   "forms": {
-    "name": "Nombre",
-    "email": "Correo",
-    "description": "Descripción",
+    "name": "Name",
+    "email": "E-Mail",
+    "description": "Beschreibung",
     "status": {
       "error": "Error",
       "saving": "Saving",
-      "loading": "Cargando...",
+      "loading": "Laden...",
       "success": "Success",
       "updated": "Updated",
       "created": "Created",
       "deleted": "Deleted"
     },
-    "priority": "Prioridad",
-    "category": "Categoría",
-    "assignedTo": "Asignado a",
-    "createdAt": "Creado en",
-    "updatedAt": "Actualizado en",
+    "priority": "Priorität",
+    "category": "Kategorie",
+    "assignedTo": "Zugewiesen an",
+    "createdAt": "Erstellt am",
+    "updatedAt": "Aktualisiert am",
     "validation": {
       "required": "Required",
       "email": "Email",
@@ -73,81 +73,50 @@
       "date": "Date"
     },
     "actions": {
-      "submit": "Enviar",
-      "save": "Guardar",
-      "cancel": "Cancelar",
+      "submit": "Senden",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
       "reset": "Reset",
       "clear": "Clear",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "create": "Crear",
-      "update": "Actualizar",
-      "search": "Buscar",
-      "filter": "Filtrar"
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "create": "Erstellen",
+      "update": "Aktualisieren",
+      "search": "Suchen",
+      "filter": "Filtern"
     }
   },
   "modals": {
     "confirm": {
-      "title": "Título",
+      "title": "Titel",
       "message": "Message",
-      "delete": "Eliminar",
-      "save": "Guardar",
-      "cancel": "Cancelar"
+      "delete": "Löschen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
     },
-    "confirmDelete": "¿Está seguro de que desea eliminar este elemento?"
+    "confirmDelete": "Sind Sie sicher, dass Sie dieses Element löschen möchten?"
   },
   "placeholders": {
-    "searchHere": "Buscar aquí...",
-    "selectOption": "Seleccione una opción",
-    "enterText": "Ingrese texto"
+    "searchHere": "Hier suchen...",
+    "selectOption": "Wählen Sie eine Option",
+    "enterText": "Text eingeben"
   },
   "buttons": {
-    "submit": "Enviar",
-    "close": "Cerrar",
-    "add": "Agregar",
-    "remove": "Eliminar"
+    "submit": "Senden",
+    "close": "Schließen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen"
   },
   "messages": {
-    "success": "Éxito",
-    "error": "Error",
-    "warning": "Advertencia",
-    "info": "Información"
+    "success": "Erfolg",
+    "error": "Fehler",
+    "warning": "Warnung",
+    "info": "Information"
   },
-  "TranslationManager.title": "Gestión de Traducciones",
-  "TranslationManager.description": "Gestionar traducciones del sistema en todos los idiomas soportados",
-  "TranslationManager.restoreBackup": "Restaurar Copia de Seguridad",
-  "TranslationManager.saveChanges": "Guardar Cambios",
-  "TranslationManager.languageSelection": "Selección de Idioma",
-  "TranslationManager.chooseLanguage": "Elegir Idioma",
-  "TranslationManager.searchPlaceholder": "Buscar traducciones...",
-  "TranslationManager.translationEditor": "Editor de Traducciones",
-  "TranslationManager.autoCompletion": "Completación Automática",
-  "TranslationManager.allKeys": "Todas las Claves",
-  "TranslationManager.editorTitle": "Editar Traducciones",
-  "TranslationManager.autoCompletionTitle": "Completación Automática de Traducciones",
-  "TranslationManager.ultraSafeMode": "Modo Ultra Seguro",
-  "TranslationManager.autoCompleteAll": "Completar Todo Automáticamente",
-  "TranslationManager.allKeysTitle": "Todas las Claves de Traducción",
-  "TranslationManager.allKeysDescription": "Navegar y editar todas las claves de traducción",
-  "TranslationManager.analyzeCompleteness": "Analizar Completitud",
-  "TranslationManager.scanKeys": "Escanear Claves",
-  "TranslationManager.expandedScan": "Escaneo Expandido",
-  "TranslationManager.analysisSuccess": "Análisis completado exitosamente",
-  "TranslationManager.analysisError": "Análisis falló",
-  "TranslationManager.expansionSuccess": "Escaneo expandido completado",
-  "TranslationManager.expansionError": "Escaneo expandido falló",
-  "TranslationManager.scanSuccess": "Escaneo de claves completado",
-  "TranslationManager.scanError": "Escaneo de claves falló",
-  "TranslationManager.autoCompletionSuccess": "Auto-completación completada de forma segura",
-  "TranslationManager.autoCompletionError": "Auto-completación falló",
-  "TranslationManager.autoCompletionFailed": "Falló al auto-completar traducciones",
-  "TranslationManager.autoCompletionErrorDesc": "Falló al auto-completar traducciones",
-  "TranslationManager.translationsAdded": "Agregado",
-  "TranslationManager.codeFilesProtected": "Archivos de código protegidos",
   "TranslationManager": {
     "saveChanges": "Save changes",
-    "title": "Título",
-    "description": "Descripción",
+    "title": "Titel",
+    "description": "Beschreibung",
     "restoreBackup": "Restore backup",
     "languageSelection": "Language selection",
     "chooseLanguage": "Choose language",
@@ -194,14 +163,14 @@
       "no_notes": "No notes",
       "no_history": "No history",
       "created_success": "Created success",
-      "loading": "Cargando",
+      "loading": "Laden",
       "updated_success": "Updated Success",
       "no_tickets": "No Tickets"
     },
-    "title": "Título",
+    "title": "Titel",
     "forms": {
       "create": {
-        "title": "Título",
+        "title": "Titel",
         "select_company": "Select company",
         "no_companies": "No companies",
         "first_select_company": "First select company",
@@ -231,13 +200,13 @@
     "actions": {
       "back_to_tickets": "Back to tickets",
       "creating": "Creating",
-      "create": "Crear",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "save": "Guardar",
-      "cancel": "Cancelar"
+      "create": "Erstellen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
     },
-    "description": "Descripción",
+    "description": "Beschreibung",
     "attachments": "Attachments",
     "communication": "Communication",
     "notes": "Notes",
@@ -292,7 +261,7 @@
     "merge_ticket": "Merge Ticket",
     "status_options": {
       "new": "New",
-      "open": "Abrir",
+      "open": "Öffnen",
       "in_progress": "In Progress",
       "resolved": "Resolved",
       "closed": "Closed",
@@ -306,9 +275,9 @@
     }
   },
   "userManagement": {
-    "error": "Error",
+    "error": "Fehler",
     "deleteActions": "Delete actions",
-    "title": "Título",
+    "title": "Titel",
     "inviteUser": "Invite user",
     "createUser": "Create user",
     "stats": {
@@ -331,13 +300,13 @@
       "sessions": "Sessions",
       "activity": "Activity"
     },
-    "success": "Éxito",
+    "success": "Erfolg",
     "userCreated": "User created",
     "userCreateError": "User create error",
     "invitationSent": "Invitation sent",
     "invitationSendError": "Invitation send error",
     "inviteUserDesc": "Invite user desc",
-    "email": "Correo",
+    "email": "E-Mail",
     "emailPlaceholder": "Email placeholder",
     "role": "Role",
     "roles": {
@@ -415,7 +384,7 @@
     "userList": "User list",
     "userListDesc": "User list desc",
     "searchUsers": "Search users",
-    "name": "Nombre",
+    "name": "Name",
     "lastLogin": "Last login",
     "noName": "No name",
     "active": "Active",
@@ -451,7 +420,7 @@
     "noActiveSessions": "No active sessions"
   },
   "dashboard": {
-    "title": "Título",
+    "title": "Titel",
     "stats": {
       "active_tickets": "Active tickets",
       "resolved_today": "Resolved today",
@@ -463,28 +432,28 @@
     "statistics": "Statistics"
   },
   "settings": {
-    "title": "Título",
+    "title": "Titel",
     "language": "Language",
     "timezone": "Timezone",
     "currency": "Currency"
   },
   "components": {
     "button": {
-      "loading": "Cargando...",
-      "save": "Guardar",
-      "cancel": "Cancelar",
-      "delete": "Eliminar",
-      "edit": "Editar",
-      "close": "Cerrar",
-      "submit": "Enviar",
+      "loading": "Laden...",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "edit": "Bearbeiten",
+      "close": "Schließen",
+      "submit": "Senden",
       "reset": "Reset",
-      "confirm": "Confirmar"
+      "confirm": "Bestätigen"
     },
     "input": {
       "required": "Required",
       "invalid": "Invalid",
       "clear": "Clear",
-      "search": "Buscar",
+      "search": "Suchen",
       "placeholder": "Placeholder"
     },
     "breadcrumb": {
@@ -492,21 +461,21 @@
       "dashboard": "Dashboard"
     },
     "select": {
-      "search": "Buscar",
+      "search": "Suchen",
       "clear": "Clear",
       "placeholder": "Placeholder"
     },
     "dialog": {
-      "close": "Cerrar",
-      "cancel": "Cancelar",
-      "save": "Guardar",
-      "confirm": "Confirmar",
-      "delete": "Eliminar"
+      "close": "Schließen",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "confirm": "Bestätigen",
+      "delete": "Löschen"
     },
     "table": {
-      "loading": "Cargando...",
-      "filter": "Filtrar",
-      "search": "Buscar",
+      "loading": "Laden...",
+      "filter": "Filtern",
+      "search": "Suchen",
       "showing": "Showing",
       "of": "Of",
       "entries": "Entries"
@@ -516,8 +485,8 @@
     "error": "Error",
     "errorSavingTranslations": "Error Saving Translations",
     "errorRestoringBackup": "Error Restoring Backup",
-    "title": "Título",
-    "description": "Descripción",
+    "title": "Titel",
+    "description": "Beschreibung",
     "accessDenied": "Access Denied",
     "accessDeniedDescription": "Access Denied Description",
     "selectLanguage": "Select Language",
@@ -559,42 +528,42 @@
     "confirmRestore": "Confirm Restore"
   },
   "app": {
-    "name": "Nombre",
-    "loading": "Cargando...",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "edit": "Editar",
-    "delete": "Eliminar"
+    "name": "Name",
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen"
   },
   "pages": {
     "dashboard": {
-      "title": "Título",
+      "title": "Titel",
       "welcome": "Welcome",
       "overview": "Overview",
       "statistics": "Statistics"
     },
     "customers": {
-      "title": "Título",
+      "title": "Titel",
       "list": "List",
-      "add": "Agregar",
-      "edit": "Editar",
-      "search": "Buscar",
+      "add": "Hinzufügen",
+      "edit": "Bearbeiten",
+      "search": "Suchen",
       "total": "Total"
     },
     "tickets": {
-      "title": "Título",
+      "title": "Titel",
       "list": "List",
-      "create": "Crear",
-      "edit": "Editar",
+      "create": "Erstellen",
+      "edit": "Bearbeiten",
       "details": "Details",
       "status": "Status",
       "priority": "Priority"
     },
     "users": {
-      "title": "Título",
+      "title": "Titel",
       "list": "List",
-      "add": "Agregar",
-      "edit": "Editar",
+      "add": "Hinzufügen",
+      "edit": "Bearbeiten",
       "invite": "Invite",
       "roles": "Roles",
       "permissions": "Permissions"
@@ -614,24 +583,24 @@
     "sessionExpired": "Session Expired"
   },
   "users": {
-    "title": "Título",
+    "title": "Titel",
     "list": "List",
-    "add": "Agregar",
-    "edit": "Editar",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
     "profile": "Profile",
     "permissions": "Permissions",
     "roles": "Roles"
   },
   "customers": {
-    "title": "Título",
+    "title": "Titel",
     "list": "List",
-    "add": "Agregar",
-    "edit": "Editar",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
     "companies": "Companies",
     "mappings": "Mappings"
   },
   "timecard": {
-    "title": "Título",
+    "title": "Titel",
     "autonomous": "Autonomous",
     "approvals": "Approvals",
     "settings": "Settings",
@@ -639,20 +608,20 @@
     "compliance": "Compliance"
   },
   "assets": {
-    "title": "Título",
+    "title": "Titel",
     "management": "Management",
     "planner": "Planner",
     "maintenance": "Maintenance",
     "tracking": "Tracking"
   },
   "inventory": {
-    "title": "Título",
+    "title": "Titel",
     "catalog": "Catalog",
     "stock": "Stock",
     "suppliers": "Suppliers"
   },
   "financial": {
-    "title": "Título",
+    "title": "Titel",
     "expenses": "Expenses",
     "contracts": "Contracts",
     "billing": "Billing"
@@ -665,7 +634,7 @@
     "calendar": "Calendar"
   },
   "operations": {
-    "title": "Título",
+    "title": "Titel",
     "agenda": "Agenda",
     "automation": "Automation",
     "omnibridge": "Omnibridge",
@@ -673,7 +642,7 @@
     "sla": "Sla"
   },
   "admin": {
-    "title": "Título",
+    "title": "Titel",
     "tenant": "Tenant",
     "saas": "Saas",
     "provisioning": "Provisioning",
@@ -684,7 +653,7 @@
     "disaster": "Disaster"
   },
   "compliance": {
-    "title": "Título",
+    "title": "Titel",
     "management": "Management",
     "gdpr": "Gdpr",
     "security": "Security",
@@ -692,16 +661,16 @@
     "integrity": "Integrity"
   },
   "reporting": {
-    "title": "Título",
+    "title": "Titel",
     "reports": "Reports",
-    "create": "Crear",
-    "edit": "Editar",
+    "create": "Erstellen",
+    "edit": "Bearbeiten",
     "analytics": "Analytics",
     "dashboards": "Dashboards",
     "productivity": "Productivity"
   },
   "configuration": {
-    "title": "Título",
+    "title": "Titel",
     "settings": "Settings",
     "simple": "Simple",
     "fields": "Fields",
@@ -710,17 +679,17 @@
     "translations": "Translations"
   },
   "locations": {
-    "title": "Título",
+    "title": "Titel",
     "new": "New",
     "management": "Management"
   },
   "knowledge": {
-    "title": "Título",
+    "title": "Titel",
     "articles": "Articles",
-    "search": "Buscar"
+    "search": "Suchen"
   },
   "specialized": {
-    "title": "Título",
+    "title": "Titel",
     "approvals": "Approvals",
     "beneficiaries": "Beneficiaries",
     "companies": "Companies",
@@ -729,7 +698,7 @@
     "demo": "Demo"
   },
   "analytics": {
-    "title": "Título",
+    "title": "Titel",
     "insights": "Insights",
     "performance": "Performance",
     "trends": "Trends",
@@ -737,16 +706,16 @@
     "satisfaction": "Satisfaction"
   },
   "beneficiaries": {
-    "title": "Título",
+    "title": "Titel",
     "list": "List",
-    "add": "Agregar",
-    "edit": "Editar",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
     "details": "Details",
     "document": "Document",
     "contact": "Contact"
   },
   "companies": {
-    "title": "Título",
+    "title": "Titel",
     "profile": "Profile",
     "hierarchy": "Hierarchy",
     "branches": "Branches",
@@ -754,62 +723,24 @@
     "subsidiaries": "Subsidiaries"
   },
   "dashboards": {
-    "title": "Título",
-    "create": "Crear",
+    "title": "Titel",
+    "create": "Erstellen",
     "widget": "Widget",
     "layout": "Layout",
     "sharing": "Sharing",
     "template": "Template"
   },
   "landing": {
-    "title": "Título",
+    "title": "Titel",
     "welcome": "Welcome",
     "features": "Features"
   },
   "notifications": {
-    "title": "Título",
+    "title": "Titel",
     "settings": "Settings",
     "channels": "Channels",
     "templates": "Templates",
     "history": "History",
     "preferences": "Preferences"
-  },
-  "Erro ao criar regra: ${errorData": {
-    "error || response": {
-      "statusText}": "Status text}"
-    }
-  },
-  "Erro na sincronização: ${errorData": {
-    "error || response": {
-      "statusText}": "Status text}"
-    }
-  },
-  "Erro ao criar regra": {
-    " Verifique o console para mais detalhes": {
-      "": ""
-    }
-  },
-  "Erro na sincronização": {
-    " Verifique o console para mais detalhes": {
-      "": ""
-    }
-  },
-  "Dados sensíveis revelados para o campo: ${showPasswordDialog": {
-    "field}": "Field}"
-  },
-  "Query testada! Verifique o console para detalhes": {
-    "": ""
-  },
-  "\\n\\n--- Mensagem Original ---\\nDe: ${email": {
-    "from}\\nData: ${new Date(email": {
-      "createdAt)": {
-        "toLocaleString()}\\n\\n${email": {
-          "content}": "Content}"
-        }
-      }
-    }
-  },
-  "": {
-    "": "."
   }
 }

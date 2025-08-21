@@ -72,6 +72,9 @@ export default function TranslationManager() {
   const [analyzing, setAnalyzing] = useState(false);
   const [scanningKeys, setScanningKeys] = useState(false);
   const [expandingKeys, setExpandingKeys] = useState(false);
+  const [isExpandedScanning, setIsExpandedScanning] = useState(false);
+  const [expandedScanResult, setExpandedScanResult] = useState<any>(null);
+  const [completionReport, setCompletionReport] = useState<any>(null);
 
 
   // Access control - SaaS admin only
@@ -643,13 +646,36 @@ export default function TranslationManager() {
         </Button>
 
         <Button
-          onClick={handleExpandedScan}
-          disabled={expandingKeys}
+          onClick={async () => {
+            setIsExpandedScanning(true);
+            try {
+              const response = await fetch('/api/translations/expand-scan', {
+                method: 'GET',
+                credentials: 'include',
+              });
+              const data = await response.json();
+              setExpandedScanResult(data.data);
+              await queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
+              toast({
+                title: "Ultra-Comprehensive Scan Complete!",
+                description: `Found ${data.data?.totalKeys || 0} keys (${data.data?.improvement || 0} more, ${data.data?.expansionRatio || '0%'} expansion)`,
+              });
+            } catch (error) {
+              toast({
+                title: "Scan Error",
+                description: error.message,
+                variant: "destructive",
+              });
+            } finally {
+              setIsExpandedScanning(false);
+            }
+          }}
+          disabled={isExpandedScanning}
           variant="secondary"
-          className="flex-1 ml-2"
+          className="flex-1 ml-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
         >
-          {expandingKeys ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {t('TranslationManager.expandedScan') || 'Full Expansion Scan'}
+          {isExpandedScanning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          🚀 Ultra Scan (1000s+ keys)
         </Button>
       </div>
 
@@ -674,6 +700,11 @@ export default function TranslationManager() {
                 {allKeysData?.fromScanner && (
                   <div className="text-xs text-blue-500">
                     ({allKeysData.fromScanner} from scanner, {allKeysData.fromFiles || 0} from files)
+                  </div>
+                )}
+                {expandedScanResult && (
+                  <div className="text-xs text-purple-500 mt-2">
+                    🚀 Ultra Scan: {expandedScanResult.totalKeys} keys (+{expandedScanResult.improvement} more, {expandedScanResult.expansionRatio} expansion)
                   </div>
                 )}
               </div>

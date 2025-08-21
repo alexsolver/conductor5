@@ -4,10 +4,23 @@
  */
 
 import { Router } from 'express';
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
+import { jwtAuth } from '../middleware/jwtAuth';
+import { TranslationCompletionService } from '../services/TranslationCompletionService';
 import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
+
+// Type for authenticated request
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+    tenantId: string | null;
+    permissions: any[];
+    attributes: Record<string, any>;
+  };
+}
 
 const router = Router();
 
@@ -25,7 +38,7 @@ const updateTranslationSchema = z.object({
  * GET /api/translations/languages
  * Get all available languages
  */
-router.get('/languages', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.get('/languages', jwtAuth, async (req: any, res: any) => {
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
@@ -50,7 +63,7 @@ router.get('/languages', jwtAuth, async (req: AuthenticatedRequest, res) => {
  * GET /api/translations/:language
  * Get translations for a specific language
  */
-router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.get('/:language', jwtAuth, async (req: any, res: any) => {
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
@@ -89,7 +102,7 @@ router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
  * PUT /api/translations/:language
  * Update translations for a specific language
  */
-router.put('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.put('/:language', jwtAuth, async (req: any, res: any) => {
   try {
     // Only SaaS admins can manage translations
     if (req.user?.role !== 'saas_admin') {
@@ -240,7 +253,7 @@ function extractKeysFromObject(obj: any, prefix = ''): string[] {
 /**
  * GET /api/translations/keys/all - Get all available translation keys (prioritizing scanned keys)
  */
-router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.get('/keys/all', jwtAuth, async (req: any, res: any) => {
   try {
     const allLanguages = ['en', 'pt', 'es', 'fr', 'de'];
     const allKeysSet = new Set<string>();
@@ -248,14 +261,13 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
     let fromScanner = 0;
     let fromFiles = 0;
 
-    // FIRST: Get scanned keys from the scanner (priority)
+    // FIRST: Get scanned keys from the ultra-comprehensive scanner (priority)
     try {
-      const { TranslationCompletionService } = await import('../services/TranslationCompletionService');
       const translationService = new TranslationCompletionService();
-      const scannedKeys = await translationService.scanTranslationKeys();
+      const scannedKeys = await translationService.scanExistingTranslationFiles();
 
-      // Add all scanned keys with ultra-permissive validation
-      scannedKeys.forEach(keyObj => {
+      // Add all scanned keys with ultra-permissive validation  
+      scannedKeys.forEach((keyObj: any) => {
         if (keyObj.key && typeof keyObj.key === 'string' && isValidTranslationKey(keyObj.key)) {
           allKeysSet.add(keyObj.key);
           fromScanner++;
@@ -264,7 +276,7 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
       console.log(`📊 [TRANSLATIONS] Added ${fromScanner} keys from scanner out of ${scannedKeys.length} scanned`);
     } catch (error) {
-      console.warn('Failed to get scanned keys:', error);
+      console.warn('Failed to get scanned keys:', (error as Error).message);
     }
 
     // SECOND: Get keys from existing translation files
@@ -289,7 +301,7 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
           });
         }
       } catch (error) {
-        console.warn(`Failed to load translations for ${lang}:`, error);
+        console.warn(`Failed to load translations for ${lang}:`, (error as Error).message);
       }
     }
 
@@ -322,6 +334,32 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
       success: false,
       message: 'Failed to fetch translation keys',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * GET /api/translations/expand-scan - Ultra-comprehensive scanning for thousands more keys
+ */
+router.get('/expand-scan', jwtAuth, async (req: any, res: any) => {
+  try {
+    console.log('🚀 [EXPAND-SCAN] Starting ultra-comprehensive translation scan...');
+    
+    const translationService = new TranslationCompletionService();
+    const result = await translationService.performExpandedScan();
+
+    res.json({
+      success: true,
+      data: result,
+      message: `Ultra-comprehensive scan complete! Found ${result.totalKeys} translation keys (${result.improvement} more than before, ${result.expansionRatio} expansion rate)`
+    });
+
+  } catch (error) {
+    console.error('❌ [EXPAND-SCAN] Error during ultra-comprehensive scan:', (error as Error).message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to perform ultra-comprehensive scan',
+      error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error'
     });
   }
 });
