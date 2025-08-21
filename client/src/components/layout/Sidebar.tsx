@@ -78,9 +78,9 @@ const baseNavigation: Array<{
 }> = [
   { name: "customers.title", href: "/customers", icon: Users },
   { name: "ticketSystem.title", href: "/tickets", icon: Ticket },
-  { name: "navigation.knowledgeBase", href: "/knowledge-base", icon: BookOpen },
+  { name: "knowledgeBase", href: "/knowledge-base", icon: BookOpen },
   {
-    name: "navigation.timecardControl",
+    name: "timecardControl",
     icon: Clock,
     children: [
       { name: "navigation.timecardRegistry", href: "/timecard", icon: Clock },
@@ -95,10 +95,10 @@ const baseNavigation: Array<{
       { name: "navigation.scheduleTemplates", href: "/schedule-templates", icon: Settings },
     ]
   },
-  { name: "navigation.locations", href: "/locations", icon: MapPin },
+  { name: "locations", href: "/locations", icon: MapPin },
 
   {
-    name: "navigation.materialsAndServices",
+    name: "materialsAndServices",
     icon: Package,
     children: [
 
@@ -110,12 +110,12 @@ const baseNavigation: Array<{
       { name: "navigation.complianceManagement", href: "/compliance-management", icon: Shield },
     ]
   },
-  { name: "navigation.analytics", href: "/analytics", icon: BarChart3 },
-  { name: "navigation.notifications", href: "/notifications", icon: Bell },
-  { name: "navigation.compliance", href: "/compliance", icon: Shield },
-  { name: "navigation.gdprCompliance", href: "/gdpr-compliance", icon: Shield },
+  { name: "analytics", href: "/analytics", icon: BarChart3 },
+  { name: "notifications", href: "/notifications", icon: Bell },
+  { name: "compliance", href: "/compliance", icon: Shield },
+  { name: "gdprCompliance", href: "/gdpr-compliance", icon: Shield },
   {
-    name: "navigation.reports",
+    name: "reports",
     icon: PieChart,
     children: [
       { name: "navigation.productivityReports", href: "/productivity-reports", icon: PieChart },
@@ -129,19 +129,19 @@ const baseNavigation: Array<{
 // Admin navigation with hierarchical structure
 const adminNavigation = [
   { 
-    name: "navigation.saasAdmin", 
+    name: "saasAdmin", 
     icon: Shield, 
     roles: ['saas_admin'],
     children: [
       { name: "dashboard.title", href: "/saas-admin", icon: BarChart3 },
-      { name: "navigation.tenantManagement", href: "/saas-admin/tenants", icon: Database },
-      { name: "navigation.performanceHealth", href: "/saas-admin/performance", icon: TrendingUp },
-      { name: "navigation.securitySettings", href: "/saas-admin/security", icon: Shield },
-      { name: "navigation.billingUsage", href: "/saas-admin/billing", icon: CreditCard },
-      { name: "navigation.disasterRecovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
-      { name: "navigation.autoProvisioning", href: "/tenant-provisioning", icon: Plug },
-      { name: "navigation.translationManagement", href: "/translation-manager", icon: Languages },
-      { name: "navigation.userManagement", href: "/user-management", icon: UserCog },
+      { name: "tenantManagement", href: "/saas-admin/tenants", icon: Database },
+      { name: "performanceHealth", href: "/saas-admin/performance", icon: TrendingUp },
+      { name: "securitySettings", href: "/saas-admin/security", icon: Shield },
+      { name: "billingUsage", href: "/saas-admin/billing", icon: CreditCard },
+      { name: "disasterRecovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
+      { name: "autoProvisioning", href: "/tenant-provisioning", icon: Plug },
+      { name: "translationManagement", href: "/translation-manager", icon: Languages },
+      { name: "userManagement", href: "/user-management", icon: UserCog },
       // Removed: Multi-Tenant management - functionality eliminated from system
       { name: "Integrações", href: "/saas-admin/integrations", icon: Plug },
       { name: "Controle de Integridade", href: "/module-integrity", icon: Shield },
@@ -179,9 +179,9 @@ const adminNavigation = [
 ];
 
 const secondaryNavigation = [
-  { name: "navigation.settings", href: "/settings", icon: Settings },
-  { name: "navigation.security", href: "/security", icon: Shield },
-  { name: "navigation.helpAndSupport", href: "/help", icon: HelpCircle },
+  { name: "settings", href: "/settings", icon: Settings },
+  { name: "security", href: "/security", icon: Shield },
+  { name: "helpAndSupport", href: "/help", icon: HelpCircle },
 ];
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
@@ -198,7 +198,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     if (name.includes('.')) {
       return t(name);
     }
-    return name;
+    // For navigation items without namespace, add the navigation prefix
+    return t(`navigation.${name}`);
   };
 
   // Fetch tickets count for badge
@@ -228,7 +229,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     }
 
     // Update timecard section based on employment type
-    if (item.name === "navigation.timecardControl") {
+    if (item.name === "timecardControl") {
       const timecardRoute = employmentType === 'autonomo' ? '/timecard-autonomous' : '/timecard';
       return {
         ...item,
@@ -438,7 +439,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                             color: 'white'
                           } : {}}>
                             <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                            {child.name}
+                            {translateName(child.name)}
                           </div>
                         </Link>
                       );
@@ -536,7 +537,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                           <item.icon className="h-6 w-6 flex-shrink-0" />
                           {/* Tooltip for collapsed state */}
                           <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                            {item.name}
+                            {translateName(item.name)}
                           </div>
                         </div>
                       </div>
@@ -556,7 +557,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                           color: 'white'
                         } : {}}>
                           <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                          {item.name}
+                          {translateName(item.name)}
                           {isOpen ? (
                             <ChevronDown className="ml-auto h-4 w-4" />
                           ) : (
@@ -579,7 +580,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                                 color: 'white'
                               } : {}}>
                                 <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                                {child.name}
+                                {translateName(child.name)}
                               </div>
                             </Link>
                           );
