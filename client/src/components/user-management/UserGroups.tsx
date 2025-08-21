@@ -447,7 +447,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Carregando grupos...</span>
+        <span className="ml-2">{t('userGroups.loadingGroups')}</span>
       </div>
     );
   }
@@ -457,28 +457,28 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Grupos de Usuários</h3>
+          <h3 className="text-lg font-semibold">{t('userGroups.title')}</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Organize usuários em grupos para facilitar o gerenciamento de permissões
+            {t('userGroups.description')}
           </p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Criar Grupo
+{t('userGroups.createGroup')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Criar Novo Grupo</DialogTitle>
+              <DialogTitle>{t('userGroups.createNewGroup')}</DialogTitle>
               <DialogDescription>
-                Crie um novo grupo para organizar usuários
+                {t('userGroups.createNewGroupDescription')}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreateGroup} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome do Grupo</Label>
+                <Label htmlFor="name">{t('userGroups.groupName')}</Label>
                 <Input
                   id="name"
                   placeholder="Ex: Suporte Técnico"
@@ -488,10 +488,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description">{t('userGroups.groupDescription')}</Label>
                 <Textarea
                   id="description"
-                  placeholder="Descrição opcional do grupo"
+                  placeholder={t('userGroups.groupDescriptionPlaceholder')}
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
@@ -503,7 +503,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   variant="outline" 
                   onClick={() => setShowCreateDialog(false)}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button 
                   type="submit" 
@@ -512,12 +512,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   {createGroupMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Criando...
+                      {t('userGroups.creating')}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Criar
+                      {t('common.create')}
                     </>
                   )}
                 </Button>
@@ -535,14 +535,14 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
               <CardContent className="text-center py-8">
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  Nenhum grupo encontrado
+                  {t('userGroups.noGroupsFound')}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Crie seu primeiro grupo para organizar usuários
+                  {t('userGroups.noGroupsDescription')}
                 </p>
                 <Button onClick={() => setShowCreateDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Criar Primeiro Grupo
+                  {t('userGroups.createFirstGroup')}
                 </Button>
               </CardContent>
             </Card>
@@ -561,7 +561,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     )}
                   </div>
                   <Badge variant={group.isActive ? "default" : "secondary"}>
-                    {group.isActive ? "Ativo" : "Inativo"}
+                    {group.isActive ? t('common.active') : t('common.inactive')}
                   </Badge>
                 </div>
               </CardHeader>
@@ -569,7 +569,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Users className="h-4 w-4 mr-1" />
-                    <span>{group.memberCount || group.memberships?.length || 0} membros</span>
+                    <span>{group.memberCount || group.memberships?.length || 0} {t('userGroups.members')}</span>
                   </div>
                   <div className="flex space-x-1">
                     <Button
@@ -603,7 +603,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       <Dialog open={!!editingGroup} onOpenChange={() => handleCloseDialog()}>
         <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Editar Grupo: {editingGroup?.name}</DialogTitle>
+            <DialogTitle>{t('userGroups.editGroupTitle')}: {editingGroup?.name}</DialogTitle>
             <DialogDescription>
               Gerencie as informações e membros do grupo
             </DialogDescription>
@@ -613,14 +613,14 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="info">Informações</TabsTrigger>
               <TabsTrigger value="members">
-                Membros ({editingGroup?.memberCount || editingGroup?.memberships?.length || selectedUsers.length || 0})
+                {t('userGroups.members')} ({editingGroup?.memberCount || editingGroup?.memberships?.length || selectedUsers.length || 0})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="space-y-4">
               <form onSubmit={handleUpdateGroup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-name">Nome do Grupo</Label>
+                  <Label htmlFor="edit-name">{t('userGroups.groupName')}</Label>
                   <Input
                     id="edit-name"
                     value={formData.name}
@@ -629,7 +629,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description">Descrição</Label>
+                  <Label htmlFor="edit-description">{t('userGroups.groupDescription')}</Label>
                   <Textarea
                     id="edit-description"
                     value={formData.description}
@@ -639,7 +639,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                    Cancelar
+                    {t('common.cancel')}
                   </Button>
                   <Button 
                     type="submit" 
@@ -648,12 +648,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     {updateGroupMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Atualizando...
+                        {t('userGroups.updating')}
                       </>
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        Salvar
+                        {t('common.save')}
                       </>
                     )}
                   </Button>

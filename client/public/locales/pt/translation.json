@@ -30,7 +30,10 @@
     "creating": "Criando",
     "view": "Visualizar", 
     "description": "Descrição",
-    "use": "Usar"
+    "use": "Usar",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "saving": "Salvando..."
   },
   "TranslationManager": {
     "title": "Gerenciamento de Traduções",
@@ -840,5 +843,57 @@
     "language": "Language",
     "timezone": "Timezone",
     "currency": "Currency"
+  },
+  "userGroups": {
+    "title": "Grupos de Usuários",
+    "description": "Organize usuários em grupos para facilitar o gerenciamento de permissões",
+    "createGroup": "Criar Grupo",
+    "editGroup": "Editar Grupo",
+    "deleteGroup": "Excluir Grupo",
+    "createNewGroup": "Criar Novo Grupo",
+    "createNewGroupDescription": "Crie um novo grupo para organizar usuários",
+    "editGroupTitle": "Editar Grupo",
+    "groupName": "Nome do Grupo",
+    "groupDescription": "Descrição",
+    "groupDescriptionPlaceholder": "Descrição opcional do grupo",
+    "noGroupsFound": "Nenhum grupo encontrado",
+    "noGroupsDescription": "Crie seu primeiro grupo para organizar usuários",
+    "createFirstGroup": "Criar Primeiro Grupo",
+    "groupCreated": "Grupo criado",
+    "groupCreatedSuccess": "Grupo criado com sucesso!",
+    "groupUpdated": "Grupo atualizado",
+    "groupUpdatedSuccess": "Grupo atualizado com sucesso!",
+    "groupDeleted": "Grupo excluído",
+    "groupDeletedSuccess": "Grupo excluído com sucesso!",
+    "errorCreatingGroup": "Erro ao criar grupo",
+    "errorUpdatingGroup": "Erro ao atualizar grupo",
+    "errorDeletingGroup": "Erro ao excluir grupo",
+    "confirmDelete": "Tem certeza que deseja excluir o grupo \"{name}\"?",
+    "loadingGroups": "Carregando grupos...",
+    "creating": "Criando...",
+    "updating": "Atualizando...",
+    "members": "Membros"
+  },
+  "locations": {
+    "saveLocation": "Salvar Local"
+  },
+  "customFields": {
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "fields": "Campos",
+    "field": "campo",
+    "exitDesign": "Sair do Design",
+    "editLayout": "Editar Layout",
+    "activeCustomFields": "Campos Personalizados Ativos",
+    "title": "Campos Personalizados",
+    "noFieldsConfigured": "Nenhum campo personalizado configurado para {{moduleType}}",
+    "configureFields": "Configurar Campos"
+  },
+  "quickActions": {
+    "title": "Ações Rápidas",
+    "createTicket": "Criar Ticket",
+    "addCustomer": "Adicionar Cliente", 
+    "generateReport": "Gerar Relatório",
+    "automation": "Automação"
   }
 }

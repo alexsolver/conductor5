@@ -30,7 +30,10 @@
     "close": "Cerrar",
     "open": "Abrir",
     "description": "Descripción",
-    "use": "Usar"
+    "use": "Usar",
+    "active": "Activo", 
+    "inactive": "Inactivo",
+    "saving": "Guardando..."
   },
   "navigation": {
     "dashboard": "Panel",
@@ -917,5 +920,57 @@
   },
   "": {
     "": "."
+  },
+  "userGroups": {
+    "title": "Grupos de Usuarios",
+    "description": "Organice usuarios en grupos para facilitar la gestión de permisos",
+    "createGroup": "Crear Grupo",
+    "editGroup": "Editar Grupo", 
+    "deleteGroup": "Eliminar Grupo",
+    "createNewGroup": "Crear Nuevo Grupo",
+    "createNewGroupDescription": "Cree un nuevo grupo para organizar usuarios",
+    "editGroupTitle": "Editar Grupo",
+    "groupName": "Nombre del Grupo",
+    "groupDescription": "Descripción",
+    "groupDescriptionPlaceholder": "Descripción opcional del grupo",
+    "noGroupsFound": "No se encontraron grupos",
+    "noGroupsDescription": "Cree su primer grupo para organizar usuarios",
+    "createFirstGroup": "Crear Primer Grupo",
+    "groupCreated": "Grupo creado",
+    "groupCreatedSuccess": "¡Grupo creado con éxito!",
+    "groupUpdated": "Grupo actualizado",
+    "groupUpdatedSuccess": "¡Grupo actualizado con éxito!",
+    "groupDeleted": "Grupo eliminado",
+    "groupDeletedSuccess": "¡Grupo eliminado con éxito!",
+    "errorCreatingGroup": "Error al crear grupo",
+    "errorUpdatingGroup": "Error al actualizar grupo",
+    "errorDeletingGroup": "Error al eliminar grupo",
+    "confirmDelete": "¿Está seguro de que desea eliminar el grupo \"{name}\"?",
+    "loadingGroups": "Cargando grupos...",
+    "creating": "Creando...",
+    "updating": "Actualizando...",
+    "members": "Miembros"
+  },
+  "locations": {
+    "saveLocation": "Guardar Ubicación"
+  },
+  "customFields": {
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "fields": "Campos",
+    "field": "campo",
+    "exitDesign": "Salir del Diseño",
+    "editLayout": "Editar Diseño",
+    "activeCustomFields": "Campos Personalizados Activos",
+    "title": "Campos Personalizados",
+    "noFieldsConfigured": "No hay campos personalizados configurados para {{moduleType}}",
+    "configureFields": "Configurar Campos"
+  },
+  "quickActions": {
+    "title": "Acciones Rápidas",
+    "createTicket": "Crear Ticket",
+    "addCustomer": "Añadir Cliente", 
+    "generateReport": "Generar Reporte",
+    "automation": "Automatización"
   }
 }

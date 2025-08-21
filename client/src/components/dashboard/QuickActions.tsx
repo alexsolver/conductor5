@@ -1,31 +1,36 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, UserPlus, FileText, Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-const quickActions = [
-  {
-    id: "create-ticket",
-    label: "Create Ticket", 
-    icon: Plus,
-  },
-  {
-    id: "add-customer",
-    label: "Add Customer",
-    icon: UserPlus,
-  },
-  {
-    id: "generate-report", 
-    label: "Generate Report",
-    icon: FileText,
-  },
-  {
-    id: "automation",
-    label: "Automation",
-    icon: Settings,
-  },
-];
+// Actions will be translated dynamically in component
 
 export function QuickActions() {
+  const { t } = useTranslation();
+  
+  const quickActions = [
+    {
+      id: "create-ticket",
+      label: t('quickActions.createTicket'), 
+      icon: Plus,
+    },
+    {
+      id: "add-customer",
+      label: t('quickActions.addCustomer'),
+      icon: UserPlus,
+    },
+    {
+      id: "generate-report", 
+      label: t('quickActions.generateReport'),
+      icon: FileText,
+    },
+    {
+      id: "automation",
+      label: t('quickActions.automation'),
+      icon: Settings,
+    },
+  ];
+
   const handleQuickAction = (actionId: string) => {
     console.log(`Quick action: ${actionId}`);
     // TODO: Implement quick action handlers
@@ -34,7 +39,7 @@ export function QuickActions() {
   return (
     <Card className="gradient-card">
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>{t('quickActions.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

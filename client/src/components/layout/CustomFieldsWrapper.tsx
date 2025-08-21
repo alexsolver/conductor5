@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -32,6 +33,7 @@ export function CustomFieldsWrapper({
   customerId,
   children
 }: CustomFieldsWrapperProps) {
+  const { t } = useTranslation();
   const [isDesignMode, setIsDesignMode] = useState(false);
   const [showCustomFields, setShowCustomFields] = useState(true);
 
@@ -64,7 +66,7 @@ export function CustomFieldsWrapper({
               className="shadow-lg"
             >
               {showCustomFields ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
-              {showCustomFields ? 'Ocultar' : 'Mostrar'} Campos
+              {showCustomFields ? t('customFields.hide') : t('customFields.show')} {t('customFields.fields')}
             </Button>
           )}
 
@@ -78,12 +80,12 @@ export function CustomFieldsWrapper({
             {isDesignMode ? (
               <>
                 <Eye className="h-4 w-4 mr-1" />
-                Sair do Design
+                {t('customFields.exitDesign')}
               </>
             ) : (
               <>
                 <Settings className="h-4 w-4 mr-1" />
-                Editar Layout
+                {t('customFields.editLayout')}
               </>
             )}
           </Button>
@@ -102,10 +104,10 @@ export function CustomFieldsWrapper({
           <div className="flex items-center gap-2">
             <Layout className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-900">
-              Campos Personalizados Ativos
+              {t('customFields.activeCustomFields')}
             </span>
             <Badge variant="secondary">
-              {customFields.length} {customFields.length === 1 ? 'campo' : 'campos'}
+              {customFields.length} {customFields.length === 1 ? t('customFields.field') : t('customFields.fields')}
             </Badge>
           </div>
           
@@ -141,7 +143,7 @@ export function CustomFieldsWrapper({
         <div className="text-center">
           <Plus className="h-6 w-6 mx-auto mb-2 text-gray-400" />
           <p className="text-sm text-gray-600 mb-2">
-            Nenhum campo personalizado configurado para {moduleType}
+            {t('customFields.noFieldsConfigured', { moduleType })}
           </p>
           <Button
             variant="outline"
@@ -149,7 +151,7 @@ export function CustomFieldsWrapper({
             onClick={() => setIsDesignMode(true)}
           >
             <Settings className="h-3 w-3 mr-1" />
-            Configurar Campos
+            {t('customFields.configureFields')}
           </Button>
         </div>
       </div>
@@ -166,9 +168,10 @@ export function CustomFieldsWrapper({
           isDesignMode={isDesignMode}
           onDesignModeChange={setIsDesignMode}
           hasDesignPermission={hasDesignPermission}
-        >
+        />
+        <div className="mt-6">
           {children}
-        </FieldLayoutManager>
+        </div>
         <DesignModeToggle />
       </>
     );
@@ -189,7 +192,7 @@ export function CustomFieldsWrapper({
           <div className="border-t border-gray-200 pt-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
               <Layout className="h-5 w-5 text-blue-600" />
-              Campos Personalizados
+              {t('customFields.title')}
             </h3>
             
             {isLoading ? (

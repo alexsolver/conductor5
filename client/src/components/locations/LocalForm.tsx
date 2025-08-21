@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +77,7 @@ const FUSOS_HORARIO = [
 
 export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess, onClose }: LocalFormProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
 
@@ -1199,7 +1201,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
             type="submit" 
             disabled={isLoading}
           >
-            {isLoading ? 'Salvando...' : 'Salvar Local'}
+            {isLoading ? t('common.saving') : t('locations.saveLocation')}
           </Button>
         </div>
       </form>
@@ -1238,7 +1240,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
           </div>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setShowHolidaysDialog(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={salvarFeriados}>
               Salvar Feriados
@@ -1323,7 +1325,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
           </div>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setShowIndisponibilidadesDialog(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={salvarIndisponibilidades}>
               Salvar Indisponibilidades
