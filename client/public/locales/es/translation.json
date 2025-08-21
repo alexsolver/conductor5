@@ -112,7 +112,12 @@
     "moduleIntegrity": "Control de Integridad del Módulo",
     "multilocationSettings": "Configuración de Múltiples Ubicaciones",
     "workspaceAdmin": "Administración del Espacio de Trabajo",
-    "timecardReports": "[ES] Timecard Reports"
+    "timecardReports": "[ES] Timecard Reports",
+    "appearance": "Apariencia",
+    "security": "Seguridad",
+    "helpAndSupport": "Ayuda y Soporte",
+    "administration": "Administración",
+    "logout": "Cerrar sesión"
   },
   "errors": {
     "general": "[ES] An unexpected error occurred. Please try again.",

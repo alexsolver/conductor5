@@ -102,7 +102,12 @@
     "moduleIntegrity": "Module Integrity Control",
     "multilocationSettings": "Multilocation Settings",
     "workspaceAdmin": "Workspace Administration",
-    "timecardReports": "Timecard Reports"
+    "timecardReports": "Timecard Reports",
+    "appearance": "Appearance",
+    "security": "Security",
+    "helpAndSupport": "Help & Support",
+    "administration": "Administration",
+    "logout": "Logout"
   },
   "tickets": {
     "views": {

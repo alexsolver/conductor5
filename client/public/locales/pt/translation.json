@@ -146,7 +146,12 @@
     "moduleIntegrity": "Controle de Integridade",
     "multilocationSettings": "Configurações Multilocação",
     "workspaceAdmin": "Administração do Workspace",
-    "timecardReports": "Relatórios de Ponto"
+    "timecardReports": "Relatórios de Ponto",
+    "appearance": "Aparência",
+    "security": "Segurança",
+    "helpAndSupport": "Ajuda e Suporte",
+    "administration": "Administração",
+    "logout": "Fazer logout"
   },
   "tickets": {
     "views": {
