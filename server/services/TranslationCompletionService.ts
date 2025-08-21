@@ -709,9 +709,8 @@ export class TranslationCompletionService {
     console.log('📊 [COMPLETION-REPORT] Starting completeness analysis...');
     
     try {
-      // Get all keys using the ultra scan method
-      const allKeysData = await this.scanExistingTranslationFiles();
-      const allKeys = allKeysData.map(keyData => keyData.key);
+      // Get valid i18n keys from all language files (same logic as auto-complete)
+      const allKeys = this.getValidI18nKeysFromAllLanguages();
       const totalKeys = allKeys.length;
 
       console.log(`📊 [COMPLETION-REPORT] Found ${totalKeys} total keys to analyze`);
