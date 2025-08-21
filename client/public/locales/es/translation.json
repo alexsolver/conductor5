@@ -962,5 +962,23 @@
     "autoProvisioning": "Auto-Aprovisionamiento",
     "translationManagement": "Gestionar Traducciones",
     "userManagement": "Gestión de Usuarios"
+  },
+  "tickets": {
+    "views": {
+      "title": "Vistas",
+      "newView": "Nueva Vista",
+      "manage": "Gestionar",
+      "activeView": "Vista Activa",
+      "defaultView": "Vista Predeterminada",
+      "advancedFilters": "Filtros Avanzados",
+      "public": "Público",
+      "private": "Privado",
+      "createNewView": "Crear Nueva Vista",
+      "manageViews": "Gestionar Vistas",
+      "name": "Nombre",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Descripción de la vista",
+      "default": "Predeterminado"
+    }
   }
 }

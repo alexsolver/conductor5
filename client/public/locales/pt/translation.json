@@ -130,7 +130,7 @@
     "productivityReports": "Relatórios de Produtividade",
     "teamPerformance": "Performance da Equipe",
     "systemAnalytics": "Analytics do Sistema",
-    "customers": "Clientes",
+    "customers": "Clientes", 
     "analytics": "Análises",
     "settings": "Configurações",
     "saasAdmin": "Administração SaaS",
@@ -155,7 +155,15 @@
       "manage": "Gerenciar",
       "activeView": "Visualização Ativa",
       "defaultView": "Visualização Padrão",
-      "advancedFilters": "Filtros Avançados"
+      "advancedFilters": "Filtros Avançados",
+      "public": "Público",
+      "private": "Privado",
+      "createNewView": "Criar Nova Visualização",
+      "manageViews": "Gerenciar Visualizações",
+      "name": "Nome",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Descrição da visualização",
+      "default": "Padrão"
     }
   },
   "components": {

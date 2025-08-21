@@ -995,5 +995,23 @@
     "autoProvisioning": "Auto-Provisioning",
     "translationManagement": "Manage Translations",
     "userManagement": "User Management"
+  },
+  "tickets": {
+    "views": {
+      "title": "Views",
+      "newView": "New View",
+      "manage": "Manage",
+      "activeView": "Active View",
+      "defaultView": "Default View",
+      "advancedFilters": "Advanced Filters",
+      "public": "Public",
+      "private": "Private",
+      "createNewView": "Create New View",
+      "manageViews": "Manage Views",
+      "name": "Name",
+      "description": "Description",
+      "descriptionPlaceholder": "View description",
+      "default": "Default"
+    }
   }
 }
