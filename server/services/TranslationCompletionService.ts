@@ -367,19 +367,68 @@ export class TranslationCompletionService {
    * Escaneia todos os arquivos fonte para detectar chaves de tradução e textos hardcoded
    */
   async scanTranslationKeys(): Promise<TranslationKey[]> {
-    console.log('🔍 [TRANSLATION-SCAN] Starting translation key scanning process...');
+    console.log('🔍 [TRANSLATION-SCAN] Starting enhanced translation key scanning process...');
     const keys: TranslationKey[] = [];
 
-    // Multiple patterns to capture different translation usage patterns
+    // Expanded patterns to capture more translation usage patterns
     const keyPatterns = [
-      // Standard t() function calls
+      // Standard t() function calls - more variations
       /(?:t\(|useTranslation\(\)\.t\(|i18n\.t\()\s*['"`]([^'"`\n]+)['"`]/g,
+      
       // React components with translation props
-      /\b(?:title|label|placeholder|text|description)\s*=\s*\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      // Translation hooks
+      /\b(?:title|label|placeholder|text|description|tooltip|aria-label|alt)\s*=\s*\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation hooks variations
       /useTranslation\(\)\s*\.\s*t\s*\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Destructured translation hooks
+      /const\s*\{\s*t\s*\}\s*=\s*useTranslation\(\)\s*;[\s\S]*?t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation in JSX expressions
+      /\{\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*\}/g,
+      
+      // Translation in template literals
+      /\$\{\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*\}/g,
+      
+      // Translation in conditional expressions
+      /\?\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*:/g,
+      
+      // Translation in array/object literals
+      /[:\[\{,]\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*[,\]\}]/g,
+      
+      // Translation in function returns
+      /return\s+t\(\s*['"`]([^'"`\n]+)['"`]\s*\)/g,
+      
+      // Translation in console/error messages
+      /(?:console\.(?:log|error|warn)|throw\s+new\s+Error)\s*\(\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation with interpolation
+      /t\(\s*['"`]([^'"`\n]+)['"`]\s*,\s*\{/g,
+      
+      // Translation in toast/notification calls
+      /(?:toast|notify|alert)\s*\(\s*\{\s*(?:title|message|description):\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation in form validation
+      /(?:message|error):\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation in button/link text
+      /(?:onClick|href)\s*=\s*\{\s*.*?t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation in data attributes
+      /data-\w+\s*=\s*\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation in component props drilling
+      /\w+\s*=\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      
+      // Translation keys from existing JSON files (to ensure completeness)
+      /['"`]([a-zA-Z][a-zA-Z0-9]*(?:\.[a-zA-Z][a-zA-Z0-9]*)*(?:\.[a-zA-Z][a-zA-Z0-9_]*)*?)['"`]\s*:/g,
     ];
 
+    // First, scan existing translation files to get all current keys
+    const existingKeys = await this.scanExistingTranslationFiles();
+    keys.push(...existingKeys);
+
+    // Then scan source code files
     for (const sourceDir of this.SOURCE_DIRS) {
       const fullPath = path.join(process.cwd(), sourceDir);
       console.log(`📁 [TRANSLATION-SCAN] Scanning directory: ${fullPath}`);
@@ -400,7 +449,7 @@ export class TranslationCompletionService {
       }
     }
 
-    console.log(`📊 [TRANSLATION-SCAN] Found ${keys.length} raw translation keys`);
+    console.log(`📊 [TRANSLATION-SCAN] Found ${keys.length} raw translation keys (including existing files)`);
 
     // Filter out invalid keys before processing
     const validKeys = keys.filter(key => this.isValidTranslationKey(key.key));
@@ -423,19 +472,24 @@ export class TranslationCompletionService {
 
     const trimmedKey = key.trim();
 
-    // Skip very short keys
+    // Skip very short keys (but allow 2+ character keys)
     if (trimmedKey.length < 2) {
       return false;
     }
 
-    // Only skip obvious technical patterns
+    // Only skip obvious technical patterns - more permissive now
     const technicalPatterns = [
-      /^\/api\//,           // API routes
-      /^https?:\/\//,       // URLs
-      /^\d{3}:?$/,          // HTTP status codes
-      /^[A-Z]{2,}_[A-Z_]+$/, // Constants like API_KEY
-      /^\$\{.*\}$/,         // Template variables
-      /^[#][0-9a-fA-F]{3,8}$/, // Hex colors
+      /^\/api\/.*$/,        // API routes (full paths only)
+      /^https?:\/\/.*$/,    // Full URLs only
+      /^\d{3,4}$/,          // HTTP status codes (3-4 digits only)
+      /^[A-Z_]{4,}_[A-Z_]{2,}$/, // Constants like API_KEY (stricter)
+      /^\$\{[^}]+\}$/,      // Template variables (complete only)
+      /^#[0-9a-fA-F]{6}$/,  // Hex colors (6 digits only)
+      /^0x[0-9a-fA-F]+$/,   // Hex numbers
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUIDs
+      /^[a-f0-9]{32}$/,     // MD5 hashes
+      /^\w+\(\)$/,          // Function calls like onClick()
+      /^[A-Z]+$/,           // All caps single words (likely constants)
     ];
 
     for (const pattern of technicalPatterns) {
@@ -449,8 +503,30 @@ export class TranslationCompletionService {
       return false;
     }
 
-    // Accept keys with dots (module.key) or standalone words
-    return true;
+    // Skip obvious technical words
+    const technicalWords = [
+      'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD',
+      'true', 'false', 'null', 'undefined', 'NaN', 'Infinity',
+      'console', 'window', 'document', 'localStorage', 'sessionStorage',
+      'onClick', 'onChange', 'onSubmit', 'onLoad', 'onError',
+      'className', 'innerHTML', 'textContent', 'addEventListener',
+      'preventDefault', 'stopPropagation', 'setTimeout', 'setInterval',
+      'JSON', 'Array', 'Object', 'String', 'Number', 'Boolean',
+      'Promise', 'async', 'await', 'function', 'const', 'let', 'var',
+      'import', 'export', 'from', 'default', 'class', 'extends',
+      'public', 'private', 'protected', 'static', 'readonly',
+      'interface', 'type', 'enum', 'namespace', 'module'
+    ];
+
+    if (technicalWords.includes(trimmedKey)) {
+      return false;
+    }
+
+    // Accept most other keys - much more permissive approach
+    // Accept keys with dots (module.key.subkey), camelCase, kebab-case, snake_case
+    const validKeyPattern = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
+    
+    return validKeyPattern.test(trimmedKey);
   }
 
   /**
@@ -554,6 +630,51 @@ export class TranslationCompletionService {
   }
 
   /**
+   * Escaneia arquivos de tradução existentes para extrair todas as chaves
+   */
+  private async scanExistingTranslationFiles(): Promise<TranslationKey[]> {
+    console.log('📁 [TRANSLATION-SCAN] Scanning existing translation files...');
+    const keys: TranslationKey[] = [];
+
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      try {
+        const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
+        
+        if (await fs.access(filePath).then(() => true).catch(() => false)) {
+          const fileContent = await fs.readFile(filePath, 'utf8');
+          const translations = JSON.parse(fileContent);
+
+          // Recursively extract all keys from nested objects
+          const extractKeys = (obj: any, prefix = '') => {
+            Object.keys(obj).forEach(key => {
+              const fullKey = prefix ? `${prefix}.${key}` : key;
+              if (typeof obj[key] === 'object' && obj[key] !== null) {
+                extractKeys(obj[key], fullKey);
+              } else {
+                if (this.isValidTranslationKey(fullKey)) {
+                  keys.push({
+                    key: fullKey,
+                    module: this.extractModuleName(language),
+                    usage: [`translation file: ${language}`],
+                    priority: this.determinePriority(fullKey, 'translation')
+                  });
+                }
+              }
+            });
+          };
+
+          extractKeys(translations);
+        }
+      } catch (error) {
+        console.warn(`⚠️ [TRANSLATION-SCAN] Could not scan ${language} translations:`, error);
+      }
+    }
+
+    console.log(`📋 [TRANSLATION-SCAN] Found ${keys.length} keys from existing translation files`);
+    return keys;
+  }
+
+  /**
    * Escaneia um diretório específico em busca de chaves de tradução
    */
   private async scanDirectory(dirPath: string, keys: TranslationKey[], pattern: RegExp): Promise<void> {
@@ -568,7 +689,7 @@ export class TranslationCompletionService {
           if (!['node_modules', '.git', 'dist', 'build'].includes(item.name)) {
             await this.scanDirectory(itemPath, keys, pattern);
           }
-        } else if (item.isFile() && /\.(tsx?|jsx?)$/.test(item.name)) {
+        } else if (item.isFile() && /\.(tsx?|jsx?|vue|svelte)$/.test(item.name)) {
           try {
             const content = await fs.readFile(itemPath, 'utf8');
             const matches = [...content.matchAll(pattern)];

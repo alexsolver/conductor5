@@ -27,9 +27,9 @@ const updateTranslationSchema = z.object({
  */
 router.get('/languages', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    // Allow all authenticated users to view translations
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+    // Only SaaS admins can manage translations
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
     const languages = SUPPORTED_LANGUAGES.map(lang => ({
@@ -52,9 +52,9 @@ router.get('/languages', jwtAuth, async (req: AuthenticatedRequest, res) => {
  */
 router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    // Allow all authenticated users to view translations
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+    // Only SaaS admins can manage translations
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
     const { language } = req.params;
@@ -181,7 +181,7 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
- * Check if a translation key is valid
+ * Check if a translation key is valid - MUCH MORE PERMISSIVE VERSION
  */
 function isValidTranslationKey(key: string): boolean {
   if (!key || typeof key !== 'string') {
@@ -190,19 +190,21 @@ function isValidTranslationKey(key: string): boolean {
 
   const trimmedKey = key.trim();
 
-  // Skip very short keys
-  if (trimmedKey.length < 2) {
+  // Allow very short keys (minimum 1 character)
+  if (trimmedKey.length < 1) {
     return false;
   }
 
-  // Only exclude obvious technical patterns
+  // Only exclude VERY obvious technical patterns - much more permissive
   const technicalPatterns = [
-    /^\/api\//,           // API routes
-    /^https?:\/\//,       // URLs  
-    /^\d{3}:?$/,          // HTTP status codes
-    /^[#][0-9a-fA-F]{3,8}$/, // Hex colors
-    /^\$\{.*\}$/,         // Template variables
-    /^[A-Z]{2,}_[A-Z_]+$/, // Constants like API_KEY
+    /^\/api\/.*$/,        // Full API routes only
+    /^https?:\/\/.*$/,    // Full URLs only
+    /^\d{3,4}$/,          // HTTP status codes (3-4 digits)
+    /^#[0-9a-fA-F]{6}$/,  // Hex colors (6 digits exactly)
+    /^\$\{[^}]+\}$/,      // Complete template variables only
+    /^[A-Z_]{4,}_[A-Z_]{3,}$/, // Long constants only (more restrictive)
+    /^0x[0-9a-fA-F]+$/,   // Hex numbers
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUIDs
   ];
 
   for (const pattern of technicalPatterns) {
@@ -211,22 +213,24 @@ function isValidTranslationKey(key: string): boolean {
     }
   }
 
-  // Skip pure numbers
-  if (/^\d+$/.test(trimmedKey)) {
+  // Allow numbers in keys (they might be valid translation keys)
+  // Only skip pure long numbers
+  if (/^\d{10,}$/.test(trimmedKey)) {
     return false;
   }
 
-  // Skip obvious technical constants
+  // Much smaller list of technical constants to exclude
   const technicalConstants = [
     'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD',
-    'BRL', 'USD', 'EUR', 'true', 'false', 'null', 'undefined'
+    'console', 'window', 'document', 'undefined', 'function',
+    'import', 'export', 'const', 'let', 'var', 'class', 'extends'
   ];
 
-  if (technicalConstants.includes(trimmedKey.toUpperCase())) {
+  if (technicalConstants.includes(trimmedKey)) {
     return false;
   }
 
-  // Accept most other keys
+  // Accept almost everything else - very permissive
   return true;
 }
 
@@ -244,24 +248,43 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const allKeys = new Set<string>();
     const translations: Record<string, any> = {};
 
-    for (const lang of SUPPORTED_LANGUAGES) {
+    // Scan all supported language directories (including pt-BR, de, fr)
+    const allLanguages = ['en', 'pt', 'pt-BR', 'es', 'de', 'fr'];
+
+    for (const lang of allLanguages) {
       try {
         const filePath = path.join(TRANSLATIONS_DIR, `${lang}/translation.json`);
+        
+        // Check if file exists
+        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+        if (!fileExists) {
+          console.log(`Translation file not found for ${lang}, skipping...`);
+          continue;
+        }
+
         const fileContent = await fs.readFile(filePath, 'utf8');
         const langTranslations = JSON.parse(fileContent);
 
         translations[lang] = langTranslations;
 
-        // Extract all keys recursively with minimal filtering
+        // Extract all keys recursively with very minimal filtering
         const extractKeys = (obj: any, prefix = '') => {
+          if (!obj || typeof obj !== 'object') return;
+          
           Object.keys(obj).forEach(key => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
-            if (typeof obj[key] === 'object' && obj[key] !== null) {
+            if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
               extractKeys(obj[key], fullKey);
             } else {
-              // Add key if it's not obviously technical
-              if (isValidTranslationKey(fullKey)) {
-                allKeys.add(fullKey);
+              // Add key with very minimal filtering - much more permissive
+              if (key && typeof key === 'string' && key.trim().length > 0) {
+                if (isValidTranslationKey(fullKey)) {
+                  allKeys.add(fullKey);
+                }
+                // Also add the bare key without prefix in case it's useful
+                if (isValidTranslationKey(key)) {
+                  allKeys.add(key);
+                }
               }
             }
           });
@@ -270,6 +293,49 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
         extractKeys(langTranslations);
       } catch (error) {
         console.warn(`Could not read ${lang} translations:`, error);
+      }
+    }
+
+    // Also scan source code files for additional keys
+    const sourceDirectories = [
+      path.join(process.cwd(), 'client/src/pages'),
+      path.join(process.cwd(), 'client/src/components'),
+      path.join(process.cwd(), 'client/src/hooks'),
+      path.join(process.cwd(), 'client/src/utils')
+    ];
+
+    for (const sourceDir of sourceDirectories) {
+      try {
+        const files = await fs.readdir(sourceDir, { recursive: true });
+        
+        for (const file of files) {
+          if (typeof file === 'string' && /\.(tsx?|jsx?)$/.test(file)) {
+            try {
+              const filePath = path.join(sourceDir, file);
+              const content = await fs.readFile(filePath, 'utf8');
+              
+              // Look for translation keys in source code
+              const translationPatterns = [
+                /t\(\s*['"`]([^'"`\n]+)['"`]/g,
+                /useTranslation\(\).*?t\(\s*['"`]([^'"`\n]+)['"`]/g,
+                /\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+              ];
+
+              for (const pattern of translationPatterns) {
+                const matches = [...content.matchAll(pattern)];
+                for (const match of matches) {
+                  if (match[1] && isValidTranslationKey(match[1])) {
+                    allKeys.add(match[1]);
+                  }
+                }
+              }
+            } catch (fileError) {
+              // Continue if we can't read a specific file
+            }
+          }
+        }
+      } catch (dirError) {
+        console.warn(`Could not scan source directory ${sourceDir}:`, dirError);
       }
     }
 

@@ -60,6 +60,7 @@ export default function TranslationManager() {
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [scanningKeys, setScanningKeys] = useState(false);
+  const [expandingKeys, setExpandingKeys] = useState(false);
 
 
   // Access control - SaaS admin only
@@ -234,11 +235,55 @@ export default function TranslationManager() {
       console.error('❌ [FRONTEND-SAFE] Analysis error:', error);
       toast({
         title: t('TranslationManager.analysisError') || "Analysis failed",
-        description: (error as Error).message || 'Failed to analyze translations',
+        description: error.message || 'Failed to analyze translations',
         variant: "destructive",
       });
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  const handleExpandedScan = async () => {
+    setExpandingKeys(true);
+    console.log('🚀 [FRONTEND] Starting comprehensive translation expansion scan...');
+
+    try {
+      const response = await fetch('/api/translation-completion/expand-scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+      });
+
+      console.log('📡 [FRONTEND] Expansion response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ [FRONTEND] Expansion scan successful:', data);
+
+      toast({
+        title: t('TranslationManager.expansionSuccess') || "Expansion scan completed!",
+        description: `Found ${data.data.totalKeys} keys (${data.data.improvement} more than before). Report generated.`,
+      });
+
+      // Refresh data
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['allKeys'] });
+
+    } catch (error) {
+      console.error('❌ [FRONTEND] Expansion scan error:', error);
+      toast({
+        title: t('TranslationManager.expansionError') || "Expansion scan failed",
+        description: error.message || 'Failed to perform comprehensive scan',
+        variant: "destructive",
+      });
+    } finally {
+      setExpandingKeys(false);
     }
   };
 
@@ -286,7 +331,7 @@ export default function TranslationManager() {
       console.error('❌ [FRONTEND] Key scanning error:', error);
       toast({
         title: t('TranslationManager.scanError') || "Key scanning failed",
-        description: (error as Error).message || 'Failed to scan translation keys',
+        description: error.message || 'Failed to scan translation keys',
         variant: "destructive",
       });
     } finally {
@@ -327,7 +372,7 @@ export default function TranslationManager() {
       console.error('❌ [FRONTEND-SAFE] Auto-completion error:', error);
       toast({
         title: t('TranslationManager.autoCompletionError') || "Auto-completion failed",
-        description: (error as Error).message || t('TranslationManager.autoCompletionErrorDesc') || 'Failed to auto-complete translations',
+        description: error.message || t('TranslationManager.autoCompletionErrorDesc') || 'Failed to auto-complete translations',
         variant: "destructive",
       });
     } finally {
@@ -560,10 +605,20 @@ export default function TranslationManager() {
           onClick={handleScanKeys}
           disabled={scanningKeys}
           variant="outline"
-          className="flex-1 ml-4"
+          className="flex-1 ml-2"
         >
           {scanningKeys ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {t('TranslationManager.scanKeys') || 'Scan Keys'}
+        </Button>
+
+        <Button
+          onClick={handleExpandedScan}
+          disabled={expandingKeys}
+          variant="secondary"
+          className="flex-1 ml-2"
+        >
+          {expandingKeys ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {t('TranslationManager.expandedScan') || 'Full Expansion Scan'}
         </Button>
       </div>
     </div>

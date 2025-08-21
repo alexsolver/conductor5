@@ -51,7 +51,7 @@ router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    console.log('🔍 [SCAN-KEYS] Starting translation key scanning...');
+    console.log('🔍 [SCAN-KEYS] Starting enhanced translation key scanning...');
 
     const keys = await translationService.scanTranslationKeys();
 
@@ -68,7 +68,8 @@ router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
           priority: key.priority || 'medium'
         })),
         totalKeys: keys.length,
-        scannedAt: new Date().toISOString()
+        scannedAt: new Date().toISOString(),
+        expansionNote: keys.length > 270 ? `Expanded from ~270 to ${keys.length} keys` : 'No expansion detected'
       }
     };
 
@@ -81,6 +82,60 @@ router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const errorResponse = {
       success: false,
       message: 'Failed to scan translation keys',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json(errorResponse);
+  }
+});
+
+/**
+ * POST /api/translation-completion/expand-scan
+ * Comprehensive translation expansion scanning
+ */
+router.post('/expand-scan', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({ 
+        success: false,
+        message: 'SaaS admin access required' 
+      });
+    }
+
+    console.log('🚀 [EXPAND-SCAN] Starting comprehensive translation expansion scan...');
+
+    // Import the scanner dynamically
+    const { TranslationExpansionScanner } = await import('../scripts/TranslationExpansionScanner');
+    const scanner = new TranslationExpansionScanner();
+    
+    const results = await scanner.run();
+
+    console.log(`🎯 [EXPAND-SCAN] Expansion scan completed: ${results.totalKeys} total keys found`);
+
+    const response = {
+      success: true,
+      data: {
+        totalKeys: results.totalKeys,
+        missingKeys: results.missingKeys,
+        expansionRatio: `${(results.totalKeys / 270 * 100).toFixed(1)}%`,
+        previousCount: 270,
+        improvement: results.totalKeys - 270,
+        scannedAt: new Date().toISOString(),
+        reportGenerated: true
+      },
+      message: `Comprehensive scan complete! Found ${results.totalKeys} translation keys (${results.totalKeys - 270} more than before)`
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.error('❌ [EXPAND-SCAN] Error in comprehensive translation scan:', error);
+
+    const errorResponse = {
+      success: false,
+      message: 'Failed to perform comprehensive translation scan',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     };
 
