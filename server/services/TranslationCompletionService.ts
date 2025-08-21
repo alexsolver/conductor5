@@ -533,6 +533,112 @@ export class TranslationCompletionService {
   }
 
   /**
+   * Gera um relatório completo de completude das traduções
+   */
+  async generateCompletenessReport(): Promise<any> {
+    console.log('📊 [COMPLETENESS-REPORT] Generating translation completeness report...');
+
+    try {
+      // Escanear todas as chaves necessárias
+      const scannedKeys = await this.scanTranslationKeys();
+      console.log(`📋 [COMPLETENESS-REPORT] Found ${scannedKeys.length} total translation keys`);
+
+      // Analisar gaps de tradução
+      const gaps = await this.analyzeTranslationGaps();
+
+      // Calcular estatísticas por idioma
+      const languageStats: Record<string, any> = {};
+      
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        const translations = await this.loadTranslations(language);
+        const totalKeys = scannedKeys.length;
+        const existingKeys = this.countExistingKeys(translations, scannedKeys.map(k => k.key));
+        const completeness = totalKeys > 0 ? Math.round((existingKeys / totalKeys) * 100) : 0;
+
+        languageStats[language] = {
+          totalKeys: existingKeys,
+          missingKeys: totalKeys - existingKeys,
+          completeness: completeness,
+          translationsLoaded: Object.keys(translations).length
+        };
+      }
+
+      const report = {
+        summary: {
+          totalKeys: scannedKeys.length,
+          languageStats: languageStats,
+          overallCompleteness: Math.round(
+            Object.values(languageStats).reduce((sum, stats: any) => sum + stats.completeness, 0) / 
+            this.SUPPORTED_LANGUAGES.length
+          )
+        },
+        gaps: gaps,
+        generatedAt: new Date().toISOString(),
+        supportedLanguages: this.SUPPORTED_LANGUAGES
+      };
+
+      console.log('✅ [COMPLETENESS-REPORT] Report generated successfully');
+      return report;
+
+    } catch (error) {
+      console.error('❌ [COMPLETENESS-REPORT] Error generating report:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Conta quantas chaves existem em um objeto de traduções
+   */
+  private countExistingKeys(translations: Record<string, any>, keys: string[]): number {
+    let count = 0;
+    for (const key of keys) {
+      if (this.getNestedValue(translations, key) !== undefined) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Analisa gaps de tradução para todos os idiomas
+   */
+  async analyzeTranslationGaps(): Promise<TranslationGap[]> {
+    console.log('🔍 [GAPS-ANALYSIS] Analyzing translation gaps...');
+
+    const scannedKeys = await this.scanTranslationKeys();
+    const allKeys = scannedKeys.map(k => k.key);
+    const gaps: TranslationGap[] = [];
+
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      const translations = await this.loadTranslations(language);
+      const missingKeys: string[] = [];
+      const moduleGaps: Record<string, string[]> = {};
+
+      for (const key of allKeys) {
+        if (this.getNestedValue(translations, key) === undefined) {
+          missingKeys.push(key);
+          
+          // Agrupar por módulo
+          const module = key.split('.')[0] || 'general';
+          if (!moduleGaps[module]) {
+            moduleGaps[module] = [];
+          }
+          moduleGaps[module].push(key);
+        }
+      }
+
+      gaps.push({
+        language,
+        missingKeys,
+        moduleGaps
+      });
+    }
+
+    console.log(`✅ [GAPS-ANALYSIS] Analyzed gaps for ${this.SUPPORTED_LANGUAGES.length} languages`);
+    return gaps;
+  }
+
+  /**
    * Verifica se uma chave é uma chave de tradução válida
    */
   private isValidTranslationKey(key: string): boolean {
