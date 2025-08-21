@@ -291,7 +291,8 @@
       "delete": "Löschen",
       "save": "Speichern",
       "cancel": "Abbrechen",
-      "title": "Actions"
+      "title": "Actions",
+      "back": "Back"
     },
     "description": "Beschreibung",
     "attachments": "Attachments",
@@ -397,7 +398,35 @@
       "subcategory": "Subcategory",
       "subject": "Subject",
       "description": "Description",
-      "action": "Action"
+      "action": "Action",
+      "category": "Category",
+      "company": "Company",
+      "customer": "Customer",
+      "beneficiary": "Beneficiary",
+      "location": "Location",
+      "assignmentGroup": "Assignment Group",
+      "responsible": "Responsible",
+      "classification": "Classification",
+      "priority": "Priority",
+      "status": "Status",
+      "urgency": "Urgency",
+      "creation": "Creation",
+      "dueDate": "Due Date",
+      "statusField": "Status Field",
+      "sla": "SLA",
+      "slaElapsed": "SLA Elapsed"
+    },
+    "explore": "Explore",
+    "details": "Details",
+    "materialsServices": "Materials & Services",
+    "knowledgeBase": "Knowledge Base",
+    "internalActions": "Internal Actions",
+    "externalActions": "External Actions",
+    "links": "Links",
+    "latestInteractions": "Latest Interactions",
+    "tabs": {
+      "communication": "Communication",
+      "attachments": "Attachments"
     }
   },
   "userManagement": {

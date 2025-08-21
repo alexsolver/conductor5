@@ -115,13 +115,22 @@
     "notes": "Notes",
     "interactions": "interaction",
     "interactions_plural": "interactions",
+    "explore": "Explore",
+    "details": "Details",
+    "materialsServices": "Materials & Services",
+    "knowledgeBase": "Knowledge Base",
+    "internalActions": "Internal Actions",
+    "externalActions": "External Actions",
+    "links": "Links",
+    "latestInteractions": "Latest Interactions",
     "actions": {
       "title": "Actions",
+      "back": "Back",
+      "edit": "Edit",
+      "delete": "Delete",
       "back_to_tickets": "tickets.actions.back_to_tickets",
       "creating": "tickets.actions.creating",
       "create": "tickets.actions.create",
-      "edit": "tickets.actions.edit",
-      "delete": "tickets.actions.delete",
       "save": "tickets.actions.save",
       "cancel": "tickets.actions.cancel"
     },
@@ -135,7 +144,27 @@
       "subcategory": "Subcategory",
       "subject": "Subject",
       "description": "Description",
-      "action": "Action"
+      "action": "Action",
+      "category": "Category",
+      "company": "Company",
+      "customer": "Customer",
+      "beneficiary": "Beneficiary",
+      "location": "Location",
+      "assignmentGroup": "Assignment Group",
+      "responsible": "Responsible",
+      "classification": "Classification",
+      "priority": "Priority",
+      "status": "Status",
+      "urgency": "Urgency",
+      "creation": "Creation",
+      "dueDate": "Due Date",
+      "statusField": "Status Field",
+      "sla": "SLA",
+      "slaElapsed": "SLA Elapsed"
+    },
+    "tabs": {
+      "communication": "Communication",
+      "attachments": "Attachments"
     },
     "priority": "Priority",
     "internal_actions": {
@@ -1031,62 +1060,5 @@
     "autoProvisioning": "Auto-Provisioning",
     "translationManagement": "Manage Translations",
     "userManagement": "User Management"
-  },
-  "tickets": {
-    "basicData": "Basic Data",
-    "history": "History", 
-    "notes": "Notes",
-    "interactions": "interaction",
-    "interactions_plural": "interactions",
-    "explore": "Explore",
-    "details": "Details",
-    "materialsServices": "Materials & Services",
-    "knowledgeBase": "Knowledge Base",
-    "internalActions": "Internal Actions",
-    "externalActions": "External Actions",
-    "links": "Links",
-    "latestInteractions": "Latest Interactions",
-    "actions": {
-      "title": "Actions",
-      "back": "Back",
-      "edit": "Edit",
-      "delete": "Delete"
-    },
-    "fields": {
-      "datesTimeTitle": "DATES & TIME",
-      "companyDetails": "Company Details",
-      "companyName": "Company Name", 
-      "companyNotSpecified": "Company Not Specified",
-      "technicalResponsible": "Technical Responsible",
-      "beneficiaryDetails": "Beneficiary Details",
-      "subcategory": "Subcategory",
-      "subject": "Subject",
-      "description": "Description",
-      "action": "Action",
-      "category": "Category",
-      "company": "Company",
-      "customer": "Customer",
-      "beneficiary": "Beneficiary",
-      "location": "Location",
-      "assignmentGroup": "Assignment Group",
-      "responsible": "Responsible",
-      "classification": "Classification",
-      "priority": "Priority",
-      "status": "Status",
-      "urgency": "Urgency",
-      "creation": "Creation",
-      "dueDate": "Due Date",
-      "statusField": "Status Field",
-      "sla": "SLA",
-      "slaElapsed": "SLA Elapsed"
-    },
-    "tabs": {
-      "communication": "Communication",
-      "attachments": "Attachments"
-    },
-    "priority": "Priority",
-    "internal_actions": {
-      "detailed_description_placeholder": "Describe the action performed in detail"
-    }
   }
 }
