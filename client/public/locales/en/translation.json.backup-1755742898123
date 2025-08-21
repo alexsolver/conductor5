@@ -51,15 +51,7 @@
     "name": "Name",
     "email": "Email",
     "description": "Description",
-    "status": {
-      "error": "Error",
-      "saving": "Saving",
-      "loading": "Loading...",
-      "success": "Success",
-      "updated": "Updated",
-      "created": "Created",
-      "deleted": "Deleted"
-    },
+    "status": "Status",
     "priority": "Priority",
     "category": "Category",
     "assignedTo": "Assigned to",
@@ -87,13 +79,7 @@
     }
   },
   "modals": {
-    "confirm": {
-      "title": "Title",
-      "message": "Message",
-      "delete": "Delete",
-      "save": "Save",
-      "cancel": "Cancel"
-    },
+    "confirm": "Confirm",
     "confirmDelete": "Are you sure you want to delete this item?"
   },
   "placeholders": {

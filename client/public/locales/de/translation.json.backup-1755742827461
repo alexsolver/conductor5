@@ -26,19 +26,14 @@
     "loading_history": "Loading history",
     "retry": "Retry",
     "creating": "Creating",
-    "view": "View",
-    "close": "Schließen",
-    "open": "Öffnen"
+    "view": "View"
   },
   "navigation": {
     "dashboard": "Dashboard",
     "tickets": "Tickets",
     "customers": "Kunden",
     "analytics": "Analysen",
-    "settings": "Einstellungen",
-    "previous": "Previous",
-    "next": "Next",
-    "home": "Home"
+    "settings": "Einstellungen"
   },
   "errors": {
     "general": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
@@ -51,49 +46,15 @@
     "name": "Name",
     "email": "E-Mail",
     "description": "Beschreibung",
-    "status": {
-      "error": "Error",
-      "saving": "Saving",
-      "loading": "Laden...",
-      "success": "Success",
-      "updated": "Updated",
-      "created": "Created",
-      "deleted": "Deleted"
-    },
+    "status": "Status",
     "priority": "Priorität",
     "category": "Kategorie",
     "assignedTo": "Zugewiesen an",
     "createdAt": "Erstellt am",
-    "updatedAt": "Aktualisiert am",
-    "validation": {
-      "required": "Required",
-      "email": "Email",
-      "numeric": "Numeric",
-      "phone": "Phone",
-      "date": "Date"
-    },
-    "actions": {
-      "submit": "Senden",
-      "save": "Speichern",
-      "cancel": "Abbrechen",
-      "reset": "Reset",
-      "clear": "Clear",
-      "edit": "Bearbeiten",
-      "delete": "Löschen",
-      "create": "Erstellen",
-      "update": "Aktualisieren",
-      "search": "Suchen",
-      "filter": "Filtern"
-    }
+    "updatedAt": "Aktualisiert am"
   },
   "modals": {
-    "confirm": {
-      "title": "Titel",
-      "message": "Message",
-      "delete": "Löschen",
-      "save": "Speichern",
-      "cancel": "Abbrechen"
-    },
+    "confirm": "Bestätigen",
     "confirmDelete": "Sind Sie sicher, dass Sie dieses Element löschen möchten?"
   },
   "placeholders": {
@@ -161,9 +122,7 @@
       "no_notes": "No notes",
       "no_history": "No history",
       "created_success": "Created success",
-      "loading": "Laden",
-      "updated_success": "Updated Success",
-      "no_tickets": "No Tickets"
+      "loading": "Laden"
     },
     "title": "Titel",
     "forms": {
@@ -191,18 +150,13 @@
         "business_impact_placeholder": "Business impact placeholder",
         "workaround_placeholder": "Workaround placeholder",
         "select_location_optional": "Select location optional",
-        "no_specific_location": "No specific location",
-        "select_location": "Select Location"
+        "no_specific_location": "No specific location"
       }
     },
     "actions": {
       "back_to_tickets": "Back to tickets",
       "creating": "Creating",
-      "create": "Erstellen",
-      "edit": "Bearbeiten",
-      "delete": "Löschen",
-      "save": "Speichern",
-      "cancel": "Abbrechen"
+      "create": "Erstellen"
     },
     "description": "Beschreibung",
     "attachments": "Attachments",
@@ -229,48 +183,7 @@
     "symptoms": "Symptoms",
     "business_impact": "Business impact",
     "workaround": "Workaround",
-    "location": "Location",
-    "validation": {
-      "subject_required": "Subject Required",
-      "customer_required": "Customer Required"
-    },
-    "create_ticket": "Create Ticket",
-    "all_tickets": "All Tickets",
-    "my_tickets": "My Tickets",
-    "assigned_tickets": "Assigned Tickets",
-    "ticket_number": "Ticket Number",
-    "status": "Status",
-    "assigned_to": "Assigned To",
-    "created_at": "Created At",
-    "updated_at": "Updated At",
-    "caller": "Caller",
-    "attachment": "Attachment",
-    "communications": "Communications",
-    "internal_notes": "Internal Notes",
-    "resolution": "Resolution",
-    "close_ticket": "Close Ticket",
-    "reopen_ticket": "Reopen Ticket",
-    "assign_ticket": "Assign Ticket",
-    "escalate_ticket": "Escalate Ticket",
-    "link_ticket": "Link Ticket",
-    "edit_ticket": "Edit Ticket",
-    "delete_ticket": "Delete Ticket",
-    "duplicate_ticket": "Duplicate Ticket",
-    "merge_ticket": "Merge Ticket",
-    "status_options": {
-      "new": "New",
-      "open": "Öffnen",
-      "in_progress": "In Progress",
-      "resolved": "Resolved",
-      "closed": "Closed",
-      "cancelled": "Cancelled"
-    },
-    "priority_options": {
-      "low": "Low",
-      "medium": "Medium",
-      "high": "High",
-      "critical": "Critical"
-    }
+    "location": "Location"
   },
   "userManagement": {
     "error": "Fehler",
@@ -425,320 +338,12 @@
       "avg_resolution_time": "Avg resolution time",
       "online_agents": "Online agents"
     },
-    "welcome": "Welcome",
-    "overview": "Overview",
-    "statistics": "Statistics"
+    "welcome": "Welcome"
   },
   "settings": {
     "title": "Titel",
     "language": "Language",
     "timezone": "Timezone",
     "currency": "Currency"
-  },
-  "components": {
-    "button": {
-      "loading": "Laden...",
-      "save": "Speichern",
-      "cancel": "Abbrechen",
-      "delete": "Löschen",
-      "edit": "Bearbeiten",
-      "close": "Schließen",
-      "submit": "Senden",
-      "reset": "Reset",
-      "confirm": "Bestätigen"
-    },
-    "input": {
-      "required": "Required",
-      "invalid": "Invalid",
-      "clear": "Clear",
-      "search": "Suchen",
-      "placeholder": "Placeholder"
-    },
-    "breadcrumb": {
-      "home": "Home",
-      "dashboard": "Dashboard"
-    },
-    "select": {
-      "search": "Suchen",
-      "clear": "Clear",
-      "placeholder": "Placeholder"
-    },
-    "dialog": {
-      "close": "Schließen",
-      "cancel": "Abbrechen",
-      "save": "Speichern",
-      "confirm": "Bestätigen",
-      "delete": "Löschen"
-    },
-    "table": {
-      "loading": "Laden...",
-      "filter": "Filtern",
-      "search": "Suchen",
-      "showing": "Showing",
-      "of": "Of",
-      "entries": "Entries"
-    }
-  },
-  "translationManager": {
-    "error": "Error",
-    "errorSavingTranslations": "Error Saving Translations",
-    "errorRestoringBackup": "Error Restoring Backup",
-    "title": "Titel",
-    "description": "Beschreibung",
-    "accessDenied": "Access Denied",
-    "accessDeniedDescription": "Access Denied Description",
-    "selectLanguage": "Select Language",
-    "selectLanguageDescription": "Select Language Description",
-    "loadingLanguages": "Loading Languages",
-    "searchPlaceholder": "Search Placeholder",
-    "translationEditor": "Translation Editor",
-    "autoCompletion": "Auto Completion",
-    "allKeys": "All Keys",
-    "restoreBackup": "Restore Backup",
-    "saving": "Saving",
-    "saveChanges": "Save Changes",
-    "lastModified": "Last Modified",
-    "loadingTranslations": "Loading Translations",
-    "text": "Text",
-    "object": "Object",
-    "translationFor": "Translation For",
-    "noKeysFound": "No Keys Found",
-    "noTranslationsFound": "No Translations Found",
-    "autoCompleteTitle": "Auto Complete Title",
-    "autoCompleteButton": "Auto Complete Button",
-    "success": "Success",
-    "autoCompleteError": "Auto Complete Error",
-    "allTranslationKeys": "All Translation Keys",
-    "allKeysDescription": "All Keys Description",
-    "loadingKeys": "Loading Keys",
-    "nested": "Nested",
-    "topLevel": "Top Level",
-    "totalKeys": "Total Keys",
-    "keysInSystem": "Keys In System",
-    "supportedLanguages": "Supported Languages",
-    "availableLanguages": "Available Languages",
-    "currentLanguage": "Current Language",
-    "languageBeingEdited": "Language Being Edited",
-    "translationsSaved": "Translations Saved",
-    "translationsUpdated": "Translations Updated",
-    "backupRestored": "Backup Restored",
-    "backupRestoredDescription": "Backup Restored Description",
-    "confirmRestore": "Confirm Restore"
-  },
-  "app": {
-    "name": "Name",
-    "loading": "Laden...",
-    "save": "Speichern",
-    "cancel": "Abbrechen",
-    "edit": "Bearbeiten",
-    "delete": "Löschen"
-  },
-  "pages": {
-    "dashboard": {
-      "title": "Titel",
-      "welcome": "Welcome",
-      "overview": "Overview",
-      "statistics": "Statistics"
-    },
-    "customers": {
-      "title": "Titel",
-      "list": "List",
-      "add": "Hinzufügen",
-      "edit": "Bearbeiten",
-      "search": "Suchen",
-      "total": "Total"
-    },
-    "tickets": {
-      "title": "Titel",
-      "list": "List",
-      "create": "Erstellen",
-      "edit": "Bearbeiten",
-      "details": "Details",
-      "status": "Status",
-      "priority": "Priority"
-    },
-    "users": {
-      "title": "Titel",
-      "list": "List",
-      "add": "Hinzufügen",
-      "edit": "Bearbeiten",
-      "invite": "Invite",
-      "roles": "Roles",
-      "permissions": "Permissions"
-    }
-  },
-  "auth": {
-    "login": "Login",
-    "logout": "Logout",
-    "email": "Email",
-    "password": "Password",
-    "rememberMe": "Remember Me",
-    "forgotPassword": "Forgot Password",
-    "signIn": "Sign In",
-    "loginSuccess": "Login Success",
-    "loginError": "Login Error",
-    "invalidCredentials": "Invalid Credentials",
-    "sessionExpired": "Session Expired"
-  },
-  "users": {
-    "title": "Titel",
-    "list": "List",
-    "add": "Hinzufügen",
-    "edit": "Bearbeiten",
-    "profile": "Profile",
-    "permissions": "Permissions",
-    "roles": "Roles"
-  },
-  "customers": {
-    "title": "Titel",
-    "list": "List",
-    "add": "Hinzufügen",
-    "edit": "Bearbeiten",
-    "companies": "Companies",
-    "mappings": "Mappings"
-  },
-  "timecard": {
-    "title": "Titel",
-    "autonomous": "Autonomous",
-    "approvals": "Approvals",
-    "settings": "Settings",
-    "reports": "Reports",
-    "compliance": "Compliance"
-  },
-  "assets": {
-    "title": "Titel",
-    "management": "Management",
-    "planner": "Planner",
-    "maintenance": "Maintenance",
-    "tracking": "Tracking"
-  },
-  "inventory": {
-    "title": "Titel",
-    "catalog": "Catalog",
-    "stock": "Stock",
-    "suppliers": "Suppliers"
-  },
-  "financial": {
-    "title": "Titel",
-    "expenses": "Expenses",
-    "contracts": "Contracts",
-    "billing": "Billing"
-  },
-  "hr": {
-    "absence": "Absence",
-    "teams": "Teams",
-    "skills": "Skills",
-    "schedules": "Schedules",
-    "calendar": "Calendar"
-  },
-  "operations": {
-    "title": "Titel",
-    "agenda": "Agenda",
-    "automation": "Automation",
-    "omnibridge": "Omnibridge",
-    "lpu": "Lpu",
-    "sla": "Sla"
-  },
-  "admin": {
-    "title": "Titel",
-    "tenant": "Tenant",
-    "saas": "Saas",
-    "provisioning": "Provisioning",
-    "branding": "Branding",
-    "integrations": "Integrations",
-    "workflows": "Workflows",
-    "performance": "Performance",
-    "disaster": "Disaster"
-  },
-  "compliance": {
-    "title": "Titel",
-    "management": "Management",
-    "gdpr": "Gdpr",
-    "security": "Security",
-    "certificates": "Certificates",
-    "integrity": "Integrity"
-  },
-  "reporting": {
-    "title": "Titel",
-    "reports": "Reports",
-    "create": "Erstellen",
-    "edit": "Bearbeiten",
-    "analytics": "Analytics",
-    "dashboards": "Dashboards",
-    "productivity": "Productivity"
-  },
-  "configuration": {
-    "title": "Titel",
-    "settings": "Settings",
-    "simple": "Simple",
-    "fields": "Fields",
-    "templates": "Templates",
-    "notifications": "Notifications",
-    "translations": "Translations"
-  },
-  "locations": {
-    "title": "Titel",
-    "new": "New",
-    "management": "Management"
-  },
-  "knowledge": {
-    "title": "Titel",
-    "articles": "Articles",
-    "search": "Suchen"
-  },
-  "specialized": {
-    "title": "Titel",
-    "approvals": "Approvals",
-    "beneficiaries": "Beneficiaries",
-    "companies": "Companies",
-    "forms": "Forms",
-    "landing": "Landing",
-    "demo": "Demo"
-  },
-  "analytics": {
-    "title": "Titel",
-    "insights": "Insights",
-    "performance": "Performance",
-    "trends": "Trends",
-    "reports": "Reports",
-    "satisfaction": "Satisfaction"
-  },
-  "beneficiaries": {
-    "title": "Titel",
-    "list": "List",
-    "add": "Hinzufügen",
-    "edit": "Bearbeiten",
-    "details": "Details",
-    "document": "Document",
-    "contact": "Contact"
-  },
-  "companies": {
-    "title": "Titel",
-    "profile": "Profile",
-    "hierarchy": "Hierarchy",
-    "branches": "Branches",
-    "departments": "Departments",
-    "subsidiaries": "Subsidiaries"
-  },
-  "dashboards": {
-    "title": "Titel",
-    "create": "Erstellen",
-    "widget": "Widget",
-    "layout": "Layout",
-    "sharing": "Sharing",
-    "template": "Template"
-  },
-  "landing": {
-    "title": "Titel",
-    "welcome": "Welcome",
-    "features": "Features"
-  },
-  "notifications": {
-    "title": "Titel",
-    "settings": "Settings",
-    "channels": "Channels",
-    "templates": "Templates",
-    "history": "History",
-    "preferences": "Preferences"
   }
 }

@@ -445,34 +445,6 @@ export default function TranslationManager() {
 
       {/* Language Selector */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Languages className="w-5 h-5" />
-            {t('TranslationManager.languageSelection') || 'Language Selection'}
-          </CardTitle>
-          <CardDescription>
-            {t('TranslationManager.chooseLanguage') || 'Choose the language to edit translations'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {isLoadingLanguages ? (
-              <div>Loading languages...</div>
-            ) : (
-              languagesData?.languages?.map((lang: Language) => (
-                <Button
-                  key={lang.code}
-                  variant={selectedLanguage === lang.code ? "default" : "outline"}
-                  onClick={() => setSelectedLanguage(lang.code)}
-                  className="flex items-center gap-2"
-                >
-                  <span className="text-lg">{lang.flag}</span>
-                  {lang.name}
-                </Button>
-              ))
-            )}
-          </div>
-        </CardContent>
       </Card>
 
       {/* Search */}
