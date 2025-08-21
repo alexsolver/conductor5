@@ -25,10 +25,10 @@
     "select": "Selecionar",
     "choose": "Escolher",
     "error": "Erro",
-    "back": "Back",
-    "retry": "Retry",
+    "back": "Voltar",
+    "retry": "Tentar Novamente",
     "creating": "Criando",
-    "view": "Visualizar", 
+    "view": "Visualizar",
     "description": "Descrição",
     "use": "Usar",
     "active": "Ativo",
@@ -81,7 +81,7 @@
   "navigation": {
     "previous": "Anterior",
     "next": "Próximo",
-    "home": "Home",
+    "home": "Início",
     "dashboard": "Painel",
     "tickets": "Tickets",
     "knowledgeBase": "Base de Conhecimento",
@@ -126,11 +126,11 @@
     "stockManagement": "Gestão de Estoque",
     "supplierManagement": "Gestão de Fornecedores",
     "assetControl": "Controle de Ativos",
-    "lpuPriceList": "Lista de Preços LPU", 
+    "lpuPriceList": "Lista de Preços LPU",
     "complianceManagement": "Gestão de Compliance",
     "analytics": "Análises",
     "notifications": "Notificações",
-    "compliance": "Compliance", 
+    "compliance": "Compliance",
     "gdprCompliance": "GDPR Compliance",
     "reports": "Relatórios",
     "settings": "Configurações",
@@ -141,7 +141,7 @@
     "productivityReports": "Relatórios de Produtividade",
     "teamPerformance": "Performance da Equipe",
     "systemAnalytics": "Analytics do Sistema",
-    "customers": "Clientes", 
+    "customers": "Clientes",
     "analytics": "Análises",
     "settings": "Configurações",
     "saasAdmin": "Administração SaaS",
@@ -167,7 +167,7 @@
   "tickets": {
     "views": {
       "title": "Visualizações",
-      "newView": "Nova Visualização", 
+      "newView": "Nova Visualização",
       "manage": "Gerenciar",
       "activeView": "Visualização Ativa",
       "defaultView": "Visualização Padrão",
@@ -195,20 +195,20 @@
       "confirm": "Confirmar"
     },
     "breadcrumb": {
-      "home": "Home",
-      "dashboard": "Dashboard"
+      "home": "Início",
+      "dashboard": "Painel"
     },
     "input": {
       "placeholder": "Placeholder",
       "required": "Required",
       "invalid": "Invalid",
-      "clear": "Clear",
+      "clear": "Limpar",
       "search": "Pesquisar"
     },
     "select": {
       "placeholder": "Placeholder",
       "search": "Pesquisar",
-      "clear": "Clear"
+      "clear": "Limpar"
     },
     "dialog": {
       "close": "Fechar",
@@ -293,7 +293,7 @@
       "save": "Salvar",
       "cancel": "Cancelar",
       "reset": "Reset",
-      "clear": "Clear",
+      "clear": "Limpar",
       "edit": "Editar",
       "delete": "Excluir",
       "create": "Criar",
@@ -410,7 +410,7 @@
     "description": "Gerencie e acompanhe solicitações de suporte ao cliente",
     "ticket_information": "Informações do Ticket",
     "created": "Criado",
-    "updated": "Atualizado", 
+    "updated": "Atualizado",
     "assigned_to": "Responsável",
     "company": "Empresa",
     "location": "Local",
@@ -426,7 +426,7 @@
     "all_tickets": "Todos os Tickets",
     "search_placeholder": "Buscar tickets...",
     "filter_by_status": "Filtrar por status",
-    "filter_by_priority": "Filtrar por prioridade", 
+    "filter_by_priority": "Filtrar por prioridade",
     "clear_filters": "Limpar Filtros",
     "my_tickets": "My Tickets",
     "assigned_tickets": "Assigned Tickets",
@@ -499,7 +499,7 @@
       },
       "views": {
         "title": "Visualizações",
-        "newView": "Nova Visualização", 
+        "newView": "Nova Visualização",
         "manage": "Gerenciar",
         "defaultView": "Visualização Padrão",
         "activeView": "Visualização Ativa",
@@ -514,7 +514,7 @@
         "descriptionPlaceholder": "Descrição da visualização...",
         "public": "Pública",
         "default": "Padrão",
-        "noViewsAvailable": "Nenhuma visualização disponível", 
+        "noViewsAvailable": "Nenhuma visualização disponível",
         "viewName": "Nome da Visualização",
         "description": "Descrição (opcional)",
         "descriptionPlaceholder": "Descrição da visualização...",
@@ -544,7 +544,7 @@
       "customer_required": "Customer Required"
     },
     "explore": "Explorar",
-    "details": "Detalhes", 
+    "details": "Detalhes",
     "materialsServices": "Materiais e Serviços",
     "knowledgeBase": "Base de Conhecimento",
     "internalActions": "Ações Internas",
@@ -676,7 +676,7 @@
       "subcategory": "Subcategoria"
     },
     "tabs": {
-      "communication": "Comunicação", 
+      "communication": "Comunicação",
       "attachments": "Anexos"
     },
     "actions": {
@@ -713,12 +713,22 @@
     "workaround": "Workaround"
   },
   "timecard": {
-    "title": "Título",
-    "autonomous": "Autonomous",
-    "approvals": "Approvals",
-    "settings": "Settings",
-    "reports": "Reports",
-    "compliance": "Compliance"
+    "title": "Controle de Ponto",
+    "control": "Controle de Ponto",
+    "registry": "Registro de Ponto",
+    "reports": "Relatórios de Ponto",
+    "approvals": "Aprovações de Ponto",
+    "checkIn": "Entrada",
+    "checkOut": "Saída",
+    "breakStart": "Início Pausa",
+    "breakEnd": "Fim Pausa",
+    "status": "Status",
+    "totalHours": "Total de Horas",
+    "currentStatus": "Status Atual",
+    "notStarted": "Não Iniciado",
+    "inProgress": "Em Andamento",
+    "onBreak": "Em Pausa",
+    "finished": "Finalizado"
   },
   "assets": {
     "title": "Título",
@@ -803,7 +813,7 @@
   },
   "specialized": {
     "title": "Título",
-    "approvals": "Approvals",
+    "approvals": "Aprovações",
     "beneficiaries": "Beneficiaries",
     "companies": "Companies",
     "forms": "Forms",
@@ -1100,33 +1110,39 @@
   "quickActions": {
     "title": "Ações Rápidas",
     "createTicket": "Criar Ticket",
-    "addCustomer": "Adicionar Cliente", 
+    "addCustomer": "Adicionar Cliente",
     "generateReport": "Gerar Relatório",
     "automation": "Automação"
   },
   "sidebar": {
-    "settings": "Configurações",
-    "security": "Segurança",
-    "helpAndSupport": "Ajuda & Suporte",
-    "saasAdmin": "Admin SaaS",
-    "tenantManagement": "Gestão de Tenants",
-    "performanceHealth": "Performance & Saúde",
-    "securitySettings": "Configurações de Segurança",
-    "billingUsage": "Billing & Uso",
-    "disasterRecovery": "Recuperação de Desastres",
-    "autoProvisioning": "Auto-Provisionamento",
-    "translationManagement": "Gerenciar Traduções",
-    "userManagement": "Gestão de Usuários"
+    "knowledgeBase": "Base de Conhecimento",
+    "timecardControl": "Controle de Ponto",
+    "timeRegistry": "Registro de Ponto",
+    "workSchedules": "Escalas de Trabalho",
+    "hourBank": "Banco de Horas",
+    "holidayCalendar": "Calendário de Feriados",
+    "timecardReports": "Relatórios de Ponto",
+    "cltCompliance": "Conformidade CLT",
+    "timecardApprovals": "Aprovações de Ponto",
+    "approvalConfiguration": "Configuração de Aprovações",
+    "absenceManagement": "Gestão de Ausências"
   },
-  "timecard": {
-    "recordPoint": "Registro de Ponto",
-    "pointMirror": "Espelho de Ponto", 
-    "approval": "Aprovação de Ponto",
-    "reports": "Relatórios"
+  "menu": {
+    "knowledgeBase": "Base de Conhecimento",
+    "timecardControl": "Controle de Ponto",
+    "timeRegistry": "Registro de Ponto",
+    "workSchedules": "Escalas de Trabalho",
+    "hourBank": "Banco de Horas",
+    "holidayCalendar": "Calendário de Feriados",
+    "timecardReports": "Relatórios de Ponto",
+    "cltCompliance": "Conformidade CLT",
+    "timecardApprovals": "Aprovações de Ponto",
+    "approvalConfiguration": "Configuração de Aprovações",
+    "absenceManagement": "Gestão de Ausências"
   },
   "tickets": {
     "basicData": "Dados básicos",
-    "history": "Histórico", 
+    "history": "Histórico",
     "notes": "Notas",
     "interactions": "interação",
     "interactions_plural": "interações",
@@ -1141,12 +1157,12 @@
     "actions": {
       "title": "Ações",
       "back": "Voltar",
-      "edit": "Editar", 
+      "edit": "Editar",
       "delete": "Excluir"
     },
     "fields": {
       "datesTimeTitle": "DATAS E TEMPO",
-      "companyDetails": "Detalhes da Empresa", 
+      "companyDetails": "Detalhes da Empresa",
       "companyName": "Nome da Empresa",
       "companyNotSpecified": "Empresa Não Especificada",
       "technicalResponsible": "Responsável Técnico",

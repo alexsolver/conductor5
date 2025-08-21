@@ -55,7 +55,8 @@ import {
   Bell,
   CheckCircle,
   MessageCircle, // Import MessageCircle for OmniBridge
-  MessageSquare // Import MessageSquare for OmniBridge
+  MessageSquare, // Import MessageSquare for OmniBridge
+  UserX // Import UserX for Absence Management
 } from "lucide-react";
 
 interface SidebarProps {
