@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs';
+import * as fsSync from 'fs';
 import path from 'path';
 
 // Types for translation completion service
@@ -751,5 +752,166 @@ export class TranslationCompletionService {
       console.error('❌ [EXISTING-SCAN] Error scanning existing translation files:', (error as Error).message);
       return [];
     }
+  }
+
+  /**
+   * Complete translations by filling missing keys across all languages
+   */
+  async completeTranslations(force: boolean = true): Promise<Array<{
+    language: string;
+    added: number;
+    errors: string[];
+    totalTranslations: number;
+    successfulFiles: number;
+  }>> {
+    console.log('🔄 [COMPLETE-TRANSLATIONS] Starting translation completion process...');
+    
+    const results = [];
+    
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      console.log(`📝 [COMPLETE-TRANSLATIONS] Processing language: ${language}`);
+      
+      try {
+        const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        
+        // Read existing translations
+        let existingTranslations = {};
+        if (fsSync.existsSync(filePath)) {
+          const fileContent = fsSync.readFileSync(filePath, 'utf-8');
+          try {
+            existingTranslations = JSON.parse(fileContent);
+          } catch (parseError) {
+            console.warn(`⚠️ [COMPLETE-TRANSLATIONS] Could not parse ${filePath}, starting fresh`);
+          }
+        }
+
+        // Get all available keys from scanner
+        const allKeysData = await this.scanExistingTranslationFiles();
+        const allKeys = allKeysData.map(keyData => keyData.key);
+        let addedCount = 0;
+        const errors: string[] = [];
+
+        // Add missing keys with intelligent translations
+        for (const key of allKeys) {
+          if (!this.hasTranslation(existingTranslations, key)) {
+            const translation = await this.generateTranslation(key, language);
+            if (translation) {
+              this.setNestedProperty(existingTranslations, key, translation);
+              addedCount++;
+            } else {
+              errors.push(`Failed to generate translation for key: ${key}`);
+            }
+          }
+        }
+
+        // Write back to file if changes were made
+        if (addedCount > 0 || force) {
+          const dirPath = path.dirname(filePath);
+          if (!fsSync.existsSync(dirPath)) {
+            fsSync.mkdirSync(dirPath, { recursive: true });
+          }
+          
+          fsSync.writeFileSync(filePath, JSON.stringify(existingTranslations, null, 2), 'utf-8');
+          console.log(`✅ [COMPLETE-TRANSLATIONS] Added ${addedCount} translations to ${language}`);
+        }
+
+        results.push({
+          language,
+          added: addedCount,
+          errors,
+          totalTranslations: allKeys.length,
+          successfulFiles: addedCount > 0 ? 1 : 0
+        });
+
+      } catch (error) {
+        console.error(`❌ [COMPLETE-TRANSLATIONS] Error processing ${language}:`, (error as Error).message);
+        results.push({
+          language,
+          added: 0,
+          errors: [(error as Error).message],
+          totalTranslations: 0,
+          successfulFiles: 0
+        });
+      }
+    }
+
+    console.log(`🎯 [COMPLETE-TRANSLATIONS] Completed processing ${this.SUPPORTED_LANGUAGES.length} languages`);
+    return results;
+  }
+
+  /**
+   * Generate translation for a key in target language
+   */
+  private async generateTranslation(key: string, targetLanguage: string): Promise<string | null> {
+    try {
+      // Try to find the translation in English first as a base
+      const englishPath = path.join(this.TRANSLATIONS_DIR, 'en', 'translation.json');
+      if (fsSync.existsSync(englishPath)) {
+        const englishContent = JSON.parse(fsSync.readFileSync(englishPath, 'utf-8'));
+        const englishTranslation = this.getNestedProperty(englishContent, key);
+        
+        if (englishTranslation) {
+          // For now, return the English text with a language prefix to indicate it needs translation
+          switch (targetLanguage) {
+            case 'pt':
+              return `[PT] ${englishTranslation}`;
+            case 'es':
+              return `[ES] ${englishTranslation}`;
+            default:
+              return englishTranslation;
+          }
+        }
+      }
+
+      // If no English translation, use the key itself with language prefix
+      switch (targetLanguage) {
+        case 'pt':
+          return `[PT] ${key}`;
+        case 'es':
+          return `[ES] ${key}`;
+        default:
+          return key;
+      }
+    } catch (error) {
+      console.warn(`⚠️ [GENERATE-TRANSLATION] Error generating translation for ${key}:`, (error as Error).message);
+      return null;
+    }
+  }
+
+  /**
+   * Set nested property in object using dot notation
+   */
+  private setNestedProperty(obj: any, path: string, value: any): void {
+    const keys = path.split('.');
+    let current = obj;
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (!(key in current) || typeof current[key] !== 'object') {
+        current[key] = {};
+      }
+      current = current[key];
+    }
+    
+    current[keys[keys.length - 1]] = value;
+  }
+
+  /**
+   * Get nested property from object using dot notation
+   */
+  private getNestedProperty(obj: any, path: string): any {
+    const keys = path.split('.');
+    let current = obj;
+    
+    for (const key of keys) {
+      if (current && typeof current === 'object' && key in current) {
+        current = current[key];
+      } else {
+        return undefined;
+      }
+    }
+    
+    return current;
   }
 }
