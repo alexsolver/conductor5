@@ -634,6 +634,12 @@
       "approval_reports": "Relatórios de tempo de aprovação"
     }
   },
+  "customers": {
+    "title": "Clientes"
+  },
+  "ticketSystem": {
+    "title": "Sistema de Suporte"
+  },
   "errors": {
     "general": "Ocorreu um erro inesperado. Tente novamente.",
     "generic": "Generic"

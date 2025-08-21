@@ -62,6 +62,12 @@
     "interactiveDashboards": "Interactive Dashboards",
     "knowledgeBase": "Knowledge Base",
     "timecardControl": "Timecard Control",
+    "locations": "Locations",
+    "materialsAndServices": "Materials and Services",
+    "notifications": "Notifications",
+    "compliance": "Compliance",
+    "gdprCompliance": "GDPR Compliance",
+    "reports": "Reports",
     "timecardRegistry": "Time Registry",
     "workSchedules": "Work Schedules",
     "hourBank": "Hour Bank",
@@ -842,6 +848,12 @@
       "email_integration": "Integration with email system",
       "approval_reports": "Approval time reports"
     }
+  },
+  "customers": {
+    "title": "Customers"
+  },
+  "ticketSystem": {
+    "title": "Support System"
   },
   "Erro ao criar regra: ${errorData": {
     "error || response": {

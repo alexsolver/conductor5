@@ -843,6 +843,12 @@
       "approval_reports": "Reportes de tiempo de aprobación"
     }
   },
+  "customers": {
+    "title": "Clientes"
+  },
+  "ticketSystem": {
+    "title": "Sistema de Soporte"
+  },
   "Erro ao criar regra: ${errorData": {
     "error || response": {
       "statusText}": "Status text}"
