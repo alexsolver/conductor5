@@ -196,7 +196,7 @@ export class TranslationCompletionService {
     'common.select': {
       'en': 'Select',
       'pt-BR': 'Selecionar',
-      'es': 'Seleccionar',
+      'es': 'Seleccione',
       'fr': 'Sélectionner',
       'de': 'Auswählen'
     },
@@ -374,52 +374,52 @@ export class TranslationCompletionService {
     const keyPatterns = [
       // Standard t() function calls - more variations
       /(?:t\(|useTranslation\(\)\.t\(|i18n\.t\()\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // React components with translation props
       /\b(?:title|label|placeholder|text|description|tooltip|aria-label|alt)\s*=\s*\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation hooks variations
       /useTranslation\(\)\s*\.\s*t\s*\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Destructured translation hooks
       /const\s*\{\s*t\s*\}\s*=\s*useTranslation\(\)\s*;[\s\S]*?t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation in JSX expressions
       /\{\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*\}/g,
-      
+
       // Translation in template literals
       /\$\{\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*\}/g,
-      
+
       // Translation in conditional expressions
       /\?\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*:/g,
-      
+
       // Translation in array/object literals
       /[:\[\{,]\s*t\(\s*['"`]([^'"`\n]+)['"`]\s*\)\s*[,\]\}]/g,
-      
+
       // Translation in function returns
       /return\s+t\(\s*['"`]([^'"`\n]+)['"`]\s*\)/g,
-      
+
       // Translation in console/error messages
       /(?:console\.(?:log|error|warn)|throw\s+new\s+Error)\s*\(\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation with interpolation
       /t\(\s*['"`]([^'"`\n]+)['"`]\s*,\s*\{/g,
-      
+
       // Translation in toast/notification calls
       /(?:toast|notify|alert)\s*\(\s*\{\s*(?:title|message|description):\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation in form validation
       /(?:message|error):\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation in button/link text
       /(?:onClick|href)\s*=\s*\{\s*.*?t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation in data attributes
       /data-\w+\s*=\s*\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation in component props drilling
       /\w+\s*=\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
-      
+
       // Translation keys from existing JSON files (to ensure completeness)
       /['"`]([a-zA-Z][a-zA-Z0-9]*(?:\.[a-zA-Z][a-zA-Z0-9]*)*(?:\.[a-zA-Z][a-zA-Z0-9_]*)*?)['"`]\s*:/g,
     ];
@@ -432,7 +432,7 @@ export class TranslationCompletionService {
     for (const sourceDir of this.SOURCE_DIRS) {
       const fullPath = path.join(process.cwd(), sourceDir);
       console.log(`📁 [TRANSLATION-SCAN] Scanning directory: ${fullPath}`);
-      
+
       try {
         // Check if directory exists
         const dirExists = await fs.access(fullPath).then(() => true).catch(() => false);
@@ -486,7 +486,7 @@ export class TranslationCompletionService {
       /^\$\{[^}]+\}$/,      // Template variables (complete only)
       /^#[0-9a-fA-F]{6}$/,  // Hex colors (6 digits only)
       /^0x[0-9a-fA-F]+$/,   // Hex numbers
-      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUIDs
+      /^[a-f0-9]{8}-[0-9a-f0-9]{4}-[0-9a-f0-9]{4}-[0-9a-f0-9]{4}-[0-9a-f0-9]{12}$/, // UUIDs
       /^[a-f0-9]{32}$/,     // MD5 hashes
       /^\w+\(\)$/,          // Function calls like onClick()
       /^[A-Z]+$/,           // All caps single words (likely constants)
@@ -525,7 +525,7 @@ export class TranslationCompletionService {
     // Accept most other keys - much more permissive approach
     // Accept keys with dots (module.key.subkey), camelCase, kebab-case, snake_case
     const validKeyPattern = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
-    
+
     return validKeyPattern.test(trimmedKey);
   }
 
@@ -639,7 +639,7 @@ export class TranslationCompletionService {
     for (const language of this.SUPPORTED_LANGUAGES) {
       try {
         const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
-        
+
         if (await fs.access(filePath).then(() => true).catch(() => false)) {
           const fileContent = await fs.readFile(filePath, 'utf8');
           const translations = JSON.parse(fileContent);
@@ -722,17 +722,17 @@ export class TranslationCompletionService {
   private extractModuleName(filePath: string): string {
     const relativePath = path.relative(process.cwd(), filePath);
     const parts = relativePath.split(path.sep);
-    
+
     if (parts.includes('pages')) {
       const pageIndex = parts.indexOf('pages');
       return parts[pageIndex + 1] || 'unknown';
     }
-    
+
     if (parts.includes('components')) {
       const componentIndex = parts.indexOf('components');
       return parts[componentIndex + 1] || 'components';
     }
-    
+
     return 'general';
   }
 

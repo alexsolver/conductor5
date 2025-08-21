@@ -243,7 +243,7 @@ class TranslationExpansionScanner {
 }
 
 // Execute if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const scanner = new TranslationExpansionScanner();
   scanner.run().catch(console.error);
 }

@@ -31,9 +31,9 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
   } catch (error) {
     console.error('Error analyzing translation completeness:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to analyze translation completeness' 
+      message: 'Failed to analyze translation completeness'
     });
   }
 });
@@ -45,9 +45,9 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
 router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: 'SaaS admin access required' 
+        message: 'SaaS admin access required'
       });
     }
 
@@ -97,9 +97,9 @@ router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
 router.post('/expand-scan', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (req.user?.role !== 'saas_admin') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: 'SaaS admin access required' 
+        message: 'SaaS admin access required'
       });
     }
 
@@ -108,7 +108,7 @@ router.post('/expand-scan', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Import the scanner dynamically
     const { TranslationExpansionScanner } = await import('../scripts/TranslationExpansionScanner');
     const scanner = new TranslationExpansionScanner();
-    
+
     const results = await scanner.run();
 
     console.log(`🎯 [EXPAND-SCAN] Expansion scan completed: ${results.totalKeys} total keys found`);
@@ -162,7 +162,7 @@ router.post('/complete', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const results = await translationService.completeTranslations(force);
 
     // Filtra resultados se idiomas específicos foram solicitados
-    const filteredResults = targetLanguages 
+    const filteredResults = targetLanguages
       ? results.filter(r => targetLanguages.includes(r.language))
       : results;
 
@@ -237,7 +237,7 @@ router.get('/gaps/:language', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
 /**
  * GET /api/translation-completion/detect-hardcoded
- * Detecta textos hardcoded que precisam ser traduzidos
+ * Detecta textos hardcode que precisam ser traduzidos
  */
 router.get('/detect-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -286,7 +286,7 @@ router.get('/detect-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res) 
 
 /**
  * POST /api/translation-completion/replace-hardcoded
- * Substitui textos hardcoded por chaves de tradução
+ * Substitui textos hardcode por chaves de tradução
  */
 router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -312,7 +312,7 @@ router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res
         results,
         mode: dryRun ? 'simulation' : 'applied'
       },
-      message: dryRun 
+      message: dryRun
         ? `Simulation complete: ${summary.totalReplacements} replacements would be made`
         : `Applied ${summary.totalReplacements} replacements across ${summary.successfulFiles} files`
     });
@@ -348,7 +348,7 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
       console.log('📝 [SAFE-STEP-1] Completing translation JSON files only...');
 
       const completionPromise = translationService.completeAllTranslations();
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Safe timeout - operation took too long')), 20000)
       );
 
@@ -365,7 +365,7 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
       console.log('📊 [SAFE-STEP-2] Generating completion report...');
 
       const reportPromise = translationService.generateCompletenessReport();
-      const reportTimeout = new Promise((_, reject) => 
+      const reportTimeout = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Report timeout')), 8000)
       );
 
@@ -381,10 +381,10 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
     console.log('🛡️ [CODE-PROTECTION] Source code files are protected from modification');
 
     const summary = {
-      translationsAdded: Array.isArray(completionResults) ? 
+      translationsAdded: Array.isArray(completionResults) ?
         completionResults.reduce((sum, r) => sum + (r?.addedKeys?.length || 0), 0) : 0,
       hardcodedTextsReplaced: 0, // Sempre 0 por segurança
-      filesModified: 0, // Sempre 0 por segurança  
+      filesModified: 0, // Sempre 0 por segurança
       finalCompleteness: finalReport?.summary?.languageStats || {},
       safetyMode: 'ULTRA_SAFE',
       codeFilesProtected: true
@@ -513,7 +513,7 @@ router.post('/validate', jwtAuth, async (req: AuthenticatedRequest, res) => {
           warnings: warnings,
           moduleIssues: moduleIssues.slice(0, 10) // Limita para não sobrecarregar
         },
-        recommendations: isHealthy 
+        recommendations: isHealthy
           ? ['Translation system is healthy!']
           : [
               'Run auto-completion for critical languages',

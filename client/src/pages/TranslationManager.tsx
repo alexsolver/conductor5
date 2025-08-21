@@ -89,7 +89,7 @@ export default function TranslationManager() {
   });
 
   // Get translations for selected language
-  const { data: translationData, isLoading: isLoadingTranslations } = useQuery({
+  const { data: translationData, isLoading: isLoadingTranslations, refetch } = useQuery<TranslationData>({
     queryKey: ['/api/translations', selectedLanguage],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/translations/${selectedLanguage}`);
@@ -243,11 +243,11 @@ export default function TranslationManager() {
     }
   };
 
+  // Updated handleExpandedScan with improved error handling
   const handleExpandedScan = async () => {
     setExpandingKeys(true);
-    console.log('🚀 [FRONTEND] Starting comprehensive translation expansion scan...');
-
     try {
+      console.log('📡 [FRONTEND] Starting expansion scan...');
       const response = await fetch('/api/translation-completion/expand-scan', {
         method: 'POST',
         headers: {
@@ -259,33 +259,43 @@ export default function TranslationManager() {
 
       console.log('📡 [FRONTEND] Expansion response status:', response.status);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        console.warn('⚠️ [FRONTEND] Expansion scan failed, falling back to regular scan...');
+        // Fallback to regular scan
+        await handleScanKeys();
+        return;
       }
 
-      const data = await response.json();
-      console.log('✅ [FRONTEND] Expansion scan successful:', data);
+      console.log('📡 [FRONTEND] Expansion scan result:', result);
 
+      // Refresh the scanned keys
+      refetch(); // Refresh current language translations
+      queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] }); // Refresh all keys
+
+      // Show success message
+      console.log(`✅ [FRONTEND] Expansion scan completed: Found ${result.data?.totalKeys || 'unknown'} total keys (${result.data?.improvement || 0} more than before). Report generated.`);
       toast({
         title: t('TranslationManager.expansionSuccess') || "Expansion scan completed!",
-        description: `Found ${data.data.totalKeys} keys (${data.data.improvement} more than before). Report generated.`,
+        description: `Found ${result.data?.totalKeys || 0} keys (${result.data?.improvement || 0} more than before). Report generated.`,
       });
-
-      // Refresh data
-      refetch();
-      queryClient.invalidateQueries({ queryKey: ['allKeys'] });
 
     } catch (error) {
       console.error('❌ [FRONTEND] Expansion scan error:', error);
+      console.log('🔄 [FRONTEND] Falling back to regular scan...');
+      // Fallback to regular scan
+      await handleScanKeys();
       toast({
         title: t('TranslationManager.expansionError') || "Expansion scan failed",
-        description: error.message || 'Failed to perform comprehensive scan',
+        description: error.message || 'Failed to perform comprehensive scan. Falling back to regular scan.',
         variant: "destructive",
       });
     } finally {
       setExpandingKeys(false);
     }
   };
+
 
   const handleScanKeys = async () => {
     setScanningKeys(true);
@@ -407,7 +417,6 @@ export default function TranslationManager() {
             onClick={handleSave}
             disabled={saveTranslationMutation.isPending || Object.keys(editingTranslations).length === 0}
           >
-            <Save className="w-4 h-4 mr-2" />
             {saveTranslationMutation.isPending ? t('TranslationManager.saving') || 'Saving...' : t('TranslationManager.saveChanges') || 'Save Changes'}
           </Button>
         </div>
