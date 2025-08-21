@@ -923,12 +923,27 @@ export class TranslationCompletionService {
           }
         }
 
-        // Get all available keys from scanner
+        // Get all keys from existing translation files (baseline for completion)
         const allKeysData = await this.scanExistingTranslationFiles();
         const allKeys = allKeysData.map(keyData => keyData.key);
         
-        // Find missing keys (those that don't exist in current translation file)
-        const missingKeys = allKeys.filter(key => !this.hasTranslation(existingTranslations, key));
+        // For completion, we only want to work with keys that already exist in at least one language
+        // This prevents adding random strings that the scanner picked up from code
+        const validI18nKeys = this.getValidI18nKeysFromAllLanguages();
+        
+        // Find missing keys by checking which valid i18n keys don't exist in this language's file
+        const missingKeys: string[] = [];
+        for (const key of validI18nKeys) {
+          if (!this.hasTranslation(existingTranslations, key)) {
+            missingKeys.push(key);
+          }
+        }
+        
+        console.log(`🔍 [DEBUG] ${language}: Valid i18n keys to check: ${validI18nKeys.length}, Existing in file: ${Object.keys(this.flattenObject(existingTranslations)).length}, Missing: ${missingKeys.length}`);
+        
+        if (missingKeys.length > 0) {
+          console.log(`🔍 [DEBUG] First few missing keys for ${language}:`, missingKeys.slice(0, 5));
+        }
         
         console.log(`📊 [COMPLETE-TRANSLATIONS] Found ${missingKeys.length} missing keys for ${language}`);
         
@@ -974,7 +989,7 @@ export class TranslationCompletionService {
           language,
           added: addedCount,
           errors,
-          totalTranslations: allKeys.length,
+          totalTranslations: validI18nKeys.length,
           successfulFiles: addedCount > 0 ? 1 : 0
         });
 
@@ -984,7 +999,7 @@ export class TranslationCompletionService {
           language,
           added: 0,
           errors: [(error as Error).message],
-          totalTranslations: 0,
+          totalTranslations: validI18nKeys?.length || 0,
           successfulFiles: 0
         });
       }
@@ -994,6 +1009,35 @@ export class TranslationCompletionService {
     console.log(`🎯 [COMPLETE-TRANSLATIONS] Process complete! Added ${totalAdded} total translations across ${this.SUPPORTED_LANGUAGES.length} languages`);
     
     return results;
+  }
+
+  /**
+   * Get valid i18n keys from all language files (union of all real translation keys)
+   */
+  private getValidI18nKeysFromAllLanguages(): string[] {
+    const allValidKeys = new Set<string>();
+    
+    for (const language of this.SUPPORTED_LANGUAGES) {
+      try {
+        const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        
+        if (fsSync.existsSync(filePath)) {
+          const fileContent = fsSync.readFileSync(filePath, 'utf-8');
+          const translations = JSON.parse(fileContent);
+          const flatTranslations = this.flattenObject(translations);
+          
+          // Add all keys from this language to our master set
+          Object.keys(flatTranslations).forEach(key => allValidKeys.add(key));
+        }
+      } catch (error) {
+        console.warn(`⚠️ [VALID-KEYS] Error reading ${language}:`, (error as Error).message);
+      }
+    }
+    
+    const validKeysArray = Array.from(allValidKeys);
+    console.log(`🔍 [VALID-KEYS] Found ${validKeysArray.length} valid i18n keys across all languages`);
+    return validKeysArray;
   }
 
   /**
