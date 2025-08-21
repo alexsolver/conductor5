@@ -777,7 +777,7 @@ export class TranslationCompletionService {
           hardcodedTexts
         );
       } catch (error) {
-        console.warn(`Could not scan directory for hardcoded texts ${sourceDir}:`, error);
+        console.warn(`Could not scan directory for hardcoded text ${sourceDir}:`, error);
       }
     }
 
@@ -853,63 +853,90 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Escaneia arquivos de tradução existentes para obter todas as chaves já definidas
+   * Escaneia arquivos de tradução existentes para obter todas as chaves atuais
    */
   private async scanExistingTranslationFiles(): Promise<TranslationKey[]> {
+    console.log('📋 [EXISTING-SCAN] Scanning existing translation files...');
     const keys: TranslationKey[] = [];
-    const uniqueKeys = new Set<string>();
 
     try {
       for (const language of this.SUPPORTED_LANGUAGES) {
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
         const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
 
-        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
-        if (!fileExists) {
-          console.warn(`⚠️ [EXISTING-SCAN] Translation file not found: ${filePath}`);
-          continue;
-        }
+        try {
+          const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+          if (!fileExists) {
+            console.warn(`⚠️ [EXISTING-SCAN] Translation file not found: ${filePath}`);
+            continue;
+          }
 
-        const content = await fs.readFile(filePath, 'utf-8');
-        const translations = JSON.parse(content);
+          const content = await fs.readFile(filePath, 'utf-8');
+          const translations = JSON.parse(content);
 
-        // Extract all nested keys recursively
-        const extractKeys = (obj: any, prefix = ''): string[] => {
-          const keys: string[] = [];
-          if (obj && typeof obj === 'object') {
-            for (const [key, value] of Object.entries(obj)) {
+          // Extract keys recursively
+          const extractKeys = (obj: any, prefix = '') => {
+            if (!obj || typeof obj !== 'object') return;
+
+            Object.keys(obj).forEach(key => {
               const fullKey = prefix ? `${prefix}.${key}` : key;
-              if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                keys.push(...extractKeys(value, fullKey));
+              if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                extractKeys(obj[key], fullKey);
               } else {
-                keys.push(fullKey);
+                keys.push({
+                  key: fullKey,
+                  module: this.getModuleFromKey(fullKey),
+                  usage: [`${mappedLanguage}/translation.json`],
+                  priority: this.getPriorityFromKey(fullKey)
+                });
               }
-            }
-          }
-          return keys;
-        };
-
-        const translationKeys = extractKeys(translations);
-
-        for (const key of translationKeys) {
-          if (!uniqueKeys.has(key)) {
-            uniqueKeys.add(key);
-            keys.push({
-              key,
-              module: this.detectModule(key),
-              usage: [`existing-${mappedLanguage}`],
-              priority: 'medium'
             });
-          }
+          };
+
+          extractKeys(translations);
+        } catch (error) {
+          console.warn(`⚠️ [EXISTING-SCAN] Error reading ${language} translations:`, error);
         }
       }
+
+      console.log(`📋 [EXISTING-SCAN] Found ${keys.length} keys from existing translation files`);
+      return keys;
     } catch (error) {
       console.error('❌ [EXISTING-SCAN] Error scanning existing translation files:', error);
+      return [];
     }
-
-    console.log(`📋 [TRANSLATION-SCAN] Found ${keys.length} unique keys from existing translation files`);
-    return keys;
   }
+
+  /**
+   * Detecta o módulo baseado na chave de tradução
+   */
+  private getModuleFromKey(key: string): string {
+    const parts = key.split('.');
+    if (parts.length > 0) {
+      const module = parts[0];
+      return ['common', 'navigation', 'forms', 'errors', 'success', 'buttons', 'modals', 'placeholders', 'messages'].includes(module)
+        ? module
+        : 'general';
+    }
+    return 'general';
+  }
+
+  /**
+   * Detecta a prioridade baseada na chave de tradução
+   */
+  private getPriorityFromKey(key: string): 'high' | 'medium' | 'low' {
+    if (key.includes('error') || key.includes('required') || key.includes('validation')) {
+      return 'high';
+    }
+    if (key.includes('common') || key.includes('navigation') || key.includes('button')) {
+      return 'high';
+    }
+    if (key.includes('placeholder') || key.includes('tooltip') || key.includes('help')) {
+      return 'low';
+    }
+    return 'medium';
+  }
+
 
   /**
    * Escaneia um diretório específico em busca de chaves de tradução
@@ -984,7 +1011,7 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Remove duplicatas e prioriza chaves por frequência de uso
+   * Remove duplicatas e prioriza chaves de uso
    */
   private deduplicateAndPrioritize(keys: TranslationKey[]): TranslationKey[] {
     const keyMap = new Map<string, TranslationKey>();

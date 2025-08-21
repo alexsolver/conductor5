@@ -12,7 +12,7 @@ import path from 'path';
 const router = Router();
 
 // Available languages
-const SUPPORTED_LANGUAGES = ['en', 'pt', 'es'];
+const SUPPORTED_LANGUAGES = ['en', 'pt', 'es', 'fr', 'de'];
 const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/public/locales');
 
 // Schema for translation updates
