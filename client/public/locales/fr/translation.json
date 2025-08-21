@@ -681,7 +681,10 @@
     "approvals": "Approvals",
     "settings": "Settings",
     "reports": "Reports",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "recordPoint": "Record Point",
+    "pointMirror": "Point Mirror",
+    "approval": "Approval"
   },
   "assets": {
     "title": "Titre",
@@ -924,5 +927,19 @@
     "addCustomer": "Add Customer",
     "generateReport": "Generate Report",
     "automation": "Automation"
+  },
+  "sidebar": {
+    "settings": "Settings",
+    "security": "Security",
+    "helpAndSupport": "Help & Support",
+    "saasAdmin": "SaaS Admin",
+    "tenantManagement": "Tenant Management",
+    "performanceHealth": "Performance & Health",
+    "securitySettings": "Security Settings",
+    "billingUsage": "Billing & Usage",
+    "disasterRecovery": "Disaster Recovery",
+    "autoProvisioning": "Auto-Provisioning",
+    "translationManagement": "Manage Translations",
+    "userManagement": "User Management"
   }
 }

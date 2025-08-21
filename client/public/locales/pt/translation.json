@@ -909,5 +909,11 @@
     "autoProvisioning": "Auto-Provisionamento",
     "translationManagement": "Gerenciar Traduções",
     "userManagement": "Gestão de Usuários"
+  },
+  "timecard": {
+    "recordPoint": "Registro de Ponto",
+    "pointMirror": "Espelho de Ponto", 
+    "approval": "Aprovação de Ponto",
+    "reports": "Relatórios"
   }
 }

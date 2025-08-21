@@ -676,12 +676,15 @@
     "mappings": "[ES] customers.mappings"
   },
   "timecard": {
-    "title": "[ES] Title",
-    "autonomous": "[ES] Autonomous",
-    "approvals": "[ES] Approvals",
-    "settings": "[ES] Settings",
-    "reports": "[ES] Reports",
-    "compliance": "[ES] Compliance"
+    "recordPoint": "Registro de Punto",
+    "pointMirror": "Espejo de Punto",
+    "approval": "Aprobación de Punto",
+    "reports": "Reportes",
+    "title": "[ES] timecard.title",
+    "autonomous": "[ES] timecard.autonomous",
+    "approvals": "[ES] timecard.approvals",
+    "settings": "[ES] timecard.settings",
+    "compliance": "[ES] timecard.compliance"
   },
   "assets": {
     "title": "[ES] Title",
@@ -925,7 +928,7 @@
   },
   "sidebar": {
     "settings": "Configuraciones",
-    "security": "Seguridad", 
+    "security": "Seguridad",
     "helpAndSupport": "Ayuda y Soporte",
     "saasAdmin": "Admin SaaS",
     "tenantManagement": "Gestión de Tenants",

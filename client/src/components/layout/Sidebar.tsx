@@ -84,11 +84,11 @@ const baseNavigation: Array<{
     icon: Clock,
     children: [
       { name: "navigation.timecardRegistry", href: "/timecard", icon: Clock },
-      { name: "navigation.workSchedules", href: "/work-schedules", icon: Calendar },
+      { name: "workSchedules", href: "/work-schedules", icon: Calendar },
       { name: "navigation.hourBank", href: "/hour-bank", icon: CreditCard },
-      { name: "navigation.holidayCalendar", href: "/holiday-calendar", icon: Calendar },
+      { name: "holidayCalendar", href: "/holiday-calendar", icon: Calendar },
       { name: "navigation.reports", href: "/timecard-reports", icon: FileText },
-      { name: "navigation.cltCompliance", href: "/clt-compliance", icon: Shield },
+      { name: "cltCompliance", href: "/clt-compliance", icon: Shield },
       { name: "navigation.timecardApprovals", href: "/timecard-approvals", icon: CheckCircle },
       { name: "navigation.approvalConfiguration", href: "/timecard-approval-settings", icon: Settings },
       { name: "navigation.absenceManagement", href: "/absence-management", icon: Calendar },
@@ -238,26 +238,26 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             href: timecardRoute, 
             icon: Clock 
           },
-          { name: "navigation.workSchedules", href: "/work-schedules", icon: Calendar },
+          { name: t('navigation.workSchedules'), href: "/work-schedules", icon: Calendar },
           { 
             name: terminology.timeControlLabel, 
             href: "/hour-bank", 
             icon: CreditCard 
           },
-          { name: "navigation.holidayCalendar", href: "/holiday-calendar", icon: Calendar },
+          { name: t('navigation.holidayCalendar'), href: "/holiday-calendar", icon: Calendar },
           { 
             name: terminology.reportLabel, 
             href: "/timecard-reports", 
             icon: FileText 
           },
-          { name: "navigation.cltCompliance", href: "/clt-compliance", icon: Shield },
+          { name: t('navigation.cltCompliance'), href: "/clt-compliance", icon: Shield },
           { 
             name: terminology.approvalLabel, 
             href: "/timecard-approvals", 
             icon: CheckCircle 
           },
-          { name: "navigation.approvalConfiguration", href: "/timecard-approval-settings", icon: Settings },
-          { name: "navigation.absenceManagement", href: "/absence-management", icon: Calendar },
+          { name: t('navigation.approvalConfiguration'), href: "/timecard-approval-settings", icon: Settings },
+          { name: t('navigation.absenceManagement'), href: "/absence-management", icon: Calendar },
         ]
       };
     }

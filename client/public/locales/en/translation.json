@@ -707,12 +707,15 @@
     "mappings": "customers.mappings"
   },
   "timecard": {
-    "title": "Title",
-    "autonomous": "Autonomous",
-    "approvals": "Approvals",
-    "settings": "Settings",
+    "recordPoint": "Record Point",
+    "pointMirror": "Point Mirror",
+    "approval": "Approval",
     "reports": "Reports",
-    "compliance": "Compliance"
+    "title": "timecard.title",
+    "autonomous": "timecard.autonomous",
+    "approvals": "timecard.approvals",
+    "settings": "timecard.settings",
+    "compliance": "timecard.compliance"
   },
   "assets": {
     "title": "Title",
