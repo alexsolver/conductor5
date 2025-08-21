@@ -786,19 +786,19 @@
   },
   "Erro ao criar regra": {
     " Verifique o console para mais detalhes": {
-      "": ""
+      "": "[ES] Erro ao criar regra. Verifique o console para mais detalhes."
     }
   },
   "Erro na sincronização": {
     " Verifique o console para mais detalhes": {
-      "": ""
+      "": "[ES] Erro na sincronização. Verifique o console para mais detalhes."
     }
   },
   "Dados sensíveis revelados para o campo: ${showPasswordDialog": {
     "field}": "Field}"
   },
   "Query testada! Verifique o console para detalhes": {
-    "": ""
+    "": "[ES] Query testada! Verifique o console para detalhes."
   },
   "\\n\\n--- Mensagem Original ---\\nDe: ${email": {
     "from}\\nData: ${new Date(email": {

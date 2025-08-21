@@ -61,6 +61,7 @@ export function TranslationCompletionPanel() {
         throw new Error('Failed to fetch completion report');
       }
       const result = await response.json();
+      console.log('🔍 [FRONTEND] Completion report received:', result);
       return result.data;
     },
     staleTime: 0, // Always consider data stale
@@ -260,7 +261,7 @@ export function TranslationCompletionPanel() {
             <CardTitle className="text-sm font-medium">Total de Chaves</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completionReport.summary?.totalKeys || 0}</div>
+            <div className="text-2xl font-bold">{completionReport?.totalKeys || completionReport?.summary?.totalKeys || 0}</div>
             <p className="text-xs text-gray-500">detectadas no sistema</p>
           </CardContent>
         </Card>

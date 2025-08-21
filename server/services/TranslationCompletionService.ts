@@ -703,6 +703,142 @@ export class TranslationCompletionService {
   }
 
   /**
+   * Generate completeness report for translation coverage analysis
+   */
+  async generateCompletenessReport(): Promise<CompletionReport> {
+    console.log('📊 [COMPLETION-REPORT] Starting completeness analysis...');
+    
+    try {
+      // Get all keys using the ultra scan method
+      const allKeysData = await this.scanExistingTranslationFiles();
+      const allKeys = allKeysData.map(keyData => keyData.key);
+      const totalKeys = allKeys.length;
+
+      console.log(`📊 [COMPLETION-REPORT] Found ${totalKeys} total keys to analyze`);
+
+      const languageStats: Record<string, {
+        totalKeys: number;
+        existingKeys: number;
+        missingKeys: number;
+        completeness: number;
+      }> = {};
+
+      const gaps: TranslationGap[] = [];
+
+      // Analyze each supported language
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        console.log(`📊 [COMPLETION-REPORT] Analyzing ${language}...`);
+        
+        const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        
+        let existingTranslations = {};
+        let existingKeys = 0;
+        
+        try {
+          if (fsSync.existsSync(filePath)) {
+            const fileContent = fsSync.readFileSync(filePath, 'utf-8');
+            existingTranslations = JSON.parse(fileContent);
+            
+            // Count existing keys by flattening the object
+            const flatExisting = this.flattenObject(existingTranslations);
+            existingKeys = Object.keys(flatExisting).length;
+          }
+        } catch (error) {
+          console.warn(`⚠️ [COMPLETION-REPORT] Error reading ${language} file:`, (error as Error).message);
+        }
+
+        const missingKeys = totalKeys - existingKeys;
+        const completeness = totalKeys > 0 ? Math.round((existingKeys / totalKeys) * 100) : 0;
+
+        languageStats[language] = {
+          totalKeys,
+          existingKeys,
+          missingKeys: Math.max(0, missingKeys),
+          completeness
+        };
+
+        // Generate gaps for this language  
+        const missingKeysList = allKeys.filter(key => !this.hasTranslation(existingTranslations, key));
+        
+        if (missingKeysList.length > 0) {
+          gaps.push({
+            language,
+            missingKeys: missingKeysList,
+            moduleGaps: this.groupKeysByModule(missingKeysList)
+          });
+        }
+
+        console.log(`📊 [COMPLETION-REPORT] ${language}: ${existingKeys}/${totalKeys} keys (${completeness}%)`);
+      }
+
+      const report: CompletionReport = {
+        scannedAt: new Date().toISOString(),
+        summary: {
+          totalKeys,
+          languageStats
+        },
+        gaps,
+        reportGenerated: true
+      };
+
+      console.log('✅ [COMPLETION-REPORT] Report generated successfully with', totalKeys, 'total keys');
+      return report;
+
+    } catch (error) {
+      console.error('❌ [COMPLETION-REPORT] Error generating report:', (error as Error).message);
+      
+      // Return empty report on error
+      return {
+        scannedAt: new Date().toISOString(),
+        summary: {
+          totalKeys: 0,
+          languageStats: {}
+        },
+        gaps: [],
+        reportGenerated: false
+      };
+    }
+  }
+
+  /**
+   * Flatten nested object into dot-notation keys
+   */
+  private flattenObject(obj: any, prefix = ''): Record<string, any> {
+    const flattened: Record<string, any> = {};
+    
+    Object.keys(obj).forEach(key => {
+      const value = obj[key];
+      const newKey = prefix ? `${prefix}.${key}` : key;
+      
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        Object.assign(flattened, this.flattenObject(value, newKey));
+      } else {
+        flattened[newKey] = value;
+      }
+    });
+    
+    return flattened;
+  }
+
+  /**
+   * Group keys by module for gap analysis
+   */
+  private groupKeysByModule(keys: string[]): Record<string, string[]> {
+    const moduleGaps: Record<string, string[]> = {};
+    
+    keys.forEach(key => {
+      const module = this.getModuleFromKey(key);
+      if (!moduleGaps[module]) {
+        moduleGaps[module] = [];
+      }
+      moduleGaps[module].push(key);
+    });
+    
+    return moduleGaps;
+  }
+
+  /**
    * Make scanExistingTranslationFiles public so it can be used by the routes
    */
   async scanExistingTranslationFiles(): Promise<TranslationKey[]> {

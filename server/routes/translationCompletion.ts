@@ -26,7 +26,13 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log('🔍 [ANALYZE] Starting translation completeness analysis...');
 
-    const report = await translationService.performExpandedScan();
+    const report = await translationService.generateCompletenessReport();
+
+    console.log('🔍 [ANALYZE] Generated report:', {
+      totalKeys: report?.summary?.totalKeys,
+      languages: Object.keys(report?.summary?.languageStats || {}),
+      reportGenerated: report?.reportGenerated
+    });
 
     console.log('✅ [ANALYZE] Analysis completed successfully');
 
