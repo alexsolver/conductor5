@@ -72,9 +72,15 @@
     "noKeysFound": "No Keys Found",
     "noKeysAvailable": "No Keys Available"
   },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Próximo",
+    "page": "Página",
+    "of": "de"
+  },
   "navigation": {
-    "previous": "Previous",
-    "next": "Next",
+    "previous": "Anterior",
+    "next": "Próximo",
     "home": "Home",
     "dashboard": "Painel",
     "tickets": "Tickets",
@@ -104,9 +110,10 @@
     "workSchedules": "Escalas de Trabalho",
     "hourBank": "Banco de Horas",
     "holidayCalendar": "Calendário de Feriados",
-    "cltCompliance": "CLT Compliance",
-    "timecardApprovals": "Aprovação de Registros",
-    "approvalConfiguration": "Configuração de Aprovações",
+    "timecardReports": "Relatórios de Jornada",
+    "cltCompliance": "Compliance CLT",
+    "timecardApprovals": "Aprovações de Jornada",
+    "approvalConfiguration": "Configuração de Aprovação",
     "absenceManagement": "Gestão de Ausências",
     "scheduleTemplates": "Templates de Escalas",
     "locations": "Locais",
@@ -395,8 +402,8 @@
     "mappings": "Mappings"
   },
   "tickets": {
-    "title": "Tickets",
-    "description": "Descrição",
+    "title": "Tickets de Suporte",
+    "description": "Gerencie e acompanhe solicitações de suporte ao cliente",
     "ticket_information": "Informações do Ticket",
     "created": "Criado",
     "updated": "Atualizado", 
@@ -411,8 +418,12 @@
       "description_too_long": "Descrição muito longa"
     },
     "new_ticket": "Novo Ticket",
-    "create_ticket": "Create Ticket",
-    "all_tickets": "All Tickets",
+    "create_ticket": "Criar Ticket",
+    "all_tickets": "Todos os Tickets",
+    "search_placeholder": "Buscar tickets...",
+    "filter_by_status": "Filtrar por status",
+    "filter_by_priority": "Filtrar por prioridade", 
+    "clear_filters": "Limpar Filtros",
     "my_tickets": "My Tickets",
     "assigned_tickets": "Assigned Tickets",
     "ticket_number": "Ticket Number",
@@ -483,7 +494,7 @@
         "no_specific_location": "Nenhum local específico"
       },
       "views": {
-        "title": "Visualizações de Tickets",
+        "title": "Visualizações",
         "newView": "Nova Visualização", 
         "manage": "Gerenciar",
         "defaultView": "Visualização Padrão",

@@ -2007,8 +2007,8 @@ const TicketsTable = React.memo(() => {
         {/* Header */}
         <div className="flex justify-between items-center ml-[20px] mr-[20px]">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('tickets.title')}</h1>
+            <p className="text-gray-600 dark:text-gray-400">{t('tickets.description')}</p>
           </div>
           <div className="flex gap-3">
             <Button
@@ -2016,7 +2016,7 @@ const TicketsTable = React.memo(() => {
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Novo Ticket
+              {t('tickets.new_ticket')}
             </Button>
           </div>
         </div>
@@ -2067,14 +2067,14 @@ const TicketsTable = React.memo(() => {
       {/* Filters */}
       <Card>
         <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[0px] pb-[0px]">
-          <CardTitle className="text-lg">Filters</CardTitle>
+          <CardTitle className="text-lg">{t('common.filter')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search tickets..."
+                placeholder={t('tickets.search_placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -2084,14 +2084,14 @@ const TicketsTable = React.memo(() => {
               fieldName="status"
               value={statusFilter}
               onValueChange={setStatusFilter}
-              placeholder="Filter by status"
+              placeholder={t('tickets.filter_by_status')}
               showAllOption={true}
             />
             <DynamicSelect
               fieldName="priority"
               value={priorityFilter}
               onValueChange={setPriorityFilter}
-              placeholder="Filter by priority"
+              placeholder={t('tickets.filter_by_priority')}
               showAllOption={true}
             />
             <Button variant="outline" onClick={() => {
@@ -2099,7 +2099,7 @@ const TicketsTable = React.memo(() => {
               setStatusFilter("all");
               setPriorityFilter("all");
             }}>
-              Clear Filters
+              {t('tickets.clear_filters')}
             </Button>
           </div>
         </CardContent>
@@ -2108,9 +2108,9 @@ const TicketsTable = React.memo(() => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Tickets ({pagination.total})</span>
+            <span>{t('tickets.title')} ({pagination.total})</span>
             <span className="text-sm font-normal text-gray-500">
-              Page {currentPage} of {pagination.totalPages}
+              {t('pagination.page')} {currentPage} {t('pagination.of')} {pagination.totalPages}
             </span>
           </CardTitle>
         </CardHeader>
@@ -2140,14 +2140,14 @@ const TicketsTable = React.memo(() => {
           disabled={currentPage === 1}
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
-          Previous
+          {t('pagination.previous')}
         </Button>
         <Button
           variant="outline"
           onClick={() => setCurrentPage(currentPage + 1)}
           disabled={currentPage === pagination.totalPages}
         >
-          Next
+          {t('pagination.next')}
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
@@ -2156,7 +2156,7 @@ const TicketsTable = React.memo(() => {
       <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Novo Ticket</DialogTitle>
+            <DialogTitle>{t('tickets.new_ticket')}</DialogTitle>
           </DialogHeader>
           <TicketForm />
         </DialogContent>
