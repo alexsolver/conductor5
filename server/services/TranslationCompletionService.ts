@@ -685,71 +685,36 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Verifica se uma chave é uma chave de tradução válida
+   * Verifica se uma chave de tradução é válida - MAXIMUM PERMISSIVE VERSION
    */
   private isValidTranslationKey(key: string): boolean {
-    // Skip empty or undefined
     if (!key || typeof key !== 'string') {
       return false;
     }
 
     const trimmedKey = key.trim();
 
-    // Skip very short keys (but allow 2+ character keys)
-    if (trimmedKey.length < 2) {
+    // Allow any non-empty string
+    if (trimmedKey.length === 0) {
       return false;
     }
 
-    // Only skip obvious technical patterns - more permissive now
-    const technicalPatterns = [
-      /^\/api\/.*$/,        // API routes (full paths only)
-      /^https?:\/\/.*$/,    // Full URLs only
-      /^\d{3,4}$/,          // HTTP status codes (3-4 digits only)
-      /^[A-Z_]{4,}_[A-Z_]{2,}$/, // Constants like API_KEY (stricter)
-      /^\$\{[^}]+\}$/,      // Template variables (complete only)
-      /^#[0-9a-fA-F]{6}$/,  // Hex colors (6 digits only)
-      /^0x[0-9a-fA-F]+$/,   // Hex numbers
-      /^[a-f0-9]{8}-[0-9a-f0-9]{4}-[0-9a-f0-9]{4}-[0-9a-f0-9]{4}-[0-9a-f0-9]{12}$/, // UUIDs
-      /^[a-f0-9]{32}$/,     // MD5 hashes
-      /^\w+\(\)$/,          // Function calls like onClick()
-      /^[A-Z]+$/,           // All caps single words (likely constants)
+    // Only exclude pure technical patterns that are definitely not translation keys
+    const definitelyNotTranslationPatterns = [
+      /^https?:\/\/[^/]+\/.*$/,   // Full URLs
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUIDs
+      /^\d{10,}$/,                // Very long numbers (10+ digits)
+      /^\/[^/]+\/[^/]+\/[^/]+.*$/ // Deep paths (3+ levels)
     ];
 
-    for (const pattern of technicalPatterns) {
+    for (const pattern of definitelyNotTranslationPatterns) {
       if (pattern.test(trimmedKey)) {
         return false;
       }
     }
 
-    // Skip pure numbers
-    if (/^\d+$/.test(trimmedKey)) {
-      return false;
-    }
-
-    // Skip obvious technical words
-    const technicalWords = [
-      'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD',
-      'true', 'false', 'null', 'undefined', 'NaN', 'Infinity',
-      'console', 'window', 'document', 'localStorage', 'sessionStorage',
-      'onClick', 'onChange', 'onSubmit', 'onLoad', 'onError',
-      'className', 'innerHTML', 'textContent', 'addEventListener',
-      'preventDefault', 'stopPropagation', 'setTimeout', 'setInterval',
-      'JSON', 'Array', 'Object', 'String', 'Number', 'Boolean',
-      'Promise', 'async', 'await', 'function', 'const', 'let', 'var',
-      'import', 'export', 'from', 'default', 'class', 'extends',
-      'public', 'private', 'protected', 'static', 'readonly',
-      'interface', 'type', 'enum', 'namespace', 'module'
-    ];
-
-    if (technicalWords.includes(trimmedKey)) {
-      return false;
-    }
-
-    // Accept most other keys - much more permissive approach
-    // Accept keys with dots (module.key.subkey), camelCase, kebab-case, snake_case
-    const validKeyPattern = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
-
-    return validKeyPattern.test(trimmedKey);
+    // Accept almost everything else
+    return true;
   }
 
   /**

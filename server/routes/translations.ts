@@ -181,7 +181,7 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
- * Check if a translation key is valid - ULTRA PERMISSIVE VERSION
+ * Check if a translation key is valid - MAXIMUM PERMISSIVE VERSION
  */
 function isValidTranslationKey(key: string): boolean {
   if (!key || typeof key !== 'string') {
@@ -190,42 +190,26 @@ function isValidTranslationKey(key: string): boolean {
 
   const trimmedKey = key.trim();
 
-  // Allow very short keys (minimum 1 character)
-  if (trimmedKey.length < 1) {
+  // Allow any non-empty string
+  if (trimmedKey.length === 0) {
     return false;
   }
 
-  // Only exclude EXTREMELY obvious technical patterns - ultra permissive
-  const technicalPatterns = [
-    /^\/api\/[^/]+\/[^/]+.*$/,  // Only deep API routes
-    /^https?:\/\/[^/]+\/.*$/,   // Only full URLs with paths
-    /^\d{3}:$/,                 // HTTP status codes with colon
-    /^#[0-9a-fA-F]{6}$/,        // Hex colors (exact 6 digits)
-    /^0x[0-9a-fA-F]{8,}$/,      // Long hex numbers only
+  // Only exclude pure technical patterns that are definitely not translation keys
+  const definitelyNotTranslationPatterns = [
+    /^https?:\/\/[^/]+\/.*$/,   // Full URLs
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUIDs
+    /^\d{10,}$/,                // Very long numbers (10+ digits)
+    /^\/[^/]+\/[^/]+\/[^/]+.*$/ // Deep paths (3+ levels)
   ];
 
-  for (const pattern of technicalPatterns) {
+  for (const pattern of definitelyNotTranslationPatterns) {
     if (pattern.test(trimmedKey)) {
       return false;
     }
   }
 
-  // Only skip extremely long pure numbers
-  if (/^\d{15,}$/.test(trimmedKey)) {
-    return false;
-  }
-
-  // Minimal list of technical constants to exclude
-  const technicalConstants = [
-    'console', 'window', 'document', 'undefined', 'function'
-  ];
-
-  if (technicalConstants.includes(trimmedKey)) {
-    return false;
-  }
-
-  // Accept almost everything - ultra permissive
+  // Accept almost everything else
   return true;
 }
 
@@ -239,15 +223,13 @@ function extractKeysFromObject(obj: any, prefix = ''): string[] {
   Object.keys(obj).forEach(key => {
     const fullKey = prefix ? `${prefix}.${key}` : key;
     if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+      // Recursively extract nested keys
       keys = keys.concat(extractKeysFromObject(obj[key], fullKey));
     } else {
-      if (key && typeof key === 'string' && key.trim().length > 0) {
+      // This is a leaf node - add the full key path
+      if (fullKey && typeof fullKey === 'string' && fullKey.trim().length > 0) {
         if (isValidTranslationKey(fullKey)) {
           keys.push(fullKey);
-        }
-        // Also add the bare key without prefix in case it's useful
-        if (isValidTranslationKey(key)) {
-          keys.push(key);
         }
       }
     }

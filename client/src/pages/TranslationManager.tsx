@@ -110,14 +110,27 @@ export default function TranslationManager() {
     enabled: !!selectedLanguage
   });
 
-  // Get all translation keys
+  // Fetch all available translation keys
   const { data: allKeysData, isLoading: isLoadingKeys } = useQuery<AllKeysData>({
     queryKey: ['/api/translations/keys/all'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/translations/keys/all');
-      if (!response.ok) throw new Error('Failed to fetch translation keys');
-      return response.json();
-    }
+      console.log('🔍 [FRONTEND] Fetching all translation keys...');
+      const response = await fetch('/api/translations/keys/all');
+      if (!response.ok) {
+        throw new Error('Failed to fetch translation keys');
+      }
+      const data = await response.json();
+      console.log('📊 [FRONTEND] Keys response:', {
+        totalKeys: data.data?.totalKeys,
+        keysLength: data.data?.keys?.length,
+        fromScanner: data.data?.fromScanner,
+        fromFiles: data.data?.fromFiles,
+        firstFewKeys: data.data?.keys?.slice(0, 5)
+      });
+      return data;
+    },
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   // Save translations mutation
