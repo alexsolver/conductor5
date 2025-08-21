@@ -548,18 +548,24 @@ export class TranslationCompletionService {
 
       // Calcular estatísticas por idioma
       const languageStats: Record<string, any> = {};
-      
+
       for (const language of this.SUPPORTED_LANGUAGES) {
         const translations = await this.loadTranslations(language);
         const totalKeys = scannedKeys.length;
         const existingKeys = this.countExistingKeys(translations, scannedKeys.map(k => k.key));
         const completeness = totalKeys > 0 ? Math.round((existingKeys / totalKeys) * 100) : 0;
 
+        // Ensure all values are valid numbers
+        const validTotalKeys = Number.isInteger(totalKeys) && totalKeys >= 0 ? totalKeys : 0;
+        const validExistingKeys = Number.isInteger(existingKeys) && existingKeys >= 0 ? existingKeys : 0;
+        const validMissingKeys = validTotalKeys - validExistingKeys;
+        const validCompleteness = validTotalKeys > 0 ? Math.round((validExistingKeys / validTotalKeys) * 100) : 0;
+
         languageStats[language] = {
-          totalKeys: existingKeys,
-          missingKeys: totalKeys - existingKeys,
-          completeness: completeness,
-          translationsLoaded: Object.keys(translations).length
+          totalKeys: validExistingKeys,
+          missingKeys: validMissingKeys >= 0 ? validMissingKeys : 0,
+          completeness: validCompleteness >= 0 && validCompleteness <= 100 ? validCompleteness : 0,
+          translationsLoaded: Object.keys(translations).length || 0
         };
       }
 
@@ -587,16 +593,23 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Conta quantas chaves existem em um objeto de traduções
+   * Conta quantas chaves existem nas traduções carregadas
    */
-  private countExistingKeys(translations: Record<string, any>, keys: string[]): number {
+  private countExistingKeys(translations: Record<string, any>, allKeys: string[]): number {
+    if (!translations || !Array.isArray(allKeys)) {
+      return 0;
+    }
+
     let count = 0;
-    for (const key of keys) {
-      if (this.getNestedValue(translations, key) !== undefined) {
+
+    for (const key of allKeys) {
+      if (typeof key === 'string' && this.getNestedValue(translations, key) !== undefined) {
         count++;
       }
     }
-    return count;
+
+    // Ensure we return a valid integer
+    return Number.isInteger(count) && count >= 0 ? count : 0;
   }
 
   /**
@@ -617,7 +630,7 @@ export class TranslationCompletionService {
       for (const key of allKeys) {
         if (this.getNestedValue(translations, key) === undefined) {
           missingKeys.push(key);
-          
+
           // Agrupar por módulo
           const module = key.split('.')[0] || 'general';
           if (!moduleGaps[module]) {
@@ -1152,7 +1165,7 @@ export class TranslationCompletionService {
   }
 
   /**
-   * Escaneia diretório para textos hardcoded
+   * Escaneia diretório recursivamente
    */
   private async scanDirectoryForHardcoded(
     dir: string,

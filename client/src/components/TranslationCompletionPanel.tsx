@@ -80,7 +80,7 @@ export function TranslationCompletionPanel() {
         title: "Success",
         description: `Auto-completion completed! Added ${data.data?.summary?.translationsAdded || 0} translations`,
       });
-      
+
       // Force multiple refreshes to ensure data is updated
       setTimeout(() => refetch(), 500);
       setTimeout(() => refetch(), 1500);
@@ -146,7 +146,7 @@ export function TranslationCompletionPanel() {
                 // Clear all related caches first
                 await queryClient.invalidateQueries({ queryKey: ['translation-completion-report'] });
                 await queryClient.refetchQueries({ queryKey: ['translation-completion-report'] });
-                
+
                 toast({
                   title: "Análise iniciada",
                   description: "Recarregando dados de completude das traduções...",
@@ -231,28 +231,34 @@ export function TranslationCompletionPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {completionReport.summary?.languageStats && 
-            Object.entries(completionReport.summary.languageStats).map(([language, stats]: [string, TranslationStats]) => (
-              <div key={language} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={stats.completeness >= 90 ? 'default' : 'destructive'}>
-                      {language}
-                    </Badge>
-                    <span className="text-sm text-gray-500">
-                      {stats.existingKeys} de {stats.existingKeys + stats.missingKeys} chaves
+          {completionReport.summary?.languageStats && Object.entries(completionReport.summary.languageStats).map(([language, stats]: [string, any]) => {
+              // Ensure we have valid numbers, fallback to 0 if NaN
+              const totalKeys = isNaN(stats.totalKeys) ? 0 : stats.totalKeys;
+              const missingKeys = isNaN(stats.missingKeys) ? 0 : stats.missingKeys;
+              const completeness = isNaN(stats.completeness) ? 0 : stats.completeness;
+
+              return (
+                <div key={language} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={completeness >= 90 ? 'default' : 'destructive'}>
+                        {language}
+                      </Badge>
+                      <span className="text-sm text-gray-500">
+                        {existingKeys} de {totalKeys} chaves
+                      </span>
+                    </div>
+                    <span className={`font-medium ${
+                      completeness >= 90 ? 'text-green-600' : 
+                      completeness >= 70 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {completeness.toFixed(1)}%
                     </span>
                   </div>
-                  <span className={`font-medium ${
-                    stats.completeness >= 90 ? 'text-green-600' : 
-                    stats.completeness >= 70 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {stats.completeness.toFixed(1)}%
-                  </span>
+                  <Progress value={completeness} className="h-2" />
                 </div>
-                <Progress value={stats.completeness} className="h-2" />
-              </div>
-            ))
+              )
+            })
           }
         </CardContent>
       </Card>
