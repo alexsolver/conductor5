@@ -48,6 +48,8 @@ export function TranslationCompletionPanel() {
   const { toast } = useToast();
   const [isCompleting, setIsCompleting] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const { data: completionReport, isLoading, refetch } = useQuery({
     queryKey: ['translation-completion-report'],
     queryFn: async () => {
@@ -58,6 +60,8 @@ export function TranslationCompletionPanel() {
       const result = await response.json();
       return result.data;
     },
+    staleTime: 0, // Always consider data stale
+    cacheTime: 0, // Don't cache the data
   });
 
   const autoCompleteTranslations = useMutation({
@@ -137,11 +141,29 @@ export function TranslationCompletionPanel() {
         <div className="space-x-2">
           <Button
             variant="outline"
-            onClick={() => refetch()}
+            onClick={async () => {
+              try {
+                // Clear all related caches first
+                await queryClient.invalidateQueries({ queryKey: ['translation-completion-report'] });
+                await queryClient.refetchQueries({ queryKey: ['translation-completion-report'] });
+                
+                toast({
+                  title: "Análise iniciada",
+                  description: "Recarregando dados de completude das traduções...",
+                });
+              } catch (error) {
+                console.error('Error reanalyzing:', error);
+                toast({
+                  title: "Erro",
+                  description: "Falha ao reanalizar traduções",
+                  variant: "destructive",
+                });
+              }
+            }}
             disabled={isLoading}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Reanalizar
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Analisando...' : 'Reanalizar'}
           </Button>
           <Button
             onClick={() => autoCompleteTranslations.mutate()}
