@@ -9,14 +9,15 @@ router.get('/unread', jwtAuth, async (req, res) => {
   try {
     const user = req.user;
     
-    if (!user || !user.tenantId || !user.userId) {
+    if (!user || !user.tenantId || (!user.id && !user.userId)) {
       return res.status(400).json({
         success: false,
         error: 'User information required'
       });
     }
 
-    const { tenantId, userId } = user;
+    const { tenantId } = user;
+    const userId = user.id || user.userId;  // Usar 'id' como principal, 'userId' como fallback
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
     // Query usando o pool do banco - usando o módulo db correto
@@ -64,9 +65,9 @@ router.get('/count', jwtAuth, async (req, res) => {
   try {
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Count endpoint called');
     const user = req.user;
-    console.log('🔔 [SCHEDULE-NOTIFICATIONS] User object:', user ? {userId: user.userId, tenantId: user.tenantId} : 'null');
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] User object:', user ? {id: user.id, tenantId: user.tenantId} : 'null');
     
-    if (!user || !user.tenantId || !user.userId) {
+    if (!user || !user.tenantId || (!user.id && !user.userId)) {
       console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', {user});
       return res.status(400).json({
         success: false,
@@ -74,7 +75,8 @@ router.get('/count', jwtAuth, async (req, res) => {
       });
     }
 
-    const { tenantId, userId } = user;
+    const { tenantId } = user;
+    const userId = user.id || user.userId;  // Usar 'id' como principal, 'userId' como fallback
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Schema:', schemaName, 'User:', userId);
     
