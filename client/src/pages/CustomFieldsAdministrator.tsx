@@ -1111,7 +1111,7 @@ export default function CustomFieldsAdministrator() {
         fieldOptions: editingField.fieldOptions,
         placeholder: editingField.placeholder,
         defaultValue: editingField.defaultValue,
-        helpText: editingField.fieldOptions?.includes(editingField.fieldOptions.helpText) ? editingField.fieldOptions.helpText : '', // This line seems problematic, should be handled differently
+        helpText: editingField.fieldOptions?.helpText,
         validationRules: editingField.validationRules,
       });
     };
