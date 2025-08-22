@@ -377,6 +377,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
   app.use('/api', notificationRoutes);
   console.log('✅ [NOTIFICATIONS-ALERTS] Clean Architecture module registered at /api/notifications');
+  
+  // ✅ SCHEDULE NOTIFICATIONS MODULE - For user notification display
+  const scheduleNotificationsModule = await import('./routes/scheduleNotifications.js');
+  const scheduleNotificationsRoutes = scheduleNotificationsModule.default || scheduleNotificationsModule;
+  app.use('/api/schedule-notifications', scheduleNotificationsRoutes);
+  console.log('✅ [SCHEDULE-NOTIFICATIONS] Routes registered at /api/schedule-notifications');
 
   // ✅ SLA MANAGEMENT CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [SLA-MANAGEMENT] Initializing SLA Management Clean Architecture module...');

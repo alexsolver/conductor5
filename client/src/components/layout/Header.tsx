@@ -40,8 +40,23 @@ export function Header() {
     refetchInterval: 30000, // Atualizar a cada 30 segundos
   });
 
+  // Query para buscar notificações não lidas
+  const { data: notificationsData } = useQuery({
+    queryKey: ['/api/schedule-notifications/count'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/schedule-notifications/count');
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!user,
+    refetchInterval: 60000, // Atualizar a cada 60 segundos
+  });
+
   // Determinar se usuário está trabalhando
   const isWorking = timecardStatus?.status === 'working';
+  
+  // Obter número de notificações não lidas
+  const unreadCount = notificationsData?.success ? notificationsData.data?.unreadCount || 0 : 0;
 
   return (
     <div className="relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -100,14 +115,24 @@ export function Header() {
           )}
 
           {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="relative text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800"></span>
-          </Button>
+          <Link href="/notifications">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
+              title={`${unreadCount} notificações não lidas`}
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <>
+                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800"></span>
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold min-w-[20px]">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                </>
+              )}
+            </Button>
+          </Link>
 
           {/* User Profile Dropdown */}
           {user && (
