@@ -99,9 +99,7 @@
   "timecardApprovals": "Aprovações de Jornada",
   "approvalConfiguration": "Configuração de Aprovação",
   "absenceManagement": "Gestão de Ausências",
-  "locations": {
-    "saveLocation": "locations.saveLocation"
-  },
+  "locations": "Localizações",
   "materialsAndServices": "Materiais e Serviços",
   "itemCatalog": "Catálogo de Itens",
   "stockManagement": "Gestão de Estoque",
