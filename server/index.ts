@@ -17,6 +17,7 @@ import { tenantSchemaManager } from './utils/tenantSchemaValidator';
 import { dailySchemaChecker } from './scripts/dailySchemaCheck';
 import translationsRoutes from './routes/translations';
 import translationCompletionRoutes from './routes/translationCompletion';
+import notificationsSSE from './routes/notificationsSSE';
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {

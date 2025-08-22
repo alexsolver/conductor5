@@ -2,9 +2,12 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle } from "lucide-react";
+import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle, Wifi, WifiOff } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from '@/hooks/useAuth';
+import { useTenantId } from '@/hooks/useTenantId';
+import { useLocalization } from '@/hooks/useLocalization';
+import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -13,6 +16,9 @@ export function Header() {
   const { t } = useTranslation();
 
   const { user, logoutMutation } = useAuth();
+  const { tenantId } = useTenantId();
+  const { currentLanguage, changeLanguage, t } = useLocalization();
+  const { notifications, isConnected, connectionStats } = useRealTimeNotifications();
   const [, setLocation] = useLocation();
 
   // ✅ 1QA.MD: Query para obter dados completos do perfil com avatar atualizado
@@ -108,9 +114,24 @@ export function Header() {
               title="Notificações"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800 animate-pulse"></span>
+              {/* Indicador de novas notificações - se houver notificações não lidas */}
+              {notifications && notifications.some(n => !n.read) && (
+                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800 animate-pulse"></span>
+              )}
             </Button>
           </Link>
+
+          {/* Real-time connection status indicator */}
+          <div 
+            className="flex items-center text-sm font-medium"
+            title={isConnected ? "Conexão em tempo real ativa" : "Conexão em tempo real perdida"}
+          >
+            {isConnected ? (
+              <Wifi className="h-5 w-5 text-green-500" />
+            ) : (
+              <WifiOff className="h-5 w-5 text-red-500" />
+            )}
+          </div>
 
           {/* User Profile Dropdown */}
           {user && (
