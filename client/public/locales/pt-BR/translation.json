@@ -1,6 +1,11 @@
 {
   "4": "4",
   "common": {
+    "appearance": "Aparência",
+    "settings": "Configurações", 
+    "security": "Segurança",
+    "helpAndSupport": "Ajuda e Suporte",
+    "logout": "Sair",
     "loading": "Carregando...",
     "save": "Salvar",
     "cancel": "Cancelar",
@@ -37,6 +42,13 @@
     "saving": "Saving..."
   },
   "navigation": {
+    "reportsAndDashboards": "Relatórios e Dashboards",
+    "interactiveDashboards": "Dashboards Interativos", 
+    "appearance": "Aparência",
+    "settings": "Configurações",
+    "security": "Segurança",
+    "helpAndSupport": "Ajuda e Suporte",
+    "logout": "Sair",
     "dashboard": "Painel de Controle",
     "tickets": "Tickets",
     "customers": "Clientes",

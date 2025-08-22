@@ -34,6 +34,7 @@ export const supportedLanguages = [
 
 const resources = {
   'pt-BR': { translation: ptBRTranslations },
+  pt: { translation: ptBRTranslations }, // Use same translations as pt-BR
   en: { translation: enTranslations },
   es: { translation: esTranslations },
   fr: { translation: frTranslations },
@@ -81,7 +82,7 @@ i18n
     },
 
     load: 'languageOnly',
-    supportedLngs: ['en', 'pt-BR', 'es', 'fr', 'de'],
+    supportedLngs: ['en', 'pt-BR', 'pt', 'es', 'fr', 'de'],
 
     defaultNS: 'translation',
     ns: ['translation'],
