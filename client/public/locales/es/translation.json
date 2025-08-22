@@ -412,7 +412,16 @@
     "administration": "Administración",
     "logout": "Cerrar sesión",
     "contracts": "[ES] navigation.contracts",
-    "automationRules": "[ES] navigation.automationRules"
+    "automationRules": "[ES] navigation.automationRules",
+    "Time Registry": "[ES] Registro de Ponto",
+    "Work Schedules": "[ES] Escalas de Trabalho",
+    "Hour Bank": "[ES] Banco de Horas",
+    "Holiday Calendar": "[ES] Calendário de Feriados",
+    "Timecard Reports": "[ES] Relatórios de Jornada",
+    "CLT Compliance": "[ES] Compliance CLT",
+    "Timecard Approvals": "[ES] Aprovações de Jornada",
+    "Approval Configuration": "[ES] Configuração de Aprovação",
+    "Absence Management": "[ES] Gestão de Ausências"
   },
   "errors": {
     "general": "[ES] An unexpected error occurred. Please try again.",
@@ -870,7 +879,20 @@
     "autonomous": "[ES] timecard.autonomous",
     "approvals": "[ES] timecard.approvals",
     "settings": "[ES] timecard.settings",
-    "compliance": "[ES] timecard.compliance"
+    "compliance": "[ES] timecard.compliance",
+    "control": "[ES] Controle de Ponto",
+    "registry": "[ES] Registro de Ponto",
+    "checkIn": "[ES] Entrada",
+    "checkOut": "[ES] Saída",
+    "breakStart": "[ES] Início Pausa",
+    "breakEnd": "[ES] Fim Pausa",
+    "status": "[ES] Status",
+    "totalHours": "[ES] Total de Horas",
+    "currentStatus": "[ES] Status Atual",
+    "notStarted": "[ES] Não Iniciado",
+    "inProgress": "[ES] Em Andamento",
+    "onBreak": "[ES] Em Pausa",
+    "finished": "[ES] Finalizado"
   },
   "assets": {
     "title": "[ES] Title",
@@ -1128,7 +1150,18 @@
     "disasterRecovery": "Recuperación de Desastres",
     "autoProvisioning": "Auto-Aprovisionamiento",
     "translationManagement": "Gestionar Traducciones",
-    "userManagement": "Gestión de Usuarios"
+    "userManagement": "Gestión de Usuarios",
+    "knowledgeBase": "[ES] Base de Conhecimento",
+    "timecardControl": "[ES] Controle de Ponto",
+    "timeRegistry": "[ES] Registro de Ponto",
+    "workSchedules": "[ES] Escalas de Trabalho",
+    "hourBank": "[ES] Banco de Horas",
+    "holidayCalendar": "[ES] Calendário de Feriados",
+    "timecardReports": "[ES] Relatórios de Ponto",
+    "cltCompliance": "[ES] Conformidade CLT",
+    "timecardApprovals": "[ES] Aprovações de Ponto",
+    "approvalConfiguration": "[ES] Configuração de Aprovações",
+    "absenceManagement": "[ES] Gestão de Ausências"
   },
   "s": "s",
   "POST": "POST",
@@ -1537,5 +1570,18 @@
   "Processando": "Processando",
   "400:": "400:",
   "autonomo": "autonomo",
-  "/lib/queryClient": "[ES] /lib/queryClient"
+  "/lib/queryClient": "[ES] /lib/queryClient",
+  "menu": {
+    "knowledgeBase": "[ES] Base de Conhecimento",
+    "timecardControl": "[ES] Controle de Ponto",
+    "timeRegistry": "[ES] Registro de Ponto",
+    "workSchedules": "[ES] Escalas de Trabalho",
+    "hourBank": "[ES] Banco de Horas",
+    "holidayCalendar": "[ES] Calendário de Feriados",
+    "timecardReports": "[ES] Relatórios de Ponto",
+    "cltCompliance": "[ES] Conformidade CLT",
+    "timecardApprovals": "[ES] Aprovações de Ponto",
+    "approvalConfiguration": "[ES] Configuração de Aprovações",
+    "absenceManagement": "[ES] Gestão de Ausências"
+  }
 }
