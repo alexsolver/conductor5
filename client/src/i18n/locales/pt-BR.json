@@ -92,10 +92,7 @@
     "create": "analytics.create"
   },
   "notifications": "Notificações",
-  "compliance": {
-    "view": "compliance.view",
-    "manage": "compliance.manage"
-  },
+  "compliance": "Compliance",
   "gdprCompliance": "Compliance GDPR",
   "knowledgeBase": "Base de Conhecimento",
   "timecardControl": "Controle de Jornadas",
@@ -108,9 +105,7 @@
   "timecardApprovals": "Aprovações de Jornada",
   "approvalConfiguration": "Configuração de Aprovação",
   "absenceManagement": "Gestão de Ausências",
-  "locations": {
-    "saveLocation": "locations.saveLocation"
-  },
+  "locations": "Localizações",
   "materialsAndServices": "Materiais e Serviços",
   "itemCatalog": "Catálogo de Itens",
   "stockManagement": "Gestão de Estoque",
@@ -606,7 +601,7 @@
     "internalActions": "Ações Internas",
     "externalActions": "Ações Externas",
     "latestInteractions": "Últimas Interações",
-    "new_ticket": "tickets.new_ticket",
+    "new_ticket": "Novo Ticket",
     "forms": {
       "create": {
         "title": "Criar Novo Ticket",
