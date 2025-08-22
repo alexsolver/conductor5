@@ -44,7 +44,7 @@ interface CustomFieldMetadata {
   displayOrder: number;
 
 
-// CreateFieldForm Component
+// CreateFieldForm Component interfaces
 interface CreateFieldFormProps {
   moduleType: ModuleType;
   onSubmit: (data: CreateFieldFormData) => void;
@@ -387,6 +387,13 @@ interface CreateFieldFormData {
 
 interface EditFieldFormData extends CreateFieldFormData {
   fieldId: string;
+}
+
+interface CreateFieldFormProps {
+  moduleType: ModuleType;
+  onSubmit: (data: CreateFieldFormData) => void;
+  isLoading: boolean;
+  onCancel: () => void;
 }
 
 const MODULE_TYPES = [
