@@ -204,47 +204,37 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     try {
       let translated: any = '';
 
-      // Debug logging
-      console.log(`🌍 [DEBUG] Translating "${name}"`);
-
       // Check if it's already a full translation key (contains namespace)
       if (name.includes('.')) {
         translated = t(name);
-        console.log(`🔍 [DEBUG] Full key "${name}" → "${translated}"`);
         
         // If translation still returns the key, try without namespace
         if (translated === name) {
           const shortName = name.split('.').pop() || name;
           translated = t(`navigation.${shortName}`);
-          console.log(`🔄 [DEBUG] Fallback navigation.${shortName} → "${translated}"`);
           
           // Final fallback to just the short name
           if (translated === `navigation.${shortName}`) {
             translated = t(shortName);
-            console.log(`🔄 [DEBUG] Final fallback ${shortName} → "${translated}"`);
           }
         }
       } else {
         // Try navigation namespace first
         const navKey = `navigation.${name}`;
         translated = t(navKey);
-        console.log(`🔍 [DEBUG] Navigation key "${navKey}" → "${translated}"`);
 
         // If translation returns the key itself (meaning not found), try without namespace
         if (translated === navKey) {
           translated = t(name);
-          console.log(`🔄 [DEBUG] Direct key "${name}" → "${translated}"`);
 
           // If still not found, try common namespace
           if (translated === name) {
             const commonKey = `common.${name}`;
             translated = t(commonKey);
-            console.log(`🔄 [DEBUG] Common key "${commonKey}" → "${translated}"`);
 
             // If still not found, return the original name
             if (translated === commonKey) {
               translated = name;
-              console.log(`❌ [DEBUG] No translation found, using "${name}"`);
             }
           }
         }
@@ -257,16 +247,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       } else if (translated && typeof translated === 'object') {
         // If it's an object, try to extract a string value or fallback to name
         translatedString = translated.toString ? translated.toString() : name;
-        console.log(`⚠️ [DEBUG] Object translation converted: ${translatedString}`);
       } else {
         translatedString = name;
-        console.log(`⚠️ [DEBUG] Fallback to original: ${translatedString}`);
       }
 
       // Capitalize first letter and return the translation
-      const result = capitalizeFirstLetter(translatedString);
-      console.log(`✅ [DEBUG] Final result: "${result}"`);
-      return result;
+      return capitalizeFirstLetter(translatedString);
     } catch (error) {
       console.warn(`Translation error for key "${name}":`, error);
       return capitalizeFirstLetter(name);
@@ -366,7 +352,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </div>
             {!collapsed && (
               <h1 className="text-xl font-bold text-white transition-opacity duration-300">
-                Conductor
+                {t('common.appName', 'Conductor')}
               </h1>
             )}
           </div>
@@ -378,7 +364,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               size="sm"
               onClick={onToggleCollapse}
               className="h-8 w-8 p-0 text-white hover:bg-white hover:bg-opacity-10 transition-all duration-300"
-              title="Retrair sidebar"
+              title={t('common.collapseSidebar', 'Retrair sidebar')}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -393,7 +379,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               size="sm"
               onClick={onToggleCollapse}
               className="w-full h-10 p-0 text-white hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
-              title="Expandir sidebar"
+              title={t('common.expandSidebar', 'Expandir sidebar')}
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -423,7 +409,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 </div>
                 {!collapsed && (
                   <span className="text-sm font-medium text-white transition-opacity duration-300">
-                    {tenantData?.name || 'Carregando...'}
+                    {tenantData?.name || t('common.loading', 'Carregando...')}
                   </span>
                 )}
               </div>

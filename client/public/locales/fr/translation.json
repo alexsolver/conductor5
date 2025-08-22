@@ -39,7 +39,11 @@
     "settings": "Paramètres",
     "security": "Sécurité",
     "helpAndSupport": "Aide et Support",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "appName": "Conductor",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
+    "refresh": "common.refresh"
   },
   "navigation": {
     "dashboard": "Tableau de Bord",
@@ -985,7 +989,17 @@
   "knowledge": {
     "title": "Titre",
     "articles": "Articles",
-    "search": "Rechercher"
+    "search": "Rechercher",
+    "createArticle": "knowledge.createArticle",
+    "searchArticles": "knowledge.searchArticles",
+    "categories": "knowledge.categories",
+    "tags": "knowledge.tags",
+    "published": "knowledge.published",
+    "draft": "knowledge.draft",
+    "author": "knowledge.author",
+    "lastModified": "knowledge.lastModified",
+    "views": "knowledge.views",
+    "rating": "knowledge.rating"
   },
   "specialized": {
     "title": "Titre",
@@ -1604,5 +1618,19 @@
     " Verifique o console para mais detalhes": {
       "": "Erro ao criar rule. Verifique o console para mais detalhes."
     }
+  },
+  "knowledgeBase": {
+    "title": "knowledgeBase.title",
+    "articles": "knowledgeBase.articles",
+    "createArticle": "knowledgeBase.createArticle",
+    "searchArticles": "knowledgeBase.searchArticles",
+    "categories": "knowledgeBase.categories",
+    "tags": "knowledgeBase.tags",
+    "published": "knowledgeBase.published",
+    "draft": "knowledgeBase.draft",
+    "author": "knowledgeBase.author",
+    "lastModified": "knowledgeBase.lastModified",
+    "views": "knowledgeBase.views",
+    "rating": "knowledgeBase.rating"
   }
 }

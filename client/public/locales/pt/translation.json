@@ -72,6 +72,16 @@
     "noKeysFound": "No Keys Found",
     "noKeysAvailable": "No Keys Available"
   },
+  "common": {
+    "appName": "Conductor",
+    "collapseSidebar": "Retrair sidebar",
+    "expandSidebar": "Expandir sidebar", 
+    "loading": "Carregando...",
+    "appearance": "Aparência",
+    "security": "Segurança",
+    "helpAndSupport": "Ajuda e Suporte",
+    "logout": "Sair"
+  },
   "pagination": {
     "previous": "Anterior",
     "next": "Próximo",

@@ -36,10 +36,14 @@
     "inactive": "Inactivo",
     "saving": "Guardando...",
     "appearance": "Apariencia",
-    "settings": "Configuraciones", 
+    "settings": "Configuraciones",
     "security": "Seguridad",
     "helpAndSupport": "Ayuda y Soporte",
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "appName": "[ES] Conductor",
+    "collapseSidebar": "[ES] Collapse sidebar",
+    "expandSidebar": "[ES] Expand sidebar",
+    "refresh": "[ES] common.refresh"
   },
   "tickets": {
     "basicData": "Datos básicos",
@@ -985,7 +989,17 @@
   "knowledge": {
     "title": "[ES] Title",
     "articles": "[ES] Articles",
-    "search": "[ES] Search"
+    "search": "[ES] Search",
+    "createArticle": "[ES] knowledge.createArticle",
+    "searchArticles": "[ES] knowledge.searchArticles",
+    "categories": "[ES] knowledge.categories",
+    "tags": "[ES] knowledge.tags",
+    "published": "[ES] knowledge.published",
+    "draft": "[ES] knowledge.draft",
+    "author": "[ES] knowledge.author",
+    "lastModified": "[ES] knowledge.lastModified",
+    "views": "[ES] knowledge.views",
+    "rating": "[ES] knowledge.rating"
   },
   "specialized": {
     "title": "[ES] Title",
@@ -1604,5 +1618,19 @@
     " Verifique o console para mais detalhes": {
       "": "[ES] Erro ao criar rule. Verifique o console para mais detalhes."
     }
+  },
+  "knowledgeBase": {
+    "title": "[ES] knowledgeBase.title",
+    "articles": "[ES] knowledgeBase.articles",
+    "createArticle": "[ES] knowledgeBase.createArticle",
+    "searchArticles": "[ES] knowledgeBase.searchArticles",
+    "categories": "[ES] knowledgeBase.categories",
+    "tags": "[ES] knowledgeBase.tags",
+    "published": "[ES] knowledgeBase.published",
+    "draft": "[ES] knowledgeBase.draft",
+    "author": "[ES] knowledgeBase.author",
+    "lastModified": "[ES] knowledgeBase.lastModified",
+    "views": "[ES] knowledgeBase.views",
+    "rating": "[ES] knowledgeBase.rating"
   }
 }
