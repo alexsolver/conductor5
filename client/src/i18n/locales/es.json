@@ -1186,7 +1186,9 @@
     "warning": "[ES] messages.warning",
     "info": "[ES] messages.info"
   },
-  "channels": "[ES] channels",
+  "channels": {
+    "id": "[ES] channels.id"
+  },
   "conversations": {
     "id": "[ES] conversations.id"
   },
@@ -1243,7 +1245,12 @@
     "security": "[ES] workspace.security",
     "integrations": "[ES] workspace.integrations"
   },
-  "user": "[ES] user",
+  "user": {
+    "create": "[ES] user.create",
+    "edit": "[ES] user.edit",
+    "delete": "[ES] user.delete",
+    "view": "[ES] user.view"
+  },
   "groups": {
     "manage": "[ES] groups.manage"
   },
@@ -1276,7 +1283,9 @@
     "json": "[ES] translation-audit-report.json"
   },
   "routes": {
-    "ts": "[ES] routes.ts"
+    "ts": {
+      "backup": "[ES] routes.ts.backup"
+    }
   },
   "routes_backup_full": {
     "ts": "[ES] routes_backup_full.ts"
@@ -1339,7 +1348,9 @@
   "productionInitializer": {
     "ts": "[ES] productionInitializer.ts"
   },
-  "public": "[ES] public",
+  "public": {
+    "users": "[ES] public.users"
+  },
   "SCHEMA_BEST_PRACTICES": {
     "md": "[ES] SCHEMA_BEST_PRACTICES.md"
   },

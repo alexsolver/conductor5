@@ -98,13 +98,13 @@ export function TranslationCompletionPanel() {
         description: `Auto-completar concluído! Adicionadas ${translationsAdded} traduções`,
       });
 
-      // Force multiple refreshes to ensure data is updated
+      // Single data refresh without forcing page reload
       setTimeout(() => {
         console.log('🔄 [FRONTEND] Refreshing data...');
         refetch();
+        // Invalidate related query cache
+        queryClient.invalidateQueries({ queryKey: ['translation-completion-report'] });
       }, 1000);
-      setTimeout(() => refetch(), 2000);
-      setTimeout(() => refetch(), 4000);
     },
     onError: (error) => {
       console.error('❌ [FRONTEND] Auto-completion error:', error);

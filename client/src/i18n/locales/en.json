@@ -1188,7 +1188,9 @@
     "warning": "messages.warning",
     "info": "messages.info"
   },
-  "channels": "channels",
+  "channels": {
+    "id": "channels.id"
+  },
   "conversations": {
     "id": "conversations.id"
   },
@@ -1245,7 +1247,12 @@
     "security": "workspace.security",
     "integrations": "workspace.integrations"
   },
-  "user": "user",
+  "user": {
+    "create": "user.create",
+    "edit": "user.edit",
+    "delete": "user.delete",
+    "view": "user.view"
+  },
   "groups": {
     "manage": "groups.manage"
   },
@@ -1278,7 +1285,9 @@
     "json": "translation-audit-report.json"
   },
   "routes": {
-    "ts": "routes.ts"
+    "ts": {
+      "backup": "routes.ts.backup"
+    }
   },
   "routes_backup_full": {
     "ts": "routes_backup_full.ts"
@@ -1341,7 +1350,9 @@
   "productionInitializer": {
     "ts": "productionInitializer.ts"
   },
-  "public": "public",
+  "public": {
+    "users": "public.users"
+  },
   "SCHEMA_BEST_PRACTICES": {
     "md": "SCHEMA_BEST_PRACTICES.md"
   },

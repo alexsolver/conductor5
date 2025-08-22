@@ -92,7 +92,10 @@
     "create": "analytics.create"
   },
   "notifications": "Notificações",
-  "compliance": "Compliance",
+  "compliance": {
+    "view": "compliance.view",
+    "manage": "compliance.manage"
+  },
   "gdprCompliance": "Compliance GDPR",
   "knowledgeBase": "Base de Conhecimento",
   "timecardControl": "Controle de Jornadas",
@@ -105,7 +108,9 @@
   "timecardApprovals": "Aprovações de Jornada",
   "approvalConfiguration": "Configuração de Aprovação",
   "absenceManagement": "Gestão de Ausências",
-  "locations": "Localizações",
+  "locations": {
+    "saveLocation": "locations.saveLocation"
+  },
   "materialsAndServices": "Materiais e Serviços",
   "itemCatalog": "Catálogo de Itens",
   "stockManagement": "Gestão de Estoque",
@@ -132,12 +137,37 @@
   "contractManagement": "Gestão de Contratos",
   "expenseManagement": "Gestão de Despesas",
   "technicalSkillsPage": "Habilidades Técnicas",
-  "approvals": "Aprovações",
+  "approvals": {
+    "title": "approvals.title",
+    "development_description": "approvals.development_description",
+    "under_development": "approvals.under_development",
+    "development_message": "approvals.development_message",
+    "planned_features": "approvals.planned_features",
+    "features": {
+      "custom_workflows": "approvals.features.custom_workflows",
+      "approvers_by_category": "approvals.features.approvers_by_category",
+      "automatic_notifications": "approvals.features.automatic_notifications",
+      "approval_history": "approvals.features.approval_history",
+      "email_integration": "approvals.features.email_integration",
+      "approval_reports": "approvals.features.approval_reports"
+    }
+  },
   "activityPlanner": "Planejador de Atividades",
   "integracoes": "Integrações",
   "ticketConfiguration": "Configuração de Tickets",
   "ticketTemplates": "Templates de Tickets",
-  "customFields": "Campos Personalizados",
+  "customFields": {
+    "hide": "customFields.hide",
+    "show": "customFields.show",
+    "fields": "customFields.fields",
+    "exitDesign": "customFields.exitDesign",
+    "editLayout": "customFields.editLayout",
+    "activeCustomFields": "customFields.activeCustomFields",
+    "field": "customFields.field",
+    "configureFields": "customFields.configureFields",
+    "title": "customFields.title",
+    "noFieldsConfigured": "customFields.noFieldsConfigured"
+  },
   "clientes": "Clientes",
   "beneficiaries": "Beneficiários",
   "internalForms": "Formulários Internos",
@@ -1158,7 +1188,9 @@
     "warning": "messages.warning",
     "info": "messages.info"
   },
-  "channels": "channels",
+  "channels": {
+    "id": "channels.id"
+  },
   "conversations": {
     "id": "conversations.id"
   },
@@ -1215,7 +1247,12 @@
     "security": "workspace.security",
     "integrations": "workspace.integrations"
   },
-  "user": "user",
+  "user": {
+    "create": "user.create",
+    "edit": "user.edit",
+    "delete": "user.delete",
+    "view": "user.view"
+  },
   "groups": {
     "manage": "groups.manage"
   },
@@ -1248,7 +1285,9 @@
     "json": "translation-audit-report.json"
   },
   "routes": {
-    "ts": "routes.ts"
+    "ts": {
+      "backup": "routes.ts.backup"
+    }
   },
   "routes_backup_full": {
     "ts": "routes_backup_full.ts"
@@ -1311,7 +1350,9 @@
   "productionInitializer": {
     "ts": "productionInitializer.ts"
   },
-  "public": "public",
+  "public": {
+    "users": "public.users"
+  },
   "SCHEMA_BEST_PRACTICES": {
     "md": "SCHEMA_BEST_PRACTICES.md"
   },
