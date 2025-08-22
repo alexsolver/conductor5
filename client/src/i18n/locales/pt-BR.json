@@ -81,10 +81,7 @@
     "saas_admin": "Admin SaaS",
     "tenant_admin": "Admin Workspace"
   },
-  "analytics": {
-    "view": "analytics.view",
-    "create": "analytics.create"
-  },
+  "analytics": "Análises",
   "notifications": "Notificações",
   "compliance": "Compliance",
   "gdprCompliance": "Compliance GDPR",
