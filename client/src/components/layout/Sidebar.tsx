@@ -201,38 +201,51 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   // Helper function to translate menu items
   const translateName = (name: string): string => {
-    let translated: any = '';
+    try {
+      let translated: any = '';
 
-    // Check if it's already a full translation key (contains namespace)
-    if (name.includes('.')) {
-      translated = t(name);
-    } else {
-      // Try navigation namespace first
-      const navKey = `navigation.${name}`;
-      translated = t(navKey);
-
-      // If translation returns the key itself (meaning not found), try without namespace
-      if (translated === navKey) {
+      // Check if it's already a full translation key (contains namespace)
+      if (name.includes('.')) {
         translated = t(name);
+      } else {
+        // Try navigation namespace first
+        const navKey = `navigation.${name}`;
+        translated = t(navKey);
 
-        // If still not found, try common namespace
-        if (translated === name) {
-          const commonKey = `common.${name}`;
-          translated = t(commonKey);
+        // If translation returns the key itself (meaning not found), try without namespace
+        if (translated === navKey) {
+          translated = t(name);
 
-          // If still not found, return the original name
-          if (translated === commonKey) {
-            translated = name;
+          // If still not found, try common namespace
+          if (translated === name) {
+            const commonKey = `common.${name}`;
+            translated = t(commonKey);
+
+            // If still not found, return the original name
+            if (translated === commonKey) {
+              translated = name;
+            }
           }
         }
       }
+
+      // Force conversion to string and handle any edge cases
+      let translatedString: string;
+      if (typeof translated === 'string') {
+        translatedString = translated;
+      } else if (translated && typeof translated === 'object') {
+        // If it's an object, try to extract a string value or fallback to name
+        translatedString = translated.toString ? translated.toString() : name;
+      } else {
+        translatedString = name;
+      }
+
+      // Capitalize first letter and return the translation
+      return capitalizeFirstLetter(translatedString);
+    } catch (error) {
+      console.warn(`Translation error for key "${name}":`, error);
+      return capitalizeFirstLetter(name);
     }
-
-    // Ensure we always return a string
-    const translatedString = typeof translated === 'string' ? translated : name;
-
-    // Capitalize first letter and return the translation
-    return capitalizeFirstLetter(translatedString);
   };
 
   // Fetch tickets count for badge
