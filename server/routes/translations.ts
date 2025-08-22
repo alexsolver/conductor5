@@ -263,6 +263,12 @@ function extractKeysFromObject(obj: any, prefix = ''): string[] {
  */
 router.get('/keys/all', jwtAuth, async (req: any, res: any) => {
   try {
+    // Only SaaS admins can access translation keys
+    if (!req.user?.roles?.includes('saas_admin')) {
+      return res.status(403).json({ message: 'SaaS admin access required' });
+    }
+    
+    console.log('🔍 [TRANSLATIONS] Starting comprehensive key scan...');
     const allLanguages = ['en', 'pt', 'es', 'fr', 'de'];
     const allKeysSet = new Set<string>();
     const translations: Record<string, any> = {};
@@ -272,6 +278,7 @@ router.get('/keys/all', jwtAuth, async (req: any, res: any) => {
     // FIRST: Get scanned keys from the ultra-comprehensive code scanner (priority)
     try {
       const translationService = new TranslationCompletionService();
+      console.log('🔍 [TRANSLATIONS] Initializing codebase scanner...');
       const scannedKeys = await translationService.scanCodebaseForTranslationKeys();
 
       // Add all scanned keys with ultra-permissive validation  

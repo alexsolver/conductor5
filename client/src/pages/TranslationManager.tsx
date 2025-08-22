@@ -131,7 +131,7 @@ export default function TranslationManager() {
     queryKey: ['/api/translations/keys/all'],
     queryFn: async () => {
       console.log('🔍 [FRONTEND] Fetching all translation keys...');
-      const response = await fetch('/api/translations/keys/all');
+      const response = await apiRequest('GET', '/api/translations/keys/all');
       if (!response.ok) {
         throw new Error('Failed to fetch translation keys');
       }

@@ -891,9 +891,10 @@ export class TranslationCompletionService {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       
-      // Patterns to match translation keys
+      // Patterns to match translation keys - MUCH MORE COMPREHENSIVE
       const patterns = [
         /t\(['"`]([^'"`]+)['"`]\)/g,                    // t('key')
+        /\.t\(['"`]([^'"`]+)['"`]\)/g,                  // instance.t('key') 
         /useTranslation\(\).*?t\(['"`]([^'"`]+)['"`]\)/g, // useTranslation().t('key')
         /i18n\.t\(['"`]([^'"`]+)['"`]\)/g,               // i18n.t('key')
         /\$t\(['"`]([^'"`]+)['"`]\)/g,                   // $t('key')
@@ -901,6 +902,12 @@ export class TranslationCompletionService {
         /trans\(['"`]([^'"`]+)['"`]\)/g,                 // trans('key')
         /getTranslation\(['"`]([^'"`]+)['"`]\)/g,        // getTranslation('key')
         /\{\{\s*['"`]([^'"`]+)['"`]\s*\|\s*translate\s*\}\}/g, // {{ 'key' | translate }}
+        /['"`]([a-zA-Z][a-zA-Z0-9._-]*\.[a-zA-Z][a-zA-Z0-9._-]*)['"`]/g, // 'module.key' patterns
+        /key:\s*['"`]([a-zA-Z][a-zA-Z0-9._-]*\.[a-zA-Z][a-zA-Z0-9._-]*)['"`]/g, // key: 'module.key'
+        /label:\s*['"`]([a-zA-Z][a-zA-Z0-9._-]*\.[a-zA-Z][a-zA-Z0-9._-]*)['"`]/g, // label: 'module.key'
+        /text:\s*['"`]([a-zA-Z][a-zA-Z0-9._-]*\.[a-zA-Z][a-zA-Z0-9._-]*)['"`]/g, // text: 'module.key'
+        /title:\s*['"`]([a-zA-Z][a-zA-Z0-9._-]*\.[a-zA-Z][a-zA-Z0-9._-]*)['"`]/g, // title: 'module.key'
+        /placeholder:\s*['"`]([a-zA-Z][a-zA-Z0-9._-]*\.[a-zA-Z][a-zA-Z0-9._-]*)['"`]/g, // placeholder: 'module.key'
       ];
 
       patterns.forEach(pattern => {
@@ -908,6 +915,7 @@ export class TranslationCompletionService {
         while ((match = pattern.exec(content)) !== null) {
           const key = match[1];
           if (key && this.isValidTranslationKey(key) && !keys.find(k => k.key === key)) {
+            console.log(`🔍 [SCAN-FOUND] Found key "${key}" in ${filePath.replace(process.cwd(), '')}`);
             keys.push({
               key,
               module: this.getModuleFromKey(key),
