@@ -103,8 +103,8 @@
     "customers": "Clientes",
     "analytics": "Análisis",
     "activity": "Actividad",
-    "view": "view - ES",
-    "manage": "manage - ES"
+    "view": "Ver",
+    "manage": "Gestionar"
   },
   "tickets": {
     "title": "Tickets",
@@ -837,10 +837,7 @@
   "/api/user-management/users/${userId}/sessions/terminate-all": "[ES] [EN] /api/user-management/users/${user Id}/sessions/terminate-all",
   "400:": "[ES] [EN] 400:",
   "notifications": "Notificaciones",
-  "compliance": {
-    "view": "[ES] compliance.view",
-    "manage": "[ES] compliance.manage"
-  },
+  "compliance": "Cumplimiento",
   "gdprCompliance": "Cumplimiento GDPR",
   "knowledgeBase": "Base de Conocimiento",
   "timecardControl": "Control de Jornada",
@@ -853,9 +850,7 @@
   "timecardApprovals": "Aprobaciones de Jornada",
   "approvalConfiguration": "Configuración de Aprobación",
   "absenceManagement": "Gestión de Ausencias",
-  "locations": {
-    "saveLocation": "[ES] locations.saveLocation"
-  },
+  "locations": "Ubicaciones",
   "materialsAndServices": "Materiales y Servicios",
   "itemCatalog": "Catálogo de Artículos",
   "stockManagement": "Gestión de Inventario",

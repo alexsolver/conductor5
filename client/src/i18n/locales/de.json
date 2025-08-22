@@ -827,10 +827,7 @@
     "create": "analytics.create"
   },
   "notifications": "notifications",
-  "compliance": {
-    "view": "compliance.view",
-    "manage": "compliance.manage"
-  },
+  "compliance": "Compliance",
   "gdprCompliance": "DSGVO-Konformität",
   "knowledgeBase": "Wissensdatenbank",
   "timecardControl": "Zeiterfassungskontrolle",
@@ -843,9 +840,7 @@
   "timecardApprovals": "Zeiterfassungsgenehmigungen",
   "approvalConfiguration": "Genehmigungskonfiguration",
   "absenceManagement": "Abwesenheitsverwaltung",
-  "locations": {
-    "saveLocation": "locations.saveLocation"
-  },
+  "locations": "Standorte",
   "materialsAndServices": "Materialien und Dienstleistungen",
   "itemCatalog": "Artikelkatalog",
   "stockManagement": "Bestandsverwaltung",
