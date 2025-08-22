@@ -75,6 +75,7 @@ const baseNavigation: Array<{
     name: string;
     href: string;
     icon: any;
+    current?: boolean;
   }>;
 }> = [
   { name: "customers", href: "/customers", icon: Users },
@@ -193,37 +194,9 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { terminology, employmentType } = useEmploymentDetection();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
-  // Helper function to translate menu items
-  const translateName = (name: string): string => {
-    let translated = '';
-
-    // Check if it's already a full translation key (contains namespace)
-    if (name.includes('.')) {
-      translated = t(name);
-    } else {
-      // Try navigation namespace first
-      const navKey = `navigation.${name}`;
-      translated = t(navKey);
-
-      // If translation returns the key itself (meaning not found), try without namespace
-      if (translated === navKey) {
-        translated = t(name);
-
-        // If still not found, try common namespace
-        if (translated === name) {
-          const commonKey = `common.${name}`;
-          translated = t(commonKey);
-
-          // If still not found, return the original name
-          if (translated === commonKey) {
-            translated = name;
-          }
-        }
-      }
-    }
-
-    // Return the translation as-is
-    return translated;
+  // Helper function to check if current path is within a group of paths
+  const isCurrentPath = (paths: string[]) => {
+    return paths.some(p => location.startsWith(p));
   };
 
   // Fetch tickets count for badge
@@ -406,7 +379,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       backgroundColor: 'var(--accent)',
                       color: 'white'
                     } : {}}
-                    title={translateName(item.name)}>
+                    title={t(item.name)}>
                       <item.icon className="h-6 w-6 flex-shrink-0" />
                       {item.badge && (
                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -415,7 +388,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       )}
                       {/* Tooltip for collapsed state */}
                       <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                        {translateName(item.name)}
+                        {t(item.name)}
                       </div>
                     </div>
                   </div>
@@ -435,7 +408,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       color: 'white'
                     } : {}}>
                       <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                      {translateName(item.name)}
+                      {t(item.name)}
                       {item.badge && (
                         <Badge variant="destructive" className="ml-2">
                           {item.badge}
@@ -463,7 +436,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                             color: 'white'
                           } : {}}>
                             <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                            {translateName(child.name)}
+                            {t(child.name)}
                           </div>
                         </Link>
                       );
@@ -490,7 +463,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
                   } : {}}
-                  title={translateName(item.name)}>
+                  title={t(item.name)}>
                     <item.icon className="h-6 w-6 flex-shrink-0" />
                     {item.badge && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -499,7 +472,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     )}
                     {/* Tooltip for collapsed state */}
                     <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                      {translateName(item.name)}
+                      {t(item.name)}
                     </div>
                   </div>
                 </Link>
@@ -518,7 +491,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   color: 'white'
                 } : {}}>
                   <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                  {translateName(item.name)}
+                  {t(item.name)}
                   {item.badge && (
                     <Badge variant="destructive" className="ml-auto">
                       {item.badge}
@@ -535,7 +508,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               {!collapsed && (
                 <div className="px-2 mb-2">
                   <span className="text-xs text-white text-opacity-70 uppercase tracking-wider font-medium">
-                    {translateName("administration")}
+                    {t("administration")}
                   </span>
                 </div>
               )}
@@ -561,7 +534,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                           <item.icon className="h-6 w-6 flex-shrink-0" />
                           {/* Tooltip for collapsed state */}
                           <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                            {translateName(item.name)}
+                            {t(item.name)}
                           </div>
                         </div>
                       </div>
@@ -581,7 +554,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                           color: 'white'
                         } : {}}>
                           <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                          {translateName(item.name)}
+                          {t(item.name)}
                           {isOpen ? (
                             <ChevronDown className="ml-auto h-4 w-4" />
                           ) : (
@@ -604,7 +577,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                                 color: 'white'
                               } : {}}>
                                 <child.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                                {translateName(child.name)}
+                                {t(child.name)}
                               </div>
                             </Link>
                           );
@@ -630,11 +603,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 color: 'white'
               } : {}}>
                 <Palette className={collapsed ? "h-6 w-6 flex-shrink-0" : "mr-3 h-4 w-4 flex-shrink-0"} />
-                {!collapsed && translateName("appearance")}
+                {!collapsed && t("appearance")}
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                    {translateName("appearance")}
+                    {t("appearance")}
                   </div>
                 )}
               </div>
@@ -656,11 +629,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     color: 'white'
                   } : {}}>
                     <item.icon className={collapsed ? "h-6 w-6 flex-shrink-0" : "mr-3 h-4 w-4 flex-shrink-0"} />
-                    {!collapsed && translateName(item.name)}
+                    {!collapsed && t(item.name)}
                     {/* Tooltip for collapsed state */}
                     {collapsed && (
                       <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                        {translateName(item.name)}
+                        {t(item.name)}
                       </div>
                     )}
                   </div>
@@ -680,13 +653,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   size="sm"
                   onClick={() => logoutMutation.mutate()}
                   className="h-10 w-10 p-0 text-white hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg transition-all duration-300"
-                  title={translateName("logout")}
+                  title={t("logout")}
                 >
                   <LogOut className="h-5 w-5" />
                 </Button>
                 {/* Tooltip */}
                 <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                  {translateName("logout")}
+                  {t("logout")}
                 </div>
               </div>
             </div>
