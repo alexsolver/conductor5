@@ -187,18 +187,19 @@ router.get('/count', jwtAuth, async (req, res) => {
 // PATCH /api/schedule-notifications/bulk-read - Mark multiple notifications as read
 router.patch('/bulk-read', jwtAuth, async (req, res) => {
   try {
-    const tenantId = req.headers['x-tenant-id'];
+    const user = req.user;
     const { notificationIds } = req.body;
 
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Bulk mark as read request:', {
-      tenantId,
+      userId: user?.id,
+      tenantId: user?.tenantId,
       notificationIds: notificationIds?.length || 0
     });
 
-    if (!tenantId) {
+    if (!user || !user.tenantId || (!user.id && !user.userId)) {
       return res.status(400).json({
         success: false,
-        error: 'Tenant ID is required'
+        error: 'User information required'
       });
     }
 
@@ -209,14 +210,20 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
       });
     }
 
-    // Update notifications to mark as read
+    const { tenantId } = user;
+    const userId = user.id || user.userId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const { pool } = await import('../db.js');
+
+    // Update notifications to mark as read for the specific user
     const query = `
-      UPDATE schedule_notifications 
+      UPDATE ${schemaName}.schedule_notifications 
       SET read_at = NOW(), updated_at = NOW()
-      WHERE tenant_id = $1 AND id = ANY($2::uuid[]) AND read_at IS NULL
+      WHERE user_id = $1 AND id = ANY($2::uuid[]) AND read_at IS NULL
     `;
 
-    const result = await executeQuery(query, [tenantId, notificationIds]);
+    const result = await pool.query(query, [userId, notificationIds]);
 
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Bulk mark as read result:', {
       rowCount: result.rowCount
@@ -239,50 +246,6 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
   }
 });
 
-// PATCH /api/notifications/bulk-read - Alternative endpoint for notifications module
-router.patch('/api/notifications/bulk-read', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.headers['x-tenant-id'];
-    const { notificationIds } = req.body;
 
-    if (!tenantId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Tenant ID is required'
-      });
-    }
-
-    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Notification IDs array is required'
-      });
-    }
-
-    // Update notifications to mark as read
-    const query = `
-      UPDATE schedule_notifications 
-      SET read_at = NOW(), updated_at = NOW()
-      WHERE tenant_id = $1 AND id = ANY($2::uuid[]) AND read_at IS NULL
-    `;
-
-    const result = await executeQuery(query, [tenantId, notificationIds]);
-
-    res.json({
-      success: true,
-      message: `Marked ${result.rowCount} notifications as read`,
-      data: {
-        updatedCount: result.rowCount
-      }
-    });
-
-  } catch (error) {
-    console.error('Bulk mark as read error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to mark notifications as read'
-    });
-  }
-});
 
 export default router;

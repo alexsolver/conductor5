@@ -223,16 +223,23 @@ export default function NotificationsPage() {
         },
         body: JSON.stringify({ notificationIds: ids })
       });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to mark as read: ${response.status} - ${errorData}`);
+      }
+      
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast({
         title: 'Success',
-        description: 'Notifications marked as read'
+        description: `${variables.length} notification${variables.length > 1 ? 's' : ''} marked as read`
       });
       refetchNotifications();
     },
     onError: (error: any) => {
+      console.error('Mark as read error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to mark as read',
@@ -617,7 +624,11 @@ export default function NotificationsPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => markAsReadMutation.mutate([notification.id])}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              markAsReadMutation.mutate([notification.id]);
+                            }}
                             disabled={markAsReadMutation.isPending}
                             data-testid={`button-mark-read-${notification.id}`}
                           >
