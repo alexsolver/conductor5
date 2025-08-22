@@ -193,6 +193,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { terminology, employmentType } = useEmploymentDetection();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
+  // Helper function to capitalize first letter
+  const capitalizeFirstLetter = (str: string): string => {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   // Helper function to translate menu items
   const translateName = (name: string): string => {
     let translated = '';
@@ -222,8 +228,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       }
     }
 
-    // Return the translation as-is
-    return translated;
+    // Capitalize first letter and return the translation
+    return capitalizeFirstLetter(translated);
   };
 
   // Fetch tickets count for badge
