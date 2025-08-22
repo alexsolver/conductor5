@@ -92,7 +92,10 @@
     "create": "analytics.create"
   },
   "notifications": "Notificações",
-  "compliance": "Compliance",
+  "compliance": {
+    "view": "compliance.view",
+    "manage": "compliance.manage"
+  },
   "gdprCompliance": "Compliance GDPR",
   "knowledgeBase": "Base de Conhecimento",
   "timecardControl": "Controle de Jornadas",
@@ -105,7 +108,9 @@
   "timecardApprovals": "Aprovações de Jornada",
   "approvalConfiguration": "Configuração de Aprovação",
   "absenceManagement": "Gestão de Ausências",
-  "locations": "Localizações",
+  "locations": {
+    "saveLocation": "locations.saveLocation"
+  },
   "materialsAndServices": "Materiais e Serviços",
   "itemCatalog": "Catálogo de Itens",
   "stockManagement": "Gestão de Estoque",
@@ -151,18 +156,7 @@
   "integracoes": "Integrações",
   "ticketConfiguration": "Configuração de Tickets",
   "ticketTemplates": "Templates de Tickets",
-  "customFields": {
-    "hide": "customFields.hide",
-    "show": "customFields.show",
-    "fields": "customFields.fields",
-    "exitDesign": "customFields.exitDesign",
-    "editLayout": "customFields.editLayout",
-    "activeCustomFields": "customFields.activeCustomFields",
-    "field": "customFields.field",
-    "configureFields": "customFields.configureFields",
-    "title": "customFields.title",
-    "noFieldsConfigured": "customFields.noFieldsConfigured"
-  },
+  "customFields": "Campos Personalizados",
   "clientes": "Clientes",
   "beneficiaries": "Beneficiários",
   "internalForms": "Formulários Internos",
