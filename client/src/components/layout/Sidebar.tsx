@@ -204,26 +204,47 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     try {
       let translated: any = '';
 
+      // Debug logging
+      console.log(`🌍 [DEBUG] Translating "${name}"`);
+
       // Check if it's already a full translation key (contains namespace)
       if (name.includes('.')) {
         translated = t(name);
+        console.log(`🔍 [DEBUG] Full key "${name}" → "${translated}"`);
+        
+        // If translation still returns the key, try without namespace
+        if (translated === name) {
+          const shortName = name.split('.').pop() || name;
+          translated = t(`navigation.${shortName}`);
+          console.log(`🔄 [DEBUG] Fallback navigation.${shortName} → "${translated}"`);
+          
+          // Final fallback to just the short name
+          if (translated === `navigation.${shortName}`) {
+            translated = t(shortName);
+            console.log(`🔄 [DEBUG] Final fallback ${shortName} → "${translated}"`);
+          }
+        }
       } else {
         // Try navigation namespace first
         const navKey = `navigation.${name}`;
         translated = t(navKey);
+        console.log(`🔍 [DEBUG] Navigation key "${navKey}" → "${translated}"`);
 
         // If translation returns the key itself (meaning not found), try without namespace
         if (translated === navKey) {
           translated = t(name);
+          console.log(`🔄 [DEBUG] Direct key "${name}" → "${translated}"`);
 
           // If still not found, try common namespace
           if (translated === name) {
             const commonKey = `common.${name}`;
             translated = t(commonKey);
+            console.log(`🔄 [DEBUG] Common key "${commonKey}" → "${translated}"`);
 
             // If still not found, return the original name
             if (translated === commonKey) {
               translated = name;
+              console.log(`❌ [DEBUG] No translation found, using "${name}"`);
             }
           }
         }
@@ -236,12 +257,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       } else if (translated && typeof translated === 'object') {
         // If it's an object, try to extract a string value or fallback to name
         translatedString = translated.toString ? translated.toString() : name;
+        console.log(`⚠️ [DEBUG] Object translation converted: ${translatedString}`);
       } else {
         translatedString = name;
+        console.log(`⚠️ [DEBUG] Fallback to original: ${translatedString}`);
       }
 
       // Capitalize first letter and return the translation
-      return capitalizeFirstLetter(translatedString);
+      const result = capitalizeFirstLetter(translatedString);
+      console.log(`✅ [DEBUG] Final result: "${result}"`);
+      return result;
     } catch (error) {
       console.warn(`Translation error for key "${name}":`, error);
       return capitalizeFirstLetter(name);
