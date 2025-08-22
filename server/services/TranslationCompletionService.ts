@@ -758,8 +758,9 @@ export class TranslationCompletionService {
     console.log('📊 [COMPLETION-REPORT] Starting completeness analysis...');
 
     try {
-      // Get valid i18n keys from all language files (same logic as auto-complete)
-      const allKeys = this.getValidI18nKeysFromAllLanguages();
+      // USE THE COMPREHENSIVE SCANNED KEYS FOR CONSISTENCY
+      const scannedKeys = await this.scanCodebaseForTranslationKeys();
+      const allKeys = scannedKeys.map(keyObj => keyObj.key);
       const totalKeys = allKeys.length;
 
       console.log(`📊 [COMPLETION-REPORT] Found ${totalKeys} total keys to analyze`);
@@ -1090,9 +1091,12 @@ export class TranslationCompletionService {
         const allKeysData = await this.scanExistingTranslationFiles();
         const allKeys = allKeysData.map(keyData => keyData.key);
 
-        // For completion, we only want to work with keys that already exist in at least one language
-        // This prevents adding random strings that the scanner picked up from code
-        const validI18nKeys = this.getValidI18nKeysFromAllLanguages();
+        // USE THE COMPREHENSIVE SCANNED KEYS FOR COMPLETION
+        // Get all keys from the comprehensive scanner (1267 keys)
+        const scannedKeys = await this.scanCodebaseForTranslationKeys();
+        const validI18nKeys = scannedKeys.map(keyObj => keyObj.key);
+        
+        console.log(`🔍 [COMPLETE-TRANSLATIONS] Using ${validI18nKeys.length} scanned keys for completion`);
 
         // Find missing keys by checking which valid i18n keys don't exist in this language's file
         const missingKeys: string[] = [];
