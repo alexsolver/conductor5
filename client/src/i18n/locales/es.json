@@ -30,45 +30,45 @@
     "remove": "Eliminar",
     "creating": "Creando",
     "view": "Ver",
-    "use": "[ES] common.use",
-    "appName": "[ES] common.appName",
-    "collapseSidebar": "[ES] common.collapseSidebar",
-    "expandSidebar": "[ES] common.expandSidebar",
-    "saving": "[ES] common.saving",
-    "description": "[ES] common.description",
-    "active": "[ES] common.active",
-    "inactive": "[ES] common.inactive",
-    "loading_attachments": "[ES] common.loading_attachments",
-    "download": "[ES] common.download",
-    "loading_communications": "[ES] common.loading_communications",
-    "by": "[ES] common.by",
-    "loading_notes": "[ES] common.loading_notes",
-    "loading_history": "[ES] common.loading_history",
-    "error": "[ES] common.error",
-    "retry": "[ES] common.retry",
-    "open": "[ES] common.open",
-    "refresh": "[ES] common.refresh",
-    "ok": "[ES] common.ok",
-    "success": "[ES] common.success",
-    "warning": "[ES] common.warning",
-    "info": "[ES] common.info",
-    "first": "[ES] common.first",
-    "last": "[ES] common.last",
-    "name": "[ES] common.name",
-    "email": "[ES] common.email",
-    "phone": "[ES] common.phone",
-    "address": "[ES] common.address",
-    "date": "[ES] common.date",
-    "time": "[ES] common.time",
-    "status": "[ES] common.status",
-    "type": "[ES] common.type",
-    "category": "[ES] common.category",
-    "processing": "[ES] common.processing",
-    "pleaseWait": "[ES] common.pleaseWait",
-    "none": "[ES] common.none",
-    "all": "[ES] common.all",
-    "select": "[ES] common.select",
-    "choose": "[ES] common.choose"
+    "use": "Usar",
+    "appName": "Conductor",
+    "collapseSidebar": "Colapsar Barra Lateral",
+    "expandSidebar": "Expandir Barra Lateral",
+    "saving": "Guardando",
+    "description": "Descripción",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "loading_attachments": "Cargando archivos adjuntos",
+    "download": "Descargar",
+    "loading_communications": "Cargando comunicaciones",
+    "by": "por",
+    "loading_notes": "Cargando notas",
+    "loading_history": "Cargando historial",
+    "error": "Error",
+    "retry": "Reintentar",
+    "open": "Abrir",
+    "refresh": "Actualizar",
+    "ok": "Aceptar",
+    "success": "Éxito",
+    "warning": "warning - ES",
+    "info": "info - ES",
+    "first": "first - ES",
+    "last": "last - ES",
+    "name": "name - ES",
+    "email": "email - ES",
+    "phone": "phone - ES",
+    "address": "address - ES",
+    "date": "date - ES",
+    "time": "time - ES",
+    "status": "status - ES",
+    "type": "type - ES",
+    "category": "category - ES",
+    "processing": "processing - ES",
+    "pleaseWait": "pleaseWait - ES",
+    "none": "none - ES",
+    "all": "all - ES",
+    "select": "select - ES",
+    "choose": "choose - ES"
   },
   "navigation": {
     "dashboard": "Panel",
@@ -103,8 +103,8 @@
     "customers": "Clientes",
     "analytics": "Análisis",
     "activity": "Actividad",
-    "view": "[ES] dashboard.view",
-    "manage": "[ES] dashboard.manage"
+    "view": "view - ES",
+    "manage": "manage - ES"
   },
   "tickets": {
     "title": "Tickets",
@@ -121,15 +121,15 @@
       "newView": "Nueva Vista",
       "manage": "Gestionar Vistas",
       "advancedFilters": "Filtros Avanzados",
-      "view": "[ES] tickets.views.view",
-      "public": "[ES] tickets.views.public",
-      "noViewsAvailable": "[ES] tickets.views.noViewsAvailable",
-      "default": "[ES] tickets.views.default",
-      "createNewView": "[ES] tickets.views.createNewView",
-      "viewName": "[ES] tickets.views.viewName",
-      "descriptionPlaceholder": "[ES] tickets.views.descriptionPlaceholder",
-      "description": "[ES] tickets.views.description",
-      "manageViews": "[ES] tickets.views.manageViews"
+      "view": "Vista",
+      "public": "Público",
+      "noViewsAvailable": "No hay vistas disponibles",
+      "default": "Por defecto",
+      "createNewView": "Crear Nueva Vista",
+      "viewName": "Nombre de la Vista",
+      "descriptionPlaceholder": "Ingrese la descripción de la vista...",
+      "description": "Descripción",
+      "manageViews": "Gestionar Vistas"
     },
     "clear_filters": "Limpiar Filtros",
     "status": "Estado",
@@ -195,215 +195,215 @@
     "subcategory": "Subcategoría",
     "agent": "Agente",
     "internal_actions": {
-      "description_placeholder": "[ES] tickets.internal_actions.description_placeholder",
-      "detailed_description_placeholder": "[ES] tickets.internal_actions.detailed_description_placeholder",
-      "description_too_long": "[ES] tickets.internal_actions.description_too_long"
+      "description_placeholder": "Ingrese la descripción de la acción...",
+      "detailed_description_placeholder": "Ingrese una descripción detallada de la acción realizada...",
+      "description_too_long": "La descripción es demasiado larga"
     },
     "messages": {
-      "not_found": "[ES] tickets.messages.not_found",
-      "no_description": "[ES] tickets.messages.no_description",
-      "no_attachments": "[ES] tickets.messages.no_attachments",
-      "no_communications": "[ES] tickets.messages.no_communications",
-      "no_notes": "[ES] tickets.messages.no_notes",
-      "no_history": "[ES] tickets.messages.no_history",
-      "created_success": "[ES] tickets.messages.created_success",
-      "error_creating": "[ES] tickets.messages.error_creating",
-      "error_loading": "[ES] tickets.messages.error_loading",
-      "loading": "[ES] tickets.messages.loading"
+      "not_found": "Ticket no encontrado",
+      "no_description": "Sin descripción disponible",
+      "no_attachments": "Sin archivos adjuntos",
+      "no_communications": "Sin comunicaciones",
+      "no_notes": "Sin notas",
+      "no_history": "Sin historial disponible",
+      "created_success": "Ticket creado exitosamente",
+      "error_creating": "Error al crear ticket",
+      "error_loading": "Error al cargar ticket",
+      "loading": "Cargando..."
     },
     "actions": {
-      "back_to_tickets": "[ES] tickets.actions.back_to_tickets",
-      "back": "[ES] tickets.actions.back",
-      "download": "[ES] tickets.actions.download",
-      "delete": "[ES] tickets.actions.delete",
-      "simple": "[ES] tickets.actions.simple",
-      "detailed": "[ES] tickets.actions.detailed",
-      "edit": "[ES] tickets.actions.edit",
-      "linkTicket": "[ES] tickets.actions.linkTicket",
-      "title": "[ES] tickets.actions.title",
-      "creating": "[ES] tickets.actions.creating",
-      "create": "[ES] tickets.actions.create"
+      "back_to_tickets": "Volver a Tickets",
+      "back": "Atrás",
+      "download": "Descargar",
+      "delete": "Eliminar",
+      "simple": "Simple",
+      "detailed": "Detallado",
+      "edit": "Editar",
+      "linkTicket": "Vincular Ticket",
+      "title": "Acciones",
+      "creating": "Creando...",
+      "create": "Crear"
     },
-    "attachments": "[ES] tickets.attachments",
-    "communication": "[ES] tickets.communication",
-    "notes": "[ES] tickets.notes",
-    "history": "[ES] tickets.history",
-    "upload_attachments": "[ES] tickets.upload_attachments",
-    "existing_attachments": "[ES] tickets.existing_attachments",
-    "note_internal": "[ES] tickets.note_internal",
-    "note_public": "[ES] tickets.note_public",
-    "change_history": "[ES] tickets.change_history",
-    "field": "[ES] tickets.field",
-    "ticket_information": "[ES] tickets.ticket_information",
-    "created": "[ES] tickets.created",
-    "updated": "[ES] tickets.updated",
-    "company": "[ES] tickets.company",
-    "location": "[ES] tickets.location",
-    "uploaded_by": "[ES] tickets.uploaded_by",
+    "attachments": "Archivos Adjuntos",
+    "communication": "Comunicación",
+    "notes": "Notas",
+    "history": "Historial",
+    "upload_attachments": "Subir Archivos Adjuntos",
+    "existing_attachments": "Archivos Adjuntos Existentes",
+    "note_internal": "Nota Interna",
+    "note_public": "Nota Pública",
+    "change_history": "Historial de Cambios",
+    "field": "Campo",
+    "ticket_information": "Información del Ticket",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "company": "Empresa",
+    "location": "Ubicación",
+    "uploaded_by": "Subido por",
     "tabs": {
-      "attachments": "[ES] tickets.tabs.attachments",
-      "communication": "[ES] tickets.tabs.communication"
+      "attachments": "Archivos Adjuntos",
+      "communication": "Comunicación"
     },
     "fields": {
-      "classification": "[ES] tickets.fields.classification",
-      "priority": "[ES] tickets.fields.priority",
-      "status": "[ES] tickets.fields.status",
-      "urgency": "[ES] tickets.fields.urgency",
-      "category": "[ES] tickets.fields.category",
-      "subcategory": "[ES] tickets.fields.subcategory",
-      "notSpecified": "[ES] tickets.fields.notSpecified",
-      "action": "[ES] tickets.fields.action",
-      "subject": "[ES] tickets.fields.subject",
-      "notInformed": "[ES] tickets.fields.notInformed",
-      "description": "[ES] tickets.fields.description",
-      "attachments": "[ES] tickets.fields.attachments",
-      "attachmentCount": "[ES] tickets.fields.attachmentCount",
-      "existingAttachments": "[ES] tickets.fields.existingAttachments",
-      "fileNoName": "[ES] tickets.fields.fileNoName",
-      "unknownSize": "[ES] tickets.fields.unknownSize",
-      "addedOn": "[ES] tickets.fields.addedOn",
-      "dateNotAvailable": "[ES] tickets.fields.dateNotAvailable",
-      "noteCount": "[ES] tickets.fields.noteCount",
-      "newNote": "[ES] tickets.fields.newNote",
-      "general": "[ES] tickets.fields.general",
-      "internal": "[ES] tickets.fields.internal",
-      "resolution": "[ES] tickets.fields.resolution",
-      "escalation": "[ES] tickets.fields.escalation",
-      "communicationTimeline": "[ES] tickets.fields.communicationTimeline",
-      "historyComplete": "[ES] tickets.fields.historyComplete",
-      "internalAction": "[ES] tickets.fields.internalAction",
-      "internalActionCreated": "[ES] tickets.fields.internalActionCreated",
-      "internalActionUpdated": "[ES] tickets.fields.internalActionUpdated",
-      "internalActionDeleted": "[ES] tickets.fields.internalActionDeleted",
-      "actionPerformedBy": "[ES] tickets.fields.actionPerformedBy",
-      "resolvedOn": "[ES] tickets.fields.resolvedOn",
-      "createdOn": "[ES] tickets.fields.createdOn",
-      "internalActions": "[ES] tickets.fields.internalActions",
-      "assignedTo": "[ES] tickets.fields.assignedTo",
-      "ticketsLinkedCount": "[ES] tickets.fields.ticketsLinkedCount",
-      "noTicketLinked": "[ES] tickets.fields.noTicketLinked",
-      "linkButtonHint": "[ES] tickets.fields.linkButtonHint",
-      "customer": "[ES] tickets.fields.customer",
-      "customerSince": "[ES] tickets.fields.customerSince",
-      "totalTickets": "[ES] tickets.fields.totalTickets",
-      "lastOpenedTickets": "[ES] tickets.fields.lastOpenedTickets",
-      "thisCustomer": "[ES] tickets.fields.thisCustomer",
-      "current": "[ES] tickets.fields.current",
-      "systemProblem": "[ES] tickets.fields.systemProblem",
-      "today": "[ES] tickets.fields.today",
-      "resolved": "[ES] tickets.fields.resolved",
-      "closed": "[ES] tickets.fields.closed",
-      "active": "[ES] tickets.fields.active",
-      "relatedTicket": "[ES] tickets.fields.relatedTicket",
-      "customerInsights": "[ES] tickets.fields.customerInsights",
-      "company": "[ES] tickets.fields.company",
-      "selectCustomer": "[ES] tickets.fields.selectCustomer",
-      "customerFound": "[ES] tickets.fields.customerFound",
-      "customerNotFound": "[ES] tickets.fields.customerNotFound",
-      "customerNoName": "[ES] tickets.fields.customerNoName",
-      "beneficiary": "[ES] tickets.fields.beneficiary",
-      "location": "[ES] tickets.fields.location",
-      "assignmentGroup": "[ES] tickets.fields.assignmentGroup",
-      "responsible": "[ES] tickets.fields.responsible",
-      "datesTimeTitle": "[ES] tickets.fields.datesTimeTitle",
-      "creation": "[ES] tickets.fields.creation",
-      "dueDate": "[ES] tickets.fields.dueDate",
-      "statusField": "[ES] tickets.fields.statusField",
-      "sla": "[ES] tickets.fields.sla",
-      "slaElapsed": "[ES] tickets.fields.slaElapsed",
-      "sensitiveData": "[ES] tickets.fields.sensitiveData",
-      "securityVerification": "[ES] tickets.fields.securityVerification",
-      "enterPasswordAccess": "[ES] tickets.fields.enterPasswordAccess",
-      "enterPasswordPlaceholder": "[ES] tickets.fields.enterPasswordPlaceholder",
-      "name": "[ES] tickets.fields.name",
-      "email": "[ES] tickets.fields.email",
-      "phone": "[ES] tickets.fields.phone",
-      "customerUpper": "[ES] tickets.fields.customerUpper",
-      "accessSensitiveData": "[ES] tickets.fields.accessSensitiveData",
-      "address": "[ES] tickets.fields.address",
-      "sensitiveDataAccess": "[ES] tickets.fields.sensitiveDataAccess",
-      "enterPasswordAgent": "[ES] tickets.fields.enterPasswordAgent",
-      "agentPassword": "[ES] tickets.fields.agentPassword",
-      "cancel": "[ES] tickets.fields.cancel",
-      "sensitiveDataRevealed": "[ES] tickets.fields.sensitiveDataRevealed",
-      "enterPassword": "[ES] tickets.fields.enterPassword",
-      "verify": "[ES] tickets.fields.verify",
-      "companyDetails": "[ES] tickets.fields.companyDetails",
-      "companyName": "[ES] tickets.fields.companyName",
-      "companyNotSpecified": "[ES] tickets.fields.companyNotSpecified",
-      "technicalResponsible": "[ES] tickets.fields.technicalResponsible",
-      "manageCustomers": "[ES] tickets.fields.manageCustomers",
-      "customerDetails": "[ES] tickets.fields.customerDetails",
-      "noCustomerSpecified": "[ES] tickets.fields.noCustomerSpecified",
-      "beneficiaryDetails": "[ES] tickets.fields.beneficiaryDetails"
+      "classification": "classification - ES",
+      "priority": "priority - ES",
+      "status": "status - ES",
+      "urgency": "urgency - ES",
+      "category": "category - ES",
+      "subcategory": "subcategory - ES",
+      "notSpecified": "notSpecified - ES",
+      "action": "action - ES",
+      "subject": "subject - ES",
+      "notInformed": "notInformed - ES",
+      "description": "description - ES",
+      "attachments": "attachments - ES",
+      "attachmentCount": "attachmentCount - ES",
+      "existingAttachments": "existingAttachments - ES",
+      "fileNoName": "fileNoName - ES",
+      "unknownSize": "unknownSize - ES",
+      "addedOn": "addedOn - ES",
+      "dateNotAvailable": "dateNotAvailable - ES",
+      "noteCount": "noteCount - ES",
+      "newNote": "newNote - ES",
+      "general": "general - ES",
+      "internal": "internal - ES",
+      "resolution": "resolution - ES",
+      "escalation": "escalation - ES",
+      "communicationTimeline": "communicationTimeline - ES",
+      "historyComplete": "historyComplete - ES",
+      "internalAction": "internalAction - ES",
+      "internalActionCreated": "internalActionCreated - ES",
+      "internalActionUpdated": "internalActionUpdated - ES",
+      "internalActionDeleted": "internalActionDeleted - ES",
+      "actionPerformedBy": "actionPerformedBy - ES",
+      "resolvedOn": "resolvedOn - ES",
+      "createdOn": "createdOn - ES",
+      "internalActions": "internalActions - ES",
+      "assignedTo": "assignedTo - ES",
+      "ticketsLinkedCount": "ticketsLinkedCount - ES",
+      "noTicketLinked": "noTicketLinked - ES",
+      "linkButtonHint": "linkButtonHint - ES",
+      "customer": "customer - ES",
+      "customerSince": "customerSince - ES",
+      "totalTickets": "totalTickets - ES",
+      "lastOpenedTickets": "lastOpenedTickets - ES",
+      "thisCustomer": "thisCustomer - ES",
+      "current": "current - ES",
+      "systemProblem": "systemProblem - ES",
+      "today": "today - ES",
+      "resolved": "resolved - ES",
+      "closed": "closed - ES",
+      "active": "active - ES",
+      "relatedTicket": "relatedTicket - ES",
+      "customerInsights": "customerInsights - ES",
+      "company": "company - ES",
+      "selectCustomer": "selectCustomer - ES",
+      "customerFound": "customerFound - ES",
+      "customerNotFound": "customerNotFound - ES",
+      "customerNoName": "customerNoName - ES",
+      "beneficiary": "beneficiary - ES",
+      "location": "location - ES",
+      "assignmentGroup": "assignmentGroup - ES",
+      "responsible": "responsible - ES",
+      "datesTimeTitle": "datesTimeTitle - ES",
+      "creation": "creation - ES",
+      "dueDate": "dueDate - ES",
+      "statusField": "statusField - ES",
+      "sla": "sla - ES",
+      "slaElapsed": "slaElapsed - ES",
+      "sensitiveData": "sensitiveData - ES",
+      "securityVerification": "securityVerification - ES",
+      "enterPasswordAccess": "enterPasswordAccess - ES",
+      "enterPasswordPlaceholder": "enterPasswordPlaceholder - ES",
+      "name": "name - ES",
+      "email": "email - ES",
+      "phone": "phone - ES",
+      "customerUpper": "customerUpper - ES",
+      "accessSensitiveData": "accessSensitiveData - ES",
+      "address": "address - ES",
+      "sensitiveDataAccess": "sensitiveDataAccess - ES",
+      "enterPasswordAgent": "enterPasswordAgent - ES",
+      "agentPassword": "agentPassword - ES",
+      "cancel": "cancel - ES",
+      "sensitiveDataRevealed": "sensitiveDataRevealed - ES",
+      "enterPassword": "enterPassword - ES",
+      "verify": "verify - ES",
+      "companyDetails": "companyDetails - ES",
+      "companyName": "companyName - ES",
+      "companyNotSpecified": "companyNotSpecified - ES",
+      "technicalResponsible": "technicalResponsible - ES",
+      "manageCustomers": "manageCustomers - ES",
+      "customerDetails": "customerDetails - ES",
+      "noCustomerSpecified": "noCustomerSpecified - ES",
+      "beneficiaryDetails": "beneficiaryDetails - ES"
     },
     "placeholders": {
-      "selectAction": "[ES] tickets.placeholders.selectAction",
-      "ticketDescription": "[ES] tickets.placeholders.ticketDescription",
-      "noteText": "[ES] tickets.placeholders.noteText"
+      "selectAction": "selectAction - ES",
+      "ticketDescription": "ticketDescription - ES",
+      "noteText": "noteText - ES"
     },
-    "interactions": "[ES] tickets.interactions",
-    "interactions_plural": "[ES] tickets.interactions_plural",
-    "links": "[ES] tickets.links",
+    "interactions": "interactions - ES",
+    "interactions_plural": "interactions_plural - ES",
+    "links": "links - ES",
     "relationships": {
-      "related": "[ES] tickets.relationships.related",
-      "duplicates": "[ES] tickets.relationships.duplicates",
-      "blocks": "[ES] tickets.relationships.blocks",
-      "causedBy": "[ES] tickets.relationships.causedBy",
-      "parentChild": "[ES] tickets.relationships.parentChild",
-      "follows": "[ES] tickets.relationships.follows",
-      "linked": "[ES] tickets.relationships.linked"
+      "related": "related - ES",
+      "duplicates": "duplicates - ES",
+      "blocks": "blocks - ES",
+      "causedBy": "causedBy - ES",
+      "parentChild": "parentChild - ES",
+      "follows": "follows - ES",
+      "linked": "linked - ES"
     },
-    "basicData": "[ES] tickets.basicData",
-    "explore": "[ES] tickets.explore",
-    "details": "[ES] tickets.details",
-    "materialsServices": "[ES] tickets.materialsServices",
-    "knowledgeBase": "[ES] tickets.knowledgeBase",
-    "internalActions": "[ES] tickets.internalActions",
-    "externalActions": "[ES] tickets.externalActions",
-    "latestInteractions": "[ES] tickets.latestInteractions",
+    "basicData": "basicData - ES",
+    "explore": "explore - ES",
+    "details": "details - ES",
+    "materialsServices": "materialsServices - ES",
+    "knowledgeBase": "knowledgeBase - ES",
+    "internalActions": "internalActions - ES",
+    "externalActions": "externalActions - ES",
+    "latestInteractions": "latestInteractions - ES",
     "new_ticket": "Nuevo Ticket",
     "forms": {
       "create": {
-        "title": "[ES] tickets.forms.create.title",
-        "select_company": "[ES] tickets.forms.create.select_company",
-        "no_companies": "[ES] tickets.forms.create.no_companies",
-        "first_select_company": "[ES] tickets.forms.create.first_select_company",
-        "select_customer": "[ES] tickets.forms.create.select_customer",
-        "no_customers_for_company": "[ES] tickets.forms.create.no_customers_for_company",
-        "select_beneficiary": "[ES] tickets.forms.create.select_beneficiary",
-        "no_beneficiary": "[ES] tickets.forms.create.no_beneficiary",
-        "subject_placeholder": "[ES] tickets.forms.create.subject_placeholder",
-        "select_category": "[ES] tickets.forms.create.select_category",
-        "first_select_category": "[ES] tickets.forms.create.first_select_category",
-        "select_subcategory": "[ES] tickets.forms.create.select_subcategory",
-        "no_subcategories": "[ES] tickets.forms.create.no_subcategories",
-        "first_select_subcategory": "[ES] tickets.forms.create.first_select_subcategory",
-        "select_action": "[ES] tickets.forms.create.select_action",
-        "no_actions": "[ES] tickets.forms.create.no_actions",
-        "select_priority": "[ES] tickets.forms.create.select_priority",
-        "select_urgency": "[ES] tickets.forms.create.select_urgency",
-        "description_placeholder": "[ES] tickets.forms.create.description_placeholder",
-        "symptoms_placeholder": "[ES] tickets.forms.create.symptoms_placeholder",
-        "business_impact_placeholder": "[ES] tickets.forms.create.business_impact_placeholder",
-        "workaround_placeholder": "[ES] tickets.forms.create.workaround_placeholder",
-        "select_location_optional": "[ES] tickets.forms.create.select_location_optional",
-        "no_specific_location": "[ES] tickets.forms.create.no_specific_location"
+        "title": "title - ES",
+        "select_company": "select_company - ES",
+        "no_companies": "no_companies - ES",
+        "first_select_company": "first_select_company - ES",
+        "select_customer": "select_customer - ES",
+        "no_customers_for_company": "no_customers_for_company - ES",
+        "select_beneficiary": "select_beneficiary - ES",
+        "no_beneficiary": "no_beneficiary - ES",
+        "subject_placeholder": "subject_placeholder - ES",
+        "select_category": "select_category - ES",
+        "first_select_category": "first_select_category - ES",
+        "select_subcategory": "select_subcategory - ES",
+        "no_subcategories": "no_subcategories - ES",
+        "first_select_subcategory": "first_select_subcategory - ES",
+        "select_action": "select_action - ES",
+        "no_actions": "no_actions - ES",
+        "select_priority": "select_priority - ES",
+        "select_urgency": "select_urgency - ES",
+        "description_placeholder": "description_placeholder - ES",
+        "symptoms_placeholder": "symptoms_placeholder - ES",
+        "business_impact_placeholder": "business_impact_placeholder - ES",
+        "workaround_placeholder": "workaround_placeholder - ES",
+        "select_location_optional": "select_location_optional - ES",
+        "no_specific_location": "no_specific_location - ES"
       }
     },
-    "beneficiary": "[ES] tickets.beneficiary",
-    "action": "[ES] tickets.action",
-    "urgency": "[ES] tickets.urgency",
-    "symptoms": "[ES] tickets.symptoms",
-    "business_impact": "[ES] tickets.business_impact",
-    "workaround": "[ES] tickets.workaround",
-    "filter_by_status": "[ES] tickets.filter_by_status",
-    "filter_by_priority": "[ES] tickets.filter_by_priority",
-    "assignedTo": "[ES] tickets.assignedTo",
-    "id": "[ES] tickets.id",
-    "manage": "[ES] tickets.manage",
-    "delete": "[ES] tickets.delete",
-    "customerId": "[ES] tickets.customerId"
+    "beneficiary": "beneficiary - ES",
+    "action": "action - ES",
+    "urgency": "urgency - ES",
+    "symptoms": "symptoms - ES",
+    "business_impact": "business_impact - ES",
+    "workaround": "workaround - ES",
+    "filter_by_status": "filter_by_status - ES",
+    "filter_by_priority": "filter_by_priority - ES",
+    "assignedTo": "assignedTo - ES",
+    "id": "id - ES",
+    "manage": "manage - ES",
+    "delete": "delete - ES",
+    "customerId": "customerId - ES"
   },
   "customers": {
     "title": "Clientes",
@@ -448,7 +448,7 @@
     "name": "Nombre",
     "address": "Dirección",
     "created_at": "Creado en",
-    "id": "[ES] customers.id"
+    "id": "id - ES"
   },
   "analytics": "Analíticas",
   "auth": {
@@ -492,9 +492,9 @@
     "system": "Sistema",
     "security": "Seguridad",
     "integrations": "Integraciones",
-    "view": "[ES] settings.view",
-    "edit": "[ES] settings.edit",
-    "branding": "[ES] settings.branding"
+    "view": "view - ES",
+    "edit": "edit - ES",
+    "branding": "branding - ES"
   },
   "localization": {
     "language": "Idioma",
@@ -514,7 +514,7 @@
     "unauthorized": "No tienes autorización para esta acción.",
     "not_found": "El recurso solicitado no fue encontrado.",
     "validation": "Verifica tus datos e inténtalo de nuevo.",
-    "general": "[ES] errors.general"
+    "general": "general - ES"
   },
   "success": {
     "saved": "Cambios guardados exitosamente",
@@ -784,11 +784,11 @@
   "Digite sua senha": "[ES] [EN] Digite sua senha",
   "/api/materials-services/tickets/${ticketId}/consumed-items": "[ES] [EN] /api/materials-services/tickets/${ticket Id}/consumed-items",
   "customer": {
-    "created": "[ES] customer.created",
-    "updated": "[ES] customer.updated",
-    "suspended": "[ES] customer.suspended",
-    "activated": "[ES] customer.activated",
-    "verified": "[ES] customer.verified"
+    "created": "created - ES",
+    "updated": "updated - ES",
+    "suspended": "suspended - ES",
+    "activated": "activated - ES",
+    "verified": "verified - ES"
   },
   "/": "[ES] [EN] /",
   "Ativo": "[ES] [EN] Ativo",
@@ -931,98 +931,98 @@
     "autoCompletionErrorDesc": "Falló el auto completar traducciones"
   },
   "quickActions": {
-    "createTicket": "[ES] quickActions.createTicket",
-    "addCustomer": "[ES] quickActions.addCustomer",
-    "generateReport": "[ES] quickActions.generateReport",
-    "automation": "[ES] quickActions.automation",
-    "title": "[ES] quickActions.title"
+    "createTicket": "createTicket - ES",
+    "addCustomer": "addCustomer - ES",
+    "generateReport": "generateReport - ES",
+    "automation": "automation - ES",
+    "title": "title - ES"
   },
   "userGroups": {
-    "loadingGroups": "[ES] userGroups.loadingGroups",
-    "title": "[ES] userGroups.title",
-    "description": "[ES] userGroups.description",
-    "createGroup": "[ES] userGroups.createGroup",
-    "createNewGroup": "[ES] userGroups.createNewGroup",
-    "createNewGroupDescription": "[ES] userGroups.createNewGroupDescription",
-    "groupName": "[ES] userGroups.groupName",
-    "groupDescription": "[ES] userGroups.groupDescription",
-    "groupDescriptionPlaceholder": "[ES] userGroups.groupDescriptionPlaceholder",
-    "creating": "[ES] userGroups.creating",
-    "noGroupsFound": "[ES] userGroups.noGroupsFound",
-    "noGroupsDescription": "[ES] userGroups.noGroupsDescription",
-    "createFirstGroup": "[ES] userGroups.createFirstGroup",
-    "members": "[ES] userGroups.members",
-    "editGroupTitle": "[ES] userGroups.editGroupTitle",
-    "updating": "[ES] userGroups.updating"
+    "loadingGroups": "loadingGroups - ES",
+    "title": "title - ES",
+    "description": "description - ES",
+    "createGroup": "createGroup - ES",
+    "createNewGroup": "createNewGroup - ES",
+    "createNewGroupDescription": "createNewGroupDescription - ES",
+    "groupName": "groupName - ES",
+    "groupDescription": "groupDescription - ES",
+    "groupDescriptionPlaceholder": "groupDescriptionPlaceholder - ES",
+    "creating": "creating - ES",
+    "noGroupsFound": "noGroupsFound - ES",
+    "noGroupsDescription": "noGroupsDescription - ES",
+    "createFirstGroup": "createFirstGroup - ES",
+    "members": "members - ES",
+    "editGroupTitle": "editGroupTitle - ES",
+    "updating": "updating - ES"
   },
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9": {
     "eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
-      "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY": "[ES] eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY"
+      "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY": "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY - ES"
     },
     "eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
-      "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM": "[ES] eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM"
+      "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM": "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM - ES"
     }
   },
   "coordinates": {
-    "lat": "[ES] coordinates.lat",
-    "lng": "[ES] coordinates.lng"
+    "lat": "lat - ES",
+    "lng": "lng - ES"
   },
   "workingHours": {
-    "start": "[ES] workingHours.start",
-    "end": "[ES] workingHours.end"
+    "start": "start - ES",
+    "end": "end - ES"
   },
   "colors": {
-    "primary": "[ES] colors.primary",
-    "secondary": "[ES] colors.secondary",
-    "accent": "[ES] colors.accent",
-    "background": "[ES] colors.background",
-    "surface": "[ES] colors.surface",
-    "text": "[ES] colors.text"
+    "primary": "primary - ES",
+    "secondary": "secondary - ES",
+    "accent": "accent - ES",
+    "background": "background - ES",
+    "surface": "surface - ES",
+    "text": "text - ES"
   },
   "layout": {
-    "sidebarStyle": "[ES] layout.sidebarStyle",
-    "headerStyle": "[ES] layout.headerStyle",
-    "borderRadius": "[ES] layout.borderRadius",
-    "spacing": "[ES] layout.spacing"
+    "sidebarStyle": "sidebarStyle - ES",
+    "headerStyle": "headerStyle - ES",
+    "borderRadius": "borderRadius - ES",
+    "spacing": "spacing - ES"
   },
   "logo": {
-    "url": "[ES] logo.url",
-    "darkUrl": "[ES] logo.darkUrl",
-    "favicon": "[ES] logo.favicon"
+    "url": "url - ES",
+    "darkUrl": "darkUrl - ES",
+    "favicon": "favicon - ES"
   },
   "typography": {
-    "fontFamily": "[ES] typography.fontFamily",
-    "headingFont": "[ES] typography.headingFont",
-    "fontSize": "[ES] typography.fontSize"
+    "fontFamily": "fontFamily - ES",
+    "headingFont": "headingFont - ES",
+    "fontSize": "fontSize - ES"
   },
   "customization": {
-    "companyName": "[ES] customization.companyName",
-    "welcomeMessage": "[ES] customization.welcomeMessage",
-    "footerText": "[ES] customization.footerText",
-    "supportEmail": "[ES] customization.supportEmail",
-    "helpUrl": "[ES] customization.helpUrl",
-    "showPoweredBy": "[ES] customization.showPoweredBy"
+    "companyName": "companyName - ES",
+    "welcomeMessage": "welcomeMessage - ES",
+    "footerText": "footerText - ES",
+    "supportEmail": "supportEmail - ES",
+    "helpUrl": "helpUrl - ES",
+    "showPoweredBy": "showPoweredBy - ES"
   },
   "themes": {
-    "defaultTheme": "[ES] themes.defaultTheme",
-    "allowUserThemeSwitch": "[ES] themes.allowUserThemeSwitch",
-    "customCss": "[ES] themes.customCss"
+    "defaultTheme": "defaultTheme - ES",
+    "allowUserThemeSwitch": "allowUserThemeSwitch - ES",
+    "customCss": "customCss - ES"
   },
   "imap": {
     "gmail": {
-      "com": "[ES] imap.gmail.com"
+      "com": "com - ES"
     }
   },
   "smtp": {
     "gmail": {
-      "com": "[ES] smtp.gmail.com"
+      "com": "com - ES"
     }
   },
   "pagination": {
-    "page": "[ES] pagination.page",
-    "of": "[ES] pagination.of",
-    "previous": "[ES] pagination.previous",
-    "next": "[ES] pagination.next"
+    "page": "page - ES",
+    "of": "of - ES",
+    "previous": "previous - ES",
+    "next": "next - ES"
   },
   "templateReset": "[ES] templateReset",
   "pg": "[ES] pg",
@@ -1030,12 +1030,12 @@
   "pool_exhaustion_critical": "[ES] pool_exhaustion_critical",
   "performance_degradation": "[ES] performance_degradation",
   "ticket": {
-    "created": "[ES] ticket.created",
-    "assigned": "[ES] ticket.assigned",
-    "status_changed": "[ES] ticket.status_changed",
-    "updated": "[ES] ticket.updated",
-    "resolved": "[ES] ticket.resolved",
-    "escalated": "[ES] ticket.escalated"
+    "created": "created - ES",
+    "assigned": "assigned - ES",
+    "status_changed": "status_changed - ES",
+    "updated": "updated - ES",
+    "resolved": "resolved - ES",
+    "escalated": "escalated - ES"
   },
   "child_process": "[ES] child_process",
   "env": "[ES] env",
@@ -1049,34 +1049,34 @@
   "drizzle-orm": "[ES] drizzle-orm",
   "BR": "[ES] BR",
   "stats": {
-    "view": "[ES] stats.view"
+    "view": "view - ES"
   },
   "activity": {
-    "view": "[ES] activity.view"
+    "view": "view - ES"
   },
   "items": {
-    "amount": "[ES] items.amount",
-    "catalogId": "[ES] items.catalogId",
-    "supplierId": "[ES] items.supplierId"
+    "amount": "amount - ES",
+    "catalogId": "catalogId - ES",
+    "supplierId": "supplierId - ES"
   },
   "context": {
-    "userRole": "[ES] context.userRole"
+    "userRole": "userRole - ES"
   },
   "hex": "[ES] hex",
   "tesseract": {
-    "js": "[ES] tesseract.js"
+    "js": "js - ES"
   },
   "receipt_001": {
-    "jpg": "[ES] receipt_001.jpg"
+    "jpg": "jpg - ES"
   },
   "api": {
     "conductor": {
-      "com": "[ES] api.conductor.com"
+      "com": "com - ES"
     }
   },
   "unit": "[ES] unit",
   "template_importacao_itens": {
-    "csv": "[ES] template_importacao_itens.csv"
+    "csv": "csv - ES"
   },
   "inactive": "[ES] inactive",
   "from_address": "[ES] from_address",
@@ -1089,291 +1089,291 @@
   "updatedAt": "[ES] updatedAt",
   "json": "[ES] json",
   "users": {
-    "id": "[ES] users.id",
-    "tenantId": "[ES] users.tenantId"
+    "id": "id - ES",
+    "tenantId": "tenantId - ES"
   },
   "ticket_comments": {
-    "ticketId": "[ES] ticket_comments.ticketId"
+    "ticketId": "ticketId - ES"
   },
   "item_catalog": {
-    "id": "[ES] item_catalog.id"
+    "id": "id - ES"
   },
   "suppliers": {
-    "id": "[ES] suppliers.id"
+    "id": "id - ES"
   },
   "timecards": {
-    "userId": "[ES] timecards.userId",
-    "id": "[ES] timecards.id"
+    "userId": "userId - ES",
+    "id": "id - ES"
   },
   "time_entries": {
-    "timecardId": "[ES] time_entries.timecardId"
+    "timecardId": "timecardId - ES"
   },
   "messages": {
-    "channelId": "[ES] messages.channelId",
-    "conversationId": "[ES] messages.conversationId",
-    "success": "[ES] messages.success",
-    "error": "[ES] messages.error",
-    "warning": "[ES] messages.warning",
-    "info": "[ES] messages.info"
+    "channelId": "channelId - ES",
+    "conversationId": "conversationId - ES",
+    "success": "success - ES",
+    "error": "error - ES",
+    "warning": "warning - ES",
+    "info": "info - ES"
   },
   "channels": {
-    "id": "[ES] channels.id"
+    "id": "id - ES"
   },
   "conversations": {
-    "id": "[ES] conversations.id"
+    "id": "id - ES"
   },
   "support": "[ES] support",
   "intermediate": "[ES] intermediate",
   "host": "[ES] host",
   "uuid": "[ES] uuid",
   "this": {
-    "repository": "[ES] this.repository",
-    "logger": "[ES] this.logger",
-    "neon": "[ES] this.neon"
+    "repository": "repository - ES",
+    "logger": "logger - ES",
+    "neon": "neon - ES"
   },
   "targetTicket": {
-    "id": "[ES] targetTicket.id",
-    "subject": "[ES] targetTicket.subject",
-    "status": "[ES] targetTicket.status",
-    "priority": "[ES] targetTicket.priority",
-    "number": "[ES] targetTicket.number",
-    "createdAt": "[ES] targetTicket.createdAt",
-    "description": "[ES] targetTicket.description"
+    "id": "id - ES",
+    "subject": "subject - ES",
+    "status": "status - ES",
+    "priority": "priority - ES",
+    "number": "number - ES",
+    "createdAt": "createdAt - ES",
+    "description": "description - ES"
   },
   "googleapis": {
-    "com": "[ES] googleapis.com"
+    "com": "com - ES"
   },
   "dd": {
     "MM": {
-      "yyyy": "[ES] dd.MM.yyyy"
+      "yyyy": "yyyy - ES"
     }
   },
   "index": {
-    "css": "[ES] index.css",
-    "ts": "[ES] index.ts",
-    "html": "[ES] index.html"
+    "css": "css - ES",
+    "ts": "ts - ES",
+    "html": "html - ES"
   },
   "template-preference": {
-    "json": "[ES] template-preference.json"
+    "json": "json - ES"
   },
   "manual": "[ES] manual",
   "x-forwarded-proto": "[ES] x-forwarded-proto",
   "x-forwarded-host": "[ES] x-forwarded-host",
   "gmail": {
-    "com": "[ES] gmail.com"
+    "com": "com - ES"
   },
   "translation": {
     "backup": {
-      "json": "[ES] translation.backup.json"
+      "json": "json - ES"
     },
-    "json": "[ES] translation.json"
+    "json": "json - ES"
   },
   "bcryptjs": "[ES] bcryptjs",
   "workspace": {
-    "manage": "[ES] workspace.manage",
-    "configure": "[ES] workspace.configure",
-    "security": "[ES] workspace.security",
-    "integrations": "[ES] workspace.integrations"
+    "manage": "manage - ES",
+    "configure": "configure - ES",
+    "security": "security - ES",
+    "integrations": "integrations - ES"
   },
   "user": {
-    "create": "[ES] user.create",
-    "edit": "[ES] user.edit",
-    "delete": "[ES] user.delete",
-    "view": "[ES] user.view"
+    "create": "create - ES",
+    "edit": "edit - ES",
+    "delete": "delete - ES",
+    "view": "view - ES"
   },
   "groups": {
-    "manage": "[ES] groups.manage"
+    "manage": "manage - ES"
   },
   "sessions": {
-    "monitor": "[ES] sessions.monitor"
+    "monitor": "monitor - ES"
   },
   "hr": {
-    "view": "[ES] hr.view",
-    "performance": "[ES] hr.performance",
-    "skills": "[ES] hr.skills",
-    "absence": "[ES] hr.absence"
+    "view": "view - ES",
+    "performance": "performance - ES",
+    "skills": "skills - ES",
+    "absence": "absence - ES"
   },
   "timecard": {
-    "view": "[ES] timecard.view",
-    "manage": "[ES] timecard.manage",
-    "approve": "[ES] timecard.approve"
+    "view": "view - ES",
+    "manage": "manage - ES",
+    "approve": "approve - ES"
   },
   "bcrypt": "[ES] bcrypt",
   "UNIFIED_SCHEMA_ARCHITECTURE": {
-    "md": "[ES] UNIFIED_SCHEMA_ARCHITECTURE.md"
+    "md": "md - ES"
   },
   "schema-master": {
-    "ts": "[ES] schema-master.ts"
+    "ts": "ts - ES"
   },
   "fs": "[ES] fs",
   "db": {
-    "ts": "[ES] db.ts"
+    "ts": "ts - ES"
   },
   "translation-audit-report": {
-    "json": "[ES] translation-audit-report.json"
+    "json": "json - ES"
   },
   "routes": {
     "ts": {
-      "backup": "[ES] routes.ts.backup"
+      "backup": "backup - ES"
     }
   },
   "routes_backup_full": {
-    "ts": "[ES] routes_backup_full.ts"
+    "ts": "ts - ES"
   },
   "routes-old": {
-    "ts": "[ES] routes-old.ts"
+    "ts": "ts - ES"
   },
   "routes-working": {
-    "ts": "[ES] routes-working.ts"
+    "ts": "ts - ES"
   },
   "routes-integration": {
-    "ts": "[ES] routes-integration.ts"
+    "ts": "ts - ES"
   },
   "routes-clean": {
-    "ts": "[ES] routes-clean.ts"
+    "ts": "ts - ES"
   },
   "routes-legacy-backup": {
-    "ts": "[ES] routes-legacy-backup.ts"
+    "ts": "ts - ES"
   },
   "schema": {
-    "ts": "[ES] schema.ts"
+    "ts": "ts - ES"
   },
   "drizzle": {
     "config": {
-      "ts": "[ES] drizzle.config.ts"
+      "ts": "ts - ES"
     }
   },
   "SchemaManager": {
-    "ts": "[ES] SchemaManager.ts"
+    "ts": "ts - ES"
   },
   "id": "[ES] id",
   "DRIZZLE_PROGRESS": {
-    "json": "[ES] DRIZZLE_PROGRESS.json"
+    "json": "json - ES"
   },
   "RELATORIO_CORRECAO_DRIZZLE": {
-    "md": "[ES] RELATORIO_CORRECAO_DRIZZLE.md"
+    "md": "md - ES"
   },
   "tenants": {
-    "id": "[ES] tenants.id"
+    "id": "id - ES"
   },
   "skills": {
-    "id": "[ES] skills.id"
+    "id": "id - ES"
   },
   "userSkills": {
-    "skillId": "[ES] userSkills.skillId",
-    "certificationId": "[ES] userSkills.certificationId"
+    "skillId": "skillId - ES",
+    "certificationId": "certificationId - ES"
   },
   "certifications": {
-    "id": "[ES] certifications.id"
+    "id": "id - ES"
   },
   "favorecidos": {
-    "name": "[ES] favorecidos.name"
+    "name": "name - ES"
   },
   "Companies": {
-    "tsx": "[ES] Companies.tsx"
+    "tsx": "tsx - ES"
   },
   "FavorecidosTable": {
-    "tsx": "[ES] FavorecidosTable.tsx"
+    "tsx": "tsx - ES"
   },
   "productionInitializer": {
-    "ts": "[ES] productionInitializer.ts"
+    "ts": "ts - ES"
   },
   "public": {
-    "users": "[ES] public.users"
+    "users": "users - ES"
   },
   "SCHEMA_BEST_PRACTICES": {
-    "md": "[ES] SCHEMA_BEST_PRACTICES.md"
+    "md": "md - ES"
   },
   "open": "[ES] open",
   "planning": "[ES] planning",
   "pending": "[ES] pending",
   "NOMENCLATURE_STANDARDS": {
-    "md": "[ES] NOMENCLATURE_STANDARDS.md"
+    "md": "md - ES"
   },
   "SCHEMA_DATA_TYPE_OPTIMIZATION": {
-    "md": "[ES] SCHEMA_DATA_TYPE_OPTIMIZATION.md"
+    "md": "md - ES"
   },
   "system-analysis-corrected-report": {
-    "json": "[ES] system-analysis-corrected-report.json"
+    "json": "json - ES"
   },
   "pool": {
-    "query": "[ES] pool.query"
+    "query": "query - ES"
   },
   "translation-expansion-report": {
-    "json": "[ES] translation-expansion-report.json"
+    "json": "json - ES"
   },
   "TRANSLATION_INCONSISTENCIES_REPORT": {
-    "md": "[ES] TRANSLATION_INCONSISTENCIES_REPORT.md"
+    "md": "md - ES"
   },
   "temp-initialize-metadata": {
-    "ts": "[ES] temp-initialize-metadata.ts"
+    "ts": "ts - ES"
   },
   "referer": "[ES] referer",
   "user-agent": "[ES] user-agent",
   "path": "[ES] path",
   "Repository": {
-    "ts": "[ES] Repository.ts"
+    "ts": "ts - ES"
   },
   "results": {
-    "map": "[ES] results.map"
+    "map": "map - ES"
   },
   "TokenService": {
-    "ts": "[ES] TokenService.ts"
+    "ts": "ts - ES"
   },
   "authSecurityService": {
-    "ts": "[ES] authSecurityService.ts"
+    "ts": "ts - ES"
   },
   "PasswordService": {
-    "ts": "[ES] PasswordService.ts"
+    "ts": "ts - ES"
   },
   "process": {
     "env": {
-      "NODE_ENV": "[ES] process.env.NODE_ENV",
-      "": "[ES] process.env."
+      "NODE_ENV": "NODE_ENV - ES",
+      "": " - ES"
     }
   },
   "key": "[ES] key",
   "module": {
-    "key": "[ES] module.key"
+    "key": "key - ES"
   },
   "en": {
-    "json": "[ES] en.json"
+    "json": "json - ES"
   },
   "forms": {
-    "name": "[ES] forms.name",
-    "email": "[ES] forms.email",
-    "description": "[ES] forms.description",
-    "status": "[ES] forms.status",
-    "priority": "[ES] forms.priority",
-    "category": "[ES] forms.category",
-    "assignedTo": "[ES] forms.assignedTo",
-    "createdAt": "[ES] forms.createdAt",
-    "updatedAt": "[ES] forms.updatedAt"
+    "name": "name - ES",
+    "email": "email - ES",
+    "description": "description - ES",
+    "status": "status - ES",
+    "priority": "priority - ES",
+    "category": "category - ES",
+    "assignedTo": "assignedTo - ES",
+    "createdAt": "createdAt - ES",
+    "updatedAt": "updatedAt - ES"
   },
   "modals": {
-    "confirm": "[ES] modals.confirm",
-    "confirmDelete": "[ES] modals.confirmDelete"
+    "confirm": "confirm - ES",
+    "confirmDelete": "confirmDelete - ES"
   },
   "placeholders": {
-    "searchHere": "[ES] placeholders.searchHere",
-    "selectOption": "[ES] placeholders.selectOption",
-    "enterText": "[ES] placeholders.enterText"
+    "searchHere": "searchHere - ES",
+    "selectOption": "selectOption - ES",
+    "enterText": "enterText - ES"
   },
   "buttons": {
-    "submit": "[ES] buttons.submit",
-    "close": "[ES] buttons.close",
-    "add": "[ES] buttons.add",
-    "remove": "[ES] buttons.remove"
+    "submit": "submit - ES",
+    "close": "close - ES",
+    "add": "add - ES",
+    "remove": "remove - ES"
   },
   "i18n": {
-    "t": "[ES] i18n.t"
+    "t": "t - ES"
   },
   "user_groups": {
-    "id": "[ES] user_groups.id"
+    "id": "id - ES"
   },
   "crypto": "[ES] crypto",
   "tsconfig": {
-    "json": "[ES] tsconfig.json"
+    "json": "json - ES"
   },
   "day": "[ES] day",
   "instructions": "[ES] instructions",
