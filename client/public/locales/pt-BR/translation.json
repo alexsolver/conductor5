@@ -42,7 +42,7 @@
     "saving": "Salvando...",
     "refresh": "Atualizar",
     "appearance": "Aparência",
-    "security": "Segurança", 
+    "security": "Segurança",
     "helpAndSupport": "Ajuda e Suporte"
   },
   "navigation": {
@@ -89,7 +89,6 @@
     "timecardApprovals": "Aprovações de Ponto",
     "approvalConfiguration": "Configuração de Aprovações",
     "absenceManagement": "Gestão de Ausências",
-    
     "TimecardRegistry": "Registro de Ponto",
     "WorkSchedules": "Escalas de Trabalho",
     "HourBank": "Banco de Horas",
@@ -131,17 +130,18 @@
     "productivityReports": "Relatórios de Produtividade",
     "teamPerformance": "Performance da Equipe",
     "systemAnalytics": "Análises do Sistema",
-    "scheduleTemplates": "Schedule Templates",
-    
-    "TimecardRegistry": "Registro de Ponto",
-    "WorkSchedules": "Escalas de Trabalho",
-    "HourBank": "Banco de Horas",
-    "HolidayCalendar": "Calendário de Feriados",
-    "TimecardReports": "Relatórios de Ponto",
-    "CltCompliance": "Conformidade CLT",
-    "TimecardApprovals": "Aprovações de Ponto",
-    "ApprovalConfiguration": "Configurações de Aprovações",
-    "AbsenceManagement": "Gestão de Ausências"
+    "scheduleTemplates": "Modelos de Escala",
+    "activityPlanner": "Planejador de Atividades",
+    "ticketConfiguration": "Configuração de Tickets",
+    "ticketTemplates": "Modelos de Tickets",
+    "customFields": "Campos Personalizados",
+    "beneficiaries": "Beneficiários",
+    "internalForms": "Formulários Internos",
+    "omniBridge": "OmniBridge",
+    "companies": "Empresas",
+    "branding": "Marca e Personalização",
+    "reportsAndDashboards": "Relatórios e Dashboards",
+    "interactiveDashboards": "Dashboards Interativos"
   },
   "tickets": {
     "messages": {
