@@ -7,11 +7,11 @@ import { enhancedWebsocketStability, configureServerForStability } from "./middl
 import { initializeCleanup } from "./utils/temporaryFilesCleaner";
 import { connectionStabilizer } from "./utils/connectionStabilizer";
 import { productionInitializer } from './utils/productionInitializer';
-import { 
-  databaseSchemaInterceptor, 
-  databaseQueryMonitor, 
-  moduleSpecificValidator, 
-  databaseConnectionCleanup 
+import {
+  databaseSchemaInterceptor,
+  databaseQueryMonitor,
+  moduleSpecificValidator,
+  databaseConnectionCleanup
 } from './middleware/simpleDatabaseInterceptor';
 import { tenantSchemaManager } from './utils/tenantSchemaValidator';
 import { dailySchemaChecker } from './scripts/dailySchemaCheck';
@@ -152,7 +152,7 @@ async function validateDatabaseConnection() {
     }
 
     // Enhanced error message for external deployments
-    const errorMessage = isExternalDeploy 
+    const errorMessage = isExternalDeploy
       ? "Database connection failed in external production. Verify DATABASE_URL and ensure PostgreSQL server accepts non-SSL connections."
       : "Database connection failed. Ensure DATABASE_URL is correctly set and SSL certificates are valid.";
 
@@ -195,11 +195,11 @@ app.use((req, res, next) => {
   const path = req.path;
 
   // CRITICAL: Skip logging for health checks, static assets, and Vite HMR to reduce I/O and prevent reconnections
-  const skipLogging = path.includes('/health') || 
-                     path.includes('/favicon') || 
-                     path.includes('.js') || 
-                     path.includes('.css') || 
-                     path.includes('.png') || 
+  const skipLogging = path.includes('/health') ||
+                     path.includes('/favicon') ||
+                     path.includes('.js') ||
+                     path.includes('.css') ||
+                     path.includes('.png') ||
                      path.includes('.svg') ||
                      path.includes('/assets/') ||
                      path.includes('/@vite/') ||
@@ -263,7 +263,7 @@ app.use((req, res, next) => {
 
   // Initialize production systems - 1qa.md Compliance
   // CRITICAL FIX: Database connection validation before server startup
-    await validateDatabaseConnection();
+  await validateDatabaseConnection();
   await productionInitializer.initialize();
 
   // Initialize activity tracking cleanup service
@@ -354,8 +354,8 @@ app.use((req, res, next) => {
       // Log health check without tenant context (this is system-level)
       console.debug(`🏥 [HEALTH-CHECK] DB latency: ${dbLatency}ms, status: ${dbLatency < 100 ? 'excellent' : 'good'}`);
 
-      res.json({ 
-        status: 'ok', 
+      res.json({
+        status: 'ok',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         performance: {
@@ -405,7 +405,7 @@ app.use((req, res, next) => {
 
       // Update notifications in schedule_notifications table
       const query = `
-        UPDATE schedule_notifications 
+        UPDATE schedule_notifications
         SET read_at = NOW(), updated_at = NOW()
         WHERE tenant_id = $1 AND id = ANY($2::uuid[]) AND read_at IS NULL
       `;
@@ -454,8 +454,8 @@ app.use((req, res, next) => {
 
   // CRITICAL FIX: Enhanced server stability for WebSocket connections + AWS Production
   server.keepAliveTimeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; // 5min prod / 2min dev
-  server.headersTimeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; 
-  server.timeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; 
+  server.headersTimeout = process.env.NODE_ENV === 'production' ? 300000 : 120000;
+  server.timeout = process.env.NODE_ENV === 'production' ? 300000 : 120000;
   server.maxConnections = process.env.NODE_ENV === 'production' ? 2000 : 1000;
 
   // CRITICAL: WebSocket connection stability optimizations
@@ -509,8 +509,8 @@ app.use((req, res, next) => {
     const errorMsg = error.message || '';
 
     // VITE STABILITY: Ignore WebSocket and HMR related errors
-    if (errorMsg.includes('WebSocket') || 
-        errorMsg.includes('ECONNRESET') || 
+    if (errorMsg.includes('WebSocket') ||
+        errorMsg.includes('ECONNRESET') ||
         errorMsg.includes('HMR') ||
         errorMsg.includes('terminating connection due to administrator command')) {
       console.log('[Stability] Ignoring transient connection error:', errorMsg.substring(0, 100));
@@ -526,7 +526,7 @@ app.use((req, res, next) => {
     const reasonStr = String(reason);
 
     // VITE STABILITY: Ignore WebSocket rejections and database connection drops
-    if (reasonStr.includes('WebSocket') || 
+    if (reasonStr.includes('WebSocket') ||
         reasonStr.includes('terminating connection') ||
         reasonStr.includes('HMR') ||
         reasonStr.includes('ECONNRESET')) {

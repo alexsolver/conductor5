@@ -42,6 +42,329 @@ interface CustomFieldMetadata {
   placeholder?: string;
   defaultValue?: string;
   displayOrder: number;
+
+
+// CreateFieldForm Component
+interface CreateFieldFormProps {
+  moduleType: ModuleType;
+  onSubmit: (data: CreateFieldFormData) => void;
+  isLoading: boolean;
+  onCancel: () => void;
+}
+
+const CreateFieldForm: React.FC<CreateFieldFormProps> = ({ moduleType, onSubmit, isLoading, onCancel }) => {
+  const { t } = useTranslation();
+  const [formData, setFormData] = useState<CreateFieldFormData>({
+    moduleType,
+    fieldName: '',
+    fieldType: 'text',
+    fieldLabel: '',
+    isRequired: false,
+    validationRules: {},
+    fieldOptions: [],
+    placeholder: '',
+    defaultValue: '',
+    displayOrder: 0,
+    helpText: ''
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.fieldName.trim()) {
+      newErrors.fieldName = 'Nome do campo é obrigatório';
+    } else if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(formData.fieldName)) {
+      newErrors.fieldName = 'Nome deve ser um identificador válido (letras, números e _)';
+    }
+
+    if (!formData.fieldLabel.trim()) {
+      newErrors.fieldLabel = 'Rótulo do campo é obrigatório';
+    }
+
+    if ((formData.fieldType === 'select' || formData.fieldType === 'multiselect') && 
+        (!formData.fieldOptions || formData.fieldOptions.length === 0)) {
+      newErrors.fieldOptions = 'Campos de seleção devem ter ao menos uma opção';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      onSubmit(formData);
+    }
+  };
+
+  const addOption = () => {
+    setFormData(prev => ({
+      ...prev,
+      fieldOptions: [...(prev.fieldOptions || []), '']
+    }));
+  };
+
+  const removeOption = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      fieldOptions: (prev.fieldOptions || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateOption = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      fieldOptions: (prev.fieldOptions || []).map((opt, i) => i === index ? value : opt)
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="fieldName">Nome do Campo *</Label>
+          <Input
+            id="fieldName"
+            value={formData.fieldName}
+            onChange={(e) => setFormData(prev => ({ ...prev, fieldName: e.target.value }))}
+            placeholder="ex: campo_personalizado"
+            className={errors.fieldName ? 'border-red-500' : ''}
+          />
+          {errors.fieldName && <p className="text-sm text-red-500 mt-1">{errors.fieldName}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="fieldLabel">Rótulo do Campo *</Label>
+          <Input
+            id="fieldLabel"
+            value={formData.fieldLabel}
+            onChange={(e) => setFormData(prev => ({ ...prev, fieldLabel: e.target.value }))}
+            placeholder="ex: Campo Personalizado"
+            className={errors.fieldLabel ? 'border-red-500' : ''}
+          />
+          {errors.fieldLabel && <p className="text-sm text-red-500 mt-1">{errors.fieldLabel}</p>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="fieldType">Tipo do Campo</Label>
+          <Select
+            value={formData.fieldType}
+            onValueChange={(value: FieldType) => setFormData(prev => ({ 
+              ...prev, 
+              fieldType: value,
+              fieldOptions: (value === 'select' || value === 'multiselect') ? [''] : []
+            }))}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(FIELD_TYPE_CONFIG).map(([type, config]) => (
+                <SelectItem key={type} value={type}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{config.label}</span>
+                    <span className="text-sm text-muted-foreground">{config.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="displayOrder">Ordem de Exibição</Label>
+          <Input
+            id="displayOrder"
+            type="number"
+            min="0"
+            value={formData.displayOrder}
+            onChange={(e) => setFormData(prev => ({ ...prev, displayOrder: parseInt(e.target.value) || 0 }))}
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isRequired"
+          checked={formData.isRequired}
+          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isRequired: checked as boolean }))}
+        />
+        <Label htmlFor="isRequired">Campo obrigatório</Label>
+      </div>
+
+      {/* Configurações para campos de seleção */}
+      {(formData.fieldType === 'select' || formData.fieldType === 'multiselect') && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">Opções do Campo</Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Configure as opções disponíveis para seleção
+            </p>
+
+            <div className="space-y-2">
+              {(formData.fieldOptions || []).map((option, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={option}
+                    onChange={(e) => updateOption(index, e.target.value)}
+                    placeholder={`Opção ${index + 1}`}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => removeOption(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addOption}
+                className="mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Opção
+              </Button>
+            </div>
+            {errors.fieldOptions && <p className="text-sm text-red-500 mt-1">{errors.fieldOptions}</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Configurações para campos de texto */}
+      {(formData.fieldType === 'text' || formData.fieldType === 'textarea' || 
+        formData.fieldType === 'email' || formData.fieldType === 'url') && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">Configurações de Texto</Label>
+
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <Label htmlFor="placeholder">Placeholder</Label>
+                <Input
+                  id="placeholder"
+                  value={formData.placeholder}
+                  onChange={(e) => setFormData(prev => ({ ...prev, placeholder: e.target.value }))}
+                  placeholder="Texto de exemplo..."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="defaultValue">Valor Padrão</Label>
+                <Input
+                  id="defaultValue"
+                  value={formData.defaultValue}
+                  onChange={(e) => setFormData(prev => ({ ...prev, defaultValue: e.target.value }))}
+                  placeholder="Valor inicial"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configurações para campos numéricos */}
+      {formData.fieldType === 'number' && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">Configurações Numéricas</Label>
+
+            <div className="grid grid-cols-3 gap-4 mt-3">
+              <div>
+                <Label htmlFor="minValue">Valor Mínimo</Label>
+                <Input
+                  id="minValue"
+                  type="number"
+                  value={formData.validationRules?.min || ''}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    validationRules: {
+                      ...prev.validationRules,
+                      min: e.target.value ? parseInt(e.target.value) : undefined
+                    }
+                  }))}
+                  placeholder="Mínimo"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="maxValue">Valor Máximo</Label>
+                <Input
+                  id="maxValue"
+                  type="number"
+                  value={formData.validationRules?.max || ''}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    validationRules: {
+                      ...prev.validationRules,
+                      max: e.target.value ? parseInt(e.target.value) : undefined
+                    }
+                  }))}
+                  placeholder="Máximo"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="defaultNumberValue">Valor Padrão</Label>
+                <Input
+                  id="defaultNumberValue"
+                  type="number"
+                  value={formData.defaultValue}
+                  onChange={(e) => setFormData(prev => ({ ...prev, defaultValue: e.target.value }))}
+                  placeholder="Padrão"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <Label htmlFor="helpText">Texto de Ajuda</Label>
+        <Textarea
+          id="helpText"
+          value={formData.helpText}
+          onChange={(e) => setFormData(prev => ({ ...prev, helpText: e.target.value }))}
+          placeholder="Texto explicativo sobre o campo..."
+          className="resize-none"
+          rows={3}
+        />
+      </div>
+
+      <DialogFooter>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          Criar Campo
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+};
+
+
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

@@ -1,3 +1,4 @@
+
 /**
  * Custom Fields Working Routes - Phase 12 Implementation
  * 
@@ -24,126 +25,157 @@ const customFieldController = new CustomFieldController(customFieldRepository);
 router.use(jwtAuth);
 
 /**
- * Phase 12 Status Endpoint
- * GET /working/status
+ * @route GET /api/custom-fields/fields/:moduleType
+ * @desc Get custom fields for a specific module
+ * @access Private
  */
-router.get('/working/status', (req, res) => {
-  res.json({
-    success: true,
-    phase: 12,
-    module: 'custom-fields',
-    status: 'active',
-    architecture: 'Clean Architecture',
-    implementation: 'working',
-    endpoints: {
-      status: 'GET /working/status',
-      fields: {
-        create: 'POST /working/fields',
-        list: 'GET /working/fields',
-        getById: 'GET /working/fields/:id',
-        update: 'PUT /working/fields/:id',
-        delete: 'DELETE /working/fields/:id'
-      },
-      modules: {
-        getFields: 'GET /working/modules/:moduleType/fields',
-        getSchema: 'GET /working/modules/:moduleType/schema',
-        reorderFields: 'POST /working/modules/:moduleType/reorder'
-      },
-      statistics: 'GET /working/statistics'
-    },
-    features: {
-      customFieldsManagement: true,
-      fieldTypes: [
-        'text', 'number', 'email', 'phone', 'date', 'datetime',
-        'boolean', 'select', 'multiselect', 'textarea', 'file', 'url'
-      ],
-      supportedModules: [
-        'tickets', 'customers', 'users', 'companies', 'locations',
-        'beneficiaries', 'inventory', 'teams', 'projects', 'contacts'
-      ],
-      fieldValidation: true,
-      conditionalLogic: true,
-      fieldOrdering: true,
-      fieldTemplates: true,
-      bulkOperations: true,
-      multiTenancy: true,
-      authentication: true,
-      cleanArchitecture: true
-    },
-    timestamp: new Date().toISOString()
-  });
+router.get('/fields/:moduleType', async (req, res) => {
+  try {
+    console.log('🔍 [CUSTOM-FIELDS] GET fields for module:', req.params.moduleType);
+    
+    const result = await customFieldController.getFieldsByModule(req, res);
+    
+    if (!res.headersSent) {
+      res.status(200).json({
+        success: true,
+        data: result || []
+      });
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOM-FIELDS] Error getting fields:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 });
 
 /**
- * Create custom field - Working implementation
- * POST /working/fields
+ * @route POST /api/custom-fields/fields
+ * @desc Create a new custom field
+ * @access Private
  */
-router.post('/working/fields', async (req, res) => {
-  await customFieldController.createField(req, res);
+router.post('/fields', async (req, res) => {
+  try {
+    console.log('🔍 [CUSTOM-FIELDS] POST create field:', req.body);
+    
+    // Validate required fields
+    const { moduleType, fieldName, fieldType, fieldLabel } = req.body;
+    
+    if (!moduleType || !fieldName || !fieldType || !fieldLabel) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: moduleType, fieldName, fieldType, fieldLabel'
+      });
+    }
+
+    // Validate field name format
+    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(fieldName)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Field name must be a valid identifier (letters, numbers, underscore)'
+      });
+    }
+
+    // Validate field type
+    const validFieldTypes = ['text', 'number', 'select', 'multiselect', 'date', 'boolean', 'textarea', 'file', 'email', 'phone', 'url'];
+    if (!validFieldTypes.includes(fieldType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid field type'
+      });
+    }
+
+    // Validate module type
+    const validModuleTypes = ['customers', 'tickets', 'beneficiaries', 'materials', 'services', 'locations'];
+    if (!validModuleTypes.includes(moduleType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid module type'
+      });
+    }
+
+    const result = await customFieldController.createField(req, res);
+    
+    if (!res.headersSent) {
+      res.status(201).json({
+        success: true,
+        message: 'Custom field created successfully',
+        data: result
+      });
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOM-FIELDS] Error creating field:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 });
 
 /**
- * List custom fields - Working implementation
- * GET /working/fields
+ * @route PUT /api/custom-fields/fields/:fieldId
+ * @desc Update a custom field
+ * @access Private
  */
-router.get('/working/fields', async (req, res) => {
-  await customFieldController.getFields(req, res);
+router.put('/fields/:fieldId', async (req, res) => {
+  try {
+    console.log('🔍 [CUSTOM-FIELDS] PUT update field:', req.params.fieldId, req.body);
+    
+    const result = await customFieldController.updateField(req, res);
+    
+    if (!res.headersSent) {
+      res.status(200).json({
+        success: true,
+        message: 'Custom field updated successfully',
+        data: result
+      });
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOM-FIELDS] Error updating field:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 });
 
 /**
- * Get custom field by ID - Working implementation
- * GET /working/fields/:id
+ * @route DELETE /api/custom-fields/fields/:fieldId
+ * @desc Delete a custom field
+ * @access Private
  */
-router.get('/working/fields/:id', async (req, res) => {
-  await customFieldController.getFieldById(req, res);
-});
-
-/**
- * Update custom field - Working implementation
- * PUT /working/fields/:id
- */
-router.put('/working/fields/:id', async (req, res) => {
-  await customFieldController.updateField(req, res);
-});
-
-/**
- * Delete custom field - Working implementation
- * DELETE /working/fields/:id
- */
-router.delete('/working/fields/:id', async (req, res) => {
-  await customFieldController.deleteField(req, res);
-});
-
-/**
- * Get fields by module - Working implementation
- * GET /working/modules/:moduleType/fields
- */
-router.get('/working/modules/:moduleType/fields', async (req, res) => {
-  await customFieldController.getFieldsByModule(req, res);
-});
-
-/**
- * Get module field schema - Working implementation
- * GET /working/modules/:moduleType/schema
- */
-router.get('/working/modules/:moduleType/schema', async (req, res) => {
-  await customFieldController.getModuleFieldSchema(req, res);
-});
-
-/**
- * Reorder fields in module - Working implementation
- * POST /working/modules/:moduleType/reorder
- */
-router.post('/working/modules/:moduleType/reorder', async (req, res) => {
-  await customFieldController.reorderFields(req, res);
-});
-
-/**
- * Get custom fields statistics - Working implementation
- * GET /working/statistics
- */
-router.get('/working/statistics', async (req, res) => {
-  await customFieldController.getStatistics(req, res);
+router.delete('/fields/:fieldId', async (req, res) => {
+  try {
+    console.log('🔍 [CUSTOM-FIELDS] DELETE field:', req.params.fieldId);
+    
+    const result = await customFieldController.deleteField(req, res);
+    
+    if (!res.headersSent) {
+      res.status(200).json({
+        success: true,
+        message: 'Custom field deleted successfully'
+      });
+    }
+  } catch (error) {
+    console.error('❌ [CUSTOM-FIELDS] Error deleting field:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 });
 
 export default router;
