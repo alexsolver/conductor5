@@ -13,8 +13,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { LanguageSelector } from '@/components/LanguageSelector';
 
 export function Header() {
-  const { t } = useTranslation();
-
   const { user, logoutMutation } = useAuth();
   const { tenantId } = useTenantId();
   const { currentLanguage, changeLanguage, t } = useLocalization();

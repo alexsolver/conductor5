@@ -29,14 +29,10 @@ export function useRealTimeNotifications() {
       description: notification.message,
       variant: isUrgent ? 'destructive' : 'default',
       duration: isUrgent ? 8000 : 5000,
-      action: notification.actionUrl ? (
-        <button
-          onClick={() => window.open(notification.actionUrl, '_blank')}
-          className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Ver
-        </button>
-      ) : undefined
+      action: notification.actionUrl ? {
+        label: "Ver",
+        onClick: () => window.open(notification.actionUrl, '_blank')
+      } : undefined
     });
 
     // Som para notificações urgentes
