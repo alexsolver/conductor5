@@ -110,6 +110,12 @@
     "helpAndSupport": "Help & Support",
     "timecardReports": "Timecard Reports"
   },
+  "tickets": {
+    "search_placeholder": "Pesquisar tickets...",
+    "filter_by_status": "Filtrar por status",
+    "filter_by_priority": "Filtrar por prioridade",
+    "clear_filters": "Limpar filtros"
+  },
   "errors": {
     "general": "Ocorreu um erro inesperado. Tente novamente.",
     "generic": "Generic"
