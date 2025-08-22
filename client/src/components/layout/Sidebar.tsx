@@ -158,7 +158,7 @@ const adminNavigation = [
       { name: "teamManagementPage", href: "/team-management", icon: Users },
       { name: "contractManagement", href: "/contract-management", icon: FileText },
       { name: "expenseManagement", href: "/expense-management", icon: CreditCard },
-      { name: "technicalSkills", href: "/technical-skills", icon: Award },
+      { name: "technicalSkillsPage", href: "/technical-skills", icon: Award },
       { name: "navigation.workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "navigation.slas", href: "/slas", icon: Target },
       { name: "navigation.approvals", href: "/approvals", icon: CheckCircle },
