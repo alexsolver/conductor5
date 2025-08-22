@@ -398,7 +398,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 return (
                   <div key={item.name} className="relative group">
                     <div className={cn(
-                      "flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer hover:scale-105",
+                      "group flex items-center justify-start py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer relative hover:scale-105",
                       hasActiveChild
                         ? "text-white shadow-lg"
                         : "text-white hover:bg-white hover:bg-opacity-20"
@@ -482,11 +482,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               return (
                 <Link key={item.name} href={item.href}>
                   <div className={cn(
-                    "group flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer relative hover:scale-105",
-                    isActive
+                    "group flex items-center justify-start py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer relative hover:scale-105",
+                    hasActiveChild
                       ? "text-white shadow-lg"
                       : "text-white hover:bg-white hover:bg-opacity-20"
-                  )} style={isActive ? {
+                  )} style={hasActiveChild ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
                   } : {}}
@@ -550,7 +550,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     return (
                       <div key={item.name} className="relative group">
                         <div className={cn(
-                          "flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer hover:scale-105",
+                          "group flex items-center justify-start py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer relative hover:scale-105",
                           hasActiveChild
                             ? "text-white shadow-lg"
                             : "text-white hover:bg-white hover:bg-opacity-20"
@@ -621,7 +621,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <Link key="Aparência" href="/layouts">
               <div className={cn(
                 "group flex items-center rounded-md transition-all duration-300 cursor-pointer relative",
-                collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
+                collapsed ? "justify-start py-3 px-2 hover:scale-105" : "px-2 py-2",
                 location === "/layouts"
                   ? "text-white shadow-lg"
                   : "text-white hover:bg-white hover:bg-opacity-10"
@@ -647,7 +647,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 <Link key={item.name} href={item.href}>
                   <div className={cn(
                     "group flex items-center rounded-md transition-all duration-300 cursor-pointer relative",
-                    collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
+                    collapsed ? "justify-start py-3 px-2 hover:scale-105" : "px-2 py-2",
                     isActive
                       ? "text-white shadow-lg"
                       : "text-white hover:bg-white hover:bg-opacity-10"
