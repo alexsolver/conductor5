@@ -19,8 +19,8 @@ router.get('/unread', jwtAuth, async (req, res) => {
     const { tenantId, userId } = user;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
-    // Query usando o pool do banco - pegando de um módulo existente
-    const db = await import('../database/connection.js').then(m => m.db);
+    // Query usando o pool do banco - usando o módulo db correto
+    const { pool } = await import('../db.js');
     
     const query = `
       SELECT 
@@ -39,7 +39,7 @@ router.get('/unread', jwtAuth, async (req, res) => {
       LIMIT 10
     `;
     
-    const result = await db.query(query, [userId]);
+    const result = await pool.query(query, [userId]);
     const unreadCount = result.rows.length;
     
     res.json({
@@ -62,9 +62,12 @@ router.get('/unread', jwtAuth, async (req, res) => {
 // GET /api/schedule-notifications/count - Buscar apenas contador
 router.get('/count', jwtAuth, async (req, res) => {
   try {
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Count endpoint called');
     const user = req.user;
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] User object:', user ? {userId: user.userId, tenantId: user.tenantId} : 'null');
     
     if (!user || !user.tenantId || !user.userId) {
+      console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', {user});
       return res.status(400).json({
         success: false,
         error: 'User information required'
@@ -73,8 +76,9 @@ router.get('/count', jwtAuth, async (req, res) => {
 
     const { tenantId, userId } = user;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Schema:', schemaName, 'User:', userId);
     
-    const db = await import('../database/connection.js').then(m => m.db);
+    const { pool } = await import('../db.js');
     
     const query = `
       SELECT COUNT(*) as count
@@ -84,9 +88,12 @@ router.get('/count', jwtAuth, async (req, res) => {
         AND status = 'sent'
     `;
     
-    const result = await db.query(query, [userId]);
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Executing query:', query);
+    const result = await pool.query(query, [userId]);
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Query result:', result.rows);
     const unreadCount = parseInt(result.rows[0].count);
     
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Final count:', unreadCount);
     res.json({
       success: true,
       data: {
@@ -95,7 +102,7 @@ router.get('/count', jwtAuth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error counting unread notifications:', error);
+    console.error('🔔 [SCHEDULE-NOTIFICATIONS] Error counting unread notifications:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
