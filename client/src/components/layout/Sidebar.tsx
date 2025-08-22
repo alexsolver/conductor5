@@ -222,7 +222,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       }
     }
     
-    // Don't capitalize if it's already a proper translation
+    // Return the translation as-is
     return translated;
   };
 
