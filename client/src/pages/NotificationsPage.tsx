@@ -214,14 +214,8 @@ export default function NotificationsPage() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      const response = await fetch('/api/notifications/bulk-read', {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ notificationIds: ids })
+      const response = await apiRequest('PATCH', '/api/schedule-notifications/bulk-read', {
+        notificationIds: ids
       });
       
       if (!response.ok) {
@@ -566,7 +560,7 @@ export default function NotificationsPage() {
             ) : notifications?.success && notifications.data?.notifications?.length > 0 ? (
               (notifications.data.notifications as Notification[]).map((notification: Notification) => (
                 <Card key={notification.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
+                  <CardContent className="p-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -627,13 +621,14 @@ export default function NotificationsPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();
+                              console.log('🔔 [MARK-READ] Marking notification as read:', notification.id);
                               markAsReadMutation.mutate([notification.id]);
                             }}
                             disabled={markAsReadMutation.isPending}
                             data-testid={`button-mark-read-${notification.id}`}
                           >
                             <Eye className="w-4 h-4 mr-1" />
-                            Mark Read
+                            {markAsReadMutation.isPending ? 'Marking...' : 'Mark Read'}
                           </Button>
                         )}
                       </div>
