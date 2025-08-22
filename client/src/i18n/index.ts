@@ -13,29 +13,46 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    fallbackLng: 'en',
-    debug: import.meta.env.DEV,
+    fallbackLng: ['pt-BR', 'pt', 'en'],
+    debug: true,
 
     interpolation: {
-      escapeValue: false, // React already escapes
-    },
-
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: [],
+      escapeValue: false,
     },
 
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json',
-      requestOptions: {
-        cache: 'no-cache'
-      }
+      allowMultiLoading: false,
     },
 
-    react: {
-      useSuspense: false,
-    }
+    detection: {
+      order: ['localStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage'],
+    },
+
+    // Configuração para mapear pt para pt-BR
+    load: 'languageOnly',
+    supportedLngs: ['en', 'pt-BR', 'pt', 'es', 'fr', 'de'],
+
+    // Mapear variações de português para pt-BR
+    resources: {},
+
+    // Configurações de namespace
+    defaultNS: 'translation',
+    ns: ['translation'],
   });
+
+// Interceptar carregamento para mapear pt -> pt-BR
+const originalLoadPath = i18n.services.backendConnector.backend.options.loadPath;
+i18n.services.backendConnector.backend.options.loadPath = (lngs: string[], namespaces: string[]) => {
+  const mappedLngs = lngs.map(lng => {
+    if (lng === 'pt' || lng === 'pt-br') {
+      return 'pt-BR';
+    }
+    return lng;
+  });
+  return originalLoadPath(mappedLngs, namespaces);
+};
 
 export default i18n;
 
