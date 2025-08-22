@@ -35,11 +35,11 @@
     "active": "Ativo",
     "inactive": "Inativo",
     "saving": "Salvando...",
-    "appearance": "common.appearance",
-    "settings": "common.settings",
-    "security": "common.security",
-    "helpAndSupport": "common.helpAndSupport",
-    "logout": "common.logout"
+    "appearance": "Appearance",
+    "settings": "Settings",
+    "security": "Security",
+    "helpAndSupport": "Help & Support",
+    "logout": "Logout"
   },
   "TranslationManager": {
     "title": "Gerenciamento de Traduções",
