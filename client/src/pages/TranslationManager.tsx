@@ -446,51 +446,16 @@ export default function TranslationManager() {
     }
   };
 
+  // FUNÇÃO DESABILITADA - Auto Complete All causava problemas com objetos aninhados
   const handleAutoCompleteAll = async () => {
-    console.log('🔒 [FRONTEND-SAFE] Starting ultra-safe translation completion...');
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/translation-completion/auto-complete-all', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      console.log('🔒 [FRONTEND-SAFE] Response received:', data);
-
-      if (data.success) {
-        const { summary, safetyInfo } = data.data || {};
-        console.log('✅ [FRONTEND-SAFE] Safe completion successful:', summary);
-
-        const translationsAdded = summary?.translationsAdded || summary?.languagesProcessed || 0;
-        const codeFilesProtected = safetyInfo?.codeFilesProtected || 'All';
-
-        toast({
-          title: t('TranslationManager.autoCompletionSuccess') || "Auto-completion completed safely!",
-          description: `${t('TranslationManager.translationsAdded') || 'Added'}: ${translationsAdded}, ${t('TranslationManager.codeFilesProtected') || 'Code files protected'}: ${codeFilesProtected}`,
-        });
-
-        // Refresh the analysis
-        await handleAnalyze();
-      } else {
-        throw new Error(data.message || t('TranslationManager.autoCompletionFailed') || 'Failed to auto-complete translations');
-      }
-    } catch (error) {
-      console.error('❌ [FRONTEND-SAFE] Auto-completion error:', error);
-      const errorMessage = error instanceof Error ? error.message : (t('TranslationManager.autoCompletionErrorDesc') || 'Failed to auto-complete translations');
-      toast({
-        title: t('TranslationManager.autoCompletionError') || "Auto-completion failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      console.log('🔒 [FRONTEND-SAFE] Operation completed');
-    }
+    console.log('🚫 [DISABLED] Auto Complete All function is permanently disabled');
+    toast({
+      title: "Funcionalidade Desabilitada",
+      description: "Auto Complete All foi desabilitado para proteger contra sobrescrita de correções manuais.",
+      variant: "destructive",
+    });
   };
+
 
 
   return (
@@ -658,13 +623,18 @@ export default function TranslationManager() {
               {t('TranslationManager.autoCompletionTitle') || 'Auto Translation Completion'}
             </h3>
             <Button
-              onClick={handleAutoCompleteAll}
-              disabled={isLoading}
-              className="bg-green-600 hover:bg-green-700"
-              title={t('TranslationManager.ultraSafeMode') || 'Ultra-safe mode: Only JSON files modified, code protected'}
+              onClick={() => {
+                toast({
+                  title: "Funcionalidade Desabilitada",
+                  description: "Auto Complete All foi desabilitado permanentemente para evitar sobrescrever correções manuais.",
+                  variant: "destructive",
+                });
+              }}
+              disabled={true}
+              className="bg-red-600 hover:bg-red-700 opacity-50 cursor-not-allowed"
+              title="Funcionalidade desabilitada permanentemente - estava gerando objetos aninhados"
             >
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              🔒 {t('TranslationManager.autoCompleteAll') || 'Auto Complete All'}
+              ⚠️ {t('TranslationManager.autoCompleteAll') || 'Auto Complete All'} (DISABLED)
             </Button>
           </div>
           <TranslationCompletionPanel />

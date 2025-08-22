@@ -450,7 +450,10 @@
     "created_at": "Creado en",
     "id": "id - ES"
   },
-  "analytics": "Analíticas",
+  "analytics": {
+    "view": "[ES] analytics.view",
+    "create": "[ES] analytics.create"
+  },
   "auth": {
     "login": "Iniciar sesión",
     "register": "Registrarse",
@@ -834,7 +837,10 @@
   "/api/user-management/users/${userId}/sessions/terminate-all": "[ES] [EN] /api/user-management/users/${user Id}/sessions/terminate-all",
   "400:": "[ES] [EN] 400:",
   "notifications": "Notificaciones",
-  "compliance": "Cumplimiento",
+  "compliance": {
+    "view": "[ES] compliance.view",
+    "manage": "[ES] compliance.manage"
+  },
   "gdprCompliance": "Cumplimiento GDPR",
   "knowledgeBase": "Base de Conocimiento",
   "timecardControl": "Control de Jornada",
@@ -847,7 +853,9 @@
   "timecardApprovals": "Aprobaciones de Jornada",
   "approvalConfiguration": "Configuración de Aprobación",
   "absenceManagement": "Gestión de Ausencias",
-  "locations": "Ubicaciones",
+  "locations": {
+    "saveLocation": "[ES] locations.saveLocation"
+  },
   "materialsAndServices": "Materiales y Servicios",
   "itemCatalog": "Catálogo de Artículos",
   "stockManagement": "Gestión de Inventario",

@@ -822,9 +822,15 @@
   "/api/user-management/sessions/${sessionId}/terminate": "[EN] /api/user-management/sessions/${session Id}/terminate",
   "/api/user-management/users/${userId}/sessions/terminate-all": "[EN] /api/user-management/users/${user Id}/sessions/terminate-all",
   "400:": "[EN] 400:",
-  "analytics": "Analysen",
+  "analytics": {
+    "view": "analytics.view",
+    "create": "analytics.create"
+  },
   "notifications": "notifications",
-  "compliance": "Compliance",
+  "compliance": {
+    "view": "compliance.view",
+    "manage": "compliance.manage"
+  },
   "gdprCompliance": "DSGVO-Konformität",
   "knowledgeBase": "Wissensdatenbank",
   "timecardControl": "Zeiterfassungskontrolle",
@@ -837,7 +843,9 @@
   "timecardApprovals": "Zeiterfassungsgenehmigungen",
   "approvalConfiguration": "Genehmigungskonfiguration",
   "absenceManagement": "Abwesenheitsverwaltung",
-  "locations": "Standorte",
+  "locations": {
+    "saveLocation": "locations.saveLocation"
+  },
   "materialsAndServices": "Materialien und Dienstleistungen",
   "itemCatalog": "Artikelkatalog",
   "stockManagement": "Bestandsverwaltung",

@@ -350,92 +350,18 @@ router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res
 
 /**
  * POST /api/translation-completion/auto-complete-all
- * Auto-completa todas as traduções faltantes de forma ultra-segura
+ * DISABLED - Esta funcionalidade foi desabilitada permanentemente
+ * pois estava sobrescrevendo correções manuais e gerando objetos aninhados
  */
 router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    // Allow access during development
-    console.log('🔍 [AUTO-COMPLETE] User role:', req.user?.role);
-    // Temporary: Allow any authenticated user during development
-    // if (req.user?.role !== 'saas_admin') {
-    //   return res.status(403).json({ message: 'SaaS admin access required' });
-    // }
-
-    const { force = true } = req.body; // Default to force mode
-
-    console.log('🔄 [TRANSLATION-COMPLETION] Starting comprehensive translation completion...');
-    console.log(`🚨 [SAFETY] Force mode enabled: ${force}`);
-    console.log('🚨 [SAFETY] Only JSON translation files will be modified, source code is protected');
-
-    console.log('📝 [STEP-1] Applying translations to all JSON files...');
-
-    // Force completion to ensure translations are applied
-    const completionResults = await translationService.completeTranslations(force);
-
-    // Count total translations added
-    const totalAdded = completionResults.reduce((sum, result) => sum + (result.added || 0), 0);
-
-    console.log(`🎯 [STEP-1] Completed: Added ${totalAdded} translations`);
-    
-    // CRITICAL PROTECTION: Fix known problematic keys that get reverted
-    console.log('🛡️ [PROTECTION] Applying critical key fixes to prevent object errors...');
-    await applyProtectedKeyFixes();
-    console.log('✅ [PROTECTION] Critical keys protected against object errors');
-    
-    console.log('📊 [STEP-2] Generating completion report...');
-
-    // Generate final report using the existing method
-    const finalReport = await translationService.performExpandedScan();
-
-    console.log('✅ [STEP-2] Report generated successfully');
-
-    const response = {
-      success: true,
-      message: `Translation completion finished! Added ${totalAdded} translations across 5 languages.`,
-      data: {
-        summary: {
-          translationsAdded: totalAdded,
-          languagesProcessed: 5,
-          completionResults: completionResults,
-          detailedResults: completionResults.map(result => ({
-            language: result.language,
-            added: result.added || 0,
-            errors: result.errors || [],
-            totalTranslations: result.totalTranslations || 0
-          }))
-        },
-        safetyInfo: {
-          codeFilesProtected: completionResults.reduce((sum, result) => sum + (result.successfulFiles || 0), 0),
-          onlyJsonModified: true,
-          sourceCodeUntouched: true
-        },
-        report: finalReport
-      }
-    };
-
-    console.log('🎯 [AUTO-COMPLETE-ALL] Process completed successfully');
-    console.log('📋 [AUTO-COMPLETE-ALL] Final summary:', response.data.summary);
-    console.log(`🔥 [AUTO-COMPLETE-ALL] Added ${totalAdded} total translations`);
-
-    // Log detailed results for debugging
-    completionResults.forEach(result => {
-      console.log(`📊 [RESULT] ${result.language}: +${result.added || 0} translations, ${(result.errors || []).length} errors`);
-      if (result.errors && result.errors.length > 0) {
-        console.log(`❌ [ERRORS] ${result.language}:`, result.errors.slice(0, 3));
-      }
-    });
-
-    res.setHeader('Content-Type', 'application/json');
-    res.status(200).json(response);
-
-  } catch (error: any) {
-    console.error('❌ [TRANSLATION-COMPLETION] Error in translation completion:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to complete translations',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
+  // FUNCIONALIDADE DESABILITADA PERMANENTEMENTE
+  return res.status(423).json({
+    success: false,
+    message: 'Auto-complete funcionalidade foi desabilitada permanentemente',
+    reason: 'Esta funcionalidade estava gerando objetos aninhados e sobrescrevendo correções manuais.',
+    alternative: 'Use o editor manual de traduções para fazer correções específicas.'
+  });
+  // RESTO DA FUNCIONALIDADE COMENTADA - FUNCIONALIDADE DESABILITADA PERMANENTEMENTE
 });
 
 /**
