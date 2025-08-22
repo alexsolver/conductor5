@@ -34,7 +34,12 @@
     "use": "Usar",
     "active": "Activo",
     "inactive": "Inactivo",
-    "saving": "Guardando..."
+    "saving": "Guardando...",
+    "appearance": "[ES] common.appearance",
+    "settings": "[ES] common.settings",
+    "security": "[ES] common.security",
+    "helpAndSupport": "[ES] common.helpAndSupport",
+    "logout": "[ES] common.logout"
   },
   "tickets": {
     "basicData": "Datos básicos",
@@ -676,7 +681,8 @@
     },
     "welcome": "[ES] Welcome",
     "overview": "[ES] Overview",
-    "statistics": "[ES] Statistics"
+    "statistics": "[ES] Statistics",
+    "dashboard": "[ES] dashboard.dashboard"
   },
   "settings": {
     "title": "[ES] Title",

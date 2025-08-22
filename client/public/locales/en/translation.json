@@ -34,7 +34,12 @@
     "use": "Use",
     "active": "Active",
     "inactive": "Inactive",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "appearance": "common.appearance",
+    "settings": "common.settings",
+    "security": "common.security",
+    "helpAndSupport": "common.helpAndSupport",
+    "logout": "common.logout"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -707,7 +712,8 @@
     },
     "welcome": "Welcome",
     "overview": "Overview",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "dashboard": "dashboard.dashboard"
   },
   "settings": {
     "title": "Title",

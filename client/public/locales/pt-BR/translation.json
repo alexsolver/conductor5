@@ -53,7 +53,6 @@
     "tickets": "Tickets",
     "customers": "Clientes",
     "analytics": "Análises",
-    "settings": "Configurações",
     "previous": "Anterior",
     "next": "Próximo",
     "home": "Início",
@@ -75,8 +74,6 @@
     "omniBridge": "OmniBridge",
     "companies": "Empresas",
     "branding": "Marca e Personalização",
-    "reportsAndDashboards": "Relatórios e Dashboards",
-    "interactiveDashboards": "Dashboards Interativos",
     "workspaceAdmin": "Administração do Workspace",
     "userManagement": "Gerenciamento de Usuários",
     "locations": "Localizações",
@@ -95,10 +92,6 @@
     "moduleIntegrity": "Integridade de Módulos",
     "multilocationSettings": "Configurações Multi-locais",
     "administration": "Administração",
-    "appearance": "Aparência",
-    "security": "Segurança",
-    "helpAndSupport": "Ajuda e Suporte",
-    "logout": "Sair",
     "productivityReports": "Relatórios de Produtividade",
     "teamPerformance": "Performance da Equipe",
     "systemAnalytics": "Análises do Sistema",
@@ -687,7 +680,9 @@
       "online_agents": "Agentes Online"
     },
     "welcome": "Bem-vindo ao Conductor",
-    "title": "Painel de Controle"
+    "title": "Painel de Controle",
+    "overview": "Overview",
+    "statistics": "Statistics"
   },
   "settings": {
     "title": "Título",
