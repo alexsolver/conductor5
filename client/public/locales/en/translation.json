@@ -169,7 +169,18 @@
     "administration": "Administração",
     "logout": "Fazer logout",
     "contracts": "navigation.contracts",
-    "automationRules": "navigation.automationRules"
+    "automationRules": "navigation.automationRules",
+    "users": "navigation.users",
+    "approval": "navigation.approval",
+    "TimecardRegistry": "navigation.TimecardRegistry",
+    "WorkSchedules": "navigation.WorkSchedules",
+    "HourBank": "navigation.HourBank",
+    "HolidayCalendar": "navigation.HolidayCalendar",
+    "TimecardReports": "navigation.TimecardReports",
+    "CltCompliance": "navigation.CltCompliance",
+    "TimecardApprovals": "navigation.TimecardApprovals",
+    "ApprovalConfiguration": "navigation.ApprovalConfiguration",
+    "AbsenceManagement": "navigation.AbsenceManagement"
   },
   "tickets": {
     "basicData": "Dados básicos",
@@ -1578,5 +1589,15 @@
   "Text": "Text",
   "Processando": "Processando",
   "400:": "400:",
-  "autonomo": "autonomo"
+  "autonomo": "autonomo",
+  "Erro ao criar rule: ${errorData": {
+    "error || response": {
+      "statusText}": "Erro ao criar rule: ${errorData.error || response.statusText}"
+    }
+  },
+  "Erro ao criar rule": {
+    " Verifique o console para mais detalhes": {
+      "": "Erro ao criar rule. Verifique o console para mais detalhes."
+    }
+  }
 }

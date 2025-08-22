@@ -71,7 +71,6 @@
     "branding": "Branding",
     "reportsAndDashboards": "Berichte und Dashboards",
     "interactiveDashboards": "Interaktive Dashboards",
-    "knowledgeBase": "Wissensdatenbank",
     "timecardControl": "Zeiterfassungskontrolle",
     "timecardRegistry": "Zeitregistrierung",
     "workSchedules": "Arbeitspläne",
@@ -125,7 +124,18 @@
     "CLT Compliance": "Compliance CLT",
     "Timecard Approvals": "Aprovações de Jornada",
     "Approval Configuration": "Configuração de Aprovação",
-    "Absence Management": "Gestão de Ausências"
+    "Absence Management": "Gestão de Ausências",
+    "users": "navigation.users",
+    "approval": "navigation.approval",
+    "TimecardRegistry": "navigation.TimecardRegistry",
+    "WorkSchedules": "navigation.WorkSchedules",
+    "HourBank": "navigation.HourBank",
+    "HolidayCalendar": "navigation.HolidayCalendar",
+    "TimecardReports": "navigation.TimecardReports",
+    "CltCompliance": "navigation.CltCompliance",
+    "TimecardApprovals": "navigation.TimecardApprovals",
+    "ApprovalConfiguration": "navigation.ApprovalConfiguration",
+    "AbsenceManagement": "navigation.AbsenceManagement"
   },
   "errors": {
     "general": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
@@ -1584,5 +1594,15 @@
     "timecardApprovals": "Aprovações de Ponto",
     "approvalConfiguration": "Configuração de Aprovações",
     "absenceManagement": "Gestão de Ausências"
+  },
+  "Erro ao criar regra: ${errorData": {
+    "error || response": {
+      "statusText}": "Erro ao criar regra: ${errorData.error || response.statusText}"
+    }
+  },
+  "Erro ao criar regra": {
+    " Verifique o console para mais detalhes": {
+      "": "Erro ao criar regra. Verifique o console para mais detalhes."
+    }
   }
 }
