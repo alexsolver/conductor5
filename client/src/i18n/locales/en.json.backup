@@ -1003,64 +1003,88 @@
   "userGroups.members": "Members",
   "userGroups.editGroupTitle": "Edit Group Title",
   "userGroups.updating": "Updating",
-  "coordinates": "Coordinates",
-  "coordinates.lat": "Latitude",
-  "coordinates.lng": "Longitude",
-  "workingHours": "Working Hours",
-  "workingHours.start": "Start Time",
-  "workingHours.end": "End Time",
-  "colors": "Colors",
-  "colors.primary": "Primary Color",
-  "colors.secondary": "Secondary Color",
-  "colors.accent": "Accent Color",
-  "colors.background": "Background Color",
-  "colors.surface": "Surface Color",
-  "colors.text": "Text Color",
-  "layout": "Layout",
-  "layout.sidebarStyle": "Sidebar Style",
-  "layout.headerStyle": "Header Style",
-  "layout.borderRadius": "Border Radius",
-  "layout.spacing": "Spacing",
-  "logo": "Logo",
-  "logo.url": "Logo URL",
-  "logo.darkUrl": "Dark Logo URL",
-  "logo.favicon": "Favicon",
-  "typography": "Typography",
-  "typography.fontFamily": "Font Family",
-  "typography.headingFont": "Heading Font",
-  "typography.fontSize": "Font Size",
-  "customization": "Customization",
-  "customization.companyName": "Company Name",
-  "customization.welcomeMessage": "Welcome Message",
-  "customization.footerText": "Footer Text",
-  "customization.supportEmail": "Support Email",
-  "customization.helpUrl": "Help URL",
-  "customization.showPoweredBy": "Show Powered By",
-  "themes": "Themes",
-  "themes.defaultTheme": "Default Theme",
-  "themes.allowUserThemeSwitch": "Allow User Theme Switch",
-  "themes.customCss": "Custom CSS",
-  "imap": "IMAP",
-  "imap.gmail.com": "imap.gmail.com",
-  "smtp": "SMTP",
-  "smtp.gmail.com": "smtp.gmail.com",
-  "pagination": "Pagination",
-  "pagination.page": "Page",
-  "pagination.of": "of",
-  "pagination.previous": "Previous",
-  "pagination.next": "Next",
+
+
+      "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY"
+    },
+    "eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM"
+    }
+  },
+  "coordinates": {
+    "lat": "coordinates.lat",
+    "lng": "coordinates.lng"
+  },
+  "workingHours": {
+    "start": "workingHours.start",
+    "end": "workingHours.end"
+  },
+  "colors": {
+    "primary": "colors.primary",
+    "secondary": "colors.secondary",
+    "accent": "colors.accent",
+    "background": "colors.background",
+    "surface": "colors.surface",
+    "text": "colors.text"
+  },
+  "layout": {
+    "sidebarStyle": "layout.sidebarStyle",
+    "headerStyle": "layout.headerStyle",
+    "borderRadius": "layout.borderRadius",
+    "spacing": "layout.spacing"
+  },
+  "logo": {
+    "url": "logo.url",
+    "darkUrl": "logo.darkUrl",
+    "favicon": "logo.favicon"
+  },
+  "typography": {
+    "fontFamily": "typography.fontFamily",
+    "headingFont": "typography.headingFont",
+    "fontSize": "typography.fontSize"
+  },
+  "customization": {
+    "companyName": "customization.companyName",
+    "welcomeMessage": "customization.welcomeMessage",
+    "footerText": "customization.footerText",
+    "supportEmail": "customization.supportEmail",
+    "helpUrl": "customization.helpUrl",
+    "showPoweredBy": "customization.showPoweredBy"
+  },
+  "themes": {
+    "defaultTheme": "themes.defaultTheme",
+    "allowUserThemeSwitch": "themes.allowUserThemeSwitch",
+    "customCss": "themes.customCss"
+  },
+  "imap": {
+    "gmail": {
+      "com": "imap.gmail.com"
+    }
+  },
+  "smtp": {
+    "gmail": {
+      "com": "smtp.gmail.com"
+    }
+  },
+  "pagination": {
+    "page": "pagination.page",
+    "of": "pagination.of",
+    "previous": "pagination.previous",
+    "next": "pagination.next"
+  },
   "templateReset": "templateReset",
   "pg": "pg",
   "main": "main",
   "pool_exhaustion_critical": "pool_exhaustion_critical",
   "performance_degradation": "performance_degradation",
-  "ticket": "Ticket",
-  "ticket.created": "Ticket Created",
-  "ticket.assigned": "Ticket Assigned",
-  "ticket.status_changed": "Status Changed",
-  "ticket.updated": "Ticket Updated",
-  "ticket.resolved": "Ticket Resolved",
-  "ticket.escalated": "Ticket Escalated",
+  "ticket": {
+    "created": "ticket.created",
+    "assigned": "ticket.assigned",
+    "status_changed": "ticket.status_changed",
+    "updated": "ticket.updated",
+    "resolved": "ticket.resolved",
+    "escalated": "ticket.escalated"
+  },
   "child_process": "child_process",
   "env": "env",
   "error": "error",
@@ -1072,23 +1096,32 @@
   "desc": "desc",
   "drizzle-orm": "drizzle-orm",
   "BR": "BR",
-  "stats": "Statistics",
-  "stats.view": "View Statistics",
-  "activity": "Activity",
-  "activity.view": "View Activity",
-  "items": "Items",
-  "items.amount": "Amount",
-  "items.catalogId": "Catalog ID",
-  "items.supplierId": "Supplier ID",
-  "context": "Context",
-  "context.userRole": "User Role",
+  "stats": {
+    "view": "stats.view"
+  },
+  "activity": {
+    "view": "activity.view"
+  },
+  "items": {
+    "amount": "items.amount",
+    "catalogId": "items.catalogId",
+    "supplierId": "items.supplierId"
+  },
+  "context": {
+    "userRole": "context.userRole"
+  },
   "hex": "hex",
-  "tesseract": "Tesseract",
-  "tesseract.js": "tesseract.js",
-  "receipt_001": "Receipt 001",
-  "receipt_001.jpg": "receipt_001.jpg",
-  "api": "API",
-  "api.conductor.com": "api.conductor.com",
+  "tesseract": {
+    "js": "tesseract.js"
+  },
+  "receipt_001": {
+    "jpg": "receipt_001.jpg"
+  },
+  "api": {
+    "conductor": {
+      "com": "api.conductor.com"
+    }
+  },
   "unit": "unit",
   "template_importacao_itens": {
     "csv": "template_importacao_itens.csv"
