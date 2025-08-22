@@ -1,0 +1,1577 @@
+{
+  "4": "4",
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "actions": "Acciones",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "logout": "Salir",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "yes": "Sí",
+    "no": "No",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "reset": "Restablecer",
+    "view_all": "Ver Todo",
+    "add": "Añadir",
+    "remove": "Eliminar",
+    "creating": "Creando",
+    "view": "Ver",
+    "use": "Usar",
+    "appName": "Conductor",
+    "collapseSidebar": "Colapsar Barra Lateral",
+    "expandSidebar": "Expandir Barra Lateral",
+    "saving": "Guardando",
+    "description": "Descripción",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "loading_attachments": "Cargando archivos adjuntos",
+    "download": "Descargar",
+    "loading_communications": "Cargando comunicaciones",
+    "by": "por",
+    "loading_notes": "Cargando notas",
+    "loading_history": "Cargando historial",
+    "error": "Error",
+    "retry": "Reintentar",
+    "open": "Abrir",
+    "refresh": "Actualizar",
+    "ok": "Aceptar",
+    "success": "Éxito",
+    "warning": "warning - ES",
+    "info": "info - ES",
+    "first": "first - ES",
+    "last": "last - ES",
+    "name": "name - ES",
+    "email": "email - ES",
+    "phone": "phone - ES",
+    "address": "address - ES",
+    "date": "date - ES",
+    "time": "time - ES",
+    "status": "status - ES",
+    "type": "type - ES",
+    "category": "category - ES",
+    "processing": "processing - ES",
+    "pleaseWait": "pleaseWait - ES",
+    "none": "none - ES",
+    "all": "all - ES",
+    "select": "select - ES",
+    "choose": "choose - ES"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "tickets": "Tickets",
+    "customers": "Clientes",
+    "analytics": "Analíticas",
+    "knowledge_base": "Base de Conocimiento",
+    "settings": "Configuración",
+    "admin": "Administración",
+    "saas_admin": "Admin SaaS",
+    "tenant_admin": "Admin Tenant"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "welcome": "¡Bienvenido de vuelta! Esto es lo que está pasando hoy.",
+    "stats": {
+      "active_tickets": "Tickets Activos",
+      "resolved_today": "Resueltos Hoy",
+      "avg_resolution_time": "Tiempo Promedio de Resolución",
+      "satisfaction_score": "Puntuación de Satisfacción",
+      "online_agents": "Agentes En Línea",
+      "total_agents": "Total de Agentes",
+      "total_tickets": "Total de Tickets",
+      "open_tickets": "Tickets Abiertos",
+      "resolved_tickets": "Tickets Resueltos",
+      "response_time": "Tiempo de Respuesta"
+    },
+    "recent_activity": "Actividad Reciente",
+    "urgent_tickets": "Tickets Urgentes",
+    "overview": "Resumen",
+    "tickets": "Tickets",
+    "customers": "Clientes",
+    "analytics": "Análisis",
+    "activity": "Actividad",
+    "view": "Ver",
+    "manage": "Gestionar"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "subtitle": "Gestionar tickets de soporte al cliente",
+    "create_ticket": "Crear Ticket",
+    "search_placeholder": "Buscar tickets...",
+    "ticket_number": "Número de Ticket",
+    "subject": "Asunto",
+    "description": "Descripción",
+    "views": {
+      "title": "Vistas de Tickets",
+      "activeView": "Vista Activa",
+      "defaultView": "Vista Predeterminada",
+      "newView": "Nueva Vista",
+      "manage": "Gestionar Vistas",
+      "advancedFilters": "Filtros Avanzados",
+      "view": "Vista",
+      "public": "Público",
+      "noViewsAvailable": "No hay vistas disponibles",
+      "default": "Por defecto",
+      "createNewView": "Crear Nueva Vista",
+      "viewName": "Nombre de la Vista",
+      "descriptionPlaceholder": "Ingrese la descripción de la vista...",
+      "description": "Descripción",
+      "manageViews": "Gestionar Vistas"
+    },
+    "clear_filters": "Limpiar Filtros",
+    "status": "Estado",
+    "priority": "Prioridad",
+    "assigned_to": "Asignado a",
+    "customer": "Cliente",
+    "created_at": "Creado en",
+    "updated_at": "Actualizado en",
+    "filters": {
+      "all": "Todos",
+      "open": "Abierto",
+      "in_progress": "En Progreso",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    },
+    "table": {
+      "number": "Número",
+      "subject": "Asunto",
+      "customer": "Cliente",
+      "status": "Estado",
+      "priority": "Prioridad",
+      "assigned": "Asignado",
+      "created": "Creado",
+      "actions": "Acciones"
+    },
+    "form": {
+      "basic_info": "Información Básica",
+      "subject": "Asunto",
+      "description": "Descripción",
+      "customer_select": "Seleccionar Cliente",
+      "priority": "Prioridad",
+      "category": "Categoría",
+      "submit": "Crear Ticket",
+      "cancel": "Cancelar"
+    },
+    "categories": {
+      "incident": "Incidente",
+      "request": "Solicitud",
+      "problem": "Problema",
+      "change": "Cambio"
+    },
+    "priorities": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "statuses": {
+      "new": "Nuevo",
+      "open": "Abierto",
+      "in_progress": "En Progreso",
+      "pending": "Pendiente",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    },
+    "create": "Crear",
+    "edit": "Editar",
+    "view": "Ver",
+    "close": "Cerrar",
+    "reopen": "Reabrir",
+    "assign": "Asignar",
+    "category": "Categoría",
+    "subcategory": "Subcategoría",
+    "agent": "Agente",
+    "internal_actions": {
+      "description_placeholder": "Ingrese la descripción de la acción...",
+      "detailed_description_placeholder": "Ingrese una descripción detallada de la acción realizada...",
+      "description_too_long": "La descripción es demasiado larga"
+    },
+    "messages": {
+      "not_found": "Ticket no encontrado",
+      "no_description": "Sin descripción disponible",
+      "no_attachments": "Sin archivos adjuntos",
+      "no_communications": "Sin comunicaciones",
+      "no_notes": "Sin notas",
+      "no_history": "Sin historial disponible",
+      "created_success": "Ticket creado exitosamente",
+      "error_creating": "Error al crear ticket",
+      "error_loading": "Error al cargar ticket",
+      "loading": "Cargando..."
+    },
+    "actions": {
+      "back_to_tickets": "Volver a Tickets",
+      "back": "Atrás",
+      "download": "Descargar",
+      "delete": "Eliminar",
+      "simple": "Simple",
+      "detailed": "Detallado",
+      "edit": "Editar",
+      "linkTicket": "Vincular Ticket",
+      "title": "Acciones",
+      "creating": "Creando...",
+      "create": "Crear"
+    },
+    "attachments": "Archivos Adjuntos",
+    "communication": "Comunicación",
+    "notes": "Notas",
+    "history": "Historial",
+    "upload_attachments": "Subir Archivos Adjuntos",
+    "existing_attachments": "Archivos Adjuntos Existentes",
+    "note_internal": "Nota Interna",
+    "note_public": "Nota Pública",
+    "change_history": "Historial de Cambios",
+    "field": "Campo",
+    "ticket_information": "Información del Ticket",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "company": "Empresa",
+    "location": "Ubicación",
+    "uploaded_by": "Subido por",
+    "tabs": {
+      "attachments": "Archivos Adjuntos",
+      "communication": "Comunicación"
+    },
+    "fields": {
+      "classification": "classification - ES",
+      "priority": "priority - ES",
+      "status": "status - ES",
+      "urgency": "urgency - ES",
+      "category": "category - ES",
+      "subcategory": "subcategory - ES",
+      "notSpecified": "notSpecified - ES",
+      "action": "action - ES",
+      "subject": "subject - ES",
+      "notInformed": "notInformed - ES",
+      "description": "description - ES",
+      "attachments": "attachments - ES",
+      "attachmentCount": "attachmentCount - ES",
+      "existingAttachments": "existingAttachments - ES",
+      "fileNoName": "fileNoName - ES",
+      "unknownSize": "unknownSize - ES",
+      "addedOn": "addedOn - ES",
+      "dateNotAvailable": "dateNotAvailable - ES",
+      "noteCount": "noteCount - ES",
+      "newNote": "newNote - ES",
+      "general": "general - ES",
+      "internal": "internal - ES",
+      "resolution": "resolution - ES",
+      "escalation": "escalation - ES",
+      "communicationTimeline": "communicationTimeline - ES",
+      "historyComplete": "historyComplete - ES",
+      "internalAction": "internalAction - ES",
+      "internalActionCreated": "internalActionCreated - ES",
+      "internalActionUpdated": "internalActionUpdated - ES",
+      "internalActionDeleted": "internalActionDeleted - ES",
+      "actionPerformedBy": "actionPerformedBy - ES",
+      "resolvedOn": "resolvedOn - ES",
+      "createdOn": "createdOn - ES",
+      "internalActions": "internalActions - ES",
+      "assignedTo": "assignedTo - ES",
+      "ticketsLinkedCount": "ticketsLinkedCount - ES",
+      "noTicketLinked": "noTicketLinked - ES",
+      "linkButtonHint": "linkButtonHint - ES",
+      "customer": "customer - ES",
+      "customerSince": "customerSince - ES",
+      "totalTickets": "totalTickets - ES",
+      "lastOpenedTickets": "lastOpenedTickets - ES",
+      "thisCustomer": "thisCustomer - ES",
+      "current": "current - ES",
+      "systemProblem": "systemProblem - ES",
+      "today": "today - ES",
+      "resolved": "resolved - ES",
+      "closed": "closed - ES",
+      "active": "active - ES",
+      "relatedTicket": "relatedTicket - ES",
+      "customerInsights": "customerInsights - ES",
+      "company": "company - ES",
+      "selectCustomer": "selectCustomer - ES",
+      "customerFound": "customerFound - ES",
+      "customerNotFound": "customerNotFound - ES",
+      "customerNoName": "customerNoName - ES",
+      "beneficiary": "beneficiary - ES",
+      "location": "location - ES",
+      "assignmentGroup": "assignmentGroup - ES",
+      "responsible": "responsible - ES",
+      "datesTimeTitle": "datesTimeTitle - ES",
+      "creation": "creation - ES",
+      "dueDate": "dueDate - ES",
+      "statusField": "statusField - ES",
+      "sla": "sla - ES",
+      "slaElapsed": "slaElapsed - ES",
+      "sensitiveData": "sensitiveData - ES",
+      "securityVerification": "securityVerification - ES",
+      "enterPasswordAccess": "enterPasswordAccess - ES",
+      "enterPasswordPlaceholder": "enterPasswordPlaceholder - ES",
+      "name": "name - ES",
+      "email": "email - ES",
+      "phone": "phone - ES",
+      "customerUpper": "customerUpper - ES",
+      "accessSensitiveData": "accessSensitiveData - ES",
+      "address": "address - ES",
+      "sensitiveDataAccess": "sensitiveDataAccess - ES",
+      "enterPasswordAgent": "enterPasswordAgent - ES",
+      "agentPassword": "agentPassword - ES",
+      "cancel": "cancel - ES",
+      "sensitiveDataRevealed": "sensitiveDataRevealed - ES",
+      "enterPassword": "enterPassword - ES",
+      "verify": "verify - ES",
+      "companyDetails": "companyDetails - ES",
+      "companyName": "companyName - ES",
+      "companyNotSpecified": "companyNotSpecified - ES",
+      "technicalResponsible": "technicalResponsible - ES",
+      "manageCustomers": "manageCustomers - ES",
+      "customerDetails": "customerDetails - ES",
+      "noCustomerSpecified": "noCustomerSpecified - ES",
+      "beneficiaryDetails": "beneficiaryDetails - ES"
+    },
+    "placeholders": {
+      "selectAction": "selectAction - ES",
+      "ticketDescription": "ticketDescription - ES",
+      "noteText": "noteText - ES"
+    },
+    "interactions": "interactions - ES",
+    "interactions_plural": "interactions_plural - ES",
+    "links": "links - ES",
+    "relationships": {
+      "related": "related - ES",
+      "duplicates": "duplicates - ES",
+      "blocks": "blocks - ES",
+      "causedBy": "causedBy - ES",
+      "parentChild": "parentChild - ES",
+      "follows": "follows - ES",
+      "linked": "linked - ES"
+    },
+    "basicData": "basicData - ES",
+    "explore": "explore - ES",
+    "details": "details - ES",
+    "materialsServices": "materialsServices - ES",
+    "knowledgeBase": "knowledgeBase - ES",
+    "internalActions": "internalActions - ES",
+    "externalActions": "externalActions - ES",
+    "latestInteractions": "latestInteractions - ES",
+    "new_ticket": "Nuevo Ticket",
+    "forms": {
+      "create": {
+        "title": "title - ES",
+        "select_company": "select_company - ES",
+        "no_companies": "no_companies - ES",
+        "first_select_company": "first_select_company - ES",
+        "select_customer": "select_customer - ES",
+        "no_customers_for_company": "no_customers_for_company - ES",
+        "select_beneficiary": "select_beneficiary - ES",
+        "no_beneficiary": "no_beneficiary - ES",
+        "subject_placeholder": "subject_placeholder - ES",
+        "select_category": "select_category - ES",
+        "first_select_category": "first_select_category - ES",
+        "select_subcategory": "select_subcategory - ES",
+        "no_subcategories": "no_subcategories - ES",
+        "first_select_subcategory": "first_select_subcategory - ES",
+        "select_action": "select_action - ES",
+        "no_actions": "no_actions - ES",
+        "select_priority": "select_priority - ES",
+        "select_urgency": "select_urgency - ES",
+        "description_placeholder": "description_placeholder - ES",
+        "symptoms_placeholder": "symptoms_placeholder - ES",
+        "business_impact_placeholder": "business_impact_placeholder - ES",
+        "workaround_placeholder": "workaround_placeholder - ES",
+        "select_location_optional": "select_location_optional - ES",
+        "no_specific_location": "no_specific_location - ES"
+      }
+    },
+    "beneficiary": "beneficiary - ES",
+    "action": "action - ES",
+    "urgency": "urgency - ES",
+    "symptoms": "symptoms - ES",
+    "business_impact": "business_impact - ES",
+    "workaround": "workaround - ES",
+    "filter_by_status": "filter_by_status - ES",
+    "filter_by_priority": "filter_by_priority - ES",
+    "assignedTo": "assignedTo - ES",
+    "id": "id - ES",
+    "manage": "manage - ES",
+    "delete": "delete - ES",
+    "customerId": "customerId - ES"
+  },
+  "customers": {
+    "title": "Clientes",
+    "subtitle": "Gestionar base de datos de clientes",
+    "create_customer": "Añadir Cliente",
+    "search_placeholder": "Buscar clientes...",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "company": "Empresa",
+    "status": "Estado",
+    "verified": "Verificado",
+    "active": "Activo",
+    "suspended": "Suspendido",
+    "timezone": "Zona Horaria",
+    "language": "Idioma",
+    "locale": "Localización",
+    "table": {
+      "name": "Nombre",
+      "email": "Correo",
+      "company": "Empresa",
+      "phone": "Teléfono",
+      "status": "Estado",
+      "created": "Creado",
+      "actions": "Acciones"
+    },
+    "form": {
+      "basic_info": "Información Básica",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "company": "Empresa",
+      "submit": "Guardar Cliente",
+      "cancel": "Cancelar"
+    },
+    "create": "Crear",
+    "edit": "Editar",
+    "view": "Ver",
+    "delete": "Eliminar",
+    "name": "Nombre",
+    "address": "Dirección",
+    "created_at": "Creado en",
+    "id": "id - ES"
+  },
+  "analytics": {
+    "view": "[ES] analytics.view",
+    "create": "[ES] analytics.create"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "email": "Correo",
+    "password": "Contraseña",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "forgot_password": "¿Olvidaste tu contraseña?",
+    "remember_me": "Recordarme",
+    "already_have_account": "¿Ya tienes una cuenta?",
+    "dont_have_account": "¿No tienes una cuenta?",
+    "sign_in": "Iniciar sesión",
+    "sign_up": "Registrarse",
+    "logout": "Salir",
+    "reset_password": "Restablecer contraseña",
+    "welcome_back": "Bienvenido de nuevo"
+  },
+  "admin": {
+    "title": "Administración",
+    "users": "Usuarios",
+    "tenants": "Tenants",
+    "create_user": "Crear Usuario",
+    "create_tenant": "Crear Tenant",
+    "role": "Rol",
+    "tenant": "Tenant",
+    "permissions": "Permisos"
+  },
+  "settings": {
+    "title": "Configuración",
+    "general": "General",
+    "language": "Idioma",
+    "timezone": "Zona Horaria",
+    "currency": "Moneda",
+    "notifications": "Notificaciones",
+    "appearance": "Apariencia",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema",
+    "security": "Seguridad",
+    "integrations": "Integraciones",
+    "view": "view - ES",
+    "edit": "edit - ES",
+    "branding": "branding - ES"
+  },
+  "localization": {
+    "language": "Idioma",
+    "timezone": "Zona Horaria",
+    "currency": "Moneda",
+    "date_format": "Formato de Fecha",
+    "time_format": "Formato de Hora",
+    "number_format": "Formato de Número",
+    "regional_settings": "Configuración Regional",
+    "auto_detect": "Detectar automáticamente del navegador",
+    "save_preferences": "Guardar Preferencias",
+    "preferences_saved": "Preferencias guardadas exitosamente"
+  },
+  "errors": {
+    "generic": "Ocurrió un error. Inténtalo de nuevo.",
+    "network": "Error de red. Verifica tu conexión.",
+    "unauthorized": "No tienes autorización para esta acción.",
+    "not_found": "El recurso solicitado no fue encontrado.",
+    "validation": "Verifica tus datos e inténtalo de nuevo.",
+    "general": "general - ES"
+  },
+  "success": {
+    "saved": "Cambios guardados exitosamente",
+    "created": "{{item}} creado exitosamente",
+    "updated": "{{item}} actualizado exitosamente",
+    "deleted": "{{item}} eliminado exitosamente"
+  },
+  "userManagement": {
+    "error": "Error",
+    "deleteActions": "Eliminar acciones",
+    "title": "Título",
+    "inviteUser": "Invitar usuario",
+    "createUser": "Crear usuario",
+    "stats": {
+      "totalUsers": "Usuarios Totales",
+      "totalUsersDesc": "Usuarios totales Desc",
+      "activeUsers": "Usuarios activos",
+      "activeUsersDesc": "Usuarios Activos - Desc",
+      "pendingInvitations": "Invitaciones pendientes",
+      "pendingInvitationsDesc": "Descripción de Invitaciones Pendientes",
+      "activeSessions": "Sesiones activas",
+      "activeSessionsDesc": "Descripción de Sesiones Activas"
+    },
+    "roleDistribution": "Distribución de roles",
+    "roleDistributionDesc": "Distribución de Roles",
+    "tabs": {
+      "users": "Usuarios",
+      "groups": "Grupos",
+      "roles": "Roles",
+      "invitations": "Invitaciones",
+      "sessions": "Sesiones",
+      "activity": "Actividad"
+    },
+    "success": "Éxito",
+    "userCreated": "Usuario Creado",
+    "userCreateError": "Error al crear usuario",
+    "invitationSent": "Invitación enviada",
+    "invitationSendError": "Error al enviar la invitación",
+    "inviteUserDesc": "Invitar usuario.",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "Correo electrónico",
+    "role": "Rol",
+    "roles": {
+      "customer": "Cliente",
+      "agent": "Agente",
+      "workspaceAdmin": "Administrador del Espacio de Trabajo",
+      "saasAdmin": "[ES] Saas Admin"
+    },
+    "expiration": "Caducidad",
+    "expires1Day": "Caduca en 1 día",
+    "expires3Days": "Caduca en 3 días",
+    "expires7Days": "Caduca en 7 días",
+    "expires14Days": "Caduca en 14 días",
+    "expires30Days": "Caduca en 30 días",
+    "expiresOn": "Caduca en",
+    "groups": "Grupos",
+    "notes": "Notas",
+    "invitationNotesPlaceholder": "Nota de invitación.",
+    "sendInvitationEmail": "Enviar correo de invitación",
+    "sending": "Enviando",
+    "sendInvitation": "Enviar invitación",
+    "userActivity": "Actividad del Usuario",
+    "userActivityDesc": "Descripción de la Actividad del Usuario",
+    "filters": "Filtros",
+    "searchActivity": "Actividad de búsqueda",
+    "filterByAction": "Filtrar por acción",
+    "allActions": "Todas las acciones",
+    "loginActions": "Acciones de inicio de sesión",
+    "createActions": "Crear acciones",
+    "updateActions": "Actualizar acciones",
+    "permissionActions": "Acciones de permiso",
+    "last24h": "Últimas24h",
+    "last7days": "Últimos7días",
+    "last30days": "Últimos30días",
+    "last90days": "Últimos90días",
+    "activityLog": "Registro de actividad",
+    "activityLogDesc": "Descripción del Registro de Actividad",
+    "user": "Usuario",
+    "action": "Acción",
+    "resource": "Recurso",
+    "status": "Estado",
+    "ipAddress": "Dirección IP",
+    "performedAt": "Realizado en",
+    "unknownUser": "Usuario desconocido",
+    "failed": "Error",
+    "noActivityMatch": "Sin coincidencias de actividad",
+    "noActivity": "Sin actividad",
+    "totalActivities": "Actividades Totales",
+    "successfulActivities": "Actividades exitosas",
+    "failedActivities": "Actividades fallidas",
+    "invitationResent": "Reenviar invitación",
+    "invitationResendError": "Error al Reenviar Invitación",
+    "invitationRevoked": "Invitación revocada",
+    "invitationRevokeError": "Error al Revocar la Invitación",
+    "invitationLinkCopied": "Enlace de invitación copiado",
+    "userInvitations": "Invitaciones de usuario",
+    "userInvitationsDesc": "Descripción de Invitaciones de Usuario",
+    "invitationsList": "Lista de invitaciones",
+    "invitationsListDesc": "Lista de Invitaciones (Desc)",
+    "invitedBy": "Invitado por",
+    "invitedAt": "Invitado en",
+    "expiresAt": "Caduca en",
+    "system": "Sistema",
+    "resendInvitation": "Reenviar invitación",
+    "copyLink": "Copiar enlace",
+    "revokeInvitation": "Revocar invitación",
+    "renewInvitation": "Renovar invitación",
+    "noInvitations": "Sin invitaciones",
+    "pendingInvitations": "Invitaciones pendientes",
+    "acceptedInvitations": "Invitaciones aceptadas",
+    "expiredInvitations": "Invitaciones caducadas",
+    "revokedInvitations": "Invitaciones revocadas",
+    "userStatusUpdated": "Estado de usuario actualizado",
+    "userStatusUpdateError": "Error al actualizar el estado del usuario",
+    "userList": "Lista de usuarios",
+    "userListDesc": "Lista de Usuarios (Desc)",
+    "searchUsers": "Buscar usuarios",
+    "name": "Nombre",
+    "lastLogin": "Último inicio de sesión",
+    "noName": "Sin nombre",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "neverLoggedIn": "Nunca ha iniciado sesión.",
+    "deactivate": "Desactivar",
+    "activate": "Activar",
+    "userDetails": "Detalles del Usuario",
+    "basicInfo": "Información Básica",
+    "accountInfo": "Información de la cuenta",
+    "permissions": "Permisos",
+    "activeSessions": "Sesiones activas",
+    "sessionTerminated": "Sesión terminada",
+    "sessionTerminateError": "Error al terminar la sesión.",
+    "allSessionsTerminated": "Todas las sesiones terminadas.",
+    "allSessionsTerminateError": "Error: Todas las sesiones terminan",
+    "userSessions": "Sesiones de usuario",
+    "userSessionsDesc": "Descripción de Sesiones de Usuario",
+    "uniqueUsers": "Usuarios Únicos",
+    "recentActivity": "Actividad Reciente",
+    "sessionManagement": "Gestión de sesión",
+    "searchSessions": "Buscar Sesiones",
+    "activeSessionsList": "Lista de Sesiones Activas",
+    "activeSessionsDesc": "Desc. de Sesiones Activas",
+    "device": "Dispositivo",
+    "location": "Ubicación",
+    "lastActivity": "Última actividad",
+    "duration": "Duración",
+    "unknownLocation": "Ubicación Desconocida",
+    "terminateSession": "Cerrar sesión",
+    "terminateAllSessions": "Cerrar todas las sesiones",
+    "noSessionsMatch": "No hay sesiones coincidentes.",
+    "noActiveSessions": "No hay sesiones activas."
+  },
+  "Erro ao criar regra: ${errorData": {
+    "error || response": {
+      "statusText}": "[ES] [EN] Status Text}"
+    }
+  },
+  "Erro na sincronização: ${errorData": {
+    "error || response": {
+      "statusText}": "[ES] [EN] Status Text}"
+    }
+  },
+  "title": "[ES] [EN] Title",
+  "GET": "[ES] [EN] G E T",
+  "POST": "[ES] [EN] P O S T",
+  "PUT": "[ES] [EN] P U T",
+  "Motivo da rejeição:": "[ES] [EN] Motivo da rejeição:",
+  "T": "[ES] [EN] T",
+  "PATCH": "[ES] [EN] P A T C H",
+  " ": "[ES] [EN] ",
+  "name": "[ES] [EN] Name",
+  "code": "[ES] [EN] Code",
+  "serialNumber": "[ES] [EN] Serial Number",
+  "status": "[ES] [EN] Status",
+  "assetLevel": "[ES] [EN] Asset Level",
+  "acquisitionCost": "[ES] [EN] Acquisition Cost",
+  "warrantyExpiry": "[ES] [EN] Warranty Expiry",
+  "assetId": "[ES] [EN] Asset Id",
+  "type": "[ES] [EN] Type",
+  "priority": "[ES] [EN] Priority",
+  "scheduledDate": "[ES] [EN] Scheduled Date",
+  "description": "[ES] [EN] Description",
+  "assetTag": "[ES] [EN] Asset Tag",
+  "category": "[ES] [EN] Category",
+  "brand": "[ES] [EN] Brand",
+  "model": "[ES] [EN] Model",
+  "purchasePrice": "[ES] [EN] Purchase Price",
+  "department": "[ES] [EN] Department",
+  "/api/automation-rules": "[ES] [EN] /api/automation-rules",
+  "/api/automation-rules/metrics/overview": "[ES] [EN] /api/automation-rules/metrics/overview",
+  "/api/automation-rules/${ruleId}": "[ES] [EN] /api/automation-rules/${rule Id}",
+  "/api/automation-rules/${ruleId}/test": "[ES] [EN] /api/automation-rules/${rule Id}/test",
+  "DELETE": "[ES] [EN] D E L E T E",
+  "basic": "[ES] [EN] Basic",
+  "active": "[ES] [EN] Active",
+  "auditor": "[ES] [EN] Auditor",
+  "scope": "[ES] [EN] Scope",
+  "objectives": "[ES] [EN] Objectives",
+  "standard": "[ES] [EN] Standard",
+  "certifyingBody": "[ES] [EN] Certifying Body",
+  "issueDate": "[ES] [EN] Issue Date",
+  "expirationDate": "[ES] [EN] Expiration Date",
+  "pt-BR": "[ES] [EN] Pt- B R",
+  "": "[ES] [object Object]",
+  "#3b82f6": "[ES] [EN] #3b82f6",
+  "#8b5cf6": "[ES] [EN] #8b5cf6",
+  "default": "[ES] [EN] Default",
+  ",": "[ES] [EN] ,",
+  "/api/gdpr-compliance/reports": "[ES] [EN] /api/gdpr-compliance/reports",
+  "/api/gdpr-compliance/metrics": "[ES] [EN] /api/gdpr-compliance/metrics",
+  "/api/gdpr-compliance/reports/${id}": "[ES] [EN] /api/gdpr-compliance/reports/${id}",
+  "/api/gdpr-compliance/cookie-consents": "[ES] [EN] /api/gdpr-compliance/cookie-consents",
+  "/api/gdpr-compliance/data-subject-requests": "[ES] [EN] /api/gdpr-compliance/data-subject-requests",
+  "/api/gdpr-compliance/security-incidents": "[ES] [EN] /api/gdpr-compliance/security-incidents",
+  "/api/gdpr-compliance/export-user-data": "[ES] [EN] /api/gdpr-compliance/export-user-data",
+  "content-type": "[ES] [EN] Content-type",
+  "version": "[ES] [EN] Version",
+  "currency": "[ES] [EN] Currency",
+  "automaticMargin": "[ES] [EN] Automatic Margin",
+  "validFrom": "[ES] [EN] Valid From",
+  "validTo": "[ES] [EN] Valid To",
+  "notes": "[ES] [EN] Notes",
+  "conditions": "[ES] [EN] Conditions",
+  "action": "[ES] [EN] Action",
+  "Erro ao criar regra": {
+    " Verifique o console para mais detalhes": {
+      "": "[ES] [EN] "
+    }
+  },
+  "Erro na sincronização": {
+    " Verifique o console para mais detalhes": {
+      "": "[ES] [EN] "
+    }
+  },
+  "private": "[ES] [EN] Private",
+  "AND": "[ES] [EN] A N D",
+  "/api/sla/definitions": "[ES] [EN] /api/sla/definitions",
+  "/api/sla/instances/active": "[ES] [EN] /api/sla/instances/active",
+  "/api/sla/instances/breached": "[ES] [EN] /api/sla/instances/breached",
+  "/api/sla/violations": "[ES] [EN] /api/sla/violations",
+  "/api/sla/analytics/compliance": "[ES] [EN] /api/sla/analytics/compliance",
+  "/api/sla/workflows": "[ES] [EN] /api/sla/workflows",
+  "tradeName": "[ES] [EN] Trade Name",
+  "documentNumber": "[ES] [EN] Document Number",
+  "email": "[ES] [EN] Email",
+  "phone": "[ES] [EN] Phone",
+  "address": "[ES] [EN] Address",
+  "city": "[ES] [EN] City",
+  "state": "[ES] [EN] State",
+  "postalCode": "[ES] [EN] Postal Code",
+  "country": "[ES] [EN] Country",
+  "website": "[ES] [EN] Website",
+  "contactPerson": "[ES] [EN] Contact Person",
+  "contactPhone": "[ES] [EN] Contact Phone",
+  "contactEmail": "[ES] [EN] Contact Email",
+  "paymentTerms": "[ES] [EN] Payment Terms",
+  "deliveryTerms": "[ES] [EN] Delivery Terms",
+  "isPreferred": "[ES] [EN] Is Preferred",
+  "a": "[ES] [EN] A",
+  "agent": "[ES] [EN] Agent",
+  "?": "[ES] [EN] ?",
+  "openAction": "[ES] [EN] Open Action",
+  "@": "[ES] [EN] @",
+  "Dados sensíveis revelados para o campo: ${showPasswordDialog": {
+    "field}": "[ES] [EN] Field}"
+  },
+  "Digite sua senha": "[ES] [EN] Digite sua senha",
+  "/api/materials-services/tickets/${ticketId}/consumed-items": "[ES] [EN] /api/materials-services/tickets/${ticket Id}/consumed-items",
+  "customer": {
+    "created": "created - ES",
+    "updated": "updated - ES",
+    "suspended": "suspended - ES",
+    "activated": "activated - ES",
+    "verified": "verified - ES"
+  },
+  "/": "[ES] [EN] /",
+  "Ativo": "[ES] [EN] Ativo",
+  "America/Sao_Paulo": "[ES] [EN] America/ Sao_ Paulo",
+  "pt": "[ES] [EN] Pt",
+  "Localização atual (GPS)": "[ES] [EN] Localização atual ( G P S)",
+  "ativo": "[ES] [EN] Ativo",
+  "Brasil": "[ES] [EN] Brasil",
+  "/api/locations/${location": {
+    "id}": "[ES] [EN] Id}"
+  },
+  "/api/locations": "[ES] [EN] /api/locations",
+  "/api/approvals/instances?${params}": "[ES] [EN] /api/approvals/instances?${params}",
+  "/api/approvals/instances/${instanceId}/decision": "[ES] [EN] /api/approvals/instances/${instance Id}/decision",
+  "Pipeline salvo com sucesso!": "[ES] [EN] Pipeline salvo com sucesso!",
+  "Query testada! Verifique o console para detalhes": {
+    "": "[ES] [EN] "
+  },
+  "Query salva como regra de aprovação!": "[ES] [EN] Query salva como regra de aprovação!",
+  "draft": "[ES] [EN] Draft",
+  "medium": "[ES] [EN] Medium",
+  "BRL": "[ES] [EN] B R L",
+  "/api/contracts": "[ES] [EN] /api/contracts",
+  "/api/contracts/${contractId}": "[ES] [EN] /api/contracts/${contract Id}",
+  "/api/internal-forms/submissions${formId ? ": "[ES] [EN] /api/internal-forms/submissions${form Id ?",
+  "text": "[ES] [EN] Text",
+  ":": "[ES] [EN] :",
+  "\\n": "[ES] [EN] \\n",
+  "\\n\\n--- Mensagem Original ---\\nDe: ${email": {
+    "from}\\nData: ${new Date(email": {
+      "createdAt)": {
+        "toLocaleString()}\\n\\n${email": {
+          "content}": "[ES] [EN] Content}"
+        }
+      }
+    }
+  },
+  "-": "[ES] [EN] -",
+  "/api/user-management/invitations": "[ES] [EN] /api/user-management/invitations",
+  "/api/user-management/invitations/${invitationId}/resend": "[ES] [EN] /api/user-management/invitations/${invitation Id}/resend",
+  "/api/user-management/invitations/${invitationId}/revoke": "[ES] [EN] /api/user-management/invitations/${invitation Id}/revoke",
+  "/api/user-management/sessions/${sessionId}/terminate": "[ES] [EN] /api/user-management/sessions/${session Id}/terminate",
+  "/api/user-management/users/${userId}/sessions/terminate-all": "[ES] [EN] /api/user-management/users/${user Id}/sessions/terminate-all",
+  "400:": "[ES] [EN] 400:",
+  "notifications": "Notificaciones",
+  "compliance": {
+    "view": "[ES] compliance.view",
+    "manage": "[ES] compliance.manage"
+  },
+  "gdprCompliance": "Cumplimiento GDPR",
+  "knowledgeBase": "Base de Conocimiento",
+  "timecardControl": "Control de Jornada",
+  "timecardRegistry": "Registro de Jornada",
+  "workSchedules": "Horarios de Trabajo",
+  "hourBank": "Banco de Horas",
+  "holidayCalendar": "Calendario de Feriados",
+  "timecardReports": "Informes de Jornada",
+  "cltCompliance": "Cumplimiento CLT",
+  "timecardApprovals": "Aprobaciones de Jornada",
+  "approvalConfiguration": "Configuración de Aprobación",
+  "absenceManagement": "Gestión de Ausencias",
+  "locations": {
+    "saveLocation": "[ES] locations.saveLocation"
+  },
+  "materialsAndServices": "Materiales y Servicios",
+  "itemCatalog": "Catálogo de Artículos",
+  "stockManagement": "Gestión de Inventario",
+  "supplierManagement": "Gestión de Proveedores",
+  "assetControl": "Control de Activos",
+  "lpuPriceList": "Lista de Precios LPU",
+  "complianceManagement": "Gestión de Cumplimiento",
+  "reports": "Informes",
+  "productivityReports": "Informes de Productividad",
+  "teamPerformance": "Rendimiento del Equipo",
+  "systemAnalytics": "Analytics del Sistema",
+  "tenantManagement": "Gestión de Tenants",
+  "performanceHealth": "Salud y Rendimiento",
+  "securitySettings": "Configuraciones de Seguridad",
+  "billingUsage": "Facturación y Uso",
+  "disasterRecovery": "Recuperación de Desastres",
+  "autoProvisioning": "Aprovisionamiento Automático",
+  "translationManagement": "Gestión de Traducciones",
+  "integrations": "Integraciones",
+  "moduleIntegrity": "Integridad del Módulo",
+  "multilocationSettings": "Configuraciones Multilocalización",
+  "workspaceAdmin": "Admin del Workspace",
+  "general": "General",
+  "contractManagement": "Gestión de Contratos",
+  "expenseManagement": "Gestión de Gastos",
+  "technicalSkillsPage": "Habilidades Técnicas",
+  "approvals": {
+    "title": "[ES] approvals.title",
+    "development_description": "[ES] approvals.development_description",
+    "under_development": "[ES] approvals.under_development",
+    "development_message": "[ES] approvals.development_message",
+    "planned_features": "[ES] approvals.planned_features",
+    "features": {
+      "custom_workflows": "[ES] approvals.features.custom_workflows",
+      "approvers_by_category": "[ES] approvals.features.approvers_by_category",
+      "automatic_notifications": "[ES] approvals.features.automatic_notifications",
+      "approval_history": "[ES] approvals.features.approval_history",
+      "email_integration": "[ES] approvals.features.email_integration",
+      "approval_reports": "[ES] approvals.features.approval_reports"
+    }
+  },
+  "activityPlanner": "Planificador de Actividades",
+  "integracoes": "Integraciones",
+  "ticketConfiguration": "Configuración de Tickets",
+  "ticketTemplates": "Plantillas de Tickets",
+  "customFields": "Campos Personalizados",
+  "customFields.hide": "Ocultar",
+  "customFields.show": "Mostrar",
+  "customFields.fields": "Campos",
+  "customFields.exitDesign": "Salir del Diseño",
+  "customFields.editLayout": "Editar Diseño",
+  "customFields.activeCustomFields": "Campos Personalizados Activos",
+  "customFields.field": "Campo",
+  "customFields.configureFields": "Configurar Campos",
+  "customFields.title": "Campos Personalizados",
+  "customFields.noFieldsConfigured": "No hay Campos Configurados",
+  "clientes": "Clientes",
+  "beneficiaries": "Beneficiarios",
+  "internalForms": "Formularios Internos",
+  "omniBridge": "Omni Bridge",
+  "companies": "Empresas",
+  "branding": "Marca",
+  "reportsAndDashboards": "Informes y Dashboards",
+  "interactiveDashboards": "Dashboards Interactivos",
+  "workflows": "Flujos de Trabajo",
+  "slas": "SLAs",
+  "userManagementPage": "Página de Gestión de Usuarios",
+  "teamManagementPage": "Página de Gestión de Equipos",
+  "teamManagement": "Gestión de Equipos",
+  "teamManagement.title": "Gestión de Equipos",
+  "teamManagement.overview": "Resumen",
+  "teamManagement.members": "Miembros",
+  "teamManagement.performance": "Rendimiento",
+  "teamManagement.analytics": "Análisis",
+  "technicalSkills": "Habilidades Técnicas",
+  "technicalSkills.title": "Habilidades Técnicas",
+  "technicalSkills.description": "Descripción",
+  "technicalSkills.newSkill": "Nueva Habilidad",
+  "technicalSkills.createSkill": "Crear Habilidad",
+  "technicalSkills.editSkill": "Editar Habilidad",
+  "technicalSkills.name": "Nombre",
+  "technicalSkills.category": "Categoría",
+  "technicalSkills.minLevelRequired": "Nivel Mínimo Requerido",
+  "technicalSkills.suggestedCertification": "Certificación Sugerida",
+  "technicalSkills.certificationValidity": "Validez de Certificación",
+  "technicalSkills.observations": "Observaciones",
+  "technicalSkills.totalSkills": "Total de Habilidades",
+  "technicalSkills.expiredCertifications": "Certificaciones Expiradas",
+  "technicalSkills.expiringCertifications": "Certificaciones por Expirar",
+  "technicalSkills.categories": "Categorías",
+  "technicalSkills.searchSkills": "Buscar Habilidades",
+  "technicalSkills.allCategories": "Todas las Categorías",
+  "technicalSkills.noSkillsFound": "No se encontraron habilidades",
+  "technicalSkills.loading": "Cargando",
+  "technicalSkills.basic": "Básico",
+  "technicalSkills.intermediate": "Intermedio",
+  "technicalSkills.advanced": "Avanzado",
+  "technicalSkills.specialist": "Especialista",
+  "technicalSkills.excellence": "Excelencia",
+  "TranslationManager": {
+    "title": "Gestión de Traducciones",
+    "description": "Gestionar traducciones del sistema en todos los idiomas soportados",
+    "noKeysAvailable": "No hay claves de traducción disponibles",
+    "noKeysFound": "No se encontraron claves para su búsqueda",
+    "searchPlaceholder": "Buscar claves de traducción...",
+    "translationEditor": "Editor de Traducciones",
+    "autoCompletion": "Auto Completar",
+    "allKeys": "Todas las Claves",
+    "editorTitle": "Editor de Traducciones - {{lang}}",
+    "lastModified": "Última modificación:",
+    "allKeysTitle": "Todas las Claves de Traducción",
+    "allKeysDescription": "Visión general de todas las claves de traducción disponibles en el sistema",
+    "statisticsTitle": "Estadísticas",
+    "totalKeys": "Total de Claves",
+    "analyzeCompleteness": "Analizar Completitud",
+    "scanKeys": "Escanear Claves",
+    "restoreBackup": "Restaurar Copia de Seguridad",
+    "saveChanges": "Guardar Cambios",
+    "saving": "Guardando...",
+    "analysisSuccess": "¡Análisis completado!",
+    "analysisError": "Falló el análisis",
+    "expansionSuccess": "¡Escaneo expandido completado!",
+    "expansionError": "Falló el escaneo expandido",
+    "scanSuccess": "¡Escaneo de claves completado!",
+    "scanError": "Falló el escaneo de claves",
+    "autoCompletionTitle": "Auto Completar Traducciones",
+    "ultraSafeMode": "Modo ultra-seguro: Solo archivos JSON modificados, código protegido",
+    "autoCompleteAll": "Auto Completar Todo",
+    "autoCompletionSuccess": "¡Auto completar terminado de forma segura!",
+    "translationsAdded": "Agregadas",
+    "codeFilesProtected": "Archivos de código protegidos",
+    "autoCompletionFailed": "Falló el auto completar traducciones",
+    "autoCompletionError": "Auto completar falló",
+    "autoCompletionErrorDesc": "Falló el auto completar traducciones"
+  },
+  "quickActions": {
+    "createTicket": "createTicket - ES",
+    "addCustomer": "addCustomer - ES",
+    "generateReport": "generateReport - ES",
+    "automation": "automation - ES",
+    "title": "title - ES"
+  },
+  "userGroups": {
+    "loadingGroups": "loadingGroups - ES",
+    "title": "title - ES",
+    "description": "description - ES",
+    "createGroup": "createGroup - ES",
+    "createNewGroup": "createNewGroup - ES",
+    "createNewGroupDescription": "createNewGroupDescription - ES",
+    "groupName": "groupName - ES",
+    "groupDescription": "groupDescription - ES",
+    "groupDescriptionPlaceholder": "groupDescriptionPlaceholder - ES",
+    "creating": "creating - ES",
+    "noGroupsFound": "noGroupsFound - ES",
+    "noGroupsDescription": "noGroupsDescription - ES",
+    "createFirstGroup": "createFirstGroup - ES",
+    "members": "members - ES",
+    "editGroupTitle": "editGroupTitle - ES",
+    "updating": "updating - ES"
+  },
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9": {
+    "eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY": "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY - ES"
+    },
+    "eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM": "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM - ES"
+    }
+  },
+  "coordinates": {
+    "lat": "lat - ES",
+    "lng": "lng - ES"
+  },
+  "workingHours": {
+    "start": "start - ES",
+    "end": "end - ES"
+  },
+  "colors": {
+    "primary": "primary - ES",
+    "secondary": "secondary - ES",
+    "accent": "accent - ES",
+    "background": "background - ES",
+    "surface": "surface - ES",
+    "text": "text - ES"
+  },
+  "layout": {
+    "sidebarStyle": "sidebarStyle - ES",
+    "headerStyle": "headerStyle - ES",
+    "borderRadius": "borderRadius - ES",
+    "spacing": "spacing - ES"
+  },
+  "logo": {
+    "url": "url - ES",
+    "darkUrl": "darkUrl - ES",
+    "favicon": "favicon - ES"
+  },
+  "typography": {
+    "fontFamily": "fontFamily - ES",
+    "headingFont": "headingFont - ES",
+    "fontSize": "fontSize - ES"
+  },
+  "customization": {
+    "companyName": "companyName - ES",
+    "welcomeMessage": "welcomeMessage - ES",
+    "footerText": "footerText - ES",
+    "supportEmail": "supportEmail - ES",
+    "helpUrl": "helpUrl - ES",
+    "showPoweredBy": "showPoweredBy - ES"
+  },
+  "themes": {
+    "defaultTheme": "defaultTheme - ES",
+    "allowUserThemeSwitch": "allowUserThemeSwitch - ES",
+    "customCss": "customCss - ES"
+  },
+  "imap": {
+    "gmail": {
+      "com": "com - ES"
+    }
+  },
+  "smtp": {
+    "gmail": {
+      "com": "com - ES"
+    }
+  },
+  "pagination": {
+    "page": "page - ES",
+    "of": "of - ES",
+    "previous": "previous - ES",
+    "next": "next - ES"
+  },
+  "templateReset": "[ES] templateReset",
+  "pg": "[ES] pg",
+  "main": "[ES] main",
+  "pool_exhaustion_critical": "[ES] pool_exhaustion_critical",
+  "performance_degradation": "[ES] performance_degradation",
+  "ticket": {
+    "created": "created - ES",
+    "assigned": "assigned - ES",
+    "status_changed": "status_changed - ES",
+    "updated": "updated - ES",
+    "resolved": "resolved - ES",
+    "escalated": "escalated - ES"
+  },
+  "child_process": "[ES] child_process",
+  "env": "[ES] env",
+  "error": "[ES] error",
+  "close": "[ES] close",
+  "timeout": "[ES] timeout",
+  "User-Agent": "[ES] User-Agent",
+  "asc": "[ES] asc",
+  "createdAt": "[ES] createdAt",
+  "desc": "[ES] desc",
+  "drizzle-orm": "[ES] drizzle-orm",
+  "BR": "[ES] BR",
+  "stats": {
+    "view": "view - ES"
+  },
+  "activity": {
+    "view": "view - ES"
+  },
+  "items": {
+    "amount": "amount - ES",
+    "catalogId": "catalogId - ES",
+    "supplierId": "supplierId - ES"
+  },
+  "context": {
+    "userRole": "userRole - ES"
+  },
+  "hex": "[ES] hex",
+  "tesseract": {
+    "js": "js - ES"
+  },
+  "receipt_001": {
+    "jpg": "jpg - ES"
+  },
+  "api": {
+    "conductor": {
+      "com": "com - ES"
+    }
+  },
+  "unit": "[ES] unit",
+  "template_importacao_itens": {
+    "csv": "csv - ES"
+  },
+  "inactive": "[ES] inactive",
+  "from_address": "[ES] from_address",
+  "to_address": "[ES] to_address",
+  "subject": "[ES] subject",
+  "content": "[ES] content",
+  "unread": "[ES] unread",
+  "grid": "[ES] grid",
+  "view_only": "[ES] view_only",
+  "updatedAt": "[ES] updatedAt",
+  "json": "[ES] json",
+  "users": {
+    "id": "id - ES",
+    "tenantId": "tenantId - ES"
+  },
+  "ticket_comments": {
+    "ticketId": "ticketId - ES"
+  },
+  "item_catalog": {
+    "id": "id - ES"
+  },
+  "suppliers": {
+    "id": "id - ES"
+  },
+  "timecards": {
+    "userId": "userId - ES",
+    "id": "id - ES"
+  },
+  "time_entries": {
+    "timecardId": "timecardId - ES"
+  },
+  "messages": {
+    "channelId": "channelId - ES",
+    "conversationId": "conversationId - ES",
+    "success": "success - ES",
+    "error": "error - ES",
+    "warning": "warning - ES",
+    "info": "info - ES"
+  },
+  "channels": {
+    "id": "id - ES"
+  },
+  "conversations": {
+    "id": "id - ES"
+  },
+  "support": "[ES] support",
+  "intermediate": "[ES] intermediate",
+  "host": "[ES] host",
+  "uuid": "[ES] uuid",
+  "this": {
+    "repository": "repository - ES",
+    "logger": "logger - ES",
+    "neon": "neon - ES"
+  },
+  "targetTicket": {
+    "id": "id - ES",
+    "subject": "subject - ES",
+    "status": "status - ES",
+    "priority": "priority - ES",
+    "number": "number - ES",
+    "createdAt": "createdAt - ES",
+    "description": "description - ES"
+  },
+  "googleapis": {
+    "com": "com - ES"
+  },
+  "dd": {
+    "MM": {
+      "yyyy": "yyyy - ES"
+    }
+  },
+  "index": {
+    "css": "css - ES",
+    "ts": "ts - ES",
+    "html": "html - ES"
+  },
+  "template-preference": {
+    "json": "json - ES"
+  },
+  "manual": "[ES] manual",
+  "x-forwarded-proto": "[ES] x-forwarded-proto",
+  "x-forwarded-host": "[ES] x-forwarded-host",
+  "gmail": {
+    "com": "com - ES"
+  },
+  "translation": {
+    "backup": {
+      "json": "json - ES"
+    },
+    "json": "json - ES"
+  },
+  "bcryptjs": "[ES] bcryptjs",
+  "workspace": {
+    "manage": "manage - ES",
+    "configure": "configure - ES",
+    "security": "security - ES",
+    "integrations": "integrations - ES"
+  },
+  "user": {
+    "create": "create - ES",
+    "edit": "edit - ES",
+    "delete": "delete - ES",
+    "view": "view - ES"
+  },
+  "groups": {
+    "manage": "manage - ES"
+  },
+  "sessions": {
+    "monitor": "monitor - ES"
+  },
+  "hr": {
+    "view": "view - ES",
+    "performance": "performance - ES",
+    "skills": "skills - ES",
+    "absence": "absence - ES"
+  },
+  "timecard": {
+    "view": "view - ES",
+    "manage": "manage - ES",
+    "approve": "approve - ES"
+  },
+  "bcrypt": "[ES] bcrypt",
+  "UNIFIED_SCHEMA_ARCHITECTURE": {
+    "md": "md - ES"
+  },
+  "schema-master": {
+    "ts": "ts - ES"
+  },
+  "fs": "[ES] fs",
+  "db": {
+    "ts": "ts - ES"
+  },
+  "translation-audit-report": {
+    "json": "json - ES"
+  },
+  "routes": {
+    "ts": {
+      "backup": "backup - ES"
+    }
+  },
+  "routes_backup_full": {
+    "ts": "ts - ES"
+  },
+  "routes-old": {
+    "ts": "ts - ES"
+  },
+  "routes-working": {
+    "ts": "ts - ES"
+  },
+  "routes-integration": {
+    "ts": "ts - ES"
+  },
+  "routes-clean": {
+    "ts": "ts - ES"
+  },
+  "routes-legacy-backup": {
+    "ts": "ts - ES"
+  },
+  "schema": {
+    "ts": "ts - ES"
+  },
+  "drizzle": {
+    "config": {
+      "ts": "ts - ES"
+    }
+  },
+  "SchemaManager": {
+    "ts": "ts - ES"
+  },
+  "id": "[ES] id",
+  "DRIZZLE_PROGRESS": {
+    "json": "json - ES"
+  },
+  "RELATORIO_CORRECAO_DRIZZLE": {
+    "md": "md - ES"
+  },
+  "tenants": {
+    "id": "id - ES"
+  },
+  "skills": {
+    "id": "id - ES"
+  },
+  "userSkills": {
+    "skillId": "skillId - ES",
+    "certificationId": "certificationId - ES"
+  },
+  "certifications": {
+    "id": "id - ES"
+  },
+  "favorecidos": {
+    "name": "name - ES"
+  },
+  "Companies": {
+    "tsx": "tsx - ES"
+  },
+  "FavorecidosTable": {
+    "tsx": "tsx - ES"
+  },
+  "productionInitializer": {
+    "ts": "ts - ES"
+  },
+  "public": {
+    "users": "users - ES"
+  },
+  "SCHEMA_BEST_PRACTICES": {
+    "md": "md - ES"
+  },
+  "open": "[ES] open",
+  "planning": "[ES] planning",
+  "pending": "[ES] pending",
+  "NOMENCLATURE_STANDARDS": {
+    "md": "md - ES"
+  },
+  "SCHEMA_DATA_TYPE_OPTIMIZATION": {
+    "md": "md - ES"
+  },
+  "system-analysis-corrected-report": {
+    "json": "json - ES"
+  },
+  "pool": {
+    "query": "query - ES"
+  },
+  "translation-expansion-report": {
+    "json": "json - ES"
+  },
+  "TRANSLATION_INCONSISTENCIES_REPORT": {
+    "md": "md - ES"
+  },
+  "temp-initialize-metadata": {
+    "ts": "ts - ES"
+  },
+  "referer": "[ES] referer",
+  "user-agent": "[ES] user-agent",
+  "path": "[ES] path",
+  "Repository": {
+    "ts": "ts - ES"
+  },
+  "results": {
+    "map": "map - ES"
+  },
+  "TokenService": {
+    "ts": "ts - ES"
+  },
+  "authSecurityService": {
+    "ts": "ts - ES"
+  },
+  "PasswordService": {
+    "ts": "ts - ES"
+  },
+  "process": {
+    "env": {
+      "NODE_ENV": "NODE_ENV - ES",
+      "": " - ES"
+    }
+  },
+  "key": "[ES] key",
+  "module": {
+    "key": "key - ES"
+  },
+  "en": {
+    "json": "json - ES"
+  },
+  "forms": {
+    "name": "name - ES",
+    "email": "email - ES",
+    "description": "description - ES",
+    "status": "status - ES",
+    "priority": "priority - ES",
+    "category": "category - ES",
+    "assignedTo": "assignedTo - ES",
+    "createdAt": "createdAt - ES",
+    "updatedAt": "updatedAt - ES"
+  },
+  "modals": {
+    "confirm": "confirm - ES",
+    "confirmDelete": "confirmDelete - ES"
+  },
+  "placeholders": {
+    "searchHere": "searchHere - ES",
+    "selectOption": "selectOption - ES",
+    "enterText": "enterText - ES"
+  },
+  "buttons": {
+    "submit": "submit - ES",
+    "close": "close - ES",
+    "add": "add - ES",
+    "remove": "remove - ES"
+  },
+  "i18n": {
+    "t": "t - ES"
+  },
+  "user_groups": {
+    "id": "id - ES"
+  },
+  "crypto": "[ES] crypto",
+  "tsconfig": {
+    "json": "json - ES"
+  },
+  "day": "[ES] day",
+  "instructions": "[ES] instructions",
+  "UTC": "[ES] UTC",
+  "scheduled": "[ES] scheduled",
+  "comments": "[ES] comments",
+  "completion_notes": "[ES] completion_notes",
+  "customer_feedback": "[ES] customer_feedback",
+  "user_agent": "[ES] user_agent",
+  "terms_conditions": "[ES] terms_conditions",
+  "file_path": "[ES] file_path",
+  "internal": "[ES] internal",
+  "service_description": "[ES] service_description",
+  "terms_changes": "[ES] terms_changes",
+  "maintenance_schedule": "[ES] maintenance_schedule",
+  "none": "[ES] none",
+  "business_justification": "[ES] business_justification",
+  "policy_violation_details": "[ES] policy_violation_details",
+  "compliance_notes": "[ES] compliance_notes",
+  "delegation_reason": "[ES] delegation_reason",
+  "field_description": "[ES] field_description",
+  "section_description": "[ES] section_description",
+  "change_description": "[ES] change_description",
+  "full": "[ES] full",
+  "request_details": "[ES] request_details",
+  "low": "[ES] low",
+  "tags": "[ES] tags",
+  "access_level": "[ES] access_level",
+  "visibility": "[ES] visibility",
+  "summary": "[ES] summary",
+  "article": "[ES] article",
+  "approval_status": "[ES] approval_status",
+  "keywords": "[ES] keywords",
+  "feedback": "[ES] feedback",
+  "query": "[ES] query",
+  "failure_reason": "[ES] failure_reason",
+  "descricao": "[ES] descricao",
+  "primary": "[ES] primary",
+  "supervisor_ids": "[ES] supervisor_ids",
+  "clt": "[ES] clt",
+  "PF": "[ES] PF",
+  "symptoms": "[ES] symptoms",
+  "workaround": "[ES] workaround",
+  "business_impact": "[ES] business_impact",
+  "followers": "[ES] followers",
+  "environment_error": "[ES] environment_error",
+  "resolution_notes": "[ES] resolution_notes",
+  "link_comment": "[ES] link_comment",
+  "message": "[ES] message",
+  "document_url": "[ES] document_url",
+  "member": "[ES] member",
+  "required_skills": "[ES] required_skills",
+  "location": "[ES] location",
+  "digital_signature": "[ES] digital_signature",
+  "modification_reason": "[ES] modification_reason",
+  "deletion_reason": "[ES] deletion_reason",
+  "reason": "[ES] reason",
+  "medical_certificate": "[ES] medical_certificate",
+  "rejection_reason": "[ES] rejection_reason",
+  "default_approvers": "[ES] default_approvers",
+  "weekly": "[ES] weekly",
+  "working_hours": "[ES] working_hours",
+  "justification": "[ES] justification",
+  "backup_location": "[ES] backup_location",
+  "gzip": "[ES] gzip",
+  "AES-256": "[ES] AES-256",
+  "public_key": "[ES] public_key",
+  "RSA-2048": "[ES] RSA-2048",
+  "revocation_reason": "[ES] revocation_reason",
+  "css_classes": "[ES] css_classes",
+  "info": "[ES] info",
+  "body_template": "[ES] body_template",
+  "location_address": "[ES] location_address",
+  "internal_notes": "[ES] internal_notes",
+  "client_notes": "[ES] client_notes",
+  "planned": "[ES] planned",
+  "compliant": "[ES] compliant",
+  "terms": "[ES] terms",
+  "business_days": "[ES] business_days",
+  "included": "[ES] included",
+  "requirements": "[ES] requirements",
+  "deliverables": "[ES] deliverables",
+  "skills_required": "[ES] skills_required",
+  "allowed_roles": "[ES] allowed_roles",
+  "changes_from_previous": "[ES] changes_from_previous",
+  "renewal_notes": "[ES] renewal_notes",
+  "approval_notes": "[ES] approval_notes",
+  "billing_notes": "[ES] billing_notes",
+  "payment_notes": "[ES] payment_notes",
+  "installation_notes": "[ES] installation_notes",
+  "replacement_reason": "[ES] replacement_reason",
+  "UN": "[ES] UN",
+  "maintenance_plan": "[ES] maintenance_plan",
+  "default_checklist": "[ES] default_checklist",
+  "location_path": "[ES] location_path",
+  "findings": "[ES] findings",
+  "recommendations": "[ES] recommendations",
+  "used": "[ES] used",
+  "escalate": "[ES] escalate",
+  "notification_template": "[ES] notification_template",
+  "escalation_reason": "[ES] escalation_reason",
+  "escalation_notes": "[ES] escalation_notes",
+  "breach_reason": "[ES] breach_reason",
+  "default_description": "[ES] default_description",
+  "required_fields": "[ES] required_fields",
+  "optional_fields": "[ES] optional_fields",
+  "hidden_fields": "[ES] hidden_fields",
+  "changes": "[ES] changes",
+  "error_message": "[ES] error_message",
+  "request_comments": "[ES] request_comments",
+  "approval_comments": "[ES] approval_comments",
+  "custom_description": "[ES] custom_description",
+  "special_instructions": "[ES] special_instructions",
+  "request_reason": "[ES] request_reason",
+  "sla_status": "[ES] sla_status",
+  "completion_reason": "[ES] completion_reason",
+  "module_types": "[ES] module_types",
+  "rule_ids": "[ES] rule_ids",
+  "payment_terms": "[ES] payment_terms",
+  "supplier_description": "[ES] supplier_description",
+  "procedures": "[ES] procedures",
+  "work_performed": "[ES] work_performed",
+  "methodology": "[ES] methodology",
+  "user_ids": "[ES] user_ids",
+  "message_template": "[ES] message_template",
+  "email_template": "[ES] email_template",
+  "sms_template": "[ES] sms_template",
+  "push_template": "[ES] push_template",
+  "default_channels": "[ES] default_channels",
+  "override_channels": "[ES] override_channels",
+  "table": "[ES] table",
+  "running": "[ES] running",
+  "trigger_condition": "[ES] trigger_condition",
+  "root_cause": "[ES] root_cause",
+  "preventive_actions": "[ES] preventive_actions",
+  "new": "[ES] new",
+  "all": "[ES] all",
+  "custom": "[ES] custom",
+  "serviceManagement": "[ES] serviceManagement"
+}
