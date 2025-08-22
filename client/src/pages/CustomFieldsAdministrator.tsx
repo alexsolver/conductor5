@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import {
   Plus,
   Edit,
@@ -423,11 +424,7 @@ export default function CustomFieldsAdministrator() {
   const { data: moduleFields = [], isLoading } = useQuery({
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
-      const response = await fetch(`/api/custom-fields/fields/${selectedModule}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await apiRequest('GET', `/api/custom-fields/fields/${selectedModule}`);
       if (!response.ok) {
         // As per the error message, the API might be returning HTML instead of JSON
         // We should check the response content type or handle potential non-JSON responses
@@ -448,14 +445,7 @@ export default function CustomFieldsAdministrator() {
   // Create field mutation
   const createFieldMutation = useMutation({
     mutationFn: async (fieldData: Partial<CustomFieldMetadata>) => {
-      const response = await fetch('/api/custom-fields/fields', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(fieldData)
-      });
+      const response = await apiRequest('POST', '/api/custom-fields/fields', fieldData);
       if (!response.ok) {
         throw new Error('Failed to create field');
       }
@@ -481,14 +471,7 @@ export default function CustomFieldsAdministrator() {
   // Update field mutation
   const updateFieldMutation = useMutation({
     mutationFn: async ({ fieldId, ...fieldData }: Partial<CustomFieldMetadata> & { fieldId: string }) => {
-      const response = await fetch(`/api/custom-fields/fields/${fieldId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(fieldData)
-      });
+      const response = await apiRequest('PUT', `/api/custom-fields/fields/${fieldId}`, fieldData);
       if (!response.ok) {
         throw new Error('Failed to update field');
       }
@@ -514,12 +497,7 @@ export default function CustomFieldsAdministrator() {
   // Delete field mutation
   const deleteFieldMutation = useMutation({
     mutationFn: async (fieldId: string) => {
-      const response = await fetch(`/api/custom-fields/fields/${fieldId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await apiRequest('DELETE', `/api/custom-fields/fields/${fieldId}`);
       if (!response.ok) {
         throw new Error('Failed to delete field');
       }
@@ -869,7 +847,7 @@ export default function CustomFieldsAdministrator() {
                         ...editingField,
                         fieldType: value,
                         // Reset field options when changing type
-                        fieldOptions: (value === 'select' || value === 'multiselect') ? editingField.fieldOptions || [] : null
+                        fieldOptions: (value === 'select' || value === 'multiselect') ? editingField.fieldOptions || [] : undefined
                       })
                     }
                   >

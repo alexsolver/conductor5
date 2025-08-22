@@ -8,7 +8,7 @@ const router = Router();
 
 // Dependency injection
 const customFieldRepository = new SimplifiedCustomFieldRepository();
-const customFieldController = new CustomFieldController(customFieldRepository, { logInfo, logError });
+const customFieldController = new CustomFieldController(customFieldRepository as any, { logInfo, logError });
 
 // Routes
 router.get('/fields/:moduleType', (req, res) => customFieldController.getFieldsByModule(req, res));

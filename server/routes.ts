@@ -66,6 +66,7 @@ import notificationRoutes from './modules/notifications/routes';
 import { slaRoutes } from './modules/sla/routes/slaRoutes';
 import reportsRoutes from './modules/reports/routes';
 import { knowledgeBaseRoutes } from './modules/knowledge-base/routes';
+import customFieldRoutes from './modules/custom-fields/routes-working';
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
 // Legacy imports removed per analysis
@@ -430,6 +431,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { createKnowledgeBaseRoutes } = await import('./routes/knowledgeBase');
   app.use('/api/knowledge-base', createKnowledgeBaseRoutes());
   console.log('✅ [KNOWLEDGE-BASE] Clean Architecture module registered at /api/knowledge-base');
+
+  // ✅ CUSTOM FIELDS CLEAN ARCHITECTURE MODULE per 1qa.md
+  console.log('🏗️ [CUSTOM-FIELDS] Initializing Custom Fields Clean Architecture module...');
+  app.use('/api/custom-fields', jwtAuth, enhancedTenantValidator, customFieldRoutes);
+  console.log('✅ [CUSTOM-FIELDS] Clean Architecture module registered at /api/custom-fields');
 
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');

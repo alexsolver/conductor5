@@ -54,7 +54,7 @@ export class CustomFieldController {
         return;
       }
 
-      const fields = await this.customFieldRepository.findByModuleType(moduleType, tenantId);
+      const fields = await this.customFieldRepository.findByModule(moduleType, tenantId);
 
       res.status(200).json({
         success: true,
@@ -87,7 +87,7 @@ export class CustomFieldController {
         updatedAt: new Date()
       };
 
-      const result = await this.customFieldRepository.update(fieldId, updateData, tenantId);
+      const result = await this.customFieldRepository.update(fieldId, tenantId, updateData);
 
       res.status(200).json({
         success: true,

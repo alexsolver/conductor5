@@ -4,7 +4,9 @@ import { sql } from 'drizzle-orm';
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomField } from '../../domain/entities/CustomField';
 
-export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
+export class SimplifiedCustomFieldRepository {
+  // Basic implementation for essential operations only
+  // Full ICustomFieldRepository implementation pending Clean Architecture refactor
   async create(fieldData: Partial<CustomField>): Promise<CustomField> {
     const schemaName = fieldData.tenantId!.replace(/-/g, '_');
     const tableName = `"${schemaName}"."custom_fields_metadata"`;
@@ -35,7 +37,7 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     return result[0] as CustomField;
   }
 
-  async findByModuleType(moduleType: string, tenantId: string): Promise<CustomField[]> {
+  async findByModule(moduleType: string, tenantId: string): Promise<CustomField[]> {
     const schemaName = tenantId.replace(/-/g, '_');
     const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
@@ -60,7 +62,7 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     return result[0] as CustomField || null;
   }
 
-  async update(fieldId: string, updateData: Partial<CustomField>, tenantId: string): Promise<CustomField> {
+  async update(fieldId: string, tenantId: string, updateData: Partial<CustomField>): Promise<CustomField | null> {
     const schemaName = tenantId.replace(/-/g, '_');
     const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
