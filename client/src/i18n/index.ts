@@ -8,14 +8,53 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import Backend from 'i18next-http-backend';
 
+// Assume enTranslations, ptBRTranslations, esTranslations, frTranslations, deTranslations are imported from their respective files
+// For example:
+// import enTranslations from './locales/en/translation.json';
+// import ptBRTranslations from './locales/pt-BR/translation.json';
+// import esTranslations from './locales/es/translation.json';
+// import frTranslations from './locales/fr/translation.json';
+// import deTranslations from './locales/de/translation.json';
+
+// Placeholder for translations, replace with actual imports
+const enTranslations = {};
+const ptBRTranslations = {};
+const esTranslations = {};
+const frTranslations = {};
+const deTranslations = {};
+
+
+export const supportedLanguages = [
+  { code: 'pt-BR', name: 'Portuguese (Brazil)', flag: '🇧🇷', nativeName: 'Português (Brasil)' },
+  { code: 'en', name: 'English', flag: '🇺🇸', nativeName: 'English' },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸', nativeName: 'Español' },
+  { code: 'fr', name: 'French', flag: '🇫🇷', nativeName: 'Français' },
+  { code: 'de', name: 'German', flag: '🇩🇪', nativeName: 'Deutsch' }
+];
+
+const resources = {
+  'pt-BR': { translation: ptBRTranslations },
+  en: { translation: enTranslations },
+  es: { translation: esTranslations },
+  fr: { translation: frTranslations },
+  de: { translation: deTranslations }
+};
+
+// Get user's preferred language from localStorage or use Portuguese as default
+const getInitialLanguage = () => {
+  const saved = localStorage.getItem('preferred-language');
+  if (saved && supportedLanguages.find(lang => lang.code === saved)) {
+    return saved;
+  }
+  return 'pt-BR';
+};
+
 i18n
-  .use(Backend)
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    resources,
+    lng: getInitialLanguage(), // default language
     fallbackLng: 'pt-BR',
-    lng: 'pt-BR',
-    debug: false,
 
     interpolation: {
       escapeValue: false,
@@ -36,28 +75,20 @@ i18n
     },
 
     load: 'languageOnly',
-    supportedLngs: ['pt-BR'],
-    
+    supportedLngs: ['en', 'pt-BR', 'es', 'fr', 'de'],
+
     defaultNS: 'translation',
     ns: ['translation'],
 
     // Força o carregamento de pt-BR mesmo se detectar 'pt'
     cleanCode: true,
-    
+
     react: {
       useSuspense: false
     }
   });
 
 export default i18n;
-
-export const supportedLanguages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'pt-BR', name: 'Português (Brasil)', flag: '🇧🇷' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
-];
 
 export const timezones = [
   { code: 'UTC', name: 'UTC (Coordinated Universal Time)', offset: '+00:00' },

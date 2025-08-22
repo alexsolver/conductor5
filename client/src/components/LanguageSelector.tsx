@@ -41,10 +41,10 @@ export function LanguageSelector({
 
   const currentLanguage = supportedLanguages.find(
     lang => lang.code === i18n.language
-  ) || supportedLanguages[0];
+  ) || supportedLanguages.find(lang => lang.code === 'pt-BR') || supportedLanguages[0];
 
-  // Ensure we have a valid language value
-  const currentLanguageCode = i18n.language || 'en';
+  // Ensure we have a valid language value, default to Portuguese if available
+  const currentLanguageCode = i18n.language || 'pt-BR';
 
   if (variant === 'icon-only') {
     return (

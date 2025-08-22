@@ -142,9 +142,23 @@ export function useLocalization() {
     },
   });
 
-  // Helper functions
-  const changeLanguage = (languageCode: string) => {
-    savePreferencesMutation.mutate({ language: languageCode });
+  // Change language function
+  const changeLanguage = async (languageCode: string) => {
+    try {
+      await i18n.changeLanguage(languageCode);
+      localStorage.setItem('preferred-language', languageCode);
+      localStorage.setItem('conductor-language', languageCode);
+
+      // Force a page reload to ensure all components update with the new language
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to change language:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao alterar idioma. Tente novamente.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const changeTimezone = (timezone: string) => {

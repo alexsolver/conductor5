@@ -24,7 +24,7 @@ export function LocalizationSettings({
   showHeader = true,
   className = '' 
 }: LocalizationSettingsProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     currentLanguage,
     currentTimezone,
@@ -194,49 +194,49 @@ export function LocalizationSettings({
           </CardDescription>
         </CardHeader>
       )}
-      
+
       <CardContent className="space-y-6">
         {/* Language Settings */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              {t('settings.language')}
-            </h4>
-            <Select 
-              value={currentLanguage?.code} 
-              onValueChange={changeLanguage}
-              disabled={isLoadingPreferences}
+            <Label htmlFor="language-select" className="text-base font-medium">
+              Idioma / Language
+            </Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Escolha seu idioma preferido / Choose your preferred language
+            </p>
+            <Select
+              value={i18n.language || 'pt-BR'}
+              onValueChange={(value) => {
+                console.log('Changing language to:', value);
+                changeLanguage(value);
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue>
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{currentLanguage?.flag}</span>
-                    <div>
-                      <div className="font-medium">{currentLanguage?.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Interface language
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{currentLanguage?.flag || '🇧🇷'}</span>
+                    <span>{currentLanguage?.name || 'Portuguese (Brazil)'}</span>
                   </div>
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {languages.map((language) => (
                   <SelectItem key={language.code} value={language.code}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <span className="text-lg">{language.flag}</span>
                       <div>
                         <div className="font-medium">{language.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {language.code}
-                        </div>
+                        <div className="text-sm text-muted-foreground">{language.nativeName}</div>
                       </div>
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground mt-2">
+              Idioma atual: {currentLanguage?.nativeName || 'Português (Brasil)'}
+            </p>
           </div>
 
           <Separator />

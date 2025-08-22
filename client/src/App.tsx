@@ -116,6 +116,23 @@ import ReportEdit from "./pages/ReportEdit";
 // Assuming ReportCreate is in the same directory
 import ReportCreate from "./pages/ReportCreate";
 
+// Import i18n for language management
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import Backend from 'i18next-http-backend';
+import LanguageDetector from 'i18next-browser-languagedetector';
+import React from 'react'; // Ensure React is imported
+
+// Placeholder for Router and AppRoutes if they are not defined in this file
+// If they are defined elsewhere, ensure they are correctly imported.
+// For this example, assuming they are available in the scope.
+// import { Router } from "your-router-library"; // e.g., wouter's <Router> or react-router-dom's <BrowserRouter>
+// import AppRoutes from "./AppRoutes"; // Assuming AppRoutes is a component that handles routing
+
+// Mock Router and AppRoutes for demonstration if not provided
+const Router = ({ children }) => <Switch>{children}</Switch>;
+const AppRoutes = ({ children }) => <>{children}</>; // Placeholder, replace with actual routing component
+
 
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -247,10 +264,10 @@ function AppRouter() {
         <Route path="/dashboard/:id/edit" component={DashboardView} />
 
         <Route path="/companies" component={Companies} />
-        
+
         {/* Knowledge Base Route */}
         <Route path="/knowledge-base" component={KnowledgeBase} />
-        
+
         <Route component={NotFound} />
       </Switch>
     </AppShell>
@@ -258,6 +275,14 @@ function AppRouter() {
 }
 
 function App() {
+  // Initialize language on app start
+  React.useEffect(() => {
+    const savedLanguage = localStorage.getItem('preferred-language') || 'pt-BR';
+    if (savedLanguage && i18n.language !== savedLanguage) {
+      i18n.changeLanguage(savedLanguage);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
