@@ -26,7 +26,11 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log('🔍 [ANALYZE] Starting translation completeness analysis...');
 
-    const report = await translationService.generateCompletenessReport();
+    // USE THE SAME KEY SOURCE AS /keys/all FOR CONSISTENCY
+    const scannedKeys = await translationService.scanCodebaseForTranslationKeys();
+    console.log(`🔍 [ANALYZE] Using scanned keys: ${scannedKeys.length} keys found`);
+    
+    const report = await translationService.generateCompletenessReportWithKeys(scannedKeys);
 
     console.log('🔍 [ANALYZE] Generated report:', {
       totalKeys: report?.summary?.totalKeys,

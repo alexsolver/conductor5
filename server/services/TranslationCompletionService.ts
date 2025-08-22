@@ -666,6 +666,55 @@ export class TranslationCompletionService {
   }
 
   /**
+   * Generate completion report using provided keys for consistency
+   */
+  async generateCompletenessReportWithKeys(keys: TranslationKey[]): Promise<CompletionReport> {
+    console.log('📊 [COMPLETION-REPORT] Starting completeness analysis with provided keys...');
+    
+    const languages = this.SUPPORTED_LANGUAGES;
+    const languageStats: Record<string, any> = {};
+    
+    console.log(`📊 [COMPLETION-REPORT] Found ${keys.length} total keys to analyze`);
+    
+    for (const language of languages) {
+      console.log(`📊 [COMPLETION-REPORT] Analyzing ${language}...`);
+      
+      const translations = await this.loadTranslations(language);
+      let existingKeys = 0;
+      
+      for (const keyObj of keys) {
+        if (this.hasTranslation(translations, keyObj.key)) {
+          existingKeys++;
+        }
+      }
+      
+      const missingKeys = keys.length - existingKeys;
+      const completeness = keys.length > 0 ? Math.round((existingKeys / keys.length) * 100) : 100;
+      
+      languageStats[language] = {
+        totalKeys: keys.length,
+        existingKeys,
+        missingKeys,
+        completeness
+      };
+      
+      console.log(`📊 [COMPLETION-REPORT] ${language}: ${existingKeys}/${keys.length} keys (${completeness}%)`);
+    }
+    
+    console.log(`✅ [COMPLETION-REPORT] Report generated successfully with ${keys.length} total keys`);
+    
+    return {
+      scannedAt: new Date().toISOString(),
+      summary: {
+        totalKeys: keys.length,
+        languageStats
+      },
+      gaps: [], // Could implement gap detection based on provided keys
+      reportGenerated: true
+    };
+  }
+
+  /**
    * Perform expanded scanning to find thousands more translation keys
    */
   async performExpandedScan(): Promise<{
