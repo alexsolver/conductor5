@@ -67,6 +67,24 @@
   "productivityReports": "Relatórios de Produtividade",
   "teamPerformance": "Performance da Equipe",
   "systemAnalytics": "Analytics do Sistema",
+  
+  "tenantManagement": "Gestão de Tenants",
+  "performanceHealth": "Saúde e Performance",
+  "securitySettings": "Configurações de Segurança",
+  "billingUsage": "Faturamento e Uso",
+  "disasterRecovery": "Recuperação de Desastres",
+  "autoProvisioning": "Provisionamento Automático",
+  "translationManagement": "Gestão de Traduções",
+  "integrations": "Integrações",
+  "moduleIntegrity": "Integridade de Módulos",
+  "multilocationSettings": "Configurações Multi-local",
+  "workspaceAdmin": "Admin Workspace",
+  "general": "Geral",
+  "contractManagement": "Gestão de Contratos",
+  "expenseManagement": "Gestão de Despesas",
+  "technicalSkills": "Habilidades Técnicas",
+  "userManagementPage": "Gestão de Usuários",
+  "teamManagementPage": "Gestão de Equipes", 
   "userManagement": {
     "expiration": "Expiração",
     "groups": "Grupos",
@@ -293,6 +311,7 @@
     "updated": "{{item}} atualizado com sucesso",
     "deleted": "{{item}} excluído com sucesso"
   },
+  "teamManagementPage": "Gestão de Equipes",
   "teamManagement": {
     "title": "Gestão de Equipe",
     "overview": "Visão Geral",
