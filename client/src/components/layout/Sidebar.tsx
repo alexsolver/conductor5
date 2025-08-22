@@ -103,12 +103,12 @@ const baseNavigation: Array<{
     icon: Package,
     children: [
 
-      { name: "navigation.itemCatalog", href: "/item-catalog", icon: Package },
-      { name: "navigation.stockManagement", href: "/stock-management", icon: Warehouse },
-      { name: "navigation.supplierManagement", href: "/supplier-management", icon: Building2 },
-      { name: "navigation.assetControl", href: "/asset-management", icon: HardDrive },
-      { name: "navigation.lpuPriceList", href: "/lpu-management", icon: DollarSign },
-      { name: "navigation.complianceManagement", href: "/compliance-management", icon: Shield },
+      { name: "itemCatalog", href: "/item-catalog", icon: Package },
+      { name: "stockManagement", href: "/stock-management", icon: Warehouse },
+      { name: "supplierManagement", href: "/supplier-management", icon: Building2 },
+      { name: "assetControl", href: "/asset-management", icon: HardDrive },
+      { name: "lpuPriceList", href: "/lpu-management", icon: DollarSign },
+      { name: "complianceManagement", href: "/compliance-management", icon: Shield },
     ]
   },
   { name: "analytics", href: "/analytics", icon: BarChart3 },
@@ -119,9 +119,9 @@ const baseNavigation: Array<{
     name: "reports",
     icon: PieChart,
     children: [
-      { name: "navigation.productivityReports", href: "/productivity-reports", icon: PieChart },
-      { name: "navigation.teamPerformance", href: "/team-performance", icon: TrendingUp },
-      { name: "navigation.systemAnalytics", href: "/system-analytics", icon: BarChart3 },
+      { name: "productivityReports", href: "/productivity-reports", icon: PieChart },
+      { name: "teamPerformance", href: "/team-performance", icon: TrendingUp },
+      { name: "systemAnalytics", href: "/system-analytics", icon: BarChart3 },
     ]
   },
 
