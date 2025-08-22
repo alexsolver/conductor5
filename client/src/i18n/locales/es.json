@@ -1,5 +1,5 @@
 {
-  "4": "[ES] [EN] 4",
+  "4": "4",
   "common": {
     "loading": "Cargando...",
     "save": "Guardar",
@@ -52,18 +52,18 @@
       "satisfaction_score": "Puntuación de Satisfacción",
       "online_agents": "Agentes En Línea",
       "total_agents": "Total de Agentes",
-      "total_tickets": "[ES] dashboard.stats.total_tickets",
-      "open_tickets": "[ES] dashboard.stats.open_tickets",
-      "resolved_tickets": "[ES] dashboard.stats.resolved_tickets",
-      "response_time": "[ES] dashboard.stats.response_time"
+      "total_tickets": "Total de Tickets",
+      "open_tickets": "Tickets Abiertos",
+      "resolved_tickets": "Tickets Resueltos",
+      "response_time": "Tiempo de Respuesta"
     },
     "recent_activity": "Actividad Reciente",
     "urgent_tickets": "Tickets Urgentes",
-    "overview": "[ES] dashboard.overview",
-    "tickets": "[ES] dashboard.tickets",
-    "customers": "[ES] dashboard.customers",
-    "analytics": "[ES] dashboard.analytics",
-    "activity": "[ES] dashboard.activity"
+    "overview": "Resumen",
+    "tickets": "Tickets",
+    "customers": "Clientes",
+    "analytics": "Análisis",
+    "activity": "Actividad"
   },
   "tickets": {
     "title": "Tickets",
@@ -126,15 +126,15 @@
       "resolved": "Resuelto",
       "closed": "Cerrado"
     },
-    "create": "[ES] tickets.create",
-    "edit": "[ES] tickets.edit",
-    "view": "[ES] tickets.view",
-    "close": "[ES] tickets.close",
-    "reopen": "[ES] tickets.reopen",
-    "assign": "[ES] tickets.assign",
-    "category": "[ES] tickets.category",
-    "subcategory": "[ES] tickets.subcategory",
-    "agent": "[ES] tickets.agent"
+    "create": "Crear",
+    "edit": "Editar", 
+    "view": "Ver",
+    "close": "Cerrar",
+    "reopen": "Reabrir",
+    "assign": "Asignar",
+    "category": "Categoría",
+    "subcategory": "Subcategoría",
+    "agent": "Agente"
   },
   "customers": {
     "title": "Clientes",
@@ -172,13 +172,13 @@
       "submit": "Guardar Cliente",
       "cancel": "Cancelar"
     },
-    "create": "[ES] customers.create",
-    "edit": "[ES] customers.edit",
-    "view": "[ES] customers.view",
-    "delete": "[ES] customers.delete",
-    "name": "[ES] customers.name",
-    "address": "[ES] customers.address",
-    "created_at": "[ES] customers.created_at"
+    "create": "Crear",
+    "edit": "Editar",
+    "view": "Ver", 
+    "delete": "Eliminar",
+    "name": "Nombre",
+    "address": "Dirección",
+    "created_at": "Creado en"
   },
   "analytics": {
     "title": "Analíticas",
@@ -186,7 +186,7 @@
     "overview": "Resumen",
     "performance": "Rendimiento",
     "trends": "Tendencias",
-    "reports": "[ES] analytics.reports"
+    "reports": "Informes"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -201,9 +201,9 @@
     "dont_have_account": "¿No tienes una cuenta?",
     "sign_in": "Iniciar sesión",
     "sign_up": "Registrarse",
-    "logout": "[ES] auth.logout",
-    "reset_password": "[ES] auth.reset_password",
-    "welcome_back": "[ES] auth.welcome_back"
+    "logout": "Salir",
+    "reset_password": "Restablecer contraseña",
+    "welcome_back": "Bienvenido de nuevo"
   },
   "admin": {
     "title": "Administración",
@@ -227,8 +227,8 @@
     "light": "Claro",
     "dark": "Oscuro",
     "system": "Sistema",
-    "security": "[ES] settings.security",
-    "integrations": "[ES] settings.integrations"
+    "security": "Seguridad",
+    "integrations": "Integraciones"
   },
   "localization": {
     "language": "Idioma",
@@ -599,27 +599,27 @@
   "multilocationSettings": "[ES] multilocationSettings",
   "workspaceAdmin": "[ES] workspaceAdmin",
   "general": "[ES] general",
-  "contractManagement": "[ES] contractManagement",
-  "expenseManagement": "[ES] expenseManagement",
-  "technicalSkillsPage": "[ES] technicalSkillsPage",
-  "approvals": "[ES] approvals",
-  "activityPlanner": "[ES] activityPlanner",
-  "integracoes": "[ES] integracoes",
-  "ticketConfiguration": "[ES] ticketConfiguration",
-  "ticketTemplates": "[ES] ticketTemplates",
-  "customFields": "[ES] customFields",
-  "clientes": "[ES] clientes",
-  "beneficiaries": "[ES] beneficiaries",
-  "internalForms": "[ES] internalForms",
-  "omniBridge": "[ES] omniBridge",
-  "companies": "[ES] companies",
-  "branding": "[ES] branding",
-  "reportsAndDashboards": "[ES] reportsAndDashboards",
-  "interactiveDashboards": "[ES] interactiveDashboards",
-  "workflows": "[ES] workflows",
-  "slas": "[ES] slas",
-  "userManagementPage": "[ES] userManagementPage",
-  "teamManagementPage": "[ES] teamManagementPage",
+  "contractManagement": "Gestión de Contratos",
+  "expenseManagement": "Gestión de Gastos", 
+  "technicalSkillsPage": "Habilidades Técnicas",
+  "approvals": "Aprobaciones",
+  "activityPlanner": "Planificador de Actividades",
+  "integracoes": "Integraciones",
+  "ticketConfiguration": "Configuración de Tickets",
+  "ticketTemplates": "Plantillas de Tickets",
+  "customFields": "Campos Personalizados",
+  "clientes": "Clientes",
+  "beneficiaries": "Beneficiarios",
+  "internalForms": "Formularios Internos",
+  "omniBridge": "Omni Bridge",
+  "companies": "Empresas", 
+  "branding": "Marca",
+  "reportsAndDashboards": "Informes y Dashboards",
+  "interactiveDashboards": "Dashboards Interactivos",
+  "workflows": "Flujos de Trabajo",
+  "slas": "SLAs",
+  "userManagementPage": "Gestión de Usuarios",
+  "teamManagementPage": "Gestión de Equipos",
   "teamManagement": {
     "title": "[ES] teamManagement.title",
     "overview": "[ES] teamManagement.overview",
@@ -704,5 +704,14 @@
   "workflows": "Flujos de Trabajo",
   "slas": "SLAs",
   "userManagementPage": "Página de Gestión de Usuarios",
-  "teamManagementPage": "Página de Gestión de Equipos"
+  "teamManagementPage": "Página de Gestión de Equipos",
+  "knowledgeBase": "Base de Conocimiento",
+  "timecardControl": "Control de Jornada",
+  "locations": "Ubicaciones",
+  "materialsAndServices": "Materiales y Servicios",
+  "analytics": "Análisis",
+  "notifications": "Notificaciones",
+  "compliance": "Cumplimiento",
+  "gdprCompliance": "Cumplimiento GDPR",
+  "reports": "Informes"
 }
