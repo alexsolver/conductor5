@@ -1,0 +1,22 @@
+{
+  "auditedAt": "2025-08-22T13:08:19.516Z",
+  "totalIssues": 0,
+  "issuesByType": {
+    "missing": 0,
+    "untranslated": 0,
+    "inconsistent": 0,
+    "mixed_language": 0
+  },
+  "issues": [],
+  "summary": {
+    "criticalIssues": 0,
+    "missingKeys": 0,
+    "inconsistencies": 0,
+    "recommendations": [
+      "Padronizar terminologia em português",
+      "Traduzir todas as chaves em inglês",
+      "Implementar validação automática de traduções",
+      "Adicionar chaves faltantes em todos os idiomas"
+    ]
+  }
+}
