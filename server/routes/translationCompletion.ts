@@ -376,6 +376,12 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
     const totalAdded = completionResults.reduce((sum, result) => sum + (result.added || 0), 0);
 
     console.log(`🎯 [STEP-1] Completed: Added ${totalAdded} translations`);
+    
+    // CRITICAL PROTECTION: Fix known problematic keys that get reverted
+    console.log('🛡️ [PROTECTION] Applying critical key fixes to prevent object errors...');
+    await applyProtectedKeyFixes();
+    console.log('✅ [PROTECTION] Critical keys protected against object errors');
+    
     console.log('📊 [STEP-2] Generating completion report...');
 
     // Generate final report using the existing method
@@ -530,5 +536,52 @@ router.post('/validate', jwtAuth, async (req: AuthenticatedRequest, res) => {
     });
   }
 });
+
+/**
+ * Aplica correções críticas para prevenir erros de "object instead of string"
+ */
+async function applyProtectedKeyFixes() {
+  const fs = require('fs').promises;
+  const path = require('path');
+  
+  try {
+    const ptBrPath = path.join(process.cwd(), 'client/src/i18n/locales/pt-BR.json');
+    
+    // Lê o arquivo atual
+    const content = await fs.readFile(ptBrPath, 'utf8');
+    let translations = JSON.parse(content);
+    
+    // Define as correções críticas (objetos → strings)
+    const criticalFixes = {
+      'compliance': 'Compliance',
+      'locations': 'Localizações', 
+      'approvals': 'Aprovações',
+      'customFields': 'Campos Personalizados',
+      'analytics': 'Análises'
+    };
+    
+    let fixesApplied = 0;
+    
+    // Aplica as correções se necessário
+    for (const [key, value] of Object.entries(criticalFixes)) {
+      if (typeof translations[key] === 'object' && translations[key] !== null) {
+        console.log(`🔧 [PROTECTION] Fixing ${key}: object → "${value}"`);
+        translations[key] = value;
+        fixesApplied++;
+      }
+    }
+    
+    if (fixesApplied > 0) {
+      // Salva o arquivo corrigido
+      await fs.writeFile(ptBrPath, JSON.stringify(translations, null, 2), 'utf8');
+      console.log(`✅ [PROTECTION] Applied ${fixesApplied} critical fixes to pt-BR.json`);
+    } else {
+      console.log('✅ [PROTECTION] No fixes needed - all critical keys are already strings');
+    }
+    
+  } catch (error) {
+    console.error('❌ [PROTECTION] Error applying critical fixes:', error);
+  }
+}
 
 export default router;
