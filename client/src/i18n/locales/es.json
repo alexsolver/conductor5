@@ -29,7 +29,46 @@
     "add": "Añadir",
     "remove": "Eliminar",
     "creating": "Creando",
-    "view": "Ver"
+    "view": "Ver",
+    "use": "[ES] common.use",
+    "appName": "[ES] common.appName",
+    "collapseSidebar": "[ES] common.collapseSidebar",
+    "expandSidebar": "[ES] common.expandSidebar",
+    "saving": "[ES] common.saving",
+    "description": "[ES] common.description",
+    "active": "[ES] common.active",
+    "inactive": "[ES] common.inactive",
+    "loading_attachments": "[ES] common.loading_attachments",
+    "download": "[ES] common.download",
+    "loading_communications": "[ES] common.loading_communications",
+    "by": "[ES] common.by",
+    "loading_notes": "[ES] common.loading_notes",
+    "loading_history": "[ES] common.loading_history",
+    "error": "[ES] common.error",
+    "retry": "[ES] common.retry",
+    "open": "[ES] common.open",
+    "refresh": "[ES] common.refresh",
+    "ok": "[ES] common.ok",
+    "success": "[ES] common.success",
+    "warning": "[ES] common.warning",
+    "info": "[ES] common.info",
+    "first": "[ES] common.first",
+    "last": "[ES] common.last",
+    "name": "[ES] common.name",
+    "email": "[ES] common.email",
+    "phone": "[ES] common.phone",
+    "address": "[ES] common.address",
+    "date": "[ES] common.date",
+    "time": "[ES] common.time",
+    "status": "[ES] common.status",
+    "type": "[ES] common.type",
+    "category": "[ES] common.category",
+    "processing": "[ES] common.processing",
+    "pleaseWait": "[ES] common.pleaseWait",
+    "none": "[ES] common.none",
+    "all": "[ES] common.all",
+    "select": "[ES] common.select",
+    "choose": "[ES] common.choose"
   },
   "navigation": {
     "dashboard": "Panel",
@@ -63,7 +102,9 @@
     "tickets": "Tickets",
     "customers": "Clientes",
     "analytics": "Análisis",
-    "activity": "Actividad"
+    "activity": "Actividad",
+    "view": "[ES] dashboard.view",
+    "manage": "[ES] dashboard.manage"
   },
   "tickets": {
     "title": "Tickets",
@@ -79,7 +120,16 @@
       "defaultView": "Vista Predeterminada",
       "newView": "Nueva Vista",
       "manage": "Gestionar Vistas",
-      "advancedFilters": "Filtros Avanzados"
+      "advancedFilters": "Filtros Avanzados",
+      "view": "[ES] tickets.views.view",
+      "public": "[ES] tickets.views.public",
+      "noViewsAvailable": "[ES] tickets.views.noViewsAvailable",
+      "default": "[ES] tickets.views.default",
+      "createNewView": "[ES] tickets.views.createNewView",
+      "viewName": "[ES] tickets.views.viewName",
+      "descriptionPlaceholder": "[ES] tickets.views.descriptionPlaceholder",
+      "description": "[ES] tickets.views.description",
+      "manageViews": "[ES] tickets.views.manageViews"
     },
     "clear_filters": "Limpiar Filtros",
     "status": "Estado",
@@ -143,7 +193,217 @@
     "assign": "Asignar",
     "category": "Categoría",
     "subcategory": "Subcategoría",
-    "agent": "Agente"
+    "agent": "Agente",
+    "internal_actions": {
+      "description_placeholder": "[ES] tickets.internal_actions.description_placeholder",
+      "detailed_description_placeholder": "[ES] tickets.internal_actions.detailed_description_placeholder",
+      "description_too_long": "[ES] tickets.internal_actions.description_too_long"
+    },
+    "messages": {
+      "not_found": "[ES] tickets.messages.not_found",
+      "no_description": "[ES] tickets.messages.no_description",
+      "no_attachments": "[ES] tickets.messages.no_attachments",
+      "no_communications": "[ES] tickets.messages.no_communications",
+      "no_notes": "[ES] tickets.messages.no_notes",
+      "no_history": "[ES] tickets.messages.no_history",
+      "created_success": "[ES] tickets.messages.created_success",
+      "error_creating": "[ES] tickets.messages.error_creating",
+      "error_loading": "[ES] tickets.messages.error_loading",
+      "loading": "[ES] tickets.messages.loading"
+    },
+    "actions": {
+      "back_to_tickets": "[ES] tickets.actions.back_to_tickets",
+      "back": "[ES] tickets.actions.back",
+      "download": "[ES] tickets.actions.download",
+      "delete": "[ES] tickets.actions.delete",
+      "simple": "[ES] tickets.actions.simple",
+      "detailed": "[ES] tickets.actions.detailed",
+      "edit": "[ES] tickets.actions.edit",
+      "linkTicket": "[ES] tickets.actions.linkTicket",
+      "title": "[ES] tickets.actions.title",
+      "creating": "[ES] tickets.actions.creating",
+      "create": "[ES] tickets.actions.create"
+    },
+    "attachments": "[ES] tickets.attachments",
+    "communication": "[ES] tickets.communication",
+    "notes": "[ES] tickets.notes",
+    "history": "[ES] tickets.history",
+    "upload_attachments": "[ES] tickets.upload_attachments",
+    "existing_attachments": "[ES] tickets.existing_attachments",
+    "note_internal": "[ES] tickets.note_internal",
+    "note_public": "[ES] tickets.note_public",
+    "change_history": "[ES] tickets.change_history",
+    "field": "[ES] tickets.field",
+    "ticket_information": "[ES] tickets.ticket_information",
+    "created": "[ES] tickets.created",
+    "updated": "[ES] tickets.updated",
+    "company": "[ES] tickets.company",
+    "location": "[ES] tickets.location",
+    "uploaded_by": "[ES] tickets.uploaded_by",
+    "tabs": {
+      "attachments": "[ES] tickets.tabs.attachments",
+      "communication": "[ES] tickets.tabs.communication"
+    },
+    "fields": {
+      "classification": "[ES] tickets.fields.classification",
+      "priority": "[ES] tickets.fields.priority",
+      "status": "[ES] tickets.fields.status",
+      "urgency": "[ES] tickets.fields.urgency",
+      "category": "[ES] tickets.fields.category",
+      "subcategory": "[ES] tickets.fields.subcategory",
+      "notSpecified": "[ES] tickets.fields.notSpecified",
+      "action": "[ES] tickets.fields.action",
+      "subject": "[ES] tickets.fields.subject",
+      "notInformed": "[ES] tickets.fields.notInformed",
+      "description": "[ES] tickets.fields.description",
+      "attachments": "[ES] tickets.fields.attachments",
+      "attachmentCount": "[ES] tickets.fields.attachmentCount",
+      "existingAttachments": "[ES] tickets.fields.existingAttachments",
+      "fileNoName": "[ES] tickets.fields.fileNoName",
+      "unknownSize": "[ES] tickets.fields.unknownSize",
+      "addedOn": "[ES] tickets.fields.addedOn",
+      "dateNotAvailable": "[ES] tickets.fields.dateNotAvailable",
+      "noteCount": "[ES] tickets.fields.noteCount",
+      "newNote": "[ES] tickets.fields.newNote",
+      "general": "[ES] tickets.fields.general",
+      "internal": "[ES] tickets.fields.internal",
+      "resolution": "[ES] tickets.fields.resolution",
+      "escalation": "[ES] tickets.fields.escalation",
+      "communicationTimeline": "[ES] tickets.fields.communicationTimeline",
+      "historyComplete": "[ES] tickets.fields.historyComplete",
+      "internalAction": "[ES] tickets.fields.internalAction",
+      "internalActionCreated": "[ES] tickets.fields.internalActionCreated",
+      "internalActionUpdated": "[ES] tickets.fields.internalActionUpdated",
+      "internalActionDeleted": "[ES] tickets.fields.internalActionDeleted",
+      "actionPerformedBy": "[ES] tickets.fields.actionPerformedBy",
+      "resolvedOn": "[ES] tickets.fields.resolvedOn",
+      "createdOn": "[ES] tickets.fields.createdOn",
+      "internalActions": "[ES] tickets.fields.internalActions",
+      "assignedTo": "[ES] tickets.fields.assignedTo",
+      "ticketsLinkedCount": "[ES] tickets.fields.ticketsLinkedCount",
+      "noTicketLinked": "[ES] tickets.fields.noTicketLinked",
+      "linkButtonHint": "[ES] tickets.fields.linkButtonHint",
+      "customer": "[ES] tickets.fields.customer",
+      "customerSince": "[ES] tickets.fields.customerSince",
+      "totalTickets": "[ES] tickets.fields.totalTickets",
+      "lastOpenedTickets": "[ES] tickets.fields.lastOpenedTickets",
+      "thisCustomer": "[ES] tickets.fields.thisCustomer",
+      "current": "[ES] tickets.fields.current",
+      "systemProblem": "[ES] tickets.fields.systemProblem",
+      "today": "[ES] tickets.fields.today",
+      "resolved": "[ES] tickets.fields.resolved",
+      "closed": "[ES] tickets.fields.closed",
+      "active": "[ES] tickets.fields.active",
+      "relatedTicket": "[ES] tickets.fields.relatedTicket",
+      "customerInsights": "[ES] tickets.fields.customerInsights",
+      "company": "[ES] tickets.fields.company",
+      "selectCustomer": "[ES] tickets.fields.selectCustomer",
+      "customerFound": "[ES] tickets.fields.customerFound",
+      "customerNotFound": "[ES] tickets.fields.customerNotFound",
+      "customerNoName": "[ES] tickets.fields.customerNoName",
+      "beneficiary": "[ES] tickets.fields.beneficiary",
+      "location": "[ES] tickets.fields.location",
+      "assignmentGroup": "[ES] tickets.fields.assignmentGroup",
+      "responsible": "[ES] tickets.fields.responsible",
+      "datesTimeTitle": "[ES] tickets.fields.datesTimeTitle",
+      "creation": "[ES] tickets.fields.creation",
+      "dueDate": "[ES] tickets.fields.dueDate",
+      "statusField": "[ES] tickets.fields.statusField",
+      "sla": "[ES] tickets.fields.sla",
+      "slaElapsed": "[ES] tickets.fields.slaElapsed",
+      "sensitiveData": "[ES] tickets.fields.sensitiveData",
+      "securityVerification": "[ES] tickets.fields.securityVerification",
+      "enterPasswordAccess": "[ES] tickets.fields.enterPasswordAccess",
+      "enterPasswordPlaceholder": "[ES] tickets.fields.enterPasswordPlaceholder",
+      "name": "[ES] tickets.fields.name",
+      "email": "[ES] tickets.fields.email",
+      "phone": "[ES] tickets.fields.phone",
+      "customerUpper": "[ES] tickets.fields.customerUpper",
+      "accessSensitiveData": "[ES] tickets.fields.accessSensitiveData",
+      "address": "[ES] tickets.fields.address",
+      "sensitiveDataAccess": "[ES] tickets.fields.sensitiveDataAccess",
+      "enterPasswordAgent": "[ES] tickets.fields.enterPasswordAgent",
+      "agentPassword": "[ES] tickets.fields.agentPassword",
+      "cancel": "[ES] tickets.fields.cancel",
+      "sensitiveDataRevealed": "[ES] tickets.fields.sensitiveDataRevealed",
+      "enterPassword": "[ES] tickets.fields.enterPassword",
+      "verify": "[ES] tickets.fields.verify",
+      "companyDetails": "[ES] tickets.fields.companyDetails",
+      "companyName": "[ES] tickets.fields.companyName",
+      "companyNotSpecified": "[ES] tickets.fields.companyNotSpecified",
+      "technicalResponsible": "[ES] tickets.fields.technicalResponsible",
+      "manageCustomers": "[ES] tickets.fields.manageCustomers",
+      "customerDetails": "[ES] tickets.fields.customerDetails",
+      "noCustomerSpecified": "[ES] tickets.fields.noCustomerSpecified",
+      "beneficiaryDetails": "[ES] tickets.fields.beneficiaryDetails"
+    },
+    "placeholders": {
+      "selectAction": "[ES] tickets.placeholders.selectAction",
+      "ticketDescription": "[ES] tickets.placeholders.ticketDescription",
+      "noteText": "[ES] tickets.placeholders.noteText"
+    },
+    "interactions": "[ES] tickets.interactions",
+    "interactions_plural": "[ES] tickets.interactions_plural",
+    "links": "[ES] tickets.links",
+    "relationships": {
+      "related": "[ES] tickets.relationships.related",
+      "duplicates": "[ES] tickets.relationships.duplicates",
+      "blocks": "[ES] tickets.relationships.blocks",
+      "causedBy": "[ES] tickets.relationships.causedBy",
+      "parentChild": "[ES] tickets.relationships.parentChild",
+      "follows": "[ES] tickets.relationships.follows",
+      "linked": "[ES] tickets.relationships.linked"
+    },
+    "basicData": "[ES] tickets.basicData",
+    "explore": "[ES] tickets.explore",
+    "details": "[ES] tickets.details",
+    "materialsServices": "[ES] tickets.materialsServices",
+    "knowledgeBase": "[ES] tickets.knowledgeBase",
+    "internalActions": "[ES] tickets.internalActions",
+    "externalActions": "[ES] tickets.externalActions",
+    "latestInteractions": "[ES] tickets.latestInteractions",
+    "new_ticket": "[ES] tickets.new_ticket",
+    "forms": {
+      "create": {
+        "title": "[ES] tickets.forms.create.title",
+        "select_company": "[ES] tickets.forms.create.select_company",
+        "no_companies": "[ES] tickets.forms.create.no_companies",
+        "first_select_company": "[ES] tickets.forms.create.first_select_company",
+        "select_customer": "[ES] tickets.forms.create.select_customer",
+        "no_customers_for_company": "[ES] tickets.forms.create.no_customers_for_company",
+        "select_beneficiary": "[ES] tickets.forms.create.select_beneficiary",
+        "no_beneficiary": "[ES] tickets.forms.create.no_beneficiary",
+        "subject_placeholder": "[ES] tickets.forms.create.subject_placeholder",
+        "select_category": "[ES] tickets.forms.create.select_category",
+        "first_select_category": "[ES] tickets.forms.create.first_select_category",
+        "select_subcategory": "[ES] tickets.forms.create.select_subcategory",
+        "no_subcategories": "[ES] tickets.forms.create.no_subcategories",
+        "first_select_subcategory": "[ES] tickets.forms.create.first_select_subcategory",
+        "select_action": "[ES] tickets.forms.create.select_action",
+        "no_actions": "[ES] tickets.forms.create.no_actions",
+        "select_priority": "[ES] tickets.forms.create.select_priority",
+        "select_urgency": "[ES] tickets.forms.create.select_urgency",
+        "description_placeholder": "[ES] tickets.forms.create.description_placeholder",
+        "symptoms_placeholder": "[ES] tickets.forms.create.symptoms_placeholder",
+        "business_impact_placeholder": "[ES] tickets.forms.create.business_impact_placeholder",
+        "workaround_placeholder": "[ES] tickets.forms.create.workaround_placeholder",
+        "select_location_optional": "[ES] tickets.forms.create.select_location_optional",
+        "no_specific_location": "[ES] tickets.forms.create.no_specific_location"
+      }
+    },
+    "beneficiary": "[ES] tickets.beneficiary",
+    "action": "[ES] tickets.action",
+    "urgency": "[ES] tickets.urgency",
+    "symptoms": "[ES] tickets.symptoms",
+    "business_impact": "[ES] tickets.business_impact",
+    "workaround": "[ES] tickets.workaround",
+    "filter_by_status": "[ES] tickets.filter_by_status",
+    "filter_by_priority": "[ES] tickets.filter_by_priority",
+    "assignedTo": "[ES] tickets.assignedTo",
+    "id": "[ES] tickets.id",
+    "manage": "[ES] tickets.manage",
+    "delete": "[ES] tickets.delete",
+    "customerId": "[ES] tickets.customerId"
   },
   "customers": {
     "title": "Clientes",
@@ -187,7 +447,8 @@
     "delete": "Eliminar",
     "name": "Nombre",
     "address": "Dirección",
-    "created_at": "Creado en"
+    "created_at": "Creado en",
+    "id": "[ES] customers.id"
   },
   "analytics": {
     "title": "[ES] analytics.title",
@@ -195,7 +456,9 @@
     "performance": "[ES] analytics.performance",
     "trends": "[ES] analytics.trends",
     "reports": "[ES] analytics.reports",
-    "subtitle": "[ES] analytics.subtitle"
+    "subtitle": "[ES] analytics.subtitle",
+    "view": "[ES] analytics.view",
+    "create": "[ES] analytics.create"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -237,7 +500,10 @@
     "dark": "Oscuro",
     "system": "Sistema",
     "security": "Seguridad",
-    "integrations": "Integraciones"
+    "integrations": "Integraciones",
+    "view": "[ES] settings.view",
+    "edit": "[ES] settings.edit",
+    "branding": "[ES] settings.branding"
   },
   "localization": {
     "language": "Idioma",
@@ -526,7 +792,13 @@
   },
   "Digite sua senha": "[ES] [EN] Digite sua senha",
   "/api/materials-services/tickets/${ticketId}/consumed-items": "[ES] [EN] /api/materials-services/tickets/${ticket Id}/consumed-items",
-  "customer": "[ES] [EN] Customer",
+  "customer": {
+    "created": "[ES] customer.created",
+    "updated": "[ES] customer.updated",
+    "suspended": "[ES] customer.suspended",
+    "activated": "[ES] customer.activated",
+    "verified": "[ES] customer.verified"
+  },
   "/": "[ES] [EN] /",
   "Ativo": "[ES] [EN] Ativo",
   "America/Sao_Paulo": "[ES] [EN] America/ Sao_ Paulo",
@@ -571,7 +843,10 @@
   "/api/user-management/users/${userId}/sessions/terminate-all": "[ES] [EN] /api/user-management/users/${user Id}/sessions/terminate-all",
   "400:": "[ES] [EN] 400:",
   "notifications": "Notificaciones",
-  "compliance": "Cumplimiento",
+  "compliance": {
+    "view": "[ES] compliance.view",
+    "manage": "[ES] compliance.manage"
+  },
   "gdprCompliance": "Cumplimiento GDPR",
   "knowledgeBase": "Base de Conocimiento",
   "timecardControl": "Control de Jornada",
@@ -584,7 +859,9 @@
   "timecardApprovals": "Aprobaciones de Jornada",
   "approvalConfiguration": "Configuración de Aprobación",
   "absenceManagement": "Gestión de Ausencias",
-  "locations": "Ubicaciones",
+  "locations": {
+    "saveLocation": "[ES] locations.saveLocation"
+  },
   "materialsAndServices": "Materiales y Servicios",
   "itemCatalog": "Catálogo de Artículos",
   "stockManagement": "Gestión de Inventario",
@@ -611,12 +888,37 @@
   "contractManagement": "Gestión de Contratos",
   "expenseManagement": "Gestión de Gastos",
   "technicalSkillsPage": "Habilidades Técnicas",
-  "approvals": "Aprobaciones",
+  "approvals": {
+    "title": "[ES] approvals.title",
+    "development_description": "[ES] approvals.development_description",
+    "under_development": "[ES] approvals.under_development",
+    "development_message": "[ES] approvals.development_message",
+    "planned_features": "[ES] approvals.planned_features",
+    "features": {
+      "custom_workflows": "[ES] approvals.features.custom_workflows",
+      "approvers_by_category": "[ES] approvals.features.approvers_by_category",
+      "automatic_notifications": "[ES] approvals.features.automatic_notifications",
+      "approval_history": "[ES] approvals.features.approval_history",
+      "email_integration": "[ES] approvals.features.email_integration",
+      "approval_reports": "[ES] approvals.features.approval_reports"
+    }
+  },
   "activityPlanner": "Planificador de Actividades",
   "integracoes": "Integraciones",
   "ticketConfiguration": "Configuración de Tickets",
   "ticketTemplates": "Plantillas de Tickets",
-  "customFields": "Campos Personalizados",
+  "customFields": {
+    "hide": "[ES] customFields.hide",
+    "show": "[ES] customFields.show",
+    "fields": "[ES] customFields.fields",
+    "exitDesign": "[ES] customFields.exitDesign",
+    "editLayout": "[ES] customFields.editLayout",
+    "activeCustomFields": "[ES] customFields.activeCustomFields",
+    "field": "[ES] customFields.field",
+    "configureFields": "[ES] customFields.configureFields",
+    "title": "[ES] customFields.title",
+    "noFieldsConfigured": "[ES] customFields.noFieldsConfigured"
+  },
   "clientes": "Clientes",
   "beneficiaries": "Beneficiarios",
   "internalForms": "Formularios Internos",
@@ -697,5 +999,576 @@
     "autoCompletionFailed": "Falló el auto completar traducciones",
     "autoCompletionError": "Auto completar falló",
     "autoCompletionErrorDesc": "Falló el auto completar traducciones"
-  }
+  },
+  "quickActions": {
+    "createTicket": "[ES] quickActions.createTicket",
+    "addCustomer": "[ES] quickActions.addCustomer",
+    "generateReport": "[ES] quickActions.generateReport",
+    "automation": "[ES] quickActions.automation",
+    "title": "[ES] quickActions.title"
+  },
+  "userGroups": {
+    "loadingGroups": "[ES] userGroups.loadingGroups",
+    "title": "[ES] userGroups.title",
+    "description": "[ES] userGroups.description",
+    "createGroup": "[ES] userGroups.createGroup",
+    "createNewGroup": "[ES] userGroups.createNewGroup",
+    "createNewGroupDescription": "[ES] userGroups.createNewGroupDescription",
+    "groupName": "[ES] userGroups.groupName",
+    "groupDescription": "[ES] userGroups.groupDescription",
+    "groupDescriptionPlaceholder": "[ES] userGroups.groupDescriptionPlaceholder",
+    "creating": "[ES] userGroups.creating",
+    "noGroupsFound": "[ES] userGroups.noGroupsFound",
+    "noGroupsDescription": "[ES] userGroups.noGroupsDescription",
+    "createFirstGroup": "[ES] userGroups.createFirstGroup",
+    "members": "[ES] userGroups.members",
+    "editGroupTitle": "[ES] userGroups.editGroupTitle",
+    "updating": "[ES] userGroups.updating"
+  },
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9": {
+    "eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY": "[ES] eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY"
+    },
+    "eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM": "[ES] eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM"
+    }
+  },
+  "coordinates": {
+    "lat": "[ES] coordinates.lat",
+    "lng": "[ES] coordinates.lng"
+  },
+  "workingHours": {
+    "start": "[ES] workingHours.start",
+    "end": "[ES] workingHours.end"
+  },
+  "colors": {
+    "primary": "[ES] colors.primary",
+    "secondary": "[ES] colors.secondary",
+    "accent": "[ES] colors.accent",
+    "background": "[ES] colors.background",
+    "surface": "[ES] colors.surface",
+    "text": "[ES] colors.text"
+  },
+  "layout": {
+    "sidebarStyle": "[ES] layout.sidebarStyle",
+    "headerStyle": "[ES] layout.headerStyle",
+    "borderRadius": "[ES] layout.borderRadius",
+    "spacing": "[ES] layout.spacing"
+  },
+  "logo": {
+    "url": "[ES] logo.url",
+    "darkUrl": "[ES] logo.darkUrl",
+    "favicon": "[ES] logo.favicon"
+  },
+  "typography": {
+    "fontFamily": "[ES] typography.fontFamily",
+    "headingFont": "[ES] typography.headingFont",
+    "fontSize": "[ES] typography.fontSize"
+  },
+  "customization": {
+    "companyName": "[ES] customization.companyName",
+    "welcomeMessage": "[ES] customization.welcomeMessage",
+    "footerText": "[ES] customization.footerText",
+    "supportEmail": "[ES] customization.supportEmail",
+    "helpUrl": "[ES] customization.helpUrl",
+    "showPoweredBy": "[ES] customization.showPoweredBy"
+  },
+  "themes": {
+    "defaultTheme": "[ES] themes.defaultTheme",
+    "allowUserThemeSwitch": "[ES] themes.allowUserThemeSwitch",
+    "customCss": "[ES] themes.customCss"
+  },
+  "imap": {
+    "gmail": {
+      "com": "[ES] imap.gmail.com"
+    }
+  },
+  "smtp": {
+    "gmail": {
+      "com": "[ES] smtp.gmail.com"
+    }
+  },
+  "pagination": {
+    "page": "[ES] pagination.page",
+    "of": "[ES] pagination.of",
+    "previous": "[ES] pagination.previous",
+    "next": "[ES] pagination.next"
+  },
+  "templateReset": "[ES] templateReset",
+  "pg": "[ES] pg",
+  "main": "[ES] main",
+  "pool_exhaustion_critical": "[ES] pool_exhaustion_critical",
+  "performance_degradation": "[ES] performance_degradation",
+  "ticket": {
+    "created": "[ES] ticket.created",
+    "assigned": "[ES] ticket.assigned",
+    "status_changed": "[ES] ticket.status_changed",
+    "updated": "[ES] ticket.updated",
+    "resolved": "[ES] ticket.resolved",
+    "escalated": "[ES] ticket.escalated"
+  },
+  "child_process": "[ES] child_process",
+  "env": "[ES] env",
+  "error": "[ES] error",
+  "close": "[ES] close",
+  "timeout": "[ES] timeout",
+  "User-Agent": "[ES] User-Agent",
+  "asc": "[ES] asc",
+  "createdAt": "[ES] createdAt",
+  "desc": "[ES] desc",
+  "drizzle-orm": "[ES] drizzle-orm",
+  "BR": "[ES] BR",
+  "stats": {
+    "view": "[ES] stats.view"
+  },
+  "activity": {
+    "view": "[ES] activity.view"
+  },
+  "items": {
+    "amount": "[ES] items.amount",
+    "catalogId": "[ES] items.catalogId",
+    "supplierId": "[ES] items.supplierId"
+  },
+  "context": {
+    "userRole": "[ES] context.userRole"
+  },
+  "hex": "[ES] hex",
+  "tesseract": {
+    "js": "[ES] tesseract.js"
+  },
+  "receipt_001": {
+    "jpg": "[ES] receipt_001.jpg"
+  },
+  "api": {
+    "conductor": {
+      "com": "[ES] api.conductor.com"
+    }
+  },
+  "unit": "[ES] unit",
+  "template_importacao_itens": {
+    "csv": "[ES] template_importacao_itens.csv"
+  },
+  "inactive": "[ES] inactive",
+  "from_address": "[ES] from_address",
+  "to_address": "[ES] to_address",
+  "subject": "[ES] subject",
+  "content": "[ES] content",
+  "unread": "[ES] unread",
+  "grid": "[ES] grid",
+  "view_only": "[ES] view_only",
+  "updatedAt": "[ES] updatedAt",
+  "json": "[ES] json",
+  "users": {
+    "id": "[ES] users.id",
+    "tenantId": "[ES] users.tenantId"
+  },
+  "ticket_comments": {
+    "ticketId": "[ES] ticket_comments.ticketId"
+  },
+  "item_catalog": {
+    "id": "[ES] item_catalog.id"
+  },
+  "suppliers": {
+    "id": "[ES] suppliers.id"
+  },
+  "timecards": {
+    "userId": "[ES] timecards.userId",
+    "id": "[ES] timecards.id"
+  },
+  "time_entries": {
+    "timecardId": "[ES] time_entries.timecardId"
+  },
+  "messages": {
+    "channelId": "[ES] messages.channelId",
+    "conversationId": "[ES] messages.conversationId",
+    "success": "[ES] messages.success",
+    "error": "[ES] messages.error",
+    "warning": "[ES] messages.warning",
+    "info": "[ES] messages.info"
+  },
+  "channels": "[ES] channels",
+  "conversations": {
+    "id": "[ES] conversations.id"
+  },
+  "support": "[ES] support",
+  "intermediate": "[ES] intermediate",
+  "host": "[ES] host",
+  "uuid": "[ES] uuid",
+  "this": {
+    "repository": "[ES] this.repository",
+    "logger": "[ES] this.logger",
+    "neon": "[ES] this.neon"
+  },
+  "targetTicket": {
+    "id": "[ES] targetTicket.id",
+    "subject": "[ES] targetTicket.subject",
+    "status": "[ES] targetTicket.status",
+    "priority": "[ES] targetTicket.priority",
+    "number": "[ES] targetTicket.number",
+    "createdAt": "[ES] targetTicket.createdAt",
+    "description": "[ES] targetTicket.description"
+  },
+  "googleapis": {
+    "com": "[ES] googleapis.com"
+  },
+  "dd": {
+    "MM": {
+      "yyyy": "[ES] dd.MM.yyyy"
+    }
+  },
+  "index": {
+    "css": "[ES] index.css",
+    "ts": "[ES] index.ts",
+    "html": "[ES] index.html"
+  },
+  "template-preference": {
+    "json": "[ES] template-preference.json"
+  },
+  "manual": "[ES] manual",
+  "x-forwarded-proto": "[ES] x-forwarded-proto",
+  "x-forwarded-host": "[ES] x-forwarded-host",
+  "gmail": {
+    "com": "[ES] gmail.com"
+  },
+  "translation": {
+    "backup": {
+      "json": "[ES] translation.backup.json"
+    },
+    "json": "[ES] translation.json"
+  },
+  "bcryptjs": "[ES] bcryptjs",
+  "workspace": {
+    "manage": "[ES] workspace.manage",
+    "configure": "[ES] workspace.configure",
+    "security": "[ES] workspace.security",
+    "integrations": "[ES] workspace.integrations"
+  },
+  "user": "[ES] user",
+  "groups": {
+    "manage": "[ES] groups.manage"
+  },
+  "sessions": {
+    "monitor": "[ES] sessions.monitor"
+  },
+  "hr": {
+    "view": "[ES] hr.view",
+    "performance": "[ES] hr.performance",
+    "skills": "[ES] hr.skills",
+    "absence": "[ES] hr.absence"
+  },
+  "timecard": {
+    "view": "[ES] timecard.view",
+    "manage": "[ES] timecard.manage",
+    "approve": "[ES] timecard.approve"
+  },
+  "bcrypt": "[ES] bcrypt",
+  "UNIFIED_SCHEMA_ARCHITECTURE": {
+    "md": "[ES] UNIFIED_SCHEMA_ARCHITECTURE.md"
+  },
+  "schema-master": {
+    "ts": "[ES] schema-master.ts"
+  },
+  "fs": "[ES] fs",
+  "db": {
+    "ts": "[ES] db.ts"
+  },
+  "translation-audit-report": {
+    "json": "[ES] translation-audit-report.json"
+  },
+  "routes": {
+    "ts": "[ES] routes.ts"
+  },
+  "routes_backup_full": {
+    "ts": "[ES] routes_backup_full.ts"
+  },
+  "routes-old": {
+    "ts": "[ES] routes-old.ts"
+  },
+  "routes-working": {
+    "ts": "[ES] routes-working.ts"
+  },
+  "routes-integration": {
+    "ts": "[ES] routes-integration.ts"
+  },
+  "routes-clean": {
+    "ts": "[ES] routes-clean.ts"
+  },
+  "routes-legacy-backup": {
+    "ts": "[ES] routes-legacy-backup.ts"
+  },
+  "schema": {
+    "ts": "[ES] schema.ts"
+  },
+  "drizzle": {
+    "config": {
+      "ts": "[ES] drizzle.config.ts"
+    }
+  },
+  "SchemaManager": {
+    "ts": "[ES] SchemaManager.ts"
+  },
+  "id": "[ES] id",
+  "DRIZZLE_PROGRESS": {
+    "json": "[ES] DRIZZLE_PROGRESS.json"
+  },
+  "RELATORIO_CORRECAO_DRIZZLE": {
+    "md": "[ES] RELATORIO_CORRECAO_DRIZZLE.md"
+  },
+  "tenants": {
+    "id": "[ES] tenants.id"
+  },
+  "skills": {
+    "id": "[ES] skills.id"
+  },
+  "userSkills": {
+    "skillId": "[ES] userSkills.skillId",
+    "certificationId": "[ES] userSkills.certificationId"
+  },
+  "certifications": {
+    "id": "[ES] certifications.id"
+  },
+  "favorecidos": {
+    "name": "[ES] favorecidos.name"
+  },
+  "Companies": {
+    "tsx": "[ES] Companies.tsx"
+  },
+  "FavorecidosTable": {
+    "tsx": "[ES] FavorecidosTable.tsx"
+  },
+  "productionInitializer": {
+    "ts": "[ES] productionInitializer.ts"
+  },
+  "public": "[ES] public",
+  "SCHEMA_BEST_PRACTICES": {
+    "md": "[ES] SCHEMA_BEST_PRACTICES.md"
+  },
+  "open": "[ES] open",
+  "planning": "[ES] planning",
+  "pending": "[ES] pending",
+  "NOMENCLATURE_STANDARDS": {
+    "md": "[ES] NOMENCLATURE_STANDARDS.md"
+  },
+  "SCHEMA_DATA_TYPE_OPTIMIZATION": {
+    "md": "[ES] SCHEMA_DATA_TYPE_OPTIMIZATION.md"
+  },
+  "system-analysis-corrected-report": {
+    "json": "[ES] system-analysis-corrected-report.json"
+  },
+  "pool": {
+    "query": "[ES] pool.query"
+  },
+  "translation-expansion-report": {
+    "json": "[ES] translation-expansion-report.json"
+  },
+  "TRANSLATION_INCONSISTENCIES_REPORT": {
+    "md": "[ES] TRANSLATION_INCONSISTENCIES_REPORT.md"
+  },
+  "temp-initialize-metadata": {
+    "ts": "[ES] temp-initialize-metadata.ts"
+  },
+  "referer": "[ES] referer",
+  "user-agent": "[ES] user-agent",
+  "path": "[ES] path",
+  "Repository": {
+    "ts": "[ES] Repository.ts"
+  },
+  "results": {
+    "map": "[ES] results.map"
+  },
+  "TokenService": {
+    "ts": "[ES] TokenService.ts"
+  },
+  "authSecurityService": {
+    "ts": "[ES] authSecurityService.ts"
+  },
+  "PasswordService": {
+    "ts": "[ES] PasswordService.ts"
+  },
+  "process": {
+    "env": {
+      "NODE_ENV": "[ES] process.env.NODE_ENV",
+      "": "[ES] process.env."
+    }
+  },
+  "key": "[ES] key",
+  "module": {
+    "key": "[ES] module.key"
+  },
+  "en": {
+    "json": "[ES] en.json"
+  },
+  "forms": {
+    "name": "[ES] forms.name",
+    "email": "[ES] forms.email",
+    "description": "[ES] forms.description",
+    "status": "[ES] forms.status",
+    "priority": "[ES] forms.priority",
+    "category": "[ES] forms.category",
+    "assignedTo": "[ES] forms.assignedTo",
+    "createdAt": "[ES] forms.createdAt",
+    "updatedAt": "[ES] forms.updatedAt"
+  },
+  "modals": {
+    "confirm": "[ES] modals.confirm",
+    "confirmDelete": "[ES] modals.confirmDelete"
+  },
+  "placeholders": {
+    "searchHere": "[ES] placeholders.searchHere",
+    "selectOption": "[ES] placeholders.selectOption",
+    "enterText": "[ES] placeholders.enterText"
+  },
+  "buttons": {
+    "submit": "[ES] buttons.submit",
+    "close": "[ES] buttons.close",
+    "add": "[ES] buttons.add",
+    "remove": "[ES] buttons.remove"
+  },
+  "i18n": {
+    "t": "[ES] i18n.t"
+  },
+  "user_groups": {
+    "id": "[ES] user_groups.id"
+  },
+  "crypto": "[ES] crypto",
+  "tsconfig": {
+    "json": "[ES] tsconfig.json"
+  },
+  "day": "[ES] day",
+  "instructions": "[ES] instructions",
+  "UTC": "[ES] UTC",
+  "scheduled": "[ES] scheduled",
+  "comments": "[ES] comments",
+  "completion_notes": "[ES] completion_notes",
+  "customer_feedback": "[ES] customer_feedback",
+  "user_agent": "[ES] user_agent",
+  "terms_conditions": "[ES] terms_conditions",
+  "file_path": "[ES] file_path",
+  "internal": "[ES] internal",
+  "service_description": "[ES] service_description",
+  "terms_changes": "[ES] terms_changes",
+  "maintenance_schedule": "[ES] maintenance_schedule",
+  "none": "[ES] none",
+  "business_justification": "[ES] business_justification",
+  "policy_violation_details": "[ES] policy_violation_details",
+  "compliance_notes": "[ES] compliance_notes",
+  "delegation_reason": "[ES] delegation_reason",
+  "field_description": "[ES] field_description",
+  "section_description": "[ES] section_description",
+  "change_description": "[ES] change_description",
+  "full": "[ES] full",
+  "request_details": "[ES] request_details",
+  "low": "[ES] low",
+  "tags": "[ES] tags",
+  "access_level": "[ES] access_level",
+  "visibility": "[ES] visibility",
+  "summary": "[ES] summary",
+  "article": "[ES] article",
+  "approval_status": "[ES] approval_status",
+  "keywords": "[ES] keywords",
+  "feedback": "[ES] feedback",
+  "query": "[ES] query",
+  "failure_reason": "[ES] failure_reason",
+  "descricao": "[ES] descricao",
+  "primary": "[ES] primary",
+  "supervisor_ids": "[ES] supervisor_ids",
+  "clt": "[ES] clt",
+  "PF": "[ES] PF",
+  "symptoms": "[ES] symptoms",
+  "workaround": "[ES] workaround",
+  "business_impact": "[ES] business_impact",
+  "followers": "[ES] followers",
+  "environment_error": "[ES] environment_error",
+  "resolution_notes": "[ES] resolution_notes",
+  "link_comment": "[ES] link_comment",
+  "message": "[ES] message",
+  "document_url": "[ES] document_url",
+  "member": "[ES] member",
+  "required_skills": "[ES] required_skills",
+  "location": "[ES] location",
+  "digital_signature": "[ES] digital_signature",
+  "modification_reason": "[ES] modification_reason",
+  "deletion_reason": "[ES] deletion_reason",
+  "reason": "[ES] reason",
+  "medical_certificate": "[ES] medical_certificate",
+  "rejection_reason": "[ES] rejection_reason",
+  "default_approvers": "[ES] default_approvers",
+  "weekly": "[ES] weekly",
+  "working_hours": "[ES] working_hours",
+  "justification": "[ES] justification",
+  "backup_location": "[ES] backup_location",
+  "gzip": "[ES] gzip",
+  "AES-256": "[ES] AES-256",
+  "public_key": "[ES] public_key",
+  "RSA-2048": "[ES] RSA-2048",
+  "revocation_reason": "[ES] revocation_reason",
+  "css_classes": "[ES] css_classes",
+  "info": "[ES] info",
+  "body_template": "[ES] body_template",
+  "location_address": "[ES] location_address",
+  "internal_notes": "[ES] internal_notes",
+  "client_notes": "[ES] client_notes",
+  "planned": "[ES] planned",
+  "compliant": "[ES] compliant",
+  "terms": "[ES] terms",
+  "business_days": "[ES] business_days",
+  "included": "[ES] included",
+  "requirements": "[ES] requirements",
+  "deliverables": "[ES] deliverables",
+  "skills_required": "[ES] skills_required",
+  "allowed_roles": "[ES] allowed_roles",
+  "changes_from_previous": "[ES] changes_from_previous",
+  "renewal_notes": "[ES] renewal_notes",
+  "approval_notes": "[ES] approval_notes",
+  "billing_notes": "[ES] billing_notes",
+  "payment_notes": "[ES] payment_notes",
+  "installation_notes": "[ES] installation_notes",
+  "replacement_reason": "[ES] replacement_reason",
+  "UN": "[ES] UN",
+  "maintenance_plan": "[ES] maintenance_plan",
+  "default_checklist": "[ES] default_checklist",
+  "location_path": "[ES] location_path",
+  "findings": "[ES] findings",
+  "recommendations": "[ES] recommendations",
+  "used": "[ES] used",
+  "escalate": "[ES] escalate",
+  "notification_template": "[ES] notification_template",
+  "escalation_reason": "[ES] escalation_reason",
+  "escalation_notes": "[ES] escalation_notes",
+  "breach_reason": "[ES] breach_reason",
+  "default_description": "[ES] default_description",
+  "required_fields": "[ES] required_fields",
+  "optional_fields": "[ES] optional_fields",
+  "hidden_fields": "[ES] hidden_fields",
+  "changes": "[ES] changes",
+  "error_message": "[ES] error_message",
+  "request_comments": "[ES] request_comments",
+  "approval_comments": "[ES] approval_comments",
+  "custom_description": "[ES] custom_description",
+  "special_instructions": "[ES] special_instructions",
+  "request_reason": "[ES] request_reason",
+  "sla_status": "[ES] sla_status",
+  "completion_reason": "[ES] completion_reason",
+  "module_types": "[ES] module_types",
+  "rule_ids": "[ES] rule_ids",
+  "payment_terms": "[ES] payment_terms",
+  "supplier_description": "[ES] supplier_description",
+  "procedures": "[ES] procedures",
+  "work_performed": "[ES] work_performed",
+  "methodology": "[ES] methodology",
+  "user_ids": "[ES] user_ids",
+  "message_template": "[ES] message_template",
+  "email_template": "[ES] email_template",
+  "sms_template": "[ES] sms_template",
+  "push_template": "[ES] push_template",
+  "default_channels": "[ES] default_channels",
+  "override_channels": "[ES] override_channels",
+  "table": "[ES] table",
+  "running": "[ES] running",
+  "trigger_condition": "[ES] trigger_condition",
+  "root_cause": "[ES] root_cause",
+  "preventive_actions": "[ES] preventive_actions",
+  "new": "[ES] new",
+  "all": "[ES] all",
+  "custom": "[ES] custom"
 }

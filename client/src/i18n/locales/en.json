@@ -29,7 +29,46 @@
     "view": "[EN] View",
     "view_all": "common.view_all",
     "add": "common.add",
-    "remove": "common.remove"
+    "remove": "common.remove",
+    "use": "common.use",
+    "appName": "common.appName",
+    "collapseSidebar": "common.collapseSidebar",
+    "expandSidebar": "common.expandSidebar",
+    "saving": "common.saving",
+    "description": "common.description",
+    "active": "common.active",
+    "inactive": "common.inactive",
+    "loading_attachments": "common.loading_attachments",
+    "download": "common.download",
+    "loading_communications": "common.loading_communications",
+    "by": "common.by",
+    "loading_notes": "common.loading_notes",
+    "loading_history": "common.loading_history",
+    "error": "common.error",
+    "retry": "common.retry",
+    "open": "common.open",
+    "refresh": "common.refresh",
+    "ok": "common.ok",
+    "success": "common.success",
+    "warning": "common.warning",
+    "info": "common.info",
+    "first": "common.first",
+    "last": "common.last",
+    "name": "common.name",
+    "email": "common.email",
+    "phone": "common.phone",
+    "address": "common.address",
+    "date": "common.date",
+    "time": "common.time",
+    "status": "common.status",
+    "type": "common.type",
+    "category": "common.category",
+    "processing": "common.processing",
+    "pleaseWait": "common.pleaseWait",
+    "none": "common.none",
+    "all": "common.all",
+    "select": "common.select",
+    "choose": "common.choose"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -63,7 +102,9 @@
     "tickets": "dashboard.tickets",
     "customers": "dashboard.customers",
     "analytics": "dashboard.analytics",
-    "activity": "dashboard.activity"
+    "activity": "dashboard.activity",
+    "view": "dashboard.view",
+    "manage": "dashboard.manage"
   },
   "tickets": {
     "title": "Tickets",
@@ -141,9 +182,228 @@
       "defaultView": "tickets.views.defaultView",
       "newView": "tickets.views.newView",
       "manage": "tickets.views.manage",
-      "advancedFilters": "tickets.views.advancedFilters"
+      "advancedFilters": "tickets.views.advancedFilters",
+      "view": "tickets.views.view",
+      "public": "tickets.views.public",
+      "noViewsAvailable": "tickets.views.noViewsAvailable",
+      "default": "tickets.views.default",
+      "createNewView": "tickets.views.createNewView",
+      "viewName": "tickets.views.viewName",
+      "descriptionPlaceholder": "tickets.views.descriptionPlaceholder",
+      "description": "tickets.views.description",
+      "manageViews": "tickets.views.manageViews"
     },
-    "clear_filters": "tickets.clear_filters"
+    "clear_filters": "tickets.clear_filters",
+    "internal_actions": {
+      "description_placeholder": "tickets.internal_actions.description_placeholder",
+      "detailed_description_placeholder": "tickets.internal_actions.detailed_description_placeholder",
+      "description_too_long": "tickets.internal_actions.description_too_long"
+    },
+    "messages": {
+      "not_found": "tickets.messages.not_found",
+      "no_description": "tickets.messages.no_description",
+      "no_attachments": "tickets.messages.no_attachments",
+      "no_communications": "tickets.messages.no_communications",
+      "no_notes": "tickets.messages.no_notes",
+      "no_history": "tickets.messages.no_history",
+      "created_success": "tickets.messages.created_success",
+      "error_creating": "tickets.messages.error_creating",
+      "error_loading": "tickets.messages.error_loading",
+      "loading": "tickets.messages.loading"
+    },
+    "actions": {
+      "back_to_tickets": "tickets.actions.back_to_tickets",
+      "back": "tickets.actions.back",
+      "download": "tickets.actions.download",
+      "delete": "tickets.actions.delete",
+      "simple": "tickets.actions.simple",
+      "detailed": "tickets.actions.detailed",
+      "edit": "tickets.actions.edit",
+      "linkTicket": "tickets.actions.linkTicket",
+      "title": "tickets.actions.title",
+      "creating": "tickets.actions.creating",
+      "create": "tickets.actions.create"
+    },
+    "attachments": "tickets.attachments",
+    "communication": "tickets.communication",
+    "notes": "tickets.notes",
+    "history": "tickets.history",
+    "upload_attachments": "tickets.upload_attachments",
+    "existing_attachments": "tickets.existing_attachments",
+    "note_internal": "tickets.note_internal",
+    "note_public": "tickets.note_public",
+    "change_history": "tickets.change_history",
+    "field": "tickets.field",
+    "ticket_information": "tickets.ticket_information",
+    "created": "tickets.created",
+    "updated": "tickets.updated",
+    "company": "tickets.company",
+    "location": "tickets.location",
+    "uploaded_by": "tickets.uploaded_by",
+    "tabs": {
+      "attachments": "tickets.tabs.attachments",
+      "communication": "tickets.tabs.communication"
+    },
+    "fields": {
+      "classification": "tickets.fields.classification",
+      "priority": "tickets.fields.priority",
+      "status": "tickets.fields.status",
+      "urgency": "tickets.fields.urgency",
+      "category": "tickets.fields.category",
+      "subcategory": "tickets.fields.subcategory",
+      "notSpecified": "tickets.fields.notSpecified",
+      "action": "tickets.fields.action",
+      "subject": "tickets.fields.subject",
+      "notInformed": "tickets.fields.notInformed",
+      "description": "tickets.fields.description",
+      "attachments": "tickets.fields.attachments",
+      "attachmentCount": "tickets.fields.attachmentCount",
+      "existingAttachments": "tickets.fields.existingAttachments",
+      "fileNoName": "tickets.fields.fileNoName",
+      "unknownSize": "tickets.fields.unknownSize",
+      "addedOn": "tickets.fields.addedOn",
+      "dateNotAvailable": "tickets.fields.dateNotAvailable",
+      "noteCount": "tickets.fields.noteCount",
+      "newNote": "tickets.fields.newNote",
+      "general": "tickets.fields.general",
+      "internal": "tickets.fields.internal",
+      "resolution": "tickets.fields.resolution",
+      "escalation": "tickets.fields.escalation",
+      "communicationTimeline": "tickets.fields.communicationTimeline",
+      "historyComplete": "tickets.fields.historyComplete",
+      "internalAction": "tickets.fields.internalAction",
+      "internalActionCreated": "tickets.fields.internalActionCreated",
+      "internalActionUpdated": "tickets.fields.internalActionUpdated",
+      "internalActionDeleted": "tickets.fields.internalActionDeleted",
+      "actionPerformedBy": "tickets.fields.actionPerformedBy",
+      "resolvedOn": "tickets.fields.resolvedOn",
+      "createdOn": "tickets.fields.createdOn",
+      "internalActions": "tickets.fields.internalActions",
+      "assignedTo": "tickets.fields.assignedTo",
+      "ticketsLinkedCount": "tickets.fields.ticketsLinkedCount",
+      "noTicketLinked": "tickets.fields.noTicketLinked",
+      "linkButtonHint": "tickets.fields.linkButtonHint",
+      "customer": "tickets.fields.customer",
+      "customerSince": "tickets.fields.customerSince",
+      "totalTickets": "tickets.fields.totalTickets",
+      "lastOpenedTickets": "tickets.fields.lastOpenedTickets",
+      "thisCustomer": "tickets.fields.thisCustomer",
+      "current": "tickets.fields.current",
+      "systemProblem": "tickets.fields.systemProblem",
+      "today": "tickets.fields.today",
+      "resolved": "tickets.fields.resolved",
+      "closed": "tickets.fields.closed",
+      "active": "tickets.fields.active",
+      "relatedTicket": "tickets.fields.relatedTicket",
+      "customerInsights": "tickets.fields.customerInsights",
+      "company": "tickets.fields.company",
+      "selectCustomer": "tickets.fields.selectCustomer",
+      "customerFound": "tickets.fields.customerFound",
+      "customerNotFound": "tickets.fields.customerNotFound",
+      "customerNoName": "tickets.fields.customerNoName",
+      "beneficiary": "tickets.fields.beneficiary",
+      "location": "tickets.fields.location",
+      "assignmentGroup": "tickets.fields.assignmentGroup",
+      "responsible": "tickets.fields.responsible",
+      "datesTimeTitle": "tickets.fields.datesTimeTitle",
+      "creation": "tickets.fields.creation",
+      "dueDate": "tickets.fields.dueDate",
+      "statusField": "tickets.fields.statusField",
+      "sla": "tickets.fields.sla",
+      "slaElapsed": "tickets.fields.slaElapsed",
+      "sensitiveData": "tickets.fields.sensitiveData",
+      "securityVerification": "tickets.fields.securityVerification",
+      "enterPasswordAccess": "tickets.fields.enterPasswordAccess",
+      "enterPasswordPlaceholder": "tickets.fields.enterPasswordPlaceholder",
+      "name": "tickets.fields.name",
+      "email": "tickets.fields.email",
+      "phone": "tickets.fields.phone",
+      "customerUpper": "tickets.fields.customerUpper",
+      "accessSensitiveData": "tickets.fields.accessSensitiveData",
+      "address": "tickets.fields.address",
+      "sensitiveDataAccess": "tickets.fields.sensitiveDataAccess",
+      "enterPasswordAgent": "tickets.fields.enterPasswordAgent",
+      "agentPassword": "tickets.fields.agentPassword",
+      "cancel": "tickets.fields.cancel",
+      "sensitiveDataRevealed": "tickets.fields.sensitiveDataRevealed",
+      "enterPassword": "tickets.fields.enterPassword",
+      "verify": "tickets.fields.verify",
+      "companyDetails": "tickets.fields.companyDetails",
+      "companyName": "tickets.fields.companyName",
+      "companyNotSpecified": "tickets.fields.companyNotSpecified",
+      "technicalResponsible": "tickets.fields.technicalResponsible",
+      "manageCustomers": "tickets.fields.manageCustomers",
+      "customerDetails": "tickets.fields.customerDetails",
+      "noCustomerSpecified": "tickets.fields.noCustomerSpecified",
+      "beneficiaryDetails": "tickets.fields.beneficiaryDetails"
+    },
+    "placeholders": {
+      "selectAction": "tickets.placeholders.selectAction",
+      "ticketDescription": "tickets.placeholders.ticketDescription",
+      "noteText": "tickets.placeholders.noteText"
+    },
+    "interactions": "tickets.interactions",
+    "interactions_plural": "tickets.interactions_plural",
+    "links": "tickets.links",
+    "relationships": {
+      "related": "tickets.relationships.related",
+      "duplicates": "tickets.relationships.duplicates",
+      "blocks": "tickets.relationships.blocks",
+      "causedBy": "tickets.relationships.causedBy",
+      "parentChild": "tickets.relationships.parentChild",
+      "follows": "tickets.relationships.follows",
+      "linked": "tickets.relationships.linked"
+    },
+    "basicData": "tickets.basicData",
+    "explore": "tickets.explore",
+    "details": "tickets.details",
+    "materialsServices": "tickets.materialsServices",
+    "knowledgeBase": "tickets.knowledgeBase",
+    "internalActions": "tickets.internalActions",
+    "externalActions": "tickets.externalActions",
+    "latestInteractions": "tickets.latestInteractions",
+    "new_ticket": "tickets.new_ticket",
+    "forms": {
+      "create": {
+        "title": "tickets.forms.create.title",
+        "select_company": "tickets.forms.create.select_company",
+        "no_companies": "tickets.forms.create.no_companies",
+        "first_select_company": "tickets.forms.create.first_select_company",
+        "select_customer": "tickets.forms.create.select_customer",
+        "no_customers_for_company": "tickets.forms.create.no_customers_for_company",
+        "select_beneficiary": "tickets.forms.create.select_beneficiary",
+        "no_beneficiary": "tickets.forms.create.no_beneficiary",
+        "subject_placeholder": "tickets.forms.create.subject_placeholder",
+        "select_category": "tickets.forms.create.select_category",
+        "first_select_category": "tickets.forms.create.first_select_category",
+        "select_subcategory": "tickets.forms.create.select_subcategory",
+        "no_subcategories": "tickets.forms.create.no_subcategories",
+        "first_select_subcategory": "tickets.forms.create.first_select_subcategory",
+        "select_action": "tickets.forms.create.select_action",
+        "no_actions": "tickets.forms.create.no_actions",
+        "select_priority": "tickets.forms.create.select_priority",
+        "select_urgency": "tickets.forms.create.select_urgency",
+        "description_placeholder": "tickets.forms.create.description_placeholder",
+        "symptoms_placeholder": "tickets.forms.create.symptoms_placeholder",
+        "business_impact_placeholder": "tickets.forms.create.business_impact_placeholder",
+        "workaround_placeholder": "tickets.forms.create.workaround_placeholder",
+        "select_location_optional": "tickets.forms.create.select_location_optional",
+        "no_specific_location": "tickets.forms.create.no_specific_location"
+      }
+    },
+    "beneficiary": "tickets.beneficiary",
+    "action": "tickets.action",
+    "urgency": "tickets.urgency",
+    "symptoms": "tickets.symptoms",
+    "business_impact": "tickets.business_impact",
+    "workaround": "tickets.workaround",
+    "filter_by_status": "tickets.filter_by_status",
+    "filter_by_priority": "tickets.filter_by_priority",
+    "assignedTo": "tickets.assignedTo",
+    "id": "tickets.id",
+    "manage": "tickets.manage",
+    "delete": "tickets.delete",
+    "customerId": "tickets.customerId"
   },
   "customers": {
     "title": "Customers",
@@ -187,7 +447,8 @@
       "company": "customers.form.company",
       "submit": "customers.form.submit",
       "cancel": "customers.form.cancel"
-    }
+    },
+    "id": "customers.id"
   },
   "auth": {
     "login": "Login",
@@ -229,7 +490,10 @@
     "dark": "Dark",
     "system": "System",
     "security": "settings.security",
-    "integrations": "settings.integrations"
+    "integrations": "settings.integrations",
+    "view": "settings.view",
+    "edit": "settings.edit",
+    "branding": "settings.branding"
   },
   "errors": {
     "generic": "An error occurred. Please try again.",
@@ -508,7 +772,13 @@
   },
   "Digite sua senha": "[EN] Digite sua senha",
   "/api/materials-services/tickets/${ticketId}/consumed-items": "[EN] /api/materials-services/tickets/${ticket Id}/consumed-items",
-  "customer": "[EN] Customer",
+  "customer": {
+    "created": "customer.created",
+    "updated": "customer.updated",
+    "suspended": "customer.suspended",
+    "activated": "customer.activated",
+    "verified": "customer.verified"
+  },
   "/": "[EN] /",
   "Ativo": "[EN] Ativo",
   "America/Sao_Paulo": "[EN] America/ Sao_ Paulo",
@@ -558,10 +828,15 @@
     "performance": "analytics.performance",
     "trends": "analytics.trends",
     "reports": "analytics.reports",
-    "subtitle": "analytics.subtitle"
+    "subtitle": "analytics.subtitle",
+    "view": "analytics.view",
+    "create": "analytics.create"
   },
   "notifications": "notifications",
-  "compliance": "compliance",
+  "compliance": {
+    "view": "compliance.view",
+    "manage": "compliance.manage"
+  },
   "gdprCompliance": "GDPR Compliance",
   "knowledgeBase": "Knowledge Base",
   "timecardControl": "Timecard Control",
@@ -574,7 +849,9 @@
   "timecardApprovals": "Timecard Approvals",
   "approvalConfiguration": "Approval Configuration",
   "absenceManagement": "Absence Management",
-  "locations": "locations",
+  "locations": {
+    "saveLocation": "locations.saveLocation"
+  },
   "materialsAndServices": "Materials and Services",
   "itemCatalog": "Item Catalog",
   "stockManagement": "Stock Management",
@@ -601,12 +878,37 @@
   "contractManagement": "Contract Management",
   "expenseManagement": "Expense Management",
   "technicalSkillsPage": "Technical Skills Page",
-  "approvals": "Approvals",
+  "approvals": {
+    "title": "approvals.title",
+    "development_description": "approvals.development_description",
+    "under_development": "approvals.under_development",
+    "development_message": "approvals.development_message",
+    "planned_features": "approvals.planned_features",
+    "features": {
+      "custom_workflows": "approvals.features.custom_workflows",
+      "approvers_by_category": "approvals.features.approvers_by_category",
+      "automatic_notifications": "approvals.features.automatic_notifications",
+      "approval_history": "approvals.features.approval_history",
+      "email_integration": "approvals.features.email_integration",
+      "approval_reports": "approvals.features.approval_reports"
+    }
+  },
   "activityPlanner": "Activity Planner",
   "integracoes": "Integrations",
   "ticketConfiguration": "Ticket Configuration",
   "ticketTemplates": "Ticket Templates",
-  "customFields": "Custom Fields",
+  "customFields": {
+    "hide": "customFields.hide",
+    "show": "customFields.show",
+    "fields": "customFields.fields",
+    "exitDesign": "customFields.exitDesign",
+    "editLayout": "customFields.editLayout",
+    "activeCustomFields": "customFields.activeCustomFields",
+    "field": "customFields.field",
+    "configureFields": "customFields.configureFields",
+    "title": "customFields.title",
+    "noFieldsConfigured": "customFields.noFieldsConfigured"
+  },
   "clientes": "Clients",
   "beneficiaries": "Beneficiaries",
   "internalForms": "Internal Forms",
@@ -699,5 +1001,576 @@
     "auto_detect": "localization.auto_detect",
     "save_preferences": "localization.save_preferences",
     "preferences_saved": "localization.preferences_saved"
-  }
+  },
+  "quickActions": {
+    "createTicket": "quickActions.createTicket",
+    "addCustomer": "quickActions.addCustomer",
+    "generateReport": "quickActions.generateReport",
+    "automation": "quickActions.automation",
+    "title": "quickActions.title"
+  },
+  "userGroups": {
+    "loadingGroups": "userGroups.loadingGroups",
+    "title": "userGroups.title",
+    "description": "userGroups.description",
+    "createGroup": "userGroups.createGroup",
+    "createNewGroup": "userGroups.createNewGroup",
+    "createNewGroupDescription": "userGroups.createNewGroupDescription",
+    "groupName": "userGroups.groupName",
+    "groupDescription": "userGroups.groupDescription",
+    "groupDescriptionPlaceholder": "userGroups.groupDescriptionPlaceholder",
+    "creating": "userGroups.creating",
+    "noGroupsFound": "userGroups.noGroupsFound",
+    "noGroupsDescription": "userGroups.noGroupsDescription",
+    "createFirstGroup": "userGroups.createFirstGroup",
+    "members": "userGroups.members",
+    "editGroupTitle": "userGroups.editGroupTitle",
+    "updating": "userGroups.updating"
+  },
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9": {
+    "eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY"
+    },
+    "eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM"
+    }
+  },
+  "coordinates": {
+    "lat": "coordinates.lat",
+    "lng": "coordinates.lng"
+  },
+  "workingHours": {
+    "start": "workingHours.start",
+    "end": "workingHours.end"
+  },
+  "colors": {
+    "primary": "colors.primary",
+    "secondary": "colors.secondary",
+    "accent": "colors.accent",
+    "background": "colors.background",
+    "surface": "colors.surface",
+    "text": "colors.text"
+  },
+  "layout": {
+    "sidebarStyle": "layout.sidebarStyle",
+    "headerStyle": "layout.headerStyle",
+    "borderRadius": "layout.borderRadius",
+    "spacing": "layout.spacing"
+  },
+  "logo": {
+    "url": "logo.url",
+    "darkUrl": "logo.darkUrl",
+    "favicon": "logo.favicon"
+  },
+  "typography": {
+    "fontFamily": "typography.fontFamily",
+    "headingFont": "typography.headingFont",
+    "fontSize": "typography.fontSize"
+  },
+  "customization": {
+    "companyName": "customization.companyName",
+    "welcomeMessage": "customization.welcomeMessage",
+    "footerText": "customization.footerText",
+    "supportEmail": "customization.supportEmail",
+    "helpUrl": "customization.helpUrl",
+    "showPoweredBy": "customization.showPoweredBy"
+  },
+  "themes": {
+    "defaultTheme": "themes.defaultTheme",
+    "allowUserThemeSwitch": "themes.allowUserThemeSwitch",
+    "customCss": "themes.customCss"
+  },
+  "imap": {
+    "gmail": {
+      "com": "imap.gmail.com"
+    }
+  },
+  "smtp": {
+    "gmail": {
+      "com": "smtp.gmail.com"
+    }
+  },
+  "pagination": {
+    "page": "pagination.page",
+    "of": "pagination.of",
+    "previous": "pagination.previous",
+    "next": "pagination.next"
+  },
+  "templateReset": "templateReset",
+  "pg": "pg",
+  "main": "main",
+  "pool_exhaustion_critical": "pool_exhaustion_critical",
+  "performance_degradation": "performance_degradation",
+  "ticket": {
+    "created": "ticket.created",
+    "assigned": "ticket.assigned",
+    "status_changed": "ticket.status_changed",
+    "updated": "ticket.updated",
+    "resolved": "ticket.resolved",
+    "escalated": "ticket.escalated"
+  },
+  "child_process": "child_process",
+  "env": "env",
+  "error": "error",
+  "close": "close",
+  "timeout": "timeout",
+  "User-Agent": "User-Agent",
+  "asc": "asc",
+  "createdAt": "createdAt",
+  "desc": "desc",
+  "drizzle-orm": "drizzle-orm",
+  "BR": "BR",
+  "stats": {
+    "view": "stats.view"
+  },
+  "activity": {
+    "view": "activity.view"
+  },
+  "items": {
+    "amount": "items.amount",
+    "catalogId": "items.catalogId",
+    "supplierId": "items.supplierId"
+  },
+  "context": {
+    "userRole": "context.userRole"
+  },
+  "hex": "hex",
+  "tesseract": {
+    "js": "tesseract.js"
+  },
+  "receipt_001": {
+    "jpg": "receipt_001.jpg"
+  },
+  "api": {
+    "conductor": {
+      "com": "api.conductor.com"
+    }
+  },
+  "unit": "unit",
+  "template_importacao_itens": {
+    "csv": "template_importacao_itens.csv"
+  },
+  "inactive": "inactive",
+  "from_address": "from_address",
+  "to_address": "to_address",
+  "subject": "subject",
+  "content": "content",
+  "unread": "unread",
+  "grid": "grid",
+  "view_only": "view_only",
+  "updatedAt": "updatedAt",
+  "json": "json",
+  "users": {
+    "id": "users.id",
+    "tenantId": "users.tenantId"
+  },
+  "ticket_comments": {
+    "ticketId": "ticket_comments.ticketId"
+  },
+  "item_catalog": {
+    "id": "item_catalog.id"
+  },
+  "suppliers": {
+    "id": "suppliers.id"
+  },
+  "timecards": {
+    "userId": "timecards.userId",
+    "id": "timecards.id"
+  },
+  "time_entries": {
+    "timecardId": "time_entries.timecardId"
+  },
+  "messages": {
+    "channelId": "messages.channelId",
+    "conversationId": "messages.conversationId",
+    "success": "messages.success",
+    "error": "messages.error",
+    "warning": "messages.warning",
+    "info": "messages.info"
+  },
+  "channels": "channels",
+  "conversations": {
+    "id": "conversations.id"
+  },
+  "support": "support",
+  "intermediate": "intermediate",
+  "host": "host",
+  "uuid": "uuid",
+  "this": {
+    "repository": "this.repository",
+    "logger": "this.logger",
+    "neon": "this.neon"
+  },
+  "targetTicket": {
+    "id": "targetTicket.id",
+    "subject": "targetTicket.subject",
+    "status": "targetTicket.status",
+    "priority": "targetTicket.priority",
+    "number": "targetTicket.number",
+    "createdAt": "targetTicket.createdAt",
+    "description": "targetTicket.description"
+  },
+  "googleapis": {
+    "com": "googleapis.com"
+  },
+  "dd": {
+    "MM": {
+      "yyyy": "dd.MM.yyyy"
+    }
+  },
+  "index": {
+    "css": "index.css",
+    "ts": "index.ts",
+    "html": "index.html"
+  },
+  "template-preference": {
+    "json": "template-preference.json"
+  },
+  "manual": "manual",
+  "x-forwarded-proto": "x-forwarded-proto",
+  "x-forwarded-host": "x-forwarded-host",
+  "gmail": {
+    "com": "gmail.com"
+  },
+  "translation": {
+    "backup": {
+      "json": "translation.backup.json"
+    },
+    "json": "translation.json"
+  },
+  "bcryptjs": "bcryptjs",
+  "workspace": {
+    "manage": "workspace.manage",
+    "configure": "workspace.configure",
+    "security": "workspace.security",
+    "integrations": "workspace.integrations"
+  },
+  "user": "user",
+  "groups": {
+    "manage": "groups.manage"
+  },
+  "sessions": {
+    "monitor": "sessions.monitor"
+  },
+  "hr": {
+    "view": "hr.view",
+    "performance": "hr.performance",
+    "skills": "hr.skills",
+    "absence": "hr.absence"
+  },
+  "timecard": {
+    "view": "timecard.view",
+    "manage": "timecard.manage",
+    "approve": "timecard.approve"
+  },
+  "bcrypt": "bcrypt",
+  "UNIFIED_SCHEMA_ARCHITECTURE": {
+    "md": "UNIFIED_SCHEMA_ARCHITECTURE.md"
+  },
+  "schema-master": {
+    "ts": "schema-master.ts"
+  },
+  "fs": "fs",
+  "db": {
+    "ts": "db.ts"
+  },
+  "translation-audit-report": {
+    "json": "translation-audit-report.json"
+  },
+  "routes": {
+    "ts": "routes.ts"
+  },
+  "routes_backup_full": {
+    "ts": "routes_backup_full.ts"
+  },
+  "routes-old": {
+    "ts": "routes-old.ts"
+  },
+  "routes-working": {
+    "ts": "routes-working.ts"
+  },
+  "routes-integration": {
+    "ts": "routes-integration.ts"
+  },
+  "routes-clean": {
+    "ts": "routes-clean.ts"
+  },
+  "routes-legacy-backup": {
+    "ts": "routes-legacy-backup.ts"
+  },
+  "schema": {
+    "ts": "schema.ts"
+  },
+  "drizzle": {
+    "config": {
+      "ts": "drizzle.config.ts"
+    }
+  },
+  "SchemaManager": {
+    "ts": "SchemaManager.ts"
+  },
+  "id": "id",
+  "DRIZZLE_PROGRESS": {
+    "json": "DRIZZLE_PROGRESS.json"
+  },
+  "RELATORIO_CORRECAO_DRIZZLE": {
+    "md": "RELATORIO_CORRECAO_DRIZZLE.md"
+  },
+  "tenants": {
+    "id": "tenants.id"
+  },
+  "skills": {
+    "id": "skills.id"
+  },
+  "userSkills": {
+    "skillId": "userSkills.skillId",
+    "certificationId": "userSkills.certificationId"
+  },
+  "certifications": {
+    "id": "certifications.id"
+  },
+  "favorecidos": {
+    "name": "favorecidos.name"
+  },
+  "Companies": {
+    "tsx": "Companies.tsx"
+  },
+  "FavorecidosTable": {
+    "tsx": "FavorecidosTable.tsx"
+  },
+  "productionInitializer": {
+    "ts": "productionInitializer.ts"
+  },
+  "public": "public",
+  "SCHEMA_BEST_PRACTICES": {
+    "md": "SCHEMA_BEST_PRACTICES.md"
+  },
+  "open": "open",
+  "planning": "planning",
+  "pending": "pending",
+  "NOMENCLATURE_STANDARDS": {
+    "md": "NOMENCLATURE_STANDARDS.md"
+  },
+  "SCHEMA_DATA_TYPE_OPTIMIZATION": {
+    "md": "SCHEMA_DATA_TYPE_OPTIMIZATION.md"
+  },
+  "system-analysis-corrected-report": {
+    "json": "system-analysis-corrected-report.json"
+  },
+  "pool": {
+    "query": "pool.query"
+  },
+  "translation-expansion-report": {
+    "json": "translation-expansion-report.json"
+  },
+  "TRANSLATION_INCONSISTENCIES_REPORT": {
+    "md": "TRANSLATION_INCONSISTENCIES_REPORT.md"
+  },
+  "temp-initialize-metadata": {
+    "ts": "temp-initialize-metadata.ts"
+  },
+  "referer": "referer",
+  "user-agent": "user-agent",
+  "path": "path",
+  "Repository": {
+    "ts": "Repository.ts"
+  },
+  "results": {
+    "map": "results.map"
+  },
+  "TokenService": {
+    "ts": "TokenService.ts"
+  },
+  "authSecurityService": {
+    "ts": "authSecurityService.ts"
+  },
+  "PasswordService": {
+    "ts": "PasswordService.ts"
+  },
+  "process": {
+    "env": {
+      "NODE_ENV": "process.env.NODE_ENV",
+      "": "process.env."
+    }
+  },
+  "key": "key",
+  "module": {
+    "key": "module.key"
+  },
+  "en": {
+    "json": "en.json"
+  },
+  "forms": {
+    "name": "forms.name",
+    "email": "forms.email",
+    "description": "forms.description",
+    "status": "forms.status",
+    "priority": "forms.priority",
+    "category": "forms.category",
+    "assignedTo": "forms.assignedTo",
+    "createdAt": "forms.createdAt",
+    "updatedAt": "forms.updatedAt"
+  },
+  "modals": {
+    "confirm": "modals.confirm",
+    "confirmDelete": "modals.confirmDelete"
+  },
+  "placeholders": {
+    "searchHere": "placeholders.searchHere",
+    "selectOption": "placeholders.selectOption",
+    "enterText": "placeholders.enterText"
+  },
+  "buttons": {
+    "submit": "buttons.submit",
+    "close": "buttons.close",
+    "add": "buttons.add",
+    "remove": "buttons.remove"
+  },
+  "i18n": {
+    "t": "i18n.t"
+  },
+  "user_groups": {
+    "id": "user_groups.id"
+  },
+  "crypto": "crypto",
+  "tsconfig": {
+    "json": "tsconfig.json"
+  },
+  "day": "day",
+  "instructions": "instructions",
+  "UTC": "UTC",
+  "scheduled": "scheduled",
+  "comments": "comments",
+  "completion_notes": "completion_notes",
+  "customer_feedback": "customer_feedback",
+  "user_agent": "user_agent",
+  "terms_conditions": "terms_conditions",
+  "file_path": "file_path",
+  "internal": "internal",
+  "service_description": "service_description",
+  "terms_changes": "terms_changes",
+  "maintenance_schedule": "maintenance_schedule",
+  "none": "none",
+  "business_justification": "business_justification",
+  "policy_violation_details": "policy_violation_details",
+  "compliance_notes": "compliance_notes",
+  "delegation_reason": "delegation_reason",
+  "field_description": "field_description",
+  "section_description": "section_description",
+  "change_description": "change_description",
+  "full": "full",
+  "request_details": "request_details",
+  "low": "low",
+  "tags": "tags",
+  "access_level": "access_level",
+  "visibility": "visibility",
+  "summary": "summary",
+  "article": "article",
+  "approval_status": "approval_status",
+  "keywords": "keywords",
+  "feedback": "feedback",
+  "query": "query",
+  "failure_reason": "failure_reason",
+  "descricao": "descricao",
+  "primary": "primary",
+  "supervisor_ids": "supervisor_ids",
+  "clt": "clt",
+  "PF": "PF",
+  "symptoms": "symptoms",
+  "workaround": "workaround",
+  "business_impact": "business_impact",
+  "followers": "followers",
+  "environment_error": "environment_error",
+  "resolution_notes": "resolution_notes",
+  "link_comment": "link_comment",
+  "message": "message",
+  "document_url": "document_url",
+  "member": "member",
+  "required_skills": "required_skills",
+  "location": "location",
+  "digital_signature": "digital_signature",
+  "modification_reason": "modification_reason",
+  "deletion_reason": "deletion_reason",
+  "reason": "reason",
+  "medical_certificate": "medical_certificate",
+  "rejection_reason": "rejection_reason",
+  "default_approvers": "default_approvers",
+  "weekly": "weekly",
+  "working_hours": "working_hours",
+  "justification": "justification",
+  "backup_location": "backup_location",
+  "gzip": "gzip",
+  "AES-256": "AES-256",
+  "public_key": "public_key",
+  "RSA-2048": "RSA-2048",
+  "revocation_reason": "revocation_reason",
+  "css_classes": "css_classes",
+  "info": "info",
+  "body_template": "body_template",
+  "location_address": "location_address",
+  "internal_notes": "internal_notes",
+  "client_notes": "client_notes",
+  "planned": "planned",
+  "compliant": "compliant",
+  "terms": "terms",
+  "business_days": "business_days",
+  "included": "included",
+  "requirements": "requirements",
+  "deliverables": "deliverables",
+  "skills_required": "skills_required",
+  "allowed_roles": "allowed_roles",
+  "changes_from_previous": "changes_from_previous",
+  "renewal_notes": "renewal_notes",
+  "approval_notes": "approval_notes",
+  "billing_notes": "billing_notes",
+  "payment_notes": "payment_notes",
+  "installation_notes": "installation_notes",
+  "replacement_reason": "replacement_reason",
+  "UN": "UN",
+  "maintenance_plan": "maintenance_plan",
+  "default_checklist": "default_checklist",
+  "location_path": "location_path",
+  "findings": "findings",
+  "recommendations": "recommendations",
+  "used": "used",
+  "escalate": "escalate",
+  "notification_template": "notification_template",
+  "escalation_reason": "escalation_reason",
+  "escalation_notes": "escalation_notes",
+  "breach_reason": "breach_reason",
+  "default_description": "default_description",
+  "required_fields": "required_fields",
+  "optional_fields": "optional_fields",
+  "hidden_fields": "hidden_fields",
+  "changes": "changes",
+  "error_message": "error_message",
+  "request_comments": "request_comments",
+  "approval_comments": "approval_comments",
+  "custom_description": "custom_description",
+  "special_instructions": "special_instructions",
+  "request_reason": "request_reason",
+  "sla_status": "sla_status",
+  "completion_reason": "completion_reason",
+  "module_types": "module_types",
+  "rule_ids": "rule_ids",
+  "payment_terms": "payment_terms",
+  "supplier_description": "supplier_description",
+  "procedures": "procedures",
+  "work_performed": "work_performed",
+  "methodology": "methodology",
+  "user_ids": "user_ids",
+  "message_template": "message_template",
+  "email_template": "email_template",
+  "sms_template": "sms_template",
+  "push_template": "push_template",
+  "default_channels": "default_channels",
+  "override_channels": "override_channels",
+  "table": "table",
+  "running": "running",
+  "trigger_condition": "trigger_condition",
+  "root_cause": "root_cause",
+  "preventive_actions": "preventive_actions",
+  "new": "new",
+  "all": "all",
+  "custom": "custom"
 }
