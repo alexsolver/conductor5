@@ -427,7 +427,7 @@ export default function TranslationManager() {
 
   const handleAutoCompleteAll = async () => {
     console.log('🔒 [FRONTEND-SAFE] Starting ultra-safe translation completion...');
-    setLoading(true);
+    setIsLoading(true);
     try {
       const response = await fetch('/api/translation-completion/auto-complete-all', {
         method: 'POST',
@@ -465,7 +465,7 @@ export default function TranslationManager() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
       console.log('🔒 [FRONTEND-SAFE] Operation completed');
     }
   };
@@ -598,11 +598,11 @@ export default function TranslationManager() {
             </h3>
             <Button
               onClick={handleAutoCompleteAll}
-              disabled={loading}
+              disabled={isLoading}
               className="bg-green-600 hover:bg-green-700"
               title={t('TranslationManager.ultraSafeMode') || 'Ultra-safe mode: Only JSON files modified, code protected'}
             >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               🔒 {t('TranslationManager.autoCompleteAll') || 'Auto Complete All'}
             </Button>
           </div>
