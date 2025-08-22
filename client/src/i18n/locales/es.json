@@ -362,7 +362,7 @@
     "internalActions": "[ES] tickets.internalActions",
     "externalActions": "[ES] tickets.externalActions",
     "latestInteractions": "[ES] tickets.latestInteractions",
-    "new_ticket": "[ES] tickets.new_ticket",
+    "new_ticket": "Nuevo Ticket",
     "forms": {
       "create": {
         "title": "[ES] tickets.forms.create.title",
@@ -450,16 +450,7 @@
     "created_at": "Creado en",
     "id": "[ES] customers.id"
   },
-  "analytics": {
-    "title": "[ES] analytics.title",
-    "overview": "[ES] analytics.overview",
-    "performance": "[ES] analytics.performance",
-    "trends": "[ES] analytics.trends",
-    "reports": "[ES] analytics.reports",
-    "subtitle": "[ES] analytics.subtitle",
-    "view": "[ES] analytics.view",
-    "create": "[ES] analytics.create"
-  },
+  "analytics": "Analíticas",
   "auth": {
     "login": "Iniciar sesión",
     "register": "Registrarse",
@@ -843,10 +834,7 @@
   "/api/user-management/users/${userId}/sessions/terminate-all": "[ES] [EN] /api/user-management/users/${user Id}/sessions/terminate-all",
   "400:": "[ES] [EN] 400:",
   "notifications": "Notificaciones",
-  "compliance": {
-    "view": "[ES] compliance.view",
-    "manage": "[ES] compliance.manage"
-  },
+  "compliance": "Cumplimiento",
   "gdprCompliance": "Cumplimiento GDPR",
   "knowledgeBase": "Base de Conocimiento",
   "timecardControl": "Control de Jornada",
@@ -859,9 +847,7 @@
   "timecardApprovals": "Aprobaciones de Jornada",
   "approvalConfiguration": "Configuración de Aprobación",
   "absenceManagement": "Gestión de Ausencias",
-  "locations": {
-    "saveLocation": "[ES] locations.saveLocation"
-  },
+  "locations": "Ubicaciones",
   "materialsAndServices": "Materiales y Servicios",
   "itemCatalog": "Catálogo de Artículos",
   "stockManagement": "Gestión de Inventario",
@@ -888,37 +874,12 @@
   "contractManagement": "Gestión de Contratos",
   "expenseManagement": "Gestión de Gastos",
   "technicalSkillsPage": "Habilidades Técnicas",
-  "approvals": {
-    "title": "[ES] approvals.title",
-    "development_description": "[ES] approvals.development_description",
-    "under_development": "[ES] approvals.under_development",
-    "development_message": "[ES] approvals.development_message",
-    "planned_features": "[ES] approvals.planned_features",
-    "features": {
-      "custom_workflows": "[ES] approvals.features.custom_workflows",
-      "approvers_by_category": "[ES] approvals.features.approvers_by_category",
-      "automatic_notifications": "[ES] approvals.features.automatic_notifications",
-      "approval_history": "[ES] approvals.features.approval_history",
-      "email_integration": "[ES] approvals.features.email_integration",
-      "approval_reports": "[ES] approvals.features.approval_reports"
-    }
-  },
+  "approvals": "Aprobaciones",
   "activityPlanner": "Planificador de Actividades",
   "integracoes": "Integraciones",
   "ticketConfiguration": "Configuración de Tickets",
   "ticketTemplates": "Plantillas de Tickets",
-  "customFields": {
-    "hide": "[ES] customFields.hide",
-    "show": "[ES] customFields.show",
-    "fields": "[ES] customFields.fields",
-    "exitDesign": "[ES] customFields.exitDesign",
-    "editLayout": "[ES] customFields.editLayout",
-    "activeCustomFields": "[ES] customFields.activeCustomFields",
-    "field": "[ES] customFields.field",
-    "configureFields": "[ES] customFields.configureFields",
-    "title": "[ES] customFields.title",
-    "noFieldsConfigured": "[ES] customFields.noFieldsConfigured"
-  },
+  "customFields": "Campos Personalizados",
   "clientes": "Clientes",
   "beneficiaries": "Beneficiarios",
   "internalForms": "Formularios Internos",
@@ -931,39 +892,8 @@
   "slas": "SLAs",
   "userManagementPage": "Página de Gestión de Usuarios",
   "teamManagementPage": "Página de Gestión de Equipos",
-  "teamManagement": {
-    "title": "[ES] teamManagement.title",
-    "overview": "[ES] teamManagement.overview",
-    "members": "[ES] teamManagement.members",
-    "performance": "[ES] teamManagement.performance",
-    "analytics": "[ES] teamManagement.analytics"
-  },
-  "technicalSkills": {
-    "title": "[ES] technicalSkills.title",
-    "description": "[ES] technicalSkills.description",
-    "newSkill": "[ES] technicalSkills.newSkill",
-    "createSkill": "[ES] technicalSkills.createSkill",
-    "editSkill": "[ES] technicalSkills.editSkill",
-    "name": "[ES] technicalSkills.name",
-    "category": "[ES] technicalSkills.category",
-    "minLevelRequired": "[ES] technicalSkills.minLevelRequired",
-    "suggestedCertification": "[ES] technicalSkills.suggestedCertification",
-    "certificationValidity": "[ES] technicalSkills.certificationValidity",
-    "observations": "[ES] technicalSkills.observations",
-    "totalSkills": "[ES] technicalSkills.totalSkills",
-    "expiredCertifications": "[ES] technicalSkills.expiredCertifications",
-    "expiringCertifications": "[ES] technicalSkills.expiringCertifications",
-    "categories": "[ES] technicalSkills.categories",
-    "searchSkills": "[ES] technicalSkills.searchSkills",
-    "allCategories": "[ES] technicalSkills.allCategories",
-    "noSkillsFound": "[ES] technicalSkills.noSkillsFound",
-    "loading": "[ES] technicalSkills.loading",
-    "basic": "[ES] technicalSkills.basic",
-    "intermediate": "[ES] technicalSkills.intermediate",
-    "advanced": "[ES] technicalSkills.advanced",
-    "specialist": "[ES] technicalSkills.specialist",
-    "excellence": "[ES] technicalSkills.excellence"
-  },
+  "teamManagement": "Gestión de Equipo",
+  "technicalSkills": "Habilidades Técnicas",
   "TranslationManager": {
     "title": "Gestión de Traducciones",
     "description": "Gestionar traducciones del sistema en todos los idiomas soportados",
