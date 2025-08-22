@@ -100,14 +100,17 @@ export function Header() {
           )}
 
           {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="relative text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800"></span>
-          </Button>
+          <Link href="/notifications">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
+              title="Notificações"
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800 animate-pulse"></span>
+            </Button>
+          </Link>
 
           {/* User Profile Dropdown */}
           {user && (
