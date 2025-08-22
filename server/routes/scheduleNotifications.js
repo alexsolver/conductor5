@@ -4,6 +4,78 @@ import { jwtAuth } from '../middleware/jwtAuth.js';
 
 const router = express.Router();
 
+// GET /api/schedule-notifications/list - Listar todas as notificações do usuário
+router.get('/list', jwtAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] List endpoint called for user:', user.id);
+    
+    if (!user || !user.tenantId || (!user.id && !user.userId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'User information required'
+      });
+    }
+
+    const { tenantId } = user;
+    const userId = user.id || user.userId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    const { pool } = await import('../db.js');
+    
+    const query = `
+      SELECT 
+        id,
+        title,
+        message,
+        notification_type as type,
+        priority as severity,
+        status,
+        scheduled_for as "scheduledAt",
+        sent_at as "sentAt",
+        read_at as "readAt",
+        created_at as "createdAt",
+        delivery_method as channels,
+        related_entity_type as "relatedEntityType",
+        related_entity_id as "relatedEntityId"
+      FROM ${schemaName}.schedule_notifications 
+      WHERE user_id = $1 
+      ORDER BY created_at DESC
+      LIMIT 50
+    `;
+    
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Executing query for notifications list');
+    const result = await pool.query(query, [userId]);
+    
+    // Mapear os dados para o formato esperado pela página
+    const notifications = result.rows.map(row => ({
+      ...row,
+      channels: row.channels ? [row.channels] : ['in_app'],
+      userId: userId,
+      isExpired: false,
+      canBeSent: row.status === 'pending',
+      requiresEscalation: false
+    }));
+
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Found', notifications.length, 'notifications');
+    
+    res.json({
+      success: true,
+      data: {
+        notifications: notifications,
+        totalCount: notifications.length
+      }
+    });
+
+  } catch (error) {
+    console.error('🔔 [SCHEDULE-NOTIFICATIONS] Error fetching notifications list:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 // GET /api/schedule-notifications/unread - Buscar notificações não lidas do usuário
 router.get('/unread', jwtAuth, async (req, res) => {
   try {

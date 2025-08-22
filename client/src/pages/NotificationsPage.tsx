@@ -129,22 +129,12 @@ export default function NotificationsPage() {
 
   // Queries
   const { data: notifications, isLoading: notificationsLoading, refetch: refetchNotifications } = useQuery({
-    queryKey: ['/api/notifications', filters],
+    queryKey: ['/api/schedule-notifications/list', filters],
     queryFn: async () => {
-      const response = await fetch(`/api/notifications?${new URLSearchParams({
-        ...(filters.status && filters.status !== 'all' && { status: filters.status }),
-        ...(filters.type && filters.type !== 'all' && { type: filters.type }),
-        ...(filters.severity && filters.severity !== 'all' && { severity: filters.severity }),
-        page: filters.page.toString(),
-        pageSize: '50'
-      }).toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
-          'Content-Type': 'application/json'
-        }
-      });
-      return response.json();
+      const response = await apiRequest('GET', '/api/schedule-notifications/list');
+      const result = await response.json();
+      console.log('🔔 [NOTIFICATIONS-PAGE] API response:', result);
+      return result;
     },
   });
 
