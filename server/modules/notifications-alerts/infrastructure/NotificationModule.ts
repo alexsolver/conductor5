@@ -15,20 +15,11 @@ import { NotificationDomainService } from '../domain/services/NotificationDomain
 class NotificationProcessor {
   private isRunning = false;
   private processInterval: NodeJS.Timeout | null = null;
-  private urgentInterval: NodeJS.Timeout | null = null;
-  private webhookProcessor: WebhookProcessor;
-  private emailProcessor: EmailProcessor;
-  private smsProcessor: SMSProcessor;
 
   constructor(
     private processUseCase: ProcessNotificationUseCase,
-    private intervalMs: number = 30000, // 30 seconds para notificações normais
-    private urgentIntervalMs: number = 5000 // 5 seconds para notificações urgentes
-  ) {
-    this.webhookProcessor = new WebhookProcessor();
-    this.emailProcessor = new EmailProcessor();
-    this.smsProcessor = new SMSProcessor();
-  }
+    private intervalMs: number = 30000 // 30 seconds
+  ) {}
 
   start(): void {
     if (this.isRunning) {
@@ -37,22 +28,15 @@ class NotificationProcessor {
     }
 
     this.isRunning = true;
-    console.log(`📨 [NOTIFICATIONS] Starting enhanced background processor`);
-    console.log(`📨 [NOTIFICATIONS] Normal interval: ${this.intervalMs}ms, Urgent interval: ${this.urgentIntervalMs}ms`);
+    console.log(`📨 [NOTIFICATIONS] Starting background processor (interval: ${this.intervalMs}ms)`);
 
     // Initial process
     this.processNotifications();
-    this.processUrgentNotifications();
 
-    // Set up recurring processing - normal notifications
+    // Set up recurring processing
     this.processInterval = setInterval(() => {
       this.processNotifications();
     }, this.intervalMs);
-
-    // Set up recurring processing - urgent notifications
-    this.urgentInterval = setInterval(() => {
-      this.processUrgentNotifications();
-    }, this.urgentIntervalMs);
   }
 
   stop(): void {
@@ -67,64 +51,7 @@ class NotificationProcessor {
       this.processInterval = null;
     }
 
-    if (this.urgentInterval) {
-      clearInterval(this.urgentInterval);
-      this.urgentInterval = null;
-    }
-
-    console.log('📨 [NOTIFICATIONS] Enhanced background processor stopped');
-  }
-
-  private async processUrgentNotifications(): Promise<void> {
-    try {
-      const tenantIds = [
-        '3f99462f-3621-4b1b-bea8-782acc50d62e',
-        '715c510a-3db5-4510-880a-9a1a5c320100',
-        '78a4c88e-0e85-4f7c-ad92-f472dad50d7a',
-        'cb9056df-d964-43d7-8fd8-b0cc00a72056'
-      ];
-
-      for (const tenantId of tenantIds) {
-        try {
-          // Processar apenas notificações urgentes (priority >= 8)
-          const result = await this.processUseCase.execute(tenantId, 20, { urgentOnly: true });
-          
-          if (result.processed > 0) {
-            console.log(`🚨 [URGENT-NOTIFICATIONS] Tenant ${tenantId}: processed=${result.processed}, sent=${result.sent}`);
-            
-            // Push em tempo real para notificações urgentes
-            await this.pushRealTimeNotifications(tenantId, result.notifications);
-          }
-        } catch (error) {
-          console.error(`🚨 [URGENT-NOTIFICATIONS] Processing failed for tenant ${tenantId}:`, error);
-        }
-      }
-    } catch (error) {
-      console.error('🚨 [URGENT-NOTIFICATIONS] Background processing error:', error);
-    }
-  }
-
-  private async pushRealTimeNotifications(tenantId: string, notifications: any[]): Promise<void> {
-    try {
-      // Push via WebSocket/Server-Sent Events
-      await this.webhookProcessor.sendRealTime(tenantId, notifications);
-      
-      // Push via webhook para integrações externas
-      await this.webhookProcessor.sendWebhooks(tenantId, notifications);
-      
-      // Enviar emails urgentes
-      for (const notification of notifications) {
-        if (notification.channels?.includes('email')) {
-          await this.emailProcessor.sendUrgent(notification);
-        }
-        
-        if (notification.channels?.includes('sms')) {
-          await this.smsProcessor.sendUrgent(notification);
-        }
-      }
-    } catch (error) {
-      console.error('📨 [PUSH-NOTIFICATIONS] Real-time push error:', error);
-    }
+    console.log('📨 [NOTIFICATIONS] Background processor stopped');
   }
 
   private async processNotifications(): Promise<void> {

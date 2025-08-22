@@ -17,7 +17,6 @@ export interface ProcessNotificationResponse {
     reason?: string;
     channels?: string[];
   }>;
-  notifications?: any[];
 }
 
 export class ProcessNotificationUseCase {
@@ -27,35 +26,29 @@ export class ProcessNotificationUseCase {
     private deliveryService: INotificationDeliveryService
   ) {}
 
-  async execute(tenantId: string, limit: number = 50, options?: { urgentOnly?: boolean }): Promise<ProcessNotificationResponse> {
+  async execute(tenantId: string, batchSize: number = 50): Promise<ProcessNotificationResponse> {
     const response: ProcessNotificationResponse = {
       processed: 0,
       sent: 0,
       failed: 0,
       expired: 0,
-      details: [],
-      notifications: []
+      details: []
     };
 
     try {
-      // 1. Buscar notificações pendentes (urgentes ou normais)
-      const pendingNotifications = await this.notificationRepository.findPendingNotifications(
-        tenantId,
-        limit,
-        options?.urgentOnly ? { minPriority: 8 } : undefined
-      );
-
-      const processedNotifications: any[] = [];
+      // Get pending notifications to process
+      const pendingNotifications = await this.notificationRepository
+        .findPendingForProcessing(tenantId, batchSize);
 
       for (const notification of pendingNotifications) {
         response.processed++;
-
+        
         try {
           // Check if notification is expired
           if (notification.isExpired()) {
             notification.markAsExpired();
             await this.notificationRepository.update(notification, tenantId);
-
+            
             response.expired++;
             response.details.push({
               id: notification.getId(),
@@ -87,7 +80,7 @@ export class ProcessNotificationUseCase {
 
           // Process the notification
           const sendResult = await this.processNotification(notification, tenantId);
-
+          
           if (sendResult.success) {
             response.sent++;
             response.details.push({
@@ -95,7 +88,6 @@ export class ProcessNotificationUseCase {
               status: 'sent',
               channels: sendResult.channels
             });
-            processedNotifications.push({ id: notification.getId(), status: 'sent', channels: sendResult.channels, tenantId: tenantId });
           } else {
             response.failed++;
             response.details.push({
@@ -104,7 +96,6 @@ export class ProcessNotificationUseCase {
               reason: sendResult.error,
               channels: sendResult.attemptedChannels
             });
-            processedNotifications.push({ id: notification.getId(), status: 'failed', error: sendResult.error, tenantId: tenantId });
           }
 
         } catch (error) {
@@ -114,23 +105,16 @@ export class ProcessNotificationUseCase {
             status: 'failed',
             reason: error instanceof Error ? error.message : 'Unknown processing error'
           });
-          processedNotifications.push({ id: notification.getId(), status: 'failed', error: error instanceof Error ? error.message : 'Unknown processing error', tenantId: tenantId });
         }
       }
 
       // Also process expired notifications cleanup
       await this.processExpiredNotifications(tenantId);
-
+      
       // Process escalations
       await this.processEscalations(tenantId);
 
-      return {
-        processed: response.processed,
-        sent: response.sent,
-        failed: response.failed,
-        expired: response.expired,
-        notifications: processedNotifications
-      };
+      return response;
 
     } catch (error) {
       throw new Error(`Failed to process notifications: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -138,7 +122,7 @@ export class ProcessNotificationUseCase {
   }
 
   private async processNotification(
-    notification: NotificationEntity,
+    notification: NotificationEntity, 
     tenantId: string
   ): Promise<{
     success: boolean;
@@ -156,7 +140,7 @@ export class ProcessNotificationUseCase {
       // Try to send through all channels
       for (const channel of channels) {
         attemptedChannels.push(channel);
-
+        
         try {
           const channelResult = await this.deliveryService.sendNotification(
             notification,
@@ -178,7 +162,7 @@ export class ProcessNotificationUseCase {
       if (hasAnySuccess) {
         notification.markAsSent(new Date());
         await this.notificationRepository.update(notification, tenantId);
-
+        
         return {
           success: true,
           channels: successfulChannels
@@ -187,7 +171,7 @@ export class ProcessNotificationUseCase {
         // All channels failed
         notification.markAsFailed(new Date(), 'All delivery channels failed');
         await this.notificationRepository.update(notification, tenantId);
-
+        
         return {
           success: false,
           attemptedChannels,
@@ -198,7 +182,7 @@ export class ProcessNotificationUseCase {
     } catch (error) {
       // Mark as failed and update
       notification.markAsFailed(
-        new Date(),
+        new Date(), 
         error instanceof Error ? error.message : 'Processing error'
       );
       await this.notificationRepository.update(notification, tenantId);
@@ -231,7 +215,7 @@ export class ProcessNotificationUseCase {
 
       for (const notification of notificationsRequiringEscalation) {
         const escalationCheck = this.domainService.shouldEscalateNotification(notification);
-
+        
         if (escalationCheck.shouldEscalate) {
           // Create escalation notification
           const escalationNotification = NotificationEntity.createSystemAlert(
@@ -250,7 +234,7 @@ export class ProcessNotificationUseCase {
           );
 
           await this.notificationRepository.create(escalationNotification, tenantId);
-
+          
           // Update original notification
           if (escalationCheck.newSeverity) {
             notification.escalateSeverity();

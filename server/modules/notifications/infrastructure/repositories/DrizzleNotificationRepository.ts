@@ -118,7 +118,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           eq(notifications.status, 'pending'),
           eq(notifications.isActive, true)
         ))
-        .orderBy(asc(notifications.createdAt))
+        .orderBy(asc(notifications.priority), asc(notifications.createdAt))
         .limit(limit);
 
       return results.map(result => this.mapToEntity(result));
