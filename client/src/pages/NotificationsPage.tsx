@@ -116,6 +116,7 @@ export default function NotificationsPage() {
     page: 1
   });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [processingNotifications, setProcessingNotifications] = useState<Set<string>>(new Set());
 
   // Form
   const form = useForm<CreateNotificationForm>({
@@ -230,6 +231,11 @@ export default function NotificationsPage() {
         title: 'Success',
         description: `${variables.length} notification${variables.length > 1 ? 's' : ''} marked as read`
       });
+      setProcessingNotifications(prev => {
+        const newSet = new Set(prev);
+        variables.forEach(id => newSet.delete(id));
+        return newSet;
+      });
       refetchNotifications();
     },
     onError: (error: any) => {
@@ -239,6 +245,14 @@ export default function NotificationsPage() {
         description: error.message || 'Failed to mark as read',
         variant: 'destructive'
       });
+      setProcessingNotifications(prev => {
+        // Clear all processing states on error
+        return new Set();
+      });
+    },
+    onMutate: () => {
+      // Prevent multiple simultaneous mutations
+      return { timestamp: Date.now() };
     }
   });
 
@@ -560,7 +574,7 @@ export default function NotificationsPage() {
             ) : notifications?.success && notifications.data?.notifications?.length > 0 ? (
               (notifications.data.notifications as Notification[]).map((notification: Notification) => (
                 <Card key={notification.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4" onClick={(e) => e.stopPropagation()}>
+                  <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -613,7 +627,7 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       
-                      <div className="flex flex-col gap-2 ml-4">
+                      <div className="flex flex-col gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
                         {!notification.readAt && (
                           <Button
                             size="sm"
@@ -621,11 +635,19 @@ export default function NotificationsPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();
+                              
+                              if (processingNotifications.has(notification.id)) {
+                                console.log('🔔 [MARK-READ] Already processing notification:', notification.id);
+                                return;
+                              }
+                              
                               console.log('🔔 [MARK-READ] Marking notification as read:', notification.id);
+                              setProcessingNotifications(prev => new Set([...prev, notification.id]));
                               markAsReadMutation.mutate([notification.id]);
                             }}
-                            disabled={markAsReadMutation.isPending}
+                            disabled={markAsReadMutation.isPending || processingNotifications.has(notification.id)}
                             data-testid={`button-mark-read-${notification.id}`}
+                            className="relative z-10"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             {markAsReadMutation.isPending ? 'Marking...' : 'Mark Read'}
