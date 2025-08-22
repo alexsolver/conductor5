@@ -800,6 +800,7 @@ export default function CustomFieldsAdministrator() {
       </div>
     );
   }
+  }
 
   // Create Field Form Component
   interface CreateFieldFormProps {
