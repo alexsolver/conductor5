@@ -46,6 +46,7 @@
     "tickets": "Tickets",
     "customers": "Kunden",
     "analytics": "Analysen",
+    "knowledgeBase": "Wissensdatenbank",
     "settings": "Einstellungen",
     "previous": "Previous",
     "next": "Next",
@@ -1031,7 +1032,7 @@
     "history": "History",
     "preferences": "Preferences"
   },
-  "Erro ao criar regra: ${errorData": {
+  "Erro ao criar rule: ${errorData": {
     "error || response": {
       "statusText}": "Status text}"
     }
@@ -1041,9 +1042,9 @@
       "statusText}": "Status text}"
     }
   },
-  "Erro ao criar regra": {
+  "Erro ao criar rule": {
     " Verifique o console para mais detalhes": {
-      "": "Erro ao criar regra. Verifique o console para mais detalhes."
+      "": "Erro ao criar rule. Verifique o console para mais detalhes."
     }
   },
   "Erro na sincronização": {

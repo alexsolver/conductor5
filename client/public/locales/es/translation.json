@@ -339,15 +339,15 @@
     "clear_filters": "tickets.clear_filters"
   },
   "navigation": {
-    "dashboard": "Dashboard",
+    "dashboard": "Panel de Control",
     "tickets": "Tickets",
     "users": "Usuarios",
     "customers": "Clientes",
     "locations": "Ubicaciones",
-    "analytics": "Analítica",
+    "analytics": "Análisis",
     "reports": "Reportes",
     "settings": "Configuraciones",
-    "knowledgeBase": "Base de Conocimientos",
+    "knowledgeBase": "Base de Conocimiento",
     "omniBridge": "OmniBridge",
     "approval": "Aprobaciones",
     "approvals": "Aprobaciones",
