@@ -13,8 +13,9 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    fallbackLng: ['pt-BR', 'pt', 'en'],
-    debug: true,
+    fallbackLng: 'pt-BR',
+    lng: 'pt-BR',
+    debug: false,
 
     interpolation: {
       escapeValue: false,
@@ -23,36 +24,30 @@ i18n
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json',
       allowMultiLoading: false,
+      requestOptions: {
+        cache: 'no-cache'
+      }
     },
 
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: 'i18nextLng',
       caches: ['localStorage'],
     },
 
-    // Configuração para mapear pt para pt-BR
     load: 'languageOnly',
-    supportedLngs: ['en', 'pt-BR', 'pt', 'es', 'fr', 'de'],
-
-    // Mapear variações de português para pt-BR
-    resources: {},
-
-    // Configurações de namespace
+    supportedLngs: ['pt-BR'],
+    
     defaultNS: 'translation',
     ns: ['translation'],
-  });
 
-// Interceptar carregamento para mapear pt -> pt-BR
-const originalLoadPath = i18n.services.backendConnector.backend.options.loadPath;
-i18n.services.backendConnector.backend.options.loadPath = (lngs: string[], namespaces: string[]) => {
-  const mappedLngs = lngs.map(lng => {
-    if (lng === 'pt' || lng === 'pt-br') {
-      return 'pt-BR';
+    // Força o carregamento de pt-BR mesmo se detectar 'pt'
+    cleanCode: true,
+    
+    react: {
+      useSuspense: false
     }
-    return lng;
   });
-  return originalLoadPath(mappedLngs, namespaces);
-};
 
 export default i18n;
 
