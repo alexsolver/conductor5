@@ -450,10 +450,7 @@
     "created_at": "Creado en",
     "id": "id - ES"
   },
-  "analytics": {
-    "view": "[ES] analytics.view",
-    "create": "[ES] analytics.create"
-  },
+  "analytics": "Analíticas",
   "auth": {
     "login": "Iniciar sesión",
     "register": "Registrarse",
@@ -1570,5 +1567,6 @@
   "preventive_actions": "[ES] preventive_actions",
   "new": "[ES] new",
   "all": "[ES] all",
-  "custom": "[ES] custom"
+  "custom": "[ES] custom",
+  "serviceManagement": "[ES] serviceManagement"
 }

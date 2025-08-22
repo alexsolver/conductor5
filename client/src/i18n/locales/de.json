@@ -822,10 +822,7 @@
   "/api/user-management/sessions/${sessionId}/terminate": "[EN] /api/user-management/sessions/${session Id}/terminate",
   "/api/user-management/users/${userId}/sessions/terminate-all": "[EN] /api/user-management/users/${user Id}/sessions/terminate-all",
   "400:": "[EN] 400:",
-  "analytics": {
-    "view": "analytics.view",
-    "create": "analytics.create"
-  },
+  "analytics": "Analysen",
   "notifications": "notifications",
   "compliance": "Compliance",
   "gdprCompliance": "DSGVO-Konformität",
@@ -1572,5 +1569,6 @@
   "preventive_actions": "preventive_actions",
   "new": "new",
   "all": "all",
-  "custom": "custom"
+  "custom": "custom",
+  "serviceManagement": "serviceManagement"
 }

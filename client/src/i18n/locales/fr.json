@@ -450,10 +450,7 @@
     "created_at": "customers.created_at",
     "id": "customers.id"
   },
-  "analytics": {
-    "view": "analytics.view",
-    "create": "analytics.create"
-  },
+  "analytics": "Analyses",
   "auth": {
     "login": "Connexion",
     "register": "S'inscrire",
@@ -1572,5 +1569,6 @@
   "preventive_actions": "preventive_actions",
   "new": "new",
   "all": "all",
-  "custom": "custom"
+  "custom": "custom",
+  "serviceManagement": "serviceManagement"
 }
