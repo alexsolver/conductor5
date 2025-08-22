@@ -1,0 +1,1533 @@
+{
+  "4": "4",
+  "common": {
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "update": "Atualizar",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "actions": "Ações",
+    "settings": "Configurações",
+    "profile": "Perfil",
+    "logout": "Sair",
+    "login": "Entrar",
+    "register": "Registrar",
+    "yes": "Sim",
+    "no": "Não",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "reset": "Limpar",
+    "creating": "Criando",
+    "view": "Visualizar",
+    "view_all": "Ver Todos",
+    "add": "Adicionar",
+    "remove": "Remover",
+    "use": "Usar",
+    "appName": "Conductor",
+    "collapseSidebar": "Recolher Barra Lateral",
+    "expandSidebar": "Expandir Barra Lateral",
+    "saving": "Salvando",
+    "description": "Descrição",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "loading_attachments": "Carregando anexos",
+    "download": "Baixar",
+    "loading_communications": "Carregando comunicações",
+    "by": "por",
+    "loading_notes": "Carregando notas",
+    "loading_history": "Carregando histórico",
+    "error": "Erro",
+    "retry": "Tentar Novamente",
+    "open": "Abrir",
+    "refresh": "Atualizar",
+    "ok": "OK",
+    "success": "Sucesso",
+    "warning": "Aviso",
+    "info": "Informação",
+    "first": "Primeiro",
+    "last": "Último",
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "address": "Endereço",
+    "date": "Data",
+    "time": "Hora",
+    "status": "Status",
+    "type": "Tipo",
+    "category": "Categoria",
+    "processing": "Processando",
+    "pleaseWait": "Aguarde",
+    "none": "Nenhum",
+    "all": "Todos",
+    "select": "Selecionar",
+    "choose": "Escolher"
+  },
+  "navigation": {
+    "dashboard": "Painel",
+    "tickets": "Tickets",
+    "customers": "Clientes",
+    "analytics": "Análises",
+    "knowledge_base": "Base de Conhecimento",
+    "settings": "Configurações",
+    "admin": "Administração",
+    "saas_admin": "Admin SaaS",
+    "tenant_admin": "Admin Workspace"
+  },
+  "analytics": "Análises",
+  "notifications": "Notificações",
+  "compliance": "Compliance",
+  "gdprCompliance": "Compliance GDPR",
+  "knowledgeBase": "Base de Conhecimento",
+  "timecardControl": "Controle de Jornadas",
+  "timecardRegistry": "Registro de Ponto",
+  "workSchedules": "Escalas de Trabalho",
+  "hourBank": "Banco de Horas",
+  "holidayCalendar": "Calendário de Feriados",
+  "timecardReports": "Relatórios de Jornada",
+  "cltCompliance": "Compliance CLT",
+  "timecardApprovals": "Aprovações de Jornada",
+  "approvalConfiguration": "Configuração de Aprovação",
+  "absenceManagement": "Gestão de Ausências",
+  "locations": "Localizações",
+  "materialsAndServices": "Materiais e Serviços",
+  "itemCatalog": "Catálogo de Itens",
+  "stockManagement": "Gestão de Estoque",
+  "supplierManagement": "Gestão de Fornecedores",
+  "assetControl": "Controle de Ativos",
+  "lpuPriceList": "Lista de Preços LPU",
+  "complianceManagement": "Gestão de Compliance",
+  "reports": "Relatórios",
+  "productivityReports": "Relatórios de Produtividade",
+  "teamPerformance": "Performance da Equipe",
+  "systemAnalytics": "Analytics do Sistema",
+  "tenantManagement": "Gestão de Tenants",
+  "performanceHealth": "Saúde e Performance",
+  "securitySettings": "Configurações de Segurança",
+  "billingUsage": "Faturamento e Uso",
+  "disasterRecovery": "Recuperação de Desastres",
+  "autoProvisioning": "Provisionamento Automático",
+  "translationManagement": "Gestão de Traduções",
+  "integrations": "Integrações",
+  "moduleIntegrity": "Integridade de Módulos",
+  "multilocationSettings": "Configurações Multi-local",
+  "workspaceAdmin": "Admin Workspace",
+  "general": "Geral",
+  "contractManagement": "Gestão de Contratos",
+  "expenseManagement": "Gestão de Despesas",
+  "technicalSkillsPage": "Habilidades Técnicas",
+  "approvals": "Aprovações",
+  "activityPlanner": "Planejador de Atividades",
+  "integracoes": "Integrações",
+  "ticketConfiguration": "Configuração de Tickets",
+  "ticketTemplates": "Templates de Tickets",
+  "customFields": "Campos Personalizados",
+  "clientes": "Clientes",
+  "beneficiaries": "Beneficiários",
+  "internalForms": "Formulários Internos",
+  "omniBridge": "OmniBridge",
+  "companies": "Empresas",
+  "branding": "Marca",
+  "reportsAndDashboards": "Relatórios e Dashboards",
+  "interactiveDashboards": "Dashboards Interativos",
+  "workflows": "Fluxos de Trabalho",
+  "slas": "SLAs",
+  "userManagementPage": "Gestão de Usuários",
+  "teamManagementPage": "Gestão de Equipes",
+  "userManagement": "Gestão de Usuários",
+  "user": "Usuário",
+  "action": "Ação",
+  "resource": "Recurso",
+  "status": "Status",
+  "ipAddress": "IP",
+  "performedAt": "Data/Hora",
+  "noActivity": "Nenhuma atividade registrada",
+  "error": "Erro",
+  "deleteActions": "Excluir Ações",
+  "title": "Título",
+  "createUser": "Criar Usuário",
+  "stats": {
+      "totalUsers": "Total de Usuários",
+      "totalUsersDesc": "Total de Usuários Desc",
+      "activeUsers": "Usuários Ativos",
+      "activeUsersDesc": "Descrição de Usuários Ativos",
+      "pendingInvitations": "Convites Pendentes",
+      "pendingInvitationsDesc": "Descrição de Convites Pendentes",
+      "activeSessions": "Sessões Ativas",
+      "activeSessionsDesc": "Sessões Ativas (Desc)"
+    },
+  "roleDistribution": "Distribuição de Funções",
+  "roleDistributionDesc": "Descrição da Distribuição de Funções",
+  "tabs": {
+      "users": "Usuários",
+      "groups": "Grupos",
+      "roles": "Funções",
+      "invitations": "Convites",
+      "sessions": "Sessões",
+      "activity": "Atividade"
+    },
+  "success": "Sucesso",
+  "userCreated": "Usuário Criado",
+  "userCreateError": "Erro ao Criar Usuário",
+  "invitationSent": "Convite Enviado",
+  "invitationSendError": "Erro ao Enviar o Convite",
+  "emailPlaceholder": "E-mail Placeholder",
+  "roles": {
+      "customer": "Cliente",
+      "agent": "Agente",
+      "workspaceAdmin": "Administrador do Espaço de Trabalho",
+      "saasAdmin": "Administração de SaaS"
+    },
+    "expires1Day": "Expira em 1 dia",
+    "expires3Days": "Expira em 3 dias",
+    "expires7Days": "Expira em 7 dias",
+    "expires14Days": "Expira em 14 dias",
+    "expires30Days": "Expira em 30 dias",
+    "expiresOn": "Expira Em",
+    "invitationNotesPlaceholder": "Placeholder de Notas do Convite",
+    "sending": "Enviando",
+    "sendInvitation": "Enviar convite",
+    "userActivity": "Atividade do Usuário",
+    "userActivityDesc": "Descrição da Atividade do Usuário",
+    "filters": "Filtros",
+    "searchActivity": "Atividade de Busca",
+    "filterByAction": "Filtrar por Ação",
+    "allActions": "Todas as Ações",
+    "loginActions": "Ações de Login",
+    "createActions": "Criar Ações",
+    "updateActions": "Atualizar Ações",
+    "unknownUser": "Usuário Desconhecido",
+    "failed": "Falhou",
+    "noActivityMatch": "Nenhuma Atividade Correspondente",
+    "totalActivities": "Atividades Totais",
+    "successfulActivities": "Atividades bem-sucedidas",
+    "failedActivities": "Atividades Falhadas",
+    "invitationResent": "Convite reenviado",
+    "invitationResendError": "Erro ao Reenviar o Convite",
+    "invitationRevoked": "Convite Revogado",
+    "invitationRevokeError": "Erro ao Revogar o Convite",
+    "invitationLinkCopied": "Link de convite copiado",
+    "userInvitations": "Convites de Usuário",
+    "userInvitationsDesc": "Descrição de Convites de Usuário",
+    "invitationsList": "Lista de Convites",
+    "invitationsListDesc": "Lista de Convites (Desc)",
+    "invitedBy": "Convidado por",
+    "invitedAt": "Convidado em",
+    "expiresAt": "Expira Em",
+    "system": "Sistema",
+    "resendInvitation": "Reenviar convite",
+    "copyLink": "Copiar Link",
+    "revokeInvitation": "Revogar convite",
+    "renewInvitation": "Renovar Convite",
+    "noInvitations": "Sem convites",
+    "pendingInvitations": "Convites Pendentes",
+    "acceptedInvitations": "Convites Aceitos",
+    "expiredInvitations": "Convites Expirados",
+    "revokedInvitations": "Convites Revogados",
+    "userStatusUpdated": "Status do Usuário Atualizado",
+    "userStatusUpdateError": "Erro na Atualização do Status do Usuário",
+    "userList": "Lista de Usuários",
+    "userListDesc": "Lista de Usuários (Desc)",
+    "searchUsers": "Pesquisar Usuários",
+    "name": "Nome",
+    "lastLogin": "Último Login",
+    "noName": "Sem nome",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "neverLoggedIn": "Nunca conectado.",
+    "deactivate": "Desativar",
+    "activate": "Ativar",
+    "userDetails": "Detalhes do Usuário",
+    "basicInfo": "Informações Básicas",
+    "accountInfo": "Informações da Conta",
+    "permissions": "Permissões",
+    "activeSessions": "Sessões Ativas",
+    "sessionTerminated": "Sessão Encerrada",
+    "sessionTerminateError": "Erro ao Encerrar a Sessão",
+    "allSessionsTerminated": "Todas as sessões encerradas",
+    "allSessionsTerminateError": "Erro: Todas as sessões encerradas",
+    "userSessions": "Sessões do Usuário",
+    "userSessionsDesc": "Sessões do Usuário",
+    "uniqueUsers": "Usuários Únicos",
+    "recentActivity": "Atividade Recente",
+    "sessionManagement": "Gerenciamento de Sessão",
+    "searchSessions": "Pesquisar Sessões",
+    "activeSessionsList": "Lista de Sessões Ativas",
+    "activeSessionsDesc": "Sessões Ativas (Desc)",
+    "device": "Dispositivo",
+    "location": "Localização",
+    "lastActivity": "Última atividade",
+    "duration": "Duração",
+    "unknownLocation": "Localização Desconhecida",
+    "terminateSession": "Encerrar Sessão",
+    "terminateAllSessions": "Encerrar Todas as Sessões",
+    "noSessionsMatch": "Nenhuma sessão correspondente",
+    "noActiveSessions": "Nenhuma sessão ativa"
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo",
+    "overview": "Visão Geral",
+    "tickets": "Tickets",
+    "customers": "Clientes",
+    "analytics": "Análises",
+    "activity": "Atividade Recente",
+    "stats": {
+      "total_tickets": "Total de Tickets",
+      "open_tickets": "Tickets Abertos",
+      "resolved_tickets": "Tickets Resolvidos",
+      "response_time": "Tempo de Resposta",
+      "active_tickets": "Tickets_ativos",
+      "resolved_today": "Resolvido hoje",
+      "avg_resolution_time": "Tempo médio de resolução",
+      "online_agents": "Agentes online",
+      "satisfaction_score": "Satisfaction Score",
+      "total_agents": "Total Agents"
+    },
+    "title": "Título",
+    "recent_activity": "Recent Activity",
+    "urgent_tickets": "Urgent Tickets",
+    "view": "Ver",
+    "manage": "Gerenciar"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "create": "Criar Ticket",
+    "edit": "Editar Ticket",
+    "view": "Visualizar Ticket",
+    "close": "Fechar Ticket",
+    "reopen": "Reabrir Ticket",
+    "assign": "Atribuir",
+    "priority": "Prioridade",
+    "status": "Status",
+    "category": "Categoria",
+    "subcategory": "Subcategoria",
+    "description": "Descrição",
+    "created_at": "Criado em",
+    "updated_at": "Atualizado em",
+    "customer": "Cliente",
+    "agent": "Agente",
+    "create_ticket": "Create Ticket",
+    "ticket_number": "Ticket Number",
+    "subject": "Subject",
+    "assigned_to": "Assigned To",
+    "categories": {
+      "incident": "Incident",
+      "request": "Request",
+      "problem": "Problem",
+      "change": "Change"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "statuses": {
+      "new": "New",
+      "open": "Open",
+      "in_progress": "In Progress",
+      "pending": "Pending",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "subtitle": "tickets.subtitle",
+    "search_placeholder": "tickets.search_placeholder",
+    "filters": {
+      "all": "Todos",
+      "open": "Abertos",
+      "in_progress": "Em Andamento",
+      "resolved": "Resolvidos",
+      "closed": "Fechados"
+    },
+    "table": {
+      "number": "Número",
+      "subject": "Assunto",
+      "customer": "Cliente",
+      "status": "Status",
+      "priority": "Prioridade",
+      "assigned": "Atribuído",
+      "created": "Criado",
+      "actions": "Ações"
+    },
+    "form": {
+      "basic_info": "Informações Básicas",
+      "subject": "Assunto",
+      "description": "Descrição",
+      "customer_select": "Selecionar Cliente",
+      "priority": "Prioridade",
+      "category": "Categoria",
+      "submit": "Enviar",
+      "cancel": "Cancelar"
+    },
+    "views": {
+      "title": "Visualizações de Tickets",
+      "activeView": "Visualização Ativa",
+      "defaultView": "Visualização Padrão",
+      "newView": "Nova Visualização",
+      "manage": "Gerenciar",
+      "advancedFilters": "Filtros Avançados",
+      "view": "Visualizar",
+      "public": "Público",
+      "noViewsAvailable": "Nenhuma visualização disponível",
+      "default": "Padrão",
+      "createNewView": "Criar Nova Visualização",
+      "viewName": "Nome da Visualização",
+      "descriptionPlaceholder": "Digite uma descrição para a visualização",
+      "description": "Descrição",
+      "manageViews": "Gerenciar Visualizações"
+    },
+    "clear_filters": "tickets.clear_filters",
+    "internal_actions": {
+      "description_placeholder": "tickets.internal_actions.description_placeholder",
+      "detailed_description_placeholder": "tickets.internal_actions.detailed_description_placeholder",
+      "description_too_long": "tickets.internal_actions.description_too_long"
+    },
+    "messages": {
+      "not_found": "tickets.messages.not_found",
+      "no_description": "tickets.messages.no_description",
+      "no_attachments": "tickets.messages.no_attachments",
+      "no_communications": "tickets.messages.no_communications",
+      "no_notes": "tickets.messages.no_notes",
+      "no_history": "tickets.messages.no_history",
+      "created_success": "tickets.messages.created_success",
+      "error_creating": "tickets.messages.error_creating",
+      "error_loading": "tickets.messages.error_loading",
+      "loading": "tickets.messages.loading"
+    },
+    "actions": {
+      "back_to_tickets": "Voltar aos Tickets",
+      "back": "Voltar",
+      "download": "Baixar",
+      "delete": "Excluir",
+      "simple": "Simples",
+      "detailed": "Detalhado",
+      "edit": "Editar",
+      "linkTicket": "Vincular Ticket",
+      "title": "Ações",
+      "creating": "Criando",
+      "create": "tickets.actions.create"
+    },
+    "attachments": "tickets.attachments",
+    "communication": "tickets.communication",
+    "notes": "Notas",
+    "history": "Histórico",
+    "upload_attachments": "tickets.upload_attachments",
+    "existing_attachments": "tickets.existing_attachments",
+    "note_internal": "tickets.note_internal",
+    "note_public": "tickets.note_public",
+    "change_history": "tickets.change_history",
+    "field": "tickets.field",
+    "ticket_information": "tickets.ticket_information",
+    "created": "tickets.created",
+    "updated": "tickets.updated",
+    "company": "tickets.company",
+    "location": "tickets.location",
+    "uploaded_by": "tickets.uploaded_by",
+    "tabs": {
+      "attachments": "Anexos",
+      "communication": "Comunicação"
+    },
+    "fields": {
+      "classification": "Classificação",
+      "priority": "Prioridade",
+      "status": "Status",
+      "urgency": "Urgência",
+      "category": "Categoria",
+      "subcategory": "Subcategoria",
+      "notSpecified": "Não especificado",
+      "action": "Ação",
+      "subject": "Assunto",
+      "notInformed": "Não informado",
+      "description": "Descrição",
+      "attachments": "Anexos",
+      "attachmentCount": "Quantidade de Anexos",
+      "existingAttachments": "Anexos Existentes",
+      "fileNoName": "Arquivo sem nome",
+      "unknownSize": "Tamanho desconhecido",
+      "addedOn": "Adicionado em",
+      "dateNotAvailable": "Data não disponível",
+      "noteCount": "Quantidade de Notas",
+      "newNote": "Nova Nota",
+      "general": "tickets.fields.general",
+      "internal": "tickets.fields.internal",
+      "resolution": "tickets.fields.resolution",
+      "escalation": "tickets.fields.escalation",
+      "communicationTimeline": "tickets.fields.communicationTimeline",
+      "historyComplete": "tickets.fields.historyComplete",
+      "internalAction": "tickets.fields.internalAction",
+      "internalActionCreated": "tickets.fields.internalActionCreated",
+      "internalActionUpdated": "tickets.fields.internalActionUpdated",
+      "internalActionDeleted": "tickets.fields.internalActionDeleted",
+      "actionPerformedBy": "tickets.fields.actionPerformedBy",
+      "resolvedOn": "tickets.fields.resolvedOn",
+      "createdOn": "tickets.fields.createdOn",
+      "internalActions": "tickets.fields.internalActions",
+      "assignedTo": "tickets.fields.assignedTo",
+      "ticketsLinkedCount": "tickets.fields.ticketsLinkedCount",
+      "noTicketLinked": "tickets.fields.noTicketLinked",
+      "linkButtonHint": "tickets.fields.linkButtonHint",
+      "customer": "Cliente",
+      "customerSince": "tickets.fields.customerSince",
+      "totalTickets": "tickets.fields.totalTickets",
+      "lastOpenedTickets": "tickets.fields.lastOpenedTickets",
+      "thisCustomer": "tickets.fields.thisCustomer",
+      "current": "tickets.fields.current",
+      "systemProblem": "tickets.fields.systemProblem",
+      "today": "tickets.fields.today",
+      "resolved": "tickets.fields.resolved",
+      "closed": "tickets.fields.closed",
+      "active": "tickets.fields.active",
+      "relatedTicket": "tickets.fields.relatedTicket",
+      "customerInsights": "tickets.fields.customerInsights",
+      "company": "Empresa",
+      "selectCustomer": "Selecionar Cliente",
+      "customerFound": "Cliente encontrado",
+      "customerNotFound": "Cliente não encontrado",
+      "customerNoName": "Cliente sem nome",
+      "beneficiary": "Beneficiário",
+      "location": "Localização",
+      "assignmentGroup": "Grupo de Atribuição",
+      "responsible": "Responsável",
+      "datesTimeTitle": "tickets.fields.datesTimeTitle",
+      "creation": "tickets.fields.creation",
+      "dueDate": "tickets.fields.dueDate",
+      "statusField": "tickets.fields.statusField",
+      "sla": "tickets.fields.sla",
+      "slaElapsed": "tickets.fields.slaElapsed",
+      "sensitiveData": "tickets.fields.sensitiveData",
+      "securityVerification": "tickets.fields.securityVerification",
+      "enterPasswordAccess": "tickets.fields.enterPasswordAccess",
+      "enterPasswordPlaceholder": "tickets.fields.enterPasswordPlaceholder",
+      "name": "tickets.fields.name",
+      "email": "tickets.fields.email",
+      "phone": "tickets.fields.phone",
+      "customerUpper": "tickets.fields.customerUpper",
+      "accessSensitiveData": "tickets.fields.accessSensitiveData",
+      "address": "tickets.fields.address",
+      "sensitiveDataAccess": "tickets.fields.sensitiveDataAccess",
+      "enterPasswordAgent": "tickets.fields.enterPasswordAgent",
+      "agentPassword": "tickets.fields.agentPassword",
+      "cancel": "tickets.fields.cancel",
+      "sensitiveDataRevealed": "tickets.fields.sensitiveDataRevealed",
+      "enterPassword": "tickets.fields.enterPassword",
+      "verify": "tickets.fields.verify",
+      "companyDetails": "Detalhes da Empresa",
+      "companyName": "Nome da Empresa",
+      "companyNotSpecified": "Empresa não especificada",
+      "technicalResponsible": "Responsável Técnico",
+      "manageCustomers": "Gerenciar Clientes",
+      "customerDetails": "Detalhes do Cliente",
+      "noCustomerSpecified": "Nenhum cliente especificado",
+      "beneficiaryDetails": "Detalhes do Beneficiário"
+    },
+    "placeholders": {
+      "selectAction": "tickets.placeholders.selectAction",
+      "ticketDescription": "tickets.placeholders.ticketDescription",
+      "noteText": "tickets.placeholders.noteText"
+    },
+    "interactions": "tickets.interactions",
+    "interactions_plural": "tickets.interactions_plural",
+    "links": "Links",
+    "relationships": {
+      "related": "tickets.relationships.related",
+      "duplicates": "tickets.relationships.duplicates",
+      "blocks": "tickets.relationships.blocks",
+      "causedBy": "tickets.relationships.causedBy",
+      "parentChild": "tickets.relationships.parentChild",
+      "follows": "tickets.relationships.follows",
+      "linked": "tickets.relationships.linked"
+    },
+    "basicData": "tickets.basicData",
+    "explore": "Explorar",
+    "details": "Detalhes",
+    "materialsServices": "Materiais e Serviços",
+    "knowledgeBase": "Base de Conhecimento",
+    "internalActions": "Ações Internas",
+    "externalActions": "Ações Externas",
+    "latestInteractions": "Últimas Interações",
+    "new_ticket": "Novo Ticket",
+    "forms": {
+      "create": {
+        "title": "Criar Novo Ticket",
+        "select_company": "Selecionar Empresa",
+        "no_companies": "Nenhuma empresa disponível",
+        "first_select_company": "Primeiro selecione uma empresa",
+        "select_customer": "Selecionar Cliente",
+        "no_customers_for_company": "Nenhum cliente encontrado para esta empresa",
+        "select_beneficiary": "Selecionar Beneficiário",
+        "no_beneficiary": "Nenhum beneficiário",
+        "subject_placeholder": "Digite o assunto do ticket",
+        "select_category": "Selecionar Categoria",
+        "first_select_category": "Primeiro selecione uma categoria",
+        "select_subcategory": "Selecionar Subcategoria",
+        "no_subcategories": "Nenhuma subcategoria disponível",
+        "first_select_subcategory": "Primeiro selecione uma subcategoria",
+        "select_action": "Selecionar Ação",
+        "no_actions": "Nenhuma ação disponível",
+        "select_priority": "Selecionar Prioridade",
+        "select_urgency": "Selecionar Urgência",
+        "description_placeholder": "Descreva o problema detalhadamente",
+        "symptoms_placeholder": "Descreva os sintomas observados",
+        "business_impact_placeholder": "Descreva o impacto no negócio",
+        "workaround_placeholder": "Descreva uma solução temporária, se houver",
+        "select_location_optional": "Selecionar Localização (Opcional)",
+        "no_specific_location": "Sem localização específica"
+      }
+    },
+    "beneficiary": "tickets.beneficiary",
+    "action": "tickets.action",
+    "urgency": "tickets.urgency",
+    "symptoms": "tickets.symptoms",
+    "business_impact": "tickets.business_impact",
+    "workaround": "tickets.workaround",
+    "filter_by_status": "tickets.filter_by_status",
+    "filter_by_priority": "tickets.filter_by_priority",
+    "assignedTo": "tickets.assignedTo",
+    "id": "tickets.id",
+    "manage": "tickets.manage",
+    "delete": "tickets.delete",
+    "customerId": "tickets.customerId"
+  },
+  "customers": {
+    "title": "Clientes",
+    "create": "Criar Cliente",
+    "edit": "Editar Cliente",
+    "view": "Visualizar Cliente",
+    "delete": "Excluir Cliente",
+    "name": "Nome",
+    "email": "Email",
+    "phone": "Telefone",
+    "company": "Empresa",
+    "address": "Endereço",
+    "created_at": "Criado em",
+    "create_customer": "Create Customer",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "status": "Status",
+    "verified": "Verified",
+    "active": "Active",
+    "suspended": "Suspended",
+    "timezone": "Timezone",
+    "language": "Language",
+    "locale": "Locale",
+    "subtitle": "customers.subtitle",
+    "search_placeholder": "customers.search_placeholder",
+    "table": {
+      "name": "customers.table.name",
+      "email": "customers.table.email",
+      "company": "customers.table.company",
+      "phone": "customers.table.phone",
+      "status": "customers.table.status",
+      "created": "customers.table.created",
+      "actions": "customers.table.actions"
+    },
+    "form": {
+      "basic_info": "customers.form.basic_info",
+      "first_name": "customers.form.first_name",
+      "last_name": "customers.form.last_name",
+      "email": "customers.form.email",
+      "phone": "customers.form.phone",
+      "company": "customers.form.company",
+      "submit": "customers.form.submit",
+      "cancel": "customers.form.cancel"
+    },
+    "id": "customers.id"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Registrar",
+    "email": "Email",
+    "password": "Senha",
+    "forgot_password": "Esqueci minha senha",
+    "reset_password": "Redefinir senha",
+    "welcome_back": "Bem-vindo de volta",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "remember_me": "Remember Me",
+    "already_have_account": "Already have an account?",
+    "dont_have_account": "Don't have an account?",
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up"
+  },
+  "errors": {
+    "general": "Ocorreu um erro inesperado. Tente novamente.",
+    "network": "Erro de rede. Verifique sua conexão.",
+    "unauthorized": "Você não tem autorização para esta ação.",
+    "not_found": "O recurso solicitado não foi encontrado.",
+    "validation": "Verifique os dados inseridos e tente novamente.",
+    "generic": "Genérico"
+  },
+  "success": {
+    "saved": "Alterações salvas com sucesso",
+    "created": "{{item}} criado com sucesso",
+    "updated": "{{item}} atualizado com sucesso",
+    "deleted": "{{item}} excluído com sucesso"
+  },
+  "teamManagement": {
+    "title": "Gestão de Equipe",
+    "overview": "Visão Geral",
+    "members": "Membros",
+    "performance": "Performance",
+    "analytics": "Analytics"
+  },
+  "settings": {
+    "title": "Configurações",
+    "general": "Geral",
+    "notifications": "Notificações",
+    "security": "Segurança",
+    "integrations": "Integrações",
+    "language": "Idioma",
+    "timezone": "Fuso horário",
+    "currency": "Moeda",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "view": "settings.view",
+    "edit": "settings.edit",
+    "branding": "settings.branding"
+  },
+  "technicalSkills": {
+    "title": "Habilidades Técnicas",
+    "description": "Descrição",
+    "newSkill": "Nova Habilidade",
+    "createSkill": "Criar Nova Habilidade",
+    "editSkill": "Editar Habilidade",
+    "name": "Nome",
+    "category": "Categoria",
+    "minLevelRequired": "Nível Mínimo Requerido",
+    "suggestedCertification": "Certificação Sugerida",
+    "certificationValidity": "Validade da Certificação (meses)",
+    "observations": "Observações",
+    "totalSkills": "Total de Habilidades",
+    "expiredCertifications": "Certificações Vencidas",
+    "expiringCertifications": "Vencendo em 30 dias",
+    "categories": "Categorias",
+    "searchSkills": "Buscar habilidades...",
+    "allCategories": "Todas as categorias",
+    "noSkillsFound": "Nenhuma habilidade encontrada",
+    "loading": "Carregando habilidades...",
+    "basic": "Básico",
+    "intermediate": "Intermediário",
+    "advanced": "Avançado",
+    "specialist": "Especialista",
+    "excellence": "Excelência"
+  },
+  "Erro ao criar regra: ${errorData": {
+    "error || response": {
+      "statusText}": "Texto de Status"
+    }
+  },
+  "Erro na sincronização: ${errorData": {
+    "error || response": {
+      "statusText}": "Texto de Status"
+    }
+  },
+  "title": "Título",
+  "GET": "O B T E R",
+  "POST": "POST",
+  "PUT": "INSERIR",
+  "Motivo da rejeição:": "Motivo da rejeição:",
+  "T": "T",
+  "PATCH": "A T U A L I Z A Ç Ã O",
+  " ": "[PT-BR] ",
+  "name": "Nome",
+  "code": "Código",
+  "serialNumber": "Número de Série",
+  "status": "Status",
+  "assetLevel": "Nível do Ativo",
+  "acquisitionCost": "Custo de Aquisição",
+  "warrantyExpiry": "Vencimento da Garantia",
+  "assetId": "ID do Ativo",
+  "type": "Tipo",
+  "priority": "Prioridade",
+  "scheduledDate": "Data Agendada",
+  "description": "Descrição",
+  "assetTag": "Etiqueta de Ativo",
+  "category": "Categoria",
+  "brand": "Marca",
+  "model": "Modelo",
+  "purchasePrice": "Preço de Compra",
+  "department": "Departamento",
+  "/api/automation-rules": "/api/regras-automáticas",
+  "/api/automation-rules/metrics/overview": "/api/regras-automatizadas/metricas/visao-geral",
+  "/api/automation-rules/${ruleId}": "/api/regras-automacao/${id da regra}",
+  "/api/automation-rules/${ruleId}/test": "/api/regras-de-automacao/${ID da regra}/testar",
+  "DELETE": "E X C L U I R",
+  "basic": "Básico",
+  "active": "Ativo",
+  "auditor": "Auditor",
+  "scope": "Escopo",
+  "objectives": "Objetivos",
+  "standard": "Padrão",
+  "certifyingBody": "Órgão Certificador",
+  "issueDate": "Data de Emissão",
+  "expirationDate": "Data de Validade",
+  "pt-BR": "Português do Brasil",
+  "": {
+    "": "[PT-BR] "
+  },
+  "#3b82f6": "#3b82f6",
+  "#8b5cf6": "#8b5cf6",
+  "default": "Padrão",
+  ",": "Por favor, insira um endereço de e-mail válido.",
+  "/api/gdpr-compliance/reports": "/api/conformidade-gdpr/relatorios",
+  "/api/gdpr-compliance/metrics": "/api/conformidade-gdpr/metricas",
+  "/api/gdpr-compliance/reports/${id}": "/api/conformidade-gdpr/relatorios/${id}",
+  "/api/gdpr-compliance/cookie-consents": "/api/conformidade-gdpr/consentimentos-de-cookies",
+  "/api/gdpr-compliance/data-subject-requests": "/api/conformidade-gdpr/solicitacoes-de-titulares-de-dados",
+  "/api/gdpr-compliance/security-incidents": "/api/conformidade-gdpr/incidentes-de-segurança",
+  "/api/gdpr-compliance/export-user-data": "/api/conformidade-gdpr/exportar-dados-do-usuario",
+  "content-type": "Tipo de conteúdo",
+  "version": "Versão",
+  "currency": "Moeda",
+  "automaticMargin": "Margem Automática",
+  "validFrom": "Válido a partir de",
+  "validTo": "Válido até",
+  "notes": "Notas",
+  "conditions": "Condições",
+  "action": "Ação",
+  "Erro ao criar regra": {
+    " Verifique o console para mais detalhes": {
+      "": "[PT-BR] "
+    }
+  },
+  "Erro na sincronização": {
+    " Verifique o console para mais detalhes": {
+      "": "[PT-BR] "
+    }
+  },
+  "private": "Privado",
+  "AND": "E.",
+  "/api/sla/definitions": "/definicoes/api/sla",
+  "/api/sla/instances/active": "/api/sla/instancias/ativas",
+  "/api/sla/instances/breached": "/api/sla/instâncias/violadas",
+  "/api/sla/violations": "/api/sla/violacoes",
+  "/api/sla/analytics/compliance": "/api/sla/analytics/compliance",
+  "/api/sla/workflows": "/api/sla/fluxos de trabalho",
+  "tradeName": "Nome Comercial",
+  "documentNumber": "Número do Documento",
+  "email": "E-mail",
+  "phone": "Telefone",
+  "address": "Endereço",
+  "city": "Cidade",
+  "state": "Estado",
+  "postalCode": "Código Postal",
+  "country": "País",
+  "website": "Site da Web",
+  "contactPerson": "Pessoa de Contato",
+  "contactPhone": "Telefone de Contato",
+  "contactEmail": "E-mail de Contato",
+  "paymentTerms": "Termos de Pagamento",
+  "deliveryTerms": "Termos de Entrega",
+  "isPreferred": "Preferido",
+  "a": "A",
+  "agent": "Agente",
+  "?": "Erro: Não foi possível carregar a página.",
+  "openAction": "Abrir Ação",
+  "@": "@",
+  "Dados sensíveis revelados para o campo: ${showPasswordDialog": {
+    "field}": "Campo"
+  },
+  "Digite sua senha": "Insira sua senha",
+  "/api/materials-services/tickets/${ticketId}/consumed-items": "/api/materiais-servicos/tickets/${ID do ticket}/itens-consumidos",
+  "customer": {
+    "created": "customer.created",
+    "updated": "customer.updated",
+    "suspended": "customer.suspended",
+    "activated": "customer.activated",
+    "verified": "customer.verified"
+  },
+  "/": "/",
+  "Ativo": "Ativo",
+  "America/Sao_Paulo": "América/São_Paulo",
+  "pt": "Português do Brasil",
+  "Localização atual (GPS)": "Localização atual (GPS)",
+  "ativo": "Active",
+  "Brasil": "Brasil",
+  "/api/locations/${location": {
+    "id}": "ID"
+  },
+  "/api/locations": "/api/locais",
+  "/api/approvals/instances?${params}": "/api/aprovacoes/instancias?${params}",
+  "/api/approvals/instances/${instanceId}/decision": "/api/aprovacoes/instancias/${id da instância}/decisao",
+  "Pipeline salvo com sucesso!": "Pipeline salvo com sucesso!",
+  "Query testada! Verifique o console para detalhes": {
+    "": "[PT-BR] "
+  },
+  "Query salva como regra de aprovação!": "Salvar como regra de aprovação!",
+  "draft": "Rascunho",
+  "medium": "Médio",
+  "BRL": "BRL",
+  "/api/contracts": "/contratos/api",
+  "/api/contracts/${contractId}": "/api/contratos/${id do contrato}",
+  "/api/internal-forms/submissions${formId ? ": "/api/formularios-internos/envios/${idDoFormulario}?",
+  "text": "Texto",
+  ":": "Selecione um arquivo para fazer upload.",
+  "\\n": "\\n",
+  "\\n\\n--- Mensagem Original ---\\nDe: ${email": {
+    "from}\\nData: ${new Date(email": {
+      "createdAt)": {
+        "toLocaleString()}\\n\\n${email": {
+          "content}": "Conteúdo"
+        }
+      }
+    }
+  },
+  "-": "Por favor, insira um texto para tradução.",
+  "/api/user-management/invitations": "/api/gerenciamento-de-usuários/convites",
+  "/api/user-management/invitations/${invitationId}/resend": "/api/gerenciamento-de-usuários/convites/${id do convite}/reenviar",
+  "/api/user-management/invitations/${invitationId}/revoke": "/api/gerenciamento-de-usuários/convites/${id do convite}/revogar",
+  "/api/user-management/sessions/${sessionId}/terminate": "/api/gerenciamento-de-usuários/sessões/${ID da sessão}/encerrar",
+  "/api/user-management/users/${userId}/sessions/terminate-all": "/api/gerenciamento-de-usuários/usuarios/${id do usuário}/sessoes/encerrar-todas",
+  "400:": "400:",
+  "TranslationManager": {
+    "title": "Gestão de Traduções",
+    "description": "Gerencie traduções do sistema em todos os idiomas suportados",
+    "noKeysAvailable": "Nenhuma chave de tradução disponível",
+    "noKeysFound": "Nenhuma chave encontrada para sua pesquisa",
+    "searchPlaceholder": "Buscar chaves de tradução...",
+    "translationEditor": "Editor de Traduções",
+    "autoCompletion": "Auto Completar",
+    "allKeys": "Todas as Chaves",
+    "editorTitle": "Editor de Traduções - {{lang}}",
+    "lastModified": "Última modificação:",
+    "allKeysTitle": "Todas as Chaves de Tradução",
+    "allKeysDescription": "Visão geral de todas as chaves de tradução disponíveis no sistema",
+    "statisticsTitle": "Estatísticas",
+    "totalKeys": "Total de Chaves",
+    "analyzeCompleteness": "Analisar Completude",
+    "scanKeys": "Escanear Chaves",
+    "restoreBackup": "Restaurar Backup",
+    "saveChanges": "Salvar Alterações",
+    "saving": "Salvando...",
+    "analysisSuccess": "Análise concluída!",
+    "analysisError": "Falha na análise",
+    "expansionSuccess": "Escaneamento expandido concluído!",
+    "expansionError": "Falha no escaneamento expandido",
+    "scanSuccess": "Escaneamento de chaves concluído!",
+    "scanError": "Falha no escaneamento de chaves",
+    "autoCompletionTitle": "Auto Completar Traduções",
+    "ultraSafeMode": "Modo ultra-seguro: Apenas arquivos JSON modificados, código protegido",
+    "autoCompleteAll": "Auto Completar Tudo",
+    "autoCompletionSuccess": "Auto completar concluído com segurança!",
+    "translationsAdded": "Adicionadas",
+    "codeFilesProtected": "Arquivos de código protegidos",
+    "autoCompletionFailed": "Falha ao auto completar traduções",
+    "autoCompletionError": "Auto completar falhou",
+    "autoCompletionErrorDesc": "Falha ao auto completar traduções"
+  },
+  "admin": {
+    "title": "Administration",
+    "users": "Users",
+    "tenants": "Tenants",
+    "create_user": "Create User",
+    "create_tenant": "Create Tenant",
+    "role": "Role",
+    "tenant": "Tenant",
+    "permissions": "Permissions"
+  },
+  "localization": {
+    "language": "localization.language",
+    "timezone": "localization.timezone",
+    "currency": "localization.currency",
+    "date_format": "localization.date_format",
+    "time_format": "localization.time_format",
+    "number_format": "localization.number_format",
+    "regional_settings": "localization.regional_settings",
+    "auto_detect": "localization.auto_detect",
+    "save_preferences": "localization.save_preferences",
+    "preferences_saved": "localization.preferences_saved"
+  },
+  "quickActions": {
+    "createTicket": "quickActions.createTicket",
+    "addCustomer": "quickActions.addCustomer",
+    "generateReport": "quickActions.generateReport",
+    "automation": "quickActions.automation",
+    "title": "quickActions.title"
+  },
+  "userGroups": {
+    "loadingGroups": "userGroups.loadingGroups",
+    "title": "userGroups.title",
+    "description": "userGroups.description",
+    "createGroup": "userGroups.createGroup",
+    "createNewGroup": "userGroups.createNewGroup",
+    "createNewGroupDescription": "userGroups.createNewGroupDescription",
+    "groupName": "userGroups.groupName",
+    "groupDescription": "userGroups.groupDescription",
+    "groupDescriptionPlaceholder": "userGroups.groupDescriptionPlaceholder",
+    "creating": "userGroups.creating",
+    "noGroupsFound": "userGroups.noGroupsFound",
+    "noGroupsDescription": "userGroups.noGroupsDescription",
+    "createFirstGroup": "userGroups.createFirstGroup",
+    "members": "userGroups.members",
+    "editGroupTitle": "userGroups.editGroupTitle",
+    "updating": "userGroups.updating"
+  },
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9": {
+    "eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY"
+    },
+    "eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9": {
+      "1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmODk5MDkyMS02MmJkLTQyZjEtOTIxZi0wOTQ3N2JhZWY4NmUiLCJlbWFpbCI6ImFsZXhAbGFuc29sdmVyLmNvbSIsInJvbGUiOiJzYWFzX2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUyNzAwMTYzLCJleHAiOjE3NTI3MDEwNjMsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.1VWEQSep2YR26efHpTWaHl0-G6hM2XA1mFnKbVz2-EM"
+    }
+  },
+  "coordinates": {
+    "lat": "coordinates.lat",
+    "lng": "coordinates.lng"
+  },
+  "workingHours": {
+    "start": "workingHours.start",
+    "end": "workingHours.end"
+  },
+  "colors": {
+    "primary": "colors.primary",
+    "secondary": "colors.secondary",
+    "accent": "colors.accent",
+    "background": "colors.background",
+    "surface": "colors.surface",
+    "text": "colors.text"
+  },
+  "layout": {
+    "sidebarStyle": "layout.sidebarStyle",
+    "headerStyle": "layout.headerStyle",
+    "borderRadius": "layout.borderRadius",
+    "spacing": "layout.spacing"
+  },
+  "logo": {
+    "url": "logo.url",
+    "darkUrl": "logo.darkUrl",
+    "favicon": "logo.favicon"
+  },
+  "typography": {
+    "fontFamily": "typography.fontFamily",
+    "headingFont": "typography.headingFont",
+    "fontSize": "typography.fontSize"
+  },
+  "customization": {
+    "companyName": "customization.companyName",
+    "welcomeMessage": "customization.welcomeMessage",
+    "footerText": "customization.footerText",
+    "supportEmail": "customization.supportEmail",
+    "helpUrl": "customization.helpUrl",
+    "showPoweredBy": "customization.showPoweredBy"
+  },
+  "themes": {
+    "defaultTheme": "themes.defaultTheme",
+    "allowUserThemeSwitch": "themes.allowUserThemeSwitch",
+    "customCss": "themes.customCss"
+  },
+  "imap": {
+    "gmail": {
+      "com": "imap.gmail.com"
+    }
+  },
+  "smtp": {
+    "gmail": {
+      "com": "smtp.gmail.com"
+    }
+  },
+  "pagination": {
+    "page": "pagination.page",
+    "of": "pagination.of",
+    "previous": "pagination.previous",
+    "next": "pagination.next"
+  },
+  "templateReset": "templateReset",
+  "pg": "pg",
+  "main": "main",
+  "pool_exhaustion_critical": "pool_exhaustion_critical",
+  "performance_degradation": "performance_degradation",
+  "ticket": {
+    "created": "ticket.created",
+    "assigned": "ticket.assigned",
+    "status_changed": "ticket.status_changed",
+    "updated": "ticket.updated",
+    "resolved": "ticket.resolved",
+    "escalated": "ticket.escalated"
+  },
+  "child_process": "child_process",
+  "env": "env",
+  "error": "error",
+  "close": "close",
+  "timeout": "timeout",
+  "User-Agent": "User-Agent",
+  "asc": "asc",
+  "createdAt": "createdAt",
+  "desc": "desc",
+  "drizzle-orm": "drizzle-orm",
+  "BR": "BR",
+  "stats": {
+    "view": "stats.view"
+  },
+  "activity": {
+    "view": "activity.view"
+  },
+  "items": {
+    "amount": "items.amount",
+    "catalogId": "items.catalogId",
+    "supplierId": "items.supplierId"
+  },
+  "context": {
+    "userRole": "context.userRole"
+  },
+  "hex": "hex",
+  "tesseract": {
+    "js": "tesseract.js"
+  },
+  "receipt_001": {
+    "jpg": "receipt_001.jpg"
+  },
+  "api": {
+    "conductor": {
+      "com": "api.conductor.com"
+    }
+  },
+  "unit": "unit",
+  "template_importacao_itens": {
+    "csv": "template_importacao_itens.csv"
+  },
+  "inactive": "inactive",
+  "from_address": "from_address",
+  "to_address": "to_address",
+  "subject": "subject",
+  "content": "content",
+  "unread": "unread",
+  "grid": "grid",
+  "view_only": "view_only",
+  "updatedAt": "updatedAt",
+  "json": "json",
+  "users": {
+    "id": "users.id",
+    "tenantId": "users.tenantId"
+  },
+  "ticket_comments": {
+    "ticketId": "ticket_comments.ticketId"
+  },
+  "item_catalog": {
+    "id": "item_catalog.id"
+  },
+  "suppliers": {
+    "id": "suppliers.id"
+  },
+  "timecards": {
+    "userId": "timecards.userId",
+    "id": "timecards.id"
+  },
+  "time_entries": {
+    "timecardId": "time_entries.timecardId"
+  },
+  "messages": {
+    "channelId": "messages.channelId",
+    "conversationId": "messages.conversationId",
+    "success": "messages.success",
+    "error": "messages.error",
+    "warning": "messages.warning",
+    "info": "messages.info"
+  },
+  "channels": {
+    "id": "channels.id"
+  },
+  "conversations": {
+    "id": "conversations.id"
+  },
+  "support": "support",
+  "intermediate": "intermediate",
+  "host": "host",
+  "uuid": "uuid",
+  "this": {
+    "repository": "this.repository",
+    "logger": "this.logger",
+    "neon": "this.neon"
+  },
+  "targetTicket": {
+    "id": "targetTicket.id",
+    "subject": "targetTicket.subject",
+    "status": "targetTicket.status",
+    "priority": "targetTicket.priority",
+    "number": "targetTicket.number",
+    "createdAt": "targetTicket.createdAt",
+    "description": "targetTicket.description"
+  },
+  "googleapis": {
+    "com": "googleapis.com"
+  },
+  "dd": {
+    "MM": {
+      "yyyy": "dd.MM.yyyy"
+    }
+  },
+  "index": {
+    "css": "index.css",
+    "ts": "index.ts",
+    "html": "index.html"
+  },
+  "template-preference": {
+    "json": "template-preference.json"
+  },
+  "manual": "manual",
+  "x-forwarded-proto": "x-forwarded-proto",
+  "x-forwarded-host": "x-forwarded-host",
+  "gmail": {
+    "com": "gmail.com"
+  },
+  "translation": {
+    "backup": {
+      "json": "translation.backup.json"
+    },
+    "json": "translation.json"
+  },
+  "bcryptjs": "bcryptjs",
+  "workspace": {
+    "manage": "workspace.manage",
+    "configure": "workspace.configure",
+    "security": "workspace.security",
+    "integrations": "workspace.integrations"
+  },
+  "user": {
+    "create": "user.create",
+    "edit": "user.edit",
+    "delete": "user.delete",
+    "view": "user.view"
+  },
+  "groups": {
+    "manage": "groups.manage"
+  },
+  "sessions": {
+    "monitor": "sessions.monitor"
+  },
+  "hr": {
+    "view": "hr.view",
+    "performance": "hr.performance",
+    "skills": "hr.skills",
+    "absence": "hr.absence"
+  },
+  "timecard": {
+    "view": "timecard.view",
+    "manage": "timecard.manage",
+    "approve": "timecard.approve"
+  },
+  "bcrypt": "bcrypt",
+  "UNIFIED_SCHEMA_ARCHITECTURE": {
+    "md": "UNIFIED_SCHEMA_ARCHITECTURE.md"
+  },
+  "schema-master": {
+    "ts": "schema-master.ts"
+  },
+  "fs": "fs",
+  "db": {
+    "ts": "db.ts"
+  },
+  "translation-audit-report": {
+    "json": "translation-audit-report.json"
+  },
+  "routes": {
+    "ts": {
+      "backup": "routes.ts.backup"
+    }
+  },
+  "routes_backup_full": {
+    "ts": "routes_backup_full.ts"
+  },
+  "routes-old": {
+    "ts": "routes-old.ts"
+  },
+  "routes-working": {
+    "ts": "routes-working.ts"
+  },
+  "routes-integration": {
+    "ts": "routes-integration.ts"
+  },
+  "routes-clean": {
+    "ts": "routes-clean.ts"
+  },
+  "routes-legacy-backup": {
+    "ts": "routes-legacy-backup.ts"
+  },
+  "schema": {
+    "ts": "schema.ts"
+  },
+  "drizzle": {
+    "config": {
+      "ts": "drizzle.config.ts"
+    }
+  },
+  "SchemaManager": {
+    "ts": "SchemaManager.ts"
+  },
+  "id": "id",
+  "DRIZZLE_PROGRESS": {
+    "json": "DRIZZLE_PROGRESS.json"
+  },
+  "RELATORIO_CORRECAO_DRIZZLE": {
+    "md": "RELATORIO_CORRECAO_DRIZZLE.md"
+  },
+  "tenants": {
+    "id": "tenants.id"
+  },
+  "skills": {
+    "id": "skills.id"
+  },
+  "userSkills": {
+    "skillId": "userSkills.skillId",
+    "certificationId": "userSkills.certificationId"
+  },
+  "certifications": {
+    "id": "certifications.id"
+  },
+  "favorecidos": {
+    "name": "favorecidos.name"
+  },
+  "Companies": {
+    "tsx": "Companies.tsx"
+  },
+  "FavorecidosTable": {
+    "tsx": "FavorecidosTable.tsx"
+  },
+  "productionInitializer": {
+    "ts": "productionInitializer.ts"
+  },
+  "public": {
+    "users": "public.users"
+  },
+  "SCHEMA_BEST_PRACTICES": {
+    "md": "SCHEMA_BEST_PRACTICES.md"
+  },
+  "open": "open",
+  "planning": "planning",
+  "pending": "pending",
+  "NOMENCLATURE_STANDARDS": {
+    "md": "NOMENCLATURE_STANDARDS.md"
+  },
+  "SCHEMA_DATA_TYPE_OPTIMIZATION": {
+    "md": "SCHEMA_DATA_TYPE_OPTIMIZATION.md"
+  },
+  "system-analysis-corrected-report": {
+    "json": "system-analysis-corrected-report.json"
+  },
+  "pool": {
+    "query": "pool.query"
+  },
+  "translation-expansion-report": {
+    "json": "translation-expansion-report.json"
+  },
+  "TRANSLATION_INCONSISTENCIES_REPORT": {
+    "md": "TRANSLATION_INCONSISTENCIES_REPORT.md"
+  },
+  "temp-initialize-metadata": {
+    "ts": "temp-initialize-metadata.ts"
+  },
+  "referer": "referer",
+  "user-agent": "user-agent",
+  "path": "path",
+  "Repository": {
+    "ts": "Repository.ts"
+  },
+  "results": {
+    "map": "results.map"
+  },
+  "TokenService": {
+    "ts": "TokenService.ts"
+  },
+  "authSecurityService": {
+    "ts": "authSecurityService.ts"
+  },
+  "PasswordService": {
+    "ts": "PasswordService.ts"
+  },
+  "process": {
+    "env": {
+      "NODE_ENV": "process.env.NODE_ENV",
+      "": "process.env."
+    }
+  },
+  "key": "key",
+  "module": {
+    "key": "module.key"
+  },
+  "en": {
+    "json": "en.json"
+  },
+  "forms": {
+    "name": "forms.name",
+    "email": "forms.email",
+    "description": "forms.description",
+    "status": "forms.status",
+    "priority": "forms.priority",
+    "category": "forms.category",
+    "assignedTo": "forms.assignedTo",
+    "createdAt": "forms.createdAt",
+    "updatedAt": "forms.updatedAt"
+  },
+  "modals": {
+    "confirm": "modals.confirm",
+    "confirmDelete": "modals.confirmDelete"
+  },
+  "placeholders": {
+    "searchHere": "placeholders.searchHere",
+    "selectOption": "placeholders.selectOption",
+    "enterText": "placeholders.enterText"
+  },
+  "buttons": {
+    "submit": "buttons.submit",
+    "close": "buttons.close",
+    "add": "buttons.add",
+    "remove": "buttons.remove"
+  },
+  "i18n": {
+    "t": "i18n.t"
+  },
+  "user_groups": {
+    "id": "user_groups.id"
+  },
+  "crypto": "crypto",
+  "tsconfig": {
+    "json": "tsconfig.json"
+  },
+  "day": "day",
+  "instructions": "instructions",
+  "UTC": "UTC",
+  "scheduled": "scheduled",
+  "comments": "comments",
+  "completion_notes": "completion_notes",
+  "customer_feedback": "customer_feedback",
+  "user_agent": "user_agent",
+  "terms_conditions": "terms_conditions",
+  "file_path": "file_path",
+  "internal": "internal",
+  "service_description": "service_description",
+  "terms_changes": "terms_changes",
+  "maintenance_schedule": "maintenance_schedule",
+  "none": "none",
+  "business_justification": "business_justification",
+  "policy_violation_details": "policy_violation_details",
+  "compliance_notes": "compliance_notes",
+  "delegation_reason": "delegation_reason",
+  "field_description": "field_description",
+  "section_description": "section_description",
+  "change_description": "change_description",
+  "full": "full",
+  "request_details": "request_details",
+  "low": "low",
+  "tags": "tags",
+  "access_level": "access_level",
+  "visibility": "visibility",
+  "summary": "summary",
+  "article": "article",
+  "approval_status": "approval_status",
+  "keywords": "keywords",
+  "feedback": "feedback",
+  "query": "query",
+  "failure_reason": "failure_reason",
+  "descricao": "descricao",
+  "primary": "primary",
+  "supervisor_ids": "supervisor_ids",
+  "clt": "clt",
+  "PF": "PF",
+  "symptoms": "symptoms",
+  "workaround": "workaround",
+  "business_impact": "business_impact",
+  "followers": "followers",
+  "environment_error": "environment_error",
+  "resolution_notes": "resolution_notes",
+  "link_comment": "link_comment",
+  "message": "message",
+  "document_url": "document_url",
+  "member": "member",
+  "required_skills": "required_skills",
+  "location": "location",
+  "digital_signature": "digital_signature",
+  "modification_reason": "modification_reason",
+  "deletion_reason": "deletion_reason",
+  "reason": "reason",
+  "medical_certificate": "medical_certificate",
+  "rejection_reason": "rejection_reason",
+  "default_approvers": "default_approvers",
+  "weekly": "weekly",
+  "working_hours": "working_hours",
+  "justification": "justification",
+  "backup_location": "backup_location",
+  "gzip": "gzip",
+  "AES-256": "AES-256",
+  "public_key": "public_key",
+  "RSA-2048": "RSA-2048",
+  "revocation_reason": "revocation_reason",
+  "css_classes": "css_classes",
+  "info": "info",
+  "body_template": "body_template",
+  "location_address": "location_address",
+  "internal_notes": "internal_notes",
+  "client_notes": "client_notes",
+  "planned": "planned",
+  "compliant": "compliant",
+  "terms": "terms",
+  "business_days": "business_days",
+  "included": "included",
+  "requirements": "requirements",
+  "deliverables": "deliverables",
+  "skills_required": "skills_required",
+  "allowed_roles": "allowed_roles",
+  "changes_from_previous": "changes_from_previous",
+  "renewal_notes": "renewal_notes",
+  "approval_notes": "approval_notes",
+  "billing_notes": "billing_notes",
+  "payment_notes": "payment_notes",
+  "installation_notes": "installation_notes",
+  "replacement_reason": "replacement_reason",
+  "UN": "UN",
+  "maintenance_plan": "maintenance_plan",
+  "default_checklist": "default_checklist",
+  "location_path": "location_path",
+  "findings": "findings",
+  "recommendations": "recommendations",
+  "used": "used",
+  "escalate": "escalate",
+  "notification_template": "notification_template",
+  "escalation_reason": "escalation_reason",
+  "escalation_notes": "escalation_notes",
+  "breach_reason": "breach_reason",
+  "default_description": "default_description",
+  "required_fields": "required_fields",
+  "optional_fields": "optional_fields",
+  "hidden_fields": "hidden_fields",
+  "changes": "changes",
+  "error_message": "error_message",
+  "request_comments": "request_comments",
+  "approval_comments": "approval_comments",
+  "custom_description": "custom_description",
+  "special_instructions": "special_instructions",
+  "request_reason": "request_reason",
+  "sla_status": "sla_status",
+  "completion_reason": "completion_reason",
+  "module_types": "module_types",
+  "rule_ids": "rule_ids",
+  "payment_terms": "payment_terms",
+  "supplier_description": "supplier_description",
+  "procedures": "procedures",
+  "work_performed": "work_performed",
+  "methodology": "methodology",
+  "user_ids": "user_ids",
+  "message_template": "message_template",
+  "email_template": "email_template",
+  "sms_template": "sms_template",
+  "push_template": "push_template",
+  "default_channels": "default_channels",
+  "override_channels": "override_channels",
+  "table": "table",
+  "running": "running",
+  "trigger_condition": "trigger_condition",
+  "root_cause": "root_cause",
+  "preventive_actions": "preventive_actions",
+  "new": "new",
+  "all": "all",
+  "custom": "custom"
+}
