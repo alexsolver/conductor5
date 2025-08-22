@@ -86,10 +86,7 @@
     "create": "analytics.create"
   },
   "notifications": "Notificações",
-  "compliance": {
-    "view": "compliance.view",
-    "manage": "compliance.manage"
-  },
+  "compliance": "Compliance",
   "gdprCompliance": "Compliance GDPR",
   "knowledgeBase": "Base de Conhecimento",
   "timecardControl": "Controle de Jornadas",
@@ -102,7 +99,9 @@
   "timecardApprovals": "Aprovações de Jornada",
   "approvalConfiguration": "Configuração de Aprovação",
   "absenceManagement": "Gestão de Ausências",
-  "locations": "Localizações",
+  "locations": {
+    "saveLocation": "locations.saveLocation"
+  },
   "materialsAndServices": "Materiais e Serviços",
   "itemCatalog": "Catálogo de Itens",
   "stockManagement": "Gestão de Estoque",
@@ -129,37 +128,12 @@
   "contractManagement": "Gestão de Contratos",
   "expenseManagement": "Gestão de Despesas",
   "technicalSkillsPage": "Habilidades Técnicas",
-  "approvals": {
-    "title": "approvals.title",
-    "development_description": "approvals.development_description",
-    "under_development": "approvals.under_development",
-    "development_message": "approvals.development_message",
-    "planned_features": "approvals.planned_features",
-    "features": {
-      "custom_workflows": "approvals.features.custom_workflows",
-      "approvers_by_category": "approvals.features.approvers_by_category",
-      "automatic_notifications": "approvals.features.automatic_notifications",
-      "approval_history": "approvals.features.approval_history",
-      "email_integration": "approvals.features.email_integration",
-      "approval_reports": "approvals.features.approval_reports"
-    }
-  },
+  "approvals": "Aprovações",
   "activityPlanner": "Planejador de Atividades",
   "integracoes": "Integrações",
   "ticketConfiguration": "Configuração de Tickets",
   "ticketTemplates": "Templates de Tickets",
-  "customFields": {
-    "hide": "customFields.hide",
-    "show": "customFields.show",
-    "fields": "customFields.fields",
-    "exitDesign": "customFields.exitDesign",
-    "editLayout": "customFields.editLayout",
-    "activeCustomFields": "customFields.activeCustomFields",
-    "field": "customFields.field",
-    "configureFields": "customFields.configureFields",
-    "title": "customFields.title",
-    "noFieldsConfigured": "customFields.noFieldsConfigured"
-  },
+  "customFields": "Campos Personalizados",
   "clientes": "Clientes",
   "beneficiaries": "Beneficiários",
   "internalForms": "Formulários Internos",
