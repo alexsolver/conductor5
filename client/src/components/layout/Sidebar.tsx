@@ -426,7 +426,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
                   <CollapsibleTrigger className="w-full">
                     <div className={cn(
-                      "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                      "group flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                       hasActiveChild
                         ? "text-white"
                         : "text-white hover:bg-white hover:bg-opacity-10"
@@ -572,7 +572,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
                       <CollapsibleTrigger className="w-full">
                         <div className={cn(
-                          "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                          "group flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
                           hasActiveChild
                             ? "text-white"
                             : "text-white hover:bg-white hover:bg-opacity-10"
