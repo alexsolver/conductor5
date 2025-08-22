@@ -6,7 +6,7 @@ import {
   ticketFieldConfigurations,
   ticketFieldOptions,
   ticketDefaultConfigurations
-} from '../@shared/schema';
+} from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 const router = Router();
