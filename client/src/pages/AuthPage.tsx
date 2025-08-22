@@ -17,7 +17,7 @@ export default function AuthPage() {
 
   // ✅ CRITICAL FIX: Não limpar tokens automaticamente na página de auth
   // Isso pode estar causando problemas durante o processo de login
-
+  
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -110,7 +110,7 @@ export default function AuthPage() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="John"
-              disabled={registerMutation?.isPending || false}
+              disabled={registerMutation.isPending}
             />
           </div>
           <div className="space-y-2">
@@ -121,7 +121,7 @@ export default function AuthPage() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Doe"
-              disabled={registerMutation?.isPending || false}
+              disabled={registerMutation.isPending}
             />
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function AuthPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="john@example.com"
             required
-            disabled={registerMutation?.isPending || false}
+            disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
@@ -146,7 +146,7 @@ export default function AuthPage() {
             onChange={(e) => setCompanyName(e.target.value)}
             placeholder="Acme Corporation"
             required
-            disabled={registerMutation?.isPending || false}
+            disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
@@ -158,7 +158,7 @@ export default function AuthPage() {
             onChange={(e) => setWorkspaceName(e.target.value)}
             placeholder="acme-support"
             required
-            disabled={registerMutation?.isPending || false}
+            disabled={registerMutation.isPending}
           />
           <p className="text-xs text-gray-500">
             Será usado como URL do seu workspace (ex: acme-support.conductor.com)
@@ -174,13 +174,13 @@ export default function AuthPage() {
             placeholder="At least 8 characters"
             required
             minLength={8}
-            disabled={registerMutation?.isPending || false}
+            disabled={registerMutation.isPending}
           />
         </div>
         <Button 
           type="submit" 
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-          disabled={registerMutation?.isPending || false}
+          disabled={registerMutation.isPending}
         >
           {registerMutation.isPending ? (
             <>
