@@ -96,3 +96,4 @@ emailTemplatesRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, r
 });
 
 export { emailTemplatesRouter };
+export default emailTemplatesRouter;
