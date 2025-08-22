@@ -483,10 +483,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 <Link key={item.name} href={item.href}>
                   <div className={cn(
                     "group flex items-center justify-start py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer relative hover:scale-105",
-                    hasActiveChild
+                    isActive
                       ? "text-white shadow-lg"
                       : "text-white hover:bg-white hover:bg-opacity-20"
-                  )} style={hasActiveChild ? {
+                  )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
                   } : {}}
