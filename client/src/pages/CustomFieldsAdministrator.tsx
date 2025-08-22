@@ -429,10 +429,19 @@ export default function CustomFieldsAdministrator() {
         }
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch fields');
+        // As per the error message, the API might be returning HTML instead of JSON
+        // We should check the response content type or handle potential non-JSON responses
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(`Failed to fetch fields: ${response.statusText}`);
       }
-      const data = await response.json();
-      return data.data || [];
+      try {
+        const data = await response.json();
+        return data.data || [];
+      } catch (error) {
+        console.error("Failed to parse JSON response:", error);
+        throw new Error('Received non-JSON response from API');
+      }
     }
   });
 

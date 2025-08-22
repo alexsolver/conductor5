@@ -19,6 +19,15 @@ import translationsRoutes from './routes/translations';
 import translationCompletionRoutes from './routes/translationCompletion';
 import { jwtAuth as authenticateToken } from './middleware/jwtAuth'; // Import authenticateToken
 
+// Import routes
+import authRoutes from './modules/auth/routes';
+import customersRoutes from './modules/customers/routes';
+import beneficiariesRoutes from './modules/beneficiaries/routes-working';
+import locationsRoutes from './modules/locations/routes';
+import ticketsRoutes from './modules/tickets/routes';
+import timecardRoutes from './modules/timecard/routes-working';
+import customFieldsRoutes from './modules/custom-fields/routes-working';
+
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
   const { spawn } = await import('child_process');
@@ -428,6 +437,15 @@ app.use((req, res, next) => {
       });
     }
   });
+
+  // Register routes
+  app.use('/api/auth', authRoutes);
+  app.use('/api/customers', customersRoutes);
+  app.use('/api/beneficiaries', beneficiariesRoutes);
+  app.use('/api/locations', locationsRoutes);
+  app.use('/api/tickets', ticketsRoutes);
+  app.use('/api/timecard', timecardRoutes);
+  app.use('/api/custom-fields', customFieldsRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
