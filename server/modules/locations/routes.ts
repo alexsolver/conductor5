@@ -39,3 +39,4 @@ router.delete('/:id', controller.deleteLocation.bind(controller));
 // ✅ CLEAN ARCHITECTURE - Only implemented methods per 1qa.md
 
 export { router as locationsRouter };
+export default router;
