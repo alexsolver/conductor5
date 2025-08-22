@@ -450,7 +450,10 @@
     "created_at": "customers.created_at",
     "id": "customers.id"
   },
-  "analytics": "Analyses",
+  "analytics": {
+    "view": "analytics.view",
+    "create": "analytics.create"
+  },
   "auth": {
     "login": "Connexion",
     "register": "S'inscrire",
@@ -836,7 +839,10 @@
   "/api/user-management/users/${userId}/sessions/terminate-all": "[EN] /api/user-management/users/${user Id}/sessions/terminate-all",
   "400:": "[EN] 400:",
   "notifications": "notifications",
-  "compliance": "Conformité",
+  "compliance": {
+    "view": "compliance.view",
+    "manage": "compliance.manage"
+  },
   "gdprCompliance": "Conformité GDPR",
   "knowledgeBase": "Base de Connaissances",
   "timecardControl": "Contrôle des Feuilles de Temps",
@@ -849,7 +855,9 @@
   "timecardApprovals": "Approbations des Feuilles de Temps",
   "approvalConfiguration": "Configuration d'Approbation",
   "absenceManagement": "Gestion des Absences",
-  "locations": "Emplacements",
+  "locations": {
+    "saveLocation": "locations.saveLocation"
+  },
   "materialsAndServices": "Matériaux et Services",
   "itemCatalog": "Catalogue d'Articles",
   "stockManagement": "Gestion des Stocks",
@@ -876,12 +884,37 @@
   "contractManagement": "Gestion des Contrats",
   "expenseManagement": "Gestion des Dépenses",
   "technicalSkillsPage": "Page des Compétences Techniques",
-  "approvals": "Approbations",
+  "approvals": {
+    "title": "approvals.title",
+    "development_description": "approvals.development_description",
+    "under_development": "approvals.under_development",
+    "development_message": "approvals.development_message",
+    "planned_features": "approvals.planned_features",
+    "features": {
+      "custom_workflows": "approvals.features.custom_workflows",
+      "approvers_by_category": "approvals.features.approvers_by_category",
+      "automatic_notifications": "approvals.features.automatic_notifications",
+      "approval_history": "approvals.features.approval_history",
+      "email_integration": "approvals.features.email_integration",
+      "approval_reports": "approvals.features.approval_reports"
+    }
+  },
   "activityPlanner": "Planificateur d'Activités",
   "integracoes": "integracoes",
   "ticketConfiguration": "Configuration des Tickets",
   "ticketTemplates": "Modèles de Tickets",
-  "customFields": "Champs Personnalisés",
+  "customFields": {
+    "hide": "customFields.hide",
+    "show": "customFields.show",
+    "fields": "customFields.fields",
+    "exitDesign": "customFields.exitDesign",
+    "editLayout": "customFields.editLayout",
+    "activeCustomFields": "customFields.activeCustomFields",
+    "field": "customFields.field",
+    "configureFields": "customFields.configureFields",
+    "title": "customFields.title",
+    "noFieldsConfigured": "customFields.noFieldsConfigured"
+  },
   "clientes": "clientes",
   "beneficiaries": "Bénéficiaires",
   "internalForms": "Formulaires Internes",
@@ -894,8 +927,39 @@
   "slas": "slas",
   "userManagementPage": "Page de Gestion des Utilisateurs",
   "teamManagementPage": "Page de Gestion des Équipes",
-  "teamManagement": "Gestion d'Équipe",
-  "technicalSkills": "Compétences Techniques",
+  "teamManagement": {
+    "title": "teamManagement.title",
+    "overview": "teamManagement.overview",
+    "members": "teamManagement.members",
+    "performance": "teamManagement.performance",
+    "analytics": "teamManagement.analytics"
+  },
+  "technicalSkills": {
+    "title": "technicalSkills.title",
+    "description": "technicalSkills.description",
+    "newSkill": "technicalSkills.newSkill",
+    "createSkill": "technicalSkills.createSkill",
+    "editSkill": "technicalSkills.editSkill",
+    "name": "technicalSkills.name",
+    "category": "technicalSkills.category",
+    "minLevelRequired": "technicalSkills.minLevelRequired",
+    "suggestedCertification": "technicalSkills.suggestedCertification",
+    "certificationValidity": "technicalSkills.certificationValidity",
+    "observations": "technicalSkills.observations",
+    "totalSkills": "technicalSkills.totalSkills",
+    "expiredCertifications": "technicalSkills.expiredCertifications",
+    "expiringCertifications": "technicalSkills.expiringCertifications",
+    "categories": "technicalSkills.categories",
+    "searchSkills": "technicalSkills.searchSkills",
+    "allCategories": "technicalSkills.allCategories",
+    "noSkillsFound": "technicalSkills.noSkillsFound",
+    "loading": "technicalSkills.loading",
+    "basic": "technicalSkills.basic",
+    "intermediate": "technicalSkills.intermediate",
+    "advanced": "technicalSkills.advanced",
+    "specialist": "technicalSkills.specialist",
+    "excellence": "technicalSkills.excellence"
+  },
   "TranslationManager": {
     "title": "Gestion des Traductions",
     "description": "Gérer les traductions du système dans toutes les langues supportées",

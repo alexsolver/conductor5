@@ -355,7 +355,7 @@ router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res
 router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     // Allow access during development
-    console.log('🔍 [AUTO-COMPLETE] User roles:', req.user?.roles);
+    console.log('🔍 [AUTO-COMPLETE] User role:', req.user?.role);
     // Temporary: Allow any authenticated user during development
     // if (req.user?.role !== 'saas_admin') {
     //   return res.status(403).json({ message: 'SaaS admin access required' });
@@ -385,11 +385,11 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
 
     const response = {
       success: true,
-      message: `Translation completion finished! Added ${totalAdded} translations across ${translationService.SUPPORTED_LANGUAGES.length} languages.`,
+      message: `Translation completion finished! Added ${totalAdded} translations across 5 languages.`,
       data: {
         summary: {
           translationsAdded: totalAdded,
-          languagesProcessed: translationService.SUPPORTED_LANGUAGES.length,
+          languagesProcessed: 5,
           completionResults: completionResults,
           detailedResults: completionResults.map(result => ({
             language: result.language,
@@ -422,7 +422,7 @@ router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [TRANSLATION-COMPLETION] Error in translation completion:', error);
     res.status(500).json({
       success: false,
