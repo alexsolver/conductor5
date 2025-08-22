@@ -9,14 +9,14 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
 import { useState } from "react";
-import { 
-  BarChart3, 
-  Users, 
-  Ticket, 
-  Bot, 
-  BookOpen, 
-  Plug, 
-  Settings, 
+import {
+  BarChart3,
+  Users,
+  Ticket,
+  Bot,
+  BookOpen,
+  Plug,
+  Settings,
   HelpCircle,
   ChevronDown,
   ChevronRight,
@@ -129,9 +129,9 @@ const baseNavigation: Array<{
 
 // Admin navigation with hierarchical structure
 const adminNavigation = [
-  { 
-    name: "saasAdmin", 
-    icon: Shield, 
+  {
+    name: "saasAdmin",
+    icon: Shield,
     roles: ['saas_admin'],
     children: [
       { name: "dashboard.title", href: "/saas-admin", icon: BarChart3 },
@@ -149,9 +149,9 @@ const adminNavigation = [
       { name: "multilocationSettings", href: "/tenant-admin/multilocation", icon: Globe2 },
     ]
   },
-  { 
-    name: "workspaceAdmin", 
-    icon: Settings, 
+  {
+    name: "workspaceAdmin",
+    icon: Settings,
     roles: ['saas_admin', 'tenant_admin'],
     children: [
       { name: "navigation.general", href: "/tenant-admin/geral", icon: BarChart3 },
@@ -196,7 +196,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   // Helper function to translate menu items
   const translateName = (name: string): string => {
     let translated = '';
-    
+
     // Check if it's already a full translation key (contains namespace)
     if (name.includes('.')) {
       translated = t(name);
@@ -204,16 +204,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       // Try navigation namespace first
       const navKey = `navigation.${name}`;
       translated = t(navKey);
-      
+
       // If translation returns the key itself (meaning not found), try without namespace
       if (translated === navKey) {
         translated = t(name);
-        
+
         // If still not found, try common namespace
         if (translated === name) {
           const commonKey = `common.${name}`;
           translated = t(commonKey);
-          
+
           // If still not found, return the original name
           if (translated === commonKey) {
             translated = name;
@@ -221,7 +221,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         }
       }
     }
-    
+
     // Return the translation as-is
     return translated;
   };
@@ -258,28 +258,28 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       return {
         ...item,
         children: [
-          { 
-            name: "timecardRegistry", 
-            href: timecardRoute, 
-            icon: Clock 
+          {
+            name: "timecardRegistry",
+            href: timecardRoute,
+            icon: Clock
           },
           { name: "workSchedules", href: "/work-schedules", icon: Calendar },
-          { 
-            name: "hourBank", 
-            href: "/hour-bank", 
-            icon: CreditCard 
+          {
+            name: "hourBank",
+            href: "/hour-bank",
+            icon: CreditCard
           },
           { name: "holidayCalendar", href: "/holiday-calendar", icon: Calendar },
-          { 
-            name: "timecardReports", 
-            href: "/timecard-reports", 
-            icon: FileText 
+          {
+            name: "timecardReports",
+            href: "/timecard-reports",
+            icon: FileText
           },
           { name: "cltCompliance", href: "/clt-compliance", icon: Shield },
-          { 
-            name: "timecardApprovals", 
-            href: "/timecard-approvals", 
-            icon: CheckCircle 
+          {
+            name: "timecardApprovals",
+            href: "/timecard-approvals",
+            icon: CheckCircle
           },
           { name: "approvalConfiguration", href: "/timecard-approval-settings", icon: Settings },
           { name: "absenceManagement", href: "/absence-management", icon: Calendar },
