@@ -1212,6 +1212,52 @@ export class TranslationCompletionService {
    */
   private generateTranslation(key: string, targetLanguage: string): string {
     try {
+      // CRITICAL PROTECTION: Prevent object creation for specific problematic keys
+      const protectedKeys: Record<string, Record<string, string>> = {
+        'compliance': {
+          'pt-BR': 'Compliance',
+          'en': 'Compliance',
+          'es': 'Cumplimiento',
+          'fr': 'Conformité',
+          'de': 'Compliance'
+        },
+        'locations': {
+          'pt-BR': 'Localizações',
+          'en': 'Locations',
+          'es': 'Ubicaciones',
+          'fr': 'Emplacements',
+          'de': 'Standorte'
+        },
+        'approvals': {
+          'pt-BR': 'Aprovações',
+          'en': 'Approvals',
+          'es': 'Aprobaciones',
+          'fr': 'Approbations',
+          'de': 'Genehmigungen'
+        },
+        'customFields': {
+          'pt-BR': 'Campos Personalizados',
+          'en': 'Custom Fields',
+          'es': 'Campos Personalizados',
+          'fr': 'Champs Personnalisés',
+          'de': 'Benutzerdefinierte Felder'
+        },
+        'analytics': {
+          'pt-BR': 'Análises',
+          'en': 'Analytics',
+          'es': 'Analíticas',
+          'fr': 'Analyses',
+          'de': 'Analysen'
+        }
+      };
+
+      // Check if this is a protected key that should NEVER become an object
+      if (protectedKeys[key]) {
+        const translation = protectedKeys[key][targetLanguage] || protectedKeys[key]['en'];
+        console.log(`🛡️ [PROTECTION] Using protected translation for "${key}" -> "${translation}"`);
+        return translation;
+      }
+
       // Try to find the translation in English first as a base
       const englishPath = path.join(this.TRANSLATIONS_DIR, 'en.json');
       if (fsSync.existsSync(englishPath)) {
