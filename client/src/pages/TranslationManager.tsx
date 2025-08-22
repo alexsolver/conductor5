@@ -133,17 +133,21 @@ export default function TranslationManager() {
       console.log('🔍 [FRONTEND] Fetching all translation keys...');
       const response = await apiRequest('GET', '/api/translations/keys/all');
       if (!response.ok) {
-        throw new Error('Failed to fetch translation keys');
+        console.error('❌ [FRONTEND] Keys fetch failed:', response.status, response.statusText);
+        throw new Error(`Failed to fetch translation keys: ${response.status}`);
       }
       const data = await response.json();
-      console.log('📊 [FRONTEND] Keys response:', {
+      console.log('📊 [FRONTEND] Raw keys response:', data);
+      console.log('📊 [FRONTEND] Keys parsed:', {
+        success: data.success,
         totalKeys: data.data?.totalKeys,
         keysLength: data.data?.keys?.length,
         fromScanner: data.data?.fromScanner,
         fromFiles: data.data?.fromFiles,
-        firstFewKeys: data.data?.keys?.slice(0, 5)
+        firstFewKeys: data.data?.keys?.slice(0, 5),
+        fullDataStructure: Object.keys(data.data || {})
       });
-      return data;
+      return data.data; // Return data.data instead of data
     },
     retry: 1,
     refetchOnWindowFocus: false,
@@ -254,6 +258,14 @@ export default function TranslationManager() {
 
     return !technicalPatterns.some(pattern => pattern.test(key));
   }) || [];
+  
+  console.log('🔍 [FRONTEND] Filtered keys debug:', {
+    allKeysDataExists: !!allKeysData,
+    keysProperty: allKeysData?.keys?.length || 0,
+    filteredLength: filteredKeys.length,
+    isLoadingKeys,
+    allKeysDataKeys: Object.keys(allKeysData || {})
+  });
 
   // Initialize translation manager
   useEffect(() => {
