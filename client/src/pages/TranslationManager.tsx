@@ -4,7 +4,7 @@
  * Following 1qa.md patterns strictly
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { TranslationCompletionPanel } from '@/components/TranslationCompletionPanel';
@@ -68,13 +68,21 @@ export default function TranslationManager() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingTranslations, setEditingTranslations] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [scanningKeys, setScanningKeys] = useState(false);
   const [expandingKeys, setExpandingKeys] = useState(false);
   const [isExpandedScanning, setIsExpandedScanning] = useState(false);
   const [expandedScanResult, setExpandedScanResult] = useState<any>(null);
   const [completionReport, setCompletionReport] = useState<any>(null);
+
+  // Placeholder for analysis and scanning functions - Moved to be defined before use in JSX
+  const handleAnalyze = async () => { /* ... implementation ... */ };
+  const handleScanKeys = async () => { /* ... implementation ... */ };
+  const handleAutoCompleteAll = async () => { /* ... implementation ... */ };
+  const handleExpandedScan = async () => { /* ... implementation ... */ };
 
 
   // Access control - SaaS admin only
@@ -101,6 +109,9 @@ export default function TranslationManager() {
       return response.json();
     }
   });
+
+  const availableLanguages = languagesData?.data?.languages || [];
+
 
   // Get translations for selected language
   const { data: translationData, isLoading: isLoadingTranslations, refetch } = useQuery<TranslationData>({
@@ -242,7 +253,31 @@ export default function TranslationManager() {
     return !technicalPatterns.some(pattern => pattern.test(key));
   }) || [];
 
-  // Placeholder for analysis and scanning functions
+  // Initialize translation manager
+  useEffect(() => {
+    if (!isInitialized) {
+      initializeTranslationManager();
+    }
+  }, [isInitialized]);
+
+  // Mark as initialized after first load
+  useEffect(() => {
+    if (!isInitialized && availableLanguages.length > 0) {
+      setIsInitialized(true);
+    }
+  }, [availableLanguages, isInitialized]);
+
+
+  const initializeTranslationManager = () => {
+    // Set default language if none is selected and languages are available
+    if (availableLanguages.length > 0 && !selectedLanguage) {
+      setSelectedLanguage(availableLanguages[0].code);
+    }
+    // Potentially fetch initial data or set up context here if needed
+  };
+
+
+  // Placeholder for analysis and scanning functions (re-defined here for clarity and scope)
   const handleAnalyze = async () => {
     setAnalyzing(true);
     console.log('🔍 [FRONTEND-SAFE] Analyzing translation completeness...');

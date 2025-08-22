@@ -51,9 +51,9 @@ export class TranslationCompletionService {
   private readonly TRANSLATIONS_DIR: string;
   private readonly SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'es', 'fr', 'de'];
   private readonly LANGUAGE_MAPPING: Record<string, string> = {
-    'pt': 'pt-BR',
-    'pt-br': 'pt-BR',
-    'portuguese': 'pt-BR',
+    'pt': 'pt', // Corrected mapping for Portuguese
+    'pt-br': 'pt', // Also mapping pt-br to pt
+    'portuguese': 'pt',
     'spanish': 'es',
     'english': 'en',
     'french': 'fr',
@@ -311,7 +311,7 @@ export class TranslationCompletionService {
    */
   async performExpandedScan(): Promise<ExpandedScanResult> {
     console.log('🚀 [EXPANDED-SCAN] Starting comprehensive translation scan...');
-    
+
     const startTime = Date.now();
     const previousCount = 270; // Store previous count for comparison
 
@@ -319,7 +319,7 @@ export class TranslationCompletionService {
       // Get all keys using the comprehensive scanning method
       const allKeys = await this.scanTranslationKeysComprehensive();
       const totalKeys = allKeys.length;
-      
+
       // Calculate missing keys across all languages
       let totalMissing = 0;
       for (const language of this.SUPPORTED_LANGUAGES) {
@@ -355,13 +355,13 @@ export class TranslationCompletionService {
    */
   private async scanTranslationKeysComprehensive(): Promise<TranslationKey[]> {
     console.log('🔍 [COMPREHENSIVE-SCAN] Starting ultra-comprehensive scanning...');
-    
+
     const allKeys: TranslationKey[] = [];
-    
+
     // 1. Scan existing translation files first
     const existingKeys = await this.scanExistingTranslationFiles();
     allKeys.push(...existingKeys);
-    
+
     // 2. Expanded directory scanning - include ALL potential directories
     const scanDirectories = [
       path.join(process.cwd(), 'client', 'src'),
@@ -369,58 +369,58 @@ export class TranslationCompletionService {
       path.join(process.cwd(), 'shared'),
       path.join(process.cwd(), 'client', 'public')
     ];
-    
+
     // 3. Ultra-permissive patterns that capture almost everything
     const comprehensivePatterns = [
       // Standard t() functions
       /t\s*\(\s*['"](.*?)['"]\s*[\),]/g,
       /\bt\s*\(\s*['"](.*?)['"]/g,
-      
+
       // JSX and component props
       /placeholder\s*=\s*['"](.*?)['"]/g,
       /title\s*=\s*['"](.*?)['"]/g,
       /label\s*=\s*['"](.*?)['"]/g,
       /alt\s*=\s*['"](.*?)['"]/g,
       /aria-label\s*=\s*['"](.*?)['"]/g,
-      
+
       // String literals that look like user-facing text
       /["']((?:[A-Z][a-z]*\s*)+(?:[a-z]+)?)['"]/g,
-      
+
       // Error messages and alerts
       /(?:error|warning|success|info)['":\s]*['"](.*?)['"]/g,
       /alert\s*\(\s*['"](.*?)['"]/g,
       /console\.(log|error|warn|info)\s*\(\s*['"](.*?)['"]/g,
-      
+
       // Form validation messages
       /message\s*:\s*['"](.*?)['"]/g,
       /validation\s*['":\s]*['"](.*?)['"]/g,
-      
+
       // Button and action text
       />([A-Z][a-zA-Z\s]{2,20})</g,
-      
+
       // Help text and tooltips
       /help['":\s]*['"](.*?)['"]/g,
       /tooltip['":\s]*['"](.*?)['"]/g,
-      
+
       // Page titles and headers
       /<h[1-6][^>]*>([^<]{3,})<\/h[1-6]>/g,
       /<title[^>]*>([^<]{3,})<\/title>/g,
-      
+
       // Modal and dialog content
       /modal['":\s]*['"](.*?)['"]/g,
       /dialog['":\s]*['"](.*?)['"]/g,
-      
+
       // Navigation and menu items
       /nav['":\s]*['"](.*?)['"]/g,
       /menu['":\s]*['"](.*?)['"]/g,
-      
+
       // Status messages
       /status['":\s]*['"](.*?)['"]/g,
-      
+
       // Capture any quoted string that looks like human text (3+ words or 10+ chars)
       /["']([A-Z][a-zA-Z\s]{10,}|(?:[A-Z][a-z]+\s+){2,}[A-Z][a-z]+)["']/g
     ];
-    
+
     for (const directory of scanDirectories) {
       try {
         await this.scanDirectoryComprehensive(directory, allKeys, comprehensivePatterns);
@@ -428,10 +428,10 @@ export class TranslationCompletionService {
         console.warn(`⚠️ [COMPREHENSIVE-SCAN] Could not scan ${directory}:`, (error as Error).message);
       }
     }
-    
+
     // 4. Deduplicate and prioritize
     const uniqueKeys = this.deduplicateAndPrioritize(allKeys);
-    
+
     console.log(`🎯 [COMPREHENSIVE-SCAN] Found ${allKeys.length} raw keys, ${uniqueKeys.length} unique keys`);
     return uniqueKeys;
   }
@@ -446,10 +446,10 @@ export class TranslationCompletionService {
   ): Promise<void> {
     try {
       const items = await fs.readdir(dirPath, { withFileTypes: true });
-      
+
       for (const item of items) {
         const itemPath = path.join(dirPath, item.name);
-        
+
         if (item.isDirectory()) {
           // Skip only truly irrelevant directories
           if (!['node_modules', '.git', 'dist', 'build', '.next', 'coverage'].includes(item.name)) {
@@ -459,7 +459,7 @@ export class TranslationCompletionService {
           // Scan ALL relevant file types
           const validExtensions = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.svelte', '.json', '.md', '.html'];
           const extension = path.extname(item.name).toLowerCase();
-          
+
           if (validExtensions.includes(extension)) {
             await this.scanFileComprehensive(itemPath, keys, patterns);
           }
@@ -481,10 +481,10 @@ export class TranslationCompletionService {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const module = this.getModuleFromPath(filePath);
-      
+
       for (const pattern of patterns) {
         const matches = content.matchAll(pattern);
-        
+
         for (const match of matches) {
           const keyText = match[1]?.trim();
           if (keyText && this.isValidTranslationKey(keyText)) {
@@ -534,23 +534,23 @@ export class TranslationCompletionService {
   // Helper methods
   private getModuleFromPath(filePath: string): string {
     const parts = filePath.split(path.sep);
-    
+
     if (parts.includes('pages')) return 'pages';
     if (parts.includes('components')) return 'components';
     if (parts.includes('server')) return 'server';
     if (parts.includes('shared')) return 'shared';
     if (parts.includes('hooks')) return 'hooks';
-    
+
     return 'general';
   }
 
   private getPriorityFromKey(key: string): 'high' | 'medium' | 'low' {
     const lowercaseKey = key.toLowerCase();
-    
+
     if (lowercaseKey.includes('error') || lowercaseKey.includes('required')) return 'high';
     if (lowercaseKey.includes('save') || lowercaseKey.includes('delete')) return 'high';
     if (lowercaseKey.includes('loading') || lowercaseKey.includes('success')) return 'medium';
-    
+
     return 'low';
   }
 
@@ -636,7 +636,7 @@ export class TranslationCompletionService {
     try {
       const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
       const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
-      
+
       const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
       if (!fileExists) {
         return {};
@@ -653,7 +653,7 @@ export class TranslationCompletionService {
   private hasTranslation(translations: Record<string, any>, key: string): boolean {
     const keys = key.split('.');
     let current = translations;
-    
+
     for (const k of keys) {
       if (current && typeof current === 'object' && k in current) {
         current = current[k];
@@ -661,7 +661,7 @@ export class TranslationCompletionService {
         return false;
       }
     }
-    
+
     return current !== undefined && current !== null && current !== '';
   }
 
@@ -675,11 +675,11 @@ export class TranslationCompletionService {
     summary: any;
   }> {
     console.log('🚀 [EXPANDED-SCAN] Starting ultra-comprehensive scanning...');
-    
+
     try {
       const existingKeys = await this.scanExistingTranslationFiles();
       const baselineCount = 621; // Current system baseline
-      
+
       const result = {
         totalKeys: existingKeys.length,
         improvement: Math.max(0, existingKeys.length - baselineCount),
@@ -707,7 +707,7 @@ export class TranslationCompletionService {
    */
   async generateCompletenessReport(): Promise<CompletionReport> {
     console.log('📊 [COMPLETION-REPORT] Starting completeness analysis...');
-    
+
     try {
       // Get valid i18n keys from all language files (same logic as auto-complete)
       const allKeys = this.getValidI18nKeysFromAllLanguages();
@@ -727,18 +727,18 @@ export class TranslationCompletionService {
       // Analyze each supported language
       for (const language of this.SUPPORTED_LANGUAGES) {
         console.log(`📊 [COMPLETION-REPORT] Analyzing ${language}...`);
-        
+
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
         const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
-        
+
         let existingTranslations = {};
         let existingKeys = 0;
-        
+
         try {
           if (fsSync.existsSync(filePath)) {
             const fileContent = fsSync.readFileSync(filePath, 'utf-8');
             existingTranslations = JSON.parse(fileContent);
-            
+
             // Count existing keys by flattening the object
             const flatExisting = this.flattenObject(existingTranslations);
             existingKeys = Object.keys(flatExisting).length;
@@ -759,7 +759,7 @@ export class TranslationCompletionService {
 
         // Generate gaps for this language  
         const missingKeysList = allKeys.filter(key => !this.hasTranslation(existingTranslations, key));
-        
+
         if (missingKeysList.length > 0) {
           gaps.push({
             language,
@@ -786,7 +786,7 @@ export class TranslationCompletionService {
 
     } catch (error) {
       console.error('❌ [COMPLETION-REPORT] Error generating report:', (error as Error).message);
-      
+
       // Return empty report on error
       return {
         scannedAt: new Date().toISOString(),
@@ -805,18 +805,18 @@ export class TranslationCompletionService {
    */
   private flattenObject(obj: any, prefix = ''): Record<string, any> {
     const flattened: Record<string, any> = {};
-    
+
     Object.keys(obj).forEach(key => {
       const value = obj[key];
       const newKey = prefix ? `${prefix}.${key}` : key;
-      
+
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         Object.assign(flattened, this.flattenObject(value, newKey));
       } else {
         flattened[newKey] = value;
       }
     });
-    
+
     return flattened;
   }
 
@@ -825,7 +825,7 @@ export class TranslationCompletionService {
    */
   private groupKeysByModule(keys: string[]): Record<string, string[]> {
     const moduleGaps: Record<string, string[]> = {};
-    
+
     keys.forEach(key => {
       const module = this.getModuleFromKey(key);
       if (!moduleGaps[module]) {
@@ -833,7 +833,7 @@ export class TranslationCompletionService {
       }
       moduleGaps[module].push(key);
     });
-    
+
     return moduleGaps;
   }
 
@@ -901,16 +901,16 @@ export class TranslationCompletionService {
   }>> {
     console.log('🔄 [COMPLETE-TRANSLATIONS] Starting translation completion process...');
     console.log(`🚨 [SAFETY] Force mode enabled: ${force}`);
-    
+
     const results = [];
-    
+
     for (const language of this.SUPPORTED_LANGUAGES) {
       console.log(`📝 [COMPLETE-TRANSLATIONS] Processing language: ${language}`);
-      
+
       try {
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
         const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
-        
+
         // Read existing translations
         let existingTranslations = {};
         if (fsSync.existsSync(filePath)) {
@@ -925,11 +925,11 @@ export class TranslationCompletionService {
         // Get all keys from existing translation files (baseline for completion)
         const allKeysData = await this.scanExistingTranslationFiles();
         const allKeys = allKeysData.map(keyData => keyData.key);
-        
+
         // For completion, we only want to work with keys that already exist in at least one language
         // This prevents adding random strings that the scanner picked up from code
         const validI18nKeys = this.getValidI18nKeysFromAllLanguages();
-        
+
         // Find missing keys by checking which valid i18n keys don't exist in this language's file
         const missingKeys: string[] = [];
         for (const key of validI18nKeys) {
@@ -937,29 +937,29 @@ export class TranslationCompletionService {
             missingKeys.push(key);
           }
         }
-        
+
         console.log(`🔍 [DEBUG] ${language}: Valid i18n keys to check: ${validI18nKeys.length}, Existing in file: ${Object.keys(this.flattenObject(existingTranslations)).length}, Missing: ${missingKeys.length}`);
-        
+
         if (missingKeys.length > 0) {
           console.log(`🔍 [DEBUG] First few missing keys for ${language}:`, missingKeys.slice(0, 5));
         }
-        
+
         console.log(`📊 [COMPLETE-TRANSLATIONS] Found ${missingKeys.length} missing keys for ${language}`);
-        
+
         let addedCount = 0;
         const errors: string[] = [];
 
         // Add missing keys with intelligent translations
         if (force && missingKeys.length > 0) {
           console.log(`🚀 [COMPLETE-TRANSLATIONS] Force mode - adding ${missingKeys.length} missing translations for ${language}`);
-          
+
           for (const key of missingKeys) {
             try {
               const translation = this.generateTranslation(key, language);
               if (translation) {
                 this.setNestedProperty(existingTranslations, key, translation);
                 addedCount++;
-                
+
                 if (addedCount % 100 === 0) {
                   console.log(`🔄 [COMPLETE-TRANSLATIONS] Progress: ${addedCount}/${missingKeys.length} for ${language}`);
                 }
@@ -978,7 +978,7 @@ export class TranslationCompletionService {
             if (!fsSync.existsSync(dirPath)) {
               fsSync.mkdirSync(dirPath, { recursive: true });
             }
-            
+
             fsSync.writeFileSync(filePath, JSON.stringify(existingTranslations, null, 2), 'utf-8');
             console.log(`✅ [COMPLETE-TRANSLATIONS] Successfully added ${addedCount} translations to ${language}`);
           }
@@ -988,7 +988,7 @@ export class TranslationCompletionService {
           language,
           added: addedCount,
           errors,
-          totalTranslations: validI18nKeys.length,
+          totalTranslations: validI18nKeys?.length || 0,
           successfulFiles: addedCount > 0 ? 1 : 0
         });
 
@@ -1006,7 +1006,7 @@ export class TranslationCompletionService {
 
     const totalAdded = results.reduce((sum, result) => sum + result.added, 0);
     console.log(`🎯 [COMPLETE-TRANSLATIONS] Process complete! Added ${totalAdded} total translations across ${this.SUPPORTED_LANGUAGES.length} languages`);
-    
+
     return results;
   }
 
@@ -1015,17 +1015,17 @@ export class TranslationCompletionService {
    */
   private getValidI18nKeysFromAllLanguages(): string[] {
     const allValidKeys = new Set<string>();
-    
+
     for (const language of this.SUPPORTED_LANGUAGES) {
       try {
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
         const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
-        
+
         if (fsSync.existsSync(filePath)) {
           const fileContent = fsSync.readFileSync(filePath, 'utf-8');
           const translations = JSON.parse(fileContent);
           const flatTranslations = this.flattenObject(translations);
-          
+
           // Add all keys from this language to our master set
           Object.keys(flatTranslations).forEach(key => allValidKeys.add(key));
         }
@@ -1033,7 +1033,7 @@ export class TranslationCompletionService {
         console.warn(`⚠️ [VALID-KEYS] Error reading ${language}:`, (error as Error).message);
       }
     }
-    
+
     const validKeysArray = Array.from(allValidKeys);
     console.log(`🔍 [VALID-KEYS] Found ${validKeysArray.length} valid i18n keys across all languages`);
     return validKeysArray;
@@ -1049,7 +1049,7 @@ export class TranslationCompletionService {
       if (fsSync.existsSync(englishPath)) {
         const englishContent = JSON.parse(fsSync.readFileSync(englishPath, 'utf-8'));
         const englishTranslation = this.getNestedProperty(englishContent, key);
-        
+
         if (englishTranslation) {
           // For now, return the English text with a language prefix to indicate it needs translation
           switch (targetLanguage) {
@@ -1084,7 +1084,7 @@ export class TranslationCompletionService {
   private setNestedProperty(obj: any, path: string, value: any): void {
     const keys = path.split('.');
     let current = obj;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current) || typeof current[key] !== 'object') {
@@ -1092,7 +1092,7 @@ export class TranslationCompletionService {
       }
       current = current[key];
     }
-    
+
     current[keys[keys.length - 1]] = value;
   }
 
@@ -1102,7 +1102,7 @@ export class TranslationCompletionService {
   private getNestedProperty(obj: any, path: string): any {
     const keys = path.split('.');
     let current = obj;
-    
+
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
         current = current[key];
@@ -1110,7 +1110,7 @@ export class TranslationCompletionService {
         return undefined;
       }
     }
-    
+
     return current;
   }
 }

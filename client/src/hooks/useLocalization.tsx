@@ -180,7 +180,7 @@ export function useLocalization() {
     // Map language codes to locale codes for currency formatting
     const localeMap: Record<string, string> = {
       'en': 'en-US',
-      'pt-BR': 'pt-BR',
+      'pt': 'pt-BR',
       'es': 'es-ES',
       'fr': 'fr-FR',
       'de': 'de-DE'
@@ -197,7 +197,7 @@ export function useLocalization() {
 
     const localeMap: Record<string, string> = {
       'en': 'en-US',
-      'pt-BR': 'pt-BR',
+      'pt': 'pt-BR',
       'es': 'es-ES',
       'fr': 'fr-FR',
       'de': 'de-DE'

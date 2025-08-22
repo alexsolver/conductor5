@@ -26,11 +26,11 @@ const router = Router();
 
 // Available languages
 const SUPPORTED_LANGUAGES = ['en', 'pt', 'es', 'fr', 'de'];
-const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/public/locales');
+const TRANSLATIONS_DIR = path.join(process.cwd(), 'client', 'public', 'locales');
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
-  language: z.enum(['en', 'pt', 'es']),
+  language: z.enum(['en', 'pt', 'es', 'fr', 'de']),
   translations: z.record(z.any())
 });
 
@@ -194,7 +194,7 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
- * Check if a translation key is valid - MAXIMUM PERMISSIVE VERSION
+ * Check if a translation key is valid - STRICT VALIDATION
  */
 function isValidTranslationKey(key: string): boolean {
   if (!key || typeof key !== 'string') {
@@ -203,27 +203,36 @@ function isValidTranslationKey(key: string): boolean {
 
   const trimmedKey = key.trim();
 
-  // Allow any non-empty string
+  // Must not be empty
   if (trimmedKey.length === 0) {
     return false;
   }
 
-  // Only exclude pure technical patterns that are definitely not translation keys
-  const definitelyNotTranslationPatterns = [
-    /^https?:\/\/[^/]+\/.*$/,   // Full URLs
+  // Exclude technical patterns
+  const invalidPatterns = [
+    /^https?:\/\//,                                                               // URLs
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUIDs
-    /^\d{10,}$/,                // Very long numbers (10+ digits)
-    /^\/[^/]+\/[^/]+\/[^/]+.*$/ // Deep paths (3+ levels)
+    /^\d{8,}$/,                                                                  // Long numbers
+    /^\/[^/]+\/[^/]+\/[^/]+.*$/,                                                // Deep paths
+    /^#[0-9a-fA-F]{3,8}$/,                                                      // Hex colors
+    /^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)$/,                              // HTTP methods
+    /^\d{3}:?$/,                                                                // Status codes
+    /^[,\-\/\?\@\:\\\n\#\&\+\=\*\(\)\[\]\_\%\$\^\!\~\`\|]$/,                  // Single symbols
+    /^(BRL|USD|EUR|America\/Sao_Paulo|Brasil|Ativo|T|AND|OR)$/,                // Technical constants
+    /^[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*$/,                                    // camelCase
+    /^[a-z_]+\.[a-z_]+$/,                                                       // Database fields
+    /^\s*$/,                                                                    // Whitespace only
+    /^\d+$/,                                                                    // Numbers only
+    /^(true|false)$/i,                                                          // Booleans
+    /^[A-Z]{2,}$/,                                                              // Abbreviations
+    /\.[a-z]{2,4}$/i,                                                           // File extensions
+    /^\?[a-zA-Z0-9_=&]+$/                                                       // Query params
   ];
 
-  for (const pattern of definitelyNotTranslationPatterns) {
-    if (pattern.test(trimmedKey)) {
-      return false;
-    }
-  }
-
-  // Accept almost everything else
-  return true;
+  // Must be a valid translation key pattern (alphanumeric with dots, underscores, hyphens)
+  const validKeyPattern = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
+  
+  return validKeyPattern.test(trimmedKey) && !invalidPatterns.some(pattern => pattern.test(trimmedKey));
 }
 
 // Helper to extract all keys from a nested object
