@@ -41,10 +41,10 @@ export function LanguageSelector({
 
   // Get current language from multiple sources
   const getCurrentLanguage = () => {
-    const storedLang = localStorage.getItem('preferred-language') || 
-                      localStorage.getItem('conductor-language') || 
+    const storedLang = localStorage.getItem('preferred-language') ||
+                      localStorage.getItem('conductor-language') ||
                       localStorage.getItem('i18nextLng');
-    
+
     return storedLang || i18n.language || 'pt-BR';
   };
 

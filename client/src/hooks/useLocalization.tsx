@@ -146,15 +146,15 @@ export function useLocalization() {
   const changeLanguage = async (languageCode: string) => {
     try {
       console.log('Changing language to:', languageCode);
-      
+
       // Update localStorage first
       localStorage.setItem('preferred-language', languageCode);
       localStorage.setItem('conductor-language', languageCode);
       localStorage.setItem('i18nextLng', languageCode);
-      
+
       // Change the language in i18n
       await i18n.changeLanguage(languageCode);
-      
+
       // Show success message
       toast({
         title: languageCode === 'pt-BR' ? 'Sucesso' : 'Success',

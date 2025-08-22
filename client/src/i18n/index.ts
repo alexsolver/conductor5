@@ -46,7 +46,7 @@ const getInitialLanguage = () => {
   const saved = localStorage.getItem('preferred-language') || 
                 localStorage.getItem('conductor-language') || 
                 localStorage.getItem('i18nextLng');
-  
+
   if (saved && supportedLanguages.find(lang => lang.code === saved)) {
     return saved;
   }
@@ -86,11 +86,11 @@ i18n
     defaultNS: 'translation',
     ns: ['translation'],
 
-    // Force pt-BR loading even if 'pt' is detected
+    // Enable proper code cleaning
     cleanCode: true,
-    
-    // Enable debug mode to see what's happening
-    debug: false,
+
+    // Enable debug mode temporarily to see loading issues
+    debug: process.env.NODE_ENV === 'development',
 
     react: {
       useSuspense: false,
@@ -102,7 +102,7 @@ i18n
     }
   });
 
-// Ensure we start with Portuguese by default
+// Ensure we start with Portuguese by default if no preference exists
 if (!localStorage.getItem('preferred-language')) {
   localStorage.setItem('preferred-language', 'pt-BR');
   localStorage.setItem('conductor-language', 'pt-BR');
