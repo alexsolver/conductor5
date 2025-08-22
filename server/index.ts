@@ -17,6 +17,7 @@ import { tenantSchemaManager } from './utils/tenantSchemaValidator';
 import { dailySchemaChecker } from './scripts/dailySchemaCheck';
 import translationsRoutes from './routes/translations';
 import translationCompletionRoutes from './routes/translationCompletion';
+import { authenticateToken } from './middleware/authentication'; // Import authenticateToken
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
@@ -378,6 +379,52 @@ app.use((req, res, next) => {
         status: 'error',
         message: 'Database connection failed',
         error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // PATCH /api/notifications/bulk-read
+  app.patch('/api/notifications/bulk-read', authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const { notificationIds } = req.body;
+
+      if (!tenantId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Tenant ID is required'
+        });
+      }
+
+      if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Notification IDs array is required'
+        });
+      }
+
+      // Update notifications in schedule_notifications table
+      const query = `
+        UPDATE schedule_notifications 
+        SET read_at = NOW(), updated_at = NOW()
+        WHERE tenant_id = $1 AND id = ANY($2::uuid[]) AND read_at IS NULL
+      `;
+
+      const result = await db.execute(query, [tenantId, notificationIds]);
+
+      res.json({
+        success: true,
+        message: `Marked ${result.rowCount || notificationIds.length} notifications as read`,
+        data: {
+          updatedCount: result.rowCount || notificationIds.length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error bulk marking notifications as read:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
       });
     }
   });

@@ -8,7 +8,7 @@ import { INotificationRepository, NotificationStats } from '../../domain/reposit
 import { Notification, NotificationEntity } from '../../domain/entities/Notification';
 
 export class DrizzleNotificationRepository implements INotificationRepository {
-  
+
   async findById(id: string, tenantId: string): Promise<Notification | null> {
     try {
       const [result] = await db
@@ -276,7 +276,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   async findScheduledNotifications(tenantId: string, beforeDate?: Date): Promise<Notification[]> {
     try {
       const now = beforeDate || new Date();
-      
+
       const results = await db
         .select()
         .from(notifications)
@@ -361,11 +361,11 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     try {
       // Base query conditions
       const conditions = [eq(notifications.tenantId, tenantId)];
-      
+
       if (fromDate) {
         conditions.push(gte(notifications.createdAt, fromDate));
       }
-      
+
       if (toDate) {
         conditions.push(lte(notifications.createdAt, toDate));
       }
@@ -399,7 +399,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   async deleteExpiredNotifications(tenantId: string, beforeDate?: Date): Promise<number> {
     try {
       const cutoffDate = beforeDate || new Date();
-      
+
       const results = await db
         .update(notifications)
         .set({
