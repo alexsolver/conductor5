@@ -83,7 +83,7 @@ const CreateFieldForm: React.FC<CreateFieldFormProps> = ({ moduleType, onSubmit,
       newErrors.fieldLabel = 'Rótulo do campo é obrigatório';
     }
 
-    if ((formData.fieldType === 'select' || formData.fieldType === 'multiselect') && 
+    if ((formData.fieldType === 'select' || formData.fieldType === 'multiselect') &&
         (!formData.fieldOptions || formData.fieldOptions.length === 0)) {
       newErrors.fieldOptions = 'Campos de seleção devem ter ao menos uma opção';
     }
@@ -153,8 +153,8 @@ const CreateFieldForm: React.FC<CreateFieldFormProps> = ({ moduleType, onSubmit,
           <Label htmlFor="fieldType">Tipo do Campo</Label>
           <Select
             value={formData.fieldType}
-            onValueChange={(value: FieldType) => setFormData(prev => ({ 
-              ...prev, 
+            onValueChange={(value: FieldType) => setFormData(prev => ({
+              ...prev,
               fieldType: value,
               fieldOptions: (value === 'select' || value === 'multiselect') ? [''] : []
             }))}
@@ -243,7 +243,7 @@ const CreateFieldForm: React.FC<CreateFieldFormProps> = ({ moduleType, onSubmit,
       )}
 
       {/* Configurações para campos de texto */}
-      {(formData.fieldType === 'text' || formData.fieldType === 'textarea' || 
+      {(formData.fieldType === 'text' || formData.fieldType === 'textarea' ||
         formData.fieldType === 'email' || formData.fieldType === 'url') && (
         <div className="space-y-4">
           <div className="border-t pt-4">
@@ -365,7 +365,18 @@ const CreateFieldForm: React.FC<CreateFieldFormProps> = ({ moduleType, onSubmit,
 };
 
 
-  isActive: boolean;
+interface CustomFieldMetadata {
+  id: string;
+  moduleType: ModuleType;
+  fieldName: string;
+  fieldType: FieldType;
+  fieldLabel: string;
+  isRequired: boolean;
+  validationRules?: Record<string, any>;
+  fieldOptions?: string[];
+  placeholder?: string;
+  defaultValue?: string;
+  displayOrder?: number;
   createdAt: string;
   updatedAt: string;
   helpText?: string;
