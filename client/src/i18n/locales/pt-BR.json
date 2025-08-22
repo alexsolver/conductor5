@@ -861,21 +861,7 @@
   "contractManagement": "Gestão de Contratos",
   "expenseManagement": "Gestão de Despesas",
   "technicalSkillsPage": "Página de Habilidades Técnicas",
-  "approvals": {
-    "title": "Aprovações",
-    "development_description": "Sistema de aprovações em desenvolvimento",
-    "under_development": "Em Desenvolvimento", 
-    "development_message": "Funcionalidade em construção",
-    "planned_features": "Funcionalidades Planejadas",
-    "features": {
-      "custom_workflows": "Fluxos Personalizados",
-      "approvers_by_category": "Aprovadores por Categoria", 
-      "automatic_notifications": "Notificações Automáticas",
-      "approval_history": "Histórico de Aprovações",
-      "email_integration": "Integração com Email",
-      "approval_reports": "Relatórios de Aprovação"
-    }
-  },
+  "approvals": "Aprovações",
   "activityPlanner": "Planejador de Atividades",
   "integracoes": "Integrações",
   "ticketConfiguration": "Configuração de Tickets",
@@ -894,7 +880,7 @@
   "clientes": "Clientes",
   "beneficiaries": "Beneficiários",
   "internalForms": "Formulários Internos",
-  "omniBridge": "Ponte Omni",
+  "omniBridge": "OmniBridge",
   "companies": "Empresas",
   "branding": "Identidade Visual",
   "reportsAndDashboards": "Relatórios e Dashboards",
