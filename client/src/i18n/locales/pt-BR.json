@@ -26,7 +26,10 @@
     "submit": "Enviar",
     "reset": "Limpar",
     "creating": "Criando",
-    "view": "Visualizar"
+    "view": "Visualizar",
+    "view_all": "common.view_all",
+    "add": "common.add",
+    "remove": "common.remove"
   },
   "navigation": {
     "dashboard": "Painel",
@@ -39,8 +42,14 @@
     "saas_admin": "Admin SaaS",
     "tenant_admin": "Admin Workspace"
   },
-  
-  "analytics": "Análises",
+  "analytics": {
+    "title": "Analytics",
+    "overview": "Visão Geral",
+    "performance": "Performance",
+    "trends": "Tendências",
+    "reports": "Relatórios",
+    "subtitle": "analytics.subtitle"
+  },
   "notifications": "Notificações",
   "compliance": "Compliance",
   "gdprCompliance": "Compliance GDPR",
@@ -67,7 +76,6 @@
   "productivityReports": "Relatórios de Produtividade",
   "teamPerformance": "Performance da Equipe",
   "systemAnalytics": "Analytics do Sistema",
-  
   "tenantManagement": "Gestão de Tenants",
   "performanceHealth": "Saúde e Performance",
   "securitySettings": "Configurações de Segurança",
@@ -81,7 +89,7 @@
   "workspaceAdmin": "Admin Workspace",
   "general": "Geral",
   "contractManagement": "Gestão de Contratos",
-  "expenseManagement": "Gestão de Despesas", 
+  "expenseManagement": "Gestão de Despesas",
   "technicalSkillsPage": "Habilidades Técnicas",
   "approvals": "Aprovações",
   "activityPlanner": "Planejador de Atividades",
@@ -100,7 +108,7 @@
   "workflows": "Fluxos de Trabalho",
   "slas": "SLAs",
   "userManagementPage": "Gestão de Usuários",
-  "teamManagementPage": "Gestão de Equipes", 
+  "teamManagementPage": "Gestão de Equipes",
   "userManagement": {
     "expiration": "Expiração",
     "groups": "Grupos",
@@ -261,9 +269,13 @@
       "active_tickets": "Tickets_ativos",
       "resolved_today": "Resolvido hoje",
       "avg_resolution_time": "Tempo médio de resolução",
-      "online_agents": "Agentes online"
+      "online_agents": "Agentes online",
+      "satisfaction_score": "Satisfaction Score",
+      "total_agents": "Total Agents"
     },
-    "title": "Título"
+    "title": "Título",
+    "recent_activity": "Recent Activity",
+    "urgent_tickets": "Urgent Tickets"
   },
   "tickets": {
     "title": "Tickets",
@@ -281,7 +293,60 @@
     "created_at": "Criado em",
     "updated_at": "Atualizado em",
     "customer": "Cliente",
-    "agent": "Agente"
+    "agent": "Agente",
+    "create_ticket": "Create Ticket",
+    "ticket_number": "Ticket Number",
+    "subject": "Subject",
+    "assigned_to": "Assigned To",
+    "categories": {
+      "incident": "Incident",
+      "request": "Request",
+      "problem": "Problem",
+      "change": "Change"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "statuses": {
+      "new": "New",
+      "open": "Open",
+      "in_progress": "In Progress",
+      "pending": "Pending",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "subtitle": "tickets.subtitle",
+    "search_placeholder": "tickets.search_placeholder",
+    "filters": {
+      "all": "tickets.filters.all",
+      "open": "tickets.filters.open",
+      "in_progress": "tickets.filters.in_progress",
+      "resolved": "tickets.filters.resolved",
+      "closed": "tickets.filters.closed"
+    },
+    "table": {
+      "number": "tickets.table.number",
+      "subject": "tickets.table.subject",
+      "customer": "tickets.table.customer",
+      "status": "tickets.table.status",
+      "priority": "tickets.table.priority",
+      "assigned": "tickets.table.assigned",
+      "created": "tickets.table.created",
+      "actions": "tickets.table.actions"
+    },
+    "form": {
+      "basic_info": "tickets.form.basic_info",
+      "subject": "tickets.form.subject",
+      "description": "tickets.form.description",
+      "customer_select": "tickets.form.customer_select",
+      "priority": "tickets.form.priority",
+      "category": "tickets.form.category",
+      "submit": "tickets.form.submit",
+      "cancel": "tickets.form.cancel"
+    }
   },
   "customers": {
     "title": "Clientes",
@@ -294,14 +359,38 @@
     "phone": "Telefone",
     "company": "Empresa",
     "address": "Endereço",
-    "created_at": "Criado em"
-  },
-  "analytics": {
-    "title": "Analytics",
-    "overview": "Visão Geral",
-    "performance": "Performance",
-    "trends": "Tendências",
-    "reports": "Relatórios"
+    "created_at": "Criado em",
+    "create_customer": "Create Customer",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "status": "Status",
+    "verified": "Verified",
+    "active": "Active",
+    "suspended": "Suspended",
+    "timezone": "Timezone",
+    "language": "Language",
+    "locale": "Locale",
+    "subtitle": "customers.subtitle",
+    "search_placeholder": "customers.search_placeholder",
+    "table": {
+      "name": "customers.table.name",
+      "email": "customers.table.email",
+      "company": "customers.table.company",
+      "phone": "customers.table.phone",
+      "status": "customers.table.status",
+      "created": "customers.table.created",
+      "actions": "customers.table.actions"
+    },
+    "form": {
+      "basic_info": "customers.form.basic_info",
+      "first_name": "customers.form.first_name",
+      "last_name": "customers.form.last_name",
+      "email": "customers.form.email",
+      "phone": "customers.form.phone",
+      "company": "customers.form.company",
+      "submit": "customers.form.submit",
+      "cancel": "customers.form.cancel"
+    }
   },
   "auth": {
     "login": "Entrar",
@@ -311,7 +400,14 @@
     "password": "Senha",
     "forgot_password": "Esqueci minha senha",
     "reset_password": "Redefinir senha",
-    "welcome_back": "Bem-vindo de volta"
+    "welcome_back": "Bem-vindo de volta",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "remember_me": "Remember Me",
+    "already_have_account": "Already have an account?",
+    "dont_have_account": "Don't have an account?",
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up"
   },
   "errors": {
     "general": "Ocorreu um erro inesperado. Tente novamente.",
@@ -327,7 +423,6 @@
     "updated": "{{item}} atualizado com sucesso",
     "deleted": "{{item}} excluído com sucesso"
   },
-  "teamManagementPage": "Gestão de Equipes",
   "teamManagement": {
     "title": "Gestão de Equipe",
     "overview": "Visão Geral",
@@ -343,7 +438,12 @@
     "integrations": "Integrações",
     "language": "Idioma",
     "timezone": "Fuso horário",
-    "currency": "Moeda"
+    "currency": "Moeda",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "technicalSkills": {
     "title": "Habilidades Técnicas",
@@ -568,5 +668,27 @@
     "autoCompletionFailed": "Falha ao auto completar traduções",
     "autoCompletionError": "Auto completar falhou",
     "autoCompletionErrorDesc": "Falha ao auto completar traduções"
+  },
+  "admin": {
+    "title": "Administration",
+    "users": "Users",
+    "tenants": "Tenants",
+    "create_user": "Create User",
+    "create_tenant": "Create Tenant",
+    "role": "Role",
+    "tenant": "Tenant",
+    "permissions": "Permissions"
+  },
+  "localization": {
+    "language": "localization.language",
+    "timezone": "localization.timezone",
+    "currency": "localization.currency",
+    "date_format": "localization.date_format",
+    "time_format": "localization.time_format",
+    "number_format": "localization.number_format",
+    "regional_settings": "localization.regional_settings",
+    "auto_detect": "localization.auto_detect",
+    "save_preferences": "localization.save_preferences",
+    "preferences_saved": "localization.preferences_saved"
   }
 }
