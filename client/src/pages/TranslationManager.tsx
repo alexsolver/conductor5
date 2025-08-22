@@ -78,11 +78,7 @@ export default function TranslationManager() {
   const [expandedScanResult, setExpandedScanResult] = useState<any>(null);
   const [completionReport, setCompletionReport] = useState<any>(null);
 
-  // Placeholder for analysis and scanning functions - Moved to be defined before use in JSX
-  const handleAnalyze = async () => { /* ... implementation ... */ };
-  const handleScanKeys = async () => { /* ... implementation ... */ };
-  const handleAutoCompleteAll = async () => { /* ... implementation ... */ };
-  const handleExpandedScan = async () => { /* ... implementation ... */ };
+  
 
 
   // Access control - SaaS admin only
