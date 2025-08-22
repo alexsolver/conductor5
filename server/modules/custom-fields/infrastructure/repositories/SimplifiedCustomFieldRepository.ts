@@ -6,7 +6,8 @@ import { CustomField } from '../../domain/entities/CustomField';
 
 export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
   async create(fieldData: Partial<CustomField>): Promise<CustomField> {
-    const tableName = `${fieldData.tenantId!.replace(/-/g, '_')}.custom_fields_metadata`;
+    const schemaName = fieldData.tenantId!.replace(/-/g, '_');
+    const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
     const result = await db.execute(sql.raw(`
       INSERT INTO ${tableName} (
@@ -35,7 +36,8 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
   }
 
   async findByModuleType(moduleType: string, tenantId: string): Promise<CustomField[]> {
-    const tableName = `${tenantId.replace(/-/g, '_')}.custom_fields_metadata`;
+    const schemaName = tenantId.replace(/-/g, '_');
+    const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
     const result = await db.execute(sql.raw(`
       SELECT * FROM ${tableName} 
@@ -47,7 +49,8 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
   }
 
   async findById(fieldId: string, tenantId: string): Promise<CustomField | null> {
-    const tableName = `${tenantId.replace(/-/g, '_')}.custom_fields_metadata`;
+    const schemaName = tenantId.replace(/-/g, '_');
+    const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
     const result = await db.execute(sql.raw(`
       SELECT * FROM ${tableName} 
@@ -58,7 +61,8 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
   }
 
   async update(fieldId: string, updateData: Partial<CustomField>, tenantId: string): Promise<CustomField> {
-    const tableName = `${tenantId.replace(/-/g, '_')}.custom_fields_metadata`;
+    const schemaName = tenantId.replace(/-/g, '_');
+    const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
     const result = await db.execute(sql.raw(`
       UPDATE ${tableName} 
@@ -90,7 +94,8 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
   }
 
   async delete(fieldId: string, tenantId: string): Promise<void> {
-    const tableName = `${tenantId.replace(/-/g, '_')}.custom_fields_metadata`;
+    const schemaName = tenantId.replace(/-/g, '_');
+    const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
     await db.execute(sql.raw(`
       UPDATE ${tableName} 
@@ -100,7 +105,8 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
   }
 
   async findAll(tenantId: string): Promise<CustomField[]> {
-    const tableName = `${tenantId.replace(/-/g, '_')}.custom_fields_metadata`;
+    const schemaName = tenantId.replace(/-/g, '_');
+    const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
     const result = await db.execute(sql.raw(`
       SELECT * FROM ${tableName} 
