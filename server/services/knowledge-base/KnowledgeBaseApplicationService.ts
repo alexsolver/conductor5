@@ -50,7 +50,7 @@ export class KnowledgeBaseApplicationService {
       }
 
       if (params.category) {
-        conditions.push(eq(knowledgeBaseArticles.category, params.category));
+        conditions.push(eq(knowledgeBaseArticles.categoryId, params.category));
       }
 
       if (params.access_level) {

@@ -39,18 +39,20 @@
     "use": "Use",
     "active": "Active",
     "inactive": "Inactive",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "refresh": "Atualizar"
   },
   "navigation": {
     "dashboard": "Dashboard",
     "tickets": "Tickets",
     "users": "Usuários",
     "customers": "Clientes",
-    "locations": "Localizações",
+    "locations": "Locais",
     "analytics": "Análises",
     "reports": "Relatórios",
-    "settings": "Configurações",
     "knowledgeBase": "Base de Conhecimento",
+    "settings": "Configurações",
+    "logout": "Sair",
     "omniBridge": "OmniBridge",
     "approval": "Aprovações",
     "approvals": "Aprovações",
@@ -72,10 +74,9 @@
     "branding": "Marca e Personalização",
     "reportsAndDashboards": "Relatórios e Dashboards",
     "interactiveDashboards": "Dashboards Interativos",
-    "appearance": "Aparência", 
+    "appearance": "Aparência",
     "security": "Segurança",
     "helpAndSupport": "Ajuda e Suporte",
-    "logout": "Sair",
     "timecardRegistry": "Time Registry",
     "workSchedules": "Work Schedules",
     "hourBank": "Hour Bank",
@@ -984,13 +985,23 @@
   },
   "knowledge": {
     "title": "Title",
-    "articles": "Articles",
-    "search": "Pesquisar"
+    "articles": "Artigos",
+    "search": "Pesquisar",
+    "createArticle": "Criar Artigo",
+    "searchArticles": "Pesquisar Artigos",
+    "categories": "Categorias",
+    "tags": "Tags",
+    "published": "Publicado",
+    "draft": "Rascunho",
+    "author": "Autor",
+    "lastModified": "Última Modificação",
+    "views": "Visualizações",
+    "rating": "Avaliação"
   },
   "specialized": {
     "title": "Title",
     "approvals": "Approvals",
-    "beneficiaries": "Beneficiaries",
+    "beneficiaries": "Beneficiários",
     "companies": "Companies",
     "forms": "Forms",
     "landing": "Landing",
@@ -1604,5 +1615,19 @@
     " Verifique o console para mais detalhes": {
       "": "Erro ao criar rule. Verifique o console para mais detalhes."
     }
+  },
+  "knowledgeBase": {
+    "title": "Base de Conhecimento",
+    "articles": "Artigos",
+    "createArticle": "Criar Artigo",
+    "searchArticles": "Pesquisar Artigos",
+    "categories": "Categorias",
+    "tags": "Tags",
+    "published": "Publicado",
+    "draft": "Rascunho",
+    "author": "Autor",
+    "lastModified": "Última Modificação",
+    "views": "Visualizações",
+    "rating": "Avaliação"
   }
 }
