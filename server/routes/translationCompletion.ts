@@ -541,8 +541,8 @@ router.post('/validate', jwtAuth, async (req: AuthenticatedRequest, res) => {
  * Aplica correções críticas para prevenir erros de "object instead of string"
  */
 async function applyProtectedKeyFixes() {
-  const fs = require('fs').promises;
-  const path = require('path');
+  const fs = await import('fs/promises');
+  const path = await import('path');
   
   try {
     const ptBrPath = path.join(process.cwd(), 'client/src/i18n/locales/pt-BR.json');
