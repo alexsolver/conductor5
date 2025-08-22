@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -45,6 +45,7 @@ interface CustomFieldMetadata {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  helpText?: string;
 }
 
 interface CreateFieldFormData {
@@ -289,9 +290,9 @@ export default function CustomFieldsAdministrator() {
                         </code>
                       </p>
 
-                      {field.fieldOptions?.helpText && (
+                      {field.helpText && (
                         <p className="text-sm text-gray-500 italic">
-                          "{field.fieldOptions.helpText}"
+                          "{field.helpText}"
                         </p>
                       )}
 
@@ -762,607 +763,608 @@ export default function CustomFieldsAdministrator() {
               </Button>
             </DialogFooter>
           </DialogContent>
-        )}
+        </Dialog>
+      )}
 
-        {/* Delete Confirmation Dialog */}
-        {fieldToDelete && (
-          <Dialog open={!!fieldToDelete} onOpenChange={() => setFieldToDelete(null)}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-red-600">
-                  <AlertCircle className="w-5 h-5" />
-                  Confirmar Exclusão
-                </DialogTitle>
-                <DialogDescription>
-                  Tem certeza que deseja excluir o campo "{fieldToDelete.fieldLabel}"?
-                  Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex justify-end gap-3 mt-6">
-                <Button variant="outline" onClick={() => setFieldToDelete(null)}>
-                  Cancelar
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    deleteFieldMutation.mutate(fieldToDelete.id);
-                    setFieldToDelete(null);
-                  }}
-                  disabled={deleteFieldMutation.isPending}
-                >
-                  {deleteFieldMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Excluir Campo
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-    );
-  }
-  }
+      {/* Delete Confirmation Dialog */}
+      {fieldToDelete && (
+        <Dialog open={!!fieldToDelete} onOpenChange={() => setFieldToDelete(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <AlertCircle className="w-5 h-5" />
+                Confirmar Exclusão
+              </DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja excluir o campo "{fieldToDelete.fieldLabel}"?
+                Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="outline" onClick={() => setFieldToDelete(null)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deleteFieldMutation.mutate(fieldToDelete.id);
+                  setFieldToDelete(null);
+                }}
+                disabled={deleteFieldMutation.isPending}
+              >
+                {deleteFieldMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Excluir Campo
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
 
-  // Create Field Form Component
-  interface CreateFieldFormProps {
-    moduleType: ModuleType;
-    onSubmit: (data: CreateFieldFormData) => void;
-    isLoading: boolean;
-    onCancel: () => void;
-  }
 
-  function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFieldFormProps) {
-    const { t } = useTranslation();
-    const [newField, setNewField] = useState<CreateFieldFormData>({
-      moduleType,
-      fieldName: '',
-      fieldType: 'text',
-      fieldLabel: '',
-      isRequired: false,
-      displayOrder: 0,
-      helpText: '',
-      fieldOptions: [],
-      placeholder: '',
-      defaultValue: '',
-      validationRules: {}
-    });
+// Create Field Form Component
+interface CreateFieldFormProps {
+  moduleType: ModuleType;
+  onSubmit: (data: CreateFieldFormData) => void;
+  isLoading: boolean;
+  onCancel: () => void;
+}
 
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      onSubmit(newField);
-    };
+function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFieldFormProps) {
+  const { t } = useTranslation();
+  const [newField, setNewField] = useState<CreateFieldFormData>({
+    moduleType,
+    fieldName: '',
+    fieldType: 'text',
+    fieldLabel: '',
+    isRequired: false,
+    displayOrder: 0,
+    helpText: '',
+    fieldOptions: [],
+    placeholder: '',
+    defaultValue: '',
+    validationRules: {}
+  });
 
-    return (
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="fieldName">Nome do Campo (Técnico)</Label>
-            <Input
-              id="fieldName"
-              value={newField.fieldName}
-              onChange={(e) => setNewField({ ...newField, fieldName: e.target.value })}
-              placeholder="ex: telefone_adicional"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fieldLabel">Label (Exibição)</Label>
-            <Input
-              id="fieldLabel"
-              value={newField.fieldLabel}
-              onChange={(e) => setNewField({ ...newField, fieldLabel: e.target.value })}
-              placeholder="ex: Telefone Adicional"
-              required
-            />
-          </div>
-        </div>
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(newField);
+  };
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="fieldType">{t('customFields.fieldType')}</Label>
-            <Select
-              value={newField.fieldType}
-              onValueChange={(value: FieldType) =>
-                setNewField(prev => ({
-                  ...prev,
-                  fieldType: value,
-                  // Reset field options when changing type
-                  fieldOptions: (value === 'select' || value === 'multiselect') ? prev.fieldOptions || [] : null
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('customFields.selectFieldType')} />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(FIELD_TYPE_CONFIG).map(([type, config]) => (
-                  <SelectItem key={type} value={type}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{config.label}</span>
-                      <span className="text-sm text-muted-foreground">{config.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="displayOrder">{t('customFields.displayOrder')}</Label>
-            <Input
-              id="displayOrder"
-              type="number"
-              min="0"
-              value={newField.displayOrder || ''}
-              onChange={(e) =>
-                setNewField(prev => ({ ...prev, displayOrder: parseInt(e.target.value) || 0 }))
-              }
-              placeholder={t('customFields.enterDisplayOrder')}
-            />
-          </div>
-        </div>
-
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
-          <Textarea
-            id="helpText"
-            value={newField.helpText || ''}
-            onChange={(e) => setNewField({ ...newField, helpText: e.target.value })}
-            placeholder="Descrição ou instruções para o usuário"
-            rows={3}
+          <Label htmlFor="fieldName">Nome do Campo (Técnico)</Label>
+          <Input
+            id="fieldName"
+            value={newField.fieldName}
+            onChange={(e) => setNewField({ ...newField, fieldName: e.target.value })}
+            placeholder="ex: telefone_adicional"
+            required
           />
         </div>
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="isRequired"
-            checked={newField.isRequired}
-            onCheckedChange={(checked) => setNewField({ ...newField, isRequired: !!checked })}
+        <div className="space-y-2">
+          <Label htmlFor="fieldLabel">Label (Exibição)</Label>
+          <Input
+            id="fieldLabel"
+            value={newField.fieldLabel}
+            onChange={(e) => setNewField({ ...newField, fieldLabel: e.target.value })}
+            placeholder="ex: Telefone Adicional"
+            required
           />
-          <Label htmlFor="isRequired" className="text-sm">
-            Campo obrigatório
-          </Label>
         </div>
+      </div>
 
-        {/* Configurações Adicionais baseadas no tipo de campo */}
-        {(newField.fieldType === 'select' || newField.fieldType === 'multiselect') && (
-          <div className="space-y-4">
-            <div className="border-t pt-4">
-              <Label className="text-base font-semibold">{t('customFields.fieldOptions')}</Label>
-              <p className="text-sm text-muted-foreground mb-3">
-                {t('customFields.fieldOptionsDescription')}
-              </p>
-
-              <div className="space-y-2">
-                {(newField.fieldOptions || []).map((option, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={option}
-                      onChange={(e) => {
-                        const updatedOptions = [...(newField.fieldOptions || [])];
-                        updatedOptions[index] = e.target.value;
-                        setNewField({ ...newField, fieldOptions: updatedOptions });
-                      }}
-                      placeholder={`${t('customFields.option')} ${index + 1}`}
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        const updatedOptions = (newField.fieldOptions || []).filter((_, i) => i !== index);
-                        setNewField({ ...newField, fieldOptions: updatedOptions });
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="fieldType">{t('customFields.fieldType')}</Label>
+          <Select
+            value={newField.fieldType}
+            onValueChange={(value: FieldType) =>
+              setNewField(prev => ({
+                ...prev,
+                fieldType: value,
+                // Reset field options when changing type
+                fieldOptions: (value === 'select' || value === 'multiselect') ? prev.fieldOptions || [] : null
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t('customFields.selectFieldType')} />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(FIELD_TYPE_CONFIG).map(([type, config]) => (
+                <SelectItem key={type} value={type}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{config.label}</span>
+                    <span className="text-sm text-muted-foreground">{config.description}</span>
                   </div>
-                ))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const currentOptions = newField.fieldOptions || [];
+        <div>
+          <Label htmlFor="displayOrder">{t('customFields.displayOrder')}</Label>
+          <Input
+            id="displayOrder"
+            type="number"
+            min="0"
+            value={newField.displayOrder || ''}
+            onChange={(e) =>
+              setNewField(prev => ({ ...prev, displayOrder: parseInt(e.target.value) || 0 }))
+            }
+            placeholder={t('customFields.enterDisplayOrder')}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
+        <Textarea
+          id="helpText"
+          value={newField.helpText || ''}
+          onChange={(e) => setNewField({ ...newField, helpText: e.target.value })}
+          placeholder="Descrição ou instruções para o usuário"
+          rows={3}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isRequired"
+          checked={newField.isRequired}
+          onCheckedChange={(checked) => setNewField({ ...newField, isRequired: !!checked })}
+        />
+        <Label htmlFor="isRequired" className="text-sm">
+          Campo obrigatório
+        </Label>
+      </div>
+
+      {/* Configurações Adicionais baseadas no tipo de campo */}
+      {(newField.fieldType === 'select' || newField.fieldType === 'multiselect') && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">{t('customFields.fieldOptions')}</Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              {t('customFields.fieldOptionsDescription')}
+            </p>
+
+            <div className="space-y-2">
+              {(newField.fieldOptions || []).map((option, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={option}
+                    onChange={(e) => {
+                      const updatedOptions = [...(newField.fieldOptions || [])];
+                      updatedOptions[index] = e.target.value;
+                      setNewField({ ...newField, fieldOptions: updatedOptions });
+                    }}
+                    placeholder={`${t('customFields.option')} ${index + 1}`}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const updatedOptions = (newField.fieldOptions || []).filter((_, i) => i !== index);
+                      setNewField({ ...newField, fieldOptions: updatedOptions });
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const currentOptions = newField.fieldOptions || [];
+                  setNewField({
+                    ...newField,
+                    fieldOptions: [...currentOptions, '']
+                  });
+                }}
+                className="mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {t('customFields.addOption')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configurações para campos de texto */}
+      {(newField.fieldType === 'text' || newField.fieldType === 'textarea' || newField.fieldType === 'email' || newField.fieldType === 'url') && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">{t('customFields.textFieldConfig')}</Label>
+
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <Label htmlFor="placeholder">{t('customFields.placeholder')}</Label>
+                <Input
+                  id="placeholder"
+                  value={newField.placeholder || ''}
+                  onChange={(e) => setNewField({ ...newField, placeholder: e.target.value })}
+                  placeholder={t('customFields.enterPlaceholder')}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="defaultValue">{t('customFields.defaultValue')}</Label>
+                <Input
+                  id="defaultValue"
+                  value={newField.defaultValue || ''}
+                  onChange={(e) => setNewField({ ...newField, defaultValue: e.target.value })}
+                  placeholder={t('customFields.enterDefaultValue')}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configurações para campos numéricos */}
+      {newField.fieldType === 'number' && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">{t('customFields.numberFieldConfig')}</Label>
+
+            <div className="grid grid-cols-3 gap-4 mt-3">
+              <div>
+                <Label htmlFor="minValue">{t('customFields.minValue')}</Label>
+                <Input
+                  id="minValue"
+                  type="number"
+                  value={newField.validationRules?.min || ''}
+                  onChange={(e) => {
+                    const rules = newField.validationRules || {};
                     setNewField({
                       ...newField,
-                      fieldOptions: [...currentOptions, '']
+                      validationRules: { ...rules, min: e.target.value ? parseInt(e.target.value) : undefined }
                     });
                   }}
-                  className="mt-2"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t('customFields.addOption')}
-                </Button>
+                  placeholder={t('customFields.enterMinValue')}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="maxValue">{t('customFields.maxValue')}</Label>
+                <Input
+                  id="maxValue"
+                  type="number"
+                  value={newField.validationRules?.max || ''}
+                  onChange={(e) => {
+                    const rules = newField.validationRules || {};
+                    setNewField({
+                      ...newField,
+                      validationRules: { ...rules, max: e.target.value ? parseInt(e.target.value) : undefined }
+                    });
+                  }}
+                  placeholder={t('customFields.enterMaxValue')}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="defaultNumberValue">{t('customFields.defaultValue')}</Label>
+                <Input
+                  id="defaultNumberValue"
+                  type="number"
+                  value={newField.defaultValue || ''}
+                  onChange={(e) => setNewField({ ...newField, defaultValue: e.target.value })}
+                  placeholder={t('customFields.enterDefaultValue')}
+                />
               </div>
             </div>
           </div>
-        )}
-
-        {/* Configurações para campos de texto */}
-        {(newField.fieldType === 'text' || newField.fieldType === 'textarea' || newField.fieldType === 'email' || newField.fieldType === 'url') && (
-          <div className="space-y-4">
-            <div className="border-t pt-4">
-              <Label className="text-base font-semibold">{t('customFields.textFieldConfig')}</Label>
-
-              <div className="grid grid-cols-2 gap-4 mt-3">
-                <div>
-                  <Label htmlFor="placeholder">{t('customFields.placeholder')}</Label>
-                  <Input
-                    id="placeholder"
-                    value={newField.placeholder || ''}
-                    onChange={(e) => setNewField({ ...newField, placeholder: e.target.value })}
-                    placeholder={t('customFields.enterPlaceholder')}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="defaultValue">{t('customFields.defaultValue')}</Label>
-                  <Input
-                    id="defaultValue"
-                    value={newField.defaultValue || ''}
-                    onChange={(e) => setNewField({ ...newField, defaultValue: e.target.value })}
-                    placeholder={t('customFields.enterDefaultValue')}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Configurações para campos numéricos */}
-        {newField.fieldType === 'number' && (
-          <div className="space-y-4">
-            <div className="border-t pt-4">
-              <Label className="text-base font-semibold">{t('customFields.numberFieldConfig')}</Label>
-
-              <div className="grid grid-cols-3 gap-4 mt-3">
-                <div>
-                  <Label htmlFor="minValue">{t('customFields.minValue')}</Label>
-                  <Input
-                    id="minValue"
-                    type="number"
-                    value={newField.validationRules?.min || ''}
-                    onChange={(e) => {
-                      const rules = newField.validationRules || {};
-                      setNewField({
-                        ...newField,
-                        validationRules: { ...rules, min: e.target.value ? parseInt(e.target.value) : undefined }
-                      });
-                    }}
-                    placeholder={t('customFields.enterMinValue')}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="maxValue">{t('customFields.maxValue')}</Label>
-                  <Input
-                    id="maxValue"
-                    type="number"
-                    value={newField.validationRules?.max || ''}
-                    onChange={(e) => {
-                      const rules = newField.validationRules || {};
-                      setNewField({
-                        ...newField,
-                        validationRules: { ...rules, max: e.target.value ? parseInt(e.target.value) : undefined }
-                      });
-                    }}
-                    placeholder={t('customFields.enterMaxValue')}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="defaultNumberValue">{t('customFields.defaultValue')}</Label>
-                  <Input
-                    id="defaultNumberValue"
-                    type="number"
-                    value={newField.defaultValue || ''}
-                    onChange={(e) => setNewField({ ...newField, defaultValue: e.target.value })}
-                    placeholder={t('customFields.enterDefaultValue')}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Criar Campo
-          </Button>
         </div>
-      </form>
-    );
-  }
+      )}
 
-  // Edit Field Form Component
-  interface EditFieldFormProps {
-    field: CustomFieldMetadata;
-    onSubmit: (data: EditFieldFormData) => void;
-    isLoading: boolean;
-    onCancel: () => void;
-  }
+      <div className="flex justify-end gap-3 pt-4 border-t">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          Criar Campo
+        </Button>
+      </div>
+    </form>
+  );
+}
 
-  function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormProps) {
-    const { t } = useTranslation();
-    const [editingField, setEditingFieldState] = useState<CustomFieldMetadata>({
-      ...field,
-      fieldOptions: field.fieldOptions || [],
-      placeholder: field.placeholder || '',
-      defaultValue: field.defaultValue || '',
-      validationRules: field.validationRules || {},
+// Edit Field Form Component
+interface EditFieldFormProps {
+  field: CustomFieldMetadata;
+  onSubmit: (data: EditFieldFormData) => void;
+  isLoading: boolean;
+  onCancel: () => void;
+}
+
+function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormProps) {
+  const { t } = useTranslation();
+  const [editingField, setEditingFieldState] = useState<CustomFieldMetadata>({
+    ...field,
+    fieldOptions: field.fieldOptions || [],
+    placeholder: field.placeholder || '',
+    defaultValue: field.defaultValue || '',
+    validationRules: field.validationRules || {},
+    helpText: field.helpText || ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      fieldId: editingField.id,
+      moduleType: editingField.moduleType,
+      fieldName: editingField.fieldName,
+      fieldType: editingField.fieldType,
+      fieldLabel: editingField.fieldLabel,
+      isRequired: editingField.isRequired,
+      displayOrder: editingField.displayOrder,
+      fieldOptions: editingField.fieldOptions,
+      placeholder: editingField.placeholder,
+      defaultValue: editingField.defaultValue,
+      helpText: editingField.helpText,
+      validationRules: editingField.validationRules,
     });
+  };
 
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      onSubmit({
-        fieldId: editingField.id,
-        moduleType: editingField.moduleType,
-        fieldName: editingField.fieldName,
-        fieldType: editingField.fieldType,
-        fieldLabel: editingField.fieldLabel,
-        isRequired: editingField.isRequired,
-        displayOrder: editingField.displayOrder,
-        fieldOptions: editingField.fieldOptions,
-        placeholder: editingField.placeholder,
-        defaultValue: editingField.defaultValue,
-        helpText: editingField.fieldOptions?.helpText,
-        validationRules: editingField.validationRules,
-      });
-    };
+  const handleFieldTypeChange = (value: FieldType) => {
+    setEditingFieldState(prev => ({
+      ...prev,
+      fieldType: value,
+      fieldOptions: (value === 'select' || value === 'multiselect') ? prev.fieldOptions || [] : null,
+      placeholder: (value !== 'text' && value !== 'textarea' && value !== 'email' && value !== 'url') ? '' : prev.placeholder,
+      defaultValue: (value !== 'number') ? '' : prev.defaultValue,
+      validationRules: (value !== 'number') ? {} : prev.validationRules
+    }));
+  };
 
-    const handleFieldTypeChange = (value: FieldType) => {
-      setEditingFieldState(prev => ({
-        ...prev,
-        fieldType: value,
-        fieldOptions: (value === 'select' || value === 'multiselect') ? prev.fieldOptions || [] : null,
-        placeholder: (value !== 'text' && value !== 'textarea' && value !== 'email' && value !== 'url') ? '' : prev.placeholder,
-        defaultValue: (value !== 'number') ? '' : prev.defaultValue,
-        validationRules: (value !== 'number') ? {} : prev.validationRules
-      }));
-    };
-
-    return (
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="editFieldName">Nome do Campo (Técnico)</Label>
-            <Input
-              id="editFieldName"
-              value={editingField.fieldName}
-              onChange={(e) => setEditingFieldState({ ...editingField, fieldName: e.target.value })}
-              disabled
-              className="bg-gray-50"
-            />
-            <p className="text-xs text-gray-500">O nome técnico não pode ser alterado</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="editFieldLabel">Label (Exibição)</Label>
-            <Input
-              id="editFieldLabel"
-              value={editingField.fieldLabel}
-              onChange={(e) => setEditingFieldState({ ...editingField, fieldLabel: e.target.value })}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="editFieldType">Tipo de Campo</Label>
-            <Select
-              value={editingField.fieldType}
-              onValueChange={handleFieldTypeChange}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(FIELD_TYPE_CONFIG).map(([type, config]) => (
-                  <SelectItem key={type} value={type}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{config.label}</span>
-                      <span className="text-sm text-muted-foreground">{config.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="editDisplayOrder">Ordem de Exibição</Label>
-            <Input
-              id="editDisplayOrder"
-              type="number"
-              min="0"
-              value={editingField.displayOrder || ''}
-              onChange={(e) => setEditingFieldState({ ...editingField, displayOrder: parseInt(e.target.value) || 0 })}
-              placeholder="Ex: 1"
-            />
-          </div>
-        </div>
-
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="editHelpText">Texto de Ajuda (Opcional)</Label>
-          <Textarea
-            id="editHelpText"
-            value={editingField.helpText || ''}
-            onChange={(e) => setEditingFieldState({ ...editingField, helpText: e.target.value })}
-            rows={3}
+          <Label htmlFor="editFieldName">Nome do Campo (Técnico)</Label>
+          <Input
+            id="editFieldName"
+            value={editingField.fieldName}
+            onChange={(e) => setEditingFieldState({ ...editingField, fieldName: e.target.value })}
+            disabled
+            className="bg-gray-50"
+          />
+          <p className="text-xs text-gray-500">O nome técnico não pode ser alterado</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="editFieldLabel">Label (Exibição)</Label>
+          <Input
+            id="editFieldLabel"
+            value={editingField.fieldLabel}
+            onChange={(e) => setEditingFieldState({ ...editingField, fieldLabel: e.target.value })}
+            required
           />
         </div>
+      </div>
 
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="editIsRequired"
-            checked={editingField.isRequired}
-            onCheckedChange={(checked) => setEditingFieldState({ ...editingField, isRequired: !!checked })}
-          />
-          <Label htmlFor="editIsRequired" className="text-sm">
-            Campo obrigatório
-          </Label>
-        </div>
-
-        {/* Configurações Adicionais baseadas no tipo de campo - EDIÇÃO */}
-        {(editingField.fieldType === 'select' || editingField.fieldType === 'multiselect') && (
-          <div className="space-y-4">
-            <div className="border-t pt-4">
-              <Label className="text-base font-semibold">Opções de Campo</Label>
-              <p className="text-sm text-muted-foreground mb-3">
-                Defina as opções que aparecerão para o usuário selecionar.
-              </p>
-
-              <div className="space-y-2">
-                {(editingField.fieldOptions || []).map((option, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={option}
-                      onChange={(e) => {
-                        const updatedOptions = [...(editingField.fieldOptions || [])];
-                        updatedOptions[index] = e.target.value;
-                        setEditingFieldState({ ...editingField, fieldOptions: updatedOptions });
-                      }}
-                      placeholder={`Opção ${index + 1}`}
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        const updatedOptions = (editingField.fieldOptions || []).filter((_, i) => i !== index);
-                        setEditingFieldState({ ...editingField, fieldOptions: updatedOptions });
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="editFieldType">Tipo de Campo</Label>
+          <Select
+            value={editingField.fieldType}
+            onValueChange={handleFieldTypeChange}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(FIELD_TYPE_CONFIG).map(([type, config]) => (
+                <SelectItem key={type} value={type}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{config.label}</span>
+                    <span className="text-sm text-muted-foreground">{config.description}</span>
                   </div>
-                ))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const currentOptions = editingField.fieldOptions || [];
+        <div>
+          <Label htmlFor="editDisplayOrder">Ordem de Exibição</Label>
+          <Input
+            id="editDisplayOrder"
+            type="number"
+            min="0"
+            value={editingField.displayOrder || ''}
+            onChange={(e) => setEditingFieldState({ ...editingField, displayOrder: parseInt(e.target.value) || 0 })}
+            placeholder="Ex: 1"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="editHelpText">Texto de Ajuda (Opcional)</Label>
+        <Textarea
+          id="editHelpText"
+          value={editingField.helpText || ''}
+          onChange={(e) => setEditingFieldState({ ...editingField, helpText: e.target.value })}
+          rows={3}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="editIsRequired"
+          checked={editingField.isRequired}
+          onCheckedChange={(checked) => setEditingFieldState({ ...editingField, isRequired: !!checked })}
+        />
+        <Label htmlFor="editIsRequired" className="text-sm">
+          Campo obrigatório
+        </Label>
+      </div>
+
+      {/* Configurações Adicionais baseadas no tipo de campo - EDIÇÃO */}
+      {(editingField.fieldType === 'select' || editingField.fieldType === 'multiselect') && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">Opções de Campo</Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Defina as opções que aparecerão para o usuário selecionar.
+            </p>
+
+            <div className="space-y-2">
+              {(editingField.fieldOptions || []).map((option, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={option}
+                    onChange={(e) => {
+                      const updatedOptions = [...(editingField.fieldOptions || [])];
+                      updatedOptions[index] = e.target.value;
+                      setEditingFieldState({ ...editingField, fieldOptions: updatedOptions });
+                    }}
+                    placeholder={`Opção ${index + 1}`}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const updatedOptions = (editingField.fieldOptions || []).filter((_, i) => i !== index);
+                      setEditingFieldState({ ...editingField, fieldOptions: updatedOptions });
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const currentOptions = editingField.fieldOptions || [];
+                  setEditingFieldState({
+                    ...editingField,
+                    fieldOptions: [...currentOptions, '']
+                  });
+                }}
+                className="mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Opção
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configurações para campos de texto - EDIÇÃO */}
+      {(editingField.fieldType === 'text' || editingField.fieldType === 'textarea' || editingField.fieldType === 'email' || editingField.fieldType === 'url') && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">Configurações de Campo de Texto</Label>
+
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <Label htmlFor="editPlaceholder">Placeholder</Label>
+                <Input
+                  id="editPlaceholder"
+                  value={editingField.placeholder || ''}
+                  onChange={(e) => setEditingFieldState({ ...editingField, placeholder: e.target.value })}
+                  placeholder="Ex: Digite seu nome"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="editDefaultValue">Valor Padrão</Label>
+                <Input
+                  id="editDefaultValue"
+                  value={editingField.defaultValue || ''}
+                  onChange={(e) => setEditingFieldState({ ...editingField, defaultValue: e.target.value })}
+                  placeholder="Ex: Nome Completo"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configurações para campos numéricos - EDIÇÃO */}
+      {editingField.fieldType === 'number' && (
+        <div className="space-y-4">
+          <div className="border-t pt-4">
+            <Label className="text-base font-semibold">Configurações de Campo Numérico</Label>
+
+            <div className="grid grid-cols-3 gap-4 mt-3">
+              <div>
+                <Label htmlFor="editMinValue">Valor Mínimo</Label>
+                <Input
+                  id="editMinValue"
+                  type="number"
+                  value={editingField.validationRules?.min || ''}
+                  onChange={(e) => {
+                    const rules = editingField.validationRules || {};
                     setEditingFieldState({
                       ...editingField,
-                      fieldOptions: [...currentOptions, '']
+                      validationRules: { ...rules, min: e.target.value ? parseInt(e.target.value) : undefined }
                     });
                   }}
-                  className="mt-2"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Opção
-                </Button>
+                  placeholder="Ex: 0"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="editMaxValue">Valor Máximo</Label>
+                <Input
+                  id="editMaxValue"
+                  type="number"
+                  value={editingField.validationRules?.max || ''}
+                  onChange={(e) => {
+                    const rules = editingField.validationRules || {};
+                    setEditingFieldState({
+                      ...editingField,
+                      validationRules: { ...rules, max: e.target.value ? parseInt(e.target.value) : undefined }
+                    });
+                  }}
+                  placeholder="Ex: 100"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="editDefaultNumberValue">Valor Padrão</Label>
+                <Input
+                  id="editDefaultNumberValue"
+                  type="number"
+                  value={editingField.defaultValue || ''}
+                  onChange={(e) => setEditingFieldState({ ...editingField, defaultValue: e.target.value })}
+                  placeholder="Ex: 50"
+                />
               </div>
             </div>
           </div>
-        )}
-
-        {/* Configurações para campos de texto - EDIÇÃO */}
-        {(editingField.fieldType === 'text' || editingField.fieldType === 'textarea' || editingField.fieldType === 'email' || editingField.fieldType === 'url') && (
-          <div className="space-y-4">
-            <div className="border-t pt-4">
-              <Label className="text-base font-semibold">Configurações de Campo de Texto</Label>
-
-              <div className="grid grid-cols-2 gap-4 mt-3">
-                <div>
-                  <Label htmlFor="editPlaceholder">Placeholder</Label>
-                  <Input
-                    id="editPlaceholder"
-                    value={editingField.placeholder || ''}
-                    onChange={(e) => setEditingFieldState({ ...editingField, placeholder: e.target.value })}
-                    placeholder="Ex: Digite seu nome"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="editDefaultValue">Valor Padrão</Label>
-                  <Input
-                    id="editDefaultValue"
-                    value={editingField.defaultValue || ''}
-                    onChange={(e) => setEditingFieldState({ ...editingField, defaultValue: e.target.value })}
-                    placeholder="Ex: Nome Completo"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Configurações para campos numéricos - EDIÇÃO */}
-        {editingField.fieldType === 'number' && (
-          <div className="space-y-4">
-            <div className="border-t pt-4">
-              <Label className="text-base font-semibold">Configurações de Campo Numérico</Label>
-
-              <div className="grid grid-cols-3 gap-4 mt-3">
-                <div>
-                  <Label htmlFor="editMinValue">Valor Mínimo</Label>
-                  <Input
-                    id="editMinValue"
-                    type="number"
-                    value={editingField.validationRules?.min || ''}
-                    onChange={(e) => {
-                      const rules = editingField.validationRules || {};
-                      setEditingFieldState({
-                        ...editingField,
-                        validationRules: { ...rules, min: e.target.value ? parseInt(e.target.value) : undefined }
-                      });
-                    }}
-                    placeholder="Ex: 0"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="editMaxValue">Valor Máximo</Label>
-                  <Input
-                    id="editMaxValue"
-                    type="number"
-                    value={editingField.validationRules?.max || ''}
-                    onChange={(e) => {
-                      const rules = editingField.validationRules || {};
-                      setEditingFieldState({
-                        ...editingField,
-                        validationRules: { ...rules, max: e.target.value ? parseInt(e.target.value) : undefined }
-                      });
-                    }}
-                    placeholder="Ex: 100"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="editDefaultNumberValue">Valor Padrão</Label>
-                  <Input
-                    id="editDefaultNumberValue"
-                    type="number"
-                    value={editingField.defaultValue || ''}
-                    onChange={(e) => setEditingFieldState({ ...editingField, defaultValue: e.target.value })}
-                    placeholder="Ex: 50"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Salvar Alterações
-          </Button>
         </div>
-      </form>
-    );
-  }
+      )}
+
+      <div className="flex justify-end gap-3 pt-4 border-t">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          Salvar Alterações
+        </Button>
+      </div>
+    </form>
+  );
 }
