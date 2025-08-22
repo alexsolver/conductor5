@@ -145,17 +145,31 @@ export function useLocalization() {
   // Change language function
   const changeLanguage = async (languageCode: string) => {
     try {
-      await i18n.changeLanguage(languageCode);
+      console.log('Changing language to:', languageCode);
+      
+      // Update localStorage first
       localStorage.setItem('preferred-language', languageCode);
       localStorage.setItem('conductor-language', languageCode);
+      localStorage.setItem('i18nextLng', languageCode);
+      
+      // Change the language in i18n
+      await i18n.changeLanguage(languageCode);
+      
+      // Show success message
+      toast({
+        title: languageCode === 'pt-BR' ? 'Sucesso' : 'Success',
+        description: languageCode === 'pt-BR' ? 'Idioma alterado com sucesso!' : 'Language changed successfully!',
+      });
 
       // Force a page reload to ensure all components update with the new language
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Failed to change language:', error);
       toast({
-        title: 'Erro',
-        description: 'Erro ao alterar idioma. Tente novamente.',
+        title: languageCode === 'pt-BR' ? 'Erro' : 'Error',
+        description: languageCode === 'pt-BR' ? 'Erro ao alterar idioma. Tente novamente.' : 'Failed to change language. Please try again.',
         variant: 'destructive'
       });
     }

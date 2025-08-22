@@ -39,12 +39,19 @@ export function LanguageSelector({
     localStorage.setItem('preferred-language', languageCode);
   };
 
-  const currentLanguage = supportedLanguages.find(
-    lang => lang.code === i18n.language
-  ) || supportedLanguages.find(lang => lang.code === 'pt-BR') || supportedLanguages[0];
+  // Get current language from multiple sources
+  const getCurrentLanguage = () => {
+    const storedLang = localStorage.getItem('preferred-language') || 
+                      localStorage.getItem('conductor-language') || 
+                      localStorage.getItem('i18nextLng');
+    
+    return storedLang || i18n.language || 'pt-BR';
+  };
 
-  // Ensure we have a valid language value, default to Portuguese if available
-  const currentLanguageCode = i18n.language || 'pt-BR';
+  const currentLanguageCode = getCurrentLanguage();
+  const currentLanguage = supportedLanguages.find(
+    lang => lang.code === currentLanguageCode
+  ) || supportedLanguages.find(lang => lang.code === 'pt-BR') || supportedLanguages[0];
 
   if (variant === 'icon-only') {
     return (

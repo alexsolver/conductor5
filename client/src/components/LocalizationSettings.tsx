@@ -206,7 +206,7 @@ export function LocalizationSettings({
               Escolha seu idioma preferido / Choose your preferred language
             </p>
             <Select
-              value={i18n.language || 'pt-BR'}
+              value={currentLanguage?.code || 'pt-BR'}
               onValueChange={(value) => {
                 console.log('Changing language to:', value);
                 changeLanguage(value);

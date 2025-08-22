@@ -42,7 +42,11 @@ const resources = {
 
 // Get user's preferred language from localStorage or use Portuguese as default
 const getInitialLanguage = () => {
-  const saved = localStorage.getItem('preferred-language');
+  // Check multiple possible keys for language preference
+  const saved = localStorage.getItem('preferred-language') || 
+                localStorage.getItem('conductor-language') || 
+                localStorage.getItem('i18nextLng');
+  
   if (saved && supportedLanguages.find(lang => lang.code === saved)) {
     return saved;
   }
@@ -50,10 +54,12 @@ const getInitialLanguage = () => {
 };
 
 i18n
+  .use(Backend)
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    lng: getInitialLanguage(), // default language
+    lng: getInitialLanguage(),
     fallbackLng: 'pt-BR',
 
     interpolation: {
@@ -70,7 +76,7 @@ i18n
 
     detection: {
       order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'i18nextLng',
+      lookupLocalStorage: 'preferred-language',
       caches: ['localStorage'],
     },
 
@@ -80,13 +86,28 @@ i18n
     defaultNS: 'translation',
     ns: ['translation'],
 
-    // Força o carregamento de pt-BR mesmo se detectar 'pt'
+    // Force pt-BR loading even if 'pt' is detected
     cleanCode: true,
+    
+    // Enable debug mode to see what's happening
+    debug: false,
 
     react: {
-      useSuspense: false
+      useSuspense: false,
+      bindI18n: 'languageChanged loaded',
+      bindI18nStore: 'added removed',
+      transEmptyNodeValue: '',
+      transSupportBasicHtmlNodes: true,
+      transKeepBasicHtmlNodesFor: ['br', 'strong', 'i'],
     }
   });
+
+// Ensure we start with Portuguese by default
+if (!localStorage.getItem('preferred-language')) {
+  localStorage.setItem('preferred-language', 'pt-BR');
+  localStorage.setItem('conductor-language', 'pt-BR');
+  localStorage.setItem('i18nextLng', 'pt-BR');
+}
 
 export default i18n;
 
