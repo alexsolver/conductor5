@@ -201,7 +201,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   // Helper function to translate menu items
   const translateName = (name: string): string => {
-    let translated = '';
+    let translated: any = '';
 
     // Check if it's already a full translation key (contains namespace)
     if (name.includes('.')) {
@@ -228,8 +228,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       }
     }
 
+    // Ensure we always return a string
+    const translatedString = typeof translated === 'string' ? translated : name;
+
     // Capitalize first letter and return the translation
-    return capitalizeFirstLetter(translated);
+    return capitalizeFirstLetter(translatedString);
   };
 
   // Fetch tickets count for badge
