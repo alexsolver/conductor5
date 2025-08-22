@@ -391,3 +391,4 @@ authRouter.put('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 export { authRouter };
+export default authRouter;
