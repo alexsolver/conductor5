@@ -67,12 +67,21 @@
   },
   "tickets": {
     "title": "Tickets",
-    "subtitle": "Gestionar tickets de soporte al cliente",
+    "subtitle": "Gestionar tickets de soporte al cliente", 
     "create_ticket": "Crear Ticket",
     "search_placeholder": "Buscar tickets...",
     "ticket_number": "Número de Ticket",
     "subject": "Asunto",
     "description": "Descripción",
+    "views": {
+      "title": "Vistas de Tickets",
+      "activeView": "Vista Activa",
+      "defaultView": "Vista Predeterminada", 
+      "newView": "Nueva Vista",
+      "manage": "Gestionar Vistas",
+      "advancedFilters": "Filtros Avanzados"
+    },
+    "clear_filters": "Limpiar Filtros",
     "status": "Estado",
     "priority": "Prioridad",
     "assigned_to": "Asignado a",
