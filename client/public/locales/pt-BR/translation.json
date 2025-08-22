@@ -90,7 +90,27 @@
     "productivityReports": "Relatórios de Produtividade",
     "teamPerformance": "Performance da Equipe",
     "systemAnalytics": "Análises do Sistema",
-    "gdprCompliance": "Conformidade GDPR"
+    "gdprCompliance": "Conformidade GDPR",
+    "timecardControl": "Timecard Control",
+    "materialsAndServices": "Materials and Services",
+    "notifications": "Notifications",
+    "compliance": "Compliance",
+    "itemCatalog": "Item Catalog",
+    "stockManagement": "Stock Management",
+    "supplierManagement": "Supplier Management",
+    "assetControl": "Asset Control",
+    "lpuPriceList": "LPU - Price List",
+    "complianceManagement": "Compliance Management",
+    "timecardRegistry": "Time Registry",
+    "workSchedules": "Work Schedules",
+    "hourBank": "Hour Bank",
+    "holidayCalendar": "Holiday Calendar",
+    "cltCompliance": "CLT Compliance",
+    "timecardApprovals": "Timecard Approvals",
+    "approvalConfiguration": "Approval Configuration",
+    "absenceManagement": "Absence Management",
+    "scheduleTemplates": "Schedule Templates",
+    "timecardReports": "Timecard Reports"
   },
   "tickets": {
     "messages": {
@@ -1510,5 +1530,6 @@
   "Text": "Text",
   "Processando": "Processando",
   "400:": "400:",
-  "autonomo": "autonomo"
+  "autonomo": "autonomo",
+  "/lib/queryClient": "/lib/queryClient"
 }

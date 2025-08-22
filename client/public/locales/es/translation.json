@@ -405,7 +405,9 @@
     "security": "Seguridad",
     "helpAndSupport": "Ayuda y Soporte",
     "administration": "Administración",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "contracts": "[ES] navigation.contracts",
+    "automationRules": "[ES] navigation.automationRules"
   },
   "errors": {
     "general": "[ES] An unexpected error occurred. Please try again.",
@@ -1528,5 +1530,6 @@
   "Text": "Text",
   "Processando": "Processando",
   "400:": "400:",
-  "autonomo": "autonomo"
+  "autonomo": "autonomo",
+  "/lib/queryClient": "[ES] /lib/queryClient"
 }

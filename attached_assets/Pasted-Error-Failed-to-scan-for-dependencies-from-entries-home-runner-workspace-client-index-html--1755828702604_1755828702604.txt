@@ -1,0 +1,65 @@
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] The symbol "handleAnalyze" has already been declared
+
+    client/src/pages/TranslationManager.tsx:281:8:
+      281 │   const handleAnalyze = async () => {
+          ╵         ~~~~~~~~~~~~~
+
+  The symbol "handleAnalyze" was originally declared here:
+
+    client/src/pages/TranslationManager.tsx:82:8:
+      82 │   const handleAnalyze = async () => { /* ... implementation ... */ };
+         ╵         ~~~~~~~~~~~~~
+
+
+✘ [ERROR] The symbol "handleExpandedScan" has already been declared
+
+    client/src/pages/TranslationManager.tsx:327:8:
+      327 │   const handleExpandedScan = async () => {
+          ╵         ~~~~~~~~~~~~~~~~~~
+
+  The symbol "handleExpandedScan" was originally declared here:
+
+    client/src/pages/TranslationManager.tsx:85:8:
+      85 │   const handleExpandedScan = async () => { /* ... implementation ....
+         ╵         ~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] The symbol "handleScanKeys" has already been declared
+
+    client/src/pages/TranslationManager.tsx:380:8:
+      380 │   const handleScanKeys = async () => {
+          ╵         ~~~~~~~~~~~~~~
+
+  The symbol "handleScanKeys" was originally declared here:
+
+    client/src/pages/TranslationManager.tsx:83:8:
+      83 │   const handleScanKeys = async () => { /* ... implementation ... *...
+         ╵         ~~~~~~~~~~~~~~
+
+
+✘ [ERROR] The symbol "handleAutoCompleteAll" has already been declared
+
+    client/src/pages/TranslationManager.tsx:432:8:
+      432 │   const handleAutoCompleteAll = async () => {
+          ╵         ~~~~~~~~~~~~~~~~~~~~~
+
+  The symbol "handleAutoCompleteAll" was originally declared here:
+
+    client/src/pages/TranslationManager.tsx:84:8:
+      84 │   const handleAutoCompleteAll = async () => { /* ... implementatio...
+         ╵         ~~~~~~~~~~~~~~~~~~~~~
+
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/esbuild/lib/main.js:924:7)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/home/runner/workspace/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/home/runner/workspace/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)

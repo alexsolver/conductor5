@@ -108,7 +108,9 @@
     "security": "Security",
     "helpAndSupport": "Help & Support",
     "administration": "Administration",
-    "logout": "Logout"
+    "logout": "Logout",
+    "contracts": "navigation.contracts",
+    "automationRules": "navigation.automationRules"
   },
   "tickets": {
     "basicData": "Basic Data",
@@ -1559,5 +1561,6 @@
   "Text": "Text",
   "Processando": "Processando",
   "400:": "400:",
-  "autonomo": "autonomo"
+  "autonomo": "autonomo",
+  "/lib/queryClient": "/lib/queryClient"
 }
