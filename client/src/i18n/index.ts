@@ -8,20 +8,12 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import Backend from 'i18next-http-backend';
 
-// Assume enTranslations, ptBRTranslations, esTranslations, frTranslations, deTranslations are imported from their respective files
-// For example:
-// import enTranslations from './locales/en/translation.json';
-// import ptBRTranslations from './locales/pt-BR/translation.json';
-// import esTranslations from './locales/es/translation.json';
-// import frTranslations from './locales/fr/translation.json';
-// import deTranslations from './locales/de/translation.json';
-
-// Placeholder for translations, replace with actual imports
-const enTranslations = {};
-const ptBRTranslations = {};
-const esTranslations = {};
-const frTranslations = {};
-const deTranslations = {};
+// Import actual translation files
+import enTranslations from './locales/en.json';
+import ptBRTranslations from './locales/pt-BR.json';
+import esTranslations from './locales/es.json';
+import frTranslations from './locales/fr.json';
+import deTranslations from './locales/de.json';
 
 
 export const supportedLanguages = [
@@ -90,8 +82,12 @@ i18n
     // Enable proper code cleaning
     cleanCode: true,
 
-    // Enable debug mode temporarily to see loading issues
-    debug: process.env.NODE_ENV === 'development',
+    // Disable debug mode to prevent missingKey logs
+    debug: false,
+
+    // Configure missing key behavior
+    saveMissing: false,
+    missingKeyHandler: false,
 
     react: {
       useSuspense: false,

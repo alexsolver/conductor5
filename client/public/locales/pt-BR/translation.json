@@ -2,7 +2,7 @@
   "4": "4",
   "common": {
     "appearance": "Aparência",
-    "settings": "Configurações", 
+    "settings": "Configurações",
     "security": "Segurança",
     "helpAndSupport": "Ajuda e Suporte",
     "logout": "Sair",
@@ -43,7 +43,7 @@
   },
   "navigation": {
     "reportsAndDashboards": "Relatórios e Dashboards",
-    "interactiveDashboards": "Dashboards Interativos", 
+    "interactiveDashboards": "Dashboards Interativos",
     "appearance": "Aparência",
     "settings": "Configurações",
     "security": "Segurança",
@@ -679,16 +679,15 @@
     "noActiveSessions": "No active sessions"
   },
   "dashboard": {
-    "title": "Título",
+    "dashboard": "Painel de Controle",
     "stats": {
-      "active_tickets": "Active tickets",
-      "resolved_today": "Resolved today",
-      "avg_resolution_time": "Avg resolution time",
-      "online_agents": "Online agents"
+      "active_tickets": "Tickets Ativos",
+      "resolved_today": "Resolvidos Hoje",
+      "avg_resolution_time": "Tempo Médio de Resolução",
+      "online_agents": "Agentes Online"
     },
-    "welcome": "Welcome",
-    "overview": "Overview",
-    "statistics": "Statistics"
+    "welcome": "Bem-vindo ao Conductor",
+    "title": "Painel de Controle"
   },
   "settings": {
     "title": "Título",

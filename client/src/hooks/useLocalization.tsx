@@ -243,9 +243,27 @@ export function useLocalization() {
     curr => curr.code === (userPreferences?.currency || 'USD')
   );
 
+  // Enhanced translation function with fallback
+  const translate = useCallback((key: string, options?: any) => {
+    const translation = t(key, options);
+    // If translation returns the key itself, it means it's missing
+    if (translation === key) {
+      // Try with common namespace
+      const commonKey = `common.${key}`;
+      const commonTranslation = t(commonKey, options);
+      if (commonTranslation !== commonKey) {
+        return commonTranslation;
+      }
+      // Return a user-friendly message instead of the key
+      return key.split('.').pop() || key;
+    }
+    return translation;
+  }, [t]);
+
+
   return {
     // Translation function
-    t,
+    t: translate,
 
     // Current state
     currentLanguage: currentLanguage || languages[0],
