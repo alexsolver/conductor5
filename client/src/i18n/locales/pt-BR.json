@@ -1425,16 +1425,8 @@
   "/api/gdpr-compliance/data-subject-requests": "[EN] /api/gdpr-compliance/data-subject-requests",
   "/api/gdpr-compliance/security-incidents": "[EN] /api/gdpr-compliance/security-incidents",
   "/api/gdpr-compliance/export-user-data": "[EN] /api/gdpr-compliance/export-user-data",
-  "Erro ao criar regra": {
-    " Verifique o console para mais detalhes": {
-      "": "[EN] "
-    }
-  },
-  "Erro na sincronização": {
-    " Verifique o console para mais detalhes": {
-      "": "[EN] "
-    }
-  },
+  "Erro ao criar regra - Verifique o console para mais detalhes": "[EN] Erro ao criar regra - Verifique o console para mais detalhes",
+  "Erro na sincronização - Verifique o console para mais detalhes": "[EN] Erro na sincronização - Verifique o console para mais detalhes",
   "/api/sla/definitions": "[EN] /api/sla/definitions",
   "/api/sla/instances/active": "[EN] /api/sla/instances/active",
   "/api/sla/instances/breached": "[EN] /api/sla/instances/breached",
@@ -1443,39 +1435,25 @@
   "/api/sla/workflows": "[EN] /api/sla/workflows",
   "?": "[EN] ?",
   "@": "[EN] @",
-  "Dados sensíveis revelados para o campo: ${showPasswordDialog": {
-    "field}": "[EN] Field}"
-  },
+  "Dados sensíveis revelados para o campo: ${showPasswordDialog.field}": "[EN] Dados sensíveis revelados para o campo: ${showPasswordDialog.field}",
   "Digite sua senha": "[EN] Digite sua senha",
   "/api/materials-services/tickets/${ticketId}/consumed-items": "[EN] /api/materials-services/tickets/${ticket Id}/consumed-items",
   "/": "[EN] /",
   "America/Sao_Paulo": "[EN] America/ Sao_ Paulo",
   "Localização atual (GPS)": "[EN] Localização atual ( G P S)",
-  "/api/locations/${location": {
-    "id}": "[EN] Id}"
-  },
+  "/api/locations/${location.id}": "[EN] /api/locations/${location.id}",
   "/api/locations": "[EN] /api/locations",
   "/api/approvals/instances?${params}": "[EN] /api/approvals/instances?${params}",
   "/api/approvals/instances/${instanceId}/decision": "[EN] /api/approvals/instances/${instance Id}/decision",
   "Pipeline salvo com sucesso!": "[EN] Pipeline salvo com sucesso!",
-  "Query testada! Verifique o console para detalhes": {
-    "": "[EN] "
-  },
+  "Query testada! Verifique o console para detalhes": "[EN] Query testada! Verifique o console para detalhes",
   "Query salva como regra de aprovação!": "[EN] Query salva como regra de aprovação!",
   "/api/contracts": "[EN] /api/contracts",
   "/api/contracts/${contractId}": "[EN] /api/contracts/${contract Id}",
   "/api/internal-forms/submissions${formId ? ": "[EN] /api/internal-forms/submissions${form Id ?",
   ":": "[EN] :",
   "\\n": "[EN] \\n",
-  "\\n\\n--- Mensagem Original ---\\nDe: ${email": {
-    "from}\\nData: ${new Date(email": {
-      "createdAt)": {
-        "toLocaleString()}\\n\\n${email": {
-          "content}": "[EN] Content}"
-        }
-      }
-    }
-  },
+  "\\n\\n--- Mensagem Original ---\\nDe: ${email.from}\\nData: ${new Date(email.createdAt).toLocaleString()}\\n\\n${email.content}": "[EN] Mensagem Original",
   "-": "[EN] -",
   "/api/user-management/invitations": "[EN] /api/user-management/invitations",
   "/api/user-management/invitations/${invitationId}/resend": "[EN] /api/user-management/invitations/${invitation Id}/resend",
@@ -1501,49 +1479,46 @@
   "moduleIntegrity": "Module Integrity",
   "multilocationSettings": "Multilocation Settings",
   "workspaceAdmin": "Workspace Admin",
-  "teamManagement": {
-    "title": "teamManagement.title",
-    "overview": "teamManagement.overview",
-    "members": "teamManagement.members",
-    "performance": "teamManagement.performance",
-    "analytics": "teamManagement.analytics"
-  },
-  "technicalSkills": {
-    "title": "technicalSkills.title",
-    "description": "technicalSkills.description",
-    "newSkill": "technicalSkills.newSkill",
-    "createSkill": "technicalSkills.createSkill",
-    "editSkill": "technicalSkills.editSkill",
-    "name": "technicalSkills.name",
-    "category": "technicalSkills.category",
-    "minLevelRequired": "technicalSkills.minLevelRequired",
-    "suggestedCertification": "technicalSkills.suggestedCertification",
-    "certificationValidity": "technicalSkills.certificationValidity",
-    "observations": "technicalSkills.observations",
-    "totalSkills": "technicalSkills.totalSkills",
-    "expiredCertifications": "technicalSkills.expiredCertifications",
-    "expiringCertifications": "technicalSkills.expiringCertifications",
-    "categories": "technicalSkills.categories",
-    "searchSkills": "technicalSkills.searchSkills",
-    "allCategories": "technicalSkills.allCategories",
-    "noSkillsFound": "technicalSkills.noSkillsFound",
-    "loading": "technicalSkills.loading",
-    "basic": "technicalSkills.basic",
-    "intermediate": "technicalSkills.intermediate",
-    "advanced": "technicalSkills.advanced",
-    "specialist": "technicalSkills.specialist",
-    "excellence": "technicalSkills.excellence"
-  },
-  "localization": {
-    "language": "localization.language",
-    "timezone": "localization.timezone",
-    "currency": "localization.currency",
-    "date_format": "localization.date_format",
-    "time_format": "localization.time_format",
-    "number_format": "localization.number_format",
-    "regional_settings": "localization.regional_settings",
-    "auto_detect": "localization.auto_detect",
-    "save_preferences": "localization.save_preferences",
-    "preferences_saved": "localization.preferences_saved"
-  }
+  "teamManagement": "Gestão de Equipes",
+  "teamManagement.title": "Gestão de Equipes",
+  "teamManagement.overview": "Visão Geral",
+  "teamManagement.members": "Membros",
+  "teamManagement.performance": "Performance", 
+  "teamManagement.analytics": "Análises",
+  "technicalSkills": "Competências Técnicas",
+  "technicalSkills.title": "Competências Técnicas",
+  "technicalSkills.description": "Descrição",
+  "technicalSkills.newSkill": "Nova Competência",
+  "technicalSkills.createSkill": "Criar Competência",
+  "technicalSkills.editSkill": "Editar Competência",
+  "technicalSkills.name": "Nome",
+  "technicalSkills.category": "Categoria",
+  "technicalSkills.minLevelRequired": "Nível Mínimo Necessário",
+  "technicalSkills.suggestedCertification": "Certificação Sugerida",
+  "technicalSkills.certificationValidity": "Validade da Certificação",
+  "technicalSkills.observations": "Observações",
+  "technicalSkills.totalSkills": "Total de Competências",
+  "technicalSkills.expiredCertifications": "Certificações Expiradas",
+  "technicalSkills.expiringCertifications": "Certificações Expirando",
+  "technicalSkills.categories": "Categorias",
+  "technicalSkills.searchSkills": "Buscar Competências",
+  "technicalSkills.allCategories": "Todas as Categorias",
+  "technicalSkills.noSkillsFound": "Nenhuma competência encontrada",
+  "technicalSkills.loading": "Carregando",
+  "technicalSkills.basic": "Básico",
+  "technicalSkills.intermediate": "Intermediário",
+  "technicalSkills.advanced": "Avançado",
+  "technicalSkills.specialist": "Especialista",
+  "technicalSkills.excellence": "Excelência",
+  "localization": "Localização",
+  "localization.language": "Idioma",
+  "localization.timezone": "Fuso Horário",
+  "localization.currency": "Moeda",
+  "localization.date_format": "Formato de Data",
+  "localization.time_format": "Formato de Hora",
+  "localization.number_format": "Formato de Número",
+  "localization.regional_settings": "Configurações Regionais",
+  "localization.auto_detect": "Detectar Automaticamente",
+  "localization.save_preferences": "Salvar Preferências",
+  "localization.preferences_saved": "Preferências Salvas"
 }
