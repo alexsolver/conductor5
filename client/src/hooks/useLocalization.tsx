@@ -3,6 +3,7 @@
  * Comprehensive i18n and localization management
  */
 
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
