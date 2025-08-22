@@ -484,12 +484,12 @@
     "timezone": "Timezone",
     "currency": "Currency",
     "notifications": "Notifications",
-    "appearance": "Appearance",
+    "appearance": "Aparência",
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
     "system": "System",
-    "security": "settings.security",
+    "security": "Segurança",
     "integrations": "settings.integrations",
     "view": "settings.view",
     "edit": "settings.edit",
@@ -1169,6 +1169,7 @@
     },
     "json": "translation.json"
   },
+  "helpAndSupport": "Ajuda e Suporte",
   "bcryptjs": "bcryptjs",
   "workspace": {
     "manage": "workspace.manage",
