@@ -2,14 +2,13 @@
 import { Router } from 'express';
 import { CustomFieldController } from './application/controllers/CustomFieldController';
 import { SimplifiedCustomFieldRepository } from './infrastructure/repositories/SimplifiedCustomFieldRepository';
-import { Logger } from '../shared/infrastructure/services/Logger';
+import { logInfo, logError } from '../../utils/logger.js';
 
 const router = Router();
 
 // Dependency injection
-const logger = new Logger();
 const customFieldRepository = new SimplifiedCustomFieldRepository();
-const customFieldController = new CustomFieldController(customFieldRepository, logger);
+const customFieldController = new CustomFieldController(customFieldRepository, { logInfo, logError });
 
 // Routes
 router.get('/fields/:moduleType', (req, res) => customFieldController.getFieldsByModule(req, res));
