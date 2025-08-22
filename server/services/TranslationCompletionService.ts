@@ -303,7 +303,7 @@ export class TranslationCompletionService {
   };
 
   constructor() {
-    this.TRANSLATIONS_DIR = path.join(process.cwd(), 'client', 'public', 'locales');
+    this.TRANSLATIONS_DIR = path.join(process.cwd(), 'client', 'src', 'i18n', 'locales');
   }
 
   /**
@@ -579,7 +579,7 @@ export class TranslationCompletionService {
     try {
       for (const language of this.SUPPORTED_LANGUAGES) {
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${mappedLanguage}.json`);
 
         try {
           const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
@@ -635,7 +635,7 @@ export class TranslationCompletionService {
   private async loadTranslations(language: string): Promise<Record<string, any>> {
     try {
       const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-      const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+      const filePath = path.join(this.TRANSLATIONS_DIR, `${mappedLanguage}.json`);
 
       const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
       if (!fileExists) {
@@ -729,7 +729,7 @@ export class TranslationCompletionService {
         console.log(`📊 [COMPLETION-REPORT] Analyzing ${language}...`);
 
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${mappedLanguage}.json`);
 
         let existingTranslations = {};
         let existingKeys = 0;
@@ -847,7 +847,7 @@ export class TranslationCompletionService {
     try {
       for (const language of this.SUPPORTED_LANGUAGES) {
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${mappedLanguage}.json`);
 
         try {
           const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
@@ -909,7 +909,7 @@ export class TranslationCompletionService {
 
       try {
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${mappedLanguage}.json`);
 
         // Read existing translations
         let existingTranslations = {};
@@ -1019,7 +1019,7 @@ export class TranslationCompletionService {
     for (const language of this.SUPPORTED_LANGUAGES) {
       try {
         const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
-        const filePath = path.join(this.TRANSLATIONS_DIR, mappedLanguage, 'translation.json');
+        const filePath = path.join(this.TRANSLATIONS_DIR, `${mappedLanguage}.json`);
 
         if (fsSync.existsSync(filePath)) {
           const fileContent = fsSync.readFileSync(filePath, 'utf-8');
@@ -1045,7 +1045,7 @@ export class TranslationCompletionService {
   private generateTranslation(key: string, targetLanguage: string): string {
     try {
       // Try to find the translation in English first as a base
-      const englishPath = path.join(this.TRANSLATIONS_DIR, 'en', 'translation.json');
+      const englishPath = path.join(this.TRANSLATIONS_DIR, 'en.json');
       if (fsSync.existsSync(englishPath)) {
         const englishContent = JSON.parse(fsSync.readFileSync(englishPath, 'utf-8'));
         const englishTranslation = this.getNestedProperty(englishContent, key);

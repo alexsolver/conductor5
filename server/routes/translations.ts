@@ -25,8 +25,8 @@ interface AuthenticatedRequest extends Request {
 const router = Router();
 
 // Available languages
-const SUPPORTED_LANGUAGES = ['en', 'pt', 'es', 'fr', 'de'];
-const TRANSLATIONS_DIR = path.join(process.cwd(), 'client', 'public', 'locales');
+const SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'es', 'fr', 'de'];
+const TRANSLATIONS_DIR = path.join(process.cwd(), 'client', 'src', 'i18n', 'locales');
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
@@ -76,7 +76,7 @@ router.get('/:language', jwtAuth, async (req: any, res: any) => {
       return res.status(400).json({ message: 'Unsupported language' });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, language, 'translation.json');
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
 
     try {
       const fileContent = await fs.readFile(filePath, 'utf8');
@@ -127,7 +127,7 @@ router.put('/:language', jwtAuth, async (req: any, res: any) => {
       });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, language, 'translation.json');
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
 
     // Create backup before updating
     const backupPath = path.join(TRANSLATIONS_DIR, language, 'translation.backup.json');
@@ -171,7 +171,7 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(400).json({ message: 'Unsupported language' });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, language, 'translation.json');
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
     const backupPath = path.join(TRANSLATIONS_DIR, language, 'translation.backup.json');
 
     try {
