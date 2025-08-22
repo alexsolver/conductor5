@@ -14,12 +14,11 @@ import path from 'path';
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
-    email: string;
-    role: string;
-    tenantId: string | null;
-    permissions: any[];
-    attributes: Record<string, any>;
+    tenantId: string;
+    roles: string[];
+    email?: string;
   };
+  params?: any;
 }
 
 const router = Router();
@@ -41,7 +40,7 @@ const updateTranslationSchema = z.object({
 router.get('/languages', jwtAuth, async (req: any, res: any) => {
   try {
     // Only SaaS admins can manage translations
-    if (req.user?.role !== 'saas_admin') {
+    if (!req.user?.roles?.includes('saas_admin')) {
       return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
@@ -66,7 +65,7 @@ router.get('/languages', jwtAuth, async (req: any, res: any) => {
 router.get('/:language', jwtAuth, async (req: any, res: any) => {
   try {
     // Only SaaS admins can manage translations
-    if (req.user?.role !== 'saas_admin') {
+    if (!req.user?.roles?.includes('saas_admin')) {
       return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
@@ -105,7 +104,7 @@ router.get('/:language', jwtAuth, async (req: any, res: any) => {
 router.put('/:language', jwtAuth, async (req: any, res: any) => {
   try {
     // Only SaaS admins can manage translations
-    if (req.user?.role !== 'saas_admin') {
+    if (!req.user?.roles?.includes('saas_admin')) {
       return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
@@ -158,10 +157,10 @@ router.put('/:language', jwtAuth, async (req: any, res: any) => {
  * POST /api/translations/:language/restore
  * Restore translations from backup
  */
-router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/:language/restore', jwtAuth, async (req: any, res: any) => {
   try {
     // Only SaaS admins can manage translations
-    if (req.user?.role !== 'saas_admin') {
+    if (!req.user?.roles?.includes('saas_admin')) {
       return res.status(403).json({ message: 'SaaS admin access required' });
     }
 
@@ -270,10 +269,10 @@ router.get('/keys/all', jwtAuth, async (req: any, res: any) => {
     let fromScanner = 0;
     let fromFiles = 0;
 
-    // FIRST: Get scanned keys from the ultra-comprehensive scanner (priority)
+    // FIRST: Get scanned keys from the ultra-comprehensive code scanner (priority)
     try {
       const translationService = new TranslationCompletionService();
-      const scannedKeys = await translationService.scanExistingTranslationFiles();
+      const scannedKeys = await translationService.scanCodebaseForTranslationKeys();
 
       // Add all scanned keys with ultra-permissive validation  
       scannedKeys.forEach((keyObj: any) => {
@@ -283,16 +282,15 @@ router.get('/keys/all', jwtAuth, async (req: any, res: any) => {
         }
       });
 
-      console.log(`📊 [TRANSLATIONS] Added ${fromScanner} keys from scanner out of ${scannedKeys.length} scanned`);
+      console.log(`📊 [TRANSLATIONS] Added ${fromScanner} keys from codebase scanner out of ${scannedKeys.length} scanned`);
     } catch (error) {
-      console.warn('Failed to get scanned keys:', (error as Error).message);
+      console.warn('Failed to get scanned keys:', error instanceof Error ? error.message : 'Unknown error');
     }
 
     // SECOND: Get keys from existing translation files
     for (const lang of allLanguages) {
       try {
-        const langDir = lang === 'pt-BR' ? 'pt' : lang;
-        const filePath = path.join(process.cwd(), 'client/public/locales', langDir, 'translation.json');
+        const filePath = path.join(TRANSLATIONS_DIR, `${lang}.json`);
 
         const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
         if (fileExists) {

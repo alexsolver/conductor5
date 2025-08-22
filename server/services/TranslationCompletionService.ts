@@ -840,7 +840,114 @@ export class TranslationCompletionService {
   /**
    * Make scanExistingTranslationFiles public so it can be used by the routes
    */
-  async scanExistingTranslationFiles(): Promise<TranslationKey[]> {
+  public async scanCodebaseForTranslationKeys(): Promise<TranslationKey[]> {
+    console.log('🔍 [CODEBASE-SCAN] Starting comprehensive codebase scan for translation keys...');
+    const keys: TranslationKey[] = [];
+    const sourceDirectories = [
+      path.join(process.cwd(), 'client', 'src'),
+      path.join(process.cwd(), 'server'),
+      path.join(process.cwd(), 'shared')
+    ];
+
+    for (const dir of sourceDirectories) {
+      try {
+        await this.scanDirectoryForKeys(dir, keys);
+      } catch (error) {
+        console.warn(`⚠️ [CODEBASE-SCAN] Error scanning directory ${dir}:`, (error as Error).message);
+      }
+    }
+
+    // Also scan existing translation files for completeness
+    const existingKeys = await this.scanExistingTranslationFiles();
+    existingKeys.forEach(key => {
+      if (!keys.find(k => k.key === key.key)) {
+        keys.push(key);
+      }
+    });
+
+    console.log(`🔍 [CODEBASE-SCAN] Found ${keys.length} total keys from comprehensive scan`);
+    return keys;
+  }
+
+  private async scanDirectoryForKeys(directory: string, keys: TranslationKey[]): Promise<void> {
+    try {
+      const files = await fs.readdir(directory, { withFileTypes: true });
+      
+      for (const file of files) {
+        const fullPath = path.join(directory, file.name);
+        
+        if (file.isDirectory() && !['node_modules', '.git', 'dist', 'build'].includes(file.name)) {
+          await this.scanDirectoryForKeys(fullPath, keys);
+        } else if (file.isFile() && (file.name.endsWith('.tsx') || file.name.endsWith('.ts') || file.name.endsWith('.js') || file.name.endsWith('.jsx'))) {
+          await this.scanFileForKeys(fullPath, keys);
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ [CODEBASE-SCAN] Error reading directory ${directory}:`, (error as Error).message);
+    }
+  }
+
+  private async scanFileForKeys(filePath: string, keys: TranslationKey[]): Promise<void> {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      
+      // Patterns to match translation keys
+      const patterns = [
+        /t\(['"`]([^'"`]+)['"`]\)/g,                    // t('key')
+        /useTranslation\(\).*?t\(['"`]([^'"`]+)['"`]\)/g, // useTranslation().t('key')
+        /i18n\.t\(['"`]([^'"`]+)['"`]\)/g,               // i18n.t('key')
+        /\$t\(['"`]([^'"`]+)['"`]\)/g,                   // $t('key')
+        /translate\(['"`]([^'"`]+)['"`]\)/g,             // translate('key')
+        /trans\(['"`]([^'"`]+)['"`]\)/g,                 // trans('key')
+        /getTranslation\(['"`]([^'"`]+)['"`]\)/g,        // getTranslation('key')
+        /\{\{\s*['"`]([^'"`]+)['"`]\s*\|\s*translate\s*\}\}/g, // {{ 'key' | translate }}
+      ];
+
+      patterns.forEach(pattern => {
+        let match;
+        while ((match = pattern.exec(content)) !== null) {
+          const key = match[1];
+          if (key && this.isValidTranslationKey(key) && !keys.find(k => k.key === key)) {
+            keys.push({
+              key,
+              module: this.getModuleFromKey(key),
+              usage: [filePath.replace(process.cwd(), '')],
+              priority: this.getPriorityFromKey(key)
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.warn(`⚠️ [CODEBASE-SCAN] Error reading file ${filePath}:`, (error as Error).message);
+    }
+  }
+
+  private isValidTranslationKey(key: string): boolean {
+    if (!key || typeof key !== 'string') return false;
+    
+    const trimmedKey = key.trim();
+    if (trimmedKey.length === 0) return false;
+    
+    // Exclude technical patterns
+    const invalidPatterns = [
+      /^https?:\/\//,
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+      /^\d{8,}$/,
+      /^\/[^/]+\/[^/]+\/[^/]+.*$/,
+      /^#[0-9a-fA-F]{3,8}$/,
+      /^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)$/,
+      /^\d{3}:?$/,
+      /^[,\-\/\?\@\:\\\n\#\&\+\=\*\(\)\[\]\_\%\$\^\!\~\`\|]$/,
+      /^\s*$/,
+      /^\d+$/,
+      /^(true|false)$/i,
+    ];
+
+    const validKeyPattern = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
+    return validKeyPattern.test(trimmedKey) && !invalidPatterns.some(pattern => pattern.test(trimmedKey));
+  }
+
+  private async scanExistingTranslationFiles(): Promise<TranslationKey[]> {
     console.log('📋 [EXISTING-SCAN] Scanning existing translation files...');
     const keys: TranslationKey[] = [];
 

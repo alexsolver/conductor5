@@ -134,7 +134,16 @@
       "category": "tickets.form.category",
       "submit": "tickets.form.submit",
       "cancel": "tickets.form.cancel"
-    }
+    },
+    "views": {
+      "title": "tickets.views.title",
+      "activeView": "tickets.views.activeView",
+      "defaultView": "tickets.views.defaultView",
+      "newView": "tickets.views.newView",
+      "manage": "tickets.views.manage",
+      "advancedFilters": "tickets.views.advancedFilters"
+    },
+    "clear_filters": "tickets.clear_filters"
   },
   "customers": {
     "title": "Customers",
@@ -644,54 +653,6 @@
     "excellence": "technicalSkills.excellence"
   },
   "TranslationManager": {
-    "title": "TranslationManager.title",
-    "description": "TranslationManager.description",
-    "noKeysAvailable": "TranslationManager.noKeysAvailable",
-    "noKeysFound": "TranslationManager.noKeysFound",
-    "searchPlaceholder": "TranslationManager.searchPlaceholder",
-    "translationEditor": "TranslationManager.translationEditor",
-    "autoCompletion": "TranslationManager.autoCompletion",
-    "allKeys": "TranslationManager.allKeys",
-    "editorTitle": "TranslationManager.editorTitle",
-    "lastModified": "TranslationManager.lastModified",
-    "allKeysTitle": "TranslationManager.allKeysTitle",
-    "allKeysDescription": "TranslationManager.allKeysDescription",
-    "statisticsTitle": "TranslationManager.statisticsTitle",
-    "totalKeys": "TranslationManager.totalKeys",
-    "analyzeCompleteness": "TranslationManager.analyzeCompleteness",
-    "scanKeys": "TranslationManager.scanKeys",
-    "restoreBackup": "TranslationManager.restoreBackup",
-    "saveChanges": "TranslationManager.saveChanges",
-    "saving": "TranslationManager.saving",
-    "analysisSuccess": "TranslationManager.analysisSuccess",
-    "analysisError": "TranslationManager.analysisError",
-    "expansionSuccess": "TranslationManager.expansionSuccess",
-    "expansionError": "TranslationManager.expansionError",
-    "scanSuccess": "TranslationManager.scanSuccess",
-    "scanError": "TranslationManager.scanError",
-    "autoCompletionTitle": "TranslationManager.autoCompletionTitle",
-    "ultraSafeMode": "TranslationManager.ultraSafeMode",
-    "autoCompleteAll": "TranslationManager.autoCompleteAll",
-    "autoCompletionSuccess": "TranslationManager.autoCompletionSuccess",
-    "translationsAdded": "TranslationManager.translationsAdded",
-    "codeFilesProtected": "TranslationManager.codeFilesProtected",
-    "autoCompletionFailed": "TranslationManager.autoCompletionFailed",
-    "autoCompletionError": "TranslationManager.autoCompletionError",
-    "autoCompletionErrorDesc": "TranslationManager.autoCompletionErrorDesc"
-  },
-  "localization": {
-    "language": "localization.language",
-    "timezone": "localization.timezone",
-    "currency": "localization.currency",
-    "date_format": "localization.date_format",
-    "time_format": "localization.time_format",
-    "number_format": "localization.number_format",
-    "regional_settings": "localization.regional_settings",
-    "auto_detect": "localization.auto_detect",
-    "save_preferences": "localization.save_preferences",
-    "preferences_saved": "localization.preferences_saved"
-  },
-  "TranslationManager": {
     "title": "Translation Management",
     "description": "Manage system translations across all supported languages",
     "noKeysAvailable": "No translation keys available",
@@ -726,5 +687,17 @@
     "autoCompletionFailed": "Failed to auto complete translations",
     "autoCompletionError": "Auto completion failed",
     "autoCompletionErrorDesc": "Failed to auto complete translations"
+  },
+  "localization": {
+    "language": "localization.language",
+    "timezone": "localization.timezone",
+    "currency": "localization.currency",
+    "date_format": "localization.date_format",
+    "time_format": "localization.time_format",
+    "number_format": "localization.number_format",
+    "regional_settings": "localization.regional_settings",
+    "auto_detect": "localization.auto_detect",
+    "save_preferences": "localization.save_preferences",
+    "preferences_saved": "localization.preferences_saved"
   }
 }
