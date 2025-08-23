@@ -54,7 +54,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsTabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -190,7 +190,7 @@ const getWeatherCondition = (temp: number, condition?: string): keyof typeof wea
   if (condition?.toLowerCase().includes('storm') || condition?.toLowerCase().includes('thunder')) {
     return 'stormy';
   }
-  
+
   // Temperature-based classification with weather condition consideration
   if (temp >= 26) return 'excellent';
   if (temp >= 22 && temp < 26) return 'good';
@@ -200,7 +200,7 @@ const getWeatherCondition = (temp: number, condition?: string): keyof typeof wea
 };
 
 // Enhanced Weather Visualization Layer with gradient effects
-const WeatherVisualizationLayer: React.FC = () => {
+const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => {
   const map = useMap();
   const [weatherData, setWeatherData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -211,7 +211,7 @@ const WeatherVisualizationLayer: React.FC = () => {
       try {
         // Try to fetch real weather data first
         const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY;
-        
+
         if (apiKey) {
           // Fetch real weather data for São Paulo region
           const locations = [
@@ -272,7 +272,7 @@ const WeatherVisualizationLayer: React.FC = () => {
     };
 
     fetchWeatherData();
-    
+
     // Auto refresh every 10 minutes
     const interval = setInterval(fetchWeatherData, 10 * 60 * 1000);
     return () => clearInterval(interval);
@@ -295,10 +295,10 @@ const WeatherVisualizationLayer: React.FC = () => {
       {weatherData.map((data, index) => {
         const condition = getWeatherCondition(data.temp, data.condition);
         const weatherInfo = weatherVisualizationConfig[condition];
-        
+
         // Calculate dynamic radius based on zoom level
         const currentZoom = map.getZoom();
-        const baseRadius = weatherInfo.radius;
+        const baseRadius = radius; // Use passed radius prop
         const adjustedRadius = Math.max(20, baseRadius / Math.pow(2, Math.max(0, currentZoom - 10)));
 
         return (
@@ -321,29 +321,29 @@ const WeatherVisualizationLayer: React.FC = () => {
                   <span className="text-2xl">{weatherInfo.icon}</span>
                   <span>{data.name || 'Localização'}</span>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-1">
                     <span>🌡️</span>
                     <span>Temperatura: <strong>{data.temp}°C</strong></span>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <span>💧</span>
                     <span>Umidade: <strong>{data.humidity || 'N/A'}%</strong></span>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <span>💨</span>
                     <span>Vento: <strong>{data.windSpeed || 'N/A'} km/h</strong></span>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <span>🌤️</span>
                     <span>Status: <strong>{weatherInfo.condition}</strong></span>
                   </div>
                 </div>
-                
+
                 <div className="text-xs text-gray-600 border-t pt-2">
                   Condição: {data.condition}
                 </div>
@@ -901,12 +901,15 @@ const LayersPanel: React.FC<{
   setShowWeatherLayer: (show: boolean) => void;
   showTrafficLayer: boolean;
   setShowTrafficLayer: (show: boolean) => void;
+  weatherRadius: number;
+  setWeatherRadius: (radius: number) => void;
 }> = ({
   showTickets, setShowTickets,
   showTeamGroups, setShowTeamGroups,
   showAreas, setShowAreas,
   showWeatherLayer, setShowWeatherLayer,
-  showTrafficLayer, setShowTrafficLayer
+  showTrafficLayer, setShowTrafficLayer,
+  weatherRadius, setWeatherRadius
 }) => {
   return (
     <div className="space-y-6">
@@ -975,6 +978,24 @@ const LayersPanel: React.FC<{
               🌤️ Camada de Clima
             </label>
           </div>
+
+          {showWeatherLayer && (
+            <div className="ml-6 space-y-2">
+              <label htmlFor="weather-radius" className="text-sm font-medium">
+                Raio da Camada de Clima: {weatherRadius / 1000} km
+              </label>
+              <Slider
+                id="weather-radius"
+                value={[weatherRadius]}
+                onValueChange={([value]) => setWeatherRadius(value)}
+                min={1000}
+                max={20000}
+                step={1000}
+                className="w-full"
+              />
+            </div>
+          )}
+
 
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -1185,19 +1206,19 @@ export const InteractiveMap: React.FC = () => {
   });
 
   const [settings, setSettings] = useState<MapSettings>({
-    showAccuracyCircles: true,
-    showAgentRoutes: true,
+    showAccuracyCircles: false,
+    showAgentRoutes: false,
     showHeatmap: false,
     showClusters: true,
     autoRefresh: true,
-    refreshInterval: 15,
+    refreshInterval: 30,
     darkMode: false,
     animateMarkers: true,
     showBatteryWarnings: true,
     showSlaAlerts: true,
     enableGeofencing: false,
     highContrastMode: false,
-    keyboardNavigation: true,
+    keyboardNavigation: false,
     screenReaderMode: false,
     reduceMotion: false,
   });
@@ -1225,11 +1246,12 @@ export const InteractiveMap: React.FC = () => {
   }, [setSidebarHidden]);
 
   // Layer visibility states
-  const [showTickets, setShowTickets] = useState(true);
+  const [showTickets, setShowTickets] = useState(false);
   const [showTeamGroups, setShowTeamGroups] = useState(false);
   const [showAreas, setShowAreas] = useState(false);
   const [showWeatherLayer, setShowWeatherLayer] = useState(false);
   const [showTrafficLayer, setShowTrafficLayer] = useState(false);
+  const [weatherRadius, setWeatherRadius] = useState(8000); // Default 8km radius
 
   // ===========================================================================================
   // Mock Data (for demo purposes until backend is ready)
@@ -1670,6 +1692,8 @@ export const InteractiveMap: React.FC = () => {
                     setShowWeatherLayer={setShowWeatherLayer}
                     showTrafficLayer={showTrafficLayer}
                     setShowTrafficLayer={setShowTrafficLayer}
+                    weatherRadius={weatherRadius}
+                    setWeatherRadius={setWeatherRadius}
                   />
                 </div>
               </SheetContent>
@@ -2219,9 +2243,7 @@ export const InteractiveMap: React.FC = () => {
               ))}
 
               {/* Weather Layer */}
-              {showWeatherLayer && (
-                <WeatherVisualizationLayer />
-              )}
+              {showWeatherLayer && <WeatherVisualizationLayer radius={weatherRadius} />}
 
               {/* Traffic Layer */}
               {showTrafficLayer && (
