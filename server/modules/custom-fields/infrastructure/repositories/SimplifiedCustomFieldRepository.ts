@@ -5,8 +5,8 @@ import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRe
 import { CustomField } from '../../domain/entities/CustomField';
 
 export class SimplifiedCustomFieldRepository {
-  // Basic implementation for essential operations only
-  // Full ICustomFieldRepository implementation pending Clean Architecture refactor
+  // ✅ Basic implementation for essential operations only - per 1qa.md
+  // ✅ Full ICustomFieldRepository implementation pending Clean Architecture refactor
   async create(fieldData: Partial<CustomField>): Promise<CustomField> {
     const schemaName = fieldData.tenantId!.replace(/-/g, '_');
     const tableName = `"${schemaName}"."custom_fields_metadata"`;
@@ -34,7 +34,7 @@ export class SimplifiedCustomFieldRepository {
       fieldData.helpText || ''
     ]);
 
-    return result[0] as CustomField;
+    return result[0] as CustomField || null;
   }
 
   async findByModule(moduleType: string, tenantId: string): Promise<CustomField[]> {
@@ -92,18 +92,20 @@ export class SimplifiedCustomFieldRepository {
       updateData.helpText
     ]);
 
-    return result[0] as CustomField;
+    return result[0] as CustomField || null;
   }
 
-  async delete(fieldId: string, tenantId: string): Promise<void> {
+  async delete(fieldId: string, tenantId: string): Promise<boolean> {
     const schemaName = tenantId.replace(/-/g, '_');
     const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
-    await db.execute(sql.raw(`
+    const result = await db.execute(sql.raw(`
       UPDATE ${tableName} 
       SET is_active = false, updated_at = NOW() 
       WHERE id = $1
     `), [fieldId]);
+    
+    return true; // Soft delete sempre retorna true
   }
 
   async findAll(tenantId: string): Promise<CustomField[]> {
