@@ -1754,8 +1754,11 @@ export const InteractiveMap: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setIsHelpModalOpen(false)}
+                      onClick={() => {
+                        setIsHelpModalOpen(false);
+                      }}
                       className="h-6 w-6 p-0"
+                      title="Ocultar modal de legenda"
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
