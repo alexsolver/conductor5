@@ -1751,27 +1751,15 @@ export const InteractiveMap: React.FC = () => {
                       <Layers className="w-5 h-5" />
                       Legenda do Mapa
                     </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setIsHelpModalOpen(false);
-                            }}
-                            className="h-6 w-6 p-0 hover:bg-gray-100"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Ocultar modal de legenda</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsHelpModalOpen(false)}
+                      className="h-6 w-6 p-0 hover:bg-gray-100"
+                      title="Ocultar legenda"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -1789,7 +1777,10 @@ export const InteractiveMap: React.FC = () => {
                       {Object.entries(STATUS_COLORS).map(([status, color]) => (
                         <div key={status} className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                          {status.replace('_', ' ')}
+                          <span className="flex-1">{status.replace('_', ' ')}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {agents.filter(a => a.status === status).length}
+                          </Badge>
                         </div>
                       ))}
                     </div>
