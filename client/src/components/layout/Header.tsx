@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle } from "lucide-react";
+import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle, MapPin } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -94,6 +94,15 @@ export function Header() {
             >
               <Calendar className="h-5 w-5" />
               <span className="font-medium">Agenda</span>
+            </Button>
+          </Link>
+          <Link href="/interactive-map">
+            <Button
+              variant="ghost"
+              className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
+            >
+              <MapPin className="h-5 w-5" />
+              <span className="font-medium">Mapa</span>
             </Button>
           </Link>
           {/* Removed: Projects link - module completely eliminated */}
