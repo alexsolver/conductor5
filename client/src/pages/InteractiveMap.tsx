@@ -666,6 +666,113 @@ const FiltersPanel: React.FC<{
 };
 
 // ===========================================================================================
+// Layers Control Panel Component
+// ===========================================================================================
+
+const LayersPanel: React.FC<{
+  showTickets: boolean;
+  setShowTickets: (show: boolean) => void;
+  showTeamGroups: boolean;
+  setShowTeamGroups: (show: boolean) => void;
+  showAreas: boolean;
+  setShowAreas: (show: boolean) => void;
+  showWeatherLayer: boolean;
+  setShowWeatherLayer: (show: boolean) => void;
+  showTrafficLayer: boolean;
+  setShowTrafficLayer: (show: boolean) => void;
+}> = ({
+  showTickets, setShowTickets,
+  showTeamGroups, setShowTeamGroups,
+  showAreas, setShowAreas,
+  showWeatherLayer, setShowWeatherLayer,
+  showTrafficLayer, setShowTrafficLayer
+}) => {
+  return (
+    <div className="space-y-6">
+      {/* Visualization Layers */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Map className="w-4 h-4" />
+          Camadas de Visualização
+        </h4>
+        
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="show-tickets"
+              checked={showTickets}
+              onCheckedChange={setShowTickets}
+              data-testid="toggle-tickets-layer"
+            />
+            <label htmlFor="show-tickets" className="text-sm cursor-pointer">
+              📋 Tickets no Mapa
+            </label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="show-team-groups"
+              checked={showTeamGroups}
+              onCheckedChange={setShowTeamGroups}
+              data-testid="toggle-team-groups-layer"
+            />
+            <label htmlFor="show-team-groups" className="text-sm cursor-pointer">
+              👥 Grupos de Técnicos
+            </label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="show-areas"
+              checked={showAreas}
+              onCheckedChange={setShowAreas}
+              data-testid="toggle-areas-layer"
+            />
+            <label htmlFor="show-areas" className="text-sm cursor-pointer">
+              🏢 Áreas e Locais
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      {/* External Data Layers */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <CloudRain className="w-4 h-4" />
+          Dados Externos
+        </h4>
+        
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="show-weather"
+              checked={showWeatherLayer}
+              onCheckedChange={setShowWeatherLayer}
+              data-testid="toggle-weather-layer"
+            />
+            <label htmlFor="show-weather" className="text-sm cursor-pointer">
+              🌤️ Camada de Clima
+            </label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="show-traffic"
+              checked={showTrafficLayer}
+              onCheckedChange={setShowTrafficLayer}
+              data-testid="toggle-traffic-layer"
+            />
+            <label htmlFor="show-traffic" className="text-sm cursor-pointer">
+              🚗 Camada de Trânsito
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================================================================================
 // Map Settings Panel Component
 // ===========================================================================================
 
@@ -884,6 +991,13 @@ export const InteractiveMap: React.FC = () => {
   const [legendExpanded, setLegendExpanded] = useState(true);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+  
+  // Layer visibility states
+  const [showTickets, setShowTickets] = useState(true);
+  const [showTeamGroups, setShowTeamGroups] = useState(false);
+  const [showAreas, setShowAreas] = useState(false);
+  const [showWeatherLayer, setShowWeatherLayer] = useState(false);
+  const [showTrafficLayer, setShowTrafficLayer] = useState(false);
   
   // ===========================================================================================
   // Mock Data (for demo purposes until backend is ready)
@@ -1219,6 +1333,35 @@ export const InteractiveMap: React.FC = () => {
                     teams={availableTeams}
                     skills={availableSkills}
                     agentStats={agentStats?.data}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Layers Toggle */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="layers-toggle">
+                  <Map className="w-4 h-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Camadas do Mapa</SheetTitle>
+                  <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
+                </SheetHeader>
+                <div className="mt-6">
+                  <LayersPanel
+                    showTickets={showTickets}
+                    setShowTickets={setShowTickets}
+                    showTeamGroups={showTeamGroups}
+                    setShowTeamGroups={setShowTeamGroups}
+                    showAreas={showAreas}
+                    setShowAreas={setShowAreas}
+                    showWeatherLayer={showWeatherLayer}
+                    setShowWeatherLayer={setShowWeatherLayer}
+                    showTrafficLayer={showTrafficLayer}
+                    setShowTrafficLayer={setShowTrafficLayer}
                   />
                 </div>
               </SheetContent>
