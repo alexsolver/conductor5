@@ -205,7 +205,7 @@ const getWeatherCondition = (temp: number, condition?: string): keyof typeof wea
 };
 
 // ✅ Enhanced Weather Visualization Layer using SaaS Admin OpenWeather integration
-const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => {
+const WeatherVisualizationLayer: React.FC<{ radius: number }> = React.memo(({ radius }) => {
   const map = useMap();
   const [weatherData, setWeatherData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -399,7 +399,7 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
       })}
     </>
   );
-};
+});
 
 
 // ===========================================================================================
@@ -476,7 +476,7 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
 // Advanced Agent Tooltip Component
 // ===========================================================================================
 
-const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
+const AgentTooltip: React.FC<{ agent: AgentPosition }> = React.memo(({ agent }) => {
   const { t } = useTranslation();
 
   const formatTime = (dateString: string | null) => {
@@ -673,7 +673,7 @@ const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
       </div>
     </div>
   );
-};
+});
 
 // ===========================================================================================
 // Dynamic Filters Panel Component
@@ -684,13 +684,22 @@ const FiltersPanel: React.FC<{
   onFiltersChange: (filters: MapFilters) => void;
   teams: string[];
   skills: string[];
-  agentStats: any;
-}> = ({ filters, onFiltersChange, teams, skills, agentStats }) => {
+  agentStats: {
+    total: number;
+    online: number;
+    onDuty: number;
+    assigned: number;
+    slaRisk: number;
+    batteryLow: number;
+    signalWeak: number;
+    statusBreakdown: Record<string, number>;
+  } | undefined;
+}> = React.memo(({ filters, onFiltersChange, teams, skills, agentStats }) => {
   const { t } = useTranslation();
 
-  const handleFilterChange = (key: keyof MapFilters, value: any) => {
+  const handleFilterChange = useCallback((key: keyof MapFilters, value: any) => {
     onFiltersChange({ ...filters, [key]: value });
-  };
+  }, [filters, onFiltersChange]);
 
   return (
     <div className="space-y-6">
@@ -929,7 +938,7 @@ const FiltersPanel: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 // ===========================================================================================
 // Layers Control Panel Component
@@ -948,7 +957,7 @@ const LayersPanel: React.FC<{
   setShowTrafficLayer: (show: boolean) => void;
   weatherRadius: number;
   setWeatherRadius: (radius: number) => void;
-}> = ({
+}> = React.memo(({
   showTickets, setShowTickets,
   showTeamGroups, setShowTeamGroups,
   showAreas, setShowAreas,
@@ -956,6 +965,13 @@ const LayersPanel: React.FC<{
   showTrafficLayer, setShowTrafficLayer,
   weatherRadius, setWeatherRadius
 }) => {
+  const handleShowTicketsChange = useCallback((show: boolean) => setShowTickets(show), [setShowTickets]);
+  const handleShowTeamGroupsChange = useCallback((show: boolean) => setShowTeamGroups(show), [setShowTeamGroups]);
+  const handleShowAreasChange = useCallback((show: boolean) => setShowAreas(show), [setShowAreas]);
+  const handleShowWeatherLayerChange = useCallback((show: boolean) => setShowWeatherLayer(show), [setShowWeatherLayer]);
+  const handleShowTrafficLayerChange = useCallback((show: boolean) => setShowTrafficLayer(show), [setShowTrafficLayer]);
+  const handleWeatherRadiusChange = useCallback((radius: number) => setWeatherRadius(radius), [setWeatherRadius]);
+
   return (
     <div className="space-y-6">
       {/* Visualization Layers */}
@@ -970,7 +986,7 @@ const LayersPanel: React.FC<{
             <Checkbox
               id="show-tickets"
               checked={showTickets}
-              onCheckedChange={setShowTickets}
+              onCheckedChange={handleShowTicketsChange}
               data-testid="toggle-tickets-layer"
             />
             <label htmlFor="show-tickets" className="text-sm cursor-pointer">
@@ -982,7 +998,7 @@ const LayersPanel: React.FC<{
             <Checkbox
               id="show-team-groups"
               checked={showTeamGroups}
-              onCheckedChange={setShowTeamGroups}
+              onCheckedChange={handleShowTeamGroupsChange}
               data-testid="toggle-team-groups-layer"
             />
             <label htmlFor="show-team-groups" className="text-sm cursor-pointer">
@@ -994,7 +1010,7 @@ const LayersPanel: React.FC<{
             <Checkbox
               id="show-areas"
               checked={showAreas}
-              onCheckedChange={setShowAreas}
+              onCheckedChange={handleShowAreasChange}
               data-testid="toggle-areas-layer"
             />
             <label htmlFor="show-areas" className="text-sm cursor-pointer">
@@ -1016,7 +1032,7 @@ const LayersPanel: React.FC<{
             <Checkbox
               id="show-weather"
               checked={showWeatherLayer}
-              onCheckedChange={setShowWeatherLayer}
+              onCheckedChange={handleShowWeatherLayerChange}
               data-testid="toggle-weather-layer"
             />
             <label htmlFor="show-weather" className="text-sm cursor-pointer">
@@ -1032,7 +1048,7 @@ const LayersPanel: React.FC<{
               <Slider
                 id="weather-radius"
                 value={[weatherRadius]}
-                onValueChange={([value]) => setWeatherRadius(value)}
+                onValueChange={([value]) => handleWeatherRadiusChange(value)}
                 min={1000}
                 max={20000}
                 step={1000}
@@ -1046,7 +1062,7 @@ const LayersPanel: React.FC<{
             <Checkbox
               id="show-traffic"
               checked={showTrafficLayer}
-              onCheckedChange={setShowTrafficLayer}
+              onCheckedChange={handleShowTrafficLayerChange}
               data-testid="toggle-traffic-layer"
             />
             <label htmlFor="show-traffic" className="text-sm cursor-pointer">
@@ -1057,7 +1073,7 @@ const LayersPanel: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 // ===========================================================================================
 // Map Settings Panel Component
@@ -1066,12 +1082,12 @@ const LayersPanel: React.FC<{
 const MapSettingsPanel: React.FC<{
   settings: MapSettings;
   onSettingsChange: (settings: MapSettings) => void;
-}> = ({ settings, onSettingsChange }) => {
+}> = React.memo(({ settings, onSettingsChange }) => {
   const { t } = useTranslation();
 
-  const handleSettingChange = (key: keyof MapSettings, value: any) => {
+  const handleSettingChange = useCallback((key: keyof MapSettings, value: any) => {
     onSettingsChange({ ...settings, [key]: value });
-  };
+  }, [settings, onSettingsChange]);
 
   return (
     <div className="space-y-6">
@@ -1224,7 +1240,7 @@ const MapSettingsPanel: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 // ===========================================================================================
 // Main Interactive Map Component
@@ -1235,7 +1251,7 @@ export const InteractiveMap: React.FC = () => {
   const queryClient = useQueryClient();
 
   // ===========================================================================================
-  // State Management
+  // Component State Management
   // ===========================================================================================
 
   const [filters, setFilters] = useState<MapFilters>({
@@ -1275,12 +1291,9 @@ export const InteractiveMap: React.FC = () => {
   const [mapZoom, setMapZoom] = useState(12);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
-  const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden, toggleHeader, headerHidden } = useSidebar();
+  const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden } = useSidebar();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const [activeLayer, setActiveLayer] = useState<'osm' | 'satellite'>('osm'); // State for the help modal
-
-  // State for the selected point to display in the modal
   const [selectedPoint, setSelectedPoint] = useState<any>(null); // Use 'any' for mock data structure
 
   // Auto-hide sidebar when component mounts and show when unmounts
@@ -1453,7 +1466,7 @@ export const InteractiveMap: React.FC = () => {
     staleTime: 5000,
   });
 
-  const { data: agentStats } = useQuery({
+  const { data: agentStatsData } = useQuery({
     queryKey: ['/api/interactive-map/agents/stats'],
     queryFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -1475,46 +1488,77 @@ export const InteractiveMap: React.FC = () => {
   });
 
   // ===========================================================================================
-  // Derived Data and Performance Optimization
+  // Data Processing and Filtering (Memoized for performance)
   // ===========================================================================================
 
-  const agents: AgentPosition[] = agentsData?.data?.agents || [];
-
-  // Filter agents by search term
-  const filteredAgents = useMemo(() => {
-    if (!searchTerm) return agents;
+  const filteredAgents = useMemo(() => agents.filter(agent => {
+    // Apply search term filter
     const search = searchTerm.toLowerCase();
-    return agents.filter(agent =>
-      agent.name.toLowerCase().includes(search) ||
-      agent.team.toLowerCase().includes(search) ||
-      agent.skills.some(skill => skill.toLowerCase().includes(search)) ||
-      agent.assigned_ticket_id?.toLowerCase().includes(search)
-    );
-  }, [agents, searchTerm]);
+    const matchesSearch = agent.name.toLowerCase().includes(search) ||
+                          agent.team.toLowerCase().includes(search) ||
+                          agent.skills.some(skill => skill.toLowerCase().includes(search)) ||
+                          agent.assigned_ticket_id?.toLowerCase().includes(search);
 
-  // Extract unique teams and skills for filters
-  const availableTeams = useMemo(() =>
-    Array.from(new Set(agents.map(agent => agent.team).filter(Boolean))).sort(),
+    if (!matchesSearch) return false;
+
+    // Apply status filter
+    if (filters.status.length > 0 && !filters.status.includes(agent.status)) return false;
+
+    // Apply team filter
+    if (filters.teams.length > 0 && !filters.teams.includes(agent.team)) return false;
+
+    // Apply skills filter
+    if (filters.skills.length > 0 && !filters.skills.some(skill => agent.skills.includes(skill))) return false;
+
+    // Apply battery level filter
+    if (agent.device_battery !== null && (agent.device_battery < filters.batteryLevel.min || agent.device_battery > filters.batteryLevel.max)) return false;
+
+    // Apply last activity filter
+    if (agent.last_ping_at) {
+      const lastActivityTime = new Date(agent.last_ping_at).getTime();
+      const cutoffTime = Date.now() - filters.lastActivityMinutes * 60000;
+      if (lastActivityTime < cutoffTime) return false;
+    }
+
+    // Apply assigned tickets only filter
+    if (filters.assignedTicketsOnly && !agent.assigned_ticket_id) return false;
+
+    // Apply on duty only filter
+    if (filters.onDutyOnly && !agent.is_on_duty) return false;
+
+    // Apply accuracy threshold filter
+    if (agent.accuracy !== null && agent.accuracy > filters.accuracyThreshold) return false;
+
+    // Apply SLA risk filter
+    if (filters.slaRisk && !agent.sla_risk) return false;
+
+    return true;
+  }), [agents, filters, searchTerm]);
+
+  // Agent Statistics (Memoized for performance)
+  const agentStats = useMemo(() => ({
+    total: agents.length,
+    online: agents.filter(a => a.is_online).length,
+    onDuty: agents.filter(a => a.is_on_duty).length,
+    assigned: agents.filter(a => a.assigned_ticket_id).length,
+    slaRisk: agents.filter(a => a.sla_risk).length,
+    batteryLow: agents.filter(a => a.battery_warning).length,
+    signalWeak: agents.filter(a => a.signal_warning).length,
+    statusBreakdown: agents.reduce((acc, agent) => {
+      acc[agent.status] = (acc[agent.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  }), [agents]);
+
+  const uniqueTeams = useMemo(() => 
+    [...new Set(agents.map(a => a.team))].filter(Boolean), 
     [agents]
   );
 
-  const availableSkills = useMemo(() =>
-    Array.from(new Set(agents.flatMap(agent => agent.skills))).sort(),
+  const uniqueSkills = useMemo(() => 
+    [...new Set(agents.flatMap(a => a.skills))].filter(Boolean), 
     [agents]
   );
-
-  // Performance optimization: Only render agents in viewport for large datasets
-  const visibleAgents = useMemo(() => {
-    if (filteredAgents.length <= 500) return filteredAgents;
-
-    if (!viewportBounds) return filteredAgents.slice(0, 500);
-
-    return filteredAgents.filter(agent =>
-      agent.lat !== null && agent.lng !== null &&
-      agent.lat >= viewportBounds.south && agent.lat <= viewportBounds.north &&
-      agent.lng >= viewportBounds.west && agent.lng <= viewportBounds.east
-    );
-  }, [filteredAgents, viewportBounds]);
 
   // ===========================================================================================
   // Event Handlers
@@ -1610,14 +1654,60 @@ export const InteractiveMap: React.FC = () => {
   }, [settings.keyboardNavigation, queryClient]);
 
   // ===========================================================================================
+  // Component State Management
+  // ===========================================================================================
+
+  // Custom hook for map resize optimization
+  const useMapResize = () => {
+    const mapRef = useRef<L.Map | null>(null);
+
+    useEffect(() => {
+      const handleResize = () => {
+        if (mapRef.current) {
+          setTimeout(() => {
+            mapRef.current?.invalidateSize();
+          }, 100);
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+      // Trigger resize when sidebar toggles
+      const timer = setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }, [sidebarHidden, sidebarCollapsed]); // Dependency on sidebar state
+
+    return mapRef;
+  };
+
+  const mapRef = useMapResize();
+
+  // ===========================================================================================
   // Component Render
   // ===========================================================================================
 
-  const mapRef = useRef<any>(null); // Ref for the MapContainer
+  // Performance monitoring
+  useEffect(() => {
+    const startTime = performance.now();
+
+    return () => {
+      const endTime = performance.now();
+      console.log(`🗺️ [PERFORMANCE] InteractiveMap render time: ${endTime - startTime}ms`);
+    };
+  });
 
   return (
     <TooltipProvider>
-      <div className={`h-screen flex flex-col ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
+      <div className="h-screen flex flex-col overflow-hidden bg-background"
+           style={{ minHeight: '100vh', position: 'relative' }}>
           {/* Header Fixo - Sempre Visível */}
           <div className="flex items-center justify-between p-4 bg-background border-b sticky top-0 z-[99999]">
             <div className="flex items-center gap-4">
@@ -1690,9 +1780,9 @@ export const InteractiveMap: React.FC = () => {
                   <FiltersPanel
                     filters={filters}
                     onFiltersChange={setFilters}
-                    teams={availableTeams}
-                    skills={availableSkills}
-                    agentStats={agentStats?.data}
+                    teams={uniqueTeams}
+                    skills={uniqueSkills}
+                    agentStats={agentStatsData?.data}
                   />
                 </div>
               </SheetContent>
@@ -1784,7 +1874,7 @@ export const InteractiveMap: React.FC = () => {
                             const response = await fetch('/api/interactive-map/export/csv', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
+                              body: JSON.stringify({ agents: filteredAgents, filters: filters })
                             });
                             if (response.ok) {
                               const blob = await response.blob();
@@ -1813,7 +1903,7 @@ export const InteractiveMap: React.FC = () => {
                             const response = await fetch('/api/interactive-map/export/geojson', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
+                              body: JSON.stringify({ agents: filteredAgents, filters: filters })
                             });
                             if (response.ok) {
                               const blob = await response.blob();
@@ -1842,7 +1932,7 @@ export const InteractiveMap: React.FC = () => {
                             const response = await fetch('/api/interactive-map/export/pdf', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
+                              body: JSON.stringify({ agents: filteredAgents, filters: filters })
                             });
                             if (response.ok) {
                               const blob = await response.blob();
@@ -2083,9 +2173,9 @@ export const InteractiveMap: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={toggleHeader}
+              onClick={() => {}} // Placeholder for header toggle functionality
               data-testid="header-toggle"
-              title={headerHidden ? "Mostrar menu principal" : "Esconder menu principal"}
+              title={"Mostrar/Esconder menu principal"}
             >
               <Maximize2 className="w-4 h-4" />
             </Button>
@@ -2150,190 +2240,187 @@ export const InteractiveMap: React.FC = () => {
 
           {/* Main Content */}
           <div className="flex-1 relative">
-            {/* Map Container */}
-            <div className="h-full">
-            <MapContainer
-              center={mapCenter}
-              zoom={mapZoom}
-              className="w-full h-full"
-              zoomControl={true}
-              style={{ background: '#f8fafc' }}
-              ref={mapRef}
-              // Added onMoveend to capture viewport bounds changes
-              whenReady={(mapInstance) => {
-                setViewportBounds({
-                  north: mapInstance.target.getBounds().getNorth(),
-                  south: mapInstance.target.getBounds().getSouth(),
-                  east: mapInstance.target.getBounds().getEast(),
-                  west: mapInstance.target.getBounds().getWest(),
-                });
-              }}
-              whenMoveend={(mapInstance) => handleMapMove(mapInstance.target.getBounds(), mapInstance.target.getZoom())}
-            >
-              {/* Base Layer */}
-              {activeLayer === 'osm' ? (
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  className={settings.darkMode ? 'dark-tiles' : ''}
-                />
-              ) : (
-                <TileLayer
-                  attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                  url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-                />
-              )}
-
-              {/* Agent Markers */}
-              {visibleAgents.map(agent =>
-                agent.lat !== null && agent.lng !== null ? (
-                  <div key={agent.id}>
-                    <Marker
-                      position={[agent.lat, agent.lng]}
-                      icon={createAgentIcon(agent, settings)}
-                      eventHandlers={{
-                        click: () => handleAgentClick(agent),
-                      }}
-                    >
-                      <Popup maxWidth={400} className="agent-popup">
-                        <AgentTooltip agent={agent} />
-                      </Popup>
-                    </Marker>
-
-                    {/* Accuracy Circle */}
-                    {settings.showAccuracyCircles && agent.accuracy && (
-                      <Circle
-                        center={[agent.lat, agent.lng]}
-                        radius={agent.accuracy}
-                        pathOptions={{
-                          color: agent.status_color,
-                          fillColor: agent.status_color,
-                          fillOpacity: 0.1,
-                          weight: 1,
-                        }}
-                      />
-                    )}
+            {/* Map Container - Optimized for better rendering */}
+            <div className="flex-1 relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 z-50">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Carregando mapa...</p>
                   </div>
-                ) : null
-              )}
-
-              {/* Ticket Markers */}
-              {showTickets && mockTickets.map(ticket => (
-                <Marker
-                  key={ticket.id}
-                  position={[ticket.lat, ticket.lng]}
-                  icon={divIcon({
-                    html: `<div class="ticket-marker ${ticket.priority}" style="
-                      width: 24px; height: 24px; border-radius: 4px;
-                      display: flex; align-items: center; justify-content: center;
-                      background: ${ticket.priority === 'alta' ? '#ef4444' : ticket.priority === 'media' ? '#f59e0b' : '#22c55e'};
-                      color: white; font-weight: bold; font-size: 12px;
-                      border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                    ">📋</div>`,
-                    className: 'custom-ticket-marker',
-                    iconSize: [24, 24]
-                  })}
-                >
-                  <Popup>
-                    <div className="space-y-2">
-                      <div className="font-semibold">{ticket.title}</div>
-                      <div className="text-sm text-muted-foreground">ID: {ticket.id}</div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={ticket.priority === 'alta' ? 'destructive' : ticket.priority === 'media' ? 'default' : 'secondary'}>
-                          {ticket.priority}
-                        </Badge>
-                        <Badge variant="outline">{ticket.status}</Badge>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-
-              {/* Area Polygons */}
-              {showAreas && mockAreas.map(area => (
-                <CircleMarker
-                  key={area.id}
-                  center={[area.lat, area.lng]}
-                  radius={50}
-                  pathOptions={{
-                    color: area.color,
-                    fillColor: area.color,
-                    fillOpacity: 0.3,
-                    weight: 2
-                  }}
-                >
-                  <Popup>
-                    <div className="space-y-2">
-                      <div className="font-semibold">{area.name}</div>
-                      <div className="text-sm text-muted-foreground">Tipo: {area.type}</div>
-                      <div className="text-sm">ID: {area.id}</div>
-                    </div>
-                  </Popup>
-                </CircleMarker>
-              ))}
-
-              {/* Team Group Markers */}
-              {showTeamGroups && mockTeamGroups.map(group => (
-                <Marker
-                  key={group.id}
-                  position={[group.lat, group.lng]}
-                  icon={divIcon({
-                    html: `<div class="team-group-marker" style="
-                      width: 32px; height: 32px; border-radius: 50%;
-                      display: flex; align-items: center; justify-content: center;
-                      background: ${group.status === 'ativo' ? '#22c55e' : '#f59e0b'};
-                      color: white; font-weight: bold; font-size: 14px;
-                      border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                    ">👥</div>`,
-                    className: 'custom-team-marker',
-                    iconSize: [32, 32]
-                  })}
-                >
-                  <Popup>
-                    <div className="space-y-2">
-                      <div className="font-semibold">{group.name}</div>
-                      <div className="text-sm text-muted-foreground">Membros: {group.members}</div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={group.status === 'ativo' ? 'default' : 'secondary'}>
-                          {group.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-
-              {/* Weather Layer */}
-              {showWeatherLayer && <WeatherVisualizationLayer radius={weatherRadius} />}
-
-              {/* Traffic Layer */}
-              {showTrafficLayer && (
-                <div>
-                  {/* Traffic overlay implementation would go here */}
-                  <CircleMarker
-                    center={[-23.5505, -46.6333]}
-                    radius={80}
-                    pathOptions={{
-                      color: '#ef4444',
-                      fillColor: '#ef4444',
-                      fillOpacity: 0.2,
-                      weight: 2,
-                      dashArray: '3, 3'
-                    }}
-                  >
-                    <Popup>
-                      <div className="space-y-2">
-                        <div className="font-semibold">🚗 Informações de Trânsito</div>
-                        <div className="text-sm">Status: Congestionamento</div>
-                        <div className="text-sm">Velocidade média: 15 km/h</div>
-                        <div className="text-sm">Tempo estimado: +20 min</div>
-                      </div>
-                    </Popup>
-                  </CircleMarker>
                 </div>
               )}
+              <div className="absolute inset-0" style={{ minHeight: '400px' }}>
+                <MapContainer
+                  center={mapCenter}
+                  zoom={mapZoom}
+                  className="h-full w-full z-0"
+                  style={{ height: '100%', width: '100%' }}
+                  zoomControl={false}
+                  preferCanvas={true}
+                  updateWhenZooming={false}
+                  updateWhenIdle={true}
+                  whenReady={(mapInstance) => {
+                    mapRef.current = mapInstance.target;
+                    mapInstance.target.invalidateSize();
+                  }}
+                  whenMoveend={(mapInstance) => handleMapMove(mapInstance.target.getBounds(), mapInstance.target.getZoom())}
+                >
+                  {/* Map Events Handler */}
+                  <MapEvents mapRef={mapRef} />
 
-            </MapContainer>
+                  {/* Base Layer */}
+                  {activeLayer === 'osm' ? (
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      className={settings.darkMode ? 'dark-tiles' : ''}
+                    />
+                  ) : (
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                      url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                    />
+                  )}
+
+                  {/* Agent Markers */}
+                  {filteredAgents.map(agent =>
+                    agent.lat !== null && agent.lng !== null ? (
+                      <Marker
+                        key={agent.id}
+                        position={[agent.lat, agent.lng]}
+                        icon={createAgentIcon(agent, settings)}
+                        eventHandlers={{
+                          click: () => handleAgentClick(agent),
+                        }}
+                      >
+                        <Popup maxWidth={400} className="agent-popup">
+                          <AgentTooltip agent={agent} />
+                        </Popup>
+                      </Marker>
+                    ) : null
+                  )}
+
+                  {/* Ticket Markers */}
+                  {showTickets && mockTickets.map(ticket => (
+                    <Marker
+                      key={ticket.id}
+                      position={[ticket.lat, ticket.lng]}
+                      icon={divIcon({
+                        html: `<div class="ticket-marker ${ticket.priority}" style="
+                          width: 24px; height: 24px; border-radius: 4px;
+                          display: flex; align-items: center; justify-content: center;
+                          background: ${ticket.priority === 'alta' ? '#ef4444' : ticket.priority === 'media' ? '#f59e0b' : '#22c55e'};
+                          color: white; font-weight: bold; font-size: 12px;
+                          border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                        ">📋</div>`,
+                        className: 'custom-ticket-marker',
+                        iconSize: [24, 24]
+                      })}
+                    >
+                      <Popup>
+                        <div className="space-y-2">
+                          <div className="font-semibold">{ticket.title}</div>
+                          <div className="text-sm text-muted-foreground">ID: {ticket.id}</div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={ticket.priority === 'alta' ? 'destructive' : ticket.priority === 'media' ? 'default' : 'secondary'}>
+                              {ticket.priority}
+                            </Badge>
+                            <Badge variant="outline">{ticket.status}</Badge>
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+
+                  {/* Area Polygons */}
+                  {showAreas && mockAreas.map(area => (
+                    <CircleMarker
+                      key={area.id}
+                      center={[area.lat, area.lng]}
+                      radius={50}
+                      pathOptions={{
+                        color: area.color,
+                        fillColor: area.color,
+                        fillOpacity: 0.3,
+                        weight: 2
+                      }}
+                    >
+                      <Popup>
+                        <div className="space-y-2">
+                          <div className="font-semibold">{area.name}</div>
+                          <div className="text-sm text-muted-foreground">Tipo: {area.type}</div>
+                          <div className="text-sm">ID: {area.id}</div>
+                        </div>
+                      </Popup>
+                    </CircleMarker>
+                  ))}
+
+                  {/* Team Group Markers */}
+                  {showTeamGroups && mockTeamGroups.map(group => (
+                    <Marker
+                      key={group.id}
+                      position={[group.lat, group.lng]}
+                      icon={divIcon({
+                        html: `<div class="team-group-marker" style="
+                          width: 32px; height: 32px; border-radius: 50%;
+                          display: flex; align-items: center; justify-content: center;
+                          background: ${group.status === 'ativo' ? '#22c55e' : '#f59e0b'};
+                          color: white; font-weight: bold; font-size: 14px;
+                          border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                        ">👥</div>`,
+                        className: 'custom-team-marker',
+                        iconSize: [32, 32]
+                      })}
+                    >
+                      <Popup>
+                        <div className="space-y-2">
+                          <div className="font-semibold">{group.name}</div>
+                          <div className="text-sm text-muted-foreground">Membros: {group.members}</div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={group.status === 'ativo' ? 'default' : 'secondary'}>
+                              {group.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+
+                  {/* Weather Layer */}
+                  {showWeatherLayer && (
+                    <WeatherVisualizationLayer radius={weatherRadius} />
+                  )}
+
+                  {/* Traffic Layer */}
+                  {showTrafficLayer && (
+                    <div>
+                      {/* Traffic overlay implementation would go here */}
+                      <CircleMarker
+                        center={[-23.5505, -46.6333]}
+                        radius={80}
+                        pathOptions={{
+                          color: '#ef4444',
+                          fillColor: '#ef4444',
+                          fillOpacity: 0.2,
+                          weight: 2,
+                          dashArray: '3, 3'
+                        }}
+                      >
+                        <Popup>
+                          <div className="space-y-2">
+                            <div className="font-semibold">🚗 Informações de Trânsito</div>
+                            <div className="text-sm">Status: Congestionamento</div>
+                            <div className="text-sm">Velocidade média: 15 km/h</div>
+                            <div className="text-sm">Tempo estimado: +20 min</div>
+                          </div>
+                        </Popup>
+                      </CircleMarker>
+                    </div>
+                  )}
+
+                </MapContainer>
+              </div>
             </div>
           </div>
 
@@ -2386,9 +2473,6 @@ export const InteractiveMap: React.FC = () => {
               )}
             </Card>
           )}
-
-          {/* Statistics Panel (Removed as per instructions) */}
-          {/* The following block for the Statistics Panel has been removed */}
 
           {/* Loading Overlay */}
           {isLoading && (
