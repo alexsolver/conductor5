@@ -1912,16 +1912,29 @@ export const InteractiveMap: React.FC = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Exit fullscreen clicked - current state:', isFullscreen);
-                  console.log('Body classes before:', document.body.className);
                   
-                  setIsFullscreen(false);
+                  console.log('🔴 CLICK - Exit fullscreen button clicked');
+                  console.log('🔴 BEFORE - isFullscreen:', isFullscreen);
+                  console.log('🔴 BEFORE - body classes:', document.body.className);
+                  console.log('🔴 BEFORE - body style:', document.body.style.cssText);
+                  
+                  // Força a remoção imediata de todas as classes e estilos
                   document.body.classList.remove('fullscreen-map-active');
                   document.body.style.cssText = '';
                   document.documentElement.style.cssText = '';
                   
-                  console.log('Body classes after:', document.body.className);
-                  console.log('IsFullscreen set to false');
+                  // Força uma atualização imediata do DOM
+                  setTimeout(() => {
+                    console.log('🔴 TIMEOUT - Setting isFullscreen to false');
+                    setIsFullscreen(false);
+                    
+                    // Segunda verificação
+                    setTimeout(() => {
+                      console.log('🔴 AFTER - isFullscreen should be false');
+                      console.log('🔴 AFTER - body classes:', document.body.className);
+                      console.log('🔴 AFTER - body style:', document.body.style.cssText);
+                    }, 100);
+                  }, 0);
                 }}
                 onMouseDown={(e) => {
                   e.preventDefault();
