@@ -1339,6 +1339,7 @@ export const InteractiveMap: React.FC = () => {
   const [mapZoom, setMapZoom] = useState(12);
   const [trajectoryModalOpen, setTrajectoryModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
+  const [selectedTrajectory, setSelectedTrajectory] = useState<any>(null);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
   const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden, toggleHeader, headerHidden } = useSidebar();
@@ -2281,10 +2282,59 @@ export const InteractiveMap: React.FC = () => {
                       <Popup maxWidth={400} className="agent-popup">
                         <AgentTooltip 
                           agent={agent} 
-                          onOpenTrajectory={(selectedAgent) => {
-                            console.log('📍 [TRAJECTORY] Abrindo modal de trajetória para:', selectedAgent.name);
-                            setSelectedAgent(selectedAgent);
-                            setTrajectoryModalOpen(true);
+                          onOpenTrajectory={async (selectedAgent) => {
+                            try {
+                              console.log('📍 [TRAJECTORY] Carregando trajetória do banco para:', selectedAgent.name);
+                              setSelectedAgent(selectedAgent);
+                              
+                              // Fazer requisição para API real
+                              const response = await fetch(`/api/interactive-map/trajectory/${selectedAgent.id}`, {
+                                method: 'GET',
+                                credentials: 'include',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                },
+                              });
+
+                              if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.message || 'Falha ao carregar trajetória');
+                              }
+
+                              const result = await response.json();
+                              const trajectory = result.data;
+
+                              console.log('✅ [TRAJECTORY] Trajetória carregada do banco:', {
+                                points: trajectory.points.length,
+                                distance: `${trajectory.totalDistance}km`,
+                                maxSpeed: `${trajectory.maxSpeed}km/h`,
+                                avgSpeed: `${trajectory.avgSpeed}km/h`
+                              });
+
+                              // Armazenar dados para o modal
+                              setSelectedTrajectory(trajectory);
+                              setTrajectoryModalOpen(true);
+
+                              // Show detailed results
+                              const startTime = new Date(trajectory.startTime);
+                              const endTime = new Date(trajectory.endTime);
+                              const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+                              
+                              alert(`🎯 TRAJETÓRIA CARREGADA COM SUCESSO\\n\\n` +
+                                `📊 DADOS REAIS DO BANCO:\\n` +
+                                `• Agente: ${trajectory.agentName}\\n` +
+                                `• Período: ${startTime.toLocaleString()} - ${endTime.toLocaleString()}\\n` +
+                                `• Duração: ${duration.toFixed(1)}h\\n` +
+                                `• Pontos coletados: ${trajectory.points.length}\\n` +
+                                `• Distância percorrida: ${trajectory.totalDistance} km\\n` +
+                                `• Velocidade máxima: ${trajectory.maxSpeed} km/h\\n` +
+                                `• Velocidade média: ${trajectory.avgSpeed} km/h\\n\\n` +
+                                `⏯️ Modal aberto com controles completos!`);
+
+                            } catch (error) {
+                              console.error('❌ [TRAJECTORY] Erro ao carregar:', error);
+                              alert(`❌ Erro ao carregar trajetória: ${error instanceof Error ? error.message : 'Erro desconhecido'}\\n\\nVerifique se existem dados de trajetória para este agente no banco.`);
+                            }
                           }}
                         />
                       </Popup>
