@@ -41,7 +41,9 @@ import {
   Grid3X3,
   Move,
   History,
-  CloudRain
+  CloudRain,
+  Globe,
+  Map
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1399,9 +1401,8 @@ export const InteractiveMap: React.FC = () => {
             {/* Base Layer Toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="layers-toggle" className="flex items-center">
-                  <Layers className="w-4 h-4 mr-2" />
-                  {activeLayer === 'osm' ? 'Padrão' : 'Satélite'}
+                <Button variant="outline" size="sm" data-testid="layers-toggle" className="flex items-center justify-center">
+                  {activeLayer === 'osm' ? <Map className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="bottom" sideOffset={5} className="z-[99999] min-w-[150px]">
@@ -1431,9 +1432,8 @@ export const InteractiveMap: React.FC = () => {
             {/* Other Layers Panel */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="other-layers-toggle" className="flex items-center">
-                  <Eye className="w-4 h-4 mr-2 flex-shrink-0" />
-                  Camadas
+                <Button variant="outline" size="sm" data-testid="other-layers-toggle" className="flex items-center justify-center">
+                  <Layers className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 z-[99999]">
