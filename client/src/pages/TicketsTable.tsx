@@ -1419,7 +1419,7 @@ const TicketsTable = React.memo(() => {
     ticketsStructure: ticketsData ? Object.keys(ticketsData) : 'null',
     actualTickets: tickets,
     customersCount: 0, // Legacy system removed
-    usersCount: users.length,
+    usersCount: users?.length || 0,
     hasToken: !!localStorage.getItem('accessToken')
   });
 
