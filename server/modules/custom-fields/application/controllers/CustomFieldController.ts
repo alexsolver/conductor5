@@ -18,12 +18,14 @@ export class CustomFieldController {
     console.log('🔥 [CUSTOM-FIELDS-CONTROLLER] Controller initialized following Clean Architecture');
   }
 
-  async getFieldsByModule(req: Request, res: Response) {
+  async getFieldsByModule(req: any, res: Response) {
     const startTime = Date.now();
     const { moduleType } = req.params;
+    const tenantId = req.user?.tenantId;
 
     this.logger.logInfo('=== getFieldsByModule CONTROLLER METHOD CALLED ===', { 
       moduleType,
+      tenantId,
       timestamp: new Date().toISOString()
     });
 
@@ -37,7 +39,16 @@ export class CustomFieldController {
         });
       }
 
-      this.logger.logInfo('Calling repository getFieldsByModule...');
+      if (!tenantId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Tenant ID is required',
+          details: 'Request missing tenant context'
+        });
+      }
+
+      this.logger.logInfo('Setting tenant ID and calling repository getFieldsByModule...');
+      this.repository.setTenantId(tenantId);
       const fields = await this.repository.getFieldsByModule(moduleType);
 
       const duration = Date.now() - startTime;
@@ -64,11 +75,13 @@ export class CustomFieldController {
     }
   }
 
-  async createField(req: Request, res: Response) {
+  async createField(req: any, res: Response) {
     const startTime = Date.now();
+    const tenantId = req.user?.tenantId;
 
     this.logger.logInfo('=== createField CONTROLLER METHOD CALLED ===', {
       body: req.body,
+      tenantId,
       timestamp: new Date().toISOString()
     });
 
@@ -84,7 +97,16 @@ export class CustomFieldController {
         });
       }
 
-      this.logger.logInfo('Calling repository createField...');
+      if (!tenantId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Tenant ID is required',
+          details: 'Request missing tenant context'
+        });
+      }
+
+      this.logger.logInfo('Setting tenant ID and calling repository createField...');
+      this.repository.setTenantId(tenantId);
       const fieldData = req.body;
       const result = await this.repository.createField(fieldData);
 

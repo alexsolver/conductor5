@@ -16,8 +16,22 @@ interface ISimplifiedCustomFieldRepository {
 }
 
 export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRepository {
-  constructor() {
-    console.log('🔥 [CUSTOM-FIELDS-REPO] Repository initialized following Clean Architecture');
+  private tenantId: string;
+
+  constructor(tenantId?: string) {
+    this.tenantId = tenantId || '';
+    console.log('🔥 [CUSTOM-FIELDS-REPO] Repository initialized following Clean Architecture', { tenantId: this.tenantId });
+  }
+
+  setTenantId(tenantId: string) {
+    this.tenantId = tenantId;
+  }
+
+  private getTenantSchema(): string {
+    if (!this.tenantId) {
+      throw new Error('TenantId not set for custom fields repository');
+    }
+    return `tenant_${this.tenantId}`;
   }
 
   async getFieldsByModule(moduleType: string): Promise<CustomFieldMetadata[]> {
@@ -47,8 +61,9 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
   private async ensureCustomFieldsTable(): Promise<void> {
     try {
       // ✅ 1QA.MD: Create custom_field_metadata table if it doesn't exist
+      const tenantSchema = this.getTenantSchema();
       const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS custom_field_metadata (
+        CREATE TABLE IF NOT EXISTS ${tenantSchema}.custom_field_metadata (
           id VARCHAR(255) PRIMARY KEY,
           module_type VARCHAR(100) NOT NULL,
           field_name VARCHAR(255) NOT NULL,
@@ -127,18 +142,23 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
           updated_at as "updatedAt"
       `;
 
-      await db.execute(sql`
-        INSERT INTO custom_field_metadata (
+      const tenantSchema = this.getTenantSchema();
+      const insertQuery = `
+        INSERT INTO ${tenantSchema}.custom_field_metadata (
           id, module_type, field_name, field_type, field_label,
           is_required, validation_rules, field_options, placeholder,
           default_value, display_order, is_active, help_text,
           created_at, updated_at
         ) VALUES (
-          ${fieldId}, ${moduleType}, ${fieldName}, ${fieldType}, ${fieldLabel}, 
-          ${isRequired}, ${JSON.stringify(validationRules)}, ${JSON.stringify(fieldOptions)}, 
-          ${placeholder}, ${defaultValue}, ${displayOrder}, true, ${helpText}, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, $12, NOW(), NOW()
         )
-      `);
+      `;
+      
+      await db.execute(sql.raw(insertQuery, [
+        fieldId, moduleType, fieldName, fieldType, fieldLabel,
+        isRequired, JSON.stringify(validationRules), JSON.stringify(fieldOptions),
+        placeholder, defaultValue, displayOrder, helpText
+      ]));
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field created successfully');
       return {
