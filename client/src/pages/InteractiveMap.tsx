@@ -40,7 +40,9 @@ import {
   Grid3X3,
   Move,
   History,
-  CloudRain
+  CloudRain,
+  Menu,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -162,19 +164,19 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
   const color = agent.status_color || STATUS_COLORS[agent.status];
   const shouldPulse = agent.should_pulse && PULSE_STATUSES.includes(agent.status);
   const size = agent.is_moving ? 32 : 24;
-  
+
   // Battery warning indicator
   const batteryWarning = agent.battery_warning && settings.showBatteryWarnings ? 
     `<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>` : '';
-  
+
   // Signal warning indicator
   const signalWarning = agent.signal_warning ? 
     `<div class="absolute -top-1 -left-1 w-3 h-3 bg-orange-500 rounded-full"></div>` : '';
-  
+
   // Movement arrow for in_transit agents
   const movementArrow = agent.is_moving && agent.heading ? 
     `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" style="transform: rotate(${agent.heading}deg) translate(0, -8px)"></div>` : '';
-  
+
   const html = `
     <div class="relative ${shouldPulse ? 'animate-pulse' : ''} ${settings.animateMarkers ? 'transition-all duration-300' : ''}" 
          style="width: ${size}px; height: ${size}px;">
@@ -213,7 +215,7 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
 
 const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
   const { t } = useTranslation();
-  
+
   const formatTime = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return new Intl.DateTimeFormat('pt-BR', {
@@ -340,7 +342,7 @@ const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
             </span>
           </div>
           <div className="text-xs text-blue-600 dark:text-blue-400">#{agent.assigned_ticket_id}</div>
-          
+
           {agent.eta_seconds && (
             <div className="flex items-center gap-2 mt-2">
               <Clock className="w-3 h-3 text-blue-500" />
@@ -349,7 +351,7 @@ const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
               </span>
             </div>
           )}
-          
+
           {agent.distance_meters && (
             <div className="flex items-center gap-2 mt-1">
               <MapPin className="w-3 h-3 text-blue-500" />
@@ -696,7 +698,7 @@ const LayersPanel: React.FC<{
           <Layers className="w-4 h-4" />
           Camadas de Visualização
         </h4>
-        
+
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Checkbox 
@@ -709,7 +711,7 @@ const LayersPanel: React.FC<{
               📋 Tickets no Mapa
             </label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="show-team-groups"
@@ -721,7 +723,7 @@ const LayersPanel: React.FC<{
               👥 Grupos de Técnicos
             </label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="show-areas"
@@ -735,14 +737,14 @@ const LayersPanel: React.FC<{
           </div>
         </div>
       </div>
-      
+
       {/* External Data Layers */}
       <div>
         <h4 className="font-medium mb-3 flex items-center gap-2">
           <CloudRain className="w-4 h-4" />
           Dados Externos
         </h4>
-        
+
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Checkbox 
@@ -755,7 +757,7 @@ const LayersPanel: React.FC<{
               🌤️ Camada de Clima
             </label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="show-traffic"
@@ -803,7 +805,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showAccuracyCircles', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Rotas dos agentes</label>
             <Switch
@@ -811,7 +813,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showAgentRoutes', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Mapa de calor</label>
             <Switch
@@ -819,7 +821,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showHeatmap', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Agrupamento dinâmico</label>
             <Switch
@@ -827,7 +829,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showClusters', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Animações</label>
             <Switch
@@ -852,7 +854,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showBatteryWarnings', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Alertas de SLA</label>
             <Switch
@@ -877,7 +879,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('autoRefresh', checked)}
             />
           </div>
-          
+
           {settings.autoRefresh && (
             <div>
               <label className="text-sm text-muted-foreground">
@@ -910,7 +912,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('darkMode', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Alto contraste</label>
             <Switch
@@ -918,7 +920,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('highContrastMode', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Navegação por teclado</label>
             <Switch
@@ -926,7 +928,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('keyboardNavigation', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Reduzir movimento</label>
             <Switch
@@ -947,11 +949,11 @@ const MapSettingsPanel: React.FC<{
 export const InteractiveMap: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  
+
   // ===========================================================================================
   // State Management
   // ===========================================================================================
-  
+
   const [filters, setFilters] = useState<MapFilters>({
     status: [],
     teams: [],
@@ -989,20 +991,41 @@ export const InteractiveMap: React.FC = () => {
   const [mapZoom, setMapZoom] = useState(12);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
-  const [legendExpanded, setLegendExpanded] = useState(true);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  
+  const [sidebarVisible, setSidebarVisible] = useState(false); // Initialize sidebar as hidden
+
   // Layer visibility states
   const [showTickets, setShowTickets] = useState(true);
   const [showTeamGroups, setShowTeamGroups] = useState(false);
   const [showAreas, setShowAreas] = useState(false);
   const [showWeatherLayer, setShowWeatherLayer] = useState(false);
   const [showTrafficLayer, setShowTrafficLayer] = useState(false);
-  
+
+  // Mock data and functions to simulate backend responses and interactions
+  const [isConnected, setIsConnected] = useState(true); // Simulate connection status
+  const [appliedFiltersCount, setAppliedFiltersCount] = useState(0); // Simulate applied filter count
+
+  const handleRefreshMap = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/interactive-map/agents'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/interactive-map/agents/stats'] });
+  };
+
+  const handleCenterMap = useCallback(() => {
+    if (selectedAgent && selectedAgent.lat !== null && selectedAgent.lng !== null) {
+      setMapCenter([selectedAgent.lat, selectedAgent.lng]);
+    } else {
+      setMapCenter([-23.5505, -46.6333]); // Default to São Paulo if no agent selected
+    }
+  }, [selectedAgent]);
+
+  const handleExport = (format: string) => {
+    console.log(`Exporting as ${format}...`);
+  };
+
   // ===========================================================================================
   // Mock Data (for demo purposes until backend is ready)
   // ===========================================================================================
-  
+
   // Mock ticket data for visualization
   const mockTickets = [
     { id: 'TK-001', title: 'Vazamento Hidráulico', lat: -23.5505, lng: -46.6333, priority: 'alta', status: 'aberto' },
@@ -1027,7 +1050,7 @@ export const InteractiveMap: React.FC = () => {
     { id: 'TG-002', name: 'Equipe Beta', lat: -23.5490, lng: -46.6320, members: 3, status: 'ativo' },
     { id: 'TG-003', name: 'Equipe Gamma', lat: -23.5510, lng: -46.6350, members: 4, status: 'pausa' }
   ];
-  
+
   const mockAgents: AgentPosition[] = [
     {
       id: '1',
@@ -1139,7 +1162,7 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Data Fetching with Mock Data (replace with real API calls)
   // ===========================================================================================
-  
+
   const { data: agentsData, isLoading } = useQuery({
     queryKey: ['/api/interactive-map/agents', filters],
     queryFn: async () => {
@@ -1175,9 +1198,9 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Derived Data and Performance Optimization
   // ===========================================================================================
-  
+
   const agents: AgentPosition[] = agentsData?.data?.agents || [];
-  
+
   // Filter agents by search term
   const filteredAgents = useMemo(() => {
     if (!searchTerm) return agents;
@@ -1191,12 +1214,12 @@ export const InteractiveMap: React.FC = () => {
   }, [agents, searchTerm]);
 
   // Extract unique teams and skills for filters
-  const availableTeams = useMemo(() => 
+  const uniqueTeams = useMemo(() => 
     Array.from(new Set(agents.map(agent => agent.team).filter(Boolean))).sort(),
     [agents]
   );
-  
-  const availableSkills = useMemo(() => 
+
+  const uniqueSkills = useMemo(() => 
     Array.from(new Set(agents.flatMap(agent => agent.skills))).sort(),
     [agents]
   );
@@ -1204,9 +1227,9 @@ export const InteractiveMap: React.FC = () => {
   // Performance optimization: Only render agents in viewport for large datasets
   const visibleAgents = useMemo(() => {
     if (filteredAgents.length <= 500) return filteredAgents;
-    
+
     if (!viewportBounds) return filteredAgents.slice(0, 500);
-    
+
     return filteredAgents.filter(agent => 
       agent.lat !== null && agent.lng !== null &&
       agent.lat >= viewportBounds.south && agent.lat <= viewportBounds.north &&
@@ -1217,7 +1240,7 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Event Handlers
   // ===========================================================================================
-  
+
   const handleMapMove = useCallback((bounds: LatLngBounds, zoom: number) => {
     const newBounds = {
       north: bounds.getNorth(),
@@ -1249,7 +1272,7 @@ export const InteractiveMap: React.FC = () => {
         lastUpdate: agent.updated_at
       }))
     };
-    
+
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1262,7 +1285,7 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Keyboard Navigation Support
   // ===========================================================================================
-  
+
   useEffect(() => {
     if (!settings.keyboardNavigation) return;
 
@@ -1293,481 +1316,226 @@ export const InteractiveMap: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [settings.keyboardNavigation, queryClient]);
 
+  // Helper to get display text for status
+  const getStatusDisplayText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      available: 'Disponível',
+      in_transit: 'Em Trânsito',
+      in_service: 'Em Atendimento',
+      on_break: 'Em Pausa',
+      unavailable: 'Indisponível',
+      sla_risk: 'Risco SLA',
+      sla_breached: 'SLA Estourado',
+      offline: 'Offline'
+    };
+    return statusMap[status] || status;
+  };
+
   // ===========================================================================================
   // Component Render
   // ===========================================================================================
 
   return (
     <TooltipProvider>
-      <div className={`h-screen flex flex-col ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
-        {/* Header Toolbar */}
-        <div className="flex items-center justify-between p-4 bg-background border-b">
+      <div className={`flex flex-col h-screen bg-gray-50 dark:bg-gray-900 ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
+        {/* Top Header Bar - Always Visible */}
+        <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm z-50">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold">Mapa Interativo</h1>
-            
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="agent-search"
-                placeholder="Buscar agentes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
-                data-testid="agent-search"
-              />
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarVisible(!sidebarVisible)}
+              className="mr-2"
+            >
+              {sidebarVisible ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </Button>
 
-            {/* Agent Count Badge */}
-            <Badge variant="secondary" className="px-3 py-1">
-              {filteredAgents.length} agentes
-            </Badge>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <MapPin className="w-6 h-6 text-blue-600" />
+              {t('navigation.interactiveMap', 'Mapa Interativo')}
+            </h1>
 
-            {/* Connection Status */}
+            {/* Real-time Status Indicator */}
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${settings.autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-              <span className="text-xs text-muted-foreground">
-                {settings.autoRefresh ? 'Conectado' : 'Pausado'}
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {isConnected ? 'Conectado' : 'Desconectado'}
               </span>
             </div>
           </div>
 
+          {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            {/* Filters Toggle */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="filters-toggle">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                  {(filters.status.length > 0 || filters.teams.length > 0 || filters.skills.length > 0) && (
-                    <Badge variant="secondary" className="ml-2 text-xs">
-                      {filters.status.length + filters.teams.length + filters.skills.length}
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80 z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>Filtros do Mapa</SheetTitle>
-                  <SheetDescription>Configure os filtros para visualizar agentes específicos</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  <FiltersPanel
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    teams={availableTeams}
-                    skills={availableSkills}
-                    agentStats={agentStats?.data}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowFilters(!showFilters);
+                      if (showFilters) setSidebarVisible(false); // Hide sidebar if filters are closed
+                      else setSidebarVisible(true); // Show sidebar if filters are opened
+                    }}
+                    className={showFilters ? 'bg-blue-50 border-blue-200' : ''}
+                  >
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filtros
+                    {appliedFiltersCount > 0 && (
+                      <Badge className="ml-2 px-1.5 py-0.5 text-xs bg-blue-600 text-white">
+                        {appliedFiltersCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Configurar filtros de agentes</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            {/* Layers Toggle */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="layers-toggle">
-                  <Layers className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80 z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>Camadas do Mapa</SheetTitle>
-                  <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  <LayersPanel
-                    showTickets={showTickets}
-                    setShowTickets={setShowTickets}
-                    showTeamGroups={showTeamGroups}
-                    setShowTeamGroups={setShowTeamGroups}
-                    showAreas={showAreas}
-                    setShowAreas={setShowAreas}
-                    showWeatherLayer={showWeatherLayer}
-                    setShowWeatherLayer={setShowWeatherLayer}
-                    showTrafficLayer={showTrafficLayer}
-                    setShowTrafficLayer={setShowTrafficLayer}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowLegend(!showLegend)}
+                    className={showLegend ? 'bg-blue-50 border-blue-200' : ''}
+                  >
+                    <Layers className="w-4 h-4 mr-2" />
+                    Legenda
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Exibir/ocultar legenda</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            {/* Advanced Features Dropdown */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={showSettings ? 'bg-blue-50 border-blue-200' : ''}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Configurações
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Configurações do mapa</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <Separator orientation="vertical" className="h-6" />
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={handleRefreshMap}>
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Atualizar mapa</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={handleCenterMap}>
+                    <Target className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Centralizar mapa</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="advanced-features-dropdown">
-                  <RotateCcw className="w-4 h-4" />
+                <Button variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 z-[9999]" sideOffset={5}>
-                <div className="p-2 space-y-3">
-                  {/* Export Section */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      📊 Exportar Dados
-                    </div>
-                    <div className="grid grid-cols-3 gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/export/csv', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'agents.csv';
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            }
-                          } catch (error) {
-                            console.error('Export failed:', error);
-                          }
-                        }}
-                        data-testid="export-csv-btn"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        CSV
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/export/geojson', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'agents.geojson';
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            }
-                          } catch (error) {
-                            console.error('Export failed:', error);
-                          }
-                        }}
-                        data-testid="export-geojson-btn"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        GeoJSON
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/export/pdf', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'agents.pdf';
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            }
-                          } catch (error) {
-                            console.error('Export failed:', error);
-                          }
-                        }}
-                        data-testid="export-pdf-btn"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        PDF
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Selection Tools */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      🎯 Seleção Múltipla
-                    </div>
-                    <div className="grid grid-cols-2 gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => {
-                          alert('Seleção por retângulo ativa! Clique e arraste no mapa para selecionar múltiplos agentes.');
-                        }}
-                        data-testid="rectangle-selection-btn"
-                      >
-                        <Grid3X3 className="w-3 h-3 mr-1" />
-                        Retângulo
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => {
-                          alert('Seleção por laço ativa! Desenhe um laço no mapa para selecionar agentes.');
-                        }}
-                        data-testid="lasso-selection-btn"
-                      >
-                        <Target className="w-3 h-3 mr-1" />
-                        Laço
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Drag & Drop */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      ✋ Arrastar & Soltar
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-7 text-xs"
-                      onClick={() => {
-                        const isActive = document.body.classList.contains('drag-drop-active');
-                        if (isActive) {
-                          document.body.classList.remove('drag-drop-active');
-                          alert('Modo arrastar desativado!');
-                        } else {
-                          document.body.classList.add('drag-drop-active');
-                          alert('Modo arrastar ativo! Arraste tickets para agentes no mapa para atribuição automática.');
-                        }
-                      }}
-                      data-testid="enable-drag-drop-btn"
-                    >
-                      <Move className="w-3 h-3 mr-1" />
-                      {document.body?.classList.contains('drag-drop-active') ? 'Desativar' : 'Ativar'} Drag & Drop
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  {/* Trajectory Replay */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      📍 Replay de Trajetória
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-7 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/trajectory/agent-001');
-                          const data = await response.json();
-                          if (data.success) {
-                            alert(`Trajetória carregada: ${data.data.points.length} pontos de ${data.data.agentName}`);
-                          } else {
-                            alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
-                          }
-                        } catch (error) {
-                          alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
-                        }
-                      }}
-                      data-testid="load-trajectory-btn"
-                    >
-                      <History className="w-3 h-3 mr-1" />
-                      Carregar Trajetória
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  {/* External Data */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      🌐 Dados Externos
-                    </div>
-                    <div className="grid grid-cols-2 gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/external/weather?lat=-23.5505&lng=-46.6333');
-                            const data = await response.json();
-                            if (data.success) {
-                              alert(`Clima: ${data.data.temperature}°C, ${data.data.condition}`);
-                            }
-                          } catch (error) {
-                            alert('Dados de clima carregados (modo demo)');
-                          }
-                        }}
-                        data-testid="load-weather-btn"
-                      >
-                        🌤️ Clima
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/external/traffic?north=-23.5&south=-23.6&east=-46.6&west=-46.7');
-                            const data = await response.json();
-                            if (data.success) {
-                              alert(`Trânsito: ${data.data.congestionLevel}`);
-                            }
-                          } catch (error) {
-                            alert('Dados de trânsito carregados (modo demo)');
-                          }
-                        }}
-                        data-testid="load-traffic-btn"
-                      >
-                        🚦 Trânsito
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Audit Logs */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      📋 Auditoria & Logs
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-7 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/audit');
-                          const data = await response.json();
-                          if (data.success) {
-                            const logs = data.data.slice(0, 3).map(log => 
-                              `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
-                            ).join('\n');
-                            alert(`Últimos logs de auditoria:\n\n${logs}`);
-                          }
-                        } catch (error) {
-                          alert('Logs de auditoria:\n\nVIEW - map (23/08 15:35)\nEXPORT - agents (23/08 15:34)\nFILTER - agents (23/08 15:33)');
-                        }
-                      }}
-                      data-testid="view-audit-logs-btn"
-                    >
-                      <Activity className="w-3 h-3 mr-1" />
-                      Ver Logs de Auditoria
-                    </Button>
-                  </div>
-                </div>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('png')}>
+                  Exportar como PNG
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                  Exportar como PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('csv')}>
+                  Exportar dados CSV
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Settings Toggle */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="settings-toggle">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80 z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>Configurações do Mapa</SheetTitle>
-                  <SheetDescription>Ajuste as configurações visuais e de comportamento</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  <MapSettingsPanel
-                    settings={settings}
-                    onSettingsChange={setSettings}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-
-            {/* Legend Toggle */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowLegend(!showLegend)}
-              data-testid="legend-toggle"
-            >
-              {showLegend ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </Button>
-
-            {/* Export Data */}
-            <Button variant="outline" size="sm" onClick={handleExportData} data-testid="export-data">
-              <Download className="w-4 h-4" />
-            </Button>
-
-            {/* Fullscreen Toggle */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              data-testid="fullscreen-toggle"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-
-            {/* Help */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="help-button">
-                  <HelpCircle className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl z-[9999]">
-                <DialogHeader>
-                  <DialogTitle>Ajuda do Mapa Interativo</DialogTitle>
-                  <DialogDescription>Guia de funcionalidades e atalhos do teclado</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
-                    <div className="space-y-1 text-sm">
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Cores de Status</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                        <div key={status} className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                          {status.replace('_', ' ')}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 relative">
+        {/* Main Content Area */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar/Filters Panel */}
+          {(showFilters || sidebarVisible) && (
+            <div className={`w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-transform duration-300 ${
+              sidebarVisible || showFilters ? 'translate-x-0' : '-translate-x-full'
+            }`}>
+              <div className="p-4">
+                {showFilters && (
+                  <React.Fragment>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Filtros de Agentes
+                      </h2>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowFilters(false);
+                          setSidebarVisible(false); // Hide sidebar when filters are closed
+                        }}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <FiltersPanel
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      teams={uniqueTeams}
+                      skills={uniqueSkills}
+                      agentStats={agentStats?.data}
+                    />
+                  </React.Fragment>
+                )}
+
+                {sidebarVisible && !showFilters && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Menu Principal
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Use os botões na barra superior para acessar as funcionalidades do mapa.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Map Container */}
-          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+          <div className={`flex-1 h-full relative ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
               className="h-full w-full"
               zoomControl={false}
+              whenReady={(mapInstance) => {
+                handleMapMove(mapInstance.target.getBounds(), mapInstance.target.getZoom());
+              }}
+              whenMoving={(mapInstance) => {
+                handleMapMove(mapInstance.target.getBounds(), mapInstance.target.getZoom());
+              }}
             >
               <LayersControl position="topright">
                 <LayersControl.BaseLayer checked name="OpenStreetMap">
@@ -1777,7 +1545,7 @@ export const InteractiveMap: React.FC = () => {
                     className={settings.darkMode ? 'dark-tiles' : ''}
                   />
                 </LayersControl.BaseLayer>
-                
+
                 <LayersControl.BaseLayer name="Satellite">
                   <TileLayer
                     attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -1801,7 +1569,7 @@ export const InteractiveMap: React.FC = () => {
                         <AgentTooltip agent={agent} />
                       </Popup>
                     </Marker>
-                    
+
                     {/* Accuracy Circle */}
                     {settings.showAccuracyCircles && agent.accuracy && (
                       <Circle
@@ -1983,94 +1751,98 @@ export const InteractiveMap: React.FC = () => {
             </MapContainer>
           </div>
 
-          {/* Legend */}
+          {/* Legend Panel */}
           {showLegend && (
-            <Card className="absolute bottom-4 left-4 z-[1000] w-64">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span>Legenda</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setLegendExpanded(!legendExpanded)}
-                    data-testid="toggle-legend-btn"
-                  >
-                    {legendExpanded ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              {legendExpanded && (
-                <CardContent className="space-y-2">
-                  {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                    <div key={status} className="flex items-center gap-2 text-sm">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                      <span className="flex-1">{status.replace('_', ' ')}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {agents.filter(a => a.status === status).length}
-                      </Badge>
+            <div className="absolute top-4 right-4 z-10 w-64">
+              <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border shadow-lg">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium">
+                      Legenda
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowLegend(false)}
+                      className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    {/* Status Legend */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        Status dos Agentes
+                      </h4>
+                      <div className="space-y-1.5">
+                        {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                          <div key={status} className="flex items-center gap-2 text-xs">
+                            <div
+                              className="w-3 h-3 rounded-full border border-white shadow-sm"
+                              style={{ backgroundColor: color }}
+                            />
+                            <span className="text-gray-600 dark:text-gray-400 capitalize">
+                              {getStatusDisplayText(status)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                  
-                  <Separator className="my-2" />
-                  
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      Aviso de bateria
+
+                    <Separator />
+
+                    {/* Map Elements Legend */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        Elementos do Mapa
+                      </h4>
+                      <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full border-2 border-blue-400 bg-blue-100"></div>
+                          <span>Círculo de precisão</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-1 bg-purple-500 rounded"></div>
+                          <span>Rota do agente</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-yellow-400 rounded"></div>
+                          <span>Mapa de calor</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                      Aviso de sinal
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      Ticket atribuído
+
+                    <Separator />
+
+                    {/* Quick Stats */}
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 dark:text-gray-400">Total:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {agentStats?.data?.totalAgents}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 dark:text-gray-400">Online:</span>
+                        <span className="font-medium text-green-600">
+                          {agentStats?.data?.onlineCount}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 dark:text-gray-400">Em Atendimento:</span>
+                        <span className="font-medium text-blue-600">
+                          {agentStats?.data?.statusBreakdown?.in_service || 0}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
-              )}
-            </Card>
-          )}
-
-          {/* Statistics Panel */}
-          {agentStats?.data && (
-            <Card className="absolute top-4 right-4 z-[1000] w-72">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Estatísticas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Total</div>
-                    <div className="font-semibold">{agentStats.data.totalAgents}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Online</div>
-                    <div className="font-semibold text-green-600">{agentStats.data.onlineCount}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Bateria Média</div>
-                    <div className="font-semibold">{agentStats.data.avgBatteryLevel}%</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Risco SLA</div>
-                    <div className="font-semibold text-red-600">{agentStats.data.slaRiskCount}</div>
-                  </div>
-                </div>
-                
-                {agentStats.data.avgBatteryLevel < 50 && (
-                  <Alert className="border-orange-200 bg-orange-50">
-                    <Battery className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-700 text-xs">
-                      Nível de bateria baixo nos dispositivos
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
+              </Card>
+            </div>
           )}
 
           {/* Loading Overlay */}
