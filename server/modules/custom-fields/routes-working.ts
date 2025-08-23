@@ -5,10 +5,16 @@ import { SimplifiedCustomFieldRepository } from './infrastructure/repositories/S
 
 const router = Router();
 
-// Simple logger following 1qa.md patterns
+// Enhanced logger following 1qa.md patterns
 const logger = {
-  logInfo: (msg: string, data?: any) => console.log(`[CUSTOM-FIELDS] ${msg}`, data || ''),
-  logError: (msg: string, error?: any) => console.error(`[CUSTOM-FIELDS] ${msg}`, error || '')
+  logInfo: (msg: string, data?: any) => {
+    console.log(`[CUSTOM-FIELDS] ${msg}`, data || '');
+    console.log(`[CUSTOM-FIELDS] Timestamp: ${new Date().toISOString()}`);
+  },
+  logError: (msg: string, error?: any) => {
+    console.error(`[CUSTOM-FIELDS] ERROR: ${msg}`, error || '');
+    console.error(`[CUSTOM-FIELDS] Error timestamp: ${new Date().toISOString()}`);
+  }
 };
 
 // Dependency injection
@@ -21,9 +27,22 @@ router.get('/fields/:moduleType', (req, res) => {
   customFieldController.getFieldsByModule(req, res);
 });
 
-router.post('/fields', (req, res) => {
+router.post('/fields', async (req, res) => {
   logger.logInfo('POST /fields called', { body: req.body, user: req.user });
-  customFieldController.createField(req, res);
+  logger.logInfo('About to call controller createField method...');
+  
+  try {
+    await customFieldController.createField(req, res);
+    logger.logInfo('Controller createField method completed');
+  } catch (error) {
+    logger.logError('Router caught error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Router-level error' 
+      });
+    }
+  }
 });
 
 router.put('/fields/:fieldId', (req, res) => {
