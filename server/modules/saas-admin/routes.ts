@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { AuthorizedRequest } from '../../middleware/rbacMiddleware';
 import { DependencyContainer } from '../../application/services/DependencyContainer';
+import crypto from 'crypto'; // Import crypto for UUID generation
 
 const router = Router();
 
@@ -195,7 +196,7 @@ router.get('/analytics', async (req: AuthorizedRequest, res) => {
     try {
       const tenants = await tenantRepository.findAll();
       for (const tenant of tenants) {
-        const tickets = await storage.getTickets(tenant.id, 1, 0);
+        const tickets = await container.storage.getTickets(tenant.id, 1, 0); // Assuming storage is in container
         totalTickets += tickets.length;
       }
     } catch (error) {
@@ -344,7 +345,7 @@ router.get('/integrations/openai', async (req: AuthorizedRequest, res) => {
 
     if (config?.apiKey) {
       apiKeyConfigured = true;
-      
+
       // Se há um status salvo de um teste anterior, usar ele
       if (config.status) {
         status = config.status;
@@ -506,11 +507,11 @@ router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => 
 
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
-      
+
       if (fetchError.name === 'AbortError') {
         console.error('❌ [SAAS-ADMIN-OPENAI-TEST] Request timeout');
         await integrationRepository.updateIntegrationStatus('openai', 'error');
-        
+
         return res.status(408).json({
           success: false,
           message: 'Timeout ao testar integração OpenAI. Verifique sua conexão.',
@@ -519,7 +520,7 @@ router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => 
       } else {
         console.error('❌ [SAAS-ADMIN-OPENAI-TEST] Network error:', fetchError);
         await integrationRepository.updateIntegrationStatus('openai', 'error');
-        
+
         return res.status(500).json({
           success: false,
           message: 'Erro de rede ao testar integração OpenAI',
@@ -584,6 +585,57 @@ router.put('/integrations/openai/api-key', async (req: AuthorizedRequest, res) =
     res.status(500).json({
       success: false,
       message: 'Erro interno ao atualizar chave da API OpenAI',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/saas-admin/integrations/openai/config
+ * Atualizar configuração completa da OpenAI
+ */
+router.put('/integrations/openai/config', async (req: AuthorizedRequest, res) => {
+  try {
+    const { apiKey, enabled = true, maxTokens = 4000, temperature = 0.7, baseUrl = '' } = req.body;
+
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API key é obrigatória'
+      });
+    }
+
+    console.log('🔧 [SAAS-ADMIN-OPENAI-CONFIG] Updating OpenAI configuration');
+
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const integrationRepository = new DrizzleIntegrationRepository();
+
+    // Update OpenAI configuration
+    const config = {
+      apiKey: apiKey.toString().trim(),
+      enabled: Boolean(enabled),
+      maxTokens: Number(maxTokens),
+      temperature: Number(temperature),
+      baseUrl: baseUrl.toString().trim(),
+      lastUpdated: new Date().toISOString()
+    };
+
+    await integrationRepository.updateIntegrationConfig('openai', config);
+    await integrationRepository.updateIntegrationStatus('openai', 'disconnected');
+
+    console.log('✅ [SAAS-ADMIN-OPENAI-CONFIG] OpenAI configuration updated successfully');
+
+    res.json({
+      success: true,
+      message: 'Configuração OpenAI atualizada com sucesso',
+      status: 'disconnected'
+    });
+
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-OPENAI-CONFIG] Error updating OpenAI configuration:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno ao atualizar configuração OpenAI',
       error: error.message
     });
   }

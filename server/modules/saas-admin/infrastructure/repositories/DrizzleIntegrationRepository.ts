@@ -344,6 +344,48 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
     }
   }
 
+  async updateIntegrationConfig(integrationId: string, config: IntegrationConfig): Promise<void> {
+    try {
+      console.log(`[INTEGRATION-REPO] Updating configuration for integration: ${integrationId}`);
+      const pool = await this.getPool();
+
+      // Create table if not exists
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "public"."system_integrations" (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          integration_id VARCHAR(255) NOT NULL UNIQUE,
+          name VARCHAR(255) NOT NULL,
+          provider VARCHAR(255) NOT NULL,
+          config JSONB,
+          status VARCHAR(50) DEFAULT 'disconnected',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      const result = await pool.query(`
+        INSERT INTO "public"."system_integrations" 
+        (integration_id, name, provider, config, status, updated_at)
+        VALUES ($1, $2, $3, $4, 'disconnected', NOW())
+        ON CONFLICT (integration_id) 
+        DO UPDATE SET 
+          config = $4,
+          updated_at = NOW()
+        RETURNING *
+      `, [
+        integrationId,
+        integrationId === 'openai' ? 'OpenAI' : integrationId === 'openweather' ? 'OpenWeather' : 'DeepSeek',
+        integrationId === 'openai' ? 'OpenAI' : integrationId === 'openweather' ? 'OpenWeather' : 'DeepSeek',
+        JSON.stringify(config)
+      ]);
+
+      console.log(`[INTEGRATION-REPO] Configuration updated successfully for ${integrationId}`);
+    } catch (error) {
+      console.error(`[INTEGRATION-REPO] Error updating integration config for ${integrationId}:`, error);
+      throw new Error('Failed to update integration configuration');
+    }
+  }
+
   // Additional helper methods for SaaS Admin
   async findByStatus(status: 'connected' | 'error' | 'disconnected'): Promise<Integration[]> {
     try {
