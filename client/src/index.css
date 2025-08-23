@@ -70,11 +70,42 @@
 
 
 
-/* Leaflet Zoom Controls Positioning */
+/* Leaflet Controls Positioning */
 .leaflet-control-zoom {
   margin-left: 10px !important;
   margin-top: 80px !important; /* Avoid header overlap */
   z-index: 1000 !important;
+}
+
+/* Leaflet Layers Control Positioning and Visibility */
+.leaflet-control-layers {
+  margin-right: 10px !important;
+  margin-top: 80px !important; /* Avoid header overlap */
+  z-index: 1000 !important;
+  background: white !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Layers Control Toggle Button */
+.leaflet-control-layers-toggle {
+  background: white !important;
+  border: 1px solid #ccc !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  display: block !important;
+  visibility: visible !important;
+  z-index: 1001 !important;
+}
+
+.leaflet-control-layers-toggle:hover {
+  background: #f0f0f0 !important;
+  border-color: #999 !important;
 }
 
 
