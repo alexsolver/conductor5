@@ -438,40 +438,7 @@ export default function SaasAdminIntegrations() {
   };
 
   const renderActionButtons = (integration: Integration) => {
-    if (integration.id === 'openweather') {
-      return (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSelectedIntegration(integration);
-              setIsConfigDialogOpen(true);
-            }}
-            className="flex items-center gap-1"
-          >
-            <Settings className="w-4 h-4" />
-            Configurar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => testOpenWeatherMutation.mutate()}
-            disabled={testOpenWeatherMutation.isPending || !integration.apiKeyConfigured}
-            className="flex items-center gap-1"
-          >
-            {testOpenWeatherMutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Play className="w-4 h-4" />
-            )}
-            {testOpenWeatherMutation.isPending ? 'Testando...' : 'Testar'}
-          </Button>
-        </div>
-      );
-    }
-
-    // Default action buttons for other integrations
+    // Padronizar todos os cards com o mesmo layout
     return (
       <div className="flex gap-2">
         <Button 
@@ -486,11 +453,24 @@ export default function SaasAdminIntegrations() {
         <Button 
           size="sm" 
           variant="outline"
-          onClick={() => testIntegrationMutation.mutate(integration.id)}
-          disabled={!integration.apiKeyConfigured || testIntegrationMutation.isPending}
+          onClick={() => {
+            if (integration.id === 'openweather') {
+              testOpenWeatherMutation.mutate();
+            } else {
+              testIntegrationMutation.mutate(integration.id);
+            }
+          }}
+          disabled={
+            !integration.apiKeyConfigured || 
+            (integration.id === 'openweather' ? testOpenWeatherMutation.isPending : testIntegrationMutation.isPending)
+          }
         >
-          <ExternalLink className="h-4 w-4 mr-1" />
-          Testar
+          {integration.id === 'openweather' && testOpenWeatherMutation.isPending ? (
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          ) : (
+            <ExternalLink className="h-4 w-4 mr-1" />
+          )}
+          {integration.id === 'openweather' && testOpenWeatherMutation.isPending ? 'Testando...' : 'Testar'}
         </Button>
       </div>
     );
