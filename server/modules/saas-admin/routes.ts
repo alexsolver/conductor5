@@ -333,27 +333,37 @@ router.get('/integrations/openai', async (req: AuthorizedRequest, res) => {
     const config = await integrationRepository.getIntegrationConfig('openai');
     console.log('🔧 [SAAS-ADMIN-OPENAI] Integration config found:', {
       hasConfig: !!config,
-      hasApiKey: !!config?.apiKey
+      hasApiKey: !!config?.apiKey,
+      lastTested: config?.lastTested,
+      status: config?.status
     });
 
-    // Determinar status baseado na configuração
+    // Determinar status baseado na configuração e último teste
     let status = 'disconnected';
     let apiKeyConfigured = false;
 
     if (config?.apiKey) {
       apiKeyConfigured = true;
-      status = config.enabled !== false ? 'connected' : 'disconnected';
+      
+      // Se há um status salvo de um teste anterior, usar ele
+      if (config.status) {
+        status = config.status;
+      } else {
+        // Se não há teste anterior, marcar como disconnected até ser testado
+        status = 'disconnected';
+      }
     }
 
     res.json({
       success: true,
       status,
       apiKeyConfigured,
+      lastTested: config?.lastTested || null,
       config: config ? {
-        baseUrl: config.baseUrl,
-        maxTokens: config.maxTokens,
-        temperature: config.temperature,
-        enabled: config.enabled
+        baseUrl: config.baseUrl || '',
+        maxTokens: config.maxTokens || 4000,
+        temperature: config.temperature || 0.7,
+        enabled: config.enabled !== false
       } : null
     });
 
@@ -548,13 +558,15 @@ router.put('/integrations/openai/api-key', async (req: AuthorizedRequest, res) =
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const integrationRepository = new DrizzleIntegrationRepository();
 
-    // Update OpenAI configuration
+    // Update OpenAI configuration and reset status
     const config = {
       apiKey: apiKey.toString().trim(),
       enabled: Boolean(enabled),
       maxTokens: Number(maxTokens),
       temperature: Number(temperature),
-      lastUpdated: new Date().toISOString()
+      status: 'disconnected', // Reset status when API key changes
+      lastUpdated: new Date().toISOString(),
+      lastTested: null // Clear last test when key changes
     };
 
     await integrationRepository.updateIntegrationConfig('openai', config);
@@ -563,7 +575,7 @@ router.put('/integrations/openai/api-key', async (req: AuthorizedRequest, res) =
 
     res.json({
       success: true,
-      message: 'Chave da API OpenAI atualizada com sucesso',
+      message: 'Chave da API OpenAI atualizada com sucesso. Clique em "Testar Integração" para verificar a conexão.',
       status: 'disconnected' // Will be updated to 'connected' after successful test
     });
 

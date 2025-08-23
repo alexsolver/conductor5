@@ -18,7 +18,7 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
   async findAll(): Promise<Integration[]> {
     try {
       console.log('[INTEGRATION-REPO] Fetching all integrations from PUBLIC schema (system_integrations)');
-      
+
       // Definir integrações base disponíveis
       const baseIntegrations = [
         {
@@ -54,7 +54,7 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       ];
 
       const pool = await this.getPool();
-      
+
       // Buscar configurações salvas
       const savedConfigs = await pool.query(`
         SELECT integration_id, config, status, updated_at 
@@ -65,13 +65,13 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       // Mapear configurações para integrações base
       const integrations = baseIntegrations.map(baseIntegration => {
         const savedConfig = savedConfigs.rows.find(row => row.integration_id === baseIntegration.id);
-        
+
         console.log(`[INTEGRATION-REPO] Processing ${baseIntegration.id}:`, {
           hasSavedConfig: !!savedConfig,
           savedConfigData: savedConfig?.config,
           hasApiKey: savedConfig?.config?.apiKey && savedConfig.config.apiKey.length > 0
         });
-        
+
         if (savedConfig) {
           const hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length > 0;
           const integration = {
@@ -88,17 +88,17 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
             getLastTestedAt: () => savedConfig.config?.lastTested ? new Date(savedConfig.config.lastTested) : null,
             getApiKeyMasked: () => savedConfig.config?.apiKey ? `${savedConfig.config.apiKey.substring(0, 8)}...` : null
           };
-          
+
           console.log(`[INTEGRATION-REPO] ${baseIntegration.id} final result:`, {
             id: integration.id,
             status: integration.status,
             apiKeyConfigured: integration.apiKeyConfigured,
             hasConfigKeys: Object.keys(integration.config || {})
           });
-          
+
           return integration;
         }
-        
+
         const integration = {
           ...baseIntegration,
           // ✅ Propriedades padrão para integrações não configuradas
@@ -110,13 +110,13 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
           getLastTestedAt: () => null,
           getApiKeyMasked: () => null
         };
-        
+
         console.log(`[INTEGRATION-REPO] ${baseIntegration.id} default result:`, {
           id: integration.id,
           status: integration.status,
           apiKeyConfigured: integration.apiKeyConfigured
         });
-        
+
         return integration;
       });
 
@@ -196,7 +196,7 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       });
 
       const pool = await this.getPool();
-      
+
       // Create table if not exists
       await pool.query(`
         CREATE TABLE IF NOT EXISTS "public"."system_integrations" (
@@ -397,7 +397,7 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
           updated_at = NOW()
         RETURNING *
       `, [JSON.stringify({ apiKey })]);
-      
+
       return {
         id: result.rows[0].integration_id,
         name: result.rows[0].name,
