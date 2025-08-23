@@ -316,7 +316,7 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
             />
             
             <div className="text-center text-xs text-muted-foreground">
-              {playbackState.currentIndex + 1} / {trajectory.points.length} pontos
+              {currentIndex + 1} / {trajectory.points.length} pontos
             </div>
           </div>
 
