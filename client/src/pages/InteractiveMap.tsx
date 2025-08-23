@@ -2313,23 +2313,35 @@ export const InteractiveMap: React.FC = () => {
                               const result = await response.json();
                               const trajectoryData = result.data;
 
+                              // Debug log da estrutura real
+                              console.log('🔍 [DEBUG] Estrutura da API:', trajectoryData);
+
+                              // Verificar se os dados existem
+                              if (!trajectoryData || (!trajectoryData.points && !trajectoryData.trajectory)) {
+                                throw new Error('Dados de trajetória não encontrados para este agente');
+                              }
+
+                              // A API retorna 'points' não 'trajectory'
+                              const points = trajectoryData.points || trajectoryData.trajectory || [];
+                              const statistics = trajectoryData.statistics || trajectoryData;
+
                               console.log('✅ [TRAJECTORY] Trajetória carregada do banco:', {
-                                points: trajectoryData.trajectory.length,
-                                distance: `${trajectoryData.statistics.totalDistance.toFixed(2)}km`,
-                                maxSpeed: `${trajectoryData.statistics.maxSpeed}km/h`,
-                                avgSpeed: `${trajectoryData.statistics.avgSpeed}km/h`
+                                points: points.length,
+                                distance: `${statistics.totalDistance?.toFixed(2) || '0'}km`,
+                                maxSpeed: `${statistics.maxSpeed || '0'}km/h`,
+                                avgSpeed: `${statistics.avgSpeed || '0'}km/h`
                               });
 
                               // Convert API data to TrajectoryReplay format
                               const trajectoryForReplay: AgentTrajectory = {
                                 agentId: mappedAgentId,
-                                agentName: trajectoryData.agentName,
-                                startTime: new Date(trajectoryData.statistics.startTime),
-                                endTime: new Date(trajectoryData.statistics.endTime),
-                                totalDistance: trajectoryData.statistics.totalDistance,
-                                maxSpeed: trajectoryData.statistics.maxSpeed,
-                                avgSpeed: trajectoryData.statistics.avgSpeed || 0,
-                                points: trajectoryData.trajectory.map((point: any, index: number) => ({
+                                agentName: trajectoryData.agentName || selectedAgent.name,
+                                startTime: new Date(statistics.startTime || new Date()),
+                                endTime: new Date(statistics.endTime || new Date()),
+                                totalDistance: statistics.totalDistance || 0,
+                                maxSpeed: statistics.maxSpeed || 0,
+                                avgSpeed: statistics.avgSpeed || 0,
+                                points: points.map((point: any, index: number) => ({
                                   id: `${mappedAgentId}_${index}`,
                                   agentId: mappedAgentId,
                                   lat: point.lat,
@@ -2338,7 +2350,7 @@ export const InteractiveMap: React.FC = () => {
                                   speed: point.speed || 0,
                                   heading: point.heading || 0,
                                   accuracy: point.accuracy || 0,
-                                  deviceBattery: point.device_battery || 0
+                                  deviceBattery: point.device_battery || point.deviceBattery || 0
                                 }))
                               };
 
@@ -2347,21 +2359,8 @@ export const InteractiveMap: React.FC = () => {
                               setSelectedTrajectory(trajectoryForReplay);
                               setTrajectoryModalOpen(true);
 
-                              // Show detailed results
-                              const startTime = new Date(trajectory.startTime);
-                              const endTime = new Date(trajectory.endTime);
-                              const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-                              
-                              alert(`🎯 TRAJETÓRIA CARREGADA COM SUCESSO\\n\\n` +
-                                `📊 DADOS REAIS DO BANCO:\\n` +
-                                `• Agente: ${trajectory.agentName}\\n` +
-                                `• Período: ${startTime.toLocaleString()} - ${endTime.toLocaleString()}\\n` +
-                                `• Duração: ${duration.toFixed(1)}h\\n` +
-                                `• Pontos coletados: ${trajectory.points.length}\\n` +
-                                `• Distância percorrida: ${trajectory.totalDistance} km\\n` +
-                                `• Velocidade máxima: ${trajectory.maxSpeed} km/h\\n` +
-                                `• Velocidade média: ${trajectory.avgSpeed} km/h\\n\\n` +
-                                `⏯️ Modal aberto com controles completos!`);
+                              // Show success message
+                              console.log('🎯 [SUCCESS] Trajetória animada carregada com sucesso!');
 
                             } catch (error) {
                               console.error('❌ [TRAJECTORY] Erro ao carregar:', error);
