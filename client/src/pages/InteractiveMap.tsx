@@ -1400,21 +1400,29 @@ export const InteractiveMap: React.FC = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" data-testid="layers-toggle" className="flex items-center">
-                  <Layers className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <Layers className="w-4 h-4 mr-2" />
                   {activeLayer === 'osm' ? 'Padrão' : 'Satélite'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setActiveLayer('osm')} className={activeLayer === 'osm' ? 'bg-accent' : ''}>
-                  <div className="flex items-center">
+              <DropdownMenuContent align="end" side="bottom" sideOffset={5} className="z-[99999] min-w-[150px]">
+                <DropdownMenuItem 
+                  onClick={() => setActiveLayer('osm')} 
+                  className={`cursor-pointer ${activeLayer === 'osm' ? 'bg-accent' : ''}`}
+                >
+                  <div className="flex items-center w-full">
                     <div className="w-3 h-3 mr-2 bg-green-500 rounded"></div>
                     OpenStreetMap
+                    {activeLayer === 'osm' && <div className="ml-auto text-xs">✓</div>}
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveLayer('satellite')} className={activeLayer === 'satellite' ? 'bg-accent' : ''}>
-                  <div className="flex items-center">
+                <DropdownMenuItem 
+                  onClick={() => setActiveLayer('satellite')} 
+                  className={`cursor-pointer ${activeLayer === 'satellite' ? 'bg-accent' : ''}`}
+                >
+                  <div className="flex items-center w-full">
                     <div className="w-3 h-3 mr-2 bg-blue-500 rounded"></div>
                     Satélite
+                    {activeLayer === 'satellite' && <div className="ml-auto text-xs">✓</div>}
                   </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
