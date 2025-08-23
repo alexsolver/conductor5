@@ -27,8 +27,6 @@ import {
   BarChart3,
   RotateCcw,
   Maximize2,
-  Plus,
-  Minus,
   Target,
   Layers,
   Moon,
@@ -1336,7 +1334,6 @@ export const InteractiveMap: React.FC = () => {
                 {sidebarHidden ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
               </Button>
 
-              <h1 className="text-xl font-semibold">Mapa Interativo</h1>
 
             {/* Search Bar */}
             <div className="relative">
@@ -2013,27 +2010,6 @@ export const InteractiveMap: React.FC = () => {
                 </div>
               )}
 
-              {/* Map Controls */}
-              <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setMapZoom(mapZoom + 1)}
-                  className="w-8 h-8 p-0"
-                  data-testid="zoom-in"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setMapZoom(mapZoom - 1)}
-                  className="w-8 h-8 p-0"
-                  data-testid="zoom-out"
-                >
-                  <Minus className="w-4 h-4" />
-                </Button>
-              </div>
             </MapContainer>
             </div>
           </div>
