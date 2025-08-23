@@ -1533,7 +1533,7 @@ export const InteractiveMap: React.FC = () => {
     if (filters.slaRisk && !agent.sla_risk) return false;
 
     return true;
-  }), [agents, filters, searchTerm]);
+  }), [filteredAgents, filters, searchTerm]);
 
   // Agent Statistics (Memoized for performance)
   const agentStats = useMemo(() => ({
