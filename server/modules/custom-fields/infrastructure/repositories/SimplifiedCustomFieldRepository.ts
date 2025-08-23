@@ -4,7 +4,7 @@
 console.log('🔥 [CUSTOM-FIELDS-REPO] *** FILE LOADING START *** following 1qa.md');
 console.log('🔥 [CUSTOM-FIELDS-REPO] Timestamp:', new Date().toISOString());
 
-import { db } from '../../../../db';
+import { db, sql } from '../../../../db';
 import { CustomFieldMetadata } from '../../domain/entities/CustomField';
 
 // Simplified interface for basic operations
@@ -69,7 +69,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       `;
 
       // Use direct SQL execution
-      await db.execute(createTableQuery);
+      await db.execute(sql.raw(createTableQuery));
       console.log('🔥 [CUSTOM-FIELDS-REPO] Custom fields table ensured');
     } catch (error) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Table creation error:', error);
@@ -127,23 +127,18 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
           updated_at as "updatedAt"
       `;
 
-      const result = await db.execute({
-        sql: query,
-        args: [
-          fieldId,
-          moduleType,
-          fieldName,
-          fieldType,
-          fieldLabel,
-          isRequired,
-          JSON.stringify(validationRules),
-          JSON.stringify(fieldOptions),
-          placeholder,
-          defaultValue,
-          displayOrder,
-          helpText
-        ]
-      });
+      await db.execute(sql`
+        INSERT INTO custom_field_metadata (
+          id, module_type, field_name, field_type, field_label,
+          is_required, validation_rules, field_options, placeholder,
+          default_value, display_order, is_active, help_text,
+          created_at, updated_at
+        ) VALUES (
+          ${fieldId}, ${moduleType}, ${fieldName}, ${fieldType}, ${fieldLabel}, 
+          ${isRequired}, ${JSON.stringify(validationRules)}, ${JSON.stringify(fieldOptions)}, 
+          ${placeholder}, ${defaultValue}, ${displayOrder}, true, ${helpText}, NOW(), NOW()
+        )
+      `);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field created successfully');
       return {
@@ -218,21 +213,21 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
           updated_at as "updatedAt"
       `;
 
-      await db.execute({
-        sql: query,
-        args: [
-          fieldId,
-          fieldLabel,
-          isRequired,
-          validationRules ? JSON.stringify(validationRules) : null,
-          fieldOptions ? JSON.stringify(fieldOptions) : null,
-          placeholder,
-          defaultValue,
-          displayOrder,
-          helpText,
-          isActive
-        ]
-      });
+      await db.execute(sql`
+        UPDATE custom_field_metadata 
+        SET 
+          field_label = COALESCE(${fieldLabel}, field_label),
+          is_required = COALESCE(${isRequired}, is_required),
+          validation_rules = COALESCE(${validationRules ? JSON.stringify(validationRules) : null}, validation_rules),
+          field_options = COALESCE(${fieldOptions ? JSON.stringify(fieldOptions) : null}, field_options),
+          placeholder = COALESCE(${placeholder}, placeholder),
+          default_value = COALESCE(${defaultValue}, default_value),
+          display_order = COALESCE(${displayOrder}, display_order),
+          help_text = COALESCE(${helpText}, help_text),
+          is_active = COALESCE(${isActive}, is_active),
+          updated_at = NOW()
+        WHERE id = ${fieldId}
+      `);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field updated successfully');
       return {
@@ -267,10 +262,11 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         WHERE id = $1
       `;
 
-      await db.execute({
-        sql: query,
-        args: [fieldId]
-      });
+      await db.execute(sql`
+        UPDATE custom_field_metadata 
+        SET is_active = false, updated_at = NOW()
+        WHERE id = ${fieldId}
+      `);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field deleted successfully');
     } catch (error) {
