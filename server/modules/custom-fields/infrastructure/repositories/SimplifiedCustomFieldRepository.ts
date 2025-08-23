@@ -4,7 +4,7 @@
 console.log('🔥 [CUSTOM-FIELDS-REPO] *** FILE LOADING START *** following 1qa.md');
 console.log('🔥 [CUSTOM-FIELDS-REPO] Timestamp:', new Date().toISOString());
 
-import { db } from '../../../db';
+import { db } from '../../../../db';
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomFieldMetadata } from '../../domain/entities/CustomField';
 
