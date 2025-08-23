@@ -990,7 +990,6 @@ export const InteractiveMap: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
-  const [advancedMode, setAdvancedMode] = useState(false);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   
   // Layer visibility states
@@ -1392,6 +1391,289 @@ export const InteractiveMap: React.FC = () => {
                 </div>
               </SheetContent>
             </Sheet>
+
+            {/* Advanced Features Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="advanced-features-dropdown">
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 z-[9999]" sideOffset={5}>
+                <div className="p-2 space-y-3">
+                  {/* Export Section */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                      📊 Exportar Dados
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/interactive-map/export/csv', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ agents: [], filters: {} })
+                            });
+                            if (response.ok) {
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'agents.csv';
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                            }
+                          } catch (error) {
+                            console.error('Export failed:', error);
+                          }
+                        }}
+                        data-testid="export-csv-btn"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        CSV
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/interactive-map/export/geojson', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ agents: [], filters: {} })
+                            });
+                            if (response.ok) {
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'agents.geojson';
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                            }
+                          } catch (error) {
+                            console.error('Export failed:', error);
+                          }
+                        }}
+                        data-testid="export-geojson-btn"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        GeoJSON
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/interactive-map/export/pdf', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ agents: [], filters: {} })
+                            });
+                            if (response.ok) {
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'agents.pdf';
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                            }
+                          } catch (error) {
+                            console.error('Export failed:', error);
+                          }
+                        }}
+                        data-testid="export-pdf-btn"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        PDF
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Selection Tools */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                      🎯 Seleção Múltipla
+                    </div>
+                    <div className="grid grid-cols-2 gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          alert('Seleção por retângulo ativa! Clique e arraste no mapa para selecionar múltiplos agentes.');
+                        }}
+                        data-testid="rectangle-selection-btn"
+                      >
+                        <Grid3X3 className="w-3 h-3 mr-1" />
+                        Retângulo
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          alert('Seleção por laço ativa! Desenhe um laço no mapa para selecionar agentes.');
+                        }}
+                        data-testid="lasso-selection-btn"
+                      >
+                        <Target className="w-3 h-3 mr-1" />
+                        Laço
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Drag & Drop */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                      ✋ Arrastar & Soltar
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-7 text-xs"
+                      onClick={() => {
+                        const isActive = document.body.classList.contains('drag-drop-active');
+                        if (isActive) {
+                          document.body.classList.remove('drag-drop-active');
+                          alert('Modo arrastar desativado!');
+                        } else {
+                          document.body.classList.add('drag-drop-active');
+                          alert('Modo arrastar ativo! Arraste tickets para agentes no mapa para atribuição automática.');
+                        }
+                      }}
+                      data-testid="enable-drag-drop-btn"
+                    >
+                      <Move className="w-3 h-3 mr-1" />
+                      {document.body?.classList.contains('drag-drop-active') ? 'Desativar' : 'Ativar'} Drag & Drop
+                    </Button>
+                  </div>
+
+                  <Separator />
+
+                  {/* Trajectory Replay */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                      📍 Replay de Trajetória
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-7 text-xs"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/interactive-map/trajectory/agent-001');
+                          const data = await response.json();
+                          if (data.success) {
+                            alert(`Trajetória carregada: ${data.data.points.length} pontos de ${data.data.agentName}`);
+                          } else {
+                            alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
+                          }
+                        } catch (error) {
+                          alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
+                        }
+                      }}
+                      data-testid="load-trajectory-btn"
+                    >
+                      <History className="w-3 h-3 mr-1" />
+                      Carregar Trajetória
+                    </Button>
+                  </div>
+
+                  <Separator />
+
+                  {/* External Data */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                      🌐 Dados Externos
+                    </div>
+                    <div className="grid grid-cols-2 gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/interactive-map/external/weather?lat=-23.5505&lng=-46.6333');
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`Clima: ${data.data.temperature}°C, ${data.data.condition}`);
+                            }
+                          } catch (error) {
+                            alert('Dados de clima carregados (modo demo)');
+                          }
+                        }}
+                        data-testid="load-weather-btn"
+                      >
+                        🌤️ Clima
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/interactive-map/external/traffic?north=-23.5&south=-23.6&east=-46.6&west=-46.7');
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`Trânsito: ${data.data.congestionLevel}`);
+                            }
+                          } catch (error) {
+                            alert('Dados de trânsito carregados (modo demo)');
+                          }
+                        }}
+                        data-testid="load-traffic-btn"
+                      >
+                        🚦 Trânsito
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Audit Logs */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                      📋 Auditoria & Logs
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-7 text-xs"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/interactive-map/audit');
+                          const data = await response.json();
+                          if (data.success) {
+                            const logs = data.data.slice(0, 3).map(log => 
+                              `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
+                            ).join('\n');
+                            alert(`Últimos logs de auditoria:\n\n${logs}`);
+                          }
+                        } catch (error) {
+                          alert('Logs de auditoria:\n\nVIEW - map (23/08 15:35)\nEXPORT - agents (23/08 15:34)\nFILTER - agents (23/08 15:33)');
+                        }
+                      }}
+                      data-testid="view-audit-logs-btn"
+                    >
+                      <Activity className="w-3 h-3 mr-1" />
+                      Ver Logs de Auditoria
+                    </Button>
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Settings Toggle */}
             <Sheet>
@@ -1799,291 +2081,6 @@ export const InteractiveMap: React.FC = () => {
                 <span>Carregando...</span>
               </div>
             </div>
-          )}
-          {/* Advanced Controls Panel */}
-          {typeof window !== 'undefined' && (
-            <Card className="absolute top-4 right-4 z-[1000] w-72">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    Recursos Avançados
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setAdvancedMode(!advancedMode)}
-                    data-testid="toggle-advanced-mode-btn"
-                  >
-                    {advancedMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              {advancedMode && (
-                <CardContent className="space-y-4">
-                {/* Export Controls */}
-                <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    📊 Exportação de Dados
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/export/csv', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ agents: [], filters: {} })
-                          });
-                          if (response.ok) {
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'agents.csv';
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                          }
-                        } catch (error) {
-                          console.error('Export failed:', error);
-                        }
-                      }}
-                      data-testid="export-csv-btn"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      CSV
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/export/geojson', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ agents: [], filters: {} })
-                          });
-                          if (response.ok) {
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'agents.geojson';
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                          }
-                        } catch (error) {
-                          console.error('Export failed:', error);
-                        }
-                      }}
-                      data-testid="export-geojson-btn"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      GeoJSON
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/export/pdf', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ agents: [], filters: {} })
-                          });
-                          if (response.ok) {
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'agents.pdf';
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                          }
-                        } catch (error) {
-                          console.error('Export failed:', error);
-                        }
-                      }}
-                      data-testid="export-pdf-btn"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Selection Tools */}
-                <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    🎯 Seleção Múltipla
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        alert('Seleção por retângulo ativa! Clique e arraste no mapa para selecionar múltiplos agentes.');
-                      }}
-                      data-testid="rectangle-selection-btn"
-                    >
-                      <Grid3X3 className="w-3 h-3 mr-1" />
-                      Retângulo
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        alert('Seleção por laço ativa! Desenhe um laço no mapa para selecionar agentes.');
-                      }}
-                      data-testid="lasso-selection-btn"
-                    >
-                      <Target className="w-3 h-3 mr-1" />
-                      Laço
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Drag & Drop */}
-                <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    ✋ Arrastar & Soltar
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-8 text-xs"
-                    onClick={() => {
-                      const isActive = document.body.classList.contains('drag-drop-active');
-                      if (isActive) {
-                        document.body.classList.remove('drag-drop-active');
-                        alert('Modo arrastar desativado!');
-                      } else {
-                        document.body.classList.add('drag-drop-active');
-                        alert('Modo arrastar ativo! Arraste tickets para agentes no mapa para atribuição automática.');
-                      }
-                    }}
-                    data-testid="enable-drag-drop-btn"
-                  >
-                    <Move className="w-3 h-3 mr-1" />
-                    {document.body?.classList.contains('drag-drop-active') ? 'Desativar' : 'Ativar'} Drag & Drop
-                  </Button>
-                </div>
-
-                {/* Trajectory Replay */}
-                <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    📍 Replay de Trajetória
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-8 text-xs"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch('/api/interactive-map/trajectory/agent-001');
-                        const data = await response.json();
-                        if (data.success) {
-                          alert(`Trajetória carregada: ${data.data.points.length} pontos de ${data.data.agentName}`);
-                        } else {
-                          alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
-                        }
-                      } catch (error) {
-                        alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
-                      }
-                    }}
-                    data-testid="load-trajectory-btn"
-                  >
-                    <History className="w-3 h-3 mr-1" />
-                    Carregar Trajetória
-                  </Button>
-                </div>
-
-                {/* External Data */}
-                <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    🌐 Dados Externos
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/external/weather?lat=-23.5505&lng=-46.6333');
-                          const data = await response.json();
-                          if (data.success) {
-                            alert(`Clima: ${data.data.temperature}°C, ${data.data.condition}`);
-                          }
-                        } catch (error) {
-                          alert('Dados de clima carregados (modo demo)');
-                        }
-                      }}
-                      data-testid="load-weather-btn"
-                    >
-                      🌤️ Clima
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/external/traffic?north=-23.5&south=-23.6&east=-46.6&west=-46.7');
-                          const data = await response.json();
-                          if (data.success) {
-                            alert(`Trânsito: ${data.data.congestionLevel}`);
-                          }
-                        } catch (error) {
-                          alert('Dados de trânsito carregados (modo demo)');
-                        }
-                      }}
-                      data-testid="load-traffic-btn"
-                    >
-                      🚦 Trânsito
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Audit Logs */}
-                <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    📋 Auditoria & Logs
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-8 text-xs"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch('/api/interactive-map/audit');
-                        const data = await response.json();
-                        if (data.success) {
-                          const logs = data.data.slice(0, 3).map(log => 
-                            `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
-                          ).join('\n');
-                          alert(`Últimos logs de auditoria:\n\n${logs}`);
-                        }
-                      } catch (error) {
-                        alert('Logs de auditoria:\n\nVIEW - map (23/08 15:35)\nEXPORT - agents (23/08 15:34)\nFILTER - agents (23/08 15:33)');
-                      }
-                    }}
-                    data-testid="view-audit-logs-btn"
-                  >
-                    <Activity className="w-3 h-3 mr-1" />
-                    Ver Logs de Auditoria
-                  </Button>
-                </div>
-              </CardContent>
-              )}
-            </Card>
           )}
         </div>
       </div>
