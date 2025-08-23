@@ -7,7 +7,7 @@
 import { db } from '../../../../db';
 import * as schema from '../../../../shared/schema';
 import * as saasSchema from '../../../../shared/schema-saas-admin';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
 import { Integration, IntegrationConfig } from '../../domain/entities/Integration';
 import { IIntegrationRepository } from '../../domain/repositories/IIntegrationRepository';
 
@@ -309,13 +309,13 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
     try {
       console.log(`[INTEGRATION-REPO] Updating ${provider} status to: ${status}`);
 
-      await this.db
-        .update(saasIntegrationsTable)
+      await db
+        .update(saasSchema.saasIntegrations)
         .set({ 
           status: status,
-          updatedAt: sql`CURRENT_TIMESTAMP`
+          updatedAt: new Date()
         })
-        .where(eq(saasIntegrationsTable.provider, provider as any));
+        .where(eq(saasSchema.saasIntegrations.provider, provider));
 
       console.log(`[INTEGRATION-REPO] Status updated successfully for ${provider}`);
     } catch (error) {
