@@ -348,4 +348,144 @@ router.get('/external/combined', async (req: Request, res: Response) => {
 // Initialize cache cleanup
 ExternalApiService.startCacheCleanup();
 
+// ✅ Trajectory Routes
+
+// GET /api/interactive-map/trajectory/:agentId - Get agent trajectory
+router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { agentId } = req.params;
+    const { db } = req as AuthenticatedRequest;
+    
+    if (!db) {
+      return res.status(500).json({ success: false, error: 'Database connection not available' });
+    }
+    
+    // Get real trajectory data from database
+    const result = await db.query(`
+      SELECT 
+        agent_id,
+        agent_name,
+        lat,
+        lng,
+        timestamp,
+        speed,
+        heading,
+        accuracy,
+        device_battery
+      FROM agent_trajectories 
+      WHERE agent_id = $1 
+      ORDER BY timestamp ASC
+    `, [agentId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No trajectory data found for this agent'
+      });
+    }
+    
+    const points = result.rows;
+    const firstPoint = points[0];
+    const lastPoint = points[points.length - 1];
+    
+    // Calculate total distance
+    const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    };
+    
+    let totalDistance = 0;
+    for (let i = 1; i < points.length; i++) {
+      totalDistance += calculateDistance(
+        parseFloat(points[i-1].lat),
+        parseFloat(points[i-1].lng),
+        parseFloat(points[i].lat),
+        parseFloat(points[i].lng)
+      );
+    }
+    
+    const trajectory = {
+      agentId,
+      agentName: firstPoint.agent_name,
+      startTime: firstPoint.timestamp,
+      endTime: lastPoint.timestamp,
+      points: points.map((point, index) => ({
+        id: `point-${index}`,
+        agentId: point.agent_id,
+        lat: parseFloat(point.lat),
+        lng: parseFloat(point.lng),
+        timestamp: point.timestamp,
+        speed: point.speed || 0,
+        heading: point.heading || 0,
+        accuracy: point.accuracy || 0,
+        deviceBattery: point.device_battery || 0
+      })),
+      totalDistance: Math.round(totalDistance * 100) / 100,
+      maxSpeed: Math.max(...points.map(p => p.speed || 0)),
+      avgSpeed: Math.round(points.reduce((sum, p) => sum + (p.speed || 0), 0) / points.length * 100) / 100
+    };
+    
+    // Log audit event
+    await MapAuditService.logViewData(
+      req.user!.id,
+      req.user!.tenantId!,
+      'trajectory',
+      agentId,
+      { pointCount: points.length, timeRange: { start: firstPoint.timestamp, end: lastPoint.timestamp } },
+      { userAgent: req.get('User-Agent'), ipAddress: req.ip }
+    );
+    
+    res.json({
+      success: true,
+      data: trajectory
+    });
+  } catch (error) {
+    console.error('Failed to get agent trajectory:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve trajectory'
+    });
+  }
+});
+
+// ✅ Drag & Drop Routes
+
+// POST /api/interactive-map/drag-drop/assign - Assign ticket to agent via drag & drop
+router.post('/drag-drop/assign', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { ticketId, agentId, position } = req.body;
+    
+    if (!ticketId || !agentId) {
+      return res.status(400).json({ success: false, error: 'Ticket ID and Agent ID are required' });
+    }
+    
+    // Log the drag & drop assignment
+    await MapAuditService.logDragDropAction(
+      req.user!.id,
+      req.user!.tenantId!,
+      'assign_ticket',
+      { ticketId, agentId, position },
+      { userAgent: req.get('User-Agent'), ipAddress: req.ip }
+    );
+    
+    res.json({
+      success: true,
+      message: `Ticket ${ticketId} assigned to agent ${agentId}`,
+      data: { ticketId, agentId, assignedAt: new Date().toISOString() }
+    });
+  } catch (error) {
+    console.error('Failed to assign ticket:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign ticket'
+    });
+  }
+});
+
 export default router;

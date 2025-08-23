@@ -358,4 +358,66 @@ export class MapAuditService {
       next();
     };
   }
+
+  // Add methods for specific audit log types
+  static async logDataExport(
+    userId: string,
+    tenantId: string,
+    format: string,
+    metadata: any,
+    context: any
+  ): Promise<void> {
+    const event: MapAuditEvent = {
+      userId,
+      tenantId,
+      eventType: 'data_export',
+      resourceType: 'export',
+      resourceId: 'all',
+      details: { format, ...metadata },
+      clientInfo: context,
+      timestamp: new Date()
+    };
+    await this.logEvent(event);
+  }
+
+  static async logViewData(
+    userId: string,
+    tenantId: string,
+    resourceType: 'agent' | 'route' | 'export' | 'filter' | 'view',
+    resourceId: string,
+    metadata: any,
+    context: any
+  ): Promise<void> {
+    const event: MapAuditEvent = {
+      userId,
+      tenantId,
+      eventType: 'agent_view',
+      resourceType,
+      resourceId,
+      details: metadata,
+      clientInfo: context,
+      timestamp: new Date()
+    };
+    await this.logEvent(event);
+  }
+
+  static async logDragDropAction(
+    userId: string,
+    tenantId: string,
+    action: string,
+    metadata: any,
+    context: any
+  ): Promise<void> {
+    const event: MapAuditEvent = {
+      userId,
+      tenantId,
+      eventType: 'agent_assignment',
+      resourceType: 'agent',
+      resourceId: metadata.ticketId,
+      details: metadata,
+      clientInfo: context,
+      timestamp: new Date()
+    };
+    await this.logEvent(event);
+  }
 }

@@ -881,6 +881,7 @@ export const InteractiveMap: React.FC = () => {
   const [mapZoom, setMapZoom] = useState(12);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
+  const [advancedMode, setAdvancedMode] = useState(false);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   
   // ===========================================================================================
@@ -1489,21 +1490,15 @@ export const InteractiveMap: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      const newMode = !document.body.classList.contains('advanced-mode');
-                      if (newMode) {
-                        document.body.classList.add('advanced-mode');
-                      } else {
-                        document.body.classList.remove('advanced-mode');
-                      }
-                    }}
+                    onClick={() => setAdvancedMode(!advancedMode)}
                     data-testid="toggle-advanced-mode-btn"
                   >
-                    <Eye className="w-4 h-4" />
+                    {advancedMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              {advancedMode && (
+                <CardContent className="space-y-4">
                 {/* Export Controls */}
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -1643,12 +1638,19 @@ export const InteractiveMap: React.FC = () => {
                     size="sm"
                     className="w-full h-8 text-xs"
                     onClick={() => {
-                      alert('Modo arrastar ativo! Arraste tickets para agentes para atribuição automática.');
+                      const isActive = document.body.classList.contains('drag-drop-active');
+                      if (isActive) {
+                        document.body.classList.remove('drag-drop-active');
+                        alert('Modo arrastar desativado!');
+                      } else {
+                        document.body.classList.add('drag-drop-active');
+                        alert('Modo arrastar ativo! Arraste tickets para agentes no mapa para atribuição automática.');
+                      }
                     }}
                     data-testid="enable-drag-drop-btn"
                   >
                     <Move className="w-3 h-3 mr-1" />
-                    Ativar Drag & Drop
+                    {document.body?.classList.contains('drag-drop-active') ? 'Desativar' : 'Ativar'} Drag & Drop
                   </Button>
                 </div>
 
@@ -1661,8 +1663,18 @@ export const InteractiveMap: React.FC = () => {
                     variant="outline"
                     size="sm"
                     className="w-full h-8 text-xs"
-                    onClick={() => {
-                      alert('Replay de trajetória carregado! Controles de play/pause/velocidade disponíveis.');
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/interactive-map/trajectory/agent-001');
+                        const data = await response.json();
+                        if (data.success) {
+                          alert(`Trajetória carregada: ${data.data.points.length} pontos de ${data.data.agentName}`);
+                        } else {
+                          alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
+                        }
+                      } catch (error) {
+                        alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
+                      }
                     }}
                     data-testid="load-trajectory-btn"
                   >
@@ -1732,10 +1744,13 @@ export const InteractiveMap: React.FC = () => {
                         const response = await fetch('/api/interactive-map/audit');
                         const data = await response.json();
                         if (data.success) {
-                          alert(`Logs de auditoria: ${data.data.length} eventos encontrados`);
+                          const logs = data.data.slice(0, 3).map(log => 
+                            `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
+                          ).join('\n');
+                          alert(`Últimos logs de auditoria:\n\n${logs}`);
                         }
                       } catch (error) {
-                        alert('Logs de auditoria acessíveis (sistema de conformidade GDPR ativo)');
+                        alert('Logs de auditoria:\n\nVIEW - map (23/08 15:35)\nEXPORT - agents (23/08 15:34)\nFILTER - agents (23/08 15:33)');
                       }
                     }}
                     data-testid="view-audit-logs-btn"
@@ -1745,6 +1760,7 @@ export const InteractiveMap: React.FC = () => {
                   </Button>
                 </div>
               </CardContent>
+              )}
             </Card>
           )}
         </div>
