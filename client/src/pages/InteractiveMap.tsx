@@ -1368,8 +1368,8 @@ export const InteractiveMap: React.FC = () => {
             {/* Filters Toggle */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="filters-toggle">
-                  <Filter className="w-4 h-4 mr-2" />
+                <Button variant="outline" size="sm" data-testid="filters-toggle" className="flex items-center">
+                  <Filter className="w-4 h-4 mr-2 flex-shrink-0" />
                   Filtros
                   {(filters.status.length > 0 || filters.teams.length > 0 || filters.skills.length > 0) && (
                     <Badge variant="secondary" className="ml-2 text-xs">
@@ -1398,8 +1398,8 @@ export const InteractiveMap: React.FC = () => {
             {/* Layers Toggle */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="layers-toggle">
-                  <Layers className="w-4 h-4" />
+                <Button variant="outline" size="sm" data-testid="layers-toggle" className="flex items-center justify-center">
+                  <Layers className="w-4 h-4 flex-shrink-0" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 z-[99999]">
@@ -1427,8 +1427,8 @@ export const InteractiveMap: React.FC = () => {
             {/* Advanced Features Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="advanced-features-dropdown">
-                  <RotateCcw className="w-4 h-4" />
+                <Button variant="outline" size="sm" data-testid="advanced-features-dropdown" className="flex items-center justify-center">
+                  <RotateCcw className="w-4 h-4 flex-shrink-0" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 z-[99999]" sideOffset={5}>
