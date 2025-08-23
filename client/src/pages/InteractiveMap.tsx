@@ -1756,8 +1756,87 @@ export const InteractiveMap: React.FC = () => {
                 // Force body class toggle for overflow control
                 if (newFullscreenState) {
                   document.body.classList.add('fullscreen-map-active');
+                  
+                  // Ultra-aggressive JavaScript fullscreen fix
+                  setTimeout(() => {
+                    const container = document.querySelector('.fullscreen-map-container') as HTMLElement;
+                    const mapDiv = document.querySelector('.fullscreen-map') as HTMLElement;
+                    const leafletContainer = document.querySelector('.leaflet-container') as HTMLElement;
+                    
+                    const vw = window.innerWidth;
+                    const vh = window.innerHeight;
+                    
+                    if (container) {
+                      container.style.cssText = `
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        width: ${vw}px !important;
+                        height: ${vh}px !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        z-index: 9999 !important;
+                        overflow: hidden !important;
+                        box-sizing: border-box !important;
+                      `;
+                    }
+                    
+                    if (mapDiv) {
+                      mapDiv.style.cssText = `
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        width: ${vw}px !important;
+                        height: ${vh}px !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
+                        box-sizing: border-box !important;
+                      `;
+                    }
+                    
+                    if (leafletContainer) {
+                      leafletContainer.style.cssText = `
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        width: ${vw}px !important;
+                        height: ${vh}px !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                      `;
+                      
+                      // Force Leaflet to invalidate size
+                      const leafletMap = (leafletContainer as any)._leaflet_map;
+                      if (leafletMap) {
+                        leafletMap.invalidateSize(true);
+                      }
+                    }
+                    
+                    // Force body and html dimensions
+                    document.body.style.cssText = `
+                      overflow: hidden !important;
+                      width: ${vw}px !important;
+                      height: ${vh}px !important;
+                      margin: 0 !important;
+                      padding: 0 !important;
+                      box-sizing: border-box !important;
+                    `;
+                    
+                    document.documentElement.style.cssText = `
+                      overflow: hidden !important;
+                      width: ${vw}px !important;
+                      height: ${vh}px !important;
+                      margin: 0 !important;
+                      padding: 0 !important;
+                      box-sizing: border-box !important;
+                    `;
+                  }, 150);
                 } else {
                   document.body.classList.remove('fullscreen-map-active');
+                  document.body.style.cssText = '';
+                  document.documentElement.style.cssText = '';
                 }
               }}
               data-testid="fullscreen-toggle"
