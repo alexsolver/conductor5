@@ -46,7 +46,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       const tenantSchema = this.getTenantSchema();
       console.log('🔥 [CUSTOM-FIELDS-REPO] Querying fields from schema:', tenantSchema);
       
-      const selectQuery = `
+      const result = await db.execute(sql`
         SELECT 
           id,
           module_type as "moduleType",
@@ -63,15 +63,13 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
           help_text as "helpText",
           created_at as "createdAt",
           updated_at as "updatedAt"
-        FROM ${tenantSchema}.custom_field_metadata
-        WHERE module_type = $1 AND is_active = true
+        FROM ${sql.identifier(tenantSchema, 'custom_field_metadata')}
+        WHERE module_type = ${moduleType} AND is_active = true
         ORDER BY display_order ASC, created_at ASC
-      `;
-      
-      const result = await db.execute(sql.raw(selectQuery, [moduleType]));
+      `);
       console.log('🔥 [CUSTOM-FIELDS-REPO] Query result:', result.rows?.length || 0, 'fields found');
       
-      return (result.rows || []) as unknown as CustomFieldMetadata[];
+      return result.rows as CustomFieldMetadata[];
     } catch (error) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Error in getFieldsByModule:', error);
       // ✅ 1QA.MD: Return empty array instead of throwing to prevent frontend blocking
@@ -165,22 +163,18 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
 
       const tenantSchema = this.getTenantSchema();
       
-      const insertQuery = `
-        INSERT INTO ${tenantSchema}.custom_field_metadata (
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(tenantSchema, 'custom_field_metadata')} (
           id, module_type, field_name, field_type, field_label,
           is_required, validation_rules, field_options, placeholder,
           default_value, display_order, is_active, help_text,
           created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, $12, NOW(), NOW()
+          ${fieldId}, ${moduleType}, ${fieldName}, ${fieldType}, ${fieldLabel},
+          ${isRequired}, ${JSON.stringify(validationRules)}, ${JSON.stringify(fieldOptions)},
+          ${placeholder}, ${defaultValue}, ${displayOrder}, true, ${helpText}, NOW(), NOW()
         )
-      `;
-      
-      await db.execute(sql.raw(insertQuery, [
-        fieldId, moduleType, fieldName, fieldType, fieldLabel,
-        isRequired, JSON.stringify(validationRules), JSON.stringify(fieldOptions),
-        placeholder, defaultValue, displayOrder, helpText
-      ]));
+      `);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field created successfully');
       return {
