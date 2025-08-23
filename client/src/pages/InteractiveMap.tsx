@@ -43,7 +43,8 @@ import {
   Grid3X3,
   Move,
   History,
-  CloudRain
+  CloudRain,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1903,6 +1904,41 @@ export const InteractiveMap: React.FC = () => {
 
           {/* Main Content */}
           <div className={`${isFullscreen ? 'fullscreen-map-container bg-background overflow-hidden' : 'flex-1 relative'}`}>
+            {/* Header sempre visível */}
+            {isFullscreen && (
+              <div className="absolute top-0 left-0 right-0 z-[10000] bg-white border-b border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                      <h1 className="text-lg font-semibold text-gray-900">Mapa Interativo</h1>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* Quick Actions */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newFullscreenState = !isFullscreen;
+                        setIsFullscreen(newFullscreenState);
+                        
+                        if (!newFullscreenState) {
+                          document.body.classList.remove('fullscreen-map-active');
+                          document.body.style.cssText = '';
+                          document.documentElement.style.cssText = '';
+                        }
+                      }}
+                      data-testid="fullscreen-exit"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Map Container */}
             <div className={`${isFullscreen ? 'fullscreen-map' : 'h-full'}`}>
             <MapContainer
