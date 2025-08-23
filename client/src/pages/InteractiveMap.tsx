@@ -1442,7 +1442,7 @@ export const InteractiveMap: React.FC = () => {
   // Data Fetching with Mock Data (replace with real API calls)
   // ===========================================================================================
 
-  const { data: agentsData, isLoading: areAgentsLoading, refetch: refetchAgents } = useQuery({
+  const { data: agentsData, isLoading: areAgentsLoading, error, refetch: refetchAgents } = useQuery({
     queryKey: ['/api/interactive-map/agents', filters],
     queryFn: async () => {
       // Simulate API delay
@@ -1620,18 +1620,6 @@ export const InteractiveMap: React.FC = () => {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map'); // Dummy state for ViewModeSelector
   const activeFiltersCount = filters.status.length + filters.teams.length + filters.skills.length;
 
-  // Add a state to track the loading of agents
-  const [isAgentsLoading, setIsAgentsLoading] = useState(true);
-
-  // Mock refetch function for agents (replace with actual refetch logic)
-  const refetchAgents = async () => {
-    setIsAgentsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    // In a real scenario, you'd call queryClient.refetchQueries or similar
-    console.log("Refetching agents...");
-    setIsAgentsLoading(false);
-  };
-
   // Effect to handle map resizing when sidebar state changes
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1782,7 +1770,7 @@ export const InteractiveMap: React.FC = () => {
               <div className="absolute inset-0 z-[1000] bg-background/50 backdrop-blur-sm flex items-center justify-center">
                 <Alert className="max-w-md">
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{error.message}</AlertDescription>
                 </Alert>
               </div>
             )}
@@ -1795,9 +1783,7 @@ export const InteractiveMap: React.FC = () => {
               zoomControl={false}
               attributionControl={false}
               whenCreated={(mapInstance) => {
-                setMap(mapInstance);
                 mapRef.current = mapInstance;
-
                 // Fix initial sizing
                 setTimeout(() => {
                   mapInstance.invalidateSize();
