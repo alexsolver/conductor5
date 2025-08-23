@@ -1246,27 +1246,6 @@ export const InteractiveMap: React.FC = () => {
     setMapCenter([agent.lat!, agent.lng!]);
   }, []);
 
-  // Center to High Concentration Function
-  const centerToHighestConcentration = useCallback(() => {
-    if (agents.length === 0) return;
-
-    // Calculate center point based on all agents with valid coordinates
-    const validAgents = agents.filter(agent => agent.lat !== null && agent.lng !== null);
-    
-    if (validAgents.length === 0) return;
-
-    // Simple centroid calculation - find the center point of all agents
-    const totalLat = validAgents.reduce((sum, agent) => sum + agent.lat!, 0);
-    const totalLng = validAgents.reduce((sum, agent) => sum + agent.lng!, 0);
-    
-    const centerLat = totalLat / validAgents.length;
-    const centerLng = totalLng / validAgents.length;
-
-    // Update map center and zoom to show concentration area
-    setMapCenter([centerLat, centerLng]);
-    setMapZoom(13); // Good zoom level to see concentration area
-  }, [agents]);
-
   const handleExportData = useCallback(() => {
     const dataToExport = {
       timestamp: new Date().toISOString(),
@@ -2031,19 +2010,6 @@ export const InteractiveMap: React.FC = () => {
                 </div>
               )}
 
-              {/* Center to High Concentration Button */}
-              <div className="absolute top-[90px] left-[10px] z-[1000]">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={centerToHighestConcentration}
-                  className="w-[30px] h-[30px] p-0 bg-white border border-gray-300 shadow-md hover:bg-gray-50"
-                  data-testid="center-to-concentration"
-                  title="Centralizar na área com maior concentração de técnicos"
-                >
-                  <Target className="w-4 h-4" />
-                </Button>
-              </div>
             </MapContainer>
             </div>
           </div>
