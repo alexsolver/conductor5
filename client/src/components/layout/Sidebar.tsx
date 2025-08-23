@@ -141,12 +141,12 @@ const adminNavigation = [
       { name: "securitySettings", href: "/saas-admin/security", icon: Shield },
       { name: "billingUsage", href: "/saas-admin/billing", icon: CreditCard },
       { name: "disasterRecovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
-      { name: "autoProvisioning", href: "/tenant-provisioning", icon: Plug },
-      { name: "translationManagement", href: "/translation-manager", icon: Languages },
+      { name: "autoProvisioning", href: "/saas-admin/tenant-provisioning", icon: Plug },
+      { name: "translationManagement", href: "/saas-admin/translation-manager", icon: Languages },
       { name: "userManagementPage", href: "/saas-admin/user-management", icon: UserCog },
       // Removed: Multi-Tenant management - functionality eliminated from system
       { name: "integrations", href: "/saas-admin/integrations", icon: Plug },
-      { name: "moduleIntegrity", href: "/module-integrity", icon: Shield },
+      { name: "moduleIntegrity", href: "/saas-admin/module-integrity", icon: Shield },
       { name: "multilocationSettings", href: "/tenant-admin/multilocation", icon: Globe2 },
     ]
   },

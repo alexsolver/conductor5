@@ -633,4 +633,64 @@ router.get('/users/activity', requirePermission(Permission.PLATFORM_MANAGE_USERS
   }
 });
 
+/**
+ * TENANT PROVISIONING - SaaS Admin Global Routes
+ * These endpoints manage tenant provisioning across the entire platform
+ */
+
+/**
+ * GET /api/saas-admin/tenant-provisioning/config
+ * Get global tenant provisioning configuration
+ */
+router.get('/tenant-provisioning/config', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), async (req: AuthorizedRequest, res) => {
+  try {
+    // Global tenant provisioning configuration from public schema
+    const globalConfig = {
+      enabled: true,
+      allowSelfProvisioning: false,
+      autoCreateOnFirstUser: false,
+      subdomainGeneration: 'company-based',
+      defaultTenantSettings: {
+        maxUsers: 100,
+        maxTickets: 1000,
+        features: ['tickets', 'users', 'reports'],
+        theme: 'default'
+      }
+    };
+
+    // TODO: Implement actual global config queries against public schema
+    res.json({ success: true, config: globalConfig });
+  } catch (error) {
+    console.error('Error fetching global tenant provisioning config:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch global tenant provisioning config' });
+  }
+});
+
+/**
+ * MODULE INTEGRITY - SaaS Admin Global Routes
+ * These endpoints manage module integrity across the entire platform
+ */
+
+/**
+ * GET /api/saas-admin/module-integrity/monitoring
+ * Get global module integrity monitoring data
+ */
+router.get('/module-integrity/monitoring', requirePermission(Permission.PLATFORM_SYSTEM_CONFIG), async (req: AuthorizedRequest, res) => {
+  try {
+    // Global module integrity monitoring from public schema
+    const globalMonitoring = {
+      systemHealth: 'healthy',
+      moduleStatuses: [],
+      alerts: [],
+      lastCheck: new Date().toISOString()
+    };
+
+    // TODO: Implement actual global monitoring queries against public schema
+    res.json({ success: true, data: globalMonitoring });
+  } catch (error) {
+    console.error('Error fetching global module integrity monitoring:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch global module integrity monitoring' });
+  }
+});
+
 export default router;

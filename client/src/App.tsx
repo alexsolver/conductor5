@@ -197,8 +197,11 @@ function AppRouter() {
         {/* <Route path="/global-geolocation" component={GlobalGeolocation} /> */}
         <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
+        <Route path="/saas-admin/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
+        <Route path="/saas-admin/translation-manager" component={TranslationManager} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
+        <Route path="/saas-admin/module-integrity" component={ModuleIntegrityControl} />
         <Route path="/ticket-configuration" component={TicketConfiguration} />
         <Route path="/ticket-configuration/advanced" component={TicketAdvancedConfiguration} />
         <Route path="/user-management" component={UserManagement} />

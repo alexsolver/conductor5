@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -64,8 +65,12 @@ export default function TenantProvisioning() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
   const [isProvisionDialogOpen, setIsProvisionDialogOpen] = useState(false);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  
+  // Check if this is SaaS Admin page
+  const isSaasAdmin = location.includes('/saas-admin/tenant-provisioning');
 
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
@@ -84,7 +89,7 @@ export default function TenantProvisioning() {
 
   // Query para configuração de auto-provisioning
   const { data: config, isLoading: isLoadingConfig } = useQuery({
-    queryKey: ['/api/tenant-provisioning/config'],
+    queryKey: isSaasAdmin ? ['/api/saas-admin/tenant-provisioning/config'] : ['/api/tenant-provisioning/config'],
     staleTime: 5 * 60 * 1000,
   });
 
@@ -147,7 +152,7 @@ export default function TenantProvisioning() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tenant-provisioning/config'] });
+      queryClient.invalidateQueries({ queryKey: isSaasAdmin ? ['/api/saas-admin/tenant-provisioning/config'] : ['/api/tenant-provisioning/config'] });
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
