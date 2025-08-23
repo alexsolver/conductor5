@@ -2101,8 +2101,8 @@ export const InteractiveMap: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
-    </TooltipProvider>
+      </TooltipProvider>
+    </div>
   );
 };
 
