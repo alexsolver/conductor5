@@ -424,20 +424,19 @@ export default function CustomFieldsAdministrator() {
   const { data: moduleFields = [], isLoading } = useQuery({
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/custom-fields/fields/${selectedModule}`);
-      if (!response.ok) {
-        // As per the error message, the API might be returning HTML instead of JSON
-        // We should check the response content type or handle potential non-JSON responses
-        const errorText = await response.text();
-        console.error("API Error Response:", errorText);
-        throw new Error(`Failed to fetch fields: ${response.statusText}`);
-      }
       try {
+        const response = await apiRequest('GET', `/api/custom-fields/fields/${selectedModule}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("API Error Response:", errorText);
+          throw new Error(`Failed to fetch fields: ${response.statusText}`);
+        }
         const data = await response.json();
         return data.data || [];
       } catch (error) {
-        console.error("Failed to parse JSON response:", error);
-        throw new Error('Received non-JSON response from API');
+        console.error("Failed to fetch custom fields:", error);
+        // Return empty array if fetch fails to prevent UI crash
+        return [];
       }
     }
   });
@@ -445,11 +444,23 @@ export default function CustomFieldsAdministrator() {
   // Create field mutation
   const createFieldMutation = useMutation({
     mutationFn: async (fieldData: Partial<CustomFieldMetadata>) => {
-      const response = await apiRequest('POST', '/api/custom-fields/fields', fieldData);
-      if (!response.ok) {
-        throw new Error('Failed to create field');
+      try {
+        console.log('Creating custom field with data:', fieldData);
+        const response = await apiRequest('POST', '/api/custom-fields/fields', fieldData);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('Create field error:', errorData);
+          throw new Error(`Failed to create field: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Field created successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('Error in createFieldMutation:', error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-fields', selectedModule] });
