@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, LayersControl, useMap } from 'react-leaflet';
 import { Icon, divIcon, LatLngBounds, LatLng } from 'leaflet';
 import { useTranslation } from 'react-i18next';
+import { useSidebar } from '@/contexts/SidebarContext';
 import {
   Filter,
   Search,
@@ -992,7 +993,7 @@ export const InteractiveMap: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const { sidebarCollapsed, toggleSidebar } = useSidebar();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // State for the help modal
 
@@ -1304,25 +1305,7 @@ export const InteractiveMap: React.FC = () => {
 
   return (
     <TooltipProvider>
-      <div className={`h-screen flex ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
-        {/* Sidebar simulado (oculto quando sidebarVisible = false) */}
-        <div className={`${sidebarVisible ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700`}>
-          {sidebarVisible && (
-            <div className="p-4">
-              <div className="text-sm text-muted-foreground mb-4">Menu Principal</div>
-              <div className="space-y-2 text-sm">
-                <div className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Dashboard</div>
-                <div className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Tickets</div>
-                <div className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Agenda</div>
-                <div className="p-2 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-medium">Mapa Interativo</div>
-                <div className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Configurações</div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Conteúdo Principal */}
-        <div className="flex-1 flex flex-col">
+      <div className={`h-screen flex flex-col ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
           {/* Header Fixo - Sempre Visível */}
           <div className="flex items-center justify-between p-4 bg-background border-b sticky top-0 z-40">
             <div className="flex items-center gap-4">
@@ -1330,12 +1313,12 @@ export const InteractiveMap: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSidebarVisible(!sidebarVisible)}
+                onClick={() => toggleSidebar()}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 data-testid="sidebar-toggle"
-                title={sidebarVisible ? 'Ocultar menu lateral' : 'Exibir menu lateral'}
+                title={sidebarCollapsed ? 'Exibir menu lateral' : 'Ocultar menu lateral'}
               >
-                {sidebarVisible ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+                {sidebarCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
               </Button>
 
               <h1 className="text-xl font-semibold">Mapa Interativo</h1>
@@ -2098,7 +2081,6 @@ export const InteractiveMap: React.FC = () => {
               </div>
             </div>
           )}
-          </div>
         </div>
       </div>
     </TooltipProvider>
