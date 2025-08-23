@@ -1749,7 +1749,17 @@ export const InteractiveMap: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsFullscreen(!isFullscreen)}
+              onClick={() => {
+                const newFullscreenState = !isFullscreen;
+                setIsFullscreen(newFullscreenState);
+                
+                // Force body class toggle for overflow control
+                if (newFullscreenState) {
+                  document.body.classList.add('fullscreen-map-active');
+                } else {
+                  document.body.classList.remove('fullscreen-map-active');
+                }
+              }}
               data-testid="fullscreen-toggle"
             >
               <Maximize2 className="w-4 h-4" />
