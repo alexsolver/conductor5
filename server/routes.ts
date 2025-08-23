@@ -434,6 +434,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CUSTOM FIELDS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [CUSTOM-FIELDS] Initializing Custom Fields Clean Architecture module...');
+  console.log('🔍 [CUSTOM-FIELDS] Router type:', typeof customFieldRoutes);
+  console.log('🔍 [CUSTOM-FIELDS] Router default:', typeof customFieldRoutes.default);
   app.use('/api/custom-fields', jwtAuth, enhancedTenantValidator, customFieldRoutes);
   console.log('✅ [CUSTOM-FIELDS] Clean Architecture module registered at /api/custom-fields');
 
