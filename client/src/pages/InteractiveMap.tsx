@@ -1815,11 +1815,11 @@ export const InteractiveMap: React.FC = () => {
           {/* Main Content */}
           <div className="flex-1 relative">
           {/* Map Container */}
-          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-[8000]' : ''}`}>
+          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-[8000] bg-background overflow-hidden' : ''}`}>
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
-              className="h-full w-full"
+              className={`h-full w-full ${isFullscreen ? 'border-0' : ''}`}
               zoomControl={false}
             >
               <LayersControl position="topright">
