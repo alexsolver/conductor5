@@ -2464,7 +2464,7 @@ export const InteractiveMap: React.FC = () => {
           {/* Agent Details Modal */}
           {selectedAgent && (
             <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto z-[9999]">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <div 
@@ -2730,7 +2730,7 @@ export const InteractiveMap: React.FC = () => {
           
           {/* Trajectory Replay Modal */}
           <Dialog open={trajectoryModalOpen} onOpenChange={setTrajectoryModalOpen}>
-            <DialogContent className="max-w-6xl max-h-[95vh]">
+            <DialogContent className="max-w-6xl max-h-[95vh] z-[9999]">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <History className="w-5 h-5" />
