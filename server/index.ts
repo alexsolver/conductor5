@@ -461,7 +461,8 @@ app.use((req, res, next) => {
     console.log(`🗺️ [SERVER] Interactive Map route hit: ${req.method} ${req.url}`);
     next();
   }, interactiveMapRoutes);
-  console.log('🗺️ [SERVER] Interactive Map routes registered at /api/interactive-map');
+  console.log('🗺️ [SERVER] Interactive Map routes registered at /api/interactive-map
+🌤️ [SERVER] Weather integration using SaaS Admin OpenWeather config');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

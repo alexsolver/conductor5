@@ -199,7 +199,7 @@ const getWeatherCondition = (temp: number, condition?: string): keyof typeof wea
   return 'stormy';
 };
 
-// Enhanced Weather Visualization Layer with gradient effects
+// ✅ Enhanced Weather Visualization Layer using SaaS Admin OpenWeather integration
 const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => {
   const map = useMap();
   const [weatherData, setWeatherData] = useState<any[]>([]);
@@ -209,62 +209,79 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
     const fetchWeatherData = async () => {
       setIsLoading(true);
       try {
-        // Try to fetch real weather data first
-        const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY;
+        console.log('🌤️ [WEATHER-LAYER] Fetching weather data using SaaS Admin integration');
 
-        if (apiKey) {
-          // Fetch real weather data for São Paulo region
-          const locations = [
-            { name: 'Centro SP', lat: -23.5505, lng: -46.6333 },
-            { name: 'Zona Norte', lat: -23.5000, lng: -46.6200 },
-            { name: 'Zona Sul', lat: -23.6000, lng: -46.6500 },
-            { name: 'Zona Oeste', lat: -23.5500, lng: -46.7000 },
-            { name: 'Zona Leste', lat: -23.5400, lng: -46.5800 }
-          ];
+        // ✅ Use backend API that integrates with SaaS Admin OpenWeather config
+        const locations = [
+          { name: 'Centro SP', lat: -23.5505, lng: -46.6333 },
+          { name: 'Zona Norte', lat: -23.5000, lng: -46.6200 },
+          { name: 'Zona Sul', lat: -23.6000, lng: -46.6500 },
+          { name: 'Zona Oeste', lat: -23.5500, lng: -46.7000 },
+          { name: 'Zona Leste', lat: -23.5400, lng: -46.5800 }
+        ];
 
-          const weatherPromises = locations.map(async (location) => {
-            try {
-              const response = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lng}&appid=${apiKey}&units=metric`
-              );
-              const data = await response.json();
-              return {
-                ...location,
-                temp: Math.round(data.main.temp),
-                condition: data.weather[0].description,
-                humidity: data.main.humidity,
-                windSpeed: data.wind.speed
-              };
-            } catch (error) {
-              // Fallback to mock data for this location
-              return {
-                ...location,
-                temp: 20 + Math.random() * 10,
-                condition: 'Dados simulados',
-                humidity: 60,
-                windSpeed: 5
-              };
+        const weatherPromises = locations.map(async (location) => {
+          try {
+            // ✅ Following 1qa.md - Use backend API endpoint
+            const response = await fetch(
+              `/api/interactive-map/external/weather?lat=${location.lat}&lng=${location.lng}`,
+              {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                }
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(`Weather API error: ${response.status}`);
             }
-          });
 
-          const results = await Promise.all(weatherPromises);
-          setWeatherData(results);
-        } else {
-          // Use enhanced mock data
-          const enhancedMockData = [
-            { name: 'Centro SP', lat: -23.5505, lng: -46.6333, temp: 26, condition: 'Ensolarado', humidity: 65, windSpeed: 3.2 },
-            { name: 'Zona Norte', lat: -23.5000, lng: -46.6200, temp: 28, condition: 'Céu limpo', humidity: 55, windSpeed: 2.1 },
-            { name: 'Zona Sul', lat: -23.6000, lng: -46.6500, temp: 19, condition: 'Nublado', humidity: 75, windSpeed: 4.5 },
-            { name: 'Zona Oeste', lat: -23.5500, lng: -46.7000, temp: 9, condition: 'Chuva', humidity: 85, windSpeed: 6.8 },
-            { name: 'Zona Leste', lat: -23.5400, lng: -46.5800, temp: 4, condition: 'Tempestade', humidity: 90, windSpeed: 12.3 }
-          ];
-          setWeatherData(enhancedMockData);
-        }
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+              console.log(`✅ [WEATHER-LAYER] Real weather data fetched for ${location.name}`);
+              return {
+                ...location,
+                temp: result.data.temperature,
+                condition: result.data.condition,
+                humidity: result.data.humidity,
+                windSpeed: result.data.windSpeed,
+                visibility: result.data.visibility,
+                icon: result.data.icon,
+                isRealData: true
+              };
+            } else {
+              throw new Error('Invalid weather data response');
+            }
+          } catch (error) {
+            console.warn(`⚠️ [WEATHER-LAYER] Fallback data for ${location.name}:`, error.message);
+            // ✅ Fallback to realistic mock data
+            return {
+              ...location,
+              temp: 20 + Math.random() * 10,
+              condition: 'Dados simulados',
+              humidity: 60 + Math.floor(Math.random() * 30),
+              windSpeed: Math.floor(Math.random() * 15),
+              visibility: 10,
+              icon: '01d',
+              isRealData: false
+            };
+          }
+        });
+
+        const results = await Promise.all(weatherPromises);
+        setWeatherData(results);
+        
+        const realDataCount = results.filter(r => r.isRealData).length;
+        console.log(`🌤️ [WEATHER-LAYER] Weather data loaded: ${realDataCount}/${results.length} real, ${results.length - realDataCount} fallback`);
+
       } catch (error) {
-        console.error('Erro ao buscar dados climáticos:', error);
-        // Fallback data
+        console.error('❌ [WEATHER-LAYER] Error fetching weather data:', error);
+        // ✅ Complete fallback data
         setWeatherData([
-          { name: 'São Paulo', lat: -23.5505, lng: -46.6333, temp: 22, condition: 'Dados indisponíveis', humidity: 70, windSpeed: 5 }
+          { name: 'São Paulo', lat: -23.5505, lng: -46.6333, temp: 22, condition: 'Dados indisponíveis', humidity: 70, windSpeed: 5, isRealData: false }
         ]);
       } finally {
         setIsLoading(false);
@@ -273,7 +290,7 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
 
     fetchWeatherData();
 
-    // Auto refresh every 10 minutes
+    // ✅ Auto refresh every 10 minutes (following OpenWeather rate limits)
     const interval = setInterval(fetchWeatherData, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -344,8 +361,19 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
                   </div>
                 </div>
 
-                <div className="text-xs text-gray-600 border-t pt-2">
-                  Condição: {data.condition}
+                <div className="text-xs text-gray-600 border-t pt-2 space-y-1">
+                  <div>Condição: {data.condition}</div>
+                  {data.isRealData !== undefined && (
+                    <div className={`flex items-center gap-1 ${data.isRealData ? 'text-green-600' : 'text-orange-600'}`}>
+                      <span>{data.isRealData ? '🌐' : '📊'}</span>
+                      <span className="font-medium">
+                        {data.isRealData ? 'Dados OpenWeather' : 'Dados simulados'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500">
+                    Atualizado: {new Date().toLocaleTimeString()}
+                  </div>
                 </div>
               </div>
             </Popup>

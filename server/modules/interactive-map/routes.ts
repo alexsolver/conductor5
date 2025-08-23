@@ -63,7 +63,7 @@ router.post('/export/csv', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { agents, filters } = req.body;
     const result = MapExportService.exportToCSV(agents, filters);
-    
+
     if (result.success) {
       // Log audit event
       await MapAuditService.logDataExport(
@@ -73,7 +73,7 @@ router.post('/export/csv', async (req: AuthenticatedRequest, res: Response) => {
         { agentCount: agents.length, includesPersonalData: true },
         { userAgent: req.get('User-Agent'), ipAddress: req.ip }
       );
-      
+
       res.setHeader('Content-Type', result.mimeType);
       res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
       res.send(result.data);
@@ -90,7 +90,7 @@ router.post('/export/geojson', async (req: AuthenticatedRequest, res: Response) 
   try {
     const { agents, filters } = req.body;
     const result = MapExportService.exportToGeoJSON(agents, filters);
-    
+
     if (result.success) {
       // Log audit event
       await MapAuditService.logDataExport(
@@ -100,7 +100,7 @@ router.post('/export/geojson', async (req: AuthenticatedRequest, res: Response) 
         { agentCount: agents.length, includesPersonalData: true },
         { userAgent: req.get('User-Agent'), ipAddress: req.ip }
       );
-      
+
       res.setHeader('Content-Type', result.mimeType);
       res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
       res.send(result.data);
@@ -117,7 +117,7 @@ router.post('/export/pdf', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { agents, filters } = req.body;
     const result = MapExportService.exportToPDF(agents, filters);
-    
+
     if (result.success) {
       // Log audit event
       await MapAuditService.logDataExport(
@@ -127,7 +127,7 @@ router.post('/export/pdf', async (req: AuthenticatedRequest, res: Response) => {
         { agentCount: agents.length, includesPersonalData: true },
         { userAgent: req.get('User-Agent'), ipAddress: req.ip }
       );
-      
+
       res.setHeader('Content-Type', result.mimeType);
       res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
       res.send(result.data);
@@ -145,12 +145,12 @@ router.post('/export/pdf', async (req: AuthenticatedRequest, res: Response) => {
 router.get('/audit', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { userId, eventType, dateRange, limit = 50, offset = 0 } = req.query;
-    
+
     const filters: any = {
       limit: Number(limit),
       offset: Number(offset)
     };
-    
+
     if (userId) filters.userId = userId as string;
     if (eventType) filters.eventType = Array.isArray(eventType) ? eventType : [eventType];
     if (dateRange) {
@@ -160,7 +160,7 @@ router.get('/audit', async (req: AuthenticatedRequest, res: Response) => {
         end: new Date(range.end)
       };
     }
-    
+
     const logs = await MapAuditService.getAuditLogs(req.user!.tenantId!, filters);
     res.json({ success: true, data: logs });
   } catch (error) {
@@ -172,12 +172,12 @@ router.get('/audit', async (req: AuthenticatedRequest, res: Response) => {
 router.get('/audit/privacy-report', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     const dateRange = {
       start: new Date(startDate as string),
       end: new Date(endDate as string)
     };
-    
+
     const report = await MapAuditService.generatePrivacyReport(req.user!.tenantId!, dateRange);
     res.json({ success: true, data: report });
   } catch (error) {
@@ -202,7 +202,7 @@ router.get('/health', async (req: Request, res: Response) => {
     }
 
     const healthCheck = await interactiveMapService.healthCheck(tenantId);
-    
+
     res.json({
       success: true,
       message: 'Interactive Map service health check',
@@ -269,22 +269,39 @@ if (process.env.NODE_ENV === 'development') {
 // ✅ External Data Routes
 
 // GET /api/interactive-map/external/weather - Get weather data
-router.get('/external/weather', async (req: Request, res: Response) => {
+router.get('/external/weather', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { lat, lng } = req.query;
-    
+
     if (!lat || !lng) {
       return res.status(400).json({ success: false, error: 'Latitude and longitude required' });
     }
-    
+
+    // Check if OpenWeather integration is enabled and configured
+    const isIntegrationEnabled = await interactiveMapService.isExternalIntegrationEnabled('openweather');
+    if (!isIntegrationEnabled) {
+      return res.status(400).json({ success: false, error: 'OpenWeather integration is not enabled or configured.' });
+    }
+
     const weather = await ExternalApiService.getCachedData(
       `weather_${lat}_${lng}`,
       () => ExternalApiService.getWeatherData(Number(lat), Number(lng)),
       10 // 10 minutes cache
     );
-    
+
+    // Log audit event for viewing weather data
+    await MapAuditService.logViewData(
+      req.user!.id,
+      req.user!.tenantId!,
+      'weather_data',
+      `${lat},${lng}`,
+      { source: 'OpenWeatherAPI' },
+      { userAgent: req.get('User-Agent'), ipAddress: req.ip }
+    );
+
     res.json({ success: true, data: weather });
   } catch (error) {
+    console.error('[InteractiveMapRoutes] Failed to fetch weather data:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch weather data' });
   }
 });
@@ -293,24 +310,24 @@ router.get('/external/weather', async (req: Request, res: Response) => {
 router.get('/external/traffic', async (req: Request, res: Response) => {
   try {
     const { north, south, east, west } = req.query;
-    
+
     if (!north || !south || !east || !west) {
       return res.status(400).json({ success: false, error: 'Bounds parameters required' });
     }
-    
+
     const bounds = {
       north: Number(north),
       south: Number(south),
       east: Number(east),
       west: Number(west)
     };
-    
+
     const traffic = await ExternalApiService.getCachedData(
       `traffic_${north}_${south}_${east}_${west}`,
       () => ExternalApiService.getTrafficData(bounds),
       5 // 5 minutes cache
     );
-    
+
     res.json({ success: true, data: traffic });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch traffic data' });
@@ -321,24 +338,24 @@ router.get('/external/traffic', async (req: Request, res: Response) => {
 router.get('/external/combined', async (req: Request, res: Response) => {
   try {
     const { centerLat, centerLng, north, south, east, west } = req.query;
-    
+
     if (!centerLat || !centerLng || !north || !south || !east || !west) {
       return res.status(400).json({ success: false, error: 'Center coordinates and bounds required' });
     }
-    
+
     const bounds = {
       north: Number(north),
       south: Number(south),
       east: Number(east),
       west: Number(west)
     };
-    
+
     const data = await ExternalApiService.getCachedData(
       `combined_${centerLat}_${centerLng}_${north}_${south}_${east}_${west}`,
       () => ExternalApiService.getMapLayerData(Number(centerLat), Number(centerLng), bounds),
       10 // 10 minutes cache
     );
-    
+
     res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch external data' });
@@ -355,11 +372,11 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
   try {
     const { agentId } = req.params;
     const { db } = req as AuthenticatedRequest;
-    
+
     if (!db) {
       return res.status(500).json({ success: false, error: 'Database connection not available' });
     }
-    
+
     // Get real trajectory data from database
     const result = await db.query(`
       SELECT 
@@ -376,18 +393,18 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
       WHERE agent_id = $1 
       ORDER BY timestamp ASC
     `, [agentId]);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'No trajectory data found for this agent'
       });
     }
-    
+
     const points = result.rows;
     const firstPoint = points[0];
     const lastPoint = points[points.length - 1];
-    
+
     // Calculate total distance
     const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
       const R = 6371; // Earth's radius in km
@@ -399,7 +416,7 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     };
-    
+
     let totalDistance = 0;
     for (let i = 1; i < points.length; i++) {
       totalDistance += calculateDistance(
@@ -409,7 +426,7 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
         parseFloat(points[i].lng)
       );
     }
-    
+
     const trajectory = {
       agentId,
       agentName: firstPoint.agent_name,
@@ -430,7 +447,7 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
       maxSpeed: Math.max(...points.map(p => p.speed || 0)),
       avgSpeed: Math.round(points.reduce((sum, p) => sum + (p.speed || 0), 0) / points.length * 100) / 100
     };
-    
+
     // Log audit event
     await MapAuditService.logViewData(
       req.user!.id,
@@ -440,7 +457,7 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
       { pointCount: points.length, timeRange: { start: firstPoint.timestamp, end: lastPoint.timestamp } },
       { userAgent: req.get('User-Agent'), ipAddress: req.ip }
     );
-    
+
     res.json({
       success: true,
       data: trajectory
@@ -460,11 +477,11 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
 router.post('/drag-drop/assign', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { ticketId, agentId, position } = req.body;
-    
+
     if (!ticketId || !agentId) {
       return res.status(400).json({ success: false, error: 'Ticket ID and Agent ID are required' });
     }
-    
+
     // Log the drag & drop assignment
     await MapAuditService.logDragDropAction(
       req.user!.id,
@@ -473,7 +490,7 @@ router.post('/drag-drop/assign', async (req: AuthenticatedRequest, res: Response
       { ticketId, agentId, position },
       { userAgent: req.get('User-Agent'), ipAddress: req.ip }
     );
-    
+
     res.json({
       success: true,
       message: `Ticket ${ticketId} assigned to agent ${agentId}`,
