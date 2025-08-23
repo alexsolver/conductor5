@@ -72,11 +72,29 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
             ...baseIntegration,
             status: hasApiKey ? 'connected' : 'disconnected',
             config: savedConfig.config || {},
-            updatedAt: new Date(savedConfig.updated_at)
+            updatedAt: new Date(savedConfig.updated_at),
+            // ✅ Adicionar propriedades que o frontend espera
+            apiKeyConfigured: hasApiKey,
+            hasApiKey: () => hasApiKey,
+            isActive: () => hasApiKey,
+            isOpenWeatherIntegration: () => baseIntegration.id === 'openweather',
+            canMakeRequest: () => hasApiKey,
+            getLastTestedAt: () => savedConfig.config?.lastTested ? new Date(savedConfig.config.lastTested) : null,
+            getApiKeyMasked: () => savedConfig.config?.apiKey ? `${savedConfig.config.apiKey.substring(0, 8)}...` : null
           };
         }
         
-        return baseIntegration;
+        return {
+          ...baseIntegration,
+          // ✅ Propriedades padrão para integrações não configuradas
+          apiKeyConfigured: false,
+          hasApiKey: () => false,
+          isActive: () => false,
+          isOpenWeatherIntegration: () => baseIntegration.id === 'openweather',
+          canMakeRequest: () => false,
+          getLastTestedAt: () => null,
+          getApiKeyMasked: () => null
+        };
       });
 
       console.log('[INTEGRATION-REPO] Found integrations in PUBLIC schema:', integrations.length);
