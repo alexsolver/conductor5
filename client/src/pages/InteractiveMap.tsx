@@ -140,12 +140,63 @@ interface MapSettings {
   reduceMotion: boolean;
 }
 
-// Mock weather data for visualization
-const mockWeatherData = {
-  'good': { temp: 25, condition: 'Ensolarado', color: '#87CEEB', radius: 10000 }, // Azul claro
-  'normal': { temp: 18, condition: 'Parcialmente nublado', color: '#90EE90', radius: 8000 }, // Verde claro
-  'bad': { temp: 10, condition: 'Chuva', color: '#A9A9A9', radius: 6000 }, // Cinza escuro
-  'stormy': { temp: 5, condition: 'Tempestade', color: '#DC143C', radius: 4000 } // Vermelho
+// Weather visualization configuration with gradient colors
+const weatherVisualizationConfig = {
+  'excellent': { 
+    temp: 28, 
+    condition: 'Céu limpo', 
+    color: '#00BFFF', // Azul claro ótimo
+    radius: 12000,
+    opacity: 0.4,
+    icon: '☀️'
+  },
+  'good': { 
+    temp: 25, 
+    condition: 'Ensolarado', 
+    color: '#87CEEB', // Azul claro bom
+    radius: 10000,
+    opacity: 0.35,
+    icon: '🌤️'
+  },
+  'normal': { 
+    temp: 18, 
+    condition: 'Parcialmente nublado', 
+    color: '#90EE90', // Verde claro normal
+    radius: 8000,
+    opacity: 0.3,
+    icon: '⛅'
+  },
+  'bad': { 
+    temp: 10, 
+    condition: 'Chuva', 
+    color: '#808080', // Cinza ruim
+    radius: 6000,
+    opacity: 0.4,
+    icon: '🌧️'
+  },
+  'stormy': { 
+    temp: 5, 
+    condition: 'Tempestade', 
+    color: '#DC143C', // Vermelho temporal
+    radius: 4000,
+    opacity: 0.5,
+    icon: '⛈️'
+  }
+};
+
+// Enhanced weather condition determination
+const getWeatherCondition = (temp: number, condition?: string): keyof typeof weatherVisualizationConfig => {
+  // Check for storm conditions first
+  if (condition?.toLowerCase().includes('storm') || condition?.toLowerCase().includes('thunder')) {
+    return 'stormy';
+  }
+  
+  // Temperature-based classification with weather condition consideration
+  if (temp >= 26) return 'excellent';
+  if (temp >= 22 && temp < 26) return 'good';
+  if (temp >= 15 && temp < 22) return 'normal';
+  if (temp >= 8 && temp < 15) return 'bad';
+  return 'stormy';
 };
 
 // Function to determine weather condition based on temperature (example)
@@ -156,58 +207,157 @@ const getWeatherCondition = (temp: number): keyof typeof mockWeatherData => {
   return 'stormy';
 };
 
-// Component for Weather Visualization Layer
+// Enhanced Weather Visualization Layer with gradient effects
 const WeatherVisualizationLayer: React.FC = () => {
   const map = useMap();
   const [weatherData, setWeatherData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch or mock weather data
     const fetchWeatherData = async () => {
-      // In a real application, you would fetch this from an API
-      const dummyData = [
-        { lat: -23.5505, lng: -46.6333, temp: 26 }, // Bom
-        { lat: -23.6000, lng: -46.7000, temp: 19 }, // Normal
-        { lat: -23.5000, lng: -46.5500, temp: 9 },  // Ruim
-        { lat: -23.6500, lng: -46.6000, temp: 4 }   // Tempestade
-      ];
-      setWeatherData(dummyData);
+      setIsLoading(true);
+      try {
+        // Try to fetch real weather data first
+        const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY;
+        
+        if (apiKey) {
+          // Fetch real weather data for São Paulo region
+          const locations = [
+            { name: 'Centro SP', lat: -23.5505, lng: -46.6333 },
+            { name: 'Zona Norte', lat: -23.5000, lng: -46.6200 },
+            { name: 'Zona Sul', lat: -23.6000, lng: -46.6500 },
+            { name: 'Zona Oeste', lat: -23.5500, lng: -46.7000 },
+            { name: 'Zona Leste', lat: -23.5400, lng: -46.5800 }
+          ];
+
+          const weatherPromises = locations.map(async (location) => {
+            try {
+              const response = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lng}&appid=${apiKey}&units=metric`
+              );
+              const data = await response.json();
+              return {
+                ...location,
+                temp: Math.round(data.main.temp),
+                condition: data.weather[0].description,
+                humidity: data.main.humidity,
+                windSpeed: data.wind.speed
+              };
+            } catch (error) {
+              // Fallback to mock data for this location
+              return {
+                ...location,
+                temp: 20 + Math.random() * 10,
+                condition: 'Dados simulados',
+                humidity: 60,
+                windSpeed: 5
+              };
+            }
+          });
+
+          const results = await Promise.all(weatherPromises);
+          setWeatherData(results);
+        } else {
+          // Use enhanced mock data
+          const enhancedMockData = [
+            { name: 'Centro SP', lat: -23.5505, lng: -46.6333, temp: 26, condition: 'Ensolarado', humidity: 65, windSpeed: 3.2 },
+            { name: 'Zona Norte', lat: -23.5000, lng: -46.6200, temp: 28, condition: 'Céu limpo', humidity: 55, windSpeed: 2.1 },
+            { name: 'Zona Sul', lat: -23.6000, lng: -46.6500, temp: 19, condition: 'Nublado', humidity: 75, windSpeed: 4.5 },
+            { name: 'Zona Oeste', lat: -23.5500, lng: -46.7000, temp: 9, condition: 'Chuva', humidity: 85, windSpeed: 6.8 },
+            { name: 'Zona Leste', lat: -23.5400, lng: -46.5800, temp: 4, condition: 'Tempestade', humidity: 90, windSpeed: 12.3 }
+          ];
+          setWeatherData(enhancedMockData);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados climáticos:', error);
+        // Fallback data
+        setWeatherData([
+          { name: 'São Paulo', lat: -23.5505, lng: -46.6333, temp: 22, condition: 'Dados indisponíveis', humidity: 70, windSpeed: 5 }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchWeatherData();
+    
+    // Auto refresh every 10 minutes
+    const interval = setInterval(fetchWeatherData, 10 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
+
+  if (isLoading) {
+    return (
+      <CircleMarker
+        center={[-23.5505, -46.6333]}
+        radius={5}
+        pathOptions={{ color: '#ccc', fillOpacity: 0.1 }}
+      >
+        <Popup>Carregando dados climáticos...</Popup>
+      </CircleMarker>
+    );
+  }
 
   return (
     <>
       {weatherData.map((data, index) => {
-        const condition = getWeatherCondition(data.temp);
-        const weatherInfo = mockWeatherData[condition];
+        const condition = getWeatherCondition(data.temp, data.condition);
+        const weatherInfo = weatherVisualizationConfig[condition];
+        
+        // Calculate dynamic radius based on zoom level
+        const currentZoom = map.getZoom();
+        const baseRadius = weatherInfo.radius;
+        const adjustedRadius = Math.max(20, baseRadius / Math.pow(2, Math.max(0, currentZoom - 10)));
+
         return (
-          <CircleMarker
-            key={index}
+          <Circle
+            key={`${index}-${data.name}`}
             center={[data.lat, data.lng]}
-            radius={weatherInfo.radius / map.options.crs.scale(map.getZoom())} // Adjust radius based on zoom level
+            radius={adjustedRadius}
             pathOptions={{
               color: weatherInfo.color,
               fillColor: weatherInfo.color,
-              fillOpacity: 0.3,
-              weight: 1,
+              fillOpacity: weatherInfo.opacity,
+              weight: 2,
+              opacity: 0.8,
+              className: 'weather-gradient-circle'
             }}
           >
-            <Popup>
-              <div className="space-y-2">
-                <div className="font-semibold">
-                  {weatherInfo.condition === 'good' && '☀️'}
-                  {weatherInfo.condition === 'normal' && '☁️'}
-                  {weatherInfo.condition === 'bad' && '🌧️'}
-                  {weatherInfo.condition === 'stormy' && '⛈️'}
-                  Condições Climáticas
+            <Popup maxWidth={300}>
+              <div className="weather-popup p-2 space-y-3">
+                <div className="flex items-center gap-2 font-semibold text-lg">
+                  <span className="text-2xl">{weatherInfo.icon}</span>
+                  <span>{data.name || 'Localização'}</span>
                 </div>
-                <div className="text-sm">Temperatura: {data.temp}°C</div>
-                <div className="text-sm">Condição: {weatherInfo.condition}</div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-1">
+                    <span>🌡️</span>
+                    <span>Temperatura: <strong>{data.temp}°C</strong></span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <span>💧</span>
+                    <span>Umidade: <strong>{data.humidity || 'N/A'}%</strong></span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <span>💨</span>
+                    <span>Vento: <strong>{data.windSpeed || 'N/A'} km/h</strong></span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <span>🌤️</span>
+                    <span>Status: <strong>{weatherInfo.condition}</strong></span>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-gray-600 border-t pt-2">
+                  Condição: {data.condition}
+                </div>
               </div>
             </Popup>
-          </CircleMarker>
+          </Circle>
         );
       })}
     </>
