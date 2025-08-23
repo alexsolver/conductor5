@@ -199,14 +199,6 @@ const getWeatherCondition = (temp: number, condition?: string): keyof typeof wea
   return 'stormy';
 };
 
-// Function to determine weather condition based on temperature (example)
-const getWeatherCondition = (temp: number): keyof typeof mockWeatherData => {
-  if (temp >= 24) return 'good';
-  if (temp >= 15) return 'normal';
-  if (temp >= 8) return 'bad';
-  return 'stormy';
-};
-
 // Enhanced Weather Visualization Layer with gradient effects
 const WeatherVisualizationLayer: React.FC = () => {
   const map = useMap();
