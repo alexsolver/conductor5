@@ -97,6 +97,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "locations", href: "/locations", icon: MapPin },
+  { name: "interactiveMap", href: "/interactive-map", icon: Map },
 
   {
     name: "materialsAndServices",

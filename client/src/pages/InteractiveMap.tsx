@@ -993,9 +993,19 @@ export const InteractiveMap: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
-  const { sidebarCollapsed, toggleSidebar } = useSidebar();
+  const { sidebarCollapsed, toggleSidebar, setSidebarHidden } = useSidebar();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // State for the help modal
+
+  // Auto-hide sidebar when component mounts and show when unmounts
+  useEffect(() => {
+    setSidebarHidden(true);
+    
+    // Cleanup: show sidebar when leaving the page
+    return () => {
+      setSidebarHidden(false);
+    };
+  }, [setSidebarHidden]);
 
   // Layer visibility states
   const [showTickets, setShowTickets] = useState(true);
