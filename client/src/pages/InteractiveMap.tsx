@@ -1730,8 +1730,10 @@ export const InteractiveMap: React.FC = () => {
               </DialogTrigger>
               <DialogContent className="max-w-2xl z-[9999]">
                 <DialogHeader>
-                  <DialogTitle>Ajuda do Mapa Interativo</DialogTitle>
-                  <DialogDescription>Guia de funcionalidades e atalhos do teclado</DialogDescription>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Layers className="w-5 h-5" />
+                    Legenda do Mapa
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -2034,7 +2036,7 @@ export const InteractiveMap: React.FC = () => {
 
           {/* Statistics Panel (Removed as per instructions) */}
           {/* The following block for the Statistics Panel has been removed */}
-          
+
           {/* Loading Overlay */}
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-[2000]">
