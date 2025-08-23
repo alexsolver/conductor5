@@ -992,7 +992,8 @@ export const InteractiveMap: React.FC = () => {
   const [legendExpanded, setLegendExpanded] = useState(true);
   const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden, toggleHeader, headerHidden } = useSidebar();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // State for the help modal
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [activeLayer, setActiveLayer] = useState<'osm' | 'satellite'>('osm'); // State for the help modal
 
   // Auto-hide sidebar when component mounts and show when unmounts
   useEffect(() => {
@@ -1395,16 +1396,40 @@ export const InteractiveMap: React.FC = () => {
               </SheetContent>
             </Sheet>
 
-            {/* Layers Toggle */}
+            {/* Base Layer Toggle */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="layers-toggle" className="flex items-center">
+                  <Layers className="w-4 h-4 mr-2 flex-shrink-0" />
+                  {activeLayer === 'osm' ? 'Padrão' : 'Satélite'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setActiveLayer('osm')} className={activeLayer === 'osm' ? 'bg-accent' : ''}>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 mr-2 bg-green-500 rounded"></div>
+                    OpenStreetMap
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveLayer('satellite')} className={activeLayer === 'satellite' ? 'bg-accent' : ''}>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 mr-2 bg-blue-500 rounded"></div>
+                    Satélite
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Other Layers Panel */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="layers-toggle" className="flex items-center justify-center">
-                  <Layers className="w-4 h-4 flex-shrink-0" />
+                <Button variant="outline" size="sm" data-testid="other-layers-toggle" className="flex items-center justify-center">
+                  <Eye className="w-4 h-4 flex-shrink-0" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 z-[99999]">
                 <SheetHeader>
-                  <SheetTitle>Camadas do Mapa</SheetTitle>
+                  <SheetTitle>Outras Camadas</SheetTitle>
                   <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
                 </SheetHeader>
                 <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
@@ -1824,22 +1849,19 @@ export const InteractiveMap: React.FC = () => {
               style={{ background: '#f8fafc' }}
               ref={mapRef}
             >
-              <LayersControl position="topright">
-                <LayersControl.BaseLayer checked name="OpenStreetMap">
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    className={settings.darkMode ? 'dark-tiles' : ''}
-                  />
-                </LayersControl.BaseLayer>
-
-                <LayersControl.BaseLayer name="Satellite">
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                    url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-                  />
-                </LayersControl.BaseLayer>
-              </LayersControl>
+              {/* Base Layer */}
+              {activeLayer === 'osm' ? (
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  className={settings.darkMode ? 'dark-tiles' : ''}
+                />
+              ) : (
+                <TileLayer
+                  attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                  url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                />
+              )}
 
               {/* Agent Markers */}
               {visibleAgents.map(agent => 
