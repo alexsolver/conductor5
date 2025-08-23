@@ -1830,7 +1830,7 @@ export const InteractiveMap: React.FC = () => {
               center={mapCenter}
               zoom={mapZoom}
               className={`${isFullscreen ? 'fullscreen-map border-0' : 'h-full w-full'}`}
-              zoomControl={false}
+              zoomControl={true}
             >
               <LayersControl position="topright">
                 <LayersControl.BaseLayer checked name="OpenStreetMap">

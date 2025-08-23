@@ -120,6 +120,51 @@ body.fullscreen-map-active {
   padding: 0 !important;
 }
 
+/* Leaflet Zoom Controls Positioning */
+.leaflet-control-zoom {
+  margin-left: 10px !important;
+  margin-top: 80px !important; /* Avoid header overlap */
+  z-index: 1000 !important;
+}
+
+/* Fullscreen mode zoom controls */
+.fullscreen-map .leaflet-control-zoom {
+  margin-top: 80px !important; /* More space in fullscreen to avoid header menu */
+  margin-left: 20px !important;
+  z-index: 10000 !important;
+}
+
+/* Ensure zoom buttons are properly styled and clickable */
+.leaflet-control-zoom a {
+  background-color: white !important;
+  border: 1px solid #ccc !important;
+  color: #333 !important;
+  font-weight: bold !important;
+  text-decoration: none !important;
+  display: block !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #f0f0f0 !important;
+  border-color: #999 !important;
+}
+
+.leaflet-control-zoom a:first-child {
+  border-radius: 4px 4px 0 0 !important;
+  border-bottom: none !important;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-radius: 0 0 4px 4px !important;
+}
+
 @layer base {
   * {
     @apply border-border;
