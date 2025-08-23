@@ -73,6 +73,7 @@ import ContractManagement from "./pages/ContractManagement";
 import CorporateExpenseManagement from "./pages/CorporateExpenseManagement";
 
 import ItemCatalog from "./pages/ItemCatalog";
+import InteractiveMap from "./pages/InteractiveMap";
 import GdprCompliancePage from "./pages/GdprCompliancePage";
 import TicketMaterials from "./pages/TicketMaterials";
 import { ApprovalManagement } from "./pages/ApprovalManagement";
@@ -240,6 +241,7 @@ function AppRouter() {
         <Route path="/corporate-expenses" component={CorporateExpenseManagement} />
 
         <Route path="/item-catalog" component={ItemCatalog} />
+        <Route path="/interactive-map" component={InteractiveMap} />
         <Route path="/tickets/:id/materials" component={TicketMaterials} />
         <Route path="/stock-management" component={StockManagement} />
         <Route path="/supplier-management" component={SupplierManagement} />
