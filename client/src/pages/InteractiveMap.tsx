@@ -59,7 +59,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsTabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -281,7 +281,8 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               throw new Error('Invalid weather data response');
             }
           } catch (error) {
-            console.warn(`⚠️ [WEATHER-LAYER] Fallback data for ${location.name}:`, error.message);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.warn(`⚠️ [WEATHER-LAYER] Fallback data for ${location.name}:`, errorMessage);
             // ✅ Fallback to realistic mock data
             return {
               ...location,
@@ -2182,7 +2183,7 @@ export const InteractiveMap: React.FC = () => {
               style={{ background: '#f8fafc' }}
               ref={mapRef}
               // Added onMoveend to capture viewport bounds changes
-              whenReady={(mapInstance) => {
+              whenReady={(mapInstance: any) => {
                 setViewportBounds({
                   north: mapInstance.target.getBounds().getNorth(),
                   south: mapInstance.target.getBounds().getSouth(),
@@ -2190,7 +2191,7 @@ export const InteractiveMap: React.FC = () => {
                   west: mapInstance.target.getBounds().getWest(),
                 });
               }}
-              whenMoveend={(mapInstance) => handleMapMove(mapInstance.target.getBounds(), mapInstance.target.getZoom())}
+              whenMoveend={(mapInstance: any) => handleMapMove(mapInstance.target.getBounds(), mapInstance.target.getZoom())}
             >
               {/* Base Layer */}
               {activeLayer === 'osm' ? (
