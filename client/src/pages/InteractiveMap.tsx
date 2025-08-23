@@ -334,14 +334,20 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               fillOpacity: weatherInfo.opacity,
               weight: 2,
               opacity: 0.8,
-              className: 'weather-gradient-circle'
+              className: 'weather-gradient-circle',
+              interactive: true
+            }}
+            eventHandlers={{
+              click: (e) => {
+                e.originalEvent.stopPropagation();
+              }
             }}
           >
             <Popup maxWidth={320}>
               <div className="weather-popup p-3 space-y-4">
                 <div className="flex items-center gap-2 font-semibold text-lg">
                   <span className="text-2xl">{weatherInfo.icon}</span>
-                  <span>{data.name || 'Localização'}</span>
+                  <span>Condições Climáticas - {data.name || 'Localização'}</span>
                 </div>
 
                 <div className="space-y-3">
