@@ -1813,13 +1813,13 @@ export const InteractiveMap: React.FC = () => {
         </div>
 
           {/* Main Content */}
-          <div className={`${isFullscreen ? 'fixed inset-0 z-[8000] bg-background overflow-hidden w-screen h-screen' : 'flex-1 relative'}`}>
+          <div className={`${isFullscreen ? 'fullscreen-map-container bg-background overflow-hidden' : 'flex-1 relative'}`}>
             {/* Map Container */}
-            <div className={`${isFullscreen ? 'w-screen h-screen' : 'h-full'}`}>
+            <div className={`${isFullscreen ? 'fullscreen-map' : 'h-full'}`}>
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
-              className={`${isFullscreen ? 'w-screen h-screen border-0' : 'h-full w-full'}`}
+              className={`${isFullscreen ? 'fullscreen-map border-0' : 'h-full w-full'}`}
               zoomControl={false}
             >
               <LayersControl position="topright">
