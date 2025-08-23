@@ -133,8 +133,14 @@ export default function SaasAdminIntegrations() {
     },
     onSuccess: (data) => {
       console.log('✅ [SAAS-ADMIN-CONFIG] Configuração salva com sucesso:', data);
+      // Invalidar ambas as queries para forçar recarregamento
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
+      // Aguardar um tempo para que as queries sejam recarregadas
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations'] });
+        queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
+      }, 500);
       setIsConfigDialogOpen(false);
       configForm.reset();
       toast({
@@ -193,6 +199,7 @@ export default function SaasAdminIntegrations() {
       
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
 
       // Check both data.success and success fields
       const isSuccess = data?.success === true || data?.success === 'true';
@@ -230,7 +237,7 @@ export default function SaasAdminIntegrations() {
   });
 
   // Use data from API when available, adding icons to each integration
-  const integrations: Integration[] = integrationsData?.data?.integrations?.map((integration: any) => ({
+  const integrations: Integration[] = integrationsData?.integrations?.map((integration: any) => ({
     ...integration,
     icon: integration.id === 'openai' ? Brain : 
           integration.id === 'deepseek' ? Bot : 
@@ -273,9 +280,9 @@ export default function SaasAdminIntegrations() {
       provider: 'openweather',
       description: 'Serviço de dados meteorológicos para o mapa interativo do sistema',
       icon: CloudRain,
-      status: openWeatherData?.data?.data?.status || 'disconnected',
-      apiKeyConfigured: !!(openWeatherData?.data?.data?.config?.apiKey),
-      config: openWeatherData?.data?.data?.config || {}
+      status: openWeatherData?.data?.status || 'disconnected',
+      apiKeyConfigured: !!(openWeatherData?.data?.config?.apiKey),
+      config: openWeatherData?.data?.config || {}
     }
   ];
 
