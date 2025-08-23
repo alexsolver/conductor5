@@ -1813,9 +1813,9 @@ export const InteractiveMap: React.FC = () => {
         </div>
 
           {/* Main Content */}
-          <div className="flex-1 relative">
-          {/* Map Container */}
-          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-[8000] bg-background overflow-hidden' : ''}`}>
+          <div className={`${isFullscreen ? 'fixed inset-0 z-[8000] bg-background overflow-hidden' : 'flex-1 relative'}`}>
+            {/* Map Container */}
+            <div className="h-full">
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
@@ -2034,7 +2034,9 @@ export const InteractiveMap: React.FC = () => {
                 </Button>
               </div>
             </MapContainer>
+            </div>
           </div>
+
 
           {/* Legend */}
           {showLegend && (
@@ -2098,7 +2100,6 @@ export const InteractiveMap: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
     </TooltipProvider>
   );
 };
