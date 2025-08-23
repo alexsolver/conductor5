@@ -1352,7 +1352,7 @@ export const InteractiveMap: React.FC = () => {
                   <SheetTitle>Filtros do Mapa</SheetTitle>
                   <SheetDescription>Configure os filtros para visualizar agentes específicos</SheetDescription>
                 </SheetHeader>
-                <div className="mt-6">
+                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
                   <FiltersPanel
                     filters={filters}
                     onFiltersChange={setFilters}
@@ -1376,7 +1376,7 @@ export const InteractiveMap: React.FC = () => {
                   <SheetTitle>Camadas do Mapa</SheetTitle>
                   <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
                 </SheetHeader>
-                <div className="mt-6">
+                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
                   <LayersPanel
                     showTickets={showTickets}
                     setShowTickets={setShowTickets}
@@ -1405,7 +1405,7 @@ export const InteractiveMap: React.FC = () => {
                   <SheetTitle>Configurações do Mapa</SheetTitle>
                   <SheetDescription>Ajuste as configurações visuais e de comportamento</SheetDescription>
                 </SheetHeader>
-                <div className="mt-6">
+                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
                   <MapSettingsPanel
                     settings={settings}
                     onSettingsChange={setSettings}
