@@ -27,8 +27,10 @@ import locationsRoutes from './modules/locations/routes';
 import ticketsRoutes from './modules/tickets/routes';
 import timecardRoutes from './modules/timecard/routes-working';
 // ✅ 1QA.MD: Import custom fields routes
-console.log('🔥 [SERVER] Registering custom-fields routes...');
-import customFieldsRoutes from './modules/custom-fields/routes';
+  console.log('🔥 [SERVER] Registering custom-fields routes...');
+  import customFieldsRoutes from './modules/custom-fields/routes';
+  app.use('/api/custom-fields', customFieldsRoutes);
+  console.log('🔥 [SERVER] Custom-fields routes registered at /api/custom-fields');
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {

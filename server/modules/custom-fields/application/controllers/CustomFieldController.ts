@@ -9,11 +9,14 @@ export class CustomFieldController {
   ) {}
 
   async getFieldsByModule(req: any, res: any): Promise<void> {
+    const startTime = Date.now();
     try {
-      this.logger.logInfo('[CONTROLLER] getFieldsByModule called', {
+      this.logger.logInfo('=== [CONTROLLER] getFieldsByModule START ===', {
         moduleType: req.params.moduleType,
         user: req.user,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        url: req.url,
+        method: req.method
       });
 
       // ✅ 1QA.MD: Validate required parameters
@@ -50,11 +53,20 @@ export class CustomFieldController {
       });
 
       // ✅ 1QA.MD: Return standardized response
-      res.status(200).json({
+      const duration = Date.now() - startTime;
+      const response = {
         success: true,
         data: fields || [],
         message: `Found ${fields?.length || 0} custom fields for module ${moduleType}`
+      };
+
+      this.logger.logInfo('=== [CONTROLLER] getFieldsByModule SUCCESS ===', {
+        duration: `${duration}ms`,
+        fieldsCount: fields?.length || 0,
+        response
       });
+
+      res.status(200).json(response);
 
     } catch (error) {
       this.logger.logError('[CONTROLLER] Error in getFieldsByModule:', error);

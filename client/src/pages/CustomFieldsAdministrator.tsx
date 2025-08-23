@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -450,13 +450,13 @@ export default function CustomFieldsAdministrator() {
       try {
         console.log('Creating custom field with data:', fieldData);
         const response = await apiRequest('POST', '/api/custom-fields/fields', fieldData);
-        
+
         if (!response.ok) {
           const errorData = await response.text();
           console.error('Create field error:', errorData);
           throw new Error(`Failed to create field: ${response.statusText}`);
         }
-        
+
         const result = await response.json();
         console.log('Field created successfully:', result);
         return result;
@@ -713,7 +713,7 @@ export default function CustomFieldsAdministrator() {
               <Label htmlFor="module-select" className="text-sm font-medium text-gray-700">
                 Módulo:
               </Label>
-              <Select value={selectedModule} onValueChange={(value: ModuleType) => setSelectedModule(value)}>
+              <Select value={selectedModule} onValueChange={setSelectedModule}>
                 <SelectTrigger className="w-56 bg-white border-gray-200">
                   <SelectValue placeholder="Selecione um módulo" />
                 </SelectTrigger>

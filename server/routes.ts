@@ -406,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
   app.use('/api', notificationRoutes);
   console.log('✅ [NOTIFICATIONS-ALERTS] Clean Architecture module registered at /api/notifications');
-  
+
   // ✅ SCHEDULE NOTIFICATIONS MODULE - For user notification display
   const scheduleNotificationsModule = await import('./routes/scheduleNotifications.js');
   const scheduleNotificationsRoutes = scheduleNotificationsModule.default || scheduleNotificationsModule;
@@ -1566,7 +1566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const baseIntegration of baseIntegrations) {
         try {
           console.log(`🔍 [SAAS-ADMIN-INTEGRATIONS] Checking config for ${baseIntegration.id}`);
-          
+
           const configResult = await pool.query(`
             SELECT config FROM "public"."system_integrations" 
             WHERE integration_id = $1
@@ -1596,7 +1596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (error) {
           console.error(`❌ [SAAS-ADMIN-INTEGRATIONS] Error loading config for ${baseIntegration.id}:`, error);
-          
+
           // If no config found, use defaults
           integrations.push({
             ...baseIntegration,
@@ -1734,8 +1734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRoutes.default);
 
-  // Removed: journey API routes - functionality eliminated from system
-  // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
+  // Removed OmniBridge routes - now defined earlier before middleware
 
   // Tenant endpoint for fetching tenant details
   app.get('/api/tenants/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -2039,8 +2038,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
-
-      console.log('[PROFILE-GET] Debug - userId:', userId, 'tenantId:', tenantId);
 
       if (!userId || !tenantId) {
         return res.status(401).json({
@@ -2844,7 +2841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('❌ [LOCATIONS-NEW-MODULE] Error details:', error.message);
   }
 
-  // Removed OmniBridge routes - now defined earlier before middleware
+  // Removed OmniBridge Routes - defined earlier
 
   // Helper functions for channel transformation
   function getChannelIcon(type: string): string {
@@ -4648,7 +4645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save configuration to database
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
-      
+
       // Upsert configuration in database
       await pool.query(`
         INSERT INTO "public"."system_integrations" (integration_id, config, updated_at)
@@ -4701,7 +4698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get saved configuration from database
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
-      
+
       const configResult = await pool.query(`
         SELECT config FROM "public"."system_integrations" 
         WHERE integration_id = $1
@@ -4735,7 +4732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`🧪 [SAAS-ADMIN-TEST] Testing OpenAI with baseUrl: ${baseUrl}`);
           console.log(`🧪 [SAAS-ADMIN-TEST] API key length: ${config.apiKey?.length || 0}`);
           console.log(`🧪 [SAAS-ADMIN-TEST] API key starts with: ${config.apiKey?.substring(0, 7) || 'undefined'}...`);
-          
+
           const response = await fetch(`${baseUrl}/models`, {
             headers: {
               'Authorization': `Bearer ${config.apiKey}`,
@@ -4749,7 +4746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (response.ok) {
             const models = await response.json();
             console.log(`🧪 [SAAS-ADMIN-TEST] OpenAI models count: ${models?.data?.length || 0}`);
-            
+
             testResult = {
               success: true,
               message: 'Integração OpenAI funcionando corretamente',
@@ -4764,7 +4761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             const errorText = await response.text();
             console.error(`🧪 [SAAS-ADMIN-TEST] OpenAI error response: ${errorText}`);
-            
+
             testResult = {
               success: false,
               message: 'Falha na conexão com OpenAI',
