@@ -4,6 +4,7 @@
 // ===========================================================================================
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, LayersControl, useMap } from 'react-leaflet';
 import { Icon, divIcon, LatLngBounds, LatLng } from 'leaflet';
@@ -1766,59 +1767,114 @@ export const InteractiveMap: React.FC = () => {
             </Button>
 
             {/* Help / Legend Modal */}
-            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
-              <DialogTrigger asChild>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-gray-50"
+                    data-testid="help-button"
+                    onClick={() => setIsHelpModalOpen(true)}
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Ajuda do Mapa</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* Legend Modal Portal */}
+            {isHelpModalOpen && isFullscreen && createPortal(
+              <div 
+                className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50"
+                onClick={(e) => e.target === e.currentTarget && setIsHelpModalOpen(false)}
+              >
+                <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full m-4 max-h-[80vh] overflow-y-auto">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-5 h-5" />
+                        <h2 className="text-lg font-semibold">Legenda do Mapa</h2>
+                      </div>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        className="bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-gray-50"
-                        data-testid="help-button"
+                        onClick={() => setIsHelpModalOpen(false)}
+                        className="h-8 w-8 p-0"
                       >
-                        <HelpCircle className="w-4 h-4" />
+                        ✕
                       </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Ajuda do Mapa</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl" style={{ zIndex: isFullscreen ? 99999 : 'auto' }}>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Layers className="w-5 h-5" />
-                    Legenda do Mapa
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
-                    <div className="space-y-1 text-sm">
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
                     </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Cores de Status</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                        <div key={status} className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                          <span className="flex-1">{status.replace('_', ' ')}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {agents.filter(a => a.status === status).length}
-                          </Badge>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
+                        <div className="space-y-1 text-sm">
+                          <div><kbd className="px-2 py-1 bg-gray-100 rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
+                          <div><kbd className="px-2 py-1 bg-gray-100 rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
+                          <div><kbd className="px-2 py-1 bg-gray-100 rounded">Esc</kbd> - Limpar seleção</div>
                         </div>
-                      ))}
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-2">Cores de Status</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                            <div key={status} className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                              <span className="flex-1">{status.replace('_', ' ')}</span>
+                              <Badge variant="secondary" className="text-xs">
+                                {agents.filter(a => a.status === status).length}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </DialogContent>
-            </Dialog>
+              </div>,
+              document.body
+            )}
+
+            {/* Regular Dialog for non-fullscreen */}
+            {!isFullscreen && (
+              <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Layers className="w-5 h-5" />
+                      Legenda do Mapa
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
+                      <div className="space-y-1 text-sm">
+                        <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
+                        <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
+                        <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Cores de Status</h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                          <div key={status} className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                            <span className="flex-1">{status.replace('_', ' ')}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {agents.filter(a => a.status === status).length}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
 
