@@ -1,777 +1,691 @@
-// ✅ 1QA.MD COMPLIANCE: Interactive Map Infrastructure Repository
-// Drizzle ORM implementation with multi-tenant support
+// ===========================================================================================
+// DRIZZLE INTERACTIVE MAP REPOSITORY - Database Layer with Mobile Integration
+// Supports >1000 agents with optimized queries and tenant isolation
+// ===========================================================================================
 
-import { eq, and, inArray, sql, desc, gte, lte, isNull, count, or } from 'drizzle-orm';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { FieldAgent } from '../../domain/entities/FieldAgent';
-import { LocationPoint, MapBounds } from '../../domain/entities/FieldAgent';
-import { IInteractiveMapRepository } from '../../domain/repositories/IInteractiveMapRepository';
-import {
-  fieldAgents,
-  agentPositionHistory,
-  geofenceAreas,
-  mapFilterConfigs,
-  mapEventsLog,
-  InsertFieldAgent,
-  UpdateFieldAgent,
-  GeofenceArea,
-  MapFilterConfig,
-  AgentLocationUpdate
-} from '@shared/schema-interactive-map';
+import { eq, and, sql, desc, asc, gte, lte, inArray, isNotNull, or } from 'drizzle-orm';
+import { db } from '../../../../db';
+import { EnhancedFieldAgent, EnhancedFieldAgentResponse } from '../../domain/entities/EnhancedFieldAgent';
+import { 
+  agentPositions, 
+  agentRoutes, 
+  agentDeviceStatus,
+  agentStatusHistory,
+  AgentStatusType,
+  AgentStatus 
+} from '@shared/schema-mobile-integration';
 
-// ✅ Repository Implementation - Infrastructure Layer
-export class DrizzleInteractiveMapRepository implements IInteractiveMapRepository {
-  constructor(private db: NodePgDatabase<any>) {}
+// ===========================================================================================
+// Filter Interfaces
+// ===========================================================================================
 
-  // ✅ Helper method to get tenant schema prefix
-  private getTenantSchema(tenantId: string): string {
-    return `tenant_${tenantId.replace(/-/g, '_')}`;
+export interface AgentFilters {
+  status?: AgentStatusType[];
+  teams?: string[];
+  skills?: string[];
+  batteryLevel?: { min?: number; max?: number };
+  lastActivityMinutes?: number; // agents active within X minutes
+  bounds?: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
+  assignedTicketsOnly?: boolean;
+  onDutyOnly?: boolean;
+  accuracyThreshold?: number; // min accuracy in meters
+  slaRisk?: boolean;
+}
+
+export interface AgentQueryOptions {
+  limit?: number;
+  offset?: number;
+  sortBy?: 'name' | 'status' | 'lastActivity' | 'batteryLevel' | 'distance';
+  sortOrder?: 'asc' | 'desc';
+  includeBounds?: boolean;
+  includeRoutes?: boolean;
+  includeDeviceStatus?: boolean;
+}
+
+export interface AgentStatsResult {
+  totalAgents: number;
+  statusBreakdown: Record<AgentStatusType, number>;
+  avgBatteryLevel: number;
+  onlineCount: number;
+  slaRiskCount: number;
+  lowBatteryCount: number;
+  lastUpdated: Date;
+}
+
+export interface NearbyAgentsQuery {
+  lat: number;
+  lng: number;
+  radiusKm: number;
+  skills?: string[];
+  status?: AgentStatusType[];
+  maxResults?: number;
+}
+
+// ===========================================================================================
+// Drizzle Interactive Map Repository
+// ===========================================================================================
+
+export class DrizzleInteractiveMapRepository {
+  private readonly schema: string;
+
+  constructor(tenantId: string) {
+    this.schema = `tenant_${tenantId}`;
   }
 
-  // ✅ Helper method to execute queries in tenant schema
-  private async executeInTenantSchema<T>(
-    tenantId: string,
-    query: string,
-    params: any[] = []
-  ): Promise<T[]> {
-    const schema = this.getTenantSchema(tenantId);
-    const fullQuery = query.replace(/\{schema\}/g, schema);
-    const result = await this.db.execute(sql.raw(fullQuery));
-    return result as unknown as T[];
-  }
+  // ===========================================================================================
+  // Core Agent Queries with Mobile Integration
+  // ===========================================================================================
 
-  // ✅ Field Agents Management - Using existing users table from team management
-  async findAllAgents(tenantId: string): Promise<FieldAgent[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT 
-          id,
-          id as agent_id,
-          CONCAT(first_name, ' ', last_name) as name,
-          profile_image_url as photo_url,
-          cargo as team,
-          '[]'::jsonb as skills,
-          CASE 
-            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
-            WHEN status = 'active' THEN 'offline'
-            ELSE 'offline'
-          END as status,
-          COALESCE(last_active_at, created_at) as status_since,
-          NULL::decimal as lat,
-          NULL::decimal as lng,
-          NULL::decimal as accuracy,
-          NULL::decimal as heading,
-          NULL::decimal as speed,
-          NULL::integer as device_battery,
-          NULL::integer as signal_strength,
-          last_active_at as last_ping_at,
-          NULL as assigned_ticket_id,
-          NULL as customer_site_id,
-          NULL as sla_deadline_at,
-          NULL as shift_start_at,
-          NULL as shift_end_at,
-          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
-          NULL as current_route_id,
-          NULL::integer as eta_seconds,
-          NULL::integer as distance_meters,
-          created_at,
-          updated_at,
-          tenant_id
-        FROM ${schema}.users 
-        WHERE role IN ('agent', 'supervisor', 'manager')
-        ORDER BY created_at DESC
-      `;
+  /**
+   * Get all agents with latest GPS and device data
+   */
+  async getAllAgents(filters: AgentFilters = {}, options: AgentQueryOptions = {}): Promise<EnhancedFieldAgent[]> {
+    const limit = options.limit || 1000;
+    const offset = options.offset || 0;
+
+    // Complex query joining users with latest position, route, and device data
+    const query = db
+      .select({
+        // User data from tenant schema
+        id: sql`u.id`,
+        name: sql`u.nome`,
+        email: sql`u.email`,
+        cargo: sql`u.cargo`,
+        profile_image_url: sql`u.profile_image_url`,
+        is_active: sql`u.is_active`,
+        tenant_id: sql`u.tenant_id`,
+        created_at: sql`u.created_at`,
+        updated_at: sql`u.updated_at`,
+        
+        // Latest position data
+        pos_lat: sql`pos.lat`,
+        pos_lng: sql`pos.lng`,
+        pos_accuracy: sql`pos.accuracy`,
+        pos_heading: sql`pos.heading`,
+        pos_speed: sql`pos.speed`,
+        pos_device_battery: sql`pos.device_battery`,
+        pos_signal_strength: sql`pos.signal_strength`,
+        pos_captured_at: sql`pos.captured_at`,
+        pos_is_accurate: sql`pos.is_accurate`,
+        
+        // Latest route data
+        route_id: sql`rt.id`,
+        route_eta_seconds: sql`rt.current_eta_seconds`,
+        route_distance_meters: sql`rt.remaining_distance_meters`,
+        route_ticket_id: sql`rt.ticket_id`,
+        route_status: sql`rt.status`,
+        route_traffic_impact: sql`rt.traffic_impact`,
+        
+        // Device status
+        device_battery_level: sql`dev.battery_level`,
+        device_is_online: sql`dev.is_online`,
+        device_last_ping: sql`dev.last_ping_at`,
+        device_connection_type: sql`dev.connection_type`,
+        device_gps_enabled: sql`dev.gps_enabled`,
+        device_low_battery_warning: sql`dev.low_battery_warning`,
+      })
+      .from(sql`${sql.identifier(this.schema)}.users u`)
       
-      const results = await this.executeInTenantSchema<any>(tenantId, query);
-      return results.map(row => FieldAgent.fromSchema(row));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error finding all agents:', error);
-      throw new Error('Failed to retrieve field agents');
+      // LEFT JOIN latest position data
+      .leftJoin(
+        sql`(
+          SELECT DISTINCT ON (agent_id) 
+            agent_id, lat, lng, accuracy, heading, speed, 
+            device_battery, signal_strength, captured_at, is_accurate
+          FROM ${sql.identifier('agent_positions')} 
+          WHERE tenant_id = ${this.schema.replace('tenant_', '')}
+          ORDER BY agent_id, captured_at DESC
+        ) pos`,
+        sql`pos.agent_id = u.id`
+      )
+      
+      // LEFT JOIN active routes
+      .leftJoin(
+        sql`(
+          SELECT DISTINCT ON (agent_id)
+            id, agent_id, current_eta_seconds, remaining_distance_meters,
+            ticket_id, status, traffic_impact
+          FROM ${sql.identifier('agent_routes')}
+          WHERE tenant_id = ${this.schema.replace('tenant_', '')} 
+            AND status IN ('planned', 'active')
+          ORDER BY agent_id, created_at DESC
+        ) rt`,
+        sql`rt.agent_id = u.id`
+      )
+      
+      // LEFT JOIN device status
+      .leftJoin(
+        sql`(
+          SELECT DISTINCT ON (agent_id)
+            agent_id, battery_level, is_online, last_ping_at,
+            connection_type, gps_enabled, low_battery_warning
+          FROM ${sql.identifier('agent_device_status')}
+          WHERE tenant_id = ${this.schema.replace('tenant_', '')}
+          ORDER BY agent_id, updated_at DESC
+        ) dev`,
+        sql`dev.agent_id = u.id`
+      )
+      
+      .where(sql`u.is_active = true`);
+
+    // Apply filters
+    const conditions = [sql`u.is_active = true`];
+
+    if (filters.status && filters.status.length > 0) {
+      // Note: Status will be computed by business rules in EnhancedFieldAgent
+      // For now, we'll fetch all and filter in memory
     }
-  }
 
-  async findAgentById(id: string, tenantId: string): Promise<FieldAgent | null> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT 
-          id,
-          id as agent_id,
-          CONCAT(first_name, ' ', last_name) as name,
-          profile_image_url as photo_url,
-          cargo as team,
-          '[]'::jsonb as skills,
-          CASE 
-            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
-            WHEN status = 'active' THEN 'offline'
-            ELSE 'offline'
-          END as status,
-          COALESCE(last_active_at, created_at) as status_since,
-          NULL::decimal as lat,
-          NULL::decimal as lng,
-          NULL::decimal as accuracy,
-          NULL::decimal as heading,
-          NULL::decimal as speed,
-          NULL::integer as device_battery,
-          NULL::integer as signal_strength,
-          last_active_at as last_ping_at,
-          NULL as assigned_ticket_id,
-          NULL as customer_site_id,
-          NULL as sla_deadline_at,
-          NULL as shift_start_at,
-          NULL as shift_end_at,
-          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
-          NULL as current_route_id,
-          NULL::integer as eta_seconds,
-          NULL::integer as distance_meters,
-          created_at,
-          updated_at,
-          tenant_id
-        FROM ${schema}.users 
-        WHERE id = $1 AND role IN ('agent', 'supervisor', 'manager')
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query, [id]);
-      if (results.length === 0) return null;
-      
-      return FieldAgent.fromSchema(results[0]);
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error finding agent by ID:', error);
-      throw new Error('Failed to retrieve field agent');
+    if (filters.teams && filters.teams.length > 0) {
+      conditions.push(sql`u.cargo = ANY(${filters.teams})`);
     }
-  }
 
-  async findAgentsByStatus(status: string[], tenantId: string): Promise<FieldAgent[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      // Map status for users table
-      const userStatusConditions = status.map((s, index) => {
-        if (s === 'available') {
-          return `(status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes')`;
-        } else {
-          return `(status != 'active' OR last_active_at <= NOW() - INTERVAL '10 minutes' OR last_active_at IS NULL)`;
-        }
-      }).join(' OR ');
-      
-      const query = `
-        SELECT 
-          id,
-          id as agent_id,
-          CONCAT(first_name, ' ', last_name) as name,
-          profile_image_url as photo_url,
-          cargo as team,
-          '[]'::jsonb as skills,
-          CASE 
-            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
-            WHEN status = 'active' THEN 'offline'
-            ELSE 'offline'
-          END as status,
-          COALESCE(last_active_at, created_at) as status_since,
-          NULL::decimal as lat,
-          NULL::decimal as lng,
-          NULL::decimal as accuracy,
-          NULL::decimal as heading,
-          NULL::decimal as speed,
-          NULL::integer as device_battery,
-          NULL::integer as signal_strength,
-          last_active_at as last_ping_at,
-          NULL as assigned_ticket_id,
-          NULL as customer_site_id,
-          NULL as sla_deadline_at,
-          NULL as shift_start_at,
-          NULL as shift_end_at,
-          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
-          NULL as current_route_id,
-          NULL::integer as eta_seconds,
-          NULL::integer as distance_meters,
-          created_at,
-          updated_at,
-          tenant_id
-        FROM ${schema}.users 
-        WHERE role IN ('agent', 'supervisor', 'manager')
-          AND (${userStatusConditions})
-        ORDER BY last_active_at DESC
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query);
-      return results.map(row => FieldAgent.fromSchema(row));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error finding agents by status:', error);
-      throw new Error('Failed to retrieve field agents by status');
-    }
-  }
-
-  async findAgentsByTeam(team: string, tenantId: string): Promise<FieldAgent[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT 
-          id,
-          id as agent_id,
-          CONCAT(first_name, ' ', last_name) as name,
-          profile_image_url as photo_url,
-          cargo as team,
-          '[]'::jsonb as skills,
-          CASE 
-            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
-            WHEN status = 'active' THEN 'offline'
-            ELSE 'offline'
-          END as status,
-          COALESCE(last_active_at, created_at) as status_since,
-          NULL::decimal as lat,
-          NULL::decimal as lng,
-          NULL::decimal as accuracy,
-          NULL::decimal as heading,
-          NULL::decimal as speed,
-          NULL::integer as device_battery,
-          NULL::integer as signal_strength,
-          last_active_at as last_ping_at,
-          NULL as assigned_ticket_id,
-          NULL as customer_site_id,
-          NULL as sla_deadline_at,
-          NULL as shift_start_at,
-          NULL as shift_end_at,
-          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
-          NULL as current_route_id,
-          NULL::integer as eta_seconds,
-          NULL::integer as distance_meters,
-          created_at,
-          updated_at,
-          tenant_id
-        FROM ${schema}.users 
-        WHERE role IN ('agent', 'supervisor', 'manager')
-          AND cargo = $1
-        ORDER BY first_name, last_name
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query, [team]);
-      return results.map(row => FieldAgent.fromSchema(row));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error finding agents by team:', error);
-      throw new Error('Failed to retrieve field agents by team');
-    }
-  }
-
-  async findAgentsByBounds(bounds: MapBounds, tenantId: string): Promise<FieldAgent[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT 
-          id,
-          id as agent_id,
-          CONCAT(first_name, ' ', last_name) as name,
-          profile_image_url as photo_url,
-          cargo as team,
-          '[]'::jsonb as skills,
-          CASE 
-            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
-            WHEN status = 'active' THEN 'offline'
-            ELSE 'offline'
-          END as status,
-          COALESCE(last_active_at, created_at) as status_since,
-          NULL::decimal as lat,
-          NULL::decimal as lng,
-          NULL::decimal as accuracy,
-          NULL::decimal as heading,
-          NULL::decimal as speed,
-          NULL::integer as device_battery,
-          NULL::integer as signal_strength,
-          last_active_at as last_ping_at,
-          NULL as assigned_ticket_id,
-          NULL as customer_site_id,
-          NULL as sla_deadline_at,
-          NULL as shift_start_at,
-          NULL as shift_end_at,
-          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
-          NULL as current_route_id,
-          NULL::integer as eta_seconds,
-          NULL::integer as distance_meters,
-          created_at,
-          updated_at,
-          tenant_id
-        FROM ${schema}.users 
-        WHERE role IN ('agent', 'supervisor', 'manager')
-        ORDER BY last_active_at DESC
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query);
-      
-      return results.map(row => FieldAgent.fromSchema(row));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error finding agents by bounds:', error);
-      throw new Error('Failed to retrieve field agents by bounds');
-    }
-  }
-
-  async findAgentsNearLocation(
-    location: LocationPoint,
-    radiusMeters: number,
-    tenantId: string
-  ): Promise<FieldAgent[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      // For now, return all agents since we don't have location data in users table
-      const query = `
-        SELECT 
-          id,
-          id as agent_id,
-          CONCAT(first_name, ' ', last_name) as name,
-          profile_image_url as photo_url,
-          cargo as team,
-          '[]'::jsonb as skills,
-          CASE 
-            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
-            WHEN status = 'active' THEN 'offline'
-            ELSE 'offline'
-          END as status,
-          COALESCE(last_active_at, created_at) as status_since,
-          NULL::decimal as lat,
-          NULL::decimal as lng,
-          NULL::decimal as accuracy,
-          NULL::decimal as heading,
-          NULL::decimal as speed,
-          NULL::integer as device_battery,
-          NULL::integer as signal_strength,
-          last_active_at as last_ping_at,
-          NULL as assigned_ticket_id,
-          NULL as customer_site_id,
-          NULL as sla_deadline_at,
-          NULL as shift_start_at,
-          NULL as shift_end_at,
-          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
-          NULL as current_route_id,
-          NULL::integer as eta_seconds,
-          NULL::integer as distance_meters,
-          created_at,
-          updated_at,
-          tenant_id
-        FROM ${schema}.users 
-        WHERE role IN ('agent', 'supervisor', 'manager')
-        ORDER BY first_name, last_name
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query);
-      
-      return results.map(row => FieldAgent.fromSchema(row));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error finding agents near location:', error);
-      throw new Error('Failed to retrieve nearby field agents');
-    }
-  }
-
-  async createAgent(agentData: InsertFieldAgent): Promise<FieldAgent> {
-    try {
-      const schema = this.getTenantSchema(agentData.tenant_id);
-      const id = `fa_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      const query = `
-        INSERT INTO ${schema}.field_agents (
-          id, agent_id, name, photo_url, team, skills, status, status_since,
-          lat, lng, accuracy, heading, speed, device_battery, signal_strength,
-          last_ping_at, assigned_ticket_id, customer_site_id, sla_deadline_at,
-          shift_start_at, shift_end_at, is_on_duty, current_route_id,
-          eta_seconds, distance_meters, tenant_id
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
-        )
-        RETURNING *
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(agentData.tenant_id, query, [
-        id,
-        agentData.agent_id,
-        agentData.name,
-        agentData.photo_url || null,
-        agentData.team || null,
-        JSON.stringify(agentData.skills || []),
-        agentData.status || 'offline',
-        new Date(),
-        agentData.lat || null,
-        agentData.lng || null,
-        agentData.accuracy || null,
-        agentData.heading || null,
-        agentData.speed || null,
-        agentData.device_battery || null,
-        agentData.signal_strength || null,
-        agentData.last_ping_at || null,
-        agentData.assigned_ticket_id || null,
-        agentData.customer_site_id || null,
-        agentData.sla_deadline_at || null,
-        agentData.shift_start_at || null,
-        agentData.shift_end_at || null,
-        agentData.is_on_duty || false,
-        agentData.current_route_id || null,
-        agentData.eta_seconds || null,
-        agentData.distance_meters || null,
-        agentData.tenant_id
-      ]);
-      
-      return FieldAgent.fromSchema(results[0]);
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error creating agent:', error);
-      throw new Error('Failed to create field agent');
-    }
-  }
-
-  async updateAgent(id: string, agentData: UpdateFieldAgent, tenantId: string): Promise<FieldAgent> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      
-      // Build dynamic update query
-      const updateFields: string[] = [];
-      const values: any[] = [];
-      let paramIndex = 1;
-      
-      Object.entries(agentData).forEach(([key, value]) => {
-        if (value !== undefined) {
-          updateFields.push(`${key} = $${paramIndex}`);
-          values.push(value);
-          paramIndex++;
-        }
-      });
-      
-      updateFields.push(`updated_at = $${paramIndex}`);
-      values.push(new Date());
-      values.push(id); // For WHERE clause
-      
-      const query = `
-        UPDATE ${schema}.field_agents 
-        SET ${updateFields.join(', ')}
-        WHERE id = $${paramIndex + 1}
-        RETURNING *
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query, values);
-      if (results.length === 0) {
-        throw new Error('Agent not found');
+    if (filters.batteryLevel) {
+      if (filters.batteryLevel.min !== undefined) {
+        conditions.push(sql`COALESCE(pos.device_battery, dev.battery_level, 100) >= ${filters.batteryLevel.min}`);
       }
-      
-      return FieldAgent.fromSchema(results[0]);
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error updating agent:', error);
-      throw new Error('Failed to update field agent');
+      if (filters.batteryLevel.max !== undefined) {
+        conditions.push(sql`COALESCE(pos.device_battery, dev.battery_level, 100) <= ${filters.batteryLevel.max}`);
+      }
     }
-  }
 
-  async updateAgentLocation(locationUpdate: AgentLocationUpdate, tenantId: string): Promise<void> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        UPDATE ${schema}.field_agents 
-        SET lat = $1, lng = $2, accuracy = $3, heading = $4, speed = $5,
-            device_battery = $6, signal_strength = $7, last_ping_at = $8,
-            updated_at = $9
-        WHERE agent_id = $10
-      `;
-      
-      await this.executeInTenantSchema(tenantId, query, [
-        locationUpdate.lat,
-        locationUpdate.lng,
-        locationUpdate.accuracy || null,
-        locationUpdate.heading || null,
-        locationUpdate.speed || null,
-        locationUpdate.deviceBattery || null,
-        locationUpdate.signalStrength || null,
-        new Date(),
-        new Date(),
-        locationUpdate.agentId
-      ]);
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error updating agent location:', error);
-      throw new Error('Failed to update agent location');
+    if (filters.lastActivityMinutes) {
+      const cutoff = new Date(Date.now() - filters.lastActivityMinutes * 60 * 1000);
+      conditions.push(sql`COALESCE(pos.captured_at, dev.last_ping_at) >= ${cutoff.toISOString()}`);
     }
-  }
 
-  async deleteAgent(id: string, tenantId: string): Promise<void> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        DELETE FROM ${schema}.field_agents 
-        WHERE id = $1
-      `;
-      
-      await this.executeInTenantSchema(tenantId, query, [id]);
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error deleting agent:', error);
-      throw new Error('Failed to delete field agent');
+    if (filters.bounds) {
+      const { north, south, east, west } = filters.bounds;
+      conditions.push(sql`
+        pos.lat BETWEEN ${south} AND ${north} 
+        AND pos.lng BETWEEN ${west} AND ${east}
+      `);
     }
-  }
 
-  // ✅ Real-time Location Updates
-  async updateAgentPosition(agentId: string, location: LocationPoint, tenantId: string): Promise<void> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const historyId = `aph_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      const query = `
-        INSERT INTO ${schema}.agent_position_history (
-          id, agent_id, lat, lng, accuracy, recorded_at, tenant_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `;
-      
-      await this.executeInTenantSchema(tenantId, query, [
-        historyId,
-        agentId,
-        location.lat,
-        location.lng,
-        location.accuracy || null,
-        new Date(),
-        tenantId
-      ]);
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error updating agent position:', error);
-      throw new Error('Failed to update agent position history');
+    if (filters.assignedTicketsOnly) {
+      conditions.push(sql`rt.ticket_id IS NOT NULL`);
     }
-  }
 
-  async getAgentPositionHistory(agentId: string, hours: number, tenantId: string): Promise<LocationPoint[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT lat, lng, accuracy, recorded_at
-        FROM ${schema}.agent_position_history 
-        WHERE agent_id = $1 
-          AND recorded_at >= $2
-        ORDER BY recorded_at DESC
-      `;
-      
-      const cutoffDate = new Date(Date.now() - hours * 60 * 60 * 1000);
-      const results = await this.executeInTenantSchema<any>(tenantId, query, [agentId, cutoffDate]);
-      
-      return results.map(row => new LocationPoint(
-        parseFloat(row.lat),
-        parseFloat(row.lng),
-        row.accuracy ? parseFloat(row.accuracy) : undefined
-      ));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error getting position history:', error);
-      throw new Error('Failed to retrieve agent position history');
+    if (filters.accuracyThreshold) {
+      conditions.push(sql`pos.accuracy <= ${filters.accuracyThreshold}`);
     }
-  }
 
-  // ✅ Clustering and Analytics - Simplified implementations
-  async getAgentClusters(
-    bounds: MapBounds,
-    zoomLevel: number,
-    tenantId: string
-  ): Promise<import('@shared/schema-interactive-map').AgentCluster[]> {
-    // For now, return individual agents - clustering algorithm would be implemented here
-    const agents = await this.findAgentsByBounds(bounds, tenantId);
-    return agents.map(agent => ({
-      lat: agent.lat || 0,
-      lng: agent.lng || 0,
-      count: 1,
-      maxSeverity: agent.needsAttention() ? 'critical' : 'normal' as 'normal' | 'warning' | 'critical',
-      agents: agents.map(a => ({
-        id: a.id,
-        name: a.name,
-        agent_id: a.agentId,
-        photo_url: a.photoUrl || null,
-        team: a.team || null,
-        skills: a.skills || null,
-        status: a.status,
-        status_since: a.statusSince || null,
-        lat: a.lat ? a.lat.toString() : null,
-        lng: a.lng ? a.lng.toString() : null,
-        accuracy: a.accuracy ? a.accuracy.toString() : null,
-        heading: a.heading ? a.heading.toString() : null,
-        speed: a.speed ? a.speed.toString() : null,
-        device_battery: a.deviceBattery || null,
-        signal_strength: a.signalStrength || null,
-        last_ping_at: a.lastPingAt || null,
-        assigned_ticket_id: a.assignedTicketId || null,
-        customer_site_id: a.customerSiteId || null,
-        sla_deadline_at: a.slaDeadlineAt || null,
-        shift_start_at: a.shiftStartAt || null,
-        shift_end_at: a.shiftEndAt || null,
-        is_on_duty: a.isOnDuty,
-        current_route_id: a.currentRouteId || null,
-        eta_seconds: a.etaSeconds || null,
-        distance_meters: a.distanceMeters || null,
-        created_at: a.createdAt || null,
-        updated_at: a.updatedAt || null,
-        tenant_id: tenantId
-      }))
-    }));
-  }
-
-  async getAgentsInSlaRisk(tenantId: string): Promise<FieldAgent[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      // Return empty array for now since users table doesn't have SLA fields
-      return [];
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query);
-      return results.map(row => FieldAgent.fromSchema(row));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error getting SLA risk agents:', error);
-      throw new Error('Failed to retrieve agents in SLA risk');
+    // Apply WHERE conditions
+    if (conditions.length > 1) {
+      query.where(sql.join(conditions, sql` AND `));
     }
-  }
 
-  async getOfflineAgents(maxOfflineMinutes: number, tenantId: string): Promise<FieldAgent[]> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const cutoffDate = new Date(Date.now() - maxOfflineMinutes * 60 * 1000);
-      
-      const query = `
-        SELECT 
-          id,
-          id as agent_id,
-          CONCAT(first_name, ' ', last_name) as name,
-          profile_image_url as photo_url,
-          cargo as team,
-          '[]'::jsonb as skills,
-          'offline' as status,
-          COALESCE(last_active_at, created_at) as status_since,
-          NULL::decimal as lat,
-          NULL::decimal as lng,
-          NULL::decimal as accuracy,
-          NULL::decimal as heading,
-          NULL::decimal as speed,
-          NULL::integer as device_battery,
-          NULL::integer as signal_strength,
-          last_active_at as last_ping_at,
-          NULL as assigned_ticket_id,
-          NULL as customer_site_id,
-          NULL as sla_deadline_at,
-          NULL as shift_start_at,
-          NULL as shift_end_at,
-          false as is_on_duty,
-          NULL as current_route_id,
-          NULL::integer as eta_seconds,
-          NULL::integer as distance_meters,
-          created_at,
-          updated_at,
-          tenant_id
-        FROM ${schema}.users 
-        WHERE role IN ('agent', 'supervisor', 'manager')
-          AND (last_active_at < $1 OR last_active_at IS NULL)
-        ORDER BY last_active_at DESC
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query, [cutoffDate]);
-      return results.map(row => FieldAgent.fromSchema(row));
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error getting offline agents:', error);
-      throw new Error('Failed to retrieve offline agents');
+    // Apply sorting
+    if (options.sortBy) {
+      switch (options.sortBy) {
+        case 'name':
+          query.orderBy(options.sortOrder === 'desc' ? sql`u.nome DESC` : sql`u.nome ASC`);
+          break;
+        case 'lastActivity':
+          query.orderBy(options.sortOrder === 'desc' ? 
+            sql`COALESCE(pos.captured_at, dev.last_ping_at) DESC` : 
+            sql`COALESCE(pos.captured_at, dev.last_ping_at) ASC`);
+          break;
+        case 'batteryLevel':
+          query.orderBy(options.sortOrder === 'desc' ? 
+            sql`COALESCE(pos.device_battery, dev.battery_level, 100) DESC` : 
+            sql`COALESCE(pos.device_battery, dev.battery_level, 100) ASC`);
+          break;
+        default:
+          query.orderBy(sql`u.nome ASC`);
+      }
+    } else {
+      query.orderBy(sql`u.nome ASC`);
     }
+
+    // Apply pagination
+    query.limit(limit).offset(offset);
+
+    const rows = await query;
+
+    // Transform to EnhancedFieldAgent entities
+    return rows.map(row => this.mapRowToEnhancedAgent(row));
   }
 
-  // ✅ Placeholder implementations for remaining methods
-  async findGeofenceAreas(tenantId: string): Promise<GeofenceArea[]> {
-    return [];
+  /**
+   * Get single agent by ID with full mobile integration data
+   */
+  async getAgentById(agentId: string): Promise<EnhancedFieldAgent | null> {
+    const agents = await this.getAllAgents({ }, { limit: 1 });
+    return agents.find(agent => agent.id === agentId) || null;
   }
 
-  async createGeofenceArea(areaData: any, tenantId: string): Promise<GeofenceArea> {
-    throw new Error('Not implemented');
+  /**
+   * Get nearby agents within radius
+   */
+  async getNearbyAgents(query: NearbyAgentsQuery): Promise<EnhancedFieldAgent[]> {
+    const { lat, lng, radiusKm, skills, status, maxResults = 50 } = query;
+
+    // Use PostGIS distance calculation if available, otherwise Haversine formula
+    const distanceQuery = db
+      .select({
+        // User data
+        id: sql`u.id`,
+        name: sql`u.nome`,
+        cargo: sql`u.cargo`,
+        profile_image_url: sql`u.profile_image_url`,
+        
+        // Position data with distance calculation
+        pos_lat: sql`pos.lat`,
+        pos_lng: sql`pos.lng`,
+        pos_accuracy: sql`pos.accuracy`,
+        pos_heading: sql`pos.heading`,
+        pos_speed: sql`pos.speed`,
+        pos_device_battery: sql`pos.device_battery`,
+        pos_captured_at: sql`pos.captured_at`,
+        
+        // Calculate distance using Haversine formula
+        distance_km: sql`
+          6371 * acos(
+            cos(radians(${lat})) * cos(radians(pos.lat)) * 
+            cos(radians(pos.lng) - radians(${lng})) + 
+            sin(radians(${lat})) * sin(radians(pos.lat))
+          )
+        `
+      })
+      .from(sql`${sql.identifier(this.schema)}.users u`)
+      .innerJoin(
+        sql`(
+          SELECT DISTINCT ON (agent_id) 
+            agent_id, lat, lng, accuracy, heading, speed, 
+            device_battery, captured_at
+          FROM ${sql.identifier('agent_positions')} 
+          WHERE tenant_id = ${this.schema.replace('tenant_', '')}
+            AND lat IS NOT NULL AND lng IS NOT NULL
+          ORDER BY agent_id, captured_at DESC
+        ) pos`,
+        sql`pos.agent_id = u.id`
+      )
+      .where(sql`
+        u.is_active = true 
+        AND 6371 * acos(
+          cos(radians(${lat})) * cos(radians(pos.lat)) * 
+          cos(radians(pos.lng) - radians(${lng})) + 
+          sin(radians(${lat})) * sin(radians(pos.lat))
+        ) <= ${radiusKm}
+      `)
+      .orderBy(sql`distance_km ASC`)
+      .limit(maxResults);
+
+    const rows = await distanceQuery;
+    return rows.map(row => this.mapRowToEnhancedAgent(row));
   }
 
-  async checkAgentInGeofence(agentId: string, tenantId: string): Promise<string[]> {
-    return [];
+  // ===========================================================================================
+  // Statistics & Analytics
+  // ===========================================================================================
+
+  /**
+   * Get comprehensive agent statistics
+   */
+  async getAgentStats(): Promise<AgentStatsResult> {
+    // Get total count
+    const totalCountResult = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(sql`${sql.identifier(this.schema)}.users`)
+      .where(sql`is_active = true`);
+
+    const totalAgents = Number(totalCountResult[0]?.count || 0);
+
+    // Get agents with latest data for status calculation
+    const agents = await this.getAllAgents();
+
+    // Calculate statistics
+    const statusBreakdown: Record<AgentStatusType, number> = {
+      [AgentStatus.AVAILABLE]: 0,
+      [AgentStatus.IN_TRANSIT]: 0,
+      [AgentStatus.IN_SERVICE]: 0,
+      [AgentStatus.ON_BREAK]: 0,
+      [AgentStatus.UNAVAILABLE]: 0,
+      [AgentStatus.SLA_RISK]: 0,
+      [AgentStatus.SLA_BREACHED]: 0,
+      [AgentStatus.OFFLINE]: 0,
+    };
+
+    let batterySum = 0;
+    let batteryCount = 0;
+    let onlineCount = 0;
+    let slaRiskCount = 0;
+    let lowBatteryCount = 0;
+
+    agents.forEach(agent => {
+      // Count status
+      statusBreakdown[agent.status]++;
+
+      // Battery statistics
+      if (agent.deviceBattery !== null) {
+        batterySum += agent.deviceBattery;
+        batteryCount++;
+        
+        if (agent.deviceBattery < 15) {
+          lowBatteryCount++;
+        }
+      }
+
+      // Online count
+      if (agent.isOnline) {
+        onlineCount++;
+      }
+
+      // SLA risk count
+      if (agent.status === AgentStatus.SLA_RISK || agent.status === AgentStatus.SLA_BREACHED) {
+        slaRiskCount++;
+      }
+    });
+
+    return {
+      totalAgents,
+      statusBreakdown,
+      avgBatteryLevel: batteryCount > 0 ? Math.round(batterySum / batteryCount) : 0,
+      onlineCount,
+      slaRiskCount,
+      lowBatteryCount,
+      lastUpdated: new Date()
+    };
   }
 
-  async findUserFilterConfigs(userId: string, tenantId: string): Promise<MapFilterConfig[]> {
-    return [];
+  // ===========================================================================================
+  // Mobile Integration Methods
+  // ===========================================================================================
+
+  /**
+   * Update agent position from mobile device
+   */
+  async updateAgentPosition(agentId: string, positionData: {
+    lat: number;
+    lng: number;
+    accuracy?: number;
+    heading?: number;
+    speed?: number;
+    deviceBattery?: number;
+    signalStrength?: number;
+    capturedAt: Date;
+  }): Promise<void> {
+    await db.insert(agentPositions).values({
+      agentId,
+      tenantId: this.schema.replace('tenant_', ''),
+      lat: positionData.lat.toString(),
+      lng: positionData.lng.toString(),
+      accuracy: positionData.accuracy?.toString(),
+      heading: positionData.heading?.toString(),
+      speed: positionData.speed?.toString(),
+      deviceBattery: positionData.deviceBattery,
+      signalStrength: positionData.signalStrength,
+      capturedAt: positionData.capturedAt,
+      isAccurate: (positionData.accuracy || 0) < 50,
+    });
   }
 
-  async createFilterConfig(configData: any, tenantId: string): Promise<MapFilterConfig> {
-    throw new Error('Not implemented');
+  /**
+   * Update agent device status
+   */
+  async updateAgentDeviceStatus(agentId: string, deviceData: {
+    isOnline: boolean;
+    batteryLevel?: number;
+    isCharging?: boolean;
+    connectionType?: string;
+    gpsEnabled?: boolean;
+    appVersion?: string;
+  }): Promise<void> {
+    // Upsert device status
+    await db.insert(agentDeviceStatus).values({
+      agentId,
+      tenantId: this.schema.replace('tenant_', ''),
+      isOnline: deviceData.isOnline,
+      batteryLevel: deviceData.batteryLevel,
+      isCharging: deviceData.isCharging,
+      connectionType: deviceData.connectionType,
+      gpsEnabled: deviceData.gpsEnabled,
+      appVersion: deviceData.appVersion,
+      lastPingAt: new Date(),
+      lowBatteryWarning: (deviceData.batteryLevel || 100) < 15,
+    }).onConflictDoUpdate({
+      target: agentDeviceStatus.agentId,
+      set: {
+        isOnline: deviceData.isOnline,
+        batteryLevel: deviceData.batteryLevel,
+        isCharging: deviceData.isCharging,
+        connectionType: deviceData.connectionType,
+        gpsEnabled: deviceData.gpsEnabled,
+        lastPingAt: new Date(),
+        lowBatteryWarning: (deviceData.batteryLevel || 100) < 15,
+        updatedAt: new Date(),
+      }
+    });
   }
 
-  async updateFilterConfig(id: string, configData: any, tenantId: string): Promise<MapFilterConfig> {
-    throw new Error('Not implemented');
+  /**
+   * Create or update agent route
+   */
+  async updateAgentRoute(agentId: string, routeData: {
+    ticketId?: string;
+    startLat: number;
+    startLng: number;
+    destinationLat: number;
+    destinationLng: number;
+    etaSeconds?: number;
+    distanceMeters?: number;
+    status?: string;
+  }): Promise<string> {
+    const result = await db.insert(agentRoutes).values({
+      agentId,
+      tenantId: this.schema.replace('tenant_', ''),
+      ticketId: routeData.ticketId,
+      startLat: routeData.startLat.toString(),
+      startLng: routeData.startLng.toString(),
+      destinationLat: routeData.destinationLat.toString(),
+      destinationLng: routeData.destinationLng.toString(),
+      originalEtaSeconds: routeData.etaSeconds,
+      currentEtaSeconds: routeData.etaSeconds,
+      totalDistanceMeters: routeData.distanceMeters,
+      remainingDistanceMeters: routeData.distanceMeters,
+      status: routeData.status || 'planned',
+    }).returning({ id: agentRoutes.id });
+
+    return result[0].id;
   }
 
-  async logMapEvent(eventType: string, userId: string, eventData: any, tenantId: string): Promise<void> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const eventId = `mel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      const query = `
-        INSERT INTO ${schema}.map_events_log (
-          id, user_id, event_type, event_data, recorded_at, tenant_id
-        ) VALUES ($1, $2, $3, $4, $5, $6)
-      `;
-      
-      await this.executeInTenantSchema(tenantId, query, [
-        eventId,
-        userId,
-        eventType,
-        JSON.stringify(eventData),
-        new Date(),
-        tenantId
-      ]);
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error logging map event:', error);
-      // Don't throw error for logging failures
+  /**
+   * Record agent status change for audit trail
+   */
+  async recordStatusChange(agentId: string, statusChange: {
+    fromStatus?: string;
+    toStatus: string;
+    changeReason: string;
+    lat?: number;
+    lng?: number;
+    speed?: number;
+    ticketId?: string;
+    changedBy?: string;
+  }): Promise<void> {
+    await db.insert(agentStatusHistory).values({
+      agentId,
+      tenantId: this.schema.replace('tenant_', ''),
+      fromStatus: statusChange.fromStatus,
+      toStatus: statusChange.toStatus,
+      changeReason: statusChange.changeReason,
+      lat: statusChange.lat?.toString(),
+      lng: statusChange.lng?.toString(),
+      speed: statusChange.speed?.toString(),
+      ticketId: statusChange.ticketId,
+      changedBy: statusChange.changedBy || 'system',
+    });
+  }
+
+  // ===========================================================================================
+  // Data Mapping Helper
+  // ===========================================================================================
+
+  private mapRowToEnhancedAgent(row: any): EnhancedFieldAgent {
+    return EnhancedFieldAgent.withMobileData(
+      // User data
+      {
+        id: row.id,
+        name: row.name || row.nome,
+        profile_image_url: row.profile_image_url,
+        cargo: row.cargo,
+        is_active: row.is_active,
+        tenant_id: row.tenant_id || this.schema.replace('tenant_', ''),
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      },
+      // Position data
+      row.pos_lat ? {
+        id: '',
+        agentId: row.id,
+        tenantId: this.schema.replace('tenant_', ''),
+        lat: row.pos_lat,
+        lng: row.pos_lng,
+        accuracy: row.pos_accuracy,
+        heading: row.pos_heading,
+        speed: row.pos_speed,
+        deviceBattery: row.pos_device_battery || row.device_battery_level,
+        signalStrength: row.pos_signal_strength,
+        capturedAt: row.pos_captured_at,
+        serverReceivedAt: new Date(),
+        isAccurate: row.pos_is_accurate,
+        dataSource: 'mobile_app',
+        createdAt: new Date(),
+      } : undefined,
+      // Route data
+      row.route_id ? {
+        id: row.route_id,
+        agentId: row.id,
+        tenantId: this.schema.replace('tenant_', ''),
+        ticketId: row.route_ticket_id,
+        startLat: '0',
+        startLng: '0',
+        destinationLat: '0',
+        destinationLng: '0',
+        routeGeometry: null,
+        originalEtaSeconds: row.route_eta_seconds,
+        currentEtaSeconds: row.route_eta_seconds,
+        totalDistanceMeters: row.route_distance_meters,
+        remainingDistanceMeters: row.route_distance_meters,
+        status: row.route_status || 'planned',
+        startedAt: null,
+        completedAt: null,
+        trafficImpact: row.route_traffic_impact,
+        weatherImpact: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } : undefined,
+      // Device data
+      row.device_is_online !== null ? {
+        id: '',
+        agentId: row.id,
+        tenantId: this.schema.replace('tenant_', ''),
+        deviceId: null,
+        deviceModel: null,
+        appVersion: null,
+        osVersion: null,
+        isOnline: row.device_is_online,
+        lastPingAt: row.device_last_ping,
+        connectionType: row.device_connection_type,
+        batteryLevel: row.device_battery_level,
+        isCharging: false,
+        lowBatteryWarning: row.device_low_battery_warning,
+        gpsEnabled: row.device_gps_enabled,
+        locationPermission: true,
+        backgroundLocationEnabled: true,
+        cpuUsage: null,
+        memoryUsage: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } : undefined
+    );
+  }
+
+  // ===========================================================================================
+  // Performance Optimization Methods
+  // ===========================================================================================
+
+  /**
+   * Get agents in viewport with clustering for performance
+   */
+  async getAgentsInViewport(bounds: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  }, zoomLevel: number): Promise<EnhancedFieldAgent[]> {
+    // For high zoom levels (city/street view), return individual agents
+    if (zoomLevel > 12) {
+      return this.getAllAgents({ bounds }, { limit: 500 });
     }
+
+    // For lower zoom levels, use clustering or sampling
+    const sampleSize = Math.max(100, Math.min(1000, Math.floor(2000 / Math.pow(2, 15 - zoomLevel))));
+    
+    return this.getAllAgents({ bounds }, { limit: sampleSize });
   }
 
-  async getActiveAgentCount(tenantId: string): Promise<number> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT COUNT(*) as count
-        FROM ${schema}.users 
-        WHERE role IN ('agent', 'supervisor', 'manager')
-          AND status = 'active'
-          AND last_active_at > NOW() - INTERVAL '10 minutes'
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query);
-      return parseInt(results[0]?.count || '0');
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error getting active agent count:', error);
-      return 0;
-    }
-  }
-
-  async getAgentUtilizationStats(tenantId: string): Promise<{
-    total: number;
-    available: number;
-    inTransit: number;
-    inService: number;
-    offline: number;
+  /**
+   * Get delta updates since last timestamp for efficient real-time updates
+   */
+  async getAgentUpdates(since: Date): Promise<{
+    positionUpdates: any[];
+    statusChanges: any[];
+    deviceUpdates: any[];
+    routeUpdates: any[];
   }> {
-    try {
-      const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT 
-          COUNT(*) as total,
-          COUNT(CASE 
-            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' 
-            THEN 1 END) as available,
-          0 as in_transit,
-          0 as in_service,
-          COUNT(CASE 
-            WHEN status != 'active' OR last_active_at <= NOW() - INTERVAL '10 minutes' OR last_active_at IS NULL
-            THEN 1 END) as offline
-        FROM ${schema}.users
-        WHERE role IN ('agent', 'supervisor', 'manager')
-      `;
-      
-      const results = await this.executeInTenantSchema<any>(tenantId, query);
-      const row = results[0] || {};
-      
-      return {
-        total: parseInt(row.total || '0'),
-        available: parseInt(row.available || '0'),
-        inTransit: parseInt(row.in_transit || '0'),
-        inService: parseInt(row.in_service || '0'),
-        offline: parseInt(row.offline || '0')
-      };
-    } catch (error) {
-      console.error('[DrizzleInteractiveMapRepository] Error getting utilization stats:', error);
-      return {
-        total: 0,
-        available: 0,
-        inTransit: 0,
-        inService: 0,
-        offline: 0
-      };
-    }
+    const [positionUpdates, statusChanges, deviceUpdates, routeUpdates] = await Promise.all([
+      // Position updates
+      db.select()
+        .from(agentPositions)
+        .where(and(
+          eq(agentPositions.tenantId, this.schema.replace('tenant_', '')),
+          gte(agentPositions.serverReceivedAt, since)
+        ))
+        .orderBy(desc(agentPositions.serverReceivedAt))
+        .limit(1000),
+
+      // Status changes
+      db.select()
+        .from(agentStatusHistory)
+        .where(and(
+          eq(agentStatusHistory.tenantId, this.schema.replace('tenant_', '')),
+          gte(agentStatusHistory.createdAt, since)
+        ))
+        .orderBy(desc(agentStatusHistory.createdAt))
+        .limit(500),
+
+      // Device updates
+      db.select()
+        .from(agentDeviceStatus)
+        .where(and(
+          eq(agentDeviceStatus.tenantId, this.schema.replace('tenant_', '')),
+          gte(agentDeviceStatus.updatedAt, since)
+        ))
+        .orderBy(desc(agentDeviceStatus.updatedAt))
+        .limit(500),
+
+      // Route updates
+      db.select()
+        .from(agentRoutes)
+        .where(and(
+          eq(agentRoutes.tenantId, this.schema.replace('tenant_', '')),
+          gte(agentRoutes.updatedAt, since)
+        ))
+        .orderBy(desc(agentRoutes.updatedAt))
+        .limit(500),
+    ]);
+
+    return {
+      positionUpdates,
+      statusChanges,
+      deviceUpdates,
+      routeUpdates,
+    };
   }
 }

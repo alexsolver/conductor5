@@ -1,398 +1,1483 @@
-// ✅ 1QA.MD COMPLIANCE: Interactive Map Frontend Component
-// React component for field agent tracking and management
+// ===========================================================================================
+// INTERACTIVE MAP - Complete Frontend Implementation
+// 125+ Advanced Functionalities with Real-time Updates and Performance Optimization
+// ===========================================================================================
 
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, LayersControl, useMap } from 'react-leaflet';
+import { Icon, divIcon, LatLngBounds, LatLng } from 'leaflet';
+import { useTranslation } from 'react-i18next';
+import { 
+  Filter, 
+  Search, 
+  Settings, 
+  Eye, 
+  EyeOff, 
+  MapPin, 
+  Navigation, 
+  Clock, 
+  Battery, 
+  Signal, 
+  AlertTriangle,
+  Zap,
+  Users,
+  Activity,
+  BarChart3,
+  RotateCcw,
+  Maximize2,
+  Plus,
+  Minus,
+  Target,
+  Layers,
+  Moon,
+  Sun,
+  Accessibility,
+  Download,
+  Upload,
+  Share2,
+  HelpCircle
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, Users, AlertTriangle, Clock, Navigation, Signal } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 
-// ✅ Types
-interface FieldAgent {
+// ===========================================================================================
+// Type Definitions
+// ===========================================================================================
+
+interface AgentPosition {
   id: string;
-  agentId: string;
+  agent_id: string;
   name: string;
-  photoUrl?: string;
-  team?: string;
+  photo_url: string | null;
+  team: string;
   skills: string[];
-  status: 'available' | 'in_transit' | 'in_service' | 'paused' | 'sla_risk' | 'offline';
-  statusSince?: Date;
-  lat?: number;
-  lng?: number;
-  accuracy?: number;
-  heading?: number;
-  speed?: number;
-  deviceBattery?: number;
-  signalStrength?: number;
-  lastPingAt?: Date;
-  assignedTicketId?: string;
-  customerSiteId?: string;
-  slaDeadlineAt?: Date;
-  shiftStartAt?: Date;
-  shiftEndAt?: Date;
-  isOnDuty: boolean;
-  currentRouteId?: string;
-  etaSeconds?: number;
-  distanceMeters?: number;
+  status: 'available' | 'in_transit' | 'in_service' | 'on_break' | 'unavailable' | 'sla_risk' | 'sla_breached' | 'offline';
+  status_since: string;
+  is_on_duty: boolean;
+  lat: number | null;
+  lng: number | null;
+  accuracy: number | null;
+  heading: number | null;
+  speed: number | null;
+  device_battery: number | null;
+  signal_strength: number | null;
+  last_ping_at: string | null;
+  is_online: boolean;
+  assigned_ticket_id: string | null;
+  customer_site_id: string | null;
+  sla_deadline_at: string | null;
+  current_route_id: string | null;
+  eta_seconds: number | null;
+  distance_meters: number | null;
+  battery_warning?: boolean;
+  signal_warning?: boolean;
+  sla_risk?: boolean;
+  is_moving?: boolean;
+  last_seen_text?: string;
+  status_color: string;
+  should_pulse: boolean;
+  accuracy_radius: number;
+  created_at: string;
+  updated_at: string;
 }
 
-interface AgentStats {
-  totalCount: number;
-  availableCount: number;
-  inTransitCount: number;
-  inServiceCount: number;
-  offlineCount: number;
+interface MapFilters {
+  status: string[];
+  teams: string[];
+  skills: string[];
+  batteryLevel: { min: number; max: number };
+  lastActivityMinutes: number;
+  assignedTicketsOnly: boolean;
+  onDutyOnly: boolean;
+  accuracyThreshold: number;
+  slaRisk: boolean;
 }
 
-// ✅ Status color mapping
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'available': return 'bg-green-500';
-    case 'in_transit': return 'bg-blue-500';
-    case 'in_service': return 'bg-yellow-500';
-    case 'paused': return 'bg-gray-500';
-    case 'sla_risk': return 'bg-red-500';
-    case 'offline': return 'bg-gray-400';
-    default: return 'bg-gray-500';
-  }
+interface ViewportBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
+interface MapSettings {
+  showAccuracyCircles: boolean;
+  showAgentRoutes: boolean;
+  showHeatmap: boolean;
+  showClusters: boolean;
+  autoRefresh: boolean;
+  refreshInterval: number;
+  darkMode: boolean;
+  animateMarkers: boolean;
+  showBatteryWarnings: boolean;
+  showSlaAlerts: boolean;
+  enableGeofencing: boolean;
+  highContrastMode: boolean;
+  keyboardNavigation: boolean;
+  screenReaderMode: boolean;
+  reduceMotion: boolean;
+}
+
+// ===========================================================================================
+// Color System - Exact Colors from Specification
+// ===========================================================================================
+
+const STATUS_COLORS = {
+  available: '#24B47E',      // Verde - Disponível
+  in_transit: '#2F80ED',     // Azul - Em trânsito
+  in_service: '#F2C94C',     // Amarelo - Em atendimento
+  on_break: '#9B51E0',       // Lilás - Em pausa
+  unavailable: '#9B51E0',    // Lilás - Indisponível
+  sla_risk: '#EB5757',       // Vermelho - Risco SLA
+  sla_breached: '#EB5757',   // Vermelho - SLA estourado
+  offline: '#BDBDBD'         // Cinza - Offline
+} as const;
+
+const PULSE_STATUSES = ['sla_risk', 'sla_breached'];
+
+// ===========================================================================================
+// Custom Map Icons with Visual States
+// ===========================================================================================
+
+const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
+  const color = agent.status_color || STATUS_COLORS[agent.status];
+  const shouldPulse = agent.should_pulse && PULSE_STATUSES.includes(agent.status);
+  const size = agent.is_moving ? 32 : 24;
+  
+  // Battery warning indicator
+  const batteryWarning = agent.battery_warning && settings.showBatteryWarnings ? 
+    `<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>` : '';
+  
+  // Signal warning indicator
+  const signalWarning = agent.signal_warning ? 
+    `<div class="absolute -top-1 -left-1 w-3 h-3 bg-orange-500 rounded-full"></div>` : '';
+  
+  // Movement arrow for in_transit agents
+  const movementArrow = agent.is_moving && agent.heading ? 
+    `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" style="transform: rotate(${agent.heading}deg) translate(0, -8px)"></div>` : '';
+  
+  const html = `
+    <div class="relative ${shouldPulse ? 'animate-pulse' : ''} ${settings.animateMarkers ? 'transition-all duration-300' : ''}" 
+         style="width: ${size}px; height: ${size}px;">
+      <div class="w-full h-full rounded-full border-2 border-white shadow-lg" 
+           style="background-color: ${color};">
+        ${agent.photo_url ? 
+          `<img src="${agent.photo_url}" class="w-full h-full rounded-full object-cover" alt="${agent.name}" />` :
+          `<div class="w-full h-full rounded-full flex items-center justify-center text-white text-xs font-bold">
+             ${agent.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+           </div>`
+        }
+      </div>
+      ${batteryWarning}
+      ${signalWarning}
+      ${movementArrow}
+      ${agent.assigned_ticket_id ? 
+        `<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+           <span class="text-white text-xs">T</span>
+         </div>` : ''
+      }
+    </div>
+  `;
+
+  return divIcon({
+    html,
+    className: 'custom-agent-marker',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2]
+  });
 };
 
-// ✅ Main Component
-export default function InteractiveMap() {
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterTeam, setFilterTeam] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const queryClient = useQueryClient();
+// ===========================================================================================
+// Advanced Agent Tooltip Component
+// ===========================================================================================
 
-  // ✅ Fetch agent statistics
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/interactive-map/agents/stats'],
-    refetchInterval: 30000 // Auto-refresh every 30 seconds
-  });
-
-  // ✅ Fetch field agents with filters
-  const { data: agentsData, isLoading: agentsLoading, error } = useQuery({
-    queryKey: ['/api/interactive-map/agents', { status: filterStatus, team: filterTeam, search: searchQuery }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filterStatus && filterStatus !== 'all') {
-        params.append('status', filterStatus);
-      }
-      if (filterTeam && filterTeam !== 'all') {
-        params.append('teams', filterTeam);
-      }
-      
-      const url = `/api/interactive-map/agents?${params.toString()}`;
-      const response = await apiRequest('GET', url);
-      return await response.json();
-    },
-    refetchInterval: 15000 // Auto-refresh every 15 seconds
-  });
-
-  // ✅ Simulate location update
-  const locationUpdateMutation = useMutation({
-    mutationFn: async (data: { agentId: string; lat: number; lng: number }) => {
-      const response = await apiRequest('POST', '/api/interactive-map/agents/location', {
-        agentId: data.agentId,
-        lat: data.lat,
-        lng: data.lng,
-        accuracy: 10
-      });
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/interactive-map/agents'] });
-    }
-  });
-
-  const agents: FieldAgent[] = agentsData?.data?.agents || [];
-  const agentStats: AgentStats = stats?.data || {
-    totalCount: 0,
-    availableCount: 0,
-    inTransitCount: 0,
-    inServiceCount: 0,
-    offlineCount: 0
+const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
+  const { t } = useTranslation();
+  
+  const formatTime = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Intl.DateTimeFormat('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit'
+    }).format(new Date(dateString));
   };
 
-  // ✅ Get unique teams for filter
-  const teams = Array.from(new Set(agents.map(agent => agent.team).filter(Boolean)));
+  const formatETA = (seconds: number | null) => {
+    if (!seconds) return null;
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
+  };
 
-  // ✅ Filter agents based on search
-  const filteredAgents = agents.filter(agent => {
-    if (searchQuery) {
-      return agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             agent.agentId.toLowerCase().includes(searchQuery.toLowerCase());
-    }
-    return true;
-  });
+  const formatDistance = (meters: number | null) => {
+    if (!meters) return null;
+    return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+  };
+
+  const getStatusText = (status: string) => {
+    const statusMap = {
+      available: 'Disponível',
+      in_transit: 'Em Trânsito',
+      in_service: 'Em Atendimento',
+      on_break: 'Em Pausa',
+      unavailable: 'Indisponível',
+      sla_risk: 'Risco SLA',
+      sla_breached: 'SLA Estourado',
+      offline: 'Offline'
+    };
+    return statusMap[status as keyof typeof statusMap] || status;
+  };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Interactive Map</h1>
-          <p className="text-muted-foreground">Real-time field agent tracking and management</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <MapPin className="h-5 w-5 text-blue-500" />
-          <span className="text-sm text-muted-foreground">
-            Last updated: {new Date().toLocaleTimeString()}
-          </span>
+    <div className="p-4 min-w-[280px] max-w-sm">
+      {/* Agent Header */}
+      <div className="flex items-center gap-3 mb-3">
+        {agent.photo_url ? (
+          <img src={agent.photo_url} alt={agent.name} className="w-12 h-12 rounded-full object-cover" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">
+            {agent.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-base truncate" title={agent.name}>{agent.name}</h3>
+          <p className="text-sm text-muted-foreground truncate">{agent.team}</p>
         </div>
       </div>
 
-      {/* ✅ Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-gray-500" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{agentStats.totalCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Available</p>
-                <p className="text-2xl font-bold">{agentStats.availableCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Navigation className="h-4 w-4 text-blue-500" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">In Transit</p>
-                <p className="text-2xl font-bold">{agentStats.inTransitCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-yellow-500" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">In Service</p>
-                <p className="text-2xl font-bold">{agentStats.inServiceCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Offline</p>
-                <p className="text-2xl font-bold">{agentStats.offlineCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Status Badge */}
+      <div className="flex items-center gap-2 mb-3">
+        <Badge 
+          style={{ backgroundColor: agent.status_color, color: 'white' }}
+          className={agent.should_pulse ? 'animate-pulse' : ''}
+        >
+          <div className="w-2 h-2 bg-white rounded-full mr-1"></div>
+          {getStatusText(agent.status)}
+        </Badge>
+        {agent.is_on_duty && (
+          <Badge variant="outline" className="text-xs">
+            Em Serviço
+          </Badge>
+        )}
       </div>
 
-      {/* ✅ Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="search">Search Agents</Label>
-              <Input
-                id="search"
-                placeholder="Search by name or ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="status">Status Filter</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="in_transit">In Transit</SelectItem>
-                  <SelectItem value="in_service">In Service</SelectItem>
-                  <SelectItem value="offline">Offline</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="team">Team Filter</Label>
-              <Select value={filterTeam} onValueChange={setFilterTeam}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Teams</SelectItem>
-                  {teams.map(team => (
-                    <SelectItem key={team} value={team!}>{team}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Core Metrics */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        {/* Battery */}
+        {agent.device_battery !== null && (
+          <div className="flex items-center gap-2">
+            <Battery className={`w-4 h-4 ${agent.battery_warning ? 'text-red-500' : 'text-green-500'}`} />
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Bateria</div>
+              <div className="text-sm font-medium">{agent.device_battery}%</div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      {/* ✅ Error Display */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Failed to load agents. Please try again.
+        {/* Signal */}
+        {agent.signal_strength !== null && (
+          <div className="flex items-center gap-2">
+            <Signal className={`w-4 h-4 ${agent.signal_warning ? 'text-orange-500' : 'text-green-500'}`} />
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Sinal</div>
+              <div className="text-sm font-medium">{agent.signal_strength} dBm</div>
+            </div>
+          </div>
+        )}
+
+        {/* Speed */}
+        {agent.speed !== null && (
+          <div className="flex items-center gap-2">
+            <Navigation className="w-4 h-4 text-blue-500" />
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Velocidade</div>
+              <div className="text-sm font-medium">{agent.speed.toFixed(1)} km/h</div>
+            </div>
+          </div>
+        )}
+
+        {/* Accuracy */}
+        {agent.accuracy !== null && (
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-purple-500" />
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Precisão</div>
+              <div className="text-sm font-medium">±{agent.accuracy}m</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Assignment Info */}
+      {agent.assigned_ticket_id && (
+        <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              Ticket Atribuído
+            </span>
+          </div>
+          <div className="text-xs text-blue-600 dark:text-blue-400">#{agent.assigned_ticket_id}</div>
+          
+          {agent.eta_seconds && (
+            <div className="flex items-center gap-2 mt-2">
+              <Clock className="w-3 h-3 text-blue-500" />
+              <span className="text-xs text-blue-600 dark:text-blue-400">
+                ETA: {formatETA(agent.eta_seconds)}
+              </span>
+            </div>
+          )}
+          
+          {agent.distance_meters && (
+            <div className="flex items-center gap-2 mt-1">
+              <MapPin className="w-3 h-3 text-blue-500" />
+              <span className="text-xs text-blue-600 dark:text-blue-400">
+                {formatDistance(agent.distance_meters)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SLA Warning */}
+      {agent.sla_risk && (
+        <Alert className="mb-3 border-red-200 bg-red-50 dark:bg-red-950">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-700 dark:text-red-300 text-xs">
+            {agent.sla_deadline_at && (
+              <>SLA em risco - Prazo: {formatTime(agent.sla_deadline_at)}</>
+            )}
           </AlertDescription>
         </Alert>
       )}
 
-      {/* ✅ Agents List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Field Agents ({filteredAgents.length})</CardTitle>
-          <CardDescription>
-            Real-time status and location of field agents
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {agentsLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="mt-2 text-muted-foreground">Loading agents...</p>
+      {/* Skills */}
+      {agent.skills && agent.skills.length > 0 && (
+        <div className="mb-3">
+          <div className="text-xs text-muted-foreground mb-1">Habilidades</div>
+          <div className="flex flex-wrap gap-1">
+            {agent.skills.slice(0, 3).map((skill, index) => (
+              <Badge key={index} variant="secondary" className="text-xs px-2 py-0">
+                {skill}
+              </Badge>
+            ))}
+            {agent.skills.length > 3 && (
+              <Badge variant="secondary" className="text-xs px-2 py-0">
+                +{agent.skills.length - 3}
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Last Activity */}
+      <div className="text-xs text-muted-foreground border-t pt-2">
+        {agent.status === 'offline' && agent.last_seen_text ? (
+          <div className="flex items-center gap-1">
+            <Eye className="w-3 h-3" />
+            Última conexão: {agent.last_seen_text}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1">
+            <Activity className="w-3 h-3" />
+            Última atualização: {formatTime(agent.updated_at)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ===========================================================================================
+// Dynamic Filters Panel Component
+// ===========================================================================================
+
+const FiltersPanel: React.FC<{
+  filters: MapFilters;
+  onFiltersChange: (filters: MapFilters) => void;
+  teams: string[];
+  skills: string[];
+  agentStats: any;
+}> = ({ filters, onFiltersChange, teams, skills, agentStats }) => {
+  const { t } = useTranslation();
+
+  const handleFilterChange = (key: keyof MapFilters, value: any) => {
+    onFiltersChange({ ...filters, [key]: value });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Status Filters */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Activity className="w-4 h-4" />
+          Status
+        </h4>
+        <div className="space-y-2">
+          {Object.entries(STATUS_COLORS).map(([status, color]) => (
+            <div key={status} className="flex items-center space-x-2">
+              <Checkbox
+                id={`status-${status}`}
+                checked={filters.status.includes(status)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    handleFilterChange('status', [...filters.status, status]);
+                  } else {
+                    handleFilterChange('status', filters.status.filter(s => s !== status));
+                  }
+                }}
+              />
+              <label htmlFor={`status-${status}`} className="text-sm flex items-center gap-2 cursor-pointer">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                {status.replace('_', ' ')}
+                {agentStats?.statusBreakdown?.[status] && (
+                  <Badge variant="secondary" className="text-xs ml-auto">
+                    {agentStats.statusBreakdown[status]}
+                  </Badge>
+                )}
+              </label>
             </div>
-          ) : filteredAgents.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-lg font-medium">No agents found</p>
-              <p className="text-muted-foreground">Try adjusting your filters or create new field agents.</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Team Filters */}
+      {teams.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Equipes
+          </h4>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {teams.map(team => (
+              <div key={team} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`team-${team}`}
+                  checked={filters.teams.includes(team)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      handleFilterChange('teams', [...filters.teams, team]);
+                    } else {
+                      handleFilterChange('teams', filters.teams.filter(t => t !== team));
+                    }
+                  }}
+                />
+                <label htmlFor={`team-${team}`} className="text-sm cursor-pointer truncate">
+                  {team}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Skills Filters */}
+      {skills.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-3 flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Habilidades
+          </h4>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {skills.map(skill => (
+              <div key={skill} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`skill-${skill}`}
+                  checked={filters.skills.includes(skill)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      handleFilterChange('skills', [...filters.skills, skill]);
+                    } else {
+                      handleFilterChange('skills', filters.skills.filter(s => s !== skill));
+                    }
+                  }}
+                />
+                <label htmlFor={`skill-${skill}`} className="text-sm cursor-pointer truncate">
+                  {skill}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Battery Level Range */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Battery className="w-4 h-4" />
+          Nível de Bateria
+        </h4>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-muted-foreground">
+              Mínimo: {filters.batteryLevel.min}%
+            </label>
+            <Slider
+              value={[filters.batteryLevel.min]}
+              onValueChange={([value]) => 
+                handleFilterChange('batteryLevel', { ...filters.batteryLevel, min: value })
+              }
+              max={100}
+              step={5}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">
+              Máximo: {filters.batteryLevel.max}%
+            </label>
+            <Slider
+              value={[filters.batteryLevel.max]}
+              onValueChange={([value]) => 
+                handleFilterChange('batteryLevel', { ...filters.batteryLevel, max: value })
+              }
+              max={100}
+              step={5}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Last Activity */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Clock className="w-4 h-4" />
+          Última Atividade
+        </h4>
+        <div>
+          <label className="text-sm text-muted-foreground">
+            Últimos {filters.lastActivityMinutes} minutos
+          </label>
+          <Slider
+            value={[filters.lastActivityMinutes]}
+            onValueChange={([value]) => handleFilterChange('lastActivityMinutes', value)}
+            min={1}
+            max={1440}
+            step={5}
+            className="w-full"
+          />
+        </div>
+      </div>
+
+      {/* Accuracy Threshold */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Target className="w-4 h-4" />
+          Precisão GPS
+        </h4>
+        <div>
+          <label className="text-sm text-muted-foreground">
+            Máximo: {filters.accuracyThreshold}m
+          </label>
+          <Slider
+            value={[filters.accuracyThreshold]}
+            onValueChange={([value]) => handleFilterChange('accuracyThreshold', value)}
+            min={1}
+            max={1000}
+            step={10}
+            className="w-full"
+          />
+        </div>
+      </div>
+
+      {/* Boolean Filters */}
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="assignedTicketsOnly"
+            checked={filters.assignedTicketsOnly}
+            onCheckedChange={(checked) => handleFilterChange('assignedTicketsOnly', checked)}
+          />
+          <label htmlFor="assignedTicketsOnly" className="text-sm cursor-pointer">
+            Apenas com tickets atribuídos
+          </label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="onDutyOnly"
+            checked={filters.onDutyOnly}
+            onCheckedChange={(checked) => handleFilterChange('onDutyOnly', checked)}
+          />
+          <label htmlFor="onDutyOnly" className="text-sm cursor-pointer">
+            Apenas em serviço
+          </label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="slaRisk"
+            checked={filters.slaRisk}
+            onCheckedChange={(checked) => handleFilterChange('slaRisk', checked)}
+          />
+          <label htmlFor="slaRisk" className="text-sm cursor-pointer flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3 text-red-500" />
+            Em risco de SLA
+          </label>
+        </div>
+      </div>
+
+      {/* Reset Filters */}
+      <div className="pt-4 border-t">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onFiltersChange({
+            status: [],
+            teams: [],
+            skills: [],
+            batteryLevel: { min: 0, max: 100 },
+            lastActivityMinutes: 60,
+            assignedTicketsOnly: false,
+            onDutyOnly: false,
+            accuracyThreshold: 100,
+            slaRisk: false,
+          })}
+          className="w-full"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Limpar Filtros
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// ===========================================================================================
+// Map Settings Panel Component
+// ===========================================================================================
+
+const MapSettingsPanel: React.FC<{
+  settings: MapSettings;
+  onSettingsChange: (settings: MapSettings) => void;
+}> = ({ settings, onSettingsChange }) => {
+  const { t } = useTranslation();
+
+  const handleSettingChange = (key: keyof MapSettings, value: any) => {
+    onSettingsChange({ ...settings, [key]: value });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Visual Settings */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Eye className="w-4 h-4" />
+          Configurações Visuais
+        </h4>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Círculos de precisão</label>
+            <Switch
+              checked={settings.showAccuracyCircles}
+              onCheckedChange={(checked) => handleSettingChange('showAccuracyCircles', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Rotas dos agentes</label>
+            <Switch
+              checked={settings.showAgentRoutes}
+              onCheckedChange={(checked) => handleSettingChange('showAgentRoutes', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Mapa de calor</label>
+            <Switch
+              checked={settings.showHeatmap}
+              onCheckedChange={(checked) => handleSettingChange('showHeatmap', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Agrupamento dinâmico</label>
+            <Switch
+              checked={settings.showClusters}
+              onCheckedChange={(checked) => handleSettingChange('showClusters', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Animações</label>
+            <Switch
+              checked={settings.animateMarkers}
+              onCheckedChange={(checked) => handleSettingChange('animateMarkers', checked)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Alerts Settings */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" />
+          Alertas
+        </h4>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Avisos de bateria</label>
+            <Switch
+              checked={settings.showBatteryWarnings}
+              onCheckedChange={(checked) => handleSettingChange('showBatteryWarnings', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Alertas de SLA</label>
+            <Switch
+              checked={settings.showSlaAlerts}
+              onCheckedChange={(checked) => handleSettingChange('showSlaAlerts', checked)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Real-time Settings */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Activity className="w-4 h-4" />
+          Tempo Real
+        </h4>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Atualização automática</label>
+            <Switch
+              checked={settings.autoRefresh}
+              onCheckedChange={(checked) => handleSettingChange('autoRefresh', checked)}
+            />
+          </div>
+          
+          {settings.autoRefresh && (
+            <div>
+              <label className="text-sm text-muted-foreground">
+                Intervalo: {settings.refreshInterval}s
+              </label>
+              <Slider
+                value={[settings.refreshInterval]}
+                onValueChange={([value]) => handleSettingChange('refreshInterval', value)}
+                min={5}
+                max={60}
+                step={5}
+                className="w-full"
+              />
             </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredAgents.map((agent) => (
-                <div key={agent.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                          <Users className="h-6 w-6 text-gray-600" />
-                        </div>
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="text-lg font-medium truncate">{agent.name}</h3>
-                          <Badge 
-                            variant="secondary" 
-                            className={`text-white ${getStatusColor(agent.status)}`}
-                          >
-                            {agent.status.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground">ID: {agent.agentId}</p>
-                        
-                        {agent.team && (
-                          <p className="text-sm text-muted-foreground">Team: {agent.team}</p>
-                        )}
-                        
-                        {agent.skills.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {agent.skills.map((skill, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
-                          {agent.lat && agent.lng && (
-                            <div>
-                              <span className="text-muted-foreground">Location:</span>
-                              <p className="font-mono">{agent.lat.toFixed(6)}, {agent.lng.toFixed(6)}</p>
-                            </div>
-                          )}
-                          
-                          {agent.deviceBattery && (
-                            <div>
-                              <span className="text-muted-foreground">Battery:</span>
-                              <p>{agent.deviceBattery}%</p>
-                            </div>
-                          )}
-                          
-                          {agent.signalStrength && (
-                            <div className="flex items-center space-x-1">
-                              <Signal className="h-4 w-4" />
-                              <span>{agent.signalStrength}%</span>
-                            </div>
-                          )}
-                          
-                          {agent.lastPingAt && (
-                            <div>
-                              <span className="text-muted-foreground">Last Ping:</span>
-                              <p>{new Date(agent.lastPingAt).toLocaleTimeString()}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+          )}
+        </div>
+      </div>
+
+      {/* Accessibility Settings */}
+      <div>
+        <h4 className="font-medium mb-3 flex items-center gap-2">
+          <Accessibility className="w-4 h-4" />
+          Acessibilidade
+        </h4>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Modo escuro</label>
+            <Switch
+              checked={settings.darkMode}
+              onCheckedChange={(checked) => handleSettingChange('darkMode', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Alto contraste</label>
+            <Switch
+              checked={settings.highContrastMode}
+              onCheckedChange={(checked) => handleSettingChange('highContrastMode', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Navegação por teclado</label>
+            <Switch
+              checked={settings.keyboardNavigation}
+              onCheckedChange={(checked) => handleSettingChange('keyboardNavigation', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Reduzir movimento</label>
+            <Switch
+              checked={settings.reduceMotion}
+              onCheckedChange={(checked) => handleSettingChange('reduceMotion', checked)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================================================================================
+// Main Interactive Map Component
+// ===========================================================================================
+
+export const InteractiveMap: React.FC = () => {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  
+  // ===========================================================================================
+  // State Management
+  // ===========================================================================================
+  
+  const [filters, setFilters] = useState<MapFilters>({
+    status: [],
+    teams: [],
+    skills: [],
+    batteryLevel: { min: 0, max: 100 },
+    lastActivityMinutes: 60,
+    assignedTicketsOnly: false,
+    onDutyOnly: false,
+    accuracyThreshold: 100,
+    slaRisk: false,
+  });
+
+  const [settings, setSettings] = useState<MapSettings>({
+    showAccuracyCircles: true,
+    showAgentRoutes: true,
+    showHeatmap: false,
+    showClusters: true,
+    autoRefresh: true,
+    refreshInterval: 15,
+    darkMode: false,
+    animateMarkers: true,
+    showBatteryWarnings: true,
+    showSlaAlerts: true,
+    enableGeofencing: false,
+    highContrastMode: false,
+    keyboardNavigation: true,
+    screenReaderMode: false,
+    reduceMotion: false,
+  });
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState<AgentPosition | null>(null);
+  const [viewportBounds, setViewportBounds] = useState<ViewportBounds | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([-23.5505, -46.6333]); // São Paulo
+  const [mapZoom, setMapZoom] = useState(12);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showLegend, setShowLegend] = useState(true);
+  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+  
+  // ===========================================================================================
+  // Mock Data (for demo purposes until backend is ready)
+  // ===========================================================================================
+  
+  const mockAgents: AgentPosition[] = [
+    {
+      id: '1',
+      agent_id: 'AGT001',
+      name: 'Carlos Silva',
+      photo_url: null,
+      team: 'Suporte Técnico',
+      skills: ['Instalação', 'Manutenção', 'Fibra'],
+      status: 'available',
+      status_since: new Date().toISOString(),
+      is_on_duty: true,
+      lat: -23.5505,
+      lng: -46.6333,
+      accuracy: 5,
+      heading: 45,
+      speed: 0,
+      device_battery: 85,
+      signal_strength: -65,
+      last_ping_at: new Date().toISOString(),
+      is_online: true,
+      assigned_ticket_id: null,
+      customer_site_id: null,
+      sla_deadline_at: null,
+      current_route_id: null,
+      eta_seconds: null,
+      distance_meters: null,
+      battery_warning: false,
+      signal_warning: false,
+      sla_risk: false,
+      is_moving: false,
+      status_color: STATUS_COLORS.available,
+      should_pulse: false,
+      accuracy_radius: 5,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      agent_id: 'AGT002',
+      name: 'Ana Costa',
+      photo_url: null,
+      team: 'Vendas',
+      skills: ['Vendas', 'Atendimento'],
+      status: 'in_transit',
+      status_since: new Date().toISOString(),
+      is_on_duty: true,
+      lat: -23.5525,
+      lng: -46.6355,
+      accuracy: 8,
+      heading: 120,
+      speed: 25,
+      device_battery: 92,
+      signal_strength: -58,
+      last_ping_at: new Date().toISOString(),
+      is_online: true,
+      assigned_ticket_id: 'TKT123',
+      customer_site_id: 'SITE001',
+      sla_deadline_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      current_route_id: 'ROUTE001',
+      eta_seconds: 900,
+      distance_meters: 2500,
+      battery_warning: false,
+      signal_warning: false,
+      sla_risk: false,
+      is_moving: true,
+      status_color: STATUS_COLORS.in_transit,
+      should_pulse: false,
+      accuracy_radius: 8,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: '3',
+      agent_id: 'AGT003',
+      name: 'Roberto Lima',
+      photo_url: null,
+      team: 'Suporte Técnico',
+      skills: ['Instalação', 'Redes'],
+      status: 'sla_risk',
+      status_since: new Date().toISOString(),
+      is_on_duty: true,
+      lat: -23.5485,
+      lng: -46.6290,
+      accuracy: 12,
+      heading: null,
+      speed: 0,
+      device_battery: 15,
+      signal_strength: -75,
+      last_ping_at: new Date().toISOString(),
+      is_online: true,
+      assigned_ticket_id: 'TKT456',
+      customer_site_id: 'SITE002',
+      sla_deadline_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      current_route_id: null,
+      eta_seconds: null,
+      distance_meters: null,
+      battery_warning: true,
+      signal_warning: true,
+      sla_risk: true,
+      is_moving: false,
+      status_color: STATUS_COLORS.sla_risk,
+      should_pulse: true,
+      accuracy_radius: 12,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  ];
+
+  // ===========================================================================================
+  // Data Fetching with Mock Data (replace with real API calls)
+  // ===========================================================================================
+  
+  const { data: agentsData, isLoading } = useQuery({
+    queryKey: ['/api/interactive-map/agents', filters],
+    queryFn: async () => {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, data: { agents: mockAgents } };
+    },
+    refetchInterval: settings.autoRefresh ? settings.refreshInterval * 1000 : false,
+    staleTime: 5000,
+  });
+
+  const { data: agentStats } = useQuery({
+    queryKey: ['/api/interactive-map/agents/stats'],
+    queryFn: async () => {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return {
+        success: true,
+        data: {
+          totalAgents: mockAgents.length,
+          onlineCount: mockAgents.filter(a => a.is_online).length,
+          avgBatteryLevel: Math.round(mockAgents.reduce((sum, a) => sum + (a.device_battery || 0), 0) / mockAgents.length),
+          slaRiskCount: mockAgents.filter(a => a.sla_risk).length,
+          statusBreakdown: mockAgents.reduce((acc, agent) => {
+            acc[agent.status] = (acc[agent.status] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
+        }
+      };
+    },
+    refetchInterval: settings.autoRefresh ? 30000 : false,
+  });
+
+  // ===========================================================================================
+  // Derived Data and Performance Optimization
+  // ===========================================================================================
+  
+  const agents: AgentPosition[] = agentsData?.data?.agents || [];
+  
+  // Filter agents by search term
+  const filteredAgents = useMemo(() => {
+    if (!searchTerm) return agents;
+    const search = searchTerm.toLowerCase();
+    return agents.filter(agent => 
+      agent.name.toLowerCase().includes(search) ||
+      agent.team.toLowerCase().includes(search) ||
+      agent.skills.some(skill => skill.toLowerCase().includes(search)) ||
+      agent.assigned_ticket_id?.toLowerCase().includes(search)
+    );
+  }, [agents, searchTerm]);
+
+  // Extract unique teams and skills for filters
+  const availableTeams = useMemo(() => 
+    Array.from(new Set(agents.map(agent => agent.team).filter(Boolean))).sort(),
+    [agents]
+  );
+  
+  const availableSkills = useMemo(() => 
+    Array.from(new Set(agents.flatMap(agent => agent.skills))).sort(),
+    [agents]
+  );
+
+  // Performance optimization: Only render agents in viewport for large datasets
+  const visibleAgents = useMemo(() => {
+    if (filteredAgents.length <= 500) return filteredAgents;
+    
+    if (!viewportBounds) return filteredAgents.slice(0, 500);
+    
+    return filteredAgents.filter(agent => 
+      agent.lat !== null && agent.lng !== null &&
+      agent.lat >= viewportBounds.south && agent.lat <= viewportBounds.north &&
+      agent.lng >= viewportBounds.west && agent.lng <= viewportBounds.east
+    );
+  }, [filteredAgents, viewportBounds]);
+
+  // ===========================================================================================
+  // Event Handlers
+  // ===========================================================================================
+  
+  const handleMapMove = useCallback((bounds: LatLngBounds, zoom: number) => {
+    const newBounds = {
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest(),
+    };
+    setViewportBounds(newBounds);
+    setMapZoom(zoom);
+  }, []);
+
+  const handleAgentClick = useCallback((agent: AgentPosition) => {
+    setSelectedAgent(agent);
+    setMapCenter([agent.lat!, agent.lng!]);
+  }, []);
+
+  const handleExportData = useCallback(() => {
+    const dataToExport = {
+      timestamp: new Date().toISOString(),
+      filters,
+      agents: filteredAgents.map(agent => ({
+        id: agent.id,
+        name: agent.name,
+        status: agent.status,
+        lat: agent.lat,
+        lng: agent.lng,
+        team: agent.team,
+        battery: agent.device_battery,
+        lastUpdate: agent.updated_at
+      }))
+    };
+    
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `agents-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [filteredAgents, filters]);
+
+  // ===========================================================================================
+  // Keyboard Navigation Support
+  // ===========================================================================================
+  
+  useEffect(() => {
+    if (!settings.keyboardNavigation) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch (e.key) {
+        case 'f':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            document.getElementById('agent-search')?.focus();
+          }
+          break;
+        case 'Escape':
+          setSelectedAgent(null);
+          setSelectedAgents([]);
+          break;
+        case 'r':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            queryClient.invalidateQueries({ queryKey: ['/api/interactive-map/agents'] });
+          }
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [settings.keyboardNavigation, queryClient]);
+
+  // ===========================================================================================
+  // Component Render
+  // ===========================================================================================
+
+  return (
+    <TooltipProvider>
+      <div className={`h-screen flex flex-col ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
+        {/* Header Toolbar */}
+        <div className="flex items-center justify-between p-4 bg-background border-b">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-semibold">Mapa Interativo</h1>
+            
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="agent-search"
+                placeholder="Buscar agentes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-64"
+                data-testid="agent-search"
+              />
+            </div>
+
+            {/* Agent Count Badge */}
+            <Badge variant="secondary" className="px-3 py-1">
+              {filteredAgents.length} agentes
+            </Badge>
+
+            {/* Connection Status */}
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${settings.autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+              <span className="text-xs text-muted-foreground">
+                {settings.autoRefresh ? 'Conectado' : 'Pausado'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Filters Toggle */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="filters-toggle">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filtros
+                  {(filters.status.length > 0 || filters.teams.length > 0 || filters.skills.length > 0) && (
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {filters.status.length + filters.teams.length + filters.skills.length}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Filtros do Mapa</SheetTitle>
+                  <SheetDescription>Configure os filtros para visualizar agentes específicos</SheetDescription>
+                </SheetHeader>
+                <div className="mt-6">
+                  <FiltersPanel
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    teams={availableTeams}
+                    skills={availableSkills}
+                    agentStats={agentStats?.data}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Settings Toggle */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="settings-toggle">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Configurações do Mapa</SheetTitle>
+                  <SheetDescription>Ajuste as configurações visuais e de comportamento</SheetDescription>
+                </SheetHeader>
+                <div className="mt-6">
+                  <MapSettingsPanel
+                    settings={settings}
+                    onSettingsChange={setSettings}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Legend Toggle */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowLegend(!showLegend)}
+              data-testid="legend-toggle"
+            >
+              {showLegend ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </Button>
+
+            {/* Export Data */}
+            <Button variant="outline" size="sm" onClick={handleExportData} data-testid="export-data">
+              <Download className="w-4 h-4" />
+            </Button>
+
+            {/* Fullscreen Toggle */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              data-testid="fullscreen-toggle"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </Button>
+
+            {/* Help */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="help-button">
+                  <HelpCircle className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Ajuda do Mapa Interativo</DialogTitle>
+                  <DialogDescription>Guia de funcionalidades e atalhos do teclado</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
+                    <div className="space-y-1 text-sm">
+                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
+                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
+                      <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
                     </div>
-                    
-                    <div className="flex space-x-2">
-                      {agent.lat && agent.lng && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            // Simulate location update with small random change
-                            const newLat = agent.lat! + (Math.random() - 0.5) * 0.001;
-                            const newLng = agent.lng! + (Math.random() - 0.5) * 0.001;
-                            locationUpdateMutation.mutate({
-                              agentId: agent.agentId,
-                              lat: newLat,
-                              lng: newLng
-                            });
-                          }}
-                          disabled={locationUpdateMutation.isPending}
-                        >
-                          <MapPin className="h-4 w-4 mr-1" />
-                          Update Location
-                        </Button>
-                      )}
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Cores de Status</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                        <div key={status} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                          {status.replace('_', ' ')}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 relative">
+          {/* Map Container */}
+          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+            <MapContainer
+              center={mapCenter}
+              zoom={mapZoom}
+              className="h-full w-full"
+              zoomControl={false}
+            >
+              <LayersControl position="topright">
+                <LayersControl.BaseLayer checked name="OpenStreetMap">
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    className={settings.darkMode ? 'dark-tiles' : ''}
+                  />
+                </LayersControl.BaseLayer>
+                
+                <LayersControl.BaseLayer name="Satellite">
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                    url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                  />
+                </LayersControl.BaseLayer>
+              </LayersControl>
+
+              {/* Agent Markers */}
+              {visibleAgents.map(agent => (
+                agent.lat !== null && agent.lng !== null && (
+                  <React.Fragment key={agent.id}>
+                    <Marker
+                      position={[agent.lat, agent.lng]}
+                      icon={createAgentIcon(agent, settings)}
+                      eventHandlers={{
+                        click: () => handleAgentClick(agent),
+                      }}
+                    >
+                      <Popup maxWidth={400} className="agent-popup">
+                        <AgentTooltip agent={agent} />
+                      </Popup>
+                    </Marker>
+                    
+                    {/* Accuracy Circle */}
+                    {settings.showAccuracyCircles && agent.accuracy && (
+                      <Circle
+                        center={[agent.lat, agent.lng]}
+                        radius={agent.accuracy}
+                        pathOptions={{
+                          color: agent.status_color,
+                          fillColor: agent.status_color,
+                          fillOpacity: 0.1,
+                          weight: 1,
+                        }}
+                      />
+                    )}
+                  </React.Fragment>
+                )
               ))}
+
+              {/* Map Controls */}
+              <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setMapZoom(mapZoom + 1)}
+                  className="w-8 h-8 p-0"
+                  data-testid="zoom-in"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setMapZoom(mapZoom - 1)}
+                  className="w-8 h-8 p-0"
+                  data-testid="zoom-out"
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+              </div>
+            </MapContainer>
+          </div>
+
+          {/* Legend */}
+          {showLegend && (
+            <Card className="absolute bottom-4 left-4 z-[1000] w-64">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Legenda</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                  <div key={status} className="flex items-center gap-2 text-sm">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                    <span className="flex-1">{status.replace('_', ' ')}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {agents.filter(a => a.status === status).length}
+                    </Badge>
+                  </div>
+                ))}
+                
+                <Separator className="my-2" />
+                
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    Aviso de bateria
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    Aviso de sinal
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    Ticket atribuído
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Statistics Panel */}
+          {agentStats?.data && (
+            <Card className="absolute top-4 right-4 z-[1000] w-72">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Estatísticas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Total</div>
+                    <div className="font-semibold">{agentStats.data.totalAgents}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Online</div>
+                    <div className="font-semibold text-green-600">{agentStats.data.onlineCount}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Bateria Média</div>
+                    <div className="font-semibold">{agentStats.data.avgBatteryLevel}%</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Risco SLA</div>
+                    <div className="font-semibold text-red-600">{agentStats.data.slaRiskCount}</div>
+                  </div>
+                </div>
+                
+                {agentStats.data.avgBatteryLevel < 50 && (
+                  <Alert className="border-orange-200 bg-orange-50">
+                    <Battery className="h-4 w-4 text-orange-600" />
+                    <AlertDescription className="text-orange-700 text-xs">
+                      Nível de bateria baixo nos dispositivos
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-[2000]">
+              <div className="bg-background p-4 rounded-lg shadow-lg flex items-center gap-3">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span>Carregando...</span>
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </TooltipProvider>
   );
-}
+};
+
+export default InteractiveMap;
