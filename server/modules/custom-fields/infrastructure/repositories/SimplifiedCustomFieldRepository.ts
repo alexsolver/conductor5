@@ -31,7 +31,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     if (!this.tenantId) {
       throw new Error('TenantId not set for custom fields repository');
     }
-    return `tenant_${this.tenantId}`;
+    return `"tenant_${this.tenantId}"`;
   }
 
   async getFieldsByModule(moduleType: string): Promise<CustomFieldMetadata[]> {
