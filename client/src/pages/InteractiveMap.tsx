@@ -1751,17 +1751,27 @@ export const InteractiveMap: React.FC = () => {
                       <Layers className="w-5 h-5" />
                       Legenda do Mapa
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setIsHelpModalOpen(false);
-                      }}
-                      className="h-6 w-6 p-0"
-                      title="Ocultar modal de legenda"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setIsHelpModalOpen(false);
+                            }}
+                            className="h-6 w-6 p-0 hover:bg-gray-100"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Ocultar modal de legenda</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
