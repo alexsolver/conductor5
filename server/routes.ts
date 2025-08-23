@@ -371,6 +371,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
 
+  // ✅ Priority 1.5: SaaS Admin routes - CLEAN ARCHITECTURE per 1qa.md
+  console.log('🏗️ [SAAS-ADMIN] Initializing SaaS Admin Clean Architecture routes...');
+  const saasAdminRoutes = (await import('./modules/saas-admin/routes')).default;
+  app.use('/api/saas-admin', saasAdminRoutes);
+  console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
+
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
@@ -1493,12 +1499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const templateRoutes = await import('./routes/templateRoutes');
   app.use('/api/templates', templateRoutes.default);
 
-  // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - SAAS ADMIN MODULE
-  const saasAdminRoutes = await import('./modules/saas-admin/routes');
-  app.use('/api/saas-admin', jwtAuth, saasAdminRoutes.default);
-  console.log('✅ [SAAS-ADMIN] Clean Architecture module registered at /api/saas-admin');
-
-  // ✅ REMOVED: Duplicate inline SaaS Admin implementation - using Clean Architecture module only per 1qa.md
+  // ✅ REMOVED: Duplicate SaaS Admin registration - moved to Clean Architecture section above per 1qa.md
 
   // Apply webhook routes BEFORE auth middleware 
   const webhooksRoutes = await import('./routes/webhooks');

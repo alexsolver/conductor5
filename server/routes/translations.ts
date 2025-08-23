@@ -10,16 +10,7 @@ import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
-// Type for authenticated request
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-    roles: string[];
-    email?: string;
-  };
-  params?: any;
-}
+// Use the global AuthenticatedRequest interface
 
 const router = Router();
 
@@ -40,7 +31,7 @@ const updateTranslationSchema = z.object({
 router.get('/languages', jwtAuth, async (req: any, res: any) => {
   try {
     // Allow access during development
-    console.log('🔍 [TRANSLATIONS] User roles:', req.user?.roles);
+    console.log('🔍 [TRANSLATIONS] User role:', req.user?.role);
     // Temporary: Allow any authenticated user during development
     // if (!req.user?.roles?.includes('saas_admin')) {
     //   return res.status(403).json({ message: 'SaaS admin access required' });
@@ -67,7 +58,7 @@ router.get('/languages', jwtAuth, async (req: any, res: any) => {
 router.get('/:language', jwtAuth, async (req: any, res: any) => {
   try {
     // Allow access during development
-    console.log('🔍 [TRANSLATIONS] User roles:', req.user?.roles);
+    console.log('🔍 [TRANSLATIONS] User role:', req.user?.role);
     // Temporary: Allow any authenticated user during development
     // if (!req.user?.roles?.includes('saas_admin')) {
     //   return res.status(403).json({ message: 'SaaS admin access required' });
@@ -108,7 +99,7 @@ router.get('/:language', jwtAuth, async (req: any, res: any) => {
 router.put('/:language', jwtAuth, async (req: any, res: any) => {
   try {
     // Allow access during development
-    console.log('🔍 [TRANSLATIONS] User roles:', req.user?.roles);
+    console.log('🔍 [TRANSLATIONS] User role:', req.user?.role);
     // Temporary: Allow any authenticated user during development
     // if (!req.user?.roles?.includes('saas_admin')) {
     //   return res.status(403).json({ message: 'SaaS admin access required' });
@@ -166,7 +157,7 @@ router.put('/:language', jwtAuth, async (req: any, res: any) => {
 router.post('/:language/restore', jwtAuth, async (req: any, res: any) => {
   try {
     // Allow access during development
-    console.log('🔍 [TRANSLATIONS] User roles:', req.user?.roles);
+    console.log('🔍 [TRANSLATIONS] User role:', req.user?.role);
     // Temporary: Allow any authenticated user during development
     // if (!req.user?.roles?.includes('saas_admin')) {
     //   return res.status(403).json({ message: 'SaaS admin access required' });
@@ -272,7 +263,7 @@ function extractKeysFromObject(obj: any, prefix = ''): string[] {
 router.get('/keys/all', jwtAuth, async (req: any, res: any) => {
   try {
     // Allow access to translation keys - development mode
-    console.log('🔍 [TRANSLATIONS] User roles:', req.user?.roles);
+    console.log('🔍 [TRANSLATIONS] User role:', req.user?.role);
     // Temporary: Allow any authenticated user during development
     // if (!req.user?.roles?.includes('saas_admin')) {
     //   return res.status(403).json({ message: 'SaaS admin access required' });
@@ -357,7 +348,7 @@ router.get('/keys/all', jwtAuth, async (req: any, res: any) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch translation keys',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error'
     });
   }
 });

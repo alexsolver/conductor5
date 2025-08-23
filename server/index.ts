@@ -25,6 +25,7 @@ import customersRoutes from './modules/customers/routes';
 import beneficiariesRoutes from './modules/beneficiaries/routes-working';
 import locationsRoutes from './modules/locations/routes';
 import ticketsRoutes from './modules/tickets/routes';
+import saasAdminRoutes from './modules/saas-admin/routes';
 // import timecardRoutes from './modules/timecard/routes-working'; // Duplicate removed
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
