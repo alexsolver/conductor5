@@ -66,7 +66,7 @@ import notificationRoutes from './modules/notifications/routes';
 import { slaRoutes } from './modules/sla/routes/slaRoutes';
 import reportsRoutes from './modules/reports/routes';
 import { knowledgeBaseRoutes } from './modules/knowledge-base/routes';
-import customFieldRoutes from './modules/custom-fields/routes-working.js';
+import customFieldRoutes from './modules/custom-fields/routes-clean';
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
 // Legacy imports removed per analysis
