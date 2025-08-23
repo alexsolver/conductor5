@@ -8,17 +8,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, LayersControl, useMap } from 'react-leaflet';
 import { Icon, divIcon, LatLngBounds, LatLng } from 'leaflet';
 import { useTranslation } from 'react-i18next';
-import { 
-  Filter, 
-  Search, 
-  Settings, 
-  Eye, 
-  EyeOff, 
-  MapPin, 
-  Navigation, 
-  Clock, 
-  Battery, 
-  Signal, 
+import {
+  Filter,
+  Search,
+  Settings,
+  Eye,
+  EyeOff,
+  MapPin,
+  Navigation,
+  Clock,
+  Battery,
+  Signal,
   AlertTriangle,
   Zap,
   Users,
@@ -164,23 +164,23 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
   const size = agent.is_moving ? 32 : 24;
 
   // Battery warning indicator
-  const batteryWarning = agent.battery_warning && settings.showBatteryWarnings ? 
+  const batteryWarning = agent.battery_warning && settings.showBatteryWarnings ?
     `<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>` : '';
 
   // Signal warning indicator
-  const signalWarning = agent.signal_warning ? 
+  const signalWarning = agent.signal_warning ?
     `<div class="absolute -top-1 -left-1 w-3 h-3 bg-orange-500 rounded-full"></div>` : '';
 
   // Movement arrow for in_transit agents
-  const movementArrow = agent.is_moving && agent.heading ? 
+  const movementArrow = agent.is_moving && agent.heading ?
     `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" style="transform: rotate(${agent.heading}deg) translate(0, -8px)"></div>` : '';
 
   const html = `
-    <div class="relative ${shouldPulse ? 'animate-pulse' : ''} ${settings.animateMarkers ? 'transition-all duration-300' : ''}" 
+    <div class="relative ${shouldPulse ? 'animate-pulse' : ''} ${settings.animateMarkers ? 'transition-all duration-300' : ''}"
          style="width: ${size}px; height: ${size}px;">
-      <div class="w-full h-full rounded-full border-2 border-white shadow-lg" 
+      <div class="w-full h-full rounded-full border-2 border-white shadow-lg"
            style="background-color: ${color};">
-        ${agent.photo_url ? 
+        ${agent.photo_url ?
           `<img src="${agent.photo_url}" class="w-full h-full rounded-full object-cover" alt="${agent.name}" />` :
           `<div class="w-full h-full rounded-full flex items-center justify-center text-white text-xs font-bold">
              ${agent.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
@@ -190,7 +190,7 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
       ${batteryWarning}
       ${signalWarning}
       ${movementArrow}
-      ${agent.assigned_ticket_id ? 
+      ${agent.assigned_ticket_id ?
         `<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
            <span class="text-white text-xs">T</span>
          </div>` : ''
@@ -269,7 +269,7 @@ const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
 
       {/* Status Badge */}
       <div className="flex items-center gap-2 mb-3">
-        <Badge 
+        <Badge
           style={{ backgroundColor: agent.status_color, color: 'white' }}
           className={agent.should_pulse ? 'animate-pulse' : ''}
         >
@@ -536,7 +536,7 @@ const FiltersPanel: React.FC<{
             </label>
             <Slider
               value={[filters.batteryLevel.min]}
-              onValueChange={([value]) => 
+              onValueChange={([value]) =>
                 handleFilterChange('batteryLevel', { ...filters.batteryLevel, min: value })
               }
               max={100}
@@ -550,7 +550,7 @@ const FiltersPanel: React.FC<{
             </label>
             <Slider
               value={[filters.batteryLevel.max]}
-              onValueChange={([value]) => 
+              onValueChange={([value]) =>
                 handleFilterChange('batteryLevel', { ...filters.batteryLevel, max: value })
               }
               max={100}
@@ -699,7 +699,7 @@ const LayersPanel: React.FC<{
 
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="show-tickets"
               checked={showTickets}
               onCheckedChange={setShowTickets}
@@ -711,7 +711,7 @@ const LayersPanel: React.FC<{
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="show-team-groups"
               checked={showTeamGroups}
               onCheckedChange={setShowTeamGroups}
@@ -723,7 +723,7 @@ const LayersPanel: React.FC<{
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="show-areas"
               checked={showAreas}
               onCheckedChange={setShowAreas}
@@ -745,7 +745,7 @@ const LayersPanel: React.FC<{
 
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="show-weather"
               checked={showWeatherLayer}
               onCheckedChange={setShowWeatherLayer}
@@ -757,7 +757,7 @@ const LayersPanel: React.FC<{
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="show-traffic"
               checked={showTrafficLayer}
               onCheckedChange={setShowTrafficLayer}
@@ -1183,7 +1183,7 @@ export const InteractiveMap: React.FC = () => {
   const filteredAgents = useMemo(() => {
     if (!searchTerm) return agents;
     const search = searchTerm.toLowerCase();
-    return agents.filter(agent => 
+    return agents.filter(agent =>
       agent.name.toLowerCase().includes(search) ||
       agent.team.toLowerCase().includes(search) ||
       agent.skills.some(skill => skill.toLowerCase().includes(search)) ||
@@ -1192,12 +1192,12 @@ export const InteractiveMap: React.FC = () => {
   }, [agents, searchTerm]);
 
   // Extract unique teams and skills for filters
-  const availableTeams = useMemo(() => 
+  const availableTeams = useMemo(() =>
     Array.from(new Set(agents.map(agent => agent.team).filter(Boolean))).sort(),
     [agents]
   );
 
-  const availableSkills = useMemo(() => 
+  const availableSkills = useMemo(() =>
     Array.from(new Set(agents.flatMap(agent => agent.skills))).sort(),
     [agents]
   );
@@ -1208,7 +1208,7 @@ export const InteractiveMap: React.FC = () => {
 
     if (!viewportBounds) return filteredAgents.slice(0, 500);
 
-    return filteredAgents.filter(agent => 
+    return filteredAgents.filter(agent =>
       agent.lat !== null && agent.lng !== null &&
       agent.lat >= viewportBounds.south && agent.lat <= viewportBounds.north &&
       agent.lng >= viewportBounds.west && agent.lng <= viewportBounds.east
@@ -1658,7 +1658,7 @@ export const InteractiveMap: React.FC = () => {
                           const response = await fetch('/api/interactive-map/audit');
                           const data = await response.json();
                           if (data.success) {
-                            const logs = data.data.slice(0, 3).map(log => 
+                            const logs = data.data.slice(0, 3).map(log =>
                               `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
                             ).join('\n');
                             alert(`Últimos logs de auditoria:\n\n${logs}`);
@@ -1699,9 +1699,9 @@ export const InteractiveMap: React.FC = () => {
             </Sheet>
 
             {/* Legend Toggle */}
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowLegend(!showLegend)}
               data-testid="legend-toggle"
             >
@@ -1714,9 +1714,9 @@ export const InteractiveMap: React.FC = () => {
             </Button>
 
             {/* Fullscreen Toggle */}
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setIsFullscreen(!isFullscreen)}
               data-testid="fullscreen-toggle"
             >
@@ -1746,20 +1746,9 @@ export const InteractiveMap: React.FC = () => {
               </DialogTrigger>
               <DialogContent className="max-w-2xl z-[9999]">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-5 h-5" />
-                      Legenda do Mapa
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsHelpModalOpen(false)}
-                      className="h-6 w-6 p-0 hover:bg-gray-100"
-                      title="Ocultar legenda"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Layers className="w-5 h-5" />
+                    Legenda do Mapa
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -1853,12 +1842,12 @@ export const InteractiveMap: React.FC = () => {
 
               {/* Ticket Markers */}
               {showTickets && mockTickets.map(ticket => (
-                <Marker 
+                <Marker
                   key={ticket.id}
                   position={[ticket.lat, ticket.lng]}
                   icon={L.divIcon({
                     html: `<div class="ticket-marker ${ticket.priority}" style="
-                      width: 24px; height: 24px; border-radius: 4px; 
+                      width: 24px; height: 24px; border-radius: 4px;
                       display: flex; align-items: center; justify-content: center;
                       background: ${ticket.priority === 'alta' ? '#ef4444' : ticket.priority === 'media' ? '#f59e0b' : '#22c55e'};
                       color: white; font-weight: bold; font-size: 12px;
@@ -1908,12 +1897,12 @@ export const InteractiveMap: React.FC = () => {
 
               {/* Team Group Markers */}
               {showTeamGroups && mockTeamGroups.map(group => (
-                <Marker 
+                <Marker
                   key={group.id}
                   position={[group.lat, group.lng]}
                   icon={L.divIcon({
                     html: `<div class="team-group-marker" style="
-                      width: 32px; height: 32px; border-radius: 50%; 
+                      width: 32px; height: 32px; border-radius: 50%;
                       display: flex; align-items: center; justify-content: center;
                       background: ${group.status === 'ativo' ? '#22c55e' : '#f59e0b'};
                       color: white; font-weight: bold; font-size: 14px;
