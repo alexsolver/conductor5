@@ -1,3 +1,4 @@
+
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { db } from '../../../../db';
 import { customFields } from '../../../../../shared/schema';
@@ -9,18 +10,34 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     console.log('[CUSTOM-FIELDS-REPO] Create method called with:', fieldData);
 
     try {
+      // ✅ 1QA.MD: Validate required fields
+      if (!fieldData.tenantId) {
+        throw new Error('Tenant ID is required for custom field creation');
+      }
+
+      if (!fieldData.moduleType) {
+        throw new Error('Module type is required for custom field creation');
+      }
+
+      if (!fieldData.fieldName) {
+        throw new Error('Field name is required for custom field creation');
+      }
+
       // ✅ 1QA.MD: Ensure required fields are set
       const dataToInsert = {
         id: randomUUID(),
         ...fieldData,
         createdAt: new Date(),
         updatedAt: new Date(),
-        isActive: true
+        isActive: true,
+        displayOrder: fieldData.displayOrder || 0
       };
 
       console.log('[CUSTOM-FIELDS-REPO] Attempting to insert:', dataToInsert);
+      
       const result = await db.insert(customFields).values(dataToInsert).returning();
       console.log('[CUSTOM-FIELDS-REPO] Insert successful:', result);
+      
       return result[0];
     } catch (error) {
       console.error('[CUSTOM-FIELDS-REPO] Database error in create:', error);
@@ -32,6 +49,18 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     console.log(`[CUSTOM-FIELDS-REPO] Finding fields for module: ${moduleType}, tenant: ${tenantId}`);
 
     try {
+      // ✅ 1QA.MD: Validate input parameters
+      if (!moduleType || !tenantId) {
+        console.warn('[CUSTOM-FIELDS-REPO] Missing required parameters');
+        return [];
+      }
+
+      console.log('[CUSTOM-FIELDS-REPO] Executing query with params:', {
+        moduleType,
+        tenantId,
+        timestamp: new Date().toISOString()
+      });
+
       const result = await db
         .select()
         .from(customFields)
@@ -42,11 +71,19 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
         ))
         .orderBy(customFields.displayOrder);
 
-      console.log(`[CUSTOM-FIELDS-REPO] Found ${result.length} fields`);
+      console.log(`[CUSTOM-FIELDS-REPO] Query executed successfully. Found ${result.length} fields:`, result);
       return result;
     } catch (error) {
       console.error('[CUSTOM-FIELDS-REPO] Database error in findByModule:', error);
-      return []; // Return empty array instead of throwing to prevent UI crashes
+      console.error('[CUSTOM-FIELDS-REPO] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        moduleType,
+        tenantId
+      });
+      
+      // ✅ 1QA.MD: Return empty array instead of throwing to prevent UI crashes
+      return [];
     }
   }
 
@@ -54,6 +91,10 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     console.log(`[CUSTOM-FIELDS-REPO] Finding field by ID: ${fieldId}, tenant: ${tenantId}`);
 
     try {
+      if (!fieldId || !tenantId) {
+        return null;
+      }
+
       const result = await db
         .select()
         .from(customFields)
@@ -75,6 +116,10 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     console.log(`[CUSTOM-FIELDS-REPO] Updating field ${fieldId} for tenant ${tenantId}`);
 
     try {
+      if (!fieldId || !tenantId) {
+        throw new Error('Field ID and Tenant ID are required for update');
+      }
+
       const dataToUpdate = {
         ...updateData,
         updatedAt: new Date()
@@ -101,6 +146,10 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     console.log(`[CUSTOM-FIELDS-REPO] Soft deleting field ${fieldId} for tenant ${tenantId}`);
 
     try {
+      if (!fieldId || !tenantId) {
+        throw new Error('Field ID and Tenant ID are required for delete');
+      }
+
       await db
         .update(customFields)
         .set({ 
@@ -123,6 +172,10 @@ export class SimplifiedCustomFieldRepository implements ICustomFieldRepository {
     console.log(`[CUSTOM-FIELDS-REPO] Finding all active fields for tenant: ${tenantId}`);
 
     try {
+      if (!tenantId) {
+        return [];
+      }
+
       const result = await db
         .select()
         .from(customFields)

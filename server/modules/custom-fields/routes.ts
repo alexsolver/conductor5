@@ -1,3 +1,4 @@
+
 // ✅ 1QA.MD COMPLIANCE: CUSTOM FIELDS ROUTES
 // Infrastructure layer - Express route definitions following Clean Architecture
 
@@ -27,20 +28,37 @@ console.log('🔥 [CUSTOM-FIELDS-ROUTER] Controllers initialized following Clean
 
 // ✅ 1QA.MD: All routes use JWT authentication middleware
 router.get('/fields/:moduleType', jwtAuth, async (req, res) => {
-  logger.logInfo('GET /fields/:moduleType called', { moduleType: req.params.moduleType });
+  const startTime = Date.now();
+  logger.logInfo('=== GET /fields/:moduleType ROUTE CALLED ===', { 
+    moduleType: req.params.moduleType,
+    url: req.url,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
 
   try {
+    logger.logInfo('Route middleware validation passed, calling controller...');
     await customFieldController.getFieldsByModule(req, res);
+    
+    const duration = Date.now() - startTime;
+    logger.logInfo(`Route completed successfully in ${duration}ms`);
   } catch (error) {
-    logger.logError('Route error in getFieldsByModule:', error);
+    const duration = Date.now() - startTime;
+    logger.logError(`Route error after ${duration}ms:`, error);
+    
     if (!res.headersSent) {
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error in custom fields route',
+        details: error.message 
+      });
     }
   }
 });
 
 router.post('/fields', jwtAuth, async (req, res) => {
-  logger.logInfo('POST /fields called - FIELD CREATION WORKING!', {
+  const startTime = Date.now();
+  logger.logInfo('=== POST /fields ROUTE CALLED ===', {
     body: req.body,
     user: req.user,
     timestamp: new Date().toISOString()
@@ -48,37 +66,71 @@ router.post('/fields', jwtAuth, async (req, res) => {
 
   try {
     await customFieldController.createField(req, res);
-    logger.logInfo('POST /fields completed successfully');
+    
+    const duration = Date.now() - startTime;
+    logger.logInfo(`POST /fields completed successfully in ${duration}ms`);
   } catch (error) {
-    logger.logError('Route error in createField:', error);
+    const duration = Date.now() - startTime;
+    logger.logError(`POST /fields error after ${duration}ms:`, error);
+    
     if (!res.headersSent) {
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error in create custom field route',
+        details: error.message 
+      });
     }
   }
 });
 
 router.put('/fields/:fieldId', jwtAuth, async (req, res) => {
-  logger.logInfo('PUT /fields/:fieldId called', { fieldId: req.params.fieldId });
+  const startTime = Date.now();
+  logger.logInfo('=== PUT /fields/:fieldId ROUTE CALLED ===', { 
+    fieldId: req.params.fieldId,
+    timestamp: new Date().toISOString()
+  });
 
   try {
     await customFieldController.updateField(req, res);
+    
+    const duration = Date.now() - startTime;
+    logger.logInfo(`PUT /fields/:fieldId completed successfully in ${duration}ms`);
   } catch (error) {
-    logger.logError('Route error in updateField:', error);
+    const duration = Date.now() - startTime;
+    logger.logError(`PUT /fields/:fieldId error after ${duration}ms:`, error);
+    
     if (!res.headersSent) {
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error in update custom field route',
+        details: error.message 
+      });
     }
   }
 });
 
 router.delete('/fields/:fieldId', jwtAuth, async (req, res) => {
-  logger.logInfo('DELETE /fields/:fieldId called', { fieldId: req.params.fieldId });
+  const startTime = Date.now();
+  logger.logInfo('=== DELETE /fields/:fieldId ROUTE CALLED ===', { 
+    fieldId: req.params.fieldId,
+    timestamp: new Date().toISOString()
+  });
 
   try {
     await customFieldController.deleteField(req, res);
+    
+    const duration = Date.now() - startTime;
+    logger.logInfo(`DELETE /fields/:fieldId completed successfully in ${duration}ms`);
   } catch (error) {
-    logger.logError('Route error in deleteField:', error);
+    const duration = Date.now() - startTime;
+    logger.logError(`DELETE /fields/:fieldId error after ${duration}ms:`, error);
+    
     if (!res.headersSent) {
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error in delete custom field route',
+        details: error.message 
+      });
     }
   }
 });

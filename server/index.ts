@@ -26,6 +26,8 @@ import beneficiariesRoutes from './modules/beneficiaries/routes-working';
 import locationsRoutes from './modules/locations/routes';
 import ticketsRoutes from './modules/tickets/routes';
 import timecardRoutes from './modules/timecard/routes-working';
+// ✅ 1QA.MD: Import custom fields routes
+console.log('🔥 [SERVER] Registering custom-fields routes...');
 import customFieldsRoutes from './modules/custom-fields/routes';
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
@@ -445,7 +447,13 @@ app.use((req, res, next) => {
   app.use('/api/locations', locationsRoutes);
   app.use('/api/tickets', ticketsRoutes);
   app.use('/api/timecard', timecardRoutes);
-  app.use('/api/custom-fields', customFieldsRoutes);
+  // ✅ 1QA.MD: Use custom fields routes with proper logging
+  app.use('/api/custom-fields', (req, res, next) => {
+    console.log(`🔥 [SERVER] Custom fields route hit: ${req.method} ${req.url}`);
+    next();
+  }, customFieldsRoutes);
+
+  console.log('🔥 [SERVER] Custom fields routes registered at /api/custom-fields');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

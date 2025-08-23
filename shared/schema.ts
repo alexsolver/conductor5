@@ -108,7 +108,7 @@ import type {
 } from "./schema-master";
 
 // User Notification Preferences - Re-export from notifications schema per 1qa.md
-export { 
+export {
   userNotificationPreferences,
   insertUserNotificationPreferencesSchema
 } from "./schema-notifications";
@@ -198,7 +198,7 @@ export {
 } from './schema-locations';
 
 // OmniBridge tables
-import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid, json } from 'drizzle-orm/pg-core';
 
 export const omnibridgeChannels = pgTable('omnibridge_channels', {
   id: varchar('id', { length: 36 }).primaryKey(),
@@ -258,14 +258,14 @@ export const customFields = pgTable('custom_fields', {
   fieldName: varchar('field_name', { length: 100 }).notNull(), // Technical name for the field
   fieldType: varchar('field_type', { length: 50 }).notNull(), // text, number, select, etc.
   fieldLabel: varchar('field_label', { length: 200 }).notNull(), // Display name for the field
-  isRequired: boolean('is_required').default(false),
-  validationRules: jsonb('validation_rules'),
-  fieldOptions: jsonb('field_options'), // For select/multiselect fields
+  isRequired: boolean('is_required').default(false).notNull(),
+  validationRules: json('validation_rules'),
+  fieldOptions: json('field_options'), // For select/multiselect fields
   placeholder: varchar('placeholder', { length: 500 }),
-  defaultValue: text('default_value'),
-  displayOrder: integer('display_order').default(0),
+  defaultValue: varchar('default_value', { length: 500 }),
+  displayOrder: integer('display_order').default(0).notNull(),
   helpText: text('help_text'),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
