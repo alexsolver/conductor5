@@ -40,7 +40,10 @@ import {
   Grid3X3,
   Move,
   History,
-  CloudRain
+  CloudRain,
+  Map,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -992,6 +995,7 @@ export const InteractiveMap: React.FC = () => {
   const [legendExpanded, setLegendExpanded] = useState(true);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // State for the help modal
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   // Layer visibility states
   const [showTickets, setShowTickets] = useState(true);
@@ -1302,493 +1306,169 @@ export const InteractiveMap: React.FC = () => {
   return (
     <TooltipProvider>
       <div className={`h-screen flex flex-col ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
-        {/* Header Toolbar */}
-        <div className="flex items-center justify-between p-4 bg-background border-b">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold">Mapa Interativo</h1>
+        {/* Persistent Top Bar */}
+        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm z-[1000] relative">
+          <div className="flex items-center gap-3">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+                    className="h-9 w-9 p-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    aria-label={isSidebarVisible ? 'Ocultar sidebar' : 'Exibir sidebar'}
+                  >
+                    {isSidebarVisible ? (
+                      <ChevronLeft className="w-5 h-5" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isSidebarVisible ? 'Ocultar menu lateral' : 'Exibir menu lateral'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="agent-search"
-                placeholder="Buscar agentes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
-                data-testid="agent-search"
-              />
-            </div>
-
-            {/* Agent Count Badge */}
-            <Badge variant="secondary" className="px-3 py-1">
-              {filteredAgents.length} agentes
-            </Badge>
-
-            {/* Connection Status */}
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${settings.autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-              <span className="text-xs text-muted-foreground">
-                {settings.autoRefresh ? 'Conectado' : 'Pausado'}
-              </span>
+              <Map className="w-6 h-6 text-blue-600" />
+              <h1 className="text-xl font-semibold text-gray-900">
+                {t('interactiveMap.title', 'Mapa Interativo')}
+              </h1>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Filters Toggle */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="filters-toggle">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                  {(filters.status.length > 0 || filters.teams.length > 0 || filters.skills.length > 0) && (
-                    <Badge variant="secondary" className="ml-2 text-xs">
-                      {filters.status.length + filters.teams.length + filters.skills.length}
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80 z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>Filtros do Mapa</SheetTitle>
-                  <SheetDescription>Configure os filtros para visualizar agentes específicos</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  <FiltersPanel
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    teams={availableTeams}
-                    skills={availableSkills}
-                    agentStats={agentStats?.data}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-
-            {/* Layers Toggle */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="layers-toggle">
-                  <Layers className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80 z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>Camadas do Mapa</SheetTitle>
-                  <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  <LayersPanel
-                    showTickets={showTickets}
-                    setShowTickets={setShowTickets}
-                    showTeamGroups={showTeamGroups}
-                    setShowTeamGroups={setShowTeamGroups}
-                    showAreas={showAreas}
-                    setShowAreas={setShowAreas}
-                    showWeatherLayer={showWeatherLayer}
-                    setShowWeatherLayer={setShowWeatherLayer}
-                    showTrafficLayer={showTrafficLayer}
-                    setShowTrafficLayer={setShowTrafficLayer}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-
-            {/* Advanced Features Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="advanced-features-dropdown">
-                  <RotateCcw className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 z-[9999]" sideOffset={5}>
-                <div className="p-2 space-y-3">
-                  {/* Export Section */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      📊 Exportar Dados
-                    </div>
-                    <div className="grid grid-cols-3 gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/export/csv', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'agents.csv';
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            }
-                          } catch (error) {
-                            console.error('Export failed:', error);
-                          }
-                        }}
-                        data-testid="export-csv-btn"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        CSV
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/export/geojson', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'agents.geojson';
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            }
-                          } catch (error) {
-                            console.error('Export failed:', error);
-                          }
-                        }}
-                        data-testid="export-geojson-btn"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        GeoJSON
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/export/pdf', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ agents: [], filters: {} })
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = 'agents.pdf';
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            }
-                          } catch (error) {
-                            console.error('Export failed:', error);
-                          }
-                        }}
-                        data-testid="export-pdf-btn"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        PDF
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Selection Tools */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      🎯 Seleção Múltipla
-                    </div>
-                    <div className="grid grid-cols-2 gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => {
-                          alert('Seleção por retângulo ativa! Clique e arraste no mapa para selecionar múltiplos agentes.');
-                        }}
-                        data-testid="rectangle-selection-btn"
-                      >
-                        <Grid3X3 className="w-3 h-3 mr-1" />
-                        Retângulo
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => {
-                          alert('Seleção por laço ativa! Desenhe um laço no mapa para selecionar agentes.');
-                        }}
-                        data-testid="lasso-selection-btn"
-                      >
-                        <Target className="w-3 h-3 mr-1" />
-                        Laço
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Drag & Drop */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      ✋ Arrastar & Soltar
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-7 text-xs"
-                      onClick={() => {
-                        const isActive = document.body.classList.contains('drag-drop-active');
-                        if (isActive) {
-                          document.body.classList.remove('drag-drop-active');
-                          alert('Modo arrastar desativado!');
-                        } else {
-                          document.body.classList.add('drag-drop-active');
-                          alert('Modo arrastar ativo! Arraste tickets para agentes no mapa para atribuição automática.');
-                        }
-                      }}
-                      data-testid="enable-drag-drop-btn"
-                    >
-                      <Move className="w-3 h-3 mr-1" />
-                      {document.body?.classList.contains('drag-drop-active') ? 'Desativar' : 'Ativar'} Drag & Drop
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  {/* Trajectory Replay */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      📍 Replay de Trajetória
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-7 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/trajectory/agent-001');
-                          const data = await response.json();
-                          if (data.success) {
-                            alert(`Trajetória carregada: ${data.data.points.length} pontos de ${data.data.agentName}`);
-                          } else {
-                            alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
-                          }
-                        } catch (error) {
-                          alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
-                        }
-                      }}
-                      data-testid="load-trajectory-btn"
-                    >
-                      <History className="w-3 h-3 mr-1" />
-                      Carregar Trajetória
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  {/* External Data */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      🌐 Dados Externos
-                    </div>
-                    <div className="grid grid-cols-2 gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/external/weather?lat=-23.5505&lng=-46.6333');
-                            const data = await response.json();
-                            if (data.success) {
-                              alert(`Clima: ${data.data.temperature}°C, ${data.data.condition}`);
-                            }
-                          } catch (error) {
-                            alert('Dados de clima carregados (modo demo)');
-                          }
-                        }}
-                        data-testid="load-weather-btn"
-                      >
-                        🌤️ Clima
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/interactive-map/external/traffic?north=-23.5&south=-23.6&east=-46.6&west=-46.7');
-                            const data = await response.json();
-                            if (data.success) {
-                              alert(`Trânsito: ${data.data.congestionLevel}`);
-                            }
-                          } catch (error) {
-                            alert('Dados de trânsito carregados (modo demo)');
-                          }
-                        }}
-                        data-testid="load-traffic-btn"
-                      >
-                        🚗 Trânsito
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Audit Logs */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
-                      📋 Auditoria & Logs
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-7 text-xs"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/interactive-map/audit');
-                          const data = await response.json();
-                          if (data.success) {
-                            const logs = data.data.slice(0, 3).map(log =>
-                              `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
-                            ).join('\n');
-                            alert(`Últimos logs de auditoria:\n\n${logs}`);
-                          }
-                        } catch (error) {
-                          alert('Logs de auditoria:\n\nVIEW - map (23/08 15:35)\nEXPORT - agents (23/08 15:34)\nFILTER - agents (23/08 15:33)');
-                        }
-                      }}
-                      data-testid="view-audit-logs-btn"
-                    >
-                      <Activity className="w-3 h-3 mr-1" />
-                      Ver Logs de Auditoria
-                    </Button>
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Settings Toggle */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="settings-toggle">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80 z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>Configurações do Mapa</SheetTitle>
-                  <SheetDescription>Ajuste as configurações visuais e de comportamento</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  <MapSettingsPanel
-                    settings={settings}
-                    onSettingsChange={setSettings}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-
-            {/* Legend Toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowLegend(!showLegend)}
-              data-testid="legend-toggle"
-            >
-              {showLegend ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </Button>
-
-            {/* Export Data */}
-            <Button variant="outline" size="sm" onClick={handleExportData} data-testid="export-data">
-              <Download className="w-4 h-4" />
-            </Button>
-
-            {/* Fullscreen Toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              data-testid="fullscreen-toggle"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-
-            {/* Help / Legend Modal */}
-            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
-              <DialogTrigger asChild>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-gray-50"
-                        data-testid="help-button"
-                      >
-                        <HelpCircle className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Ajuda do Mapa</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl z-[9999]">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Layers className="w-5 h-5" />
-                    Legenda do Mapa
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
-                    <div className="space-y-1 text-sm">
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Cores de Status</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                        <div key={status} className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                          <span className="flex-1">{status.replace('_', ' ')}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {agents.filter(a => a.status === status).length}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            {/* Online agents count */}
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-green-700">
+                {agents.filter(agent => agent.is_online).length} {t('interactiveMap.onlineAgents', 'agentes online')}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 relative">
+        {/* Main Content Area */}
+        <div className="flex-1 flex overflow-hidden">
+
+          {/* Left Sidebar - Filters and Agent List */}
+          <div className={`${isSidebarVisible ? 'w-80' : 'w-0'} bg-white border-r border-gray-200 flex flex-col overflow-hidden transition-all duration-300 ease-in-out`}>
+            <div className={`flex-1 overflow-y-auto ${isSidebarVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity duration-300`}>
+              <div className="p-4 space-y-4">
+
+                {/* Search and Filters */}
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="agent-search"
+                      placeholder={t('interactiveMap.searchAgents', 'Buscar agentes...')}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 h-10"
+                      aria-label={t('interactiveMap.searchAgents', 'Buscar agentes')}
+                    />
+                  </div>
+
+                  {/* Filters Panel */}
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start" data-testid="filters-toggle">
+                        <Filter className="w-4 h-4 mr-2" />
+                        Filtros
+                        {(filters.status.length > 0 || filters.teams.length > 0 || filters.skills.length > 0) && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            {filters.status.length + filters.teams.length + filters.skills.length}
+                          </Badge>
+                        )}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80 z-[9999]">
+                      <SheetHeader>
+                        <SheetTitle>Filtros do Mapa</SheetTitle>
+                        <SheetDescription>Configure os filtros para visualizar agentes específicos</SheetDescription>
+                      </SheetHeader>
+                      <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+                        <FiltersPanel
+                          filters={filters}
+                          onFiltersChange={setFilters}
+                          teams={availableTeams}
+                          skills={availableSkills}
+                          agentStats={agentStats?.data}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
+
+                {/* Agent List */}
+                <div className="space-y-3">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Agentes
+                  </h4>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {filteredAgents.length === 0 && searchTerm && (
+                      <p className="text-sm text-muted-foreground">Nenhum agente encontrado para "{searchTerm}".</p>
+                    )}
+                    {filteredAgents.length === 0 && !searchTerm && (
+                      <p className="text-sm text-muted-foreground">Nenhum agente disponível.</p>
+                    )}
+                    {filteredAgents.map(agent => (
+                      <Card
+                        key={agent.id}
+                        className={`p-3 cursor-pointer transition-colors duration-200
+                          ${selectedAgent?.id === agent.id ? 'bg-primary/10 border-primary' : 'hover:bg-gray-50'}`}
+                        onClick={() => handleAgentClick(agent)}
+                      >
+                        <div className="flex items-center gap-3">
+                          {agent.photo_url ? (
+                            <img src={agent.photo_url} alt={agent.name} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-xs">
+                              {agent.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm truncate" title={agent.name}>{agent.name}</h3>
+                            <p className="text-xs text-muted-foreground truncate">{agent.team}</p>
+                            <Badge
+                              variant="outline"
+                              className="mt-1 text-xs capitalize"
+                              style={{ borderColor: agent.status_color, color: agent.status_color }}
+                            >
+                              {agent.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            {agent.battery_warning && <Battery className="w-4 h-4 text-red-500" />}
+                            {agent.signal_warning && <Signal className="w-4 h-4 text-orange-500" />}
+                            {agent.sla_risk && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Map Container */}
-          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+          <div className={`flex-1 relative transition-all duration-300 ease-in-out ${isSidebarVisible ? '' : 'ml-0'}`}>
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
-              className="h-full w-full"
+              className="h-full w-full z-0"
               zoomControl={false}
+              whenCreated={(map) => setMapInstance(map)}
+              whenReady={(e) => {
+                setIsMapReady(true);
+                handleMapMove(e.target.getBounds(), e.target.getZoom());
+              }}
             >
               <LayersControl position="topright">
                 <LayersControl.BaseLayer checked name="OpenStreetMap">
@@ -2002,69 +1682,484 @@ export const InteractiveMap: React.FC = () => {
                 </Button>
               </div>
             </MapContainer>
-          </div>
 
-          {/* Legend */}
-          {showLegend && (
-            <Card className="absolute bottom-4 left-4 z-[1000] w-64">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span>Legenda</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowLegend(false)}
-                    data-testid="toggle-legend-btn"
-                  >
-                    <EyeOff className="w-4 h-4" />
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              {legendExpanded && (
-                <CardContent className="space-y-2">
-                  {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                    <div key={status} className="flex items-center gap-2 text-sm">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                      <span className="flex-1">{status.replace('_', ' ')}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {agents.filter(a => a.status === status).length}
-                      </Badge>
-                    </div>
-                  ))}
-
-                  <Separator className="my-2" />
-
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      Aviso de bateria
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                      Aviso de sinal
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      Ticket atribuído
-                    </div>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          )}
-
-          {/* Statistics Panel (Removed as per instructions) */}
-          {/* The following block for the Statistics Panel has been removed */}
-
-          {/* Loading Overlay */}
-          {isLoading && (
-            <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-[2000]">
-              <div className="bg-background p-4 rounded-lg shadow-lg flex items-center gap-3">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <span>Carregando...</span>
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-[500]">
+                <div className="text-center space-y-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-600 font-medium">
+                    {t('interactiveMap.loadingPositions', 'Carregando posições dos agentes')}...
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
+
+        {/* Legend */}
+        {showLegend && (
+          <Card className="absolute bottom-4 left-4 z-[1000] w-64">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center justify-between">
+                <span>Legenda</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowLegend(false)}
+                  data-testid="toggle-legend-btn"
+                >
+                  <EyeOff className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            {legendExpanded && (
+              <CardContent className="space-y-2">
+                {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                  <div key={status} className="flex items-center gap-2 text-sm">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                    <span className="flex-1">{status.replace('_', ' ')}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {agents.filter(a => a.status === status).length}
+                    </Badge>
+                  </div>
+                ))}
+
+                <Separator className="my-2" />
+
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    Aviso de bateria
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    Aviso de sinal
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    Ticket atribuído
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        )}
+
+        {/* Additional Toolbars and Modals (for completeness, as per original structure) */}
+        <div className="absolute top-4 right-4 z-[1000] flex gap-2">
+          {/* Layers Toggle */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" data-testid="layers-toggle">
+                <Layers className="w-4 h-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 z-[9999]">
+              <SheetHeader>
+                <SheetTitle>Camadas do Mapa</SheetTitle>
+                <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+                <LayersPanel
+                  showTickets={showTickets}
+                  setShowTickets={setShowTickets}
+                  showTeamGroups={showTeamGroups}
+                  setShowTeamGroups={setShowTeamGroups}
+                  showAreas={showAreas}
+                  setShowAreas={setShowAreas}
+                  showWeatherLayer={showWeatherLayer}
+                  setShowWeatherLayer={setShowWeatherLayer}
+                  showTrafficLayer={showTrafficLayer}
+                  setShowTrafficLayer={setShowTrafficLayer}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Advanced Features Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" data-testid="advanced-features-dropdown">
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 z-[9999]" sideOffset={5}>
+              <div className="p-2 space-y-3">
+                {/* Export Section */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                    📊 Exportar Dados
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/interactive-map/export/csv', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ agents: [], filters: {} })
+                          });
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'agents.csv';
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                          }
+                        } catch (error) {
+                          console.error('Export failed:', error);
+                        }
+                      }}
+                      data-testid="export-csv-btn"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      CSV
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/interactive-map/export/geojson', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ agents: [], filters: {} })
+                          });
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'agents.geojson';
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                          }
+                        } catch (error) {
+                          console.error('Export failed:', error);
+                        }
+                      }}
+                      data-testid="export-geojson-btn"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      GeoJSON
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/interactive-map/export/pdf', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ agents: [], filters: {} })
+                          });
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'agents.pdf';
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                          }
+                        } catch (error) {
+                          console.error('Export failed:', error);
+                        }
+                      }}
+                      data-testid="export-pdf-btn"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      PDF
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Selection Tools */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                    🎯 Seleção Múltipla
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        alert('Seleção por retângulo ativa! Clique e arraste no mapa para selecionar múltiplos agentes.');
+                      }}
+                      data-testid="rectangle-selection-btn"
+                    >
+                      <Grid3X3 className="w-3 h-3 mr-1" />
+                      Retângulo
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        alert('Seleção por laço ativa! Desenhe um laço no mapa para selecionar agentes.');
+                      }}
+                      data-testid="lasso-selection-btn"
+                    >
+                      <Target className="w-3 h-3 mr-1" />
+                      Laço
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Drag & Drop */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                    ✋ Arrastar & Soltar
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-7 text-xs"
+                    onClick={() => {
+                      const isActive = document.body.classList.contains('drag-drop-active');
+                      if (isActive) {
+                        document.body.classList.remove('drag-drop-active');
+                        alert('Modo arrastar desativado!');
+                      } else {
+                        document.body.classList.add('drag-drop-active');
+                        alert('Modo arrastar ativo! Arraste tickets para agentes no mapa para atribuição automática.');
+                      }
+                    }}
+                    data-testid="enable-drag-drop-btn"
+                  >
+                    <Move className="w-3 h-3 mr-1" />
+                    {document.body?.classList.contains('drag-drop-active') ? 'Desativar' : 'Ativar'} Drag & Drop
+                  </Button>
+                </div>
+
+                <Separator />
+
+                {/* Trajectory Replay */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                    📍 Replay de Trajetória
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-7 text-xs"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/interactive-map/trajectory/agent-001');
+                        const data = await response.json();
+                        if (data.success) {
+                          alert(`Trajetória carregada: ${data.data.points.length} pontos de ${data.data.agentName}`);
+                        } else {
+                          alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
+                        }
+                      } catch (error) {
+                        alert('Trajetória demo carregada: 14 pontos de João Silva nas últimas 2 horas');
+                      }
+                    }}
+                    data-testid="load-trajectory-btn"
+                  >
+                    <History className="w-3 h-3 mr-1" />
+                    Carregar Trajetória
+                  </Button>
+                </div>
+
+                <Separator />
+
+                {/* External Data */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                    🌐 Dados Externos
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/interactive-map/external/weather?lat=-23.5505&lng=-46.6333');
+                          const data = await response.json();
+                          if (data.success) {
+                            alert(`Clima: ${data.data.temperature}°C, ${data.data.condition}`);
+                          }
+                        } catch (error) {
+                          alert('Dados de clima carregados (modo demo)');
+                        }
+                      }}
+                      data-testid="load-weather-btn"
+                    >
+                      🌤️ Clima
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/interactive-map/external/traffic?north=-23.5&south=-23.6&east=-46.6&west=-46.7');
+                          const data = await response.json();
+                          if (data.success) {
+                            alert(`Trânsito: ${data.data.congestionLevel}`);
+                          }
+                        } catch (error) {
+                          alert('Dados de trânsito carregados (modo demo)');
+                        }
+                      }}
+                      data-testid="load-traffic-btn"
+                    >
+                      🚗 Trânsito
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Audit Logs */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-2">
+                    📋 Auditoria & Logs
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-7 text-xs"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/interactive-map/audit');
+                        const data = await response.json();
+                        if (data.success) {
+                          const logs = data.data.slice(0, 3).map(log =>
+                            `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
+                          ).join('\n');
+                          alert(`Últimos logs de auditoria:\n\n${logs}`);
+                        }
+                      } catch (error) {
+                        alert('Logs de auditoria:\n\nVIEW - map (23/08 15:35)\nEXPORT - agents (23/08 15:34)\nFILTER - agents (23/08 15:33)');
+                      }
+                    }}
+                    data-testid="view-audit-logs-btn"
+                  >
+                    <Activity className="w-3 h-3 mr-1" />
+                    Ver Logs de Auditoria
+                  </Button>
+                </div>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Settings Toggle */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" data-testid="settings-toggle">
+                <Settings className="w-4 h-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 z-[9999]">
+              <SheetHeader>
+                <SheetTitle>Configurações do Mapa</SheetTitle>
+                <SheetDescription>Ajuste as configurações visuais e de comportamento</SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+                <MapSettingsPanel
+                  settings={settings}
+                  onSettingsChange={setSettings}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Legend Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowLegend(!showLegend)}
+            data-testid="legend-toggle"
+          >
+            {showLegend ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </Button>
+
+          {/* Export Data */}
+          <Button variant="outline" size="sm" onClick={handleExportData} data-testid="export-data">
+            <Download className="w-4 h-4" />
+          </Button>
+
+          {/* Fullscreen Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            data-testid="fullscreen-toggle"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+
+          {/* Help / Legend Modal */}
+          <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+            <DialogTrigger asChild>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-gray-50"
+                      data-testid="help-button"
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Ajuda do Mapa</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl z-[9999]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Layers className="w-5 h-5" />
+                  Legenda do Mapa
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
+                  <div className="space-y-1 text-sm">
+                    <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
+                    <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
+                    <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Cores de Status</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                      <div key={status} className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                        <span className="flex-1">{status.replace('_', ' ')}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {agents.filter(a => a.status === status).length}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </TooltipProvider>
