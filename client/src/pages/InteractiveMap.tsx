@@ -162,19 +162,19 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
   const color = agent.status_color || STATUS_COLORS[agent.status];
   const shouldPulse = agent.should_pulse && PULSE_STATUSES.includes(agent.status);
   const size = agent.is_moving ? 32 : 24;
-  
+
   // Battery warning indicator
   const batteryWarning = agent.battery_warning && settings.showBatteryWarnings ? 
     `<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>` : '';
-  
+
   // Signal warning indicator
   const signalWarning = agent.signal_warning ? 
     `<div class="absolute -top-1 -left-1 w-3 h-3 bg-orange-500 rounded-full"></div>` : '';
-  
+
   // Movement arrow for in_transit agents
   const movementArrow = agent.is_moving && agent.heading ? 
     `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" style="transform: rotate(${agent.heading}deg) translate(0, -8px)"></div>` : '';
-  
+
   const html = `
     <div class="relative ${shouldPulse ? 'animate-pulse' : ''} ${settings.animateMarkers ? 'transition-all duration-300' : ''}" 
          style="width: ${size}px; height: ${size}px;">
@@ -213,7 +213,7 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
 
 const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
   const { t } = useTranslation();
-  
+
   const formatTime = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return new Intl.DateTimeFormat('pt-BR', {
@@ -335,12 +335,12 @@ const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
         <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 mb-3">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
               Ticket Atribuído
             </span>
           </div>
           <div className="text-xs text-blue-600 dark:text-blue-400">#{agent.assigned_ticket_id}</div>
-          
+
           {agent.eta_seconds && (
             <div className="flex items-center gap-2 mt-2">
               <Clock className="w-3 h-3 text-blue-500" />
@@ -349,7 +349,7 @@ const AgentTooltip: React.FC<{ agent: AgentPosition }> = ({ agent }) => {
               </span>
             </div>
           )}
-          
+
           {agent.distance_meters && (
             <div className="flex items-center gap-2 mt-1">
               <MapPin className="w-3 h-3 text-blue-500" />
@@ -696,7 +696,7 @@ const LayersPanel: React.FC<{
           <Layers className="w-4 h-4" />
           Camadas de Visualização
         </h4>
-        
+
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Checkbox 
@@ -709,7 +709,7 @@ const LayersPanel: React.FC<{
               📋 Tickets no Mapa
             </label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="show-team-groups"
@@ -721,7 +721,7 @@ const LayersPanel: React.FC<{
               👥 Grupos de Técnicos
             </label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="show-areas"
@@ -735,14 +735,14 @@ const LayersPanel: React.FC<{
           </div>
         </div>
       </div>
-      
+
       {/* External Data Layers */}
       <div>
         <h4 className="font-medium mb-3 flex items-center gap-2">
           <CloudRain className="w-4 h-4" />
           Dados Externos
         </h4>
-        
+
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Checkbox 
@@ -755,7 +755,7 @@ const LayersPanel: React.FC<{
               🌤️ Camada de Clima
             </label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="show-traffic"
@@ -803,7 +803,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showAccuracyCircles', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Rotas dos agentes</label>
             <Switch
@@ -811,7 +811,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showAgentRoutes', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Mapa de calor</label>
             <Switch
@@ -819,7 +819,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showHeatmap', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Agrupamento dinâmico</label>
             <Switch
@@ -827,7 +827,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showClusters', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Animações</label>
             <Switch
@@ -852,7 +852,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('showBatteryWarnings', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Alertas de SLA</label>
             <Switch
@@ -877,7 +877,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('autoRefresh', checked)}
             />
           </div>
-          
+
           {settings.autoRefresh && (
             <div>
               <label className="text-sm text-muted-foreground">
@@ -910,7 +910,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('darkMode', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Alto contraste</label>
             <Switch
@@ -918,7 +918,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('highContrastMode', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Navegação por teclado</label>
             <Switch
@@ -926,7 +926,7 @@ const MapSettingsPanel: React.FC<{
               onCheckedChange={(checked) => handleSettingChange('keyboardNavigation', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <label className="text-sm">Reduzir movimento</label>
             <Switch
@@ -947,11 +947,11 @@ const MapSettingsPanel: React.FC<{
 export const InteractiveMap: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  
+
   // ===========================================================================================
   // State Management
   // ===========================================================================================
-  
+
   const [filters, setFilters] = useState<MapFilters>({
     status: [],
     teams: [],
@@ -991,18 +991,18 @@ export const InteractiveMap: React.FC = () => {
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
-  
+
   // Layer visibility states
   const [showTickets, setShowTickets] = useState(true);
   const [showTeamGroups, setShowTeamGroups] = useState(false);
   const [showAreas, setShowAreas] = useState(false);
   const [showWeatherLayer, setShowWeatherLayer] = useState(false);
   const [showTrafficLayer, setShowTrafficLayer] = useState(false);
-  
+
   // ===========================================================================================
   // Mock Data (for demo purposes until backend is ready)
   // ===========================================================================================
-  
+
   // Mock ticket data for visualization
   const mockTickets = [
     { id: 'TK-001', title: 'Vazamento Hidráulico', lat: -23.5505, lng: -46.6333, priority: 'alta', status: 'aberto' },
@@ -1027,7 +1027,7 @@ export const InteractiveMap: React.FC = () => {
     { id: 'TG-002', name: 'Equipe Beta', lat: -23.5490, lng: -46.6320, members: 3, status: 'ativo' },
     { id: 'TG-003', name: 'Equipe Gamma', lat: -23.5510, lng: -46.6350, members: 4, status: 'pausa' }
   ];
-  
+
   const mockAgents: AgentPosition[] = [
     {
       id: '1',
@@ -1139,7 +1139,7 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Data Fetching with Mock Data (replace with real API calls)
   // ===========================================================================================
-  
+
   const { data: agentsData, isLoading } = useQuery({
     queryKey: ['/api/interactive-map/agents', filters],
     queryFn: async () => {
@@ -1175,9 +1175,9 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Derived Data and Performance Optimization
   // ===========================================================================================
-  
+
   const agents: AgentPosition[] = agentsData?.data?.agents || [];
-  
+
   // Filter agents by search term
   const filteredAgents = useMemo(() => {
     if (!searchTerm) return agents;
@@ -1195,7 +1195,7 @@ export const InteractiveMap: React.FC = () => {
     Array.from(new Set(agents.map(agent => agent.team).filter(Boolean))).sort(),
     [agents]
   );
-  
+
   const availableSkills = useMemo(() => 
     Array.from(new Set(agents.flatMap(agent => agent.skills))).sort(),
     [agents]
@@ -1204,9 +1204,9 @@ export const InteractiveMap: React.FC = () => {
   // Performance optimization: Only render agents in viewport for large datasets
   const visibleAgents = useMemo(() => {
     if (filteredAgents.length <= 500) return filteredAgents;
-    
+
     if (!viewportBounds) return filteredAgents.slice(0, 500);
-    
+
     return filteredAgents.filter(agent => 
       agent.lat !== null && agent.lng !== null &&
       agent.lat >= viewportBounds.south && agent.lat <= viewportBounds.north &&
@@ -1217,7 +1217,7 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Event Handlers
   // ===========================================================================================
-  
+
   const handleMapMove = useCallback((bounds: LatLngBounds, zoom: number) => {
     const newBounds = {
       north: bounds.getNorth(),
@@ -1249,7 +1249,7 @@ export const InteractiveMap: React.FC = () => {
         lastUpdate: agent.updated_at
       }))
     };
-    
+
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1262,7 +1262,7 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Keyboard Navigation Support
   // ===========================================================================================
-  
+
   useEffect(() => {
     if (!settings.keyboardNavigation) return;
 
@@ -1304,7 +1304,7 @@ export const InteractiveMap: React.FC = () => {
         <div className="flex items-center justify-between p-4 bg-background border-b">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-semibold">Mapa Interativo</h1>
-            
+
             {/* Search Bar */}
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
@@ -1635,7 +1635,7 @@ export const InteractiveMap: React.FC = () => {
                         }}
                         data-testid="load-traffic-btn"
                       >
-                        🚦 Trânsito
+                        🚗 Trânsito
                       </Button>
                     </div>
                   </div>
@@ -1777,7 +1777,7 @@ export const InteractiveMap: React.FC = () => {
                     className={settings.darkMode ? 'dark-tiles' : ''}
                   />
                 </LayersControl.BaseLayer>
-                
+
                 <LayersControl.BaseLayer name="Satellite">
                   <TileLayer
                     attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -1801,7 +1801,7 @@ export const InteractiveMap: React.FC = () => {
                         <AgentTooltip agent={agent} />
                       </Popup>
                     </Marker>
-                    
+
                     {/* Accuracy Circle */}
                     {settings.showAccuracyCircles && agent.accuracy && (
                       <Circle
@@ -2010,9 +2010,9 @@ export const InteractiveMap: React.FC = () => {
                       </Badge>
                     </div>
                   ))}
-                  
+
                   <Separator className="my-2" />
-                  
+
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -2032,47 +2032,9 @@ export const InteractiveMap: React.FC = () => {
             </Card>
           )}
 
-          {/* Statistics Panel */}
-          {agentStats?.data && (
-            <Card className="absolute top-4 right-4 z-[1000] w-72">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Estatísticas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Total</div>
-                    <div className="font-semibold">{agentStats.data.totalAgents}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Online</div>
-                    <div className="font-semibold text-green-600">{agentStats.data.onlineCount}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Bateria Média</div>
-                    <div className="font-semibold">{agentStats.data.avgBatteryLevel}%</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Risco SLA</div>
-                    <div className="font-semibold text-red-600">{agentStats.data.slaRiskCount}</div>
-                  </div>
-                </div>
-                
-                {agentStats.data.avgBatteryLevel < 50 && (
-                  <Alert className="border-orange-200 bg-orange-50">
-                    <Battery className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-700 text-xs">
-                      Nível de bateria baixo nos dispositivos
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
+          {/* Statistics Panel (Removed as per instructions) */}
+          {/* The following block for the Statistics Panel has been removed */}
+          
           {/* Loading Overlay */}
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-[2000]">
