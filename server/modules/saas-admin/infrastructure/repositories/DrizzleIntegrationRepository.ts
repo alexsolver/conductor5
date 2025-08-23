@@ -5,7 +5,8 @@
 // Infrastructure Layer → Implementação técnica específica com Drizzle
 
 import { db } from '../../../../db';
-import { schema } from '../../../../shared/schema';
+import * as schema from '../../../../shared/schema';
+import * as saasSchema from '../../../../shared/schema-saas-admin';
 import { eq, and } from 'drizzle-orm';
 import { Integration, IntegrationConfig } from '../../domain/entities/Integration';
 import { IIntegrationRepository } from '../../domain/repositories/IIntegrationRepository';
@@ -22,8 +23,8 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       // Para SaaS admin, as integrações são globais (não específicas por tenant)
       const results = await db
         .select()
-        .from(schema.saasIntegrations)
-        .orderBy(schema.saasIntegrations.name);
+        .from(saasSchema.saasIntegrations)
+        .orderBy(saasSchema.saasIntegrations.name);
 
       return results.map(this.mapToEntity);
     } catch (error) {
@@ -36,8 +37,8 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
     try {
       const [result] = await db
         .select()
-        .from(schema.saasIntegrations)
-        .where(eq(schema.saasIntegrations.id, integrationId))
+        .from(saasSchema.saasIntegrations)
+        .where(eq(saasSchema.saasIntegrations.id, integrationId))
         .limit(1);
 
       return result ? this.mapToEntity(result) : null;
@@ -51,8 +52,8 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
     try {
       const [result] = await db
         .select()
-        .from(schema.saasIntegrations)
-        .where(eq(schema.saasIntegrations.provider, provider))
+        .from(saasSchema.saasIntegrations)
+        .where(eq(saasSchema.saasIntegrations.provider, provider))
         .limit(1);
 
       return result ? this.mapToEntity(result) : null;
@@ -65,7 +66,7 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
   async save(integration: Integration): Promise<Integration> {
     try {
       const [result] = await db
-        .insert(schema.saasIntegrations)
+        .insert(saasSchema.saasIntegrations)
         .values({
           id: integration.id,
           name: integration.name,
@@ -88,12 +89,12 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
   async update(integrationId: string, updates: Partial<Integration>): Promise<Integration | null> {
     try {
       const [result] = await db
-        .update(schema.saasIntegrations)
+        .update(saasSchema.saasIntegrations)
         .set({
           ...updates,
           updatedAt: new Date()
         })
-        .where(eq(schema.saasIntegrations.id, integrationId))
+        .where(eq(saasSchema.saasIntegrations.id, integrationId))
         .returning();
 
       return result ? this.mapToEntity(result) : null;
@@ -106,10 +107,10 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
   async delete(integrationId: string): Promise<boolean> {
     try {
       const result = await db
-        .delete(schema.saasIntegrations)
-        .where(eq(schema.saasIntegrations.id, integrationId));
+        .delete(saasSchema.saasIntegrations)
+        .where(eq(saasSchema.saasIntegrations.id, integrationId));
 
-      return result.rowCount > 0;
+      return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error deleting integration:', error);
       throw new Error('Failed to delete integration');
@@ -157,8 +158,8 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
     try {
       const results = await db
         .select()
-        .from(schema.saasIntegrations)
-        .where(eq(schema.saasIntegrations.status, status));
+        .from(saasSchema.saasIntegrations)
+        .where(eq(saasSchema.saasIntegrations.status, status));
 
       return results.map(this.mapToEntity);
     } catch (error) {
@@ -170,12 +171,12 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
   async updateStatus(integrationId: string, status: 'connected' | 'error' | 'disconnected'): Promise<void> {
     try {
       await db
-        .update(schema.saasIntegrations)
+        .update(saasSchema.saasIntegrations)
         .set({ 
           status,
           updatedAt: new Date()
         })
-        .where(eq(schema.saasIntegrations.id, integrationId));
+        .where(eq(saasSchema.saasIntegrations.id, integrationId));
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error updating integration status:', error);
       throw new Error('Failed to update integration status');
@@ -197,10 +198,15 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       if (integration.isOpenWeatherIntegration()) {
         try {
           const testUrl = `${integration.config.baseUrl}/weather?lat=0&lon=0&appid=${integration.config.apiKey}`;
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), integration.config.timeout || 5000);
+          
           const response = await fetch(testUrl, { 
             method: 'GET',
-            timeout: integration.config.timeout || 5000
+            signal: controller.signal
           });
+          
+          clearTimeout(timeoutId);
           
           if (response.ok) {
             await this.updateStatus(integrationId, 'connected');
@@ -239,9 +245,9 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
     try {
       const results = await db
         .select()
-        .from(schema.saasIntegrations)
+        .from(saasSchema.saasIntegrations)
         .where(and(
-          eq(schema.saasIntegrations.status, 'connected')
+          eq(saasSchema.saasIntegrations.status, 'connected')
         ));
 
       return results.map(this.mapToEntity).filter(integration => integration.isActive());
