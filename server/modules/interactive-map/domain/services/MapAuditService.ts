@@ -52,21 +52,6 @@ export class MapAuditService {
   
   static async logEvent(event: MapAuditEvent): Promise<void> {
     try {
-      // Ensure table exists with proper structure
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS map_audit_logs (
-          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-          user_id UUID NOT NULL,
-          tenant_id UUID NOT NULL,
-          event_type VARCHAR(50) NOT NULL,
-          resource_type VARCHAR(30) NOT NULL,
-          resource_id VARCHAR(255),
-          details JSONB DEFAULT '{}',
-          client_info JSONB DEFAULT '{}',
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-        )
-      `);
-
       await db.execute(sql`
         INSERT INTO map_audit_logs (
           user_id,
@@ -78,13 +63,13 @@ export class MapAuditService {
           client_info,
           created_at
         ) VALUES (
-          ${event.userId}::uuid,
-          ${event.tenantId}::uuid,
+          ${event.userId},
+          ${event.tenantId},
           ${event.eventType},
           ${event.resourceType},
           ${event.resourceId || null},
-          ${JSON.stringify(event.details)}::jsonb,
-          ${JSON.stringify(event.clientInfo)}::jsonb,
+          ${JSON.stringify(event.details)},
+          ${JSON.stringify(event.clientInfo)},
           ${event.timestamp}
         )
       `);
@@ -398,7 +383,7 @@ export class MapAuditService {
   static async logViewData(
     userId: string,
     tenantId: string,
-    resourceType: 'agent' | 'route' | 'export' | 'filter' | 'view' | 'weather_data',
+    resourceType: 'agent' | 'route' | 'export' | 'filter' | 'view',
     resourceId: string,
     metadata: any,
     context: any
@@ -406,8 +391,8 @@ export class MapAuditService {
     const event: MapAuditEvent = {
       userId,
       tenantId,
-      eventType: resourceType === 'weather_data' ? 'agent_location_access' : 'agent_view',
-      resourceType: resourceType === 'weather_data' ? 'view' : resourceType,
+      eventType: 'agent_view',
+      resourceType,
       resourceId,
       details: metadata,
       clientInfo: context,
