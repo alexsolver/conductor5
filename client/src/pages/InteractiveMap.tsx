@@ -73,6 +73,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { TrajectoryReplay, AgentTrajectory } from '@/components/map/TrajectoryReplay';
 
 // ===========================================================================================
 // Type Definitions
@@ -1339,7 +1340,7 @@ export const InteractiveMap: React.FC = () => {
   const [mapZoom, setMapZoom] = useState(12);
   const [trajectoryModalOpen, setTrajectoryModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
-  const [selectedTrajectory, setSelectedTrajectory] = useState<any>(null);
+  const [selectedTrajectory, setSelectedTrajectory] = useState<AgentTrajectory | null>(null);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
   const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden, toggleHeader, headerHidden } = useSidebar();
@@ -2285,9 +2286,8 @@ export const InteractiveMap: React.FC = () => {
                           onOpenTrajectory={async (selectedAgent) => {
                             try {
                               console.log('📍 [TRAJECTORY] Carregando trajetória do banco para:', selectedAgent.name);
-                              setSelectedAgent(selectedAgent);
                               
-                              // Fazer requisição para API real - mapear o ID do agente para o agent_id correto
+                              // Mapear o ID do agente para o agent_id correto
                               const agentIdMapping: { [key: string]: string } = {
                                 '1': 'agent-001', // João Silva
                                 '2': 'agent-002', // Ana Costa  
@@ -2311,17 +2311,40 @@ export const InteractiveMap: React.FC = () => {
                               }
 
                               const result = await response.json();
-                              const trajectory = result.data;
+                              const trajectoryData = result.data;
 
                               console.log('✅ [TRAJECTORY] Trajetória carregada do banco:', {
-                                points: trajectory.points.length,
-                                distance: `${trajectory.totalDistance}km`,
-                                maxSpeed: `${trajectory.maxSpeed}km/h`,
-                                avgSpeed: `${trajectory.avgSpeed}km/h`
+                                points: trajectoryData.trajectory.length,
+                                distance: `${trajectoryData.statistics.totalDistance.toFixed(2)}km`,
+                                maxSpeed: `${trajectoryData.statistics.maxSpeed}km/h`,
+                                avgSpeed: `${trajectoryData.statistics.avgSpeed}km/h`
                               });
 
-                              // Armazenar dados para o modal
-                              setSelectedTrajectory(trajectory);
+                              // Convert API data to TrajectoryReplay format
+                              const trajectoryForReplay: AgentTrajectory = {
+                                agentId: mappedAgentId,
+                                agentName: trajectoryData.agentName,
+                                startTime: new Date(trajectoryData.statistics.startTime),
+                                endTime: new Date(trajectoryData.statistics.endTime),
+                                totalDistance: trajectoryData.statistics.totalDistance,
+                                maxSpeed: trajectoryData.statistics.maxSpeed,
+                                avgSpeed: trajectoryData.statistics.avgSpeed || 0,
+                                points: trajectoryData.trajectory.map((point: any, index: number) => ({
+                                  id: `${mappedAgentId}_${index}`,
+                                  agentId: mappedAgentId,
+                                  lat: point.lat,
+                                  lng: point.lng,
+                                  timestamp: new Date(point.timestamp),
+                                  speed: point.speed || 0,
+                                  heading: point.heading || 0,
+                                  accuracy: point.accuracy || 0,
+                                  deviceBattery: point.device_battery || 0
+                                }))
+                              };
+
+                              // Set trajectory and open animated replay
+                              setSelectedAgent(selectedAgent);
+                              setSelectedTrajectory(trajectoryForReplay);
                               setTrajectoryModalOpen(true);
 
                               // Show detailed results
@@ -2550,151 +2573,58 @@ export const InteractiveMap: React.FC = () => {
           )}
 
           
-          {/* Trajectory Replay Modal */}
-          <Dialog open={trajectoryModalOpen} onOpenChange={setTrajectoryModalOpen}>
-            <DialogContent className="max-w-6xl max-h-[95vh] z-[9999]">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <History className="w-5 h-5" />
-                  Replay de Trajetória - {selectedAgent?.name}
-                </DialogTitle>
-                <DialogDescription>
-                  Controles de reprodução e análise detalhada da trajetória do agente
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-6">
-                {/* Playback Controls */}
-                <div className="bg-muted p-4 rounded-lg">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Play Controls */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Controles de Reprodução</label>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <RotateCcw className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Move className="w-4 h-4" />
-                        </Button>
-                        <Button variant="default" size="sm">
-                          <Activity className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Activity className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {/* Speed Control */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Velocidade</label>
-                      <Select defaultValue="1">
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0.5">0.5x</SelectItem>
-                          <SelectItem value="1">1x</SelectItem>
-                          <SelectItem value="2">2x</SelectItem>
-                          <SelectItem value="5">5x</SelectItem>
-                          <SelectItem value="10">10x</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {/* Progress */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Progresso</label>
-                      <div className="space-y-1">
-                        <input type="range" className="w-full" min="0" max="100" defaultValue="0" />
-                        <div className="text-xs text-muted-foreground text-center">0 / 15 pontos</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Statistics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <div className="text-sm text-blue-600 mb-1">Duração Total</div>
-                    <div className="text-lg font-bold text-blue-800">7.5h</div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="text-sm text-green-600 mb-1">Distância</div>
-                    <div className="text-lg font-bold text-green-800">12.8 km</div>
-                  </div>
-                  <div className="bg-orange-50 p-3 rounded-lg">
-                    <div className="text-sm text-orange-600 mb-1">Vel. Máxima</div>
-                    <div className="text-lg font-bold text-orange-800">85 km/h</div>
-                  </div>
-                  <div className="bg-purple-50 p-3 rounded-lg">
-                    <div className="text-sm text-purple-600 mb-1">Vel. Média</div>
-                    <div className="text-lg font-bold text-purple-800">42.3 km/h</div>
-                  </div>
-                </div>
-                
-                {/* Export Trajectory */}
-                <div className="flex gap-2 justify-center">
-                  <Button variant="outline" onClick={() => {
-                    console.log('📥 [EXPORT] Exportando trajetória GeoJSON...');
-                    const geojson = {
+          {/* Trajectory Replay Component - Animated Playback */}
+          <TrajectoryReplay
+            trajectory={selectedTrajectory}
+            onClose={() => {
+              setTrajectoryModalOpen(false);
+              setSelectedTrajectory(null);
+            }}
+            onExport={async (format) => {
+              console.log(`📥 [EXPORT] Exportando trajetória ${format.toUpperCase()}...`);
+              if (selectedTrajectory) {
+                const data = format === 'geojson' 
+                  ? {
                       type: 'FeatureCollection',
                       features: [{
                         type: 'Feature',
                         geometry: {
                           type: 'LineString',
-                          coordinates: Array.from({ length: 15 }, () => [selectedAgent?.lng! + Math.random() * 0.01, selectedAgent?.lat! + Math.random() * 0.01])
+                          coordinates: selectedTrajectory.points.map(p => [p.lng, p.lat])
                         },
                         properties: {
-                          agentId: selectedAgent?.id,
-                          agentName: selectedAgent?.name,
-                          period: selectedPeriod,
-                          totalDistance: 12.8,
-                          maxSpeed: 85,
-                          avgSpeed: 42.3
+                          agentId: selectedTrajectory.agentId,
+                          agentName: selectedTrajectory.agentName,
+                          startTime: selectedTrajectory.startTime.toISOString(),
+                          endTime: selectedTrajectory.endTime.toISOString(),
+                          totalDistance: selectedTrajectory.totalDistance,
+                          maxSpeed: selectedTrajectory.maxSpeed,
+                          avgSpeed: selectedTrajectory.avgSpeed
                         }
                       }]
-                    };
-                    const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `trajectory-${selectedAgent?.id}-${selectedPeriod}.geojson`;
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                  }}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar GeoJSON
-                  </Button>
-                  <Button variant="outline" onClick={() => {
-                    console.log('📥 [EXPORT] Exportando trajetória CSV...');
-                    const csvData = [
-                      ['timestamp', 'lat', 'lng', 'speed', 'accuracy'],
-                      ...Array.from({ length: 15 }, (_, i) => [
-                        new Date(Date.now() - (i * 30 * 60 * 1000)).toISOString(),
-                        (selectedAgent?.lat! + Math.random() * 0.01).toFixed(6),
-                        (selectedAgent?.lng! + Math.random() * 0.01).toFixed(6),
-                        Math.floor(Math.random() * 80) + 5,
-                        Math.floor(Math.random() * 20) + 5
-                      ])
-                    ];
-                    const csvContent = csvData.map(row => row.join(',')).join('\\n');
-                    const blob = new Blob([csvContent], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `trajectory-${selectedAgent?.id}-${selectedPeriod}.csv`;
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                  }}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar CSV
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+                    }
+                  : selectedTrajectory.points.map(p => ({
+                      timestamp: p.timestamp.toISOString(),
+                      lat: p.lat,
+                      lng: p.lng,
+                      speed: p.speed || 0,
+                      heading: p.heading || 0,
+                      battery: p.deviceBattery || 0
+                    }));
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], {
+                  type: format === 'geojson' ? 'application/geo+json' : 'application/json'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `trajectory_${selectedTrajectory.agentName}_${format}.${format === 'geojson' ? 'geojson' : 'csv'}`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }
+            }}
+            isVisible={trajectoryModalOpen}
+          />
 
           {/* Weather/Point Details Modal */}
           {selectedPoint && (
