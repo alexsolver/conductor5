@@ -2287,8 +2287,17 @@ export const InteractiveMap: React.FC = () => {
                               console.log('📍 [TRAJECTORY] Carregando trajetória do banco para:', selectedAgent.name);
                               setSelectedAgent(selectedAgent);
                               
-                              // Fazer requisição para API real
-                              const response = await fetch(`/api/interactive-map/trajectory/${selectedAgent.id}`, {
+                              // Fazer requisição para API real - mapear o ID do agente para o agent_id correto
+                              const agentIdMapping: { [key: string]: string } = {
+                                '1': 'agent-001', // João Silva
+                                '2': 'agent-002', // Ana Costa  
+                                '3': 'agent-003', // Maria Santos
+                              };
+                              
+                              const mappedAgentId = agentIdMapping[selectedAgent.id] || selectedAgent.id;
+                              console.log('🔍 [TRAJECTORY] Mapping agent:', { frontendId: selectedAgent.id, dbId: mappedAgentId });
+                              
+                              const response = await fetch(`/api/interactive-map/trajectory/${mappedAgentId}`, {
                                 method: 'GET',
                                 credentials: 'include',
                                 headers: {

@@ -367,13 +367,8 @@ ExternalApiService.startCacheCleanup();
 router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { agentId } = req.params;
-    const { db } = req as AuthenticatedRequest;
 
-    if (!db) {
-      return res.status(500).json({ success: false, error: 'Database connection not available' });
-    }
-
-    // Get real trajectory data from database
+    // Get real trajectory data from database using existing db connection
     const result = await db.query(`
       SELECT 
         agent_id,
@@ -384,8 +379,8 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
         speed,
         heading,
         accuracy,
-        device_battery
-      FROM agent_trajectories 
+        battery_level as device_battery
+      FROM public.agent_trajectories 
       WHERE agent_id = $1 
       ORDER BY timestamp ASC
     `, [agentId]);
