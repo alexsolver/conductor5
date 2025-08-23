@@ -2032,7 +2032,7 @@ export const InteractiveMap: React.FC = () => {
               )}
 
               {/* Center to High Concentration Button */}
-              <div className="absolute top-20 left-2 z-[1000]">
+              <div className="absolute top-[90px] left-[10px] z-[1000]">
                 <Button
                   size="sm"
                   variant="outline"
