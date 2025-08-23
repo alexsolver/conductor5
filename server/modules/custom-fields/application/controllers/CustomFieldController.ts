@@ -5,7 +5,7 @@ console.log('🔥 [CUSTOM-FIELDS-CONTROLLER] *** FILE LOADING START *** followin
 console.log('🔥 [CUSTOM-FIELDS-CONTROLLER] Timestamp:', new Date().toISOString());
 
 import { Request, Response } from 'express';
-import { SimplifiedCustomFieldRepository } from '../infrastructure/repositories/SimplifiedCustomFieldRepository';
+import { SimplifiedCustomFieldRepository } from '../../infrastructure/repositories/SimplifiedCustomFieldRepository';
 
 export class CustomFieldController {
   private repository: SimplifiedCustomFieldRepository;
@@ -59,7 +59,7 @@ export class CustomFieldController {
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve custom fields',
-        details: error?.message || 'Unknown error'
+        details: (error as Error)?.message || 'Unknown error'
       });
     }
   }
@@ -105,7 +105,7 @@ export class CustomFieldController {
       res.status(500).json({
         success: false,
         error: 'Failed to create custom field',
-        details: error?.message || 'Unknown error'
+        details: (error as Error)?.message || 'Unknown error'
       });
     }
   }
@@ -151,7 +151,7 @@ export class CustomFieldController {
       res.status(500).json({
         success: false,
         error: 'Failed to update custom field',
-        details: error?.message || 'Unknown error'
+        details: (error as Error)?.message || 'Unknown error'
       });
     }
   }
@@ -194,7 +194,7 @@ export class CustomFieldController {
       res.status(500).json({
         success: false,
         error: 'Failed to delete custom field',
-        details: error?.message || 'Unknown error'
+        details: (error as Error)?.message || 'Unknown error'
       });
     }
   }

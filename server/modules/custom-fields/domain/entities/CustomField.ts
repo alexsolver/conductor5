@@ -32,6 +32,9 @@ export interface CustomField {
   updatedBy?: string;
 }
 
+// Alias for backwards compatibility
+export type CustomFieldMetadata = CustomField;
+
 export class CustomFieldEntity {
   constructor(
     public readonly id: string,

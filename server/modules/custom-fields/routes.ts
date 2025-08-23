@@ -27,7 +27,7 @@ const customFieldController = new CustomFieldController(customFieldRepository, l
 console.log('🔥 [CUSTOM-FIELDS-ROUTER] Controllers initialized following Clean Architecture');
 
 // ✅ 1QA.MD: All routes use JWT authentication middleware
-router.get('/fields/:moduleType', jwtAuth, async (req, res) => {
+router.get('/fields/:moduleType', jwtAuth, async (req: any, res: any) => {
   const startTime = Date.now();
   logger.logInfo('=== GET /fields/:moduleType ROUTE CALLED ===', { 
     moduleType: req.params.moduleType,
@@ -50,13 +50,13 @@ router.get('/fields/:moduleType', jwtAuth, async (req, res) => {
       res.status(500).json({ 
         success: false, 
         error: 'Internal server error in custom fields route',
-        details: error.message 
+        details: (error as Error).message 
       });
     }
   }
 });
 
-router.post('/fields', jwtAuth, async (req, res) => {
+router.post('/fields', jwtAuth, async (req: any, res: any) => {
   const startTime = Date.now();
   logger.logInfo('=== POST /fields ROUTE CALLED ===', {
     body: req.body,
@@ -77,13 +77,13 @@ router.post('/fields', jwtAuth, async (req, res) => {
       res.status(500).json({ 
         success: false, 
         error: 'Internal server error in create custom field route',
-        details: error.message 
+        details: (error as Error).message 
       });
     }
   }
 });
 
-router.put('/fields/:fieldId', jwtAuth, async (req, res) => {
+router.put('/fields/:fieldId', jwtAuth, async (req: any, res: any) => {
   const startTime = Date.now();
   logger.logInfo('=== PUT /fields/:fieldId ROUTE CALLED ===', { 
     fieldId: req.params.fieldId,
@@ -103,13 +103,13 @@ router.put('/fields/:fieldId', jwtAuth, async (req, res) => {
       res.status(500).json({ 
         success: false, 
         error: 'Internal server error in update custom field route',
-        details: error.message 
+        details: (error as Error).message 
       });
     }
   }
 });
 
-router.delete('/fields/:fieldId', jwtAuth, async (req, res) => {
+router.delete('/fields/:fieldId', jwtAuth, async (req: any, res: any) => {
   const startTime = Date.now();
   logger.logInfo('=== DELETE /fields/:fieldId ROUTE CALLED ===', { 
     fieldId: req.params.fieldId,
@@ -129,7 +129,7 @@ router.delete('/fields/:fieldId', jwtAuth, async (req, res) => {
       res.status(500).json({ 
         success: false, 
         error: 'Internal server error in delete custom field route',
-        details: error.message 
+        details: (error as Error).message 
       });
     }
   }
