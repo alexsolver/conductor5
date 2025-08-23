@@ -1912,11 +1912,16 @@ export const InteractiveMap: React.FC = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Exit fullscreen clicked');
+                  console.log('Exit fullscreen clicked - current state:', isFullscreen);
+                  console.log('Body classes before:', document.body.className);
+                  
                   setIsFullscreen(false);
                   document.body.classList.remove('fullscreen-map-active');
                   document.body.style.cssText = '';
                   document.documentElement.style.cssText = '';
+                  
+                  console.log('Body classes after:', document.body.className);
+                  console.log('IsFullscreen set to false');
                 }}
                 onMouseDown={(e) => {
                   e.preventDefault();
