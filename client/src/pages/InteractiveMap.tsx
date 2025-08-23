@@ -1295,6 +1295,7 @@ export const InteractiveMap: React.FC = () => {
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<any>(null); // Use 'any' for mock data structure
+  const [activeLayer, setActiveLayer] = useState<'osm' | 'satellite'>('osm');
 
   // Auto-hide sidebar when component mounts and show when unmounts
   useEffect(() => {
@@ -1460,6 +1461,7 @@ export const InteractiveMap: React.FC = () => {
     queryFn: async () => {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
+      // Use mockAgents directly for now, replace with actual API fetch
       return { success: true, data: { agents: mockAgents } };
     },
     refetchInterval: settings.autoRefresh ? settings.refreshInterval * 1000 : false,
@@ -1491,73 +1493,104 @@ export const InteractiveMap: React.FC = () => {
   // Data Processing and Filtering (Memoized for performance)
   // ===========================================================================================
 
-  const filteredAgents = useMemo(() => agents.filter(agent => {
-    // Apply search term filter
-    const search = searchTerm.toLowerCase();
-    const matchesSearch = agent.name.toLowerCase().includes(search) ||
-                          agent.team.toLowerCase().includes(search) ||
-                          agent.skills.some(skill => skill.toLowerCase().includes(search)) ||
-                          agent.assigned_ticket_id?.toLowerCase().includes(search);
+  const filteredAgents = useMemo(() => {
+    if (!agentsData?.data?.agents || agentsData.data.agents.length === 0) return [];
 
-    if (!matchesSearch) return false;
+    return agentsData.data.agents.filter(agent => {
+      // Search filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = 
+          agent.name.toLowerCase().includes(searchLower) ||
+          agent.team.toLowerCase().includes(searchLower) ||
+          agent.skills?.some(skill => skill.toLowerCase().includes(searchLower));
 
-    // Apply status filter
-    if (filters.status.length > 0 && !filters.status.includes(agent.status)) return false;
+        if (!matchesSearch) return false;
+      }
 
-    // Apply team filter
-    if (filters.teams.length > 0 && !filters.teams.includes(agent.team)) return false;
+      // Status filter
+      if (filters.status.length > 0 && !filters.status.includes(agent.status)) {
+        return false;
+      }
 
-    // Apply skills filter
-    if (filters.skills.length > 0 && !filters.skills.some(skill => agent.skills.includes(skill))) return false;
+      // Team filter
+      if (filters.teams.length > 0 && !filters.teams.includes(agent.team)) {
+        return false;
+      }
 
-    // Apply battery level filter
-    if (agent.device_battery !== null && (agent.device_battery < filters.batteryLevel.min || agent.device_battery > filters.batteryLevel.max)) return false;
+      // Skills filter
+      if (filters.skills.length > 0) {
+        const hasRequiredSkill = filters.skills.some(skill => 
+          agent.skills?.includes(skill)
+        );
+        if (!hasRequiredSkill) return false;
+      }
 
-    // Apply last activity filter
-    if (agent.last_ping_at) {
-      const lastActivityTime = new Date(agent.last_ping_at).getTime();
-      const cutoffTime = Date.now() - filters.lastActivityMinutes * 60000;
-      if (lastActivityTime < cutoffTime) return false;
-    }
+      // Battery level filter
+      if (agent.device_battery !== null) {
+        if (agent.device_battery < filters.batteryLevel.min || 
+            agent.device_battery > filters.batteryLevel.max) {
+          return false;
+        }
+      }
 
-    // Apply assigned tickets only filter
-    if (filters.assignedTicketsOnly && !agent.assigned_ticket_id) return false;
+      // Last activity filter
+      if (agent.last_ping_at) {
+        const lastActivity = new Date(agent.last_ping_at);
+        const minutesAgo = (Date.now() - lastActivity.getTime()) / (1000 * 60);
+        if (minutesAgo > filters.lastActivityMinutes) {
+          return false;
+        }
+      }
 
-    // Apply on duty only filter
-    if (filters.onDutyOnly && !agent.is_on_duty) return false;
+      // Accuracy filter
+      if (agent.accuracy !== null && agent.accuracy > filters.accuracyThreshold) {
+        return false;
+      }
 
-    // Apply accuracy threshold filter
-    if (agent.accuracy !== null && agent.accuracy > filters.accuracyThreshold) return false;
+      // Assigned tickets filter
+      if (filters.assignedTicketsOnly && !agent.assigned_ticket_id) {
+        return false;
+      }
 
-    // Apply SLA risk filter
-    if (filters.slaRisk && !agent.sla_risk) return false;
+      // On duty filter
+      if (filters.onDutyOnly && !agent.is_on_duty) {
+        return false;
+      }
+
+      // SLA risk filter
+      if (filters.slaRisk && !agent.sla_risk) return false;
 
     return true;
-  }), [filteredAgents, filters, searchTerm]);
+  });
+  }, [agentsData?.data?.agents, filters, searchTerm]);
 
   // Agent Statistics (Memoized for performance)
-  const agentStats = useMemo(() => ({
-    total: agents.length,
-    online: agents.filter(a => a.is_online).length,
-    onDuty: agents.filter(a => a.is_on_duty).length,
-    assigned: agents.filter(a => a.assigned_ticket_id).length,
-    slaRisk: agents.filter(a => a.sla_risk).length,
-    batteryLow: agents.filter(a => a.battery_warning).length,
-    signalWeak: agents.filter(a => a.signal_warning).length,
-    statusBreakdown: agents.reduce((acc, agent) => {
-      acc[agent.status] = (acc[agent.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>)
-  }), [agents]);
+  const agentStats = useMemo(() => {
+    const agents = agentsData?.data?.agents || [];
+    return {
+      total: agents.length,
+      online: agents.filter(a => a.is_online).length,
+      onDuty: agents.filter(a => a.is_on_duty).length,
+      assigned: agents.filter(a => a.assigned_ticket_id).length,
+      slaRisk: agents.filter(a => a.sla_risk).length,
+      batteryLow: agents.filter(a => a.battery_warning).length,
+      signalWeak: agents.filter(a => a.signal_warning).length,
+      statusBreakdown: agents.reduce((acc, agent) => {
+        acc[agent.status] = (acc[agent.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    };
+  }, [agentsData?.data?.agents]);
 
   const uniqueTeams = useMemo(() => 
-    [...new Set(agents.map(a => a.team))].filter(Boolean), 
-    [agents]
+    [...new Set(agentsData?.data?.agents?.map(a => a.team))].filter(Boolean), 
+    [agentsData?.data?.agents]
   );
 
   const uniqueSkills = useMemo(() => 
-    [...new Set(agents.flatMap(a => a.skills))].filter(Boolean), 
-    [agents]
+    [...new Set(agentsData?.data?.agents?.flatMap(a => a.skills))].filter(Boolean), 
+    [agentsData?.data?.agents]
   );
 
   // ===========================================================================================
@@ -1782,7 +1815,7 @@ export const InteractiveMap: React.FC = () => {
                     onFiltersChange={setFilters}
                     teams={uniqueTeams}
                     skills={uniqueSkills}
-                    agentStats={agentStatsData?.data}
+                    agentStats={agentStats}
                   />
                 </div>
               </SheetContent>
@@ -2585,3 +2618,20 @@ export const InteractiveMap: React.FC = () => {
 };
 
 export default InteractiveMap;
+
+// Helper component for map events
+const MapEvents: React.FC<{ mapRef: React.MutableRefObject<L.Map | null> }> = ({ mapRef }) => {
+  useMapEvents({
+    zoomend: (e) => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    },
+    moveend: (e) => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    },
+  });
+  return null;
+};
