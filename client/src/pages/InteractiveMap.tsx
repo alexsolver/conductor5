@@ -340,6 +340,12 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
             eventHandlers={{
               click: (e) => {
                 e.originalEvent.stopPropagation();
+              },
+              mouseover: (e) => {
+                e.target.setStyle({ fillOpacity: 0.6 });
+              },
+              mouseout: (e) => {
+                e.target.setStyle({ fillOpacity: weatherInfo.opacity });
               }
             }}
           >
