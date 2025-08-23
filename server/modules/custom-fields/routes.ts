@@ -1,14 +1,17 @@
 // ✅ 1QA.MD COMPLIANCE: CUSTOM FIELDS ROUTES
 // Infrastructure layer - Express route definitions following Clean Architecture
 
+console.log('🔥 [CUSTOM-FIELDS-ROUTER] *** FILE LOADING START *** following 1qa.md');
+console.log('🔥 [CUSTOM-FIELDS-ROUTER] Timestamp:', new Date().toISOString());
+
 import { Router, Request, Response } from 'express';
 import { CustomFieldController } from './application/controllers/CustomFieldController';
 import { SimplifiedCustomFieldRepository } from './infrastructure/repositories/SimplifiedCustomFieldRepository';
 
 const router = Router();
 
-// ✅ 1QA.MD COMPLIANCE: Clean Architecture dependency injection
-console.log('🔥 [CUSTOM-FIELDS-ROUTER] Initializing following 1qa.md patterns...');
+console.log('🔥 [CUSTOM-FIELDS-ROUTER] *** ROUTER CREATED *** following 1qa.md');
+console.log('🔥 [CUSTOM-FIELDS-ROUTER] Router type:', typeof router);
 
 // Simple logger following 1qa.md patterns
 const logger = {
