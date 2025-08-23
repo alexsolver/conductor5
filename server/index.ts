@@ -454,6 +454,12 @@ app.use((req, res, next) => {
   }, customFieldsRoutes);
   console.log('🔥 [SERVER] Custom fields routes registered at /api/custom-fields');
 
+  // ✅ 1QA.MD: Interactive Map routes - Real-time field agent tracking
+  console.log('🗺️ [SERVER] Registering interactive-map routes...');
+  const interactiveMapRoutes = (await import('./modules/interactive-map/routes')).interactiveMapRoutes;
+  app.use('/api/interactive-map', jwtAuth, tenantValidator, interactiveMapRoutes);
+  console.log('🗺️ [SERVER] Interactive map routes registered at /api/interactive-map');
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
