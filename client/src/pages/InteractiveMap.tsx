@@ -43,8 +43,7 @@ import {
   Grid3X3,
   Move,
   History,
-  CloudRain,
-  X
+  CloudRain
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1757,87 +1756,8 @@ export const InteractiveMap: React.FC = () => {
                 // Force body class toggle for overflow control
                 if (newFullscreenState) {
                   document.body.classList.add('fullscreen-map-active');
-                  
-                  // Ultra-aggressive JavaScript fullscreen fix
-                  setTimeout(() => {
-                    const container = document.querySelector('.fullscreen-map-container') as HTMLElement;
-                    const mapDiv = document.querySelector('.fullscreen-map') as HTMLElement;
-                    const leafletContainer = document.querySelector('.leaflet-container') as HTMLElement;
-                    
-                    const vw = window.innerWidth;
-                    const vh = window.innerHeight;
-                    
-                    if (container) {
-                      container.style.cssText = `
-                        position: fixed !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        width: ${vw}px !important;
-                        height: ${vh}px !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        z-index: 9999 !important;
-                        overflow: hidden !important;
-                        box-sizing: border-box !important;
-                      `;
-                    }
-                    
-                    if (mapDiv) {
-                      mapDiv.style.cssText = `
-                        position: fixed !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        width: ${vw}px !important;
-                        height: ${vh}px !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        overflow: hidden !important;
-                        box-sizing: border-box !important;
-                      `;
-                    }
-                    
-                    if (leafletContainer) {
-                      leafletContainer.style.cssText = `
-                        position: fixed !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        width: ${vw}px !important;
-                        height: ${vh}px !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        box-sizing: border-box !important;
-                      `;
-                      
-                      // Force Leaflet to invalidate size
-                      const leafletMap = (leafletContainer as any)._leaflet_map;
-                      if (leafletMap) {
-                        leafletMap.invalidateSize(true);
-                      }
-                    }
-                    
-                    // Force body and html dimensions
-                    document.body.style.cssText = `
-                      overflow: hidden !important;
-                      width: ${vw}px !important;
-                      height: ${vh}px !important;
-                      margin: 0 !important;
-                      padding: 0 !important;
-                      box-sizing: border-box !important;
-                    `;
-                    
-                    document.documentElement.style.cssText = `
-                      overflow: hidden !important;
-                      width: ${vw}px !important;
-                      height: ${vh}px !important;
-                      margin: 0 !important;
-                      padding: 0 !important;
-                      box-sizing: border-box !important;
-                    `;
-                  }, 150);
                 } else {
                   document.body.classList.remove('fullscreen-map-active');
-                  document.body.style.cssText = '';
-                  document.documentElement.style.cssText = '';
                 }
               }}
               data-testid="fullscreen-toggle"
@@ -1904,49 +1824,6 @@ export const InteractiveMap: React.FC = () => {
 
           {/* Main Content */}
           <div className={`${isFullscreen ? 'fullscreen-map-container bg-background overflow-hidden' : 'flex-1 relative'}`}>
-            
-            {/* Botão de sair do fullscreen - sempre visível */}
-            {isFullscreen && (
-              <button
-                className="fixed top-4 left-4 z-[10001] bg-red-500/90 hover:bg-red-600/90 backdrop-blur-sm shadow-lg border-2 border-red-600 rounded-md p-3 transition-colors cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  
-                  console.log('🔴 CLICK - Exit fullscreen button clicked');
-                  console.log('🔴 BEFORE - isFullscreen:', isFullscreen);
-                  console.log('🔴 BEFORE - body classes:', document.body.className);
-                  console.log('🔴 BEFORE - body style:', document.body.style.cssText);
-                  
-                  // Força a remoção imediata de todas as classes e estilos
-                  document.body.classList.remove('fullscreen-map-active');
-                  document.body.style.cssText = '';
-                  document.documentElement.style.cssText = '';
-                  
-                  // Força uma atualização imediata do DOM
-                  setTimeout(() => {
-                    console.log('🔴 TIMEOUT - Setting isFullscreen to false');
-                    setIsFullscreen(false);
-                    
-                    // Segunda verificação
-                    setTimeout(() => {
-                      console.log('🔴 AFTER - isFullscreen should be false');
-                      console.log('🔴 AFTER - body classes:', document.body.className);
-                      console.log('🔴 AFTER - body style:', document.body.style.cssText);
-                    }, 100);
-                  }, 0);
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                data-testid="fullscreen-exit"
-                title="Sair do modo fullscreen"
-              >
-                <X className="w-5 h-5 text-white font-bold" />
-              </button>
-            )}
-            
             {/* Map Container */}
             <div className={`${isFullscreen ? 'fullscreen-map' : 'h-full'}`}>
             <MapContainer
