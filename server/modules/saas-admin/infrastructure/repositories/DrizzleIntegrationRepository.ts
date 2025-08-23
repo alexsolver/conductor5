@@ -20,12 +20,14 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
 
   async findAll(): Promise<Integration[]> {
     try {
+      console.log('[INTEGRATION-REPO] Fetching all integrations from PUBLIC schema (saas_integrations)');
       // Para SaaS admin, as integrações são globais (não específicas por tenant)
       const results = await db
         .select()
         .from(saasSchema.saasIntegrations)
         .orderBy(saasSchema.saasIntegrations.name);
 
+      console.log('[INTEGRATION-REPO] Found integrations in PUBLIC schema:', results.length);
       return results.map(this.mapToEntity);
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error finding all integrations:', error);
@@ -65,6 +67,14 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
 
   async save(integration: Integration): Promise<Integration> {
     try {
+      console.log('[INTEGRATION-REPO] Attempting to save integration to PUBLIC schema (saas_integrations):', {
+        id: integration.id,
+        provider: integration.provider,
+        name: integration.name,
+        hasConfig: !!integration.config,
+        configKeys: integration.config ? Object.keys(integration.config) : []
+      });
+
       const [result] = await db
         .insert(saasSchema.saasIntegrations)
         .values({
@@ -79,9 +89,19 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         })
         .returning();
 
+      console.log('[INTEGRATION-REPO] Successfully saved integration:', {
+        id: result.id,
+        provider: result.provider,
+        savedToDb: true
+      });
+
       return this.mapToEntity(result);
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error saving integration:', error);
+      console.error('[INTEGRATION-REPO] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
       throw new Error('Failed to save integration');
     }
   }
@@ -124,13 +144,27 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
 
   async updateOpenWeatherApiKey(apiKey: string): Promise<Integration> {
     try {
+      console.log('[INTEGRATION-REPO] Starting updateOpenWeatherApiKey with apiKey:', apiKey.substring(0, 8) + '...');
+      
       // Check if OpenWeather integration exists
       let integration = await this.getOpenWeatherConfig();
       
+      console.log('[INTEGRATION-REPO] Existing integration found:', !!integration);
+      
       if (!integration) {
         // Create new OpenWeather integration
+        console.log('[INTEGRATION-REPO] Creating new OpenWeather integration...');
         integration = Integration.createOpenWeatherIntegration(apiKey);
-        return await this.save(integration);
+        
+        console.log('[INTEGRATION-REPO] Created integration entity:', {
+          id: integration.id,
+          provider: integration.provider,
+          name: integration.name
+        });
+        
+        const savedIntegration = await this.save(integration);
+        console.log('[INTEGRATION-REPO] Integration saved successfully');
+        return savedIntegration;
       } else {
         // Update existing integration
         const updatedConfig: IntegrationConfig = {
