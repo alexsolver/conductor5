@@ -8,7 +8,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { sidebarCollapsed, toggleSidebar, sidebarHidden } = useSidebar();
+  const { sidebarCollapsed, toggleSidebar, sidebarHidden, headerHidden } = useSidebar();
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -19,7 +19,7 @@ export function AppShell({ children }: AppShellProps) {
         />
       )}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
+        {!headerHidden && <Header />}
         <main className="flex-1 relative overflow-y-auto focus:outline-none ml-[10px] mr-[10px]">
           {children}
         </main>

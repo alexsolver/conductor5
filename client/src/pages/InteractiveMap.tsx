@@ -4,7 +4,6 @@
 // ===========================================================================================
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, LayersControl, useMap } from 'react-leaflet';
 import { Icon, divIcon, LatLngBounds, LatLng } from 'leaflet';
@@ -991,10 +990,9 @@ export const InteractiveMap: React.FC = () => {
   const [viewportBounds, setViewportBounds] = useState<ViewportBounds | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([-23.5505, -46.6333]); // São Paulo
   const [mapZoom, setMapZoom] = useState(12);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
-  const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden } = useSidebar();
+  const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden, toggleHeader, headerHidden } = useSidebar();
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // State for the help modal
 
@@ -1746,22 +1744,13 @@ export const InteractiveMap: React.FC = () => {
               <Download className="w-4 h-4" />
             </Button>
 
-            {/* Fullscreen Toggle */}
+            {/* Toggle Menu Principal */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                const newFullscreenState = !isFullscreen;
-                setIsFullscreen(newFullscreenState);
-                
-                // Force body class toggle for overflow control
-                if (newFullscreenState) {
-                  document.body.classList.add('fullscreen-map-active');
-                } else {
-                  document.body.classList.remove('fullscreen-map-active');
-                }
-              }}
-              data-testid="fullscreen-toggle"
+              onClick={toggleHeader}
+              data-testid="header-toggle"
+              title={headerHidden ? "Mostrar menu principal" : "Esconder menu principal"}
             >
               <Maximize2 className="w-4 h-4" />
             </Button>
@@ -1786,106 +1775,52 @@ export const InteractiveMap: React.FC = () => {
               </Tooltip>
             </TooltipProvider>
 
-            {/* Legend Modal Portal */}
-            {isHelpModalOpen && isFullscreen && createPortal(
-              <div 
-                className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50"
-                onClick={(e) => e.target === e.currentTarget && setIsHelpModalOpen(false)}
-              >
-                <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full m-4 max-h-[80vh] overflow-y-auto">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-5 h-5" />
-                        <h2 className="text-lg font-semibold">Legenda do Mapa</h2>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsHelpModalOpen(false)}
-                        className="h-8 w-8 p-0"
-                      >
-                        ✕
-                      </Button>
+            {/* Regular Dialog */}
+            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Layers className="w-5 h-5" />
+                    Legenda do Mapa
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
+                    <div className="space-y-1 text-sm">
+                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
+                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
+                      <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
                     </div>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
-                        <div className="space-y-1 text-sm">
-                          <div><kbd className="px-2 py-1 bg-gray-100 rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
-                          <div><kbd className="px-2 py-1 bg-gray-100 rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
-                          <div><kbd className="px-2 py-1 bg-gray-100 rounded">Esc</kbd> - Limpar seleção</div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Cores de Status</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                        <div key={status} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                          <span className="flex-1">{status.replace('_', ' ')}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {agents.filter(a => a.status === status).length}
+                          </Badge>
                         </div>
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-2">Cores de Status</h4>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                            <div key={status} className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                              <span className="flex-1">{status.replace('_', ' ')}</span>
-                              <Badge variant="secondary" className="text-xs">
-                                {agents.filter(a => a.status === status).length}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
-              </div>,
-              document.body
-            )}
-
-            {/* Regular Dialog for non-fullscreen */}
-            {!isFullscreen && (
-              <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Layers className="w-5 h-5" />
-                      Legenda do Mapa
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
-                      <div className="space-y-1 text-sm">
-                        <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
-                        <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
-                        <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium mb-2">Cores de Status</h4>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                          <div key={status} className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                            <span className="flex-1">{status.replace('_', ' ')}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {agents.filter(a => a.status === status).length}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
           {/* Main Content */}
-          <div className={`${isFullscreen ? 'fullscreen-map-container bg-background overflow-hidden' : 'flex-1 relative'}`}>
+          <div className="flex-1 relative">
             {/* Map Container */}
-            <div className={`${isFullscreen ? 'fullscreen-map' : 'h-full'}`}>
+            <div className="h-full">
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
-              className={`${isFullscreen ? 'fullscreen-map border-0' : 'h-full w-full'}`}
+              className="h-full w-full"
               zoomControl={true}
             >
               <LayersControl position="topright">

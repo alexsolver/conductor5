@@ -6,6 +6,9 @@ interface SidebarContextType {
   toggleSidebar: () => void;
   sidebarHidden: boolean;
   setSidebarHidden: (hidden: boolean) => void;
+  headerHidden: boolean;
+  setHeaderHidden: (hidden: boolean) => void;
+  toggleHeader: () => void;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
@@ -13,9 +16,14 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarHidden, setSidebarHidden] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const toggleHeader = () => {
+    setHeaderHidden(!headerHidden);
   };
 
   return (
@@ -24,7 +32,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       setSidebarCollapsed, 
       toggleSidebar,
       sidebarHidden,
-      setSidebarHidden
+      setSidebarHidden,
+      headerHidden,
+      setHeaderHidden,
+      toggleHeader
     }}>
       {children}
     </SidebarContext.Provider>
