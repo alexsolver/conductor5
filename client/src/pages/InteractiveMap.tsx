@@ -140,6 +140,81 @@ interface MapSettings {
   reduceMotion: boolean;
 }
 
+// Mock weather data for visualization
+const mockWeatherData = {
+  'good': { temp: 25, condition: 'Ensolarado', color: '#87CEEB', radius: 10000 }, // Azul claro
+  'normal': { temp: 18, condition: 'Parcialmente nublado', color: '#90EE90', radius: 8000 }, // Verde claro
+  'bad': { temp: 10, condition: 'Chuva', color: '#A9A9A9', radius: 6000 }, // Cinza escuro
+  'stormy': { temp: 5, condition: 'Tempestade', color: '#DC143C', radius: 4000 } // Vermelho
+};
+
+// Function to determine weather condition based on temperature (example)
+const getWeatherCondition = (temp: number): keyof typeof mockWeatherData => {
+  if (temp >= 24) return 'good';
+  if (temp >= 15) return 'normal';
+  if (temp >= 8) return 'bad';
+  return 'stormy';
+};
+
+// Component for Weather Visualization Layer
+const WeatherVisualizationLayer: React.FC = () => {
+  const map = useMap();
+  const [weatherData, setWeatherData] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Fetch or mock weather data
+    const fetchWeatherData = async () => {
+      // In a real application, you would fetch this from an API
+      const dummyData = [
+        { lat: -23.5505, lng: -46.6333, temp: 26 }, // Bom
+        { lat: -23.6000, lng: -46.7000, temp: 19 }, // Normal
+        { lat: -23.5000, lng: -46.5500, temp: 9 },  // Ruim
+        { lat: -23.6500, lng: -46.6000, temp: 4 }   // Tempestade
+      ];
+      setWeatherData(dummyData);
+    };
+
+    fetchWeatherData();
+  }, []);
+
+  return (
+    <>
+      {weatherData.map((data, index) => {
+        const condition = getWeatherCondition(data.temp);
+        const weatherInfo = mockWeatherData[condition];
+        return (
+          <CircleMarker
+            key={index}
+            center={[data.lat, data.lng]}
+            radius={weatherInfo.radius / map.options.crs.scale(map.getZoom())} // Adjust radius based on zoom level
+            pathOptions={{
+              color: weatherInfo.color,
+              fillColor: weatherInfo.color,
+              fillOpacity: 0.3,
+              weight: 1,
+            }}
+          >
+            <Popup>
+              <div className="space-y-2">
+                <div className="font-semibold">
+                  {weatherInfo.condition === 'good' && '☀️'}
+                  {weatherInfo.condition === 'normal' && '☁️'}
+                  {weatherInfo.condition === 'bad' && '🌧️'}
+                  {weatherInfo.condition === 'stormy' && '⛈️'}
+                  Condições Climáticas
+                </div>
+                <div className="text-sm">Temperatura: {data.temp}°C</div>
+                <div className="text-sm">Condição: {weatherInfo.condition}</div>
+              </div>
+            </Popup>
+          </CircleMarker>
+        );
+      })}
+    </>
+  );
+};
+
+
 // ===========================================================================================
 // Color System - Exact Colors from Specification
 // ===========================================================================================
@@ -1406,8 +1481,8 @@ export const InteractiveMap: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="bottom" sideOffset={5} className="z-[99999] min-w-[150px]">
-                <DropdownMenuItem 
-                  onClick={() => setActiveLayer('osm')} 
+                <DropdownMenuItem
+                  onClick={() => setActiveLayer('osm')}
                   className={`cursor-pointer ${activeLayer === 'osm' ? 'bg-accent' : ''}`}
                 >
                   <div className="flex items-center w-full">
@@ -1416,8 +1491,8 @@ export const InteractiveMap: React.FC = () => {
                     {activeLayer === 'osm' && <div className="ml-auto text-xs">✓</div>}
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setActiveLayer('satellite')} 
+                <DropdownMenuItem
+                  onClick={() => setActiveLayer('satellite')}
                   className={`cursor-pointer ${activeLayer === 'satellite' ? 'bg-accent' : ''}`}
                 >
                   <div className="flex items-center w-full">
@@ -1857,6 +1932,16 @@ export const InteractiveMap: React.FC = () => {
               zoomControl={true}
               style={{ background: '#f8fafc' }}
               ref={mapRef}
+              // Added onMoveend to capture viewport bounds changes
+              whenReady={(mapInstance) => {
+                setViewportBounds({
+                  north: mapInstance.target.getBounds().getNorth(),
+                  south: mapInstance.target.getBounds().getSouth(),
+                  east: mapInstance.target.getBounds().getEast(),
+                  west: mapInstance.target.getBounds().getWest(),
+                });
+              }}
+              whenMoveend={(mapInstance) => handleMapMove(mapInstance.target.getBounds(), mapInstance.target.getZoom())}
             >
               {/* Base Layer */}
               {activeLayer === 'osm' ? (
@@ -1873,7 +1958,7 @@ export const InteractiveMap: React.FC = () => {
               )}
 
               {/* Agent Markers */}
-              {visibleAgents.map(agent => 
+              {visibleAgents.map(agent =>
                 agent.lat !== null && agent.lng !== null ? (
                   <div key={agent.id}>
                     <Marker
@@ -1993,29 +2078,7 @@ export const InteractiveMap: React.FC = () => {
 
               {/* Weather Layer */}
               {showWeatherLayer && (
-                <div>
-                  {/* Weather overlay implementation would go here */}
-                  <CircleMarker
-                    center={[-23.5505, -46.6333]}
-                    radius={100}
-                    pathOptions={{
-                      color: '#60a5fa',
-                      fillColor: '#60a5fa',
-                      fillOpacity: 0.2,
-                      weight: 1,
-                      dashArray: '5, 5'
-                    }}
-                  >
-                    <Popup>
-                      <div className="space-y-2">
-                        <div className="font-semibold">🌤️ Condições Climáticas</div>
-                        <div className="text-sm">Temperatura: 23°C</div>
-                        <div className="text-sm">Umidade: 65%</div>
-                        <div className="text-sm">Precipitação: 0mm</div>
-                      </div>
-                    </Popup>
-                  </CircleMarker>
-                </div>
+                <WeatherVisualizationLayer />
               )}
 
               {/* Traffic Layer */}
