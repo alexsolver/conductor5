@@ -1342,6 +1342,7 @@ export const InteractiveMap: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
   const [selectedTrajectory, setSelectedTrajectory] = useState<AgentTrajectory | null>(null);
   const [currentTrajectoryIndex, setCurrentTrajectoryIndex] = useState(0);
+  const [trajectoryAgentId, setTrajectoryAgentId] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
   const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden, toggleHeader, headerHidden } = useSidebar();
@@ -2270,8 +2271,10 @@ export const InteractiveMap: React.FC = () => {
                 />
               )}
 
-              {/* Agent Markers */}
-              {visibleAgents.map(agent =>
+              {/* Agent Markers - Hide all except selected agent during trajectory replay */}
+              {visibleAgents
+                .filter(agent => !trajectoryAgentId || agent.id === trajectoryAgentId)
+                .map(agent =>
                 agent.lat !== null && agent.lng !== null ? (
                   <div key={agent.id}>
                     <Marker
@@ -2287,6 +2290,10 @@ export const InteractiveMap: React.FC = () => {
                           onOpenTrajectory={async (selectedAgent) => {
                             try {
                               console.log('📍 [TRAJECTORY] Carregando trajetória do banco para:', selectedAgent.name);
+                              
+                              // Fechar o modal do agente e mostrar apenas o agente selecionado
+                              setSelectedAgent(null);
+                              setTrajectoryAgentId(selectedAgent.id);
                               
                               // Mapear o ID do agente para o agent_id correto
                               const agentIdMapping: { [key: string]: string } = {
@@ -2613,6 +2620,7 @@ export const InteractiveMap: React.FC = () => {
                   setTrajectoryModalOpen(false);
                   setSelectedTrajectory(null);
                   setCurrentTrajectoryIndex(0);
+                  setTrajectoryAgentId(null);
                 }}
                 onExport={async (format) => {
                   console.log(`📥 [EXPORT] Exportando trajetória ${format.toUpperCase()}...`);
