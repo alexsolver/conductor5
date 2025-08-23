@@ -1,5 +1,9 @@
 import { Router } from 'express';
 
+// Startup log to confirm router loads
+console.log('🔥 [CUSTOM-FIELDS-ROUTER] Router file loading...');
+console.log('🔥 [CUSTOM-FIELDS-ROUTER] Timestamp:', new Date().toISOString());
+
 const router = Router();
 
 // Simple logger following 1qa.md patterns
