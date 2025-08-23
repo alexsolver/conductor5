@@ -1335,6 +1335,9 @@ export const InteractiveMap: React.FC = () => {
   const [showTrafficLayer, setShowTrafficLayer] = useState(false);
   const [weatherRadius, setWeatherRadius] = useState(8000); // Default 8km radius
 
+  // State for the help modal
+  const [showHelpModal, setShowHelpModal] = useState(false);
+
   // ===========================================================================================
   // Mock Data (for demo purposes until backend is ready)
   // ===========================================================================================
@@ -1568,7 +1571,22 @@ export const InteractiveMap: React.FC = () => {
   const handleAgentClick = useCallback((agent: AgentPosition) => {
     setSelectedAgent(agent);
     setMapCenter([agent.lat!, agent.lng!]);
-  }, []);
+
+    // Only set weather data if weather layer is enabled
+    if (showWeatherLayer) {
+      setSelectedPoint({
+        name: agent.name,
+        weather: { // Mock weather data structure for the modal
+          temperature: agent.device_battery, // Using battery as placeholder
+          humidity: agent.signal_strength ? Math.abs(agent.signal_strength) : 70, // Using signal as placeholder
+          windSpeed: agent.speed || 10, // Using speed as placeholder
+          description: agent.status === 'available' ? 'Bom' : agent.status === 'in_transit' ? 'Parcialmente nublado' : 'Nublado', // Mock description
+          condition: agent.status === 'available' ? 'Céu Limpo' : agent.status === 'in_transit' ? 'Ensolarado' : 'Chuva Leve', // Mock condition
+          lastUpdate: new Date().toLocaleTimeString()
+        }
+      });
+    }
+  }, [showWeatherLayer]);
 
   const handleExportData = useCallback(() => {
     const dataToExport = {
@@ -1617,6 +1635,7 @@ export const InteractiveMap: React.FC = () => {
           setSelectedAgents([]);
           setIsHelpModalOpen(false); // Close help modal on Escape
           setSelectedPoint(null); // Close the weather modal on Escape
+          setShowHelpModal(false); // Also close the dedicated help modal
           break;
         case 'r':
           if (e.ctrlKey || e.metaKey) {
@@ -2112,58 +2131,154 @@ export const InteractiveMap: React.FC = () => {
               <Maximize2 className="w-4 h-4" />
             </Button>
 
-            {/* Help / Legend Modal */}
+            {/* Help Button */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-gray-50"
-                    data-testid="help-button"
-                    onClick={() => setIsHelpModalOpen(true)}
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      console.log('🔍 [HELP] Help button clicked');
+                      setShowHelpModal(true);
+                    }}
                   >
                     <HelpCircle className="w-4 h-4" />
+                    <span className="sr-only">Ajuda</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Ajuda do Mapa</p>
+                  <p>Como usar o mapa</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
-            {/* Regular Dialog */}
-            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
-              <DialogContent className="max-w-2xl">
+            {/* Help Modal */}
+            <Dialog open={showHelpModal} onOpenChange={setShowHelpModal}>
+              <DialogTrigger asChild>
+                <div style={{ display: 'none' }} />
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <Layers className="w-5 h-5" />
-                    Legenda do Mapa
+                    <HelpCircle className="w-5 h-5" />
+                    Como usar o Mapa Interativo
                   </DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
+
+                <div className="space-y-6">
+                  {/* Navigation Help */}
                   <div>
-                    <h4 className="font-medium mb-2">Atalhos de Teclado</h4>
-                    <div className="space-y-1 text-sm">
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + F</kbd> - Buscar agentes</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Ctrl/Cmd + R</kbd> - Atualizar dados</div>
-                      <div><kbd className="px-2 py-1 bg-muted rounded">Esc</kbd> - Limpar seleção</div>
-                    </div>
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Navigation className="w-4 h-4" />
+                      Navegação
+                    </h3>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• <kbd>Click + Drag</kbd>: Mover o mapa</li>
+                      <li>• <kbd>Scroll</kbd> ou <kbd>+/-</kbd>: Zoom in/out</li>
+                      <li>• <kbd>Duplo click</kbd>: Zoom rápido</li>
+                      <li>• <kbd>Shift + Drag</kbd>: Seleção em área</li>
+                    </ul>
                   </div>
+
+                  {/* Agents Help */}
                   <div>
-                    <h4 className="font-medium mb-2">Cores de Status</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                        <div key={status} className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                          <span className="flex-1">{status.replace('_', ' ')}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {agents.filter(a => a.status === status).length}
-                          </Badge>
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Agentes
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-sm mb-2">Status dos Agentes:</h4>
+                        <div className="space-y-1 text-xs">
+                          {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                            <div key={status} className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                              <span>{status.replace('_', ' ')}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm mb-2">Indicadores:</h4>
+                        <ul className="space-y-1 text-xs text-muted-foreground">
+                          <li>• <span className="font-medium">T</span>: Ticket atribuído</li>
+                          <li>• <span className="font-medium">🔋</span>: Bateria baixa</li>
+                          <li>• <span className="font-medium">📶</span>: Sinal fraco</li>
+                          <li>• <span className="font-medium">↗️</span>: Em movimento</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Filters Help */}
+                  <div>
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Filter className="w-4 h-4" />
+                      Filtros
+                    </h3>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• <kbd>Status</kbd>: Filtrar por status do agente</li>
+                      <li>• <kbd>Equipes</kbd>: Mostrar apenas equipes específicas</li>
+                      <li>• <kbd>Habilidades</kbd>: Filtrar por competências técnicas</li>
+                      <li>• <kbd>Bateria</kbd>: Definir limites de nível de bateria</li>
+                      <li>• <kbd>Atividade</kbd>: Últimas atualizações de localização</li>
+                    </ul>
+                  </div>
+
+                  {/* Layers Help */}
+                  <div>
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Layers className="w-4 h-4" />
+                      Camadas
+                    </h3>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• <kbd>Tickets</kbd>: Mostrar tickets no mapa</li>
+                      <li>• <kbd>Clima</kbd>: Informações meteorológicas</li>
+                      <li>• <kbd>Trânsito</kbd>: Condições de tráfego</li>
+                      <li>• <kbd>Áreas</kbd>: Regiões de atendimento</li>
+                    </ul>
+                  </div>
+
+                  {/* Settings Help */}
+                  <div>
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Configurações
+                    </h3>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• <kbd>Atualização automática</kbd>: Dados em tempo real</li>
+                      <li>• <kbd>Animações</kbd>: Efeitos visuais</li>
+                      <li>• <kbd>Precisão GPS</kbd>: Círculos de precisão</li>
+                      <li>• <kbd>Alertas</kbd>: Notificações de bateria e SLA</li>
+                    </ul>
+                  </div>
+
+                  {settings.keyboardNavigation && (
+                    <div>
+                      <h3 className="font-semibold mb-2 flex items-center gap-2">
+                        <Target className="w-4 h-4" />
+                        Atalhos de Teclado
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <ul className="space-y-1 text-muted-foreground">
+                            <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">F</kbd> Abrir filtros</li>
+                            <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">L</kbd> Alternar camadas</li>
+                            <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">S</kbd> Configurações</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <ul className="space-y-1 text-muted-foreground">
+                            <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">R</kbd> Atualizar dados</li>
+                            <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">Esc</kbd> Fechar modais</li>
+                            <li><kbd className="px-1 py-0.5 bg-muted rounded text-xs">?</kbd> Mostrar ajuda</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
