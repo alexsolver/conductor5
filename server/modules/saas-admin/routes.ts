@@ -1,20 +1,30 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { requireSaasAdmin, requirePermission, AuthorizedRequest } from '../../middleware/authorizationMiddleware';
-import { Permission } from '../../domain/authorization/RolePermissions';
+import { AuthorizedRequest } from '../../middleware/rbacMiddleware';
 import { DependencyContainer } from '../../application/services/DependencyContainer';
 
 const router = Router();
 
-// Aplicar middlewares de autenticação e autorização
+// Aplicar middleware de autenticação 
 router.use(jwtAuth);
-router.use(requireSaasAdmin);
+
+// SaaS Admin validation middleware
+router.use((req: AuthorizedRequest, res, next) => {
+  if (!req.user || req.user.role !== 'saas_admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'SaaS Admin access required',
+      code: 'FORBIDDEN'
+    });
+  }
+  next();
+});
 
 /**
  * GET /api/saas-admin/tenants
  * Lista todos os tenants da plataforma
  */
-router.get('/tenants', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), async (req: AuthorizedRequest, res) => {
+router.get('/tenants', async (req: AuthorizedRequest, res) => {
   try {
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
@@ -35,7 +45,7 @@ router.get('/tenants', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), as
  * POST /api/saas-admin/tenants
  * Criar novo tenant
  */
-router.post('/tenants', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), async (req: AuthorizedRequest, res) => {
+router.post('/tenants', async (req: AuthorizedRequest, res) => {
   try {
     const { name, subdomain, settings = {} } = req.body;
     
@@ -77,7 +87,7 @@ router.post('/tenants', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), a
  * GET /api/saas-admin/users
  * Lista todos os usuários da plataforma
  */
-router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users', async (req: AuthorizedRequest, res) => {
   try {
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
@@ -101,7 +111,7 @@ router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async 
  * GET /api/saas-admin/analytics
  * Analytics globais da plataforma
  */
-router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
+router.get('/analytics', async (req: AuthorizedRequest, res) => {
   try {
     // Implementar métricas globais da plataforma
     const stats = {
@@ -123,7 +133,7 @@ router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), 
  * PUT /api/saas-admin/tenants/:tenantId
  * Atualizar configurações de tenant
  */
-router.put('/tenants/:tenantId', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), async (req: AuthorizedRequest, res) => {
+router.put('/tenants/:tenantId', async (req: AuthorizedRequest, res) => {
   try {
     const { tenantId } = req.params;
     const updates = req.body;
@@ -148,7 +158,7 @@ router.put('/tenants/:tenantId', requirePermission(Permission.PLATFORM_MANAGE_TE
  * DELETE /api/saas-admin/tenants/:tenantId
  * Desativar tenant (soft delete)
  */
-router.delete('/tenants/:tenantId', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), async (req: AuthorizedRequest, res) => {
+router.delete('/tenants/:tenantId', async (req: AuthorizedRequest, res) => {
   try {
     const { tenantId } = req.params;
     
@@ -169,7 +179,7 @@ router.delete('/tenants/:tenantId', requirePermission(Permission.PLATFORM_MANAGE
  * GET /api/saas-admin/analytics
  * Analytics da plataforma SaaS
  */
-router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
+router.get('/analytics', async (req: AuthorizedRequest, res) => {
   try {
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
@@ -209,7 +219,7 @@ router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), 
  * GET /api/saas-admin/users
  * Lista todos os usuários da plataforma
  */
-router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users', async (req: AuthorizedRequest, res) => {
   try {
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
@@ -240,7 +250,7 @@ router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async 
  * POST /api/saas-admin/users
  * Criar novo usuário (SaaS admin)
  */
-router.post('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.post('/users', async (req: AuthorizedRequest, res) => {
   try {
     const { email, password, firstName, lastName, role, tenantId } = req.body;
     
@@ -289,7 +299,7 @@ router.post('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async
  * GET /api/saas-admin/integrations
  * Lista todas as integrações da plataforma
  */
-router.get('/integrations', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/integrations', async (req: AuthorizedRequest, res) => {
   try {
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
@@ -312,7 +322,7 @@ router.get('/integrations', requirePermission(Permission.PLATFORM_MANAGE_INTEGRA
  * GET /api/saas-admin/integrations/openweather
  * Obter configuração da integração OpenWeather
  */
-router.get('/integrations/openweather', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/integrations/openweather', async (req: AuthorizedRequest, res) => {
   try {
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
@@ -335,7 +345,7 @@ router.get('/integrations/openweather', requirePermission(Permission.PLATFORM_MA
  * PUT /api/saas-admin/integrations/openweather/api-key
  * Atualizar chave da API OpenWeather
  */
-router.put('/integrations/openweather/api-key', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+router.put('/integrations/openweather/api-key', async (req: AuthorizedRequest, res) => {
   try {
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
@@ -358,7 +368,7 @@ router.put('/integrations/openweather/api-key', requirePermission(Permission.PLA
  * POST /api/saas-admin/integrations/openweather/test
  * Testar integração OpenWeather
  */
-router.post('/integrations/openweather/test', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res) => {
   try {
     console.log('🧪 [SAAS-ADMIN-OPENWEATHER-TEST] Testing OpenWeather integration');
     
@@ -478,7 +488,7 @@ router.post('/integrations/openweather/test', requirePermission(Permission.PLATF
  * GET /api/saas-admin/integrations/status/:status
  * Listar integrações por status
  */
-router.get('/integrations/status/:status', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/integrations/status/:status', async (req: AuthorizedRequest, res) => {
   try {
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
@@ -506,7 +516,7 @@ router.get('/integrations/status/:status', requirePermission(Permission.PLATFORM
  * GET /api/saas-admin/translations/languages
  * Get all available languages
  */
-router.get('/translations/languages', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/translations/languages', async (req: AuthorizedRequest, res) => {
   try {
     // Import translation routes to delegate
     const translationsRoutes = await import('../../routes/translations');
@@ -523,7 +533,7 @@ router.get('/translations/languages', requirePermission(Permission.PLATFORM_MANA
  * GET /api/saas-admin/translations/:language
  * Get translations for a specific language
  */
-router.get('/translations/:language', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/translations/:language', async (req: AuthorizedRequest, res) => {
   try {
     const { language } = req.params;
     // Delegate to translation service but with SaaS admin permissions
@@ -540,7 +550,7 @@ router.get('/translations/:language', requirePermission(Permission.PLATFORM_MANA
  * PUT /api/saas-admin/translations/:language
  * Update translations for a specific language
  */
-router.put('/translations/:language', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.put('/translations/:language', async (req: AuthorizedRequest, res) => {
   try {
     const { language } = req.params;
     const { translations } = req.body;
@@ -559,7 +569,7 @@ router.put('/translations/:language', requirePermission(Permission.PLATFORM_MANA
  * GET /api/saas-admin/translations/keys/all
  * Get all available translation keys
  */
-router.get('/translations/keys/all', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/translations/keys/all', async (req: AuthorizedRequest, res) => {
   try {
     const translationService = await import('../../services/TranslationService');
     const keys = await translationService.getAllTranslationKeys();
@@ -574,7 +584,7 @@ router.get('/translations/keys/all', requirePermission(Permission.PLATFORM_MANAG
  * POST /api/saas-admin/translations/:language/restore
  * Restore translations from backup
  */
-router.post('/translations/:language/restore', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.post('/translations/:language/restore', async (req: AuthorizedRequest, res) => {
   try {
     const { language } = req.params;
     
@@ -596,7 +606,7 @@ router.post('/translations/:language/restore', requirePermission(Permission.PLAT
  * GET /api/saas-admin/translation-completion/analyze
  * Analyze translation gaps across all languages
  */
-router.get('/translation-completion/analyze', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/translation-completion/analyze', async (req: AuthorizedRequest, res) => {
   try {
     const translationCompletionService = await import('../../services/TranslationCompletionService');
     const analysis = await translationCompletionService.analyzeTranslationGaps();
@@ -611,7 +621,7 @@ router.get('/translation-completion/analyze', requirePermission(Permission.PLATF
  * POST /api/saas-admin/translation-completion/scan-keys
  * Scan for translation keys in source files
  */
-router.post('/translation-completion/scan-keys', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.post('/translation-completion/scan-keys', async (req: AuthorizedRequest, res) => {
   try {
     const translationCompletionService = await import('../../services/TranslationCompletionService');
     const result = await translationCompletionService.scanTranslationKeys();
@@ -626,7 +636,7 @@ router.post('/translation-completion/scan-keys', requirePermission(Permission.PL
  * POST /api/saas-admin/translation-completion/expand-scan
  * Comprehensive translation expansion scanning
  */
-router.post('/translation-completion/expand-scan', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.post('/translation-completion/expand-scan', async (req: AuthorizedRequest, res) => {
   try {
     const translationCompletionService = await import('../../services/TranslationCompletionService');
     const result = await translationCompletionService.expandTranslationScan();
@@ -641,7 +651,7 @@ router.post('/translation-completion/expand-scan', requirePermission(Permission.
  * GET /api/saas-admin/translations/expand-scan
  * Ultra-comprehensive scanning for more translation keys
  */
-router.get('/translations/expand-scan', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+router.get('/translations/expand-scan', async (req: AuthorizedRequest, res) => {
   try {
     const translationService = await import('../../services/TranslationService');
     const result = await translationService.expandTranslationScan();
@@ -661,7 +671,7 @@ router.get('/translations/expand-scan', requirePermission(Permission.PLATFORM_MA
  * GET /api/saas-admin/users/stats
  * Get global user statistics across all tenants
  */
-router.get('/users/stats', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users/stats', async (req: AuthorizedRequest, res) => {
   try {
     // Global user statistics from public schema
     const globalStats = {
@@ -689,7 +699,7 @@ router.get('/users/stats', requirePermission(Permission.PLATFORM_MANAGE_USERS), 
  * GET /api/saas-admin/users
  * Get all users across all tenants
  */
-router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users', async (req: AuthorizedRequest, res) => {
   try {
     // Global user list from public schema
     const globalUsers = [];
@@ -706,7 +716,7 @@ router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async 
  * GET /api/saas-admin/users/groups
  * Get global user groups/roles across all tenants
  */
-router.get('/users/groups', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users/groups', async (req: AuthorizedRequest, res) => {
   try {
     // Global user groups from public schema
     const globalGroups = [];
@@ -723,7 +733,7 @@ router.get('/users/groups', requirePermission(Permission.PLATFORM_MANAGE_USERS),
  * GET /api/saas-admin/users/sessions
  * Get global user sessions across all tenants
  */
-router.get('/users/sessions', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users/sessions', async (req: AuthorizedRequest, res) => {
   try {
     // Global user sessions from public schema
     const globalSessions = [];
@@ -740,7 +750,7 @@ router.get('/users/sessions', requirePermission(Permission.PLATFORM_MANAGE_USERS
  * GET /api/saas-admin/users/activity
  * Get global user activity across all tenants
  */
-router.get('/users/activity', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users/activity', async (req: AuthorizedRequest, res) => {
   try {
     // Global user activity from public schema
     const globalActivity = [];
@@ -762,7 +772,7 @@ router.get('/users/activity', requirePermission(Permission.PLATFORM_MANAGE_USERS
  * GET /api/saas-admin/tenant-provisioning/config
  * Get global tenant provisioning configuration
  */
-router.get('/tenant-provisioning/config', requirePermission(Permission.PLATFORM_MANAGE_TENANTS), async (req: AuthorizedRequest, res) => {
+router.get('/tenant-provisioning/config', async (req: AuthorizedRequest, res) => {
   try {
     // Global tenant provisioning configuration from public schema
     const globalConfig = {
@@ -795,7 +805,7 @@ router.get('/tenant-provisioning/config', requirePermission(Permission.PLATFORM_
  * GET /api/saas-admin/module-integrity/monitoring
  * Get global module integrity monitoring data
  */
-router.get('/module-integrity/monitoring', requirePermission(Permission.PLATFORM_SYSTEM_CONFIG), async (req: AuthorizedRequest, res) => {
+router.get('/module-integrity/monitoring', async (req: AuthorizedRequest, res) => {
   try {
     // Global module integrity monitoring from public schema
     const globalMonitoring = {
