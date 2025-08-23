@@ -31,7 +31,9 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     if (!this.tenantId) {
       throw new Error('TenantId not set for custom fields repository');
     }
-    return `"tenant_${this.tenantId}"`;
+    // Convert hyphens to underscores to match database schema format
+    const schemaName = this.tenantId.replace(/-/g, '_');
+    return `tenant_${schemaName}`;
   }
 
   async getFieldsByModule(moduleType: string): Promise<CustomFieldMetadata[]> {
