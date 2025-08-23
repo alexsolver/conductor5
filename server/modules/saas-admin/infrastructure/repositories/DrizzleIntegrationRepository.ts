@@ -66,9 +66,15 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       const integrations = baseIntegrations.map(baseIntegration => {
         const savedConfig = savedConfigs.rows.find(row => row.integration_id === baseIntegration.id);
         
+        console.log(`[INTEGRATION-REPO] Processing ${baseIntegration.id}:`, {
+          hasSavedConfig: !!savedConfig,
+          savedConfigData: savedConfig?.config,
+          hasApiKey: savedConfig?.config?.apiKey && savedConfig.config.apiKey.length > 0
+        });
+        
         if (savedConfig) {
           const hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length > 0;
-          return {
+          const integration = {
             ...baseIntegration,
             status: hasApiKey ? 'connected' : 'disconnected',
             config: savedConfig.config || {},
@@ -82,9 +88,18 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
             getLastTestedAt: () => savedConfig.config?.lastTested ? new Date(savedConfig.config.lastTested) : null,
             getApiKeyMasked: () => savedConfig.config?.apiKey ? `${savedConfig.config.apiKey.substring(0, 8)}...` : null
           };
+          
+          console.log(`[INTEGRATION-REPO] ${baseIntegration.id} final result:`, {
+            id: integration.id,
+            status: integration.status,
+            apiKeyConfigured: integration.apiKeyConfigured,
+            hasConfigKeys: Object.keys(integration.config || {})
+          });
+          
+          return integration;
         }
         
-        return {
+        const integration = {
           ...baseIntegration,
           // ✅ Propriedades padrão para integrações não configuradas
           apiKeyConfigured: false,
@@ -95,6 +110,14 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
           getLastTestedAt: () => null,
           getApiKeyMasked: () => null
         };
+        
+        console.log(`[INTEGRATION-REPO] ${baseIntegration.id} default result:`, {
+          id: integration.id,
+          status: integration.status,
+          apiKeyConfigured: integration.apiKeyConfigured
+        });
+        
+        return integration;
       });
 
       console.log('[INTEGRATION-REPO] Found integrations in PUBLIC schema:', integrations.length);
