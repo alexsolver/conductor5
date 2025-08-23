@@ -26,11 +26,6 @@ import beneficiariesRoutes from './modules/beneficiaries/routes-working';
 import locationsRoutes from './modules/locations/routes';
 import ticketsRoutes from './modules/tickets/routes';
 import timecardRoutes from './modules/timecard/routes-working';
-// ✅ 1QA.MD: Import custom fields routes
-  console.log('🔥 [SERVER] Registering custom-fields routes...');
-  import customFieldsRoutes from './modules/custom-fields/routes';
-  app.use('/api/custom-fields', customFieldsRoutes);
-  console.log('🔥 [SERVER] Custom-fields routes registered at /api/custom-fields');
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
@@ -449,12 +444,14 @@ app.use((req, res, next) => {
   app.use('/api/locations', locationsRoutes);
   app.use('/api/tickets', ticketsRoutes);
   app.use('/api/timecard', timecardRoutes);
-  // ✅ 1QA.MD: Use custom fields routes with proper logging
+  
+  // ✅ 1QA.MD: Import and register custom fields routes
+  console.log('🔥 [SERVER] Registering custom-fields routes...');
+  const customFieldsRoutes = (await import('./modules/custom-fields/routes')).default;
   app.use('/api/custom-fields', (req, res, next) => {
     console.log(`🔥 [SERVER] Custom fields route hit: ${req.method} ${req.url}`);
     next();
   }, customFieldsRoutes);
-
   console.log('🔥 [SERVER] Custom fields routes registered at /api/custom-fields');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
