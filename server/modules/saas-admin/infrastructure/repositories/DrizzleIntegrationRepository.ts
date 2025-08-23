@@ -7,12 +7,12 @@
 import { db } from '../../../../db';
 import * as schema from '../../../../shared/schema';
 import * as saasSchema from '../../../../shared/schema-saas-admin';
-import { eq, and } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { Integration, IntegrationConfig } from '../../domain/entities/Integration';
 import { IIntegrationRepository } from '../../domain/repositories/IIntegrationRepository';
 
 export class DrizzleIntegrationRepository implements IIntegrationRepository {
-  
+
   // ✅ SEMPRE usar o padrão estabelecido (1qa.md line 52)
   constructor() {
     if (!db) throw new Error('Database connection required');
@@ -145,23 +145,23 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
   async updateOpenWeatherApiKey(apiKey: string): Promise<Integration> {
     try {
       console.log('[INTEGRATION-REPO] Starting updateOpenWeatherApiKey with apiKey:', apiKey.substring(0, 8) + '...');
-      
+
       // Check if OpenWeather integration exists
       let integration = await this.getOpenWeatherConfig();
-      
+
       console.log('[INTEGRATION-REPO] Existing integration found:', !!integration);
-      
+
       if (!integration) {
         // Create new OpenWeather integration
         console.log('[INTEGRATION-REPO] Creating new OpenWeather integration...');
         integration = Integration.createOpenWeatherIntegration(apiKey);
-        
+
         console.log('[INTEGRATION-REPO] Created integration entity:', {
           id: integration.id,
           provider: integration.provider,
           name: integration.name
         });
-        
+
         const savedIntegration = await this.save(integration);
         console.log('[INTEGRATION-REPO] Integration saved successfully');
         return savedIntegration;
@@ -172,14 +172,14 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
           apiKey,
           lastTested: new Date()
         };
-        
+
         const updatedIntegration = integration.updateConfig(updatedConfig);
         const result = await this.update(integration.id, updatedIntegration);
-        
+
         if (!result) {
           throw new Error('Failed to update OpenWeather integration');
         }
-        
+
         return result;
       }
     } catch (error) {
@@ -234,14 +234,14 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
           const testUrl = `${integration.config.baseUrl}/weather?lat=0&lon=0&appid=${integration.config.apiKey}`;
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), integration.config.timeout || 5000);
-          
+
           const response = await fetch(testUrl, { 
             method: 'GET',
             signal: controller.signal
           });
-          
+
           clearTimeout(timeoutId);
-          
+
           if (response.ok) {
             await this.updateStatus(integrationId, 'connected');
             return { success: true, message: 'Connection successful' };
@@ -303,5 +303,24 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       row.createdAt,
       row.updatedAt
     );
+  }
+
+  async updateIntegrationStatus(provider: string, status: 'connected' | 'error' | 'disconnected'): Promise<void> {
+    try {
+      console.log(`[INTEGRATION-REPO] Updating ${provider} status to: ${status}`);
+
+      await this.db
+        .update(saasIntegrationsTable)
+        .set({ 
+          status: status,
+          updatedAt: sql`CURRENT_TIMESTAMP`
+        })
+        .where(eq(saasIntegrationsTable.provider, provider as any));
+
+      console.log(`[INTEGRATION-REPO] Status updated successfully for ${provider}`);
+    } catch (error) {
+      console.error(`[INTEGRATION-REPO] Error updating integration status:`, error);
+      throw error;
+    }
   }
 }

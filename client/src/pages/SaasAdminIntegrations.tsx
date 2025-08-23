@@ -26,7 +26,9 @@ import {
   ExternalLink,
   Key,
   Plug,
-  CloudRain
+  CloudRain,
+  Loader2,
+  Play
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -127,7 +129,7 @@ export default function SaasAdminIntegrations() {
           testConnection: Boolean(sanitizedConfig.testConnection)
         });
       }
-      
+
       const url = `/api/saas-admin/integrations/${integrationId}/config`;
       return apiRequest('PUT', url, sanitizedConfig);
     },
@@ -182,11 +184,11 @@ export default function SaasAdminIntegrations() {
       console.log(`🧪 [SAAS-ADMIN-TEST] Testando integração: ${integrationId}`);
       const url = `/api/saas-admin/integrations/${integrationId}/test`;
       const response = await apiRequest('POST', url, {});
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('🧪 [SAAS-ADMIN-TEST] Parsed response data:', data);
       return data;
@@ -196,14 +198,14 @@ export default function SaasAdminIntegrations() {
       console.log('✅ [SAAS-ADMIN-TEST] Data keys:', Object.keys(data || {}));
       console.log('✅ [SAAS-ADMIN-TEST] Success field:', data?.success);
       console.log('✅ [SAAS-ADMIN-TEST] Result field:', data?.result);
-      
+
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
 
       // Check both data.success and success fields
       const isSuccess = data?.success === true || data?.success === 'true';
-      
+
       if (isSuccess) {
         toast({
           title: "Teste bem-sucedido",
@@ -236,11 +238,61 @@ export default function SaasAdminIntegrations() {
     }
   });
 
+  // Mutation específica para testar OpenWeather
+  const testOpenWeatherMutation = useMutation({
+    mutationFn: async () => {
+      console.log('🧪 [SAAS-ADMIN-TEST-OW] Testando integração OpenWeather');
+      const url = `/api/saas-admin/integrations/openweather/test`; // Endpoint específico para testar OpenWeather
+      const response = await apiRequest('POST', url, {});
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('🧪 [SAAS-ADMIN-TEST-OW] Parsed response data:', data);
+      return data;
+    },
+    onSuccess: (data) => {
+      console.log('✅ [SAAS-ADMIN-TEST-OW] Teste OpenWeather concluído:', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
+
+      if (data?.success) {
+        toast({
+          title: "Teste OpenWeather bem-sucedido",
+          description: data.message || `Integração OpenWeather funcionando corretamente.`,
+        });
+      } else {
+        console.error('❌ [SAAS-ADMIN-TEST-OW] Test failed with data:', data);
+        toast({
+          title: "Teste OpenWeather falhou", 
+          description: data.error || data.message || "Erro na integração OpenWeather",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      console.error('❌ [SAAS-ADMIN-TEST-OW] Erro no teste OpenWeather:', error);
+      let errorMessage = "Erro ao testar integração OpenWeather";
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      toast({
+        title: "Erro no teste OpenWeather",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Use data from API when available, adding icons to each integration
   const apiIntegrations = integrationsData?.integrations || integrationsData?.data?.integrations || [];
-  
+
   let integrations: Integration[];
-  
+
   // Se há dados da API, use-os com ícones
   if (apiIntegrations.length > 0) {
     const baseIntegrations: Integration[] = apiIntegrations.map((integration: any) => ({
@@ -267,7 +319,7 @@ export default function SaasAdminIntegrations() {
         updatedAt: new Date()
       });
     }
-    
+
     integrations = baseIntegrations;
   } else {
     // Fallback integrations if no API data
@@ -344,9 +396,9 @@ export default function SaasAdminIntegrations() {
   const onConfigureIntegration = (integration: Integration) => {
     console.log('🔧 [CONFIGURE] Opening config dialog for:', integration.id);
     console.log('🔧 [CONFIGURE] Integration config:', integration.config);
-    
+
     setSelectedIntegration(integration);
-    
+
     // Check if integration has saved configuration
     if (integration.config && Object.keys(integration.config).length > 0) {
       console.log('✅ [CONFIGURE] Loading saved configuration');
@@ -383,6 +435,65 @@ export default function SaasAdminIntegrations() {
         config: cleanedData
       });
     }
+  };
+
+  const renderActionButtons = (integration: Integration) => {
+    if (integration.id === 'openweather') {
+      return (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSelectedIntegration(integration);
+              setIsConfigDialogOpen(true);
+            }}
+            className="flex items-center gap-1"
+          >
+            <Settings className="w-4 h-4" />
+            Configurar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => testOpenWeatherMutation.mutate()}
+            disabled={testOpenWeatherMutation.isPending || !integration.apiKeyConfigured}
+            className="flex items-center gap-1"
+          >
+            {testOpenWeatherMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4" />
+            )}
+            {testOpenWeatherMutation.isPending ? 'Testando...' : 'Testar'}
+          </Button>
+        </div>
+      );
+    }
+
+    // Default action buttons for other integrations
+    return (
+      <div className="flex gap-2">
+        <Button 
+          size="sm" 
+          onClick={() => onConfigureIntegration(integration)}
+          className="flex-1"
+        >
+          <Settings className="h-4 w-4 mr-1" />
+          Configurar
+        </Button>
+
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => testIntegrationMutation.mutate(integration.id)}
+          disabled={!integration.apiKeyConfigured || testIntegrationMutation.isPending}
+        >
+          <ExternalLink className="h-4 w-4 mr-1" />
+          Testar
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -485,26 +596,7 @@ export default function SaasAdminIntegrations() {
                   </Badge>
                 </div>
 
-                <div className="flex space-x-2">
-                  <Button 
-                    size="sm" 
-                    onClick={() => onConfigureIntegration(integration)}
-                    className="flex-1"
-                  >
-                    <Settings className="h-4 w-4 mr-1" />
-                    Configurar
-                  </Button>
-
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => testIntegrationMutation.mutate(integration.id)}
-                    disabled={!integration.apiKeyConfigured || testIntegrationMutation.isPending}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Testar
-                  </Button>
-                </div>
+                {renderActionButtons(integration)}
 
                 {integration.lastTested && (
                   <p className="text-xs text-gray-500 mt-2">

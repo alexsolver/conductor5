@@ -355,6 +355,126 @@ router.put('/integrations/openweather/api-key', requirePermission(Permission.PLA
 });
 
 /**
+ * POST /api/saas-admin/integrations/openweather/test
+ * Testar integração OpenWeather
+ */
+router.post('/integrations/openweather/test', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    console.log('🧪 [SAAS-ADMIN-OPENWEATHER-TEST] Testing OpenWeather integration');
+    
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const integrationRepository = new DrizzleIntegrationRepository();
+    
+    // Get OpenWeather configuration
+    const integration = await integrationRepository.getOpenWeatherConfig();
+    
+    if (!integration || !integration.config?.apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'OpenWeather API key não configurada. Configure primeiro a API key.'
+      });
+    }
+
+    const apiKey = integration.config.apiKey;
+    const testCity = 'London'; // Cidade padrão para teste
+    
+    console.log('🧪 [SAAS-ADMIN-OPENWEATHER-TEST] Testing with API key:', apiKey.substring(0, 8) + '...');
+    
+    // Test the OpenWeather API
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${testCity}&appid=${apiKey}&units=metric`,
+        {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Conductor-SaaS-Admin/1.0'
+          },
+          signal: controller.signal
+        }
+      );
+
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        console.log('✅ [SAAS-ADMIN-OPENWEATHER-TEST] Test successful');
+        
+        // Update integration status to connected
+        await integrationRepository.updateIntegrationStatus('openweather', 'connected');
+        
+        return res.json({
+          success: true,
+          message: 'Teste da integração OpenWeather realizado com sucesso!',
+          data: {
+            city: data.name,
+            country: data.sys?.country,
+            temperature: Math.round(data.main?.temp || 0),
+            description: data.weather?.[0]?.description,
+            humidity: data.main?.humidity,
+            windSpeed: data.wind?.speed,
+            testedAt: new Date().toISOString()
+          }
+        });
+      } else {
+        const errorData = await response.text();
+        console.error('❌ [SAAS-ADMIN-OPENWEATHER-TEST] API Error:', response.status, errorData);
+        
+        let errorMessage = 'Erro na API do OpenWeather';
+        if (response.status === 401) {
+          errorMessage = 'API Key inválida. Verifique se a chave está correta.';
+        } else if (response.status === 429) {
+          errorMessage = 'Limite de requisições excedido. Tente novamente mais tarde.';
+        }
+        
+        // Update integration status to error
+        await integrationRepository.updateIntegrationStatus('openweather', 'error');
+        
+        return res.status(400).json({
+          success: false,
+          message: errorMessage,
+          details: {
+            statusCode: response.status,
+            error: errorData
+          }
+        });
+      }
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      console.error('❌ [SAAS-ADMIN-OPENWEATHER-TEST] Network error:', fetchError);
+      
+      // Update integration status to error
+      await integrationRepository.updateIntegrationStatus('openweather', 'error');
+      
+      if (fetchError.name === 'AbortError') {
+        return res.status(408).json({
+          success: false,
+          message: 'Timeout na conexão com OpenWeather API. Verifique sua conexão.'
+        });
+      }
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Erro de conectividade com OpenWeather API',
+        details: {
+          error: fetchError.message
+        }
+      });
+    }
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-OPENWEATHER-TEST] Error testing OpenWeather:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno ao testar integração OpenWeather',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * GET /api/saas-admin/integrations/status/:status
  * Listar integrações por status
  */
