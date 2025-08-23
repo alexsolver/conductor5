@@ -1,0 +1,129 @@
+🔎 Funcionalidades de Visualização
+	•	Mapa Interativo (zoom, arrastar, camadas personalizáveis).
+	•	Localização com filtros de seleção em tempo real de tickets, equipes, clientes ou ativos monitorados.
+	•	Filtro por status (em andamento, atrasado, resolvido, pendente).
+	•	Clusters/agrupamento para locais próximos (evita poluição visual).
+	•	Heatmaps de concentração de chamados/ocorrências.
+	•	Camadas externas:
+	•	Trânsito → coloração de vias e impacto em rotas/ETA.
+	•	Clima → sobreposição de dados meteorológicos (chuva, tempestade, temperatura).
+	•	Regiões e áreas: integração com o módulo de locais (geofencing, zonas de cobertura, SLA por local).
+
+⸻
+
+📍 Funcionalidades Operacionais
+	•	Clique em ponto/local → abre detalhes (ticket, cliente, SLA, horário de funcionamento).
+	•	Busca geográfica (CEP, endereço, cliente, nome do local).
+	•	Filtros dinâmicos (por equipe, prioridade, tipo de serviço, tempo de SLA).
+	•	Atualização automática em tempo real sem recarregar a página.
+	•	Notificações visuais no mapa (piscando progressivamente quando SLA se aproxima do vencimento).
+
+⸻
+
+👷 Exibição de Agentes de Campo
+
+1) Marcadores e Identidade Visual
+	•	Ícone do agente: avatar circular + borda por status.
+	•	Direção/heading: seta sutil indicando rumo (bearing GPS).
+	•	Precisão de GPS: halo semitransparente conforme accuracy.
+
+2) Estados e Regras de Cores
+	•	Disponível → verde (#24B47E).
+	•	Em trânsito → azul (#2F80ED).
+	•	Em atendimento → amarelo (#F2C94C).
+	•	Pausa/indisponível → lilás (#9B51E0).
+	•	SLA em risco/estourado → vermelho (#EB5757) com pulso a cada 3s.
+	•	Offline (≥ X min sem ping) → cinza (#BDBDBD), label “last seen hh:mm”.
+
+Regra: se agente estiver vinculado a ticket com SLA por local →
+fora do horário de funcionamento = status normal;
+dentro do horário + ETA > tempo restante de SLA = “SLA em risco”.
+
+3) Tooltip/Callout ao clicar
+	•	Header: nome, função/equipe, foto.
+	•	Status + tempo no status.
+	•	Ticket atual (ID, cliente/local, SLA restante, janela de atendimento).
+	•	ETA do destino atual.
+	•	Métricas rápidas: distância, velocidade, sinal/bateria, última atualização.
+	•	Ações rápidas: “Visualizar agenda do agente”, “Reatribuir ticket”.
+
+4) Trilhas e Rotas
+	•	Histórico de posições (configurável: ex. 2h/5km), com opacidade atenuada.
+	•	Quebra de trilha quando não há sinal.
+	•	Rota ativa: linha de 2–3px, checkpoints.
+	•	Comparação ETA real vs. planejado (+/- min).
+
+5) Filtros e Camadas aplicadas
+	•	Por grupo ou habilidade (Ex.: Elétrica, Telecom).
+	•	Por status.
+	•	Por SLA (em risco, estourado, dentro).
+	•	Por jornada de trabalho (considera calendário do local).
+	•	Por proximidade (raios: 500m, 1km, 5km).
+	•	Heatmap de presença/atendimento.
+
+6) Notificações visuais e operacionais
+	•	Pulso/flash no marcador quando:
+	•	SLA muda para risco.
+	•	Agente começa/termina atendimento.
+	•	Queda de sinal, precisão ruim ou bateria < 15%.
+	•	Banner discreto para eventos globais (ex.: trânsito severo).
+	•	Toasts focados no agente (ex.: “ETA recalculado: +7 min”).
+
+7) Integrações com Camadas Externas
+	•	Trânsito: rotas coloridas conforme velocidade.
+	•	Clima: ícone meteorológico em caso de alerta.
+	•	Geofencing (módulo Locais): gerar eventos ao entrar/sair de áreas (ex.: iniciar SLA).
+
+8) Performance e Atualização em Tempo Real
+	•	Posição → atualização a cada 5–10s.
+	•	ETA/rota → atualização a cada 30–60s ou on-change.
+	•	Suporte a >1.000 agentes com virtualização de marcadores e clustering dinâmico.
+	•	Delta updates (apenas diferenças).
+	•	Fallback → polling 30s se socket cair.
+
+9) Acessibilidade e UX
+	•	Contraste AA e navegação por teclado.
+	•	Labels legíveis a partir do zoom ≥ 15.
+	•	Legenda fixa com estados (cores/símbolos).
+	•	Modo noturno conforme preferência do usuário.
+
+10) Privacidade e Segurança
+	•	Precisão reduzida fora do turno (jitter 100–200m).
+	•	Ocultar trilhas fora da jornada de trabalho.
+	•	Logs de auditoria: quem visualizou rota/posição de qual agente e quando.
+
+11) Campos de Dados (modelo do agente)
+	•	agent_id, name, photo_url, team, skills[].
+	•	status, status_since.
+	•	lat, lng, accuracy, heading, speed.
+	•	device_battery, signal_strength, last_ping_at.
+	•	assigned_ticket_id, customer_site_id, sla_deadline_at.
+	•	shift_start_at, shift_end_at, is_on_duty.
+	•	current_route_id, eta_seconds, distance_meters.
+
+12) Regras Inteligentes
+	•	Auto-status:
+	•	velocidade > 5 km/h + rota ativa → “Em trânsito”.
+	•	parado > 3 min no destino → “Em atendimento”.
+	•	SLA em risco: eta_seconds > (sla_deadline_at - now) e local dentro do horário.
+	•	Offline: sem last_ping_at ≥ X min (configurável).
+
+13) Operações Rápidas no Mapa
+	•	Arrastar ticket → agente (drag & drop) com preview de ETA.
+	•	Seleção múltipla (retângulo/lasso) → enviar mensagem ou redistribuir.
+
+14) Logs e Histórico
+	•	Replay de trajetória (time slider).
+	•	Exportação de trajeto + eventos (CSV/GeoJSON/PDF).
+
+⸻
+
+✅ Aceite (Definition of Done – DoD)
+	•	Exibir ≥ 1.000 agentes com FPS fluido.
+	•	Atualização ≤ 1s no UI após novo ping de posição.
+	•	Tooltips com status, ticket, ETA, SLA restante precisos.
+	•	Trilhas configuráveis e com quebras visuais.
+	•	Clusters exibem criticidade máxima do grupo.
+	•	Regras de SLA em risco respeitam horários do local.
+	•	Acessibilidade AA + navegação por teclado.
+	•	Auditoria registra visualização de localização de agentes.
