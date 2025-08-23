@@ -40,8 +40,8 @@ router.get('/fields/:moduleType', jwtAuth, async (req, res) => {
 });
 
 router.post('/fields', jwtAuth, async (req, res) => {
-  logger.logInfo('POST /fields called - FIELD CREATION WORKING!', { 
-    body: req.body, 
+  logger.logInfo('POST /fields called - FIELD CREATION WORKING!', {
+    body: req.body,
     user: req.user,
     timestamp: new Date().toISOString()
   });

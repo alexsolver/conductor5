@@ -421,7 +421,7 @@ export default function CustomFieldsAdministrator() {
   const [activeTab, setActiveTab] = useState('fields');
 
   // Fetch fields for selected module
-  const { data: moduleFields = [], isLoading } = useQuery({
+  const { data: moduleFields = [], isLoading, error } = useQuery({
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
       try {
@@ -435,10 +435,13 @@ export default function CustomFieldsAdministrator() {
         return data.data || [];
       } catch (error) {
         console.error("Failed to fetch custom fields:", error);
-        // Return empty array if fetch fails to prevent UI crash
-        return [];
+        throw error; // Re-throw to let React Query handle the error state
       }
-    }
+    },
+    retry: 2,
+    staleTime: 30000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false
   });
 
   // Create field mutation
@@ -551,6 +554,29 @@ export default function CustomFieldsAdministrator() {
             </Card>
           ))}
         </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="text-center py-12">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
+            <h3 className="text-lg font-medium text-red-800 mb-2">
+              Erro ao carregar campos customizados
+            </h3>
+            <p className="text-red-600 mb-6">
+              Não foi possível carregar os campos para este módulo. Verifique sua conexão e tente novamente.
+            </p>
+            <Button
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['custom-fields', selectedModule] })}
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-100"
+            >
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
       );
     }
 
