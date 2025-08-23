@@ -15,10 +15,25 @@ const logger = {
 const customFieldRepository = new SimplifiedCustomFieldRepository();
 const customFieldController = new CustomFieldController(customFieldRepository as any, logger);
 
-// Routes
-router.get('/fields/:moduleType', (req, res) => customFieldController.getFieldsByModule(req, res));
-router.post('/fields', (req, res) => customFieldController.createField(req, res));
-router.put('/fields/:fieldId', (req, res) => customFieldController.updateField(req, res));
-router.delete('/fields/:fieldId', (req, res) => customFieldController.deleteField(req, res));
+// Routes with debug logging following 1qa.md patterns
+router.get('/fields/:moduleType', (req, res) => {
+  logger.logInfo('GET /fields/:moduleType called', req.params);
+  customFieldController.getFieldsByModule(req, res);
+});
+
+router.post('/fields', (req, res) => {
+  logger.logInfo('POST /fields called', { body: req.body, user: req.user });
+  customFieldController.createField(req, res);
+});
+
+router.put('/fields/:fieldId', (req, res) => {
+  logger.logInfo('PUT /fields/:fieldId called', req.params);
+  customFieldController.updateField(req, res);
+});
+
+router.delete('/fields/:fieldId', (req, res) => {
+  logger.logInfo('DELETE /fields/:fieldId called', req.params);
+  customFieldController.deleteField(req, res);
+});
 
 export default router;

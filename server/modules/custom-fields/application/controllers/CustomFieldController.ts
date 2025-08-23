@@ -8,9 +8,14 @@ export class CustomFieldController {
   ) {}
 
   async createField(req: Request, res: Response): Promise<void> {
+    this.logger.logInfo('Controller createField method started');
+    
     try {
       const { tenantId } = req.user || {};
+      this.logger.logInfo('TenantId extracted:', tenantId);
+      
       if (!tenantId) {
+        this.logger.logError('No tenant ID found');
         res.status(401).json({ 
           success: false, 
           error: 'Tenant ID required' 
@@ -25,8 +30,12 @@ export class CustomFieldController {
         updatedAt: new Date(),
         isActive: true
       };
+      
+      this.logger.logInfo('Field data prepared:', fieldData);
 
+      this.logger.logInfo('Calling repository create method...');
       const result = await this.customFieldRepository.create(fieldData);
+      this.logger.logInfo('Repository create completed:', result);
 
       res.status(200).json({
         success: true,
