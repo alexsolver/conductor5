@@ -368,8 +368,9 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
   try {
     const { agentId } = req.params;
 
-    // Get real trajectory data from database using existing db connection
-    const result = await db.query(`
+    // Get real trajectory data from database using pool connection
+    const { pool } = await import('../../db');
+    const result = await pool.query(`
       SELECT 
         agent_id,
         agent_name,
@@ -379,7 +380,7 @@ router.get('/trajectory/:agentId', async (req: AuthenticatedRequest, res: Respon
         speed,
         heading,
         accuracy,
-        battery_level as device_battery
+        device_battery
       FROM public.agent_trajectories 
       WHERE agent_id = $1 
       ORDER BY timestamp ASC
