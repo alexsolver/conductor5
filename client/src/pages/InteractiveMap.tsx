@@ -1688,7 +1688,7 @@ export const InteractiveMap: React.FC = () => {
                           const response = await fetch('/api/interactive-map/audit');
                           const data = await response.json();
                           if (data.success) {
-                            const logs = data.data.slice(0, 3).map(log =>
+                            const logs = data.data.slice(0, 3).map((log: any) =>
                               `${log.action} - ${log.resource_type} (${new Date(log.timestamp).toLocaleString()})`
                             ).join('\n');
                             alert(`Últimos logs de auditoria:\n\n${logs}`);
@@ -1820,7 +1820,7 @@ export const InteractiveMap: React.FC = () => {
               center={mapCenter}
               zoom={mapZoom}
               className="w-full h-full"
-              zoomControl={false}
+              zoomControl={true}
               style={{ background: '#f8fafc' }}
               ref={mapRef}
             >
@@ -1879,7 +1879,7 @@ export const InteractiveMap: React.FC = () => {
                 <Marker
                   key={ticket.id}
                   position={[ticket.lat, ticket.lng]}
-                  icon={L.divIcon({
+                  icon={divIcon({
                     html: `<div class="ticket-marker ${ticket.priority}" style="
                       width: 24px; height: 24px; border-radius: 4px;
                       display: flex; align-items: center; justify-content: center;
@@ -1934,7 +1934,7 @@ export const InteractiveMap: React.FC = () => {
                 <Marker
                   key={group.id}
                   position={[group.lat, group.lng]}
-                  icon={L.divIcon({
+                  icon={divIcon({
                     html: `<div class="team-group-marker" style="
                       width: 32px; height: 32px; border-radius: 50%;
                       display: flex; align-items: center; justify-content: center;
