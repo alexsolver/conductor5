@@ -991,6 +991,7 @@ export const InteractiveMap: React.FC = () => {
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // State for the help modal
 
   // Layer visibility states
   const [showTickets, setShowTickets] = useState(true);
@@ -1279,6 +1280,7 @@ export const InteractiveMap: React.FC = () => {
         case 'Escape':
           setSelectedAgent(null);
           setSelectedAgents([]);
+          setIsHelpModalOpen(false); // Close help modal on Escape
           break;
         case 'r':
           if (e.ctrlKey || e.metaKey) {
@@ -1721,18 +1723,42 @@ export const InteractiveMap: React.FC = () => {
               <Maximize2 className="w-4 h-4" />
             </Button>
 
-            {/* Help */}
-            <Dialog>
+            {/* Help / Legend Modal */}
+            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="help-button">
-                  <HelpCircle className="w-4 h-4" />
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-gray-50"
+                        data-testid="help-button"
+                      >
+                        <HelpCircle className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Ajuda do Mapa</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </DialogTrigger>
               <DialogContent className="max-w-2xl z-[9999]">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Layers className="w-5 h-5" />
-                    Legenda do Mapa
+                  <DialogTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-5 h-5" />
+                      Legenda do Mapa
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsHelpModalOpen(false)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
