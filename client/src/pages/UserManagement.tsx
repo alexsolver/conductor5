@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,12 +38,16 @@ interface UserStats {
 export function UserManagement() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
 
+  // Check if this is SaaS Admin page (global user management)
+  const isSaasAdmin = location.includes('/saas-admin/user-management');
+  
   // Fetch user management statistics
   const { data: stats, isLoading: statsLoading } = useQuery<{ stats: UserStats }>({
-    queryKey: ["/api/user-management/stats"],
+    queryKey: isSaasAdmin ? ["/api/saas-admin/users/stats"] : ["/api/user-management/stats"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -52,7 +57,10 @@ export function UserManagement() {
     <div className="flex-1 space-y-4 p-4 pt-6">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">
-            {t("userManagement.title", "Gestão de Usuários")}
+            {isSaasAdmin 
+              ? t("userManagement.saasAdmin.title", "Gestão Global de Usuários")
+              : t("userManagement.title", "Gestão de Usuários")
+            }
           </h2>
           <div className="flex items-center space-x-2">
             <Button onClick={() => setShowInviteUser(true)}>
@@ -65,6 +73,21 @@ export function UserManagement() {
             </Button>
           </div>
         </div>
+
+        {/* SaaS Admin Indicator */}
+        {isSaasAdmin && (
+          <div className="bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-purple-600" />
+              <h3 className="font-semibold text-purple-900">
+                {t("userManagement.saasAdmin.indicator", "Administração Global")}
+              </h3>
+            </div>
+            <p className="text-purple-700 text-sm mt-1">
+              {t("userManagement.saasAdmin.warning", "Você está visualizando dados de todas as tenants da plataforma")}
+            </p>
+          </div>
+        )}
 
         {/* Statistics Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -190,6 +213,16 @@ export function UserManagement() {
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
+            {isSaasAdmin ? (
+              <div className="text-center p-8">
+                <h3 className="text-lg font-semibold mb-2">
+                  {t("userManagement.saasAdmin.globalUsers", "Gestão Global de Usuários")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("userManagement.saasAdmin.description", "Visualização e gestão de usuários em todas as tenants da plataforma")}
+                </p>
+              </div>
+            ) : null}
             <UserList />
           </TabsContent>
 

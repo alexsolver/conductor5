@@ -202,6 +202,7 @@ function AppRouter() {
         <Route path="/ticket-configuration" component={TicketConfiguration} />
         <Route path="/ticket-configuration/advanced" component={TicketAdvancedConfiguration} />
         <Route path="/user-management" component={UserManagement} />
+        <Route path="/saas-admin/user-management" component={UserManagement} />
         {/* Removed: Multi-tenant management route - functionality eliminated */}
         <Route path="/settings" component={Settings} />
         <Route path="/security" component={SecuritySettings} />

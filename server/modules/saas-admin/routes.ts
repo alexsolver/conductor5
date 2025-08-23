@@ -532,4 +532,105 @@ router.get('/translations/expand-scan', requirePermission(Permission.PLATFORM_MA
   }
 });
 
+/**
+ * USER MANAGEMENT - SaaS Admin Global Routes
+ * These endpoints manage users across the entire platform
+ */
+
+/**
+ * GET /api/saas-admin/users/stats
+ * Get global user statistics across all tenants
+ */
+router.get('/users/stats', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+  try {
+    // Global user statistics from public schema
+    const globalStats = {
+      totalUsers: 0,
+      activeUsers: 0, 
+      pendingInvitations: 0,
+      activeSessions: 0,
+      roleDistribution: {
+        saas_admin: 0,
+        tenant_admin: 0,
+        agent: 0,
+        customer: 0
+      }
+    };
+
+    // TODO: Implement actual global user stats queries against public schema
+    res.json({ success: true, stats: globalStats });
+  } catch (error) {
+    console.error('Error fetching global user stats:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch global user stats' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/users
+ * Get all users across all tenants
+ */
+router.get('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+  try {
+    // Global user list from public schema
+    const globalUsers = [];
+
+    // TODO: Implement actual global user queries against public schema
+    res.json({ success: true, users: globalUsers });
+  } catch (error) {
+    console.error('Error fetching global users:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch global users' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/users/groups
+ * Get global user groups/roles across all tenants
+ */
+router.get('/users/groups', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+  try {
+    // Global user groups from public schema
+    const globalGroups = [];
+
+    // TODO: Implement actual global groups queries against public schema
+    res.json({ success: true, groups: globalGroups });
+  } catch (error) {
+    console.error('Error fetching global user groups:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch global user groups' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/users/sessions
+ * Get global user sessions across all tenants
+ */
+router.get('/users/sessions', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+  try {
+    // Global user sessions from public schema
+    const globalSessions = [];
+
+    // TODO: Implement actual global sessions queries against public schema
+    res.json({ success: true, sessions: globalSessions });
+  } catch (error) {
+    console.error('Error fetching global user sessions:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch global user sessions' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/users/activity
+ * Get global user activity across all tenants
+ */
+router.get('/users/activity', requirePermission(Permission.PLATFORM_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+  try {
+    // Global user activity from public schema
+    const globalActivity = [];
+
+    // TODO: Implement actual global activity queries against public schema
+    res.json({ success: true, activity: globalActivity });
+  } catch (error) {
+    console.error('Error fetching global user activity:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch global user activity' });
+  }
+});
+
 export default router;
