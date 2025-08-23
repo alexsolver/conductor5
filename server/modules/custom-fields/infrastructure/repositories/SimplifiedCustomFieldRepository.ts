@@ -8,33 +8,44 @@ export class SimplifiedCustomFieldRepository {
   // ✅ Basic implementation for essential operations only - per 1qa.md
   // ✅ Full ICustomFieldRepository implementation pending Clean Architecture refactor
   async create(fieldData: Partial<CustomField>): Promise<CustomField> {
+    console.log('[CUSTOM-FIELDS] Repository create method started with:', fieldData);
+    
     const schemaName = fieldData.tenantId!.replace(/-/g, '_');
     const tableName = `"${schemaName}"."custom_fields_metadata"`;
     
-    const result = await db.execute(sql.raw(`
-      INSERT INTO ${tableName} (
-        id, module_type, field_name, field_type, field_label, 
-        is_required, validation_rules, field_options, placeholder, 
-        default_value, display_order, is_active, created_at, updated_at, help_text
-      ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), $12
-      ) RETURNING *
-    `), [
-      fieldData.moduleType,
-      fieldData.fieldName,
-      fieldData.fieldType,
-      fieldData.fieldLabel,
-      fieldData.isRequired || false,
-      JSON.stringify(fieldData.validationRules || {}),
-      JSON.stringify(fieldData.fieldOptions || []),
-      fieldData.placeholder || '',
-      fieldData.defaultValue || '',
-      fieldData.displayOrder || 0,
-      true,
-      fieldData.helpText || ''
-    ]);
+    console.log('[CUSTOM-FIELDS] Using table:', tableName);
+    
+    try {
+      const result = await db.execute(sql.raw(`
+        INSERT INTO ${tableName} (
+          id, tenant_id, module_type, field_name, field_type, field_label, 
+          is_required, validation_rules, field_options, placeholder, 
+          default_value, display_order, is_active, created_at, updated_at, help_text, created_by
+        ) VALUES (
+          gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW(), $13, $1
+        ) RETURNING *
+      `), [
+        fieldData.tenantId,
+        fieldData.moduleType,
+        fieldData.fieldName,
+        fieldData.fieldType,
+        fieldData.fieldLabel,
+        fieldData.isRequired || false,
+        JSON.stringify(fieldData.validationRules || {}),
+        JSON.stringify(fieldData.fieldOptions || []),
+        fieldData.placeholder || '',
+        fieldData.defaultValue || '',
+        fieldData.displayOrder || 0,
+        true,
+        fieldData.helpText || ''
+      ]);
 
-    return result[0] as CustomField || null;
+      console.log('[CUSTOM-FIELDS] Repository insert success:', result);
+      return result[0] as CustomField || null;
+    } catch (error) {
+      console.error('[CUSTOM-FIELDS] Repository error:', error);
+      throw error;
+    }
   }
 
   async findByModule(moduleType: string, tenantId: string): Promise<CustomField[]> {
