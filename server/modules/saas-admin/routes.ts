@@ -414,6 +414,170 @@ router.put('/integrations/openweather/api-key', async (req: AuthorizedRequest, r
 });
 
 /**
+ * POST /api/saas-admin/integrations/openai/test
+ * Testar integração OpenAI
+ */
+router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => {
+  try {
+    console.log('🧪 [SAAS-ADMIN-OPENAI-TEST] Testing OpenAI integration');
+
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const integrationRepository = new DrizzleIntegrationRepository();
+
+    // Get OpenAI configuration
+    const integration = await integrationRepository.getIntegrationConfig('openai');
+
+    if (!integration || !integration.apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'OpenAI API key não configurada. Configure primeiro a API key.'
+      });
+    }
+
+    const apiKey = integration.apiKey;
+    console.log('🧪 [SAAS-ADMIN-OPENAI-TEST] Testing with API key:', apiKey.substring(0, 8) + '...');
+
+    // Test the OpenAI API with a simple completion request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Conductor-SaaS-Admin/1.0'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'user',
+              content: 'Hello, this is a test message to verify the API connection.'
+            }
+          ],
+          max_tokens: 10
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [SAAS-ADMIN-OPENAI-TEST] Test successful');
+
+        // Update integration status to connected
+        await integrationRepository.updateIntegrationStatus('openai', 'connected');
+
+        return res.json({
+          success: true,
+          message: 'Teste da integração OpenAI realizado com sucesso!',
+          data: {
+            model: data.model,
+            usage: data.usage,
+            response: data.choices?.[0]?.message?.content?.substring(0, 50) + '...'
+          }
+        });
+      } else {
+        const errorData = await response.json();
+        console.error('❌ [SAAS-ADMIN-OPENAI-TEST] API Error:', response.status, errorData);
+
+        // Update integration status to error
+        await integrationRepository.updateIntegrationStatus('openai', 'error');
+
+        return res.status(400).json({
+          success: false,
+          message: `Erro na API OpenAI: ${errorData.error?.message || 'Erro desconhecido'}`,
+          error: errorData.error?.message
+        });
+      }
+
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError.name === 'AbortError') {
+        console.error('❌ [SAAS-ADMIN-OPENAI-TEST] Request timeout');
+        await integrationRepository.updateIntegrationStatus('openai', 'error');
+        
+        return res.status(408).json({
+          success: false,
+          message: 'Timeout ao testar integração OpenAI. Verifique sua conexão.',
+          error: 'Request timeout'
+        });
+      } else {
+        console.error('❌ [SAAS-ADMIN-OPENAI-TEST] Network error:', fetchError);
+        await integrationRepository.updateIntegrationStatus('openai', 'error');
+        
+        return res.status(500).json({
+          success: false,
+          message: 'Erro de rede ao testar integração OpenAI',
+          error: fetchError.message
+        });
+      }
+    }
+
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-OPENAI-TEST] Error testing OpenAI integration:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno ao testar integração OpenAI',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/saas-admin/integrations/openai/api-key
+ * Atualizar chave da API OpenAI
+ */
+router.put('/integrations/openai/api-key', async (req: AuthorizedRequest, res) => {
+  try {
+    const { apiKey, enabled = true, maxTokens = 4000, temperature = 0.7 } = req.body;
+
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API key é obrigatória'
+      });
+    }
+
+    console.log('🔧 [SAAS-ADMIN-OPENAI] Updating OpenAI API key');
+
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const integrationRepository = new DrizzleIntegrationRepository();
+
+    // Update OpenAI configuration
+    const config = {
+      apiKey: apiKey.toString().trim(),
+      enabled: Boolean(enabled),
+      maxTokens: Number(maxTokens),
+      temperature: Number(temperature),
+      lastUpdated: new Date().toISOString()
+    };
+
+    await integrationRepository.updateIntegrationConfig('openai', config);
+
+    console.log('✅ [SAAS-ADMIN-OPENAI] OpenAI API key updated successfully');
+
+    res.json({
+      success: true,
+      message: 'Chave da API OpenAI atualizada com sucesso',
+      status: 'disconnected' // Will be updated to 'connected' after successful test
+    });
+
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-OPENAI] Error updating OpenAI API key:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno ao atualizar chave da API OpenAI',
+      error: error.message
+    });
+  }
+});
+
+/**
  * POST /api/saas-admin/integrations/openweather/test
  * Testar integração OpenWeather
  */
