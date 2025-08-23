@@ -335,17 +335,14 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               weight: 2,
               opacity: 0.8,
               className: 'weather-gradient-circle',
-              interactive: true
+              interactive: false
             }}
             eventHandlers={{
               click: (e) => {
                 e.originalEvent.stopPropagation();
-              },
-              mouseover: (e) => {
-                e.target.setStyle({ fillOpacity: 0.6 });
-              },
-              mouseout: (e) => {
-                e.target.setStyle({ fillOpacity: weatherInfo.opacity });
+                e.originalEvent.preventDefault();
+                // Prevent any other click handlers from executing
+                return false;
               }
             }}
           >
