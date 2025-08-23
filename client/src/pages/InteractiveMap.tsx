@@ -2013,10 +2013,10 @@ export const InteractiveMap: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setLegendExpanded(!legendExpanded)}
+                    onClick={() => setShowLegend(false)}
                     data-testid="toggle-legend-btn"
                   >
-                    {legendExpanded ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <EyeOff className="w-4 h-4" />
                   </Button>
                 </CardTitle>
               </CardHeader>
