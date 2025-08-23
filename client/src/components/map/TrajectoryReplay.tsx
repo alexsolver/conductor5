@@ -54,6 +54,8 @@ export interface AgentTrajectory {
 
 interface TrajectoryReplayProps {
   trajectory: AgentTrajectory | null;
+  currentIndex: number;
+  onIndexChange: (index: number) => void;
   onClose: () => void;
   onExport: (format: 'geojson' | 'csv') => Promise<void>;
   isVisible: boolean;
@@ -61,7 +63,6 @@ interface TrajectoryReplayProps {
 
 interface PlaybackState {
   isPlaying: boolean;
-  currentIndex: number;
   speed: number; // 1x, 2x, 5x, 10x
   loop: boolean;
 }
@@ -72,6 +73,8 @@ interface PlaybackState {
 
 export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
   trajectory,
+  currentIndex,
+  onIndexChange,
   onClose,
   onExport,
   isVisible
@@ -81,7 +84,6 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
   // Playback state
   const [playbackState, setPlaybackState] = useState<PlaybackState>({
     isPlaying: false,
-    currentIndex: 0,
     speed: 1,
     loop: false
   });
@@ -105,21 +107,19 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
     setPlaybackState(prev => ({ ...prev, isPlaying: true }));
 
     const animate = () => {
-      setPlaybackState(prev => {
-        if (!prev.isPlaying) return prev;
-
-        let nextIndex = prev.currentIndex + 1;
-        
-        if (nextIndex >= trajectory.points.length) {
-          if (prev.loop) {
-            nextIndex = 0;
-          } else {
-            return { ...prev, isPlaying: false };
-          }
+      let nextIndex = currentIndex + 1;
+      
+      if (nextIndex >= trajectory.points.length) {
+        if (playbackState.loop) {
+          nextIndex = 0;
+          onIndexChange(nextIndex);
+        } else {
+          setPlaybackState(prev => ({ ...prev, isPlaying: false }));
+          return;
         }
-
-        return { ...prev, currentIndex: nextIndex };
-      });
+      } else {
+        onIndexChange(nextIndex);
+      }
 
       // Schedule next frame based on speed
       const baseDelay = 500; // Base delay in ms
@@ -133,7 +133,7 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
     };
 
     animate();
-  }, [trajectory, playbackState.speed, playbackState.isPlaying]);
+  }, [trajectory, playbackState.speed, playbackState.isPlaying, currentIndex, onIndexChange]);
 
   const pausePlayback = useCallback(() => {
     setPlaybackState(prev => ({ ...prev, isPlaying: false }));
@@ -144,20 +144,22 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
   }, []);
 
   const resetPlayback = useCallback(() => {
-    setPlaybackState(prev => ({ ...prev, isPlaying: false, currentIndex: 0 }));
+    setPlaybackState(prev => ({ ...prev, isPlaying: false }));
+    onIndexChange(0);
     setSelectedPoint(null);
     if (playbackTimer.current) {
       clearTimeout(playbackTimer.current);
       playbackTimer.current = null;
     }
-  }, []);
+  }, [onIndexChange]);
 
   const skipToPoint = useCallback((index: number) => {
-    setPlaybackState(prev => ({ ...prev, currentIndex: index, isPlaying: false }));
+    setPlaybackState(prev => ({ ...prev, isPlaying: false }));
+    onIndexChange(index);
     if (trajectory) {
       setSelectedPoint(trajectory.points[index]);
     }
-  }, [trajectory]);
+  }, [trajectory, onIndexChange]);
 
   // ===========================================================================================
   // Export Functions
@@ -305,7 +307,7 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
             </div>
             
             <Slider
-              value={[playbackState.currentIndex]}
+              value={[currentIndex]}
               onValueChange={([value]) => skipToPoint(value)}
               max={trajectory.points.length - 1}
               step={1}

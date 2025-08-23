@@ -1341,6 +1341,7 @@ export const InteractiveMap: React.FC = () => {
   const [trajectoryModalOpen, setTrajectoryModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
   const [selectedTrajectory, setSelectedTrajectory] = useState<AgentTrajectory | null>(null);
+  const [currentTrajectoryIndex, setCurrentTrajectoryIndex] = useState(0);
   const [showLegend, setShowLegend] = useState(true);
   const [legendExpanded, setLegendExpanded] = useState(true);
   const { sidebarCollapsed, toggleSidebar, setSidebarHidden, sidebarHidden, toggleHeader, headerHidden } = useSidebar();
@@ -2485,15 +2486,18 @@ export const InteractiveMap: React.FC = () => {
                     opacity={0.8}
                   />
                   
-                  {/* Current Position Marker */}
+                  {/* Current Position Marker - ANIMATED! */}
                   {selectedTrajectory.points.length > 0 && (
                     <Marker
-                      position={[selectedTrajectory.points[0].lat, selectedTrajectory.points[0].lng]}
+                      position={[
+                        selectedTrajectory.points[currentTrajectoryIndex]?.lat || selectedTrajectory.points[0].lat,
+                        selectedTrajectory.points[currentTrajectoryIndex]?.lng || selectedTrajectory.points[0].lng
+                      ]}
                       icon={new Icon({
-                        iconUrl: 'data:image/svg+xml;base64,' + btoa(`<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="#ffffff"/></svg>`),
+                        iconUrl: 'data:image/svg+xml;base64,' + btoa(`<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#ff4444" stroke="#ffffff" stroke-width="3"/><circle cx="16" cy="16" r="6" fill="#ffffff"/></svg>`),
                         iconSize: [32, 32],
                         iconAnchor: [16, 16],
-                        className: 'animate-bounce'
+                        className: 'animate-pulse'
                       })}
                     />
                   )}
@@ -2603,9 +2607,12 @@ export const InteractiveMap: React.FC = () => {
             <div className="absolute top-20 right-4 z-[99999] w-80">
               <TrajectoryReplay
                 trajectory={selectedTrajectory}
+                currentIndex={currentTrajectoryIndex}
+                onIndexChange={setCurrentTrajectoryIndex}
                 onClose={() => {
                   setTrajectoryModalOpen(false);
                   setSelectedTrajectory(null);
+                  setCurrentTrajectoryIndex(0);
                 }}
                 onExport={async (format) => {
                   console.log(`📥 [EXPORT] Exportando trajetória ${format.toUpperCase()}...`);
