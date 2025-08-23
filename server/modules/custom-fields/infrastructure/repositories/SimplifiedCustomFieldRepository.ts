@@ -40,19 +40,36 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     console.log('🔥 [CUSTOM-FIELDS-REPO] getFieldsByModule called with:', moduleType);
 
     try {
-      // ✅ 1QA.MD: For now, return empty array to test basic functionality
-      // Later we'll implement proper database queries when tables are created
-      console.log('🔥 [CUSTOM-FIELDS-REPO] Returning empty array for testing purposes');
+      // ✅ 1QA.MD: Ensure table exists first
+      await this.ensureCustomFieldsTable();
 
-      // ✅ 1QA.MD: Create table if it doesn't exist (development mode)
-      try {
-        await this.ensureCustomFieldsTable();
-      } catch (tableError) {
-        console.error('🔥 [CUSTOM-FIELDS-REPO] Table creation error (non-blocking):', tableError);
-        // Continue execution even if table creation fails
-      }
-
-      return [];
+      const tenantSchema = this.getTenantSchema();
+      console.log('🔥 [CUSTOM-FIELDS-REPO] Querying fields from schema:', tenantSchema);
+      
+      const result = await db.execute(sql`
+        SELECT 
+          id,
+          module_type as "moduleType",
+          field_name as "fieldName", 
+          field_type as "fieldType",
+          field_label as "fieldLabel",
+          is_required as "isRequired",
+          validation_rules as "validationRules",
+          field_options as "fieldOptions",
+          placeholder,
+          default_value as "defaultValue",
+          display_order as "displayOrder",
+          is_active as "isActive",
+          help_text as "helpText",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema, 'custom_field_metadata')}
+        WHERE module_type = ${moduleType} AND is_active = true
+        ORDER BY display_order ASC, created_at ASC
+      `);
+      console.log('🔥 [CUSTOM-FIELDS-REPO] Query result:', result.rows?.length || 0, 'fields found');
+      
+      return result.rows as CustomFieldMetadata[];
     } catch (error) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Error in getFieldsByModule:', error);
       // ✅ 1QA.MD: Return empty array instead of throwing to prevent frontend blocking
@@ -145,22 +162,19 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       `;
 
       const tenantSchema = this.getTenantSchema();
-      const insertQuery = `
-        INSERT INTO ${tenantSchema}.custom_field_metadata (
+      
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(tenantSchema, 'custom_field_metadata')} (
           id, module_type, field_name, field_type, field_label,
           is_required, validation_rules, field_options, placeholder,
           default_value, display_order, is_active, help_text,
           created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, $12, NOW(), NOW()
+          ${fieldId}, ${moduleType}, ${fieldName}, ${fieldType}, ${fieldLabel},
+          ${isRequired}, ${JSON.stringify(validationRules)}, ${JSON.stringify(fieldOptions)},
+          ${placeholder}, ${defaultValue}, ${displayOrder}, true, ${helpText}, NOW(), NOW()
         )
-      `;
-      
-      await db.execute(sql.raw(insertQuery, [
-        fieldId, moduleType, fieldName, fieldType, fieldLabel,
-        isRequired, JSON.stringify(validationRules), JSON.stringify(fieldOptions),
-        placeholder, defaultValue, displayOrder, helpText
-      ]));
+      `);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field created successfully');
       return {
