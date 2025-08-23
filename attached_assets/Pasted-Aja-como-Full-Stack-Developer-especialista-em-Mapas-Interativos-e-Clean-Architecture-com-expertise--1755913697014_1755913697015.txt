@@ -1,0 +1,285 @@
+Aja como Full-Stack Developer especialista em Mapas Interativos e Clean Architecture, com expertise em:
+
+Geospatial Data Processing - Para coordenadas, clusters e heatmaps
+Real-time Systems - Para atualizações em tempo real de agentes
+Performance Optimization - Para suportar 1000+ agentes simultâneos
+Integration Architecture - Para conectar com módulos existentes
+REGRAS ARQUITETURAIS OBRIGATÓRIAS
+1. CLEAN ARCHITECTURE - 100% COMPLIANCE COM 1QA.MD
+
+✅ SEMPRE respeitar a estrutura:
+   server/modules/interactive-map/
+   ├── domain/
+   │   ├── entities/           → Agent.ts, MapLayer.ts, Cluster.ts
+   │   ├── repositories/       → IAgentRepository.ts, IMapDataRepository.ts
+   │   ├── services/          → MapDomainService.ts, SlaCalculationService.ts
+   │   └── value-objects/     → Coordinates.ts, AgentStatus.ts
+   ├── application/
+   │   ├── controllers/       → MapController.ts, AgentTrackingController.ts
+   │   ├── use-cases/         → TrackAgentPositionUseCase.ts, UpdateMapDataUseCase.ts
+   │   ├── dto/              → AgentPositionDTO.ts, MapFilterDTO.ts
+   │   └── services/         → MapApplicationService.ts
+   ├── infrastructure/
+   │   ├── repositories/      → DrizzleAgentRepository.ts, DrizzleMapDataRepository.ts
+   │   ├── websockets/       → RealTimeMapService.ts
+   │   └── external/         → WeatherService.ts, TrafficService.ts
+   └── routes.ts             → Endpoints REST + WebSocket
+2. INTEGRAÇÃO COM MÓDULOS EXISTENTES
+
+✅ INTEGRAR COM:
+   - server/modules/locations/ → Para dados geoespaciais existentes
+   - server/modules/tickets/ → Para SLA e status de chamados
+   - server/modules/users/ → Para dados de agentes de campo
+   - shared/schema-locations.ts → Usar schemas existentes
+3. FRONTEND STRUCTURE
+
+✅ FRONTEND EM:
+   client/src/components/map/
+   ├── InteractiveMap.tsx        → Componente principal
+   ├── AgentMarker.tsx          → Marcador de agente
+   ├── TicketMarker.tsx         → Marcador de ticket
+   ├── MapFilters.tsx           → Filtros dinâmicos
+   ├── AgentTooltip.tsx         → Tooltip detalhado
+   ├── MapLayers.tsx            → Camadas (trânsito, clima)
+   ├── ClusterMarker.tsx        → Agrupamentos
+   └── MapControls.tsx          → Controles de zoom/camadas
+IMPLEMENTAÇÃO DETALHADA
+1. DOMAIN LAYER - ENTIDADES PRINCIPAIS
+Agent Entity (server/modules/interactive-map/domain/entities/Agent.ts):
+
+export class Agent {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly teamId: string,
+    public readonly skills: string[],
+    public status: AgentStatus,
+    public position: Coordinates,
+    public readonly deviceInfo: DeviceInfo,
+    public assignedTicketId?: string,
+    public route?: Route
+  ) {}
+  updatePosition(coordinates: Coordinates, accuracy: number): void
+  calculateSlaRisk(slaDeadline: Date, eta: number): boolean
+  isWithinOperatingHours(location: Location): boolean
+}
+AgentStatus Value Object:
+
+export enum AgentStatusType {
+  AVAILABLE = 'available',
+  IN_TRANSIT = 'in_transit', 
+  IN_SERVICE = 'in_service',
+  ON_BREAK = 'on_break',
+  SLA_RISK = 'sla_risk',
+  OFFLINE = 'offline'
+}
+export class AgentStatus {
+  constructor(
+    public readonly type: AgentStatusType,
+    public readonly since: Date,
+    public readonly color: string = this.getStatusColor()
+  ) {}
+  private getStatusColor(): string {
+    const colors = {
+      [AgentStatusType.AVAILABLE]: '#24B47E',
+      [AgentStatusType.IN_TRANSIT]: '#2F80ED',
+      [AgentStatusType.IN_SERVICE]: '#F2C94C',
+      [AgentStatusType.ON_BREAK]: '#9B51E0',
+      [AgentStatusType.SLA_RISK]: '#EB5757',
+      [AgentStatusType.OFFLINE]: '#BDBDBD'
+    };
+    return colors[this.type];
+  }
+}
+2. APPLICATION LAYER - USE CASES
+TrackAgentPositionUseCase:
+
+export class TrackAgentPositionUseCase {
+  constructor(
+    private agentRepository: IAgentRepository,
+    private locationRepository: ILocationRepository,
+    private realTimeService: IRealTimeMapService
+  ) {}
+  async execute(agentId: string, position: Coordinates, tenantId: string): Promise<void> {
+    // 1. Validar e atualizar posição
+    // 2. Calcular status automaticamente (velocidade, proximidade)
+    // 3. Verificar SLA risk
+    // 4. Atualizar em tempo real via WebSocket
+    // 5. Registrar trilha histórica
+  }
+}
+UpdateMapDataUseCase:
+
+export class UpdateMapDataUseCase {
+  async execute(filters: MapFilterDTO, tenantId: string): Promise<MapDataResponse> {
+    // 1. Buscar agentes filtrados
+    // 2. Buscar tickets com coordenadas
+    // 3. Calcular clusters
+    // 4. Gerar heatmap data
+    // 5. Integrar dados externos (trânsito, clima)
+  }
+}
+3. INFRASTRUCTURE LAYER - REPOSITORIES
+DrizzleAgentRepository:
+
+export class DrizzleAgentRepository implements IAgentRepository {
+  async updatePosition(agentId: string, position: Coordinates, tenantId: string): Promise<void> {
+    // Usar schema existente + adicionar tabela agent_positions
+  }
+  async findWithinRadius(center: Coordinates, radius: number, tenantId: string): Promise<Agent[]> {
+    // Query geoespacial usando PostGIS
+  }
+  async getAgentTrail(agentId: string, timeRange: TimeRange, tenantId: string): Promise<Coordinates[]> {
+    // Histórico de posições
+  }
+}
+4. WEBSOCKET REAL-TIME SERVICE
+RealTimeMapService:
+
+export class RealTimeMapService {
+  private wsConnections = new Map<string, WebSocket>();
+  broadcastAgentUpdate(agentUpdate: AgentUpdateDTO, tenantId: string): void {
+    // Enviar apenas delta updates
+    // Filtrar por permissões de usuário
+  }
+  handleAgentPositionUpdate(agentId: string, position: Coordinates): void {
+    // 1. Validar precisão GPS
+    // 2. Calcular diferença de posição
+    // 3. Atualizar status automático
+    // 4. Broadcast para clientes conectados
+  }
+}
+5. FRONTEND - COMPONENTE PRINCIPAL
+InteractiveMap.tsx:
+
+import { useEffect, useState, useCallback } from 'react';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import { useWebSocket } from '@/hooks/useWebSocket';
+export function InteractiveMap() {
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [filters, setFilters] = useState<MapFilters>({});
+  const [clusters, setClusters] = useState<Cluster[]>([]);
+  // WebSocket para atualizações em tempo real
+  const { lastMessage } = useWebSocket('/api/map/realtime');
+  // Performance: Virtualização para 1000+ agentes
+  const visibleAgents = useMemo(() => 
+    virtualizeMarkers(agents, mapBounds, zoomLevel), 
+    [agents, mapBounds, zoomLevel]
+  );
+  // Clustering dinâmico
+  const clusteredData = useMemo(() => 
+    createClusters(visibleAgents, zoomLevel),
+    [visibleAgents, zoomLevel]
+  );
+  return (
+    <div className="interactive-map">
+      <MapFilters onFiltersChange={setFilters} />
+      
+      <MapContainer 
+        center={[defaultLat, defaultLng]} 
+        zoom={13}
+        className="h-full w-full"
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        
+        {/* Camadas de dados */}
+        <TrafficLayer enabled={filters.showTraffic} />
+        <WeatherLayer enabled={filters.showWeather} />
+        
+        {/* Marcadores de agentes */}
+        {clusteredData.map(item => 
+          item.type === 'cluster' ? 
+            <ClusterMarker key={item.id} cluster={item} /> :
+            <AgentMarker key={item.id} agent={item} />
+        )}
+        
+        {/* Marcadores de tickets */}
+        {tickets.map(ticket => 
+          <TicketMarker key={ticket.id} ticket={ticket} />
+        )}
+        
+        {/* Heatmap */}
+        {filters.showHeatmap && <HeatmapLayer data={heatmapData} />}
+      </MapContainer>
+      
+      <MapControls />
+    </div>
+  );
+}
+6. SCHEMA ADDITIONS
+Adicionar ao shared/schema-locations.ts:
+
+export const agentPositions = pgTable('agent_positions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  agentId: uuid('agent_id').notNull(),
+  coordinates: jsonb('coordinates').notNull(), // { lat, lng, accuracy, heading, speed }
+  status: varchar('status', { length: 50 }).notNull(),
+  deviceInfo: jsonb('device_info'), // { battery, signal_strength }
+  assignedTicketId: uuid('assigned_ticket_id'),
+  recordedAt: timestamp('recorded_at').defaultNow(),
+  // Índices geoespaciais para performance
+});
+export const agentTrails = pgTable('agent_trails', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  agentId: uuid('agent_id').notNull(),
+  trailData: jsonb('trail_data').notNull(), // Array de coordenadas
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+7. API ENDPOINTS
+routes.ts:
+
+// REST APIs
+router.get('/api/map/agents', mapController.getAgents);
+router.post('/api/map/agents/:id/position', mapController.updateAgentPosition);
+router.get('/api/map/data', mapController.getMapData);
+router.get('/api/map/clusters', mapController.getClusters);
+router.get('/api/map/heatmap', mapController.getHeatmapData);
+// WebSocket endpoint
+router.ws('/api/map/realtime', mapController.handleWebSocket);
+8. PERFORMANCE & SCALABILITY
+Otimizações Obrigatórias:
+
+Clustering dinâmico baseado no zoom level
+Virtualização de marcadores (render apenas visíveis)
+Delta updates via WebSocket (apenas mudanças)
+Indexação geoespacial no PostgreSQL
+Throttling de updates (max 1/segundo por agente)
+Lazy loading de trilhas históricas
+9. INTEGRAÇÃO COM MÓDULOS EXISTENTES
+Com Locations Module:
+
+// Usar dados existentes de locais para geofencing
+const locationService = new LocationService(locationRepository);
+const isInServiceZone = await locationService.checkGeofence(agentPosition, siteId);
+Com Tickets Module:
+
+// Integrar SLA calculation
+const ticketService = new TicketService(ticketRepository);
+const slaStatus = await ticketService.calculateSlaRisk(ticketId, agentEta);
+ACCEPTANCE CRITERIA (DoD)
+✅ Performance: Suportar 1000+ agentes com 60 FPS
+✅ Real-time: Updates ≤ 1s após receber posição
+✅ Clustering: Agrupamento dinâmico por zoom level
+✅ SLA Integration: Cálculo preciso de risco considerando horários
+✅ Accessibility: Navegação por teclado + contraste AA
+✅ Audit Trail: Log de visualizações de localização
+✅ Multi-tenant: Isolamento completo por tenant
+✅ Clean Architecture: 100% compliance com 1qa.md
+
+STACK TECNOLÓGICO
+Backend:
+
+WebSockets para real-time
+PostGIS para queries geoespaciais
+Drizzle ORM seguindo padrão existente
+Frontend:
+
+Leaflet/React-Leaflet para mapas
+Turf.js para cálculos geoespaciais
+React Query para cache de dados
+Agora implemente este módulo seguindo exatamente esta especificação, respeitando 100% os padrões do 1qa.md e integrando perfeitamente com os módulos existentes do sistema Conductor.
