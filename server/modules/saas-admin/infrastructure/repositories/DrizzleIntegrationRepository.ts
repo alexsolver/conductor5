@@ -332,4 +332,102 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
   async getEnabledIntegrations(): Promise<Integration[]> {
     return this.findByStatus('connected');
   }
+
+  // Métodos adicionais necessários pela interface
+  async save(integration: Integration): Promise<Integration> {
+    return this.create(integration);
+  }
+
+  async getOpenWeatherConfig(): Promise<Integration | null> {
+    return this.findById('openweather');
+  }
+
+  async updateOpenWeatherApiKey(apiKey: string): Promise<Integration> {
+    try {
+      const pool = await this.getPool();
+      const result = await pool.query(`
+        INSERT INTO "public"."system_integrations" 
+        (integration_id, name, provider, config, status, updated_at)
+        VALUES ('openweather', 'OpenWeather', 'OpenWeather', $1, 'connected', NOW())
+        ON CONFLICT (integration_id) 
+        DO UPDATE SET 
+          config = $1,
+          status = 'connected',
+          updated_at = NOW()
+        RETURNING *
+      `, [JSON.stringify({ apiKey })]);
+      
+      return {
+        id: result.rows[0].integration_id,
+        name: result.rows[0].name,
+        provider: result.rows[0].provider,
+        description: 'Weather data integration',
+        status: result.rows[0].status,
+        config: result.rows[0].config || {},
+        createdAt: new Date(result.rows[0].created_at),
+        updatedAt: new Date(result.rows[0].updated_at)
+      };
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error updating OpenWeather API key:', error);
+      throw new Error('Failed to update OpenWeather API key');
+    }
+  }
+
+  async updateStatus(integrationId: string, status: 'connected' | 'error' | 'disconnected'): Promise<void> {
+    return this.updateIntegrationStatus(integrationId, status);
+  }
+
+  async testConnection(integrationId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const integration = await this.findById(integrationId);
+      if (!integration) {
+        return { success: false, message: 'Integration not found' };
+      }
+
+      const config = await this.getIntegrationConfig(integrationId);
+      if (!config?.apiKey) {
+        return { success: false, message: 'API Key not configured' };
+      }
+
+      return { success: true, message: 'Integration ready for testing' };
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error testing connection:', error);
+      return { success: false, message: 'Connection test failed' };
+    }
+  }
+
+  async updateConfig(integrationId: string, config: any): Promise<Integration | null> {
+    try {
+      const pool = await this.getPool();
+      const result = await pool.query(`
+        INSERT INTO "public"."system_integrations" 
+        (integration_id, name, provider, config, status, updated_at)
+        VALUES ($1, $1, $1, $2, 'connected', NOW())
+        ON CONFLICT (integration_id) 
+        DO UPDATE SET 
+          config = $2,
+          status = CASE WHEN $2::jsonb ? 'apiKey' THEN 'connected' ELSE 'disconnected' END,
+          updated_at = NOW()
+        RETURNING *
+      `, [integrationId, JSON.stringify(config)]);
+
+      if (result.rows[0]) {
+        return {
+          id: result.rows[0].integration_id,
+          name: result.rows[0].name,
+          provider: result.rows[0].provider,
+          description: `${result.rows[0].provider} integration`,
+          status: result.rows[0].status,
+          config: result.rows[0].config || {},
+          createdAt: new Date(result.rows[0].created_at),
+          updatedAt: new Date(result.rows[0].updated_at)
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error updating integration config:', error);
+      throw new Error('Failed to update integration configuration');
+    }
+  }
 }
