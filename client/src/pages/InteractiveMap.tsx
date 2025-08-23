@@ -1347,7 +1347,7 @@ export const InteractiveMap: React.FC = () => {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80">
+              <SheetContent side="left" className="w-80 z-[9999]">
                 <SheetHeader>
                   <SheetTitle>Filtros do Mapa</SheetTitle>
                   <SheetDescription>Configure os filtros para visualizar agentes específicos</SheetDescription>
@@ -1371,7 +1371,7 @@ export const InteractiveMap: React.FC = () => {
                   <Layers className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 z-[9999]">
                 <SheetHeader>
                   <SheetTitle>Camadas do Mapa</SheetTitle>
                   <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
@@ -1400,7 +1400,7 @@ export const InteractiveMap: React.FC = () => {
                   <Settings className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 z-[9999]">
                 <SheetHeader>
                   <SheetTitle>Configurações do Mapa</SheetTitle>
                   <SheetDescription>Ajuste as configurações visuais e de comportamento</SheetDescription>
@@ -1446,7 +1446,7 @@ export const InteractiveMap: React.FC = () => {
                   <HelpCircle className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl z-[9999]">
                 <DialogHeader>
                   <DialogTitle>Ajuda do Mapa Interativo</DialogTitle>
                   <DialogDescription>Guia de funcionalidades e atalhos do teclado</DialogDescription>
