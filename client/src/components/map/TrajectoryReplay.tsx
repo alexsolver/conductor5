@@ -23,8 +23,7 @@ import {
   Download
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Polyline, Marker } from 'react-leaflet';
-import { Icon } from 'leaflet';
+// Map elements now rendered in InteractiveMap within MapContainer
 
 // ===========================================================================================
 // Types
@@ -276,12 +275,10 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
 
   return (
     <>
-      {/* Trajectory Path and Current Position */}
-      {renderTrajectoryPath()}
-      {renderCurrentPosition()}
+      {/* Map elements now rendered in InteractiveMap within MapContainer */}
 
       {/* Control Panel */}
-      <Card className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000] w-96">
+      <Card className="bg-white shadow-xl border z-[1000] w-full">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm flex items-center gap-2">

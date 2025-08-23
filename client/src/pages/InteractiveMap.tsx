@@ -2474,6 +2474,32 @@ export const InteractiveMap: React.FC = () => {
                 </Marker>
               ))}
 
+              {/* Trajectory Replay Map Elements */}
+              {selectedTrajectory && trajectoryModalOpen && (
+                <>
+                  {/* Trajectory Path */}
+                  <Polyline
+                    positions={selectedTrajectory.points.map(point => [point.lat, point.lng] as [number, number])}
+                    color="#3b82f6"
+                    weight={3}
+                    opacity={0.8}
+                  />
+                  
+                  {/* Current Position Marker */}
+                  {selectedTrajectory.points.length > 0 && (
+                    <Marker
+                      position={[selectedTrajectory.points[0].lat, selectedTrajectory.points[0].lng]}
+                      icon={new Icon({
+                        iconUrl: 'data:image/svg+xml;base64,' + btoa(`<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="#ffffff"/></svg>`),
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16],
+                        className: 'animate-bounce'
+                      })}
+                    />
+                  )}
+                </>
+              )}
+
               {/* Weather Layer */}
               {showWeatherLayer && <WeatherVisualizationLayer radius={weatherRadius} />}
 
@@ -2572,58 +2598,62 @@ export const InteractiveMap: React.FC = () => {
           )}
 
           
-          {/* Trajectory Replay Component - Animated Playback */}
-          <TrajectoryReplay
-            trajectory={selectedTrajectory}
-            onClose={() => {
-              setTrajectoryModalOpen(false);
-              setSelectedTrajectory(null);
-            }}
-            onExport={async (format) => {
-              console.log(`📥 [EXPORT] Exportando trajetória ${format.toUpperCase()}...`);
-              if (selectedTrajectory) {
-                const data = format === 'geojson' 
-                  ? {
-                      type: 'FeatureCollection',
-                      features: [{
-                        type: 'Feature',
-                        geometry: {
-                          type: 'LineString',
-                          coordinates: selectedTrajectory.points.map(p => [p.lng, p.lat])
-                        },
-                        properties: {
-                          agentId: selectedTrajectory.agentId,
-                          agentName: selectedTrajectory.agentName,
-                          startTime: selectedTrajectory.startTime.toISOString(),
-                          endTime: selectedTrajectory.endTime.toISOString(),
-                          totalDistance: selectedTrajectory.totalDistance,
-                          maxSpeed: selectedTrajectory.maxSpeed,
-                          avgSpeed: selectedTrajectory.avgSpeed
+          {/* TrajectoryReplay Controls Panel - Positioned as overlay */}
+          {trajectoryModalOpen && selectedTrajectory && (
+            <div className="absolute top-20 right-4 z-[99999] w-80">
+              <TrajectoryReplay
+                trajectory={selectedTrajectory}
+                onClose={() => {
+                  setTrajectoryModalOpen(false);
+                  setSelectedTrajectory(null);
+                }}
+                onExport={async (format) => {
+                  console.log(`📥 [EXPORT] Exportando trajetória ${format.toUpperCase()}...`);
+                  if (selectedTrajectory) {
+                    const data = format === 'geojson' 
+                      ? {
+                          type: 'FeatureCollection',
+                          features: [{
+                            type: 'Feature',
+                            geometry: {
+                              type: 'LineString',
+                              coordinates: selectedTrajectory.points.map(p => [p.lng, p.lat])
+                            },
+                            properties: {
+                              agentId: selectedTrajectory.agentId,
+                              agentName: selectedTrajectory.agentName,
+                              startTime: selectedTrajectory.startTime.toISOString(),
+                              endTime: selectedTrajectory.endTime.toISOString(),
+                              totalDistance: selectedTrajectory.totalDistance,
+                              maxSpeed: selectedTrajectory.maxSpeed,
+                              avgSpeed: selectedTrajectory.avgSpeed
+                            }
+                          }]
                         }
-                      }]
-                    }
-                  : selectedTrajectory.points.map(p => ({
-                      timestamp: p.timestamp.toISOString(),
-                      lat: p.lat,
-                      lng: p.lng,
-                      speed: p.speed || 0,
-                      heading: p.heading || 0,
-                      battery: p.deviceBattery || 0
-                    }));
-                
-                const blob = new Blob([JSON.stringify(data, null, 2)], {
-                  type: format === 'geojson' ? 'application/geo+json' : 'application/json'
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `trajectory_${selectedTrajectory.agentName}_${format}.${format === 'geojson' ? 'geojson' : 'csv'}`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }
-            }}
-            isVisible={trajectoryModalOpen}
-          />
+                      : selectedTrajectory.points.map(p => ({
+                          timestamp: p.timestamp.toISOString(),
+                          lat: p.lat,
+                          lng: p.lng,
+                          speed: p.speed || 0,
+                          heading: p.heading || 0,
+                          battery: p.deviceBattery || 0
+                        }));
+                    
+                    const blob = new Blob([JSON.stringify(data, null, 2)], {
+                      type: format === 'geojson' ? 'application/geo+json' : 'application/json'
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `trajectory_${selectedTrajectory.agentName}_${format}.${format === 'geojson' ? 'geojson' : 'csv'}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }
+                }}
+                isVisible={trajectoryModalOpen}
+              />
+            </div>
+          )}
 
           {/* Weather/Point Details Modal */}
           {selectedPoint && (
