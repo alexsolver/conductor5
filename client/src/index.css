@@ -87,6 +87,24 @@
   transform: translate3d(0, 0, 0) !important;
 }
 
+/* Ensure modals and overlays appear above fullscreen map */
+[data-radix-popper-content-wrapper],
+[data-radix-dialog-overlay],
+[data-radix-dialog-content],
+[data-radix-sheet-overlay],
+[data-radix-sheet-content],
+[data-radix-tooltip-content],
+[data-radix-dropdown-menu-content] {
+  z-index: 99999 !important;
+}
+
+/* Specific override for all Radix UI components in fullscreen */
+.fullscreen-map-container ~ [data-radix-popper-content-wrapper],
+.fullscreen-map-container ~ [data-radix-dialog-overlay],
+.fullscreen-map-container ~ [data-radix-sheet-overlay] {
+  z-index: 99999 !important;
+}
+
 .fullscreen-map {
   position: absolute !important;
   top: 0 !important;

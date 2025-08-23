@@ -1317,7 +1317,7 @@ export const InteractiveMap: React.FC = () => {
     <TooltipProvider>
       <div className={`h-screen flex flex-col ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
           {/* Header Fixo - Sempre Visível */}
-          <div className="flex items-center justify-between p-4 bg-background border-b sticky top-0 z-[9999]">
+          <div className="flex items-center justify-between p-4 bg-background border-b sticky top-0 z-[99999]">
             <div className="flex items-center gap-4">
               {/* Botão de Toggle do Sidebar */}
               <Button
@@ -1380,7 +1380,7 @@ export const InteractiveMap: React.FC = () => {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 z-[9999]">
+              <SheetContent side="left" className="w-80 z-[99999]">
                 <SheetHeader>
                   <SheetTitle>Filtros do Mapa</SheetTitle>
                   <SheetDescription>Configure os filtros para visualizar agentes específicos</SheetDescription>
@@ -1404,7 +1404,7 @@ export const InteractiveMap: React.FC = () => {
                   <Layers className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 z-[9999]">
+              <SheetContent side="right" className="w-80 z-[99999]">
                 <SheetHeader>
                   <SheetTitle>Camadas do Mapa</SheetTitle>
                   <SheetDescription>Controle a visualização de tickets, áreas e dados externos</SheetDescription>
@@ -1433,7 +1433,7 @@ export const InteractiveMap: React.FC = () => {
                   <RotateCcw className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 z-[9999]" sideOffset={5}>
+              <DropdownMenuContent align="end" className="w-64 z-[99999]" sideOffset={5}>
                 <div className="p-2 space-y-3">
                   {/* Export Section */}
                   <div className="space-y-2">
@@ -1716,7 +1716,7 @@ export const InteractiveMap: React.FC = () => {
                   <Settings className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 z-[9999]">
+              <SheetContent side="right" className="w-80 z-[99999]">
                 <SheetHeader>
                   <SheetTitle>Configurações do Mapa</SheetTitle>
                   <SheetDescription>Ajuste as configurações visuais e de comportamento</SheetDescription>
@@ -1786,7 +1786,7 @@ export const InteractiveMap: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl z-[9999]">
+              <DialogContent className="max-w-2xl z-[99999]">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Layers className="w-5 h-5" />
