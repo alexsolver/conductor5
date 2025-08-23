@@ -236,14 +236,8 @@ export default function SaasAdminIntegrations() {
     }
   });
 
-  // Use data from API when available, adding icons to each integration
-  const integrations: Integration[] = integrationsData?.integrations?.map((integration: any) => ({
-    ...integration,
-    icon: integration.id === 'openai' ? Brain : 
-          integration.id === 'deepseek' ? Bot : 
-          integration.id === 'google-ai' ? Zap : 
-          integration.id === 'openweather' ? CloudRain : Brain
-  })) || [
+  // Always include OpenWeather card + any API integrations
+  const fallbackIntegrations = [
     {
       id: 'openai',
       name: 'OpenAI',
@@ -280,11 +274,22 @@ export default function SaasAdminIntegrations() {
       provider: 'openweather',
       description: 'Serviço de dados meteorológicos para o mapa interativo do sistema',
       icon: CloudRain,
-      status: openWeatherData?.data?.status || 'disconnected',
-      apiKeyConfigured: !!(openWeatherData?.data?.config?.apiKey),
-      config: openWeatherData?.data?.config || {}
+      status: openWeatherData?.status || openWeatherData?.data?.status || 'disconnected',
+      apiKeyConfigured: !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+      config: openWeatherData?.config || openWeatherData?.data?.config || {}
     }
   ];
+
+  // Merge API data with fallback data
+  const apiIntegrations = integrationsData?.integrations || integrationsData?.data?.integrations || [];
+  const integrations: Integration[] = fallbackIntegrations.map(fallback => {
+    const apiData = apiIntegrations.find((api: any) => api.id === fallback.id);
+    return {
+      ...fallback,
+      ...(apiData || {}),
+      icon: fallback.icon // Keep the icon from fallback
+    };
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
