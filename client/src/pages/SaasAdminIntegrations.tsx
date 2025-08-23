@@ -89,8 +89,14 @@ export default function SaasAdminIntegrations() {
   });
 
   // Query específica para OpenWeather
-  const { data: openWeatherData, isLoading: isOpenWeatherLoading } = useQuery({
+  const { data: openWeatherData, isLoading: isOpenWeatherLoading, refetch: refetchOpenWeather } = useQuery({
     queryKey: ['/api/saas-admin/integrations/openweather'],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Query específica para OpenAI
+  const { data: openAIData, isLoading: isOpenAILoading, refetch: refetchOpenAI } = useQuery({
+    queryKey: ['/api/saas-admin/integrations/openai'],
     staleTime: 5 * 60 * 1000,
   });
 
@@ -130,6 +136,17 @@ export default function SaasAdminIntegrations() {
         });
       }
 
+      // Rota específica para OpenAI API key
+      if (integrationId === 'openai') {
+        const url = `/api/saas-admin/integrations/openai/api-key`;
+        return apiRequest('PUT', url, {
+          apiKey: sanitizedConfig.apiKey,
+          enabled: sanitizedConfig.enabled,
+          maxTokens: sanitizedConfig.maxTokens,
+          temperature: sanitizedConfig.temperature,
+        });
+      }
+
       const url = `/api/saas-admin/integrations/${integrationId}/config`;
       return apiRequest('PUT', url, sanitizedConfig);
     },
@@ -138,10 +155,12 @@ export default function SaasAdminIntegrations() {
       // Invalidar ambas as queries para forçar recarregamento
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openai'] });
       // Aguardar um tempo para que as queries sejam recarregadas
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations'] });
         queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
+        queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations/openai'] });
       }, 500);
       setIsConfigDialogOpen(false);
       configForm.reset();
@@ -201,7 +220,7 @@ export default function SaasAdminIntegrations() {
 
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openai'] });
 
       // Check both data.success and success fields
       const isSuccess = data?.success === true || data?.success === 'true';
@@ -288,6 +307,56 @@ export default function SaasAdminIntegrations() {
     }
   });
 
+  // Mutation específica para testar OpenAI
+  const testOpenAIMutation = useMutation({
+    mutationFn: async () => {
+      console.log('🧪 [SAAS-ADMIN-TEST-AI] Testando integração OpenAI');
+      const url = `/api/saas-admin/integrations/openai/test`;
+      const response = await apiRequest('POST', url, {});
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('🧪 [SAAS-ADMIN-TEST-AI] Parsed response data:', data);
+      return data;
+    },
+    onSuccess: (data) => {
+      console.log('✅ [SAAS-ADMIN-TEST-AI] Teste OpenAI concluído:', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openai'] });
+
+      if (data?.success) {
+        toast({
+          title: "Teste OpenAI bem-sucedido",
+          description: data.message || `Integração OpenAI funcionando corretamente.`,
+        });
+      } else {
+        console.error('❌ [SAAS-ADMIN-TEST-AI] Test failed with data:', data);
+        toast({
+          title: "Teste OpenAI falhou", 
+          description: data.error || data.message || "Erro na integração OpenAI",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      console.error('❌ [SAAS-ADMIN-TEST-AI] Erro no teste OpenAI:', error);
+      let errorMessage = "Erro ao testar integração OpenAI";
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      toast({
+        title: "Erro no teste OpenAI",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Use data from API when available, adding icons to each integration
   const apiIntegrations = integrationsData?.integrations || integrationsData?.data?.integrations || [];
 
@@ -319,6 +388,23 @@ export default function SaasAdminIntegrations() {
         updatedAt: new Date()
       });
     }
+    
+    // Include OpenAI card if not already present
+    const openaiExists = baseIntegrations.some(i => i.id === 'openai');
+    if (!openaiExists) {
+      baseIntegrations.push({
+        id: 'openai',
+        name: 'OpenAI',
+        provider: 'OpenAI',
+        description: 'Integração com APIs da OpenAI para geração de conteúdo inteligente',
+        icon: Brain,
+        status: openAIData?.status || 'disconnected',
+        apiKeyConfigured: !!openAIData?.apiKeyConfigured,
+        config: openAIData?.config,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
 
     integrations = baseIntegrations;
   } else {
@@ -328,11 +414,11 @@ export default function SaasAdminIntegrations() {
       id: 'openai',
       name: 'OpenAI',
       provider: 'OpenAI',
-      description: 'Integração com modelos GPT-4 e ChatGPT para chat inteligente e geração de conteúdo',
+      description: 'Integração com APIs da OpenAI para geração de conteúdo inteligente',
       icon: Brain,
-      status: 'disconnected',
-      apiKeyConfigured: false,
-      config: {},
+      status: openAIData?.status || 'disconnected',
+      apiKeyConfigured: !!openAIData?.apiKeyConfigured,
+      config: openAIData?.config,
       createdAt: new Date(),
       updatedAt: new Date()
     },
@@ -405,7 +491,7 @@ export default function SaasAdminIntegrations() {
       configForm.reset({
         apiKey: integration.config.apiKey || "",
         baseUrl: integration.config.baseUrl || "",
-        maxTokens: integration.config.maxTokens || 4000,
+        maxTokens: integration.config.maxTokens !== undefined ? integration.config.maxTokens : 4000,
         temperature: integration.config.temperature !== undefined ? integration.config.temperature : 0.7,
         enabled: integration.config.enabled !== undefined ? integration.config.enabled : true
       });
@@ -456,21 +542,28 @@ export default function SaasAdminIntegrations() {
           onClick={() => {
             if (integration.id === 'openweather') {
               testOpenWeatherMutation.mutate();
+            } else if (integration.id === 'openai') {
+              testOpenAIMutation.mutate();
             } else {
               testIntegrationMutation.mutate(integration.id);
             }
           }}
           disabled={
             !integration.apiKeyConfigured || 
-            (integration.id === 'openweather' ? testOpenWeatherMutation.isPending : testIntegrationMutation.isPending)
+            (integration.id === 'openweather' && testOpenWeatherMutation.isPending) ||
+            (integration.id === 'openai' && testOpenAIMutation.isPending) ||
+            (integration.id !== 'openweather' && integration.id !== 'openai' && testIntegrationMutation.isPending)
           }
         >
           {integration.id === 'openweather' && testOpenWeatherMutation.isPending ? (
             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          ) : integration.id === 'openai' && testOpenAIMutation.isPending ? (
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
           ) : (
             <ExternalLink className="h-4 w-4 mr-1" />
           )}
-          {integration.id === 'openweather' && testOpenWeatherMutation.isPending ? 'Testando...' : 'Testar'}
+          {integration.id === 'openweather' && testOpenWeatherMutation.isPending ? 'Testando...' : 
+           integration.id === 'openai' && testOpenAIMutation.isPending ? 'Testando...' : 'Testar'}
         </Button>
       </div>
     );
@@ -618,65 +711,69 @@ export default function SaasAdminIntegrations() {
                 )}
               />
 
-              <FormField
-                control={configForm.control}
-                name="baseUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Base URL (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Opcional - Ex: https://api.openai.com/v1" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
+              {selectedIntegration?.id !== 'openai' && ( // BaseUrl é opcional para OpenAI
                 <FormField
                   control={configForm.control}
-                  name="maxTokens"
+                  name="baseUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max Tokens</FormLabel>
+                      <FormLabel>Base URL (Opcional)</FormLabel>
                       <FormControl>
                         <Input 
-                          type="number" 
-                          placeholder="4000" 
+                          placeholder="Opcional - Ex: https://api.openai.com/v1" 
                           {...field} 
-                          onChange={e => field.onChange(Number(e.target.value))}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              )}
 
-                <FormField
-                  control={configForm.control}
-                  name="temperature"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Temperature</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.1"
-                          min="0"
-                          max="2"
-                          placeholder="0.7" 
-                          {...field} 
-                          onChange={e => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              {selectedIntegration?.id === 'openai' && ( // Configurações específicas para OpenAI
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={configForm.control}
+                    name="maxTokens"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Max Tokens</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="4000" 
+                            {...field} 
+                            onChange={e => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={configForm.control}
+                    name="temperature"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Temperature</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.1"
+                            min="0"
+                            max="2"
+                            placeholder="0.7" 
+                            {...field} 
+                            onChange={e => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
 
               <FormField
                 control={configForm.control}

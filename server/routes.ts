@@ -4410,10 +4410,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clean config - remove empty baseUrl
       const cleanedConfig = {
         apiKey: config.apiKey.trim(),
-        baseUrl: config.baseUrl && config.baseUrl.trim() !== '' ? config.baseUrl.trim() : undefined,
+        baseUrl: config.baseUrl && config.baseUrl.trim() !== '' ? config.baseUrl.trim() : 'https://api.openai.com/v1',
         maxTokens: config.maxTokens || 4000,
         temperature: config.temperature !== undefined ? config.temperature : 0.7,
-        enabled: config.enabled !== undefined ? config.enabled : true
+        enabled: config.enabled !== undefined ? config.enabled : true,
+        status: 'connected', // Mark as connected when API key is saved
+        lastUpdated: new Date().toISOString()
       };
 
       // Save configuration to database

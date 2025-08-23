@@ -28,9 +28,9 @@ router.get('/tenants', async (req: AuthorizedRequest, res) => {
   try {
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-    
+
     const tenants = await tenantRepository.findAll();
-    
+
     res.json({
       tenants,
       total: tenants.length
@@ -48,20 +48,20 @@ router.get('/tenants', async (req: AuthorizedRequest, res) => {
 router.post('/tenants', async (req: AuthorizedRequest, res) => {
   try {
     const { name, subdomain, settings = {} } = req.body;
-    
+
     if (!name || !subdomain) {
       return res.status(400).json({ message: 'Name and subdomain are required' });
     }
 
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-    
+
     // Verificar se subdomain já existe
     const existingTenant = await tenantRepository.findBySubdomain(subdomain);
     if (existingTenant) {
       return res.status(409).json({ message: 'Subdomain already exists' });
     }
-    
+
     // Criar entidade tenant
     const { Tenant } = await import('../../domain/entities/Tenant');
     const tenantEntity = new Tenant(
@@ -70,12 +70,12 @@ router.post('/tenants', async (req: AuthorizedRequest, res) => {
       subdomain,
       settings
     );
-    
+
     const tenant = await tenantRepository.save(tenantEntity);
-    
+
     // Inicializar schema do tenant
     await container.storage.initializeTenantSchema(tenant.id);
-    
+
     res.status(201).json(tenant);
   } catch (error) {
     console.error('Error creating tenant:', error);
@@ -91,12 +91,12 @@ router.get('/users', async (req: AuthorizedRequest, res) => {
   try {
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
-    
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
-    
+
     const users = await userRepository.findAll({ page, limit });
-    
+
     res.json({
       users,
       pagination: { page, limit }
@@ -121,7 +121,7 @@ router.get('/analytics', async (req: AuthorizedRequest, res) => {
       activeUsers: 0,
       // Adicionar mais métricas conforme necessário
     };
-    
+
     res.json(stats);
   } catch (error) {
     console.error('Error fetching platform analytics:', error);
@@ -137,16 +137,16 @@ router.put('/tenants/:tenantId', async (req: AuthorizedRequest, res) => {
   try {
     const { tenantId } = req.params;
     const updates = req.body;
-    
+
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-    
+
     const tenant = await tenantRepository.update(tenantId, updates);
-    
+
     if (!tenant) {
       return res.status(404).json({ message: 'Tenant not found' });
     }
-    
+
     res.json(tenant);
   } catch (error) {
     console.error('Error updating tenant:', error);
@@ -161,13 +161,13 @@ router.put('/tenants/:tenantId', async (req: AuthorizedRequest, res) => {
 router.delete('/tenants/:tenantId', async (req: AuthorizedRequest, res) => {
   try {
     const { tenantId } = req.params;
-    
+
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-    
+
     // Implementar soft delete ou desativação
     await tenantRepository.deactivate(tenantId);
-    
+
     res.json({ message: 'Tenant deactivated successfully' });
   } catch (error) {
     console.error('Error deactivating tenant:', error);
@@ -184,12 +184,12 @@ router.get('/analytics', async (req: AuthorizedRequest, res) => {
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
     const tenantRepository = container.tenantRepository;
-    
+
     // Buscar estatísticas globais
     const totalUsers = await userRepository.count();
     const activeUsers = await userRepository.countActive();
     const totalTenants = await tenantRepository.count();
-    
+
     // Implementar contagem real de tickets por tenant
     let totalTickets = 0;
     try {
@@ -202,7 +202,7 @@ router.get('/analytics', async (req: AuthorizedRequest, res) => {
       console.warn('Could not count tickets:', error);
       totalTickets = 0;
     }
-    
+
     res.json({
       totalUsers,
       activeUsers,
@@ -223,14 +223,14 @@ router.get('/users', async (req: AuthorizedRequest, res) => {
   try {
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
-    
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = (page - 1) * limit;
-    
+
     const users = await userRepository.findAllWithPagination({ limit, offset });
     const total = await userRepository.count();
-    
+
     res.json({
       users,
       pagination: {
@@ -253,7 +253,7 @@ router.get('/users', async (req: AuthorizedRequest, res) => {
 router.post('/users', async (req: AuthorizedRequest, res) => {
   try {
     const { email, password, firstName, lastName, role, tenantId } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
@@ -261,16 +261,16 @@ router.post('/users', async (req: AuthorizedRequest, res) => {
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
     const passwordHasher = container.passwordHasher;
-    
+
     // Verificar se email já existe
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
       return res.status(409).json({ message: 'Email already exists' });
     }
-    
+
     // Hash da senha
     const hashedPassword = await passwordHasher.hash(password);
-    
+
     // Criar entidade usuário
     const { User } = await import('../../domain/entities/User');
     const userEntity = new User(
@@ -282,12 +282,12 @@ router.post('/users', async (req: AuthorizedRequest, res) => {
       role || 'customer',
       tenantId || null
     );
-    
+
     const user = await userRepository.save(userEntity);
-    
+
     // Remover senha do retorno
     const { password: _, ...userResponse } = user;
-    
+
     res.status(201).json(userResponse);
   } catch (error) {
     console.error('Error creating user:', error);
@@ -319,8 +319,57 @@ router.get('/integrations', async (req: AuthorizedRequest, res) => {
 });
 
 /**
+ * GET /api/saas-admin/integrations/openai
+ * Buscar configuração específica da OpenAI
+ */
+router.get('/integrations/openai', async (req: AuthorizedRequest, res) => {
+  try {
+    console.log('🔧 [SAAS-ADMIN-OPENAI] Getting OpenAI integration config');
+
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const integrationRepository = new DrizzleIntegrationRepository();
+
+    // Buscar configuração da OpenAI
+    const config = await integrationRepository.getIntegrationConfig('openai');
+    console.log('🔧 [SAAS-ADMIN-OPENAI] Integration config found:', {
+      hasConfig: !!config,
+      hasApiKey: !!config?.apiKey
+    });
+
+    // Determinar status baseado na configuração
+    let status = 'disconnected';
+    let apiKeyConfigured = false;
+
+    if (config?.apiKey) {
+      apiKeyConfigured = true;
+      status = config.enabled !== false ? 'connected' : 'disconnected';
+    }
+
+    res.json({
+      success: true,
+      status,
+      apiKeyConfigured,
+      config: config ? {
+        baseUrl: config.baseUrl,
+        maxTokens: config.maxTokens,
+        temperature: config.temperature,
+        enabled: config.enabled
+      } : null
+    });
+
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-OPENAI] Error getting OpenAI config:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno ao buscar configuração OpenAI',
+      error: error.message 
+    });
+  }
+});
+
+/**
  * GET /api/saas-admin/integrations/openweather
- * Obter configuração da integração OpenWeather
+ * Buscar configuração específica do OpenWeather
  */
 router.get('/integrations/openweather', async (req: AuthorizedRequest, res) => {
   try {
@@ -371,13 +420,13 @@ router.put('/integrations/openweather/api-key', async (req: AuthorizedRequest, r
 router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res) => {
   try {
     console.log('🧪 [SAAS-ADMIN-OPENWEATHER-TEST] Testing OpenWeather integration');
-    
+
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const integrationRepository = new DrizzleIntegrationRepository();
-    
+
     // Get OpenWeather configuration
     const integration = await integrationRepository.getOpenWeatherConfig();
-    
+
     if (!integration || !integration.config?.apiKey) {
       return res.status(400).json({
         success: false,
@@ -387,9 +436,9 @@ router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res
 
     const apiKey = integration.config.apiKey;
     const testCity = 'London'; // Cidade padrão para teste
-    
+
     console.log('🧪 [SAAS-ADMIN-OPENWEATHER-TEST] Testing with API key:', apiKey.substring(0, 8) + '...');
-    
+
     // Test the OpenWeather API
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -407,15 +456,15 @@ router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res
       );
 
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         console.log('✅ [SAAS-ADMIN-OPENWEATHER-TEST] Test successful');
-        
+
         // Update integration status to connected
         await integrationRepository.updateIntegrationStatus('openweather', 'connected');
-        
+
         return res.json({
           success: true,
           message: 'Teste da integração OpenWeather realizado com sucesso!',
@@ -432,17 +481,17 @@ router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res
       } else {
         const errorData = await response.text();
         console.error('❌ [SAAS-ADMIN-OPENWEATHER-TEST] API Error:', response.status, errorData);
-        
+
         let errorMessage = 'Erro na API do OpenWeather';
         if (response.status === 401) {
           errorMessage = 'API Key inválida. Verifique se a chave está correta.';
         } else if (response.status === 429) {
           errorMessage = 'Limite de requisições excedido. Tente novamente mais tarde.';
         }
-        
+
         // Update integration status to error
         await integrationRepository.updateIntegrationStatus('openweather', 'error');
-        
+
         return res.status(400).json({
           success: false,
           message: errorMessage,
@@ -455,17 +504,17 @@ router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
       console.error('❌ [SAAS-ADMIN-OPENWEATHER-TEST] Network error:', fetchError);
-      
+
       // Update integration status to error
       await integrationRepository.updateIntegrationStatus('openweather', 'error');
-      
+
       if (fetchError.name === 'AbortError') {
         return res.status(408).json({
           success: false,
           message: 'Timeout na conexão com OpenWeather API. Verifique sua conexão.'
         });
       }
-      
+
       return res.status(500).json({
         success: false,
         message: 'Erro de conectividade com OpenWeather API',
@@ -491,7 +540,7 @@ router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res
 router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => {
   try {
     console.log('🧪 [SAAS-ADMIN-OPENAI-TEST] Testing OpenAI integration');
-    
+
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const integrationRepository = new DrizzleIntegrationRepository();
 
@@ -563,7 +612,7 @@ router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => 
       } else {
         const errorData = await response.text();
         console.error('❌ [SAAS-ADMIN-OPENAI-TEST] API Error:', response.status, errorData);
-        
+
         let errorMessage = 'Erro na API da OpenAI';
         if (response.status === 401) {
           errorMessage = 'API Key inválida. Verifique se a chave está correta.';
@@ -572,10 +621,10 @@ router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => 
         } else if (response.status === 400) {
           errorMessage = 'Requisição inválida. Verifique a configuração.';
         }
-        
+
         // Update integration status to error
         await integrationRepository.updateIntegrationStatus('openai', 'error');
-        
+
         return res.status(400).json({
           success: false,
           message: errorMessage,
@@ -588,17 +637,17 @@ router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => 
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
       console.error('❌ [SAAS-ADMIN-OPENAI-TEST] Network error:', fetchError);
-      
+
       // Update integration status to error
       await integrationRepository.updateIntegrationStatus('openai', 'error');
-      
+
       if (fetchError.name === 'AbortError') {
         return res.status(408).json({
           success: false,
           message: 'Timeout na conexão com OpenAI API. Verifique sua conexão.'
         });
       }
-      
+
       return res.status(500).json({
         success: false,
         message: 'Erro de conectividade com OpenAI API',
@@ -687,10 +736,10 @@ router.put('/translations/:language', async (req: AuthorizedRequest, res) => {
   try {
     const { language } = req.params;
     const { translations } = req.body;
-    
+
     const translationService = await import('../../services/TranslationService');
     await translationService.saveTranslations(language, translations);
-    
+
     res.json({ success: true, message: 'Translations updated successfully' });
   } catch (error) {
     console.error('Error updating translations:', error);
@@ -720,10 +769,10 @@ router.get('/translations/keys/all', async (req: AuthorizedRequest, res) => {
 router.post('/translations/:language/restore', async (req: AuthorizedRequest, res) => {
   try {
     const { language } = req.params;
-    
+
     const translationService = await import('../../services/TranslationService');
     await translationService.restoreTranslations(language);
-    
+
     res.json({ success: true, message: 'Translations restored successfully' });
   } catch (error) {
     console.error('Error restoring translations:', error);
