@@ -692,7 +692,7 @@ const LayersPanel: React.FC<{
       {/* Visualization Layers */}
       <div>
         <h4 className="font-medium mb-3 flex items-center gap-2">
-          <Map className="w-4 h-4" />
+          <Layers className="w-4 h-4" />
           Camadas de Visualização
         </h4>
         
@@ -1002,6 +1002,31 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Mock Data (for demo purposes until backend is ready)
   // ===========================================================================================
+  
+  // Mock ticket data for visualization
+  const mockTickets = [
+    { id: 'TK-001', title: 'Vazamento Hidráulico', lat: -23.5505, lng: -46.6333, priority: 'alta', status: 'aberto' },
+    { id: 'TK-002', title: 'Manutenção Elétrica', lat: -23.5515, lng: -46.6343, priority: 'media', status: 'em_andamento' },
+    { id: 'TK-003', title: 'Limpeza Geral', lat: -23.5495, lng: -46.6323, priority: 'baixa', status: 'concluido' },
+    { id: 'TK-004', title: 'Reparo de Ar Condicionado', lat: -23.5525, lng: -46.6353, priority: 'alta', status: 'aberto' },
+    { id: 'TK-005', title: 'Troca de Lâmpadas', lat: -23.5485, lng: -46.6313, priority: 'baixa', status: 'em_andamento' }
+  ];
+
+  // Mock areas/locations data
+  const mockAreas = [
+    { id: 'AR-001', name: 'Zona Norte', lat: -23.5400, lng: -46.6200, type: 'zona', color: '#3b82f6' },
+    { id: 'AR-002', name: 'Zona Sul', lat: -23.5600, lng: -46.6400, type: 'zona', color: '#ef4444' },
+    { id: 'AR-003', name: 'Centro', lat: -23.5505, lng: -46.6333, type: 'região', color: '#22c55e' },
+    { id: 'AR-004', name: 'Zona Oeste', lat: -23.5505, lng: -46.6500, type: 'zona', color: '#f59e0b' },
+    { id: 'AR-005', name: 'Zona Leste', lat: -23.5505, lng: -46.6100, type: 'zona', color: '#8b5cf6' }
+  ];
+
+  // Mock team groups data
+  const mockTeamGroups = [
+    { id: 'TG-001', name: 'Equipe Alpha', lat: -23.5520, lng: -46.6340, members: 5, status: 'ativo' },
+    { id: 'TG-002', name: 'Equipe Beta', lat: -23.5490, lng: -46.6320, members: 3, status: 'ativo' },
+    { id: 'TG-003', name: 'Equipe Gamma', lat: -23.5510, lng: -46.6350, members: 4, status: 'pausa' }
+  ];
   
   const mockAgents: AgentPosition[] = [
     {
@@ -1342,7 +1367,7 @@ export const InteractiveMap: React.FC = () => {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" data-testid="layers-toggle">
-                  <Map className="w-4 h-4" />
+                  <Layers className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
@@ -1510,6 +1535,146 @@ export const InteractiveMap: React.FC = () => {
                   </React.Fragment>
                 )
               ))}
+
+              {/* Ticket Markers */}
+              {showTickets && mockTickets.map(ticket => (
+                <Marker 
+                  key={ticket.id}
+                  position={[ticket.lat, ticket.lng]}
+                  icon={L.divIcon({
+                    html: `<div class="ticket-marker ${ticket.priority}" style="
+                      width: 24px; height: 24px; border-radius: 4px; 
+                      display: flex; align-items: center; justify-content: center;
+                      background: ${ticket.priority === 'alta' ? '#ef4444' : ticket.priority === 'media' ? '#f59e0b' : '#22c55e'};
+                      color: white; font-weight: bold; font-size: 12px;
+                      border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    ">📋</div>`,
+                    className: 'custom-ticket-marker',
+                    iconSize: [24, 24]
+                  })}
+                >
+                  <Popup>
+                    <div className="space-y-2">
+                      <div className="font-semibold">{ticket.title}</div>
+                      <div className="text-sm text-muted-foreground">ID: {ticket.id}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={ticket.priority === 'alta' ? 'destructive' : ticket.priority === 'media' ? 'default' : 'secondary'}>
+                          {ticket.priority}
+                        </Badge>
+                        <Badge variant="outline">{ticket.status}</Badge>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+
+              {/* Area Polygons */}
+              {showAreas && mockAreas.map(area => (
+                <CircleMarker
+                  key={area.id}
+                  center={[area.lat, area.lng]}
+                  radius={50}
+                  pathOptions={{
+                    color: area.color,
+                    fillColor: area.color,
+                    fillOpacity: 0.3,
+                    weight: 2
+                  }}
+                >
+                  <Popup>
+                    <div className="space-y-2">
+                      <div className="font-semibold">{area.name}</div>
+                      <div className="text-sm text-muted-foreground">Tipo: {area.type}</div>
+                      <div className="text-sm">ID: {area.id}</div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              ))}
+
+              {/* Team Group Markers */}
+              {showTeamGroups && mockTeamGroups.map(group => (
+                <Marker 
+                  key={group.id}
+                  position={[group.lat, group.lng]}
+                  icon={L.divIcon({
+                    html: `<div class="team-group-marker" style="
+                      width: 32px; height: 32px; border-radius: 50%; 
+                      display: flex; align-items: center; justify-content: center;
+                      background: ${group.status === 'ativo' ? '#22c55e' : '#f59e0b'};
+                      color: white; font-weight: bold; font-size: 14px;
+                      border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    ">👥</div>`,
+                    className: 'custom-team-marker',
+                    iconSize: [32, 32]
+                  })}
+                >
+                  <Popup>
+                    <div className="space-y-2">
+                      <div className="font-semibold">{group.name}</div>
+                      <div className="text-sm text-muted-foreground">Membros: {group.members}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={group.status === 'ativo' ? 'default' : 'secondary'}>
+                          {group.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+
+              {/* Weather Layer */}
+              {showWeatherLayer && (
+                <div>
+                  {/* Weather overlay implementation would go here */}
+                  <CircleMarker
+                    center={[-23.5505, -46.6333]}
+                    radius={100}
+                    pathOptions={{
+                      color: '#60a5fa',
+                      fillColor: '#60a5fa',
+                      fillOpacity: 0.2,
+                      weight: 1,
+                      dashArray: '5, 5'
+                    }}
+                  >
+                    <Popup>
+                      <div className="space-y-2">
+                        <div className="font-semibold">🌤️ Condições Climáticas</div>
+                        <div className="text-sm">Temperatura: 23°C</div>
+                        <div className="text-sm">Umidade: 65%</div>
+                        <div className="text-sm">Precipitação: 0mm</div>
+                      </div>
+                    </Popup>
+                  </CircleMarker>
+                </div>
+              )}
+
+              {/* Traffic Layer */}
+              {showTrafficLayer && (
+                <div>
+                  {/* Traffic overlay implementation would go here */}
+                  <CircleMarker
+                    center={[-23.5505, -46.6333]}
+                    radius={80}
+                    pathOptions={{
+                      color: '#ef4444',
+                      fillColor: '#ef4444',
+                      fillOpacity: 0.2,
+                      weight: 2,
+                      dashArray: '3, 3'
+                    }}
+                  >
+                    <Popup>
+                      <div className="space-y-2">
+                        <div className="font-semibold">🚗 Informações de Trânsito</div>
+                        <div className="text-sm">Status: Congestionamento</div>
+                        <div className="text-sm">Velocidade média: 15 km/h</div>
+                        <div className="text-sm">Tempo estimado: +20 min</div>
+                      </div>
+                    </Popup>
+                  </CircleMarker>
+                </div>
+              )}
 
               {/* Map Controls */}
               <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
