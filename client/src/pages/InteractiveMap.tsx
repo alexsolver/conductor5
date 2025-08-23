@@ -3,7 +3,7 @@
 // 125+ Advanced Functionalities with Real-time Updates and Performance Optimization
 // ===========================================================================================
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, LayersControl, useMap } from 'react-leaflet';
 import { Icon, divIcon, LatLngBounds, LatLng } from 'leaflet';
@@ -997,7 +997,7 @@ export const InteractiveMap: React.FC = () => {
   // Auto-hide sidebar when component mounts and show when unmounts
   useEffect(() => {
     setSidebarHidden(true);
-    
+
     // Cleanup: show sidebar when leaving the page
     return () => {
       setSidebarHidden(false);
@@ -1309,6 +1309,8 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
   // Component Render
   // ===========================================================================================
+
+  const mapRef = useRef<any>(null); // Ref for the MapContainer
 
   return (
     <TooltipProvider>
@@ -1817,8 +1819,10 @@ export const InteractiveMap: React.FC = () => {
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
-              className="h-full w-full"
-              zoomControl={true}
+              className="w-full h-full"
+              zoomControl={false}
+              style={{ background: '#f8fafc' }}
+              ref={mapRef}
             >
               <LayersControl position="topright">
                 <LayersControl.BaseLayer checked name="OpenStreetMap">
