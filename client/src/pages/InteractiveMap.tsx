@@ -337,32 +337,44 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               className: 'weather-gradient-circle'
             }}
           >
-            <Popup maxWidth={300}>
-              <div className="weather-popup p-2 space-y-3">
+            <Popup maxWidth={320}>
+              <div className="weather-popup p-3 space-y-4">
                 <div className="flex items-center gap-2 font-semibold text-lg">
                   <span className="text-2xl">{weatherInfo.icon}</span>
                   <span>{data.name || 'Localização'}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-1">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
                     <span>🌡️</span>
-                    <span>Temperatura: <strong>{data.temp}°C</strong></span>
+                    <div className="flex-1">
+                      <span className="text-sm text-gray-600">Temperatura:</span>
+                      <div className="font-bold text-lg">{data.temp}°C</div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <span>💧</span>
-                    <span>Umidade: <strong>{data.humidity || 'N/A'}%</strong></span>
+                    <div className="flex-1">
+                      <span className="text-sm text-gray-600">Umidade:</span>
+                      <div className="font-bold text-lg">{data.humidity || 'N/A'}%</div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <span>💨</span>
-                    <span>Vento: <strong>{data.windSpeed || 'N/A'} km/h</strong></span>
+                    <div className="flex-1">
+                      <span className="text-sm text-gray-600">Vento:</span>
+                      <div className="font-bold">{data.windSpeed || 'N/A'} km/h</div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <span>🌤️</span>
-                    <span>Status: <strong>{weatherInfo.condition}</strong></span>
+                    <div className="flex-1">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <div className="font-bold">{weatherInfo.condition}</div>
+                    </div>
                   </div>
                 </div>
 
