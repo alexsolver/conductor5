@@ -1,116 +1,95 @@
-
 // ✅ 1QA.MD COMPLIANCE: CUSTOM FIELDS CONTROLLER
-// Application layer - Controller following Clean Architecture
+// Application layer - Controllers following Clean Architecture
+
+console.log('🔥 [CUSTOM-FIELDS-CONTROLLER] *** FILE LOADING START *** following 1qa.md');
+console.log('🔥 [CUSTOM-FIELDS-CONTROLLER] Timestamp:', new Date().toISOString());
+
+import { Request, Response } from 'express';
+import { SimplifiedCustomFieldRepository } from '../infrastructure/repositories/SimplifiedCustomFieldRepository';
 
 export class CustomFieldController {
-  constructor(
-    private customFieldRepository: any,
-    private logger: any
-  ) {}
+  private repository: SimplifiedCustomFieldRepository;
+  private logger: any;
 
-  async getFieldsByModule(req: any, res: any): Promise<void> {
+  constructor(repository: SimplifiedCustomFieldRepository, logger: any) {
+    this.repository = repository;
+    this.logger = logger;
+
+    console.log('🔥 [CUSTOM-FIELDS-CONTROLLER] Controller initialized following Clean Architecture');
+  }
+
+  async getFieldsByModule(req: Request, res: Response) {
     const startTime = Date.now();
+    const { moduleType } = req.params;
+
+    this.logger.logInfo('=== getFieldsByModule CONTROLLER METHOD CALLED ===', { 
+      moduleType,
+      timestamp: new Date().toISOString()
+    });
+
     try {
-      this.logger.logInfo('=== [CONTROLLER] getFieldsByModule START ===', {
-        moduleType: req.params.moduleType,
-        user: req.user,
-        timestamp: new Date().toISOString(),
-        url: req.url,
-        method: req.method
-      });
-
-      // ✅ 1QA.MD: Validate required parameters
-      const { moduleType } = req.params;
-      const { tenantId } = req.user;
-
+      // ✅ 1QA.MD: Validate moduleType parameter
       if (!moduleType) {
-        this.logger.logError('[CONTROLLER] Missing moduleType parameter');
         return res.status(400).json({
           success: false,
-          error: 'Module type is required'
+          error: 'Module type is required',
+          details: 'moduleType parameter is missing'
         });
       }
 
-      if (!tenantId) {
-        this.logger.logError('[CONTROLLER] Missing tenantId in request');
-        return res.status(401).json({
-          success: false,
-          error: 'Tenant ID is required'
-        });
-      }
+      this.logger.logInfo('Calling repository getFieldsByModule...');
+      const fields = await this.repository.getFieldsByModule(moduleType);
 
-      this.logger.logInfo('[CONTROLLER] Fetching fields from repository', {
-        moduleType,
-        tenantId
-      });
-
-      // ✅ 1QA.MD: Call repository with proper parameters
-      const fields = await this.customFieldRepository.findByModule(moduleType, tenantId);
-
-      this.logger.logInfo('[CONTROLLER] Repository returned fields', {
-        fieldsCount: fields?.length || 0,
-        fields: fields
-      });
-
-      // ✅ 1QA.MD: Return standardized response
       const duration = Date.now() - startTime;
-      const response = {
+      this.logger.logInfo(`Repository call completed in ${duration}ms`, { fieldsCount: fields?.length || 0 });
+
+      // ✅ 1QA.MD: Always return consistent response structure
+      res.status(200).json({
         success: true,
         data: fields || [],
-        message: `Found ${fields?.length || 0} custom fields for module ${moduleType}`
-      };
-
-      this.logger.logInfo('=== [CONTROLLER] getFieldsByModule SUCCESS ===', {
-        duration: `${duration}ms`,
-        fieldsCount: fields?.length || 0,
-        response
+        count: fields?.length || 0,
+        message: `Custom fields retrieved successfully for ${moduleType}`
       });
 
-      res.status(200).json(response);
-
+      this.logger.logInfo(`getFieldsByModule completed successfully in ${duration}ms`);
     } catch (error) {
-      this.logger.logError('[CONTROLLER] Error in getFieldsByModule:', error);
-      
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          error: 'Internal server error while fetching custom fields',
-          details: error.message
-        });
-      }
+      const duration = Date.now() - startTime;
+      this.logger.logError(`getFieldsByModule error after ${duration}ms:`, error);
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve custom fields',
+        details: error?.message || 'Unknown error'
+      });
     }
   }
 
-  async createField(req: any, res: any): Promise<void> {
-    try {
-      this.logger.logInfo('[CONTROLLER] createField called', {
-        body: req.body,
-        user: req.user,
-        timestamp: new Date().toISOString()
-      });
+  async createField(req: Request, res: Response) {
+    const startTime = Date.now();
 
-      const { tenantId, userId } = req.user;
-      
-      if (!tenantId) {
-        return res.status(401).json({
+    this.logger.logInfo('=== createField CONTROLLER METHOD CALLED ===', {
+      body: req.body,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      // ✅ 1QA.MD: Validate required fields
+      const { moduleType, fieldName, fieldType, fieldLabel } = req.body;
+
+      if (!moduleType || !fieldName || !fieldType || !fieldLabel) {
+        return res.status(400).json({
           success: false,
-          error: 'Tenant ID is required'
+          error: 'Missing required fields',
+          details: 'moduleType, fieldName, fieldType, and fieldLabel are required'
         });
       }
 
-      // ✅ 1QA.MD: Add tenant and user info to field data
-      const fieldData = {
-        ...req.body,
-        tenantId,
-        createdBy: userId,
-        updatedBy: userId
-      };
+      this.logger.logInfo('Calling repository createField...');
+      const fieldData = req.body;
+      const result = await this.repository.createField(fieldData);
 
-      this.logger.logInfo('[CONTROLLER] Creating field with data:', fieldData);
-
-      const result = await this.customFieldRepository.create(fieldData);
-
-      this.logger.logInfo('[CONTROLLER] Field created successfully:', result);
+      const duration = Date.now() - startTime;
+      this.logger.logInfo(`Repository createField completed in ${duration}ms`);
 
       res.status(201).json({
         success: true,
@@ -118,44 +97,45 @@ export class CustomFieldController {
         message: 'Custom field created successfully'
       });
 
+      this.logger.logInfo(`createField completed successfully in ${duration}ms`);
     } catch (error) {
-      this.logger.logError('[CONTROLLER] Error in createField:', error);
-      
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          error: 'Internal server error while creating custom field',
-          details: error.message
-        });
-      }
+      const duration = Date.now() - startTime;
+      this.logger.logError(`createField error after ${duration}ms:`, error);
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create custom field',
+        details: error?.message || 'Unknown error'
+      });
     }
   }
 
-  async updateField(req: any, res: any): Promise<void> {
+  async updateField(req: Request, res: Response) {
+    const startTime = Date.now();
+    const { fieldId } = req.params;
+
+    this.logger.logInfo('=== updateField CONTROLLER METHOD CALLED ===', {
+      fieldId,
+      body: req.body,
+      timestamp: new Date().toISOString()
+    });
+
     try {
-      const { fieldId } = req.params;
-      const { tenantId, userId } = req.user;
-
-      if (!tenantId) {
-        return res.status(401).json({
+      // ✅ 1QA.MD: Validate fieldId parameter
+      if (!fieldId) {
+        return res.status(400).json({
           success: false,
-          error: 'Tenant ID is required'
+          error: 'Field ID is required',
+          details: 'fieldId parameter is missing'
         });
       }
 
-      const updateData = {
-        ...req.body,
-        updatedBy: userId
-      };
+      this.logger.logInfo('Calling repository updateField...');
+      const fieldData = req.body;
+      const result = await this.repository.updateField(fieldId, fieldData);
 
-      const result = await this.customFieldRepository.update(fieldId, tenantId, updateData);
-
-      if (!result) {
-        return res.status(404).json({
-          success: false,
-          error: 'Custom field not found'
-        });
-      }
+      const duration = Date.now() - startTime;
+      this.logger.logInfo(`Repository updateField completed in ${duration}ms`);
 
       res.status(200).json({
         success: true,
@@ -163,46 +143,61 @@ export class CustomFieldController {
         message: 'Custom field updated successfully'
       });
 
+      this.logger.logInfo(`updateField completed successfully in ${duration}ms`);
     } catch (error) {
-      this.logger.logError('[CONTROLLER] Error in updateField:', error);
-      
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          error: 'Internal server error while updating custom field'
-        });
-      }
+      const duration = Date.now() - startTime;
+      this.logger.logError(`updateField error after ${duration}ms:`, error);
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update custom field',
+        details: error?.message || 'Unknown error'
+      });
     }
   }
 
-  async deleteField(req: any, res: any): Promise<void> {
-    try {
-      const { fieldId } = req.params;
-      const { tenantId } = req.user;
+  async deleteField(req: Request, res: Response) {
+    const startTime = Date.now();
+    const { fieldId } = req.params;
 
-      if (!tenantId) {
-        return res.status(401).json({
+    this.logger.logInfo('=== deleteField CONTROLLER METHOD CALLED ===', {
+      fieldId,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      // ✅ 1QA.MD: Validate fieldId parameter
+      if (!fieldId) {
+        return res.status(400).json({
           success: false,
-          error: 'Tenant ID is required'
+          error: 'Field ID is required',
+          details: 'fieldId parameter is missing'
         });
       }
 
-      await this.customFieldRepository.delete(fieldId, tenantId);
+      this.logger.logInfo('Calling repository deleteField...');
+      await this.repository.deleteField(fieldId);
+
+      const duration = Date.now() - startTime;
+      this.logger.logInfo(`Repository deleteField completed in ${duration}ms`);
 
       res.status(200).json({
         success: true,
         message: 'Custom field deleted successfully'
       });
 
+      this.logger.logInfo(`deleteField completed successfully in ${duration}ms`);
     } catch (error) {
-      this.logger.logError('[CONTROLLER] Error in deleteField:', error);
-      
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          error: 'Internal server error while deleting custom field'
-        });
-      }
+      const duration = Date.now() - startTime;
+      this.logger.logError(`deleteField error after ${duration}ms:`, error);
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete custom field',
+        details: error?.message || 'Unknown error'
+      });
     }
   }
 }
+
+console.log('🔥 [CUSTOM-FIELDS-CONTROLLER] *** FILE LOADING END *** following 1qa.md');

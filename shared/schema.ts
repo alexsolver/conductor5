@@ -198,7 +198,7 @@ export {
 } from './schema-locations';
 
 // OmniBridge tables
-import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid, json } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid, json, unique } from 'drizzle-orm/pg-core';
 
 export const omnibridgeChannels = pgTable('omnibridge_channels', {
   id: varchar('id', { length: 36 }).primaryKey(),

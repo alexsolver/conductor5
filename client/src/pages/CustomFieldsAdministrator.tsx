@@ -425,20 +425,30 @@ export default function CustomFieldsAdministrator() {
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
       try {
+        console.log(`🔍 [CUSTOM-FIELDS] Fetching fields for module: ${selectedModule}`);
         const response = await apiRequest('GET', `/api/custom-fields/fields/${selectedModule}`);
+        
         if (!response.ok) {
           const errorText = await response.text();
-          console.error("API Error Response:", errorText);
+          console.error("🔥 [CUSTOM-FIELDS] API Error Response:", errorText);
           throw new Error(`Failed to fetch fields: ${response.statusText}`);
         }
+        
         const data = await response.json();
-        return data.data || [];
+        console.log(`✅ [CUSTOM-FIELDS] API Response:`, data);
+        
+        // ✅ 1QA.MD: Handle different response structures
+        if (data.success === false) {
+          throw new Error(data.error || 'API returned success: false');
+        }
+        
+        return data.data || data || [];
       } catch (error) {
-        console.error("Failed to fetch custom fields:", error);
+        console.error("🔥 [CUSTOM-FIELDS] Failed to fetch custom fields:", error);
         throw error; // Re-throw to let React Query handle the error state
       }
     },
-    retry: 2,
+    retry: 1, // Reduce retries for faster feedback
     staleTime: 30000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false
@@ -537,22 +547,17 @@ export default function CustomFieldsAdministrator() {
     if (isLoading) {
       return (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="text-center py-8">
+              <Loader2 className="w-8 h-8 mx-auto mb-4 text-blue-600 animate-spin" />
+              <h3 className="text-lg font-medium text-blue-800 mb-2">
+                Carregando campos customizados...
+              </h3>
+              <p className="text-blue-600">
+                Aguarde enquanto carregamos os campos para o módulo "{MODULE_TYPES.find(m => m.value === selectedModule)?.label}"
+              </p>
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -565,8 +570,11 @@ export default function CustomFieldsAdministrator() {
             <h3 className="text-lg font-medium text-red-800 mb-2">
               Erro ao carregar campos customizados
             </h3>
-            <p className="text-red-600 mb-6">
-              Não foi possível carregar os campos para este módulo. Verifique sua conexão e tente novamente.
+            <p className="text-red-600 mb-4">
+              Não foi possível carregar os campos para este módulo.
+            </p>
+            <p className="text-sm text-red-500 mb-6 font-mono bg-red-100 p-2 rounded">
+              Erro: {error?.message || 'Erro desconhecido'}
             </p>
             <Button
               onClick={() => queryClient.invalidateQueries({ queryKey: ['custom-fields', selectedModule] })}
