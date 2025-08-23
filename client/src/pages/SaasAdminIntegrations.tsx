@@ -236,8 +236,36 @@ export default function SaasAdminIntegrations() {
     }
   });
 
-  // Always include OpenWeather card + any API integrations
-  const fallbackIntegrations = [
+  // Use data from API when available, adding icons to each integration
+  const apiIntegrations = integrationsData?.integrations || integrationsData?.data?.integrations || [];
+  
+  const baseIntegrations: Integration[] = apiIntegrations.map((integration: any) => ({
+    ...integration,
+    icon: integration.id === 'openai' ? Brain : 
+          integration.id === 'deepseek' ? Bot : 
+          integration.id === 'google-ai' ? Zap : 
+          integration.id === 'openweather' ? CloudRain : Brain
+  }));
+
+  // Always include OpenWeather card even if not in API response
+  const openWeatherExists = baseIntegrations.some(i => i.id === 'openweather');
+  if (!openWeatherExists) {
+    baseIntegrations.push({
+      id: 'openweather',
+      name: 'OpenWeather API',
+      provider: 'openweather',
+      description: 'Serviço de dados meteorológicos para o mapa interativo do sistema',
+      icon: CloudRain,
+      status: openWeatherData?.status || openWeatherData?.data?.status || 'disconnected',
+      apiKeyConfigured: !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+      config: openWeatherData?.config || openWeatherData?.data?.config || {},
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  }
+
+  // Fallback integrations if no API data
+  const integrations: Integration[] = baseIntegrations.length > 0 ? baseIntegrations : [
     {
       id: 'openai',
       name: 'OpenAI',
@@ -246,7 +274,9 @@ export default function SaasAdminIntegrations() {
       icon: Brain,
       status: 'disconnected',
       apiKeyConfigured: false,
-      config: {}
+      config: {},
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 'deepseek',
@@ -256,7 +286,9 @@ export default function SaasAdminIntegrations() {
       icon: Bot,
       status: 'disconnected',
       apiKeyConfigured: false,
-      config: {}
+      config: {},
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 'google-ai',
@@ -266,7 +298,9 @@ export default function SaasAdminIntegrations() {
       icon: Zap,
       status: 'disconnected',
       apiKeyConfigured: false,
-      config: {}
+      config: {},
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
       id: 'openweather',
@@ -276,20 +310,11 @@ export default function SaasAdminIntegrations() {
       icon: CloudRain,
       status: openWeatherData?.status || openWeatherData?.data?.status || 'disconnected',
       apiKeyConfigured: !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
-      config: openWeatherData?.config || openWeatherData?.data?.config || {}
+      config: openWeatherData?.config || openWeatherData?.data?.config || {},
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
   ];
-
-  // Merge API data with fallback data
-  const apiIntegrations = integrationsData?.integrations || integrationsData?.data?.integrations || [];
-  const integrations: Integration[] = fallbackIntegrations.map(fallback => {
-    const apiData = apiIntegrations.find((api: any) => api.id === fallback.id);
-    return {
-      ...fallback,
-      ...(apiData || {}),
-      icon: fallback.icon // Keep the icon from fallback
-    };
-  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
