@@ -1431,8 +1431,9 @@ export const InteractiveMap: React.FC = () => {
             {/* Other Layers Panel */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="other-layers-toggle" className="flex items-center justify-center">
-                  <Eye className="w-4 h-4 flex-shrink-0" />
+                <Button variant="outline" size="sm" data-testid="other-layers-toggle" className="flex items-center">
+                  <Eye className="w-4 h-4 mr-2 flex-shrink-0" />
+                  Camadas
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 z-[99999]">
