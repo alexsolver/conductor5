@@ -993,6 +993,7 @@ export const InteractiveMap: React.FC = () => {
   const [showLegend, setShowLegend] = useState(true);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [sidebarVisible, setSidebarVisible] = useState(false); // Initialize sidebar as hidden
+  const [showFilters, setShowFilters] = useState(false);
 
   // Layer visibility states
   const [showTickets, setShowTickets] = useState(true);
