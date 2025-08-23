@@ -204,6 +204,26 @@ const getWeatherCondition = (temp: number, condition?: string): keyof typeof wea
   return 'stormy';
 };
 
+// Add CSS style to completely disable weather layer pointer events
+const weatherLayerStyle = `
+  .weather-gradient-circle {
+    pointer-events: none !important;
+    cursor: default !important;
+  }
+  .custom-agent-marker {
+    pointer-events: auto !important;
+    z-index: 1000 !important;
+  }
+`;
+
+// Inject CSS if not already present
+if (typeof document !== 'undefined' && !document.getElementById('weather-layer-disable-style')) {
+  const style = document.createElement('style');
+  style.id = 'weather-layer-disable-style';
+  style.innerHTML = weatherLayerStyle;
+  document.head.appendChild(style);
+}
+
 // ✅ Enhanced Weather Visualization Layer using SaaS Admin OpenWeather integration
 const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => {
   const map = useMap();
@@ -335,13 +355,18 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               weight: 2,
               opacity: 0.8,
               className: 'weather-gradient-circle',
-              interactive: false
+              interactive: false,
+              bubblingMouseEvents: false
             }}
             eventHandlers={{
               click: (e) => {
-                e.originalEvent.stopPropagation();
+                e.originalEvent.stopImmediatePropagation();
                 e.originalEvent.preventDefault();
-                // Prevent any other click handlers from executing
+                return false;
+              },
+              mousedown: (e) => {
+                e.originalEvent.stopImmediatePropagation();
+                e.originalEvent.preventDefault();
                 return false;
               }
             }}
