@@ -230,11 +230,12 @@ export default function SaasAdminIntegrations() {
   });
 
   // Use data from API when available, adding icons to each integration
-  const integrations: Integration[] = integrationsData?.integrations?.map((integration: any) => ({
+  const integrations: Integration[] = integrationsData?.data?.integrations?.map((integration: any) => ({
     ...integration,
     icon: integration.id === 'openai' ? Brain : 
           integration.id === 'deepseek' ? Bot : 
-          integration.id === 'google-ai' ? Zap : Brain
+          integration.id === 'google-ai' ? Zap : 
+          integration.id === 'openweather' ? CloudRain : Brain
   })) || [
     {
       id: 'openai',
@@ -272,9 +273,9 @@ export default function SaasAdminIntegrations() {
       provider: 'openweather',
       description: 'Serviço de dados meteorológicos para o mapa interativo do sistema',
       icon: CloudRain,
-      status: openWeatherData?.data?.status || 'disconnected',
-      apiKeyConfigured: !!(openWeatherData?.data?.config?.apiKey),
-      config: openWeatherData?.data?.config || {}
+      status: openWeatherData?.data?.data?.status || 'disconnected',
+      apiKeyConfigured: !!(openWeatherData?.data?.data?.config?.apiKey),
+      config: openWeatherData?.data?.data?.config || {}
     }
   ];
 
