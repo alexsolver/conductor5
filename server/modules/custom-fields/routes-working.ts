@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
-import { CustomFieldController } from './application/controllers/CustomFieldController';
-import { SimplifiedCustomFieldRepository } from './infrastructure/repositories/SimplifiedCustomFieldRepository';
+import { CustomFieldController } from './application/controllers/CustomFieldController.ts';
+import { SimplifiedCustomFieldRepository } from './infrastructure/repositories/SimplifiedCustomFieldRepository.ts';
 
 const router = Router();
 
