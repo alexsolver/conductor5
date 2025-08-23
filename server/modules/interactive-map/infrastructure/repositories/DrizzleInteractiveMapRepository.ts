@@ -40,12 +40,46 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
     return result as unknown as T[];
   }
 
-  // ✅ Field Agents Management
+  // ✅ Field Agents Management - Using existing users table from team management
   async findAllAgents(tenantId: string): Promise<FieldAgent[]> {
     try {
       const schema = this.getTenantSchema(tenantId);
       const query = `
-        SELECT * FROM ${schema}.field_agents 
+        SELECT 
+          id,
+          id as agent_id,
+          CONCAT(first_name, ' ', last_name) as name,
+          profile_image_url as photo_url,
+          cargo as team,
+          '[]'::jsonb as skills,
+          CASE 
+            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
+            WHEN status = 'active' THEN 'offline'
+            ELSE 'offline'
+          END as status,
+          COALESCE(last_active_at, created_at) as status_since,
+          NULL::decimal as lat,
+          NULL::decimal as lng,
+          NULL::decimal as accuracy,
+          NULL::decimal as heading,
+          NULL::decimal as speed,
+          NULL::integer as device_battery,
+          NULL::integer as signal_strength,
+          last_active_at as last_ping_at,
+          NULL as assigned_ticket_id,
+          NULL as customer_site_id,
+          NULL as sla_deadline_at,
+          NULL as shift_start_at,
+          NULL as shift_end_at,
+          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
+          NULL as current_route_id,
+          NULL::integer as eta_seconds,
+          NULL::integer as distance_meters,
+          created_at,
+          updated_at,
+          tenant_id
+        FROM ${schema}.users 
+        WHERE role IN ('agent', 'supervisor', 'manager')
         ORDER BY created_at DESC
       `;
       
@@ -61,8 +95,41 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
     try {
       const schema = this.getTenantSchema(tenantId);
       const query = `
-        SELECT * FROM ${schema}.field_agents 
-        WHERE id = $1
+        SELECT 
+          id,
+          id as agent_id,
+          CONCAT(first_name, ' ', last_name) as name,
+          profile_image_url as photo_url,
+          cargo as team,
+          '[]'::jsonb as skills,
+          CASE 
+            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
+            WHEN status = 'active' THEN 'offline'
+            ELSE 'offline'
+          END as status,
+          COALESCE(last_active_at, created_at) as status_since,
+          NULL::decimal as lat,
+          NULL::decimal as lng,
+          NULL::decimal as accuracy,
+          NULL::decimal as heading,
+          NULL::decimal as speed,
+          NULL::integer as device_battery,
+          NULL::integer as signal_strength,
+          last_active_at as last_ping_at,
+          NULL as assigned_ticket_id,
+          NULL as customer_site_id,
+          NULL as sla_deadline_at,
+          NULL as shift_start_at,
+          NULL as shift_end_at,
+          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
+          NULL as current_route_id,
+          NULL::integer as eta_seconds,
+          NULL::integer as distance_meters,
+          created_at,
+          updated_at,
+          tenant_id
+        FROM ${schema}.users 
+        WHERE id = $1 AND role IN ('agent', 'supervisor', 'manager')
       `;
       
       const results = await this.executeInTenantSchema<any>(tenantId, query, [id]);
@@ -78,14 +145,56 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
   async findAgentsByStatus(status: string[], tenantId: string): Promise<FieldAgent[]> {
     try {
       const schema = this.getTenantSchema(tenantId);
-      const placeholders = status.map((_, index) => `$${index + 1}`).join(', ');
+      // Map status for users table
+      const userStatusConditions = status.map((s, index) => {
+        if (s === 'available') {
+          return `(status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes')`;
+        } else {
+          return `(status != 'active' OR last_active_at <= NOW() - INTERVAL '10 minutes' OR last_active_at IS NULL)`;
+        }
+      }).join(' OR ');
+      
       const query = `
-        SELECT * FROM ${schema}.field_agents 
-        WHERE status IN (${placeholders})
-        ORDER BY status_since DESC
+        SELECT 
+          id,
+          id as agent_id,
+          CONCAT(first_name, ' ', last_name) as name,
+          profile_image_url as photo_url,
+          cargo as team,
+          '[]'::jsonb as skills,
+          CASE 
+            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
+            WHEN status = 'active' THEN 'offline'
+            ELSE 'offline'
+          END as status,
+          COALESCE(last_active_at, created_at) as status_since,
+          NULL::decimal as lat,
+          NULL::decimal as lng,
+          NULL::decimal as accuracy,
+          NULL::decimal as heading,
+          NULL::decimal as speed,
+          NULL::integer as device_battery,
+          NULL::integer as signal_strength,
+          last_active_at as last_ping_at,
+          NULL as assigned_ticket_id,
+          NULL as customer_site_id,
+          NULL as sla_deadline_at,
+          NULL as shift_start_at,
+          NULL as shift_end_at,
+          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
+          NULL as current_route_id,
+          NULL::integer as eta_seconds,
+          NULL::integer as distance_meters,
+          created_at,
+          updated_at,
+          tenant_id
+        FROM ${schema}.users 
+        WHERE role IN ('agent', 'supervisor', 'manager')
+          AND (${userStatusConditions})
+        ORDER BY last_active_at DESC
       `;
       
-      const results = await this.executeInTenantSchema<any>(tenantId, query, status);
+      const results = await this.executeInTenantSchema<any>(tenantId, query);
       return results.map(row => FieldAgent.fromSchema(row));
     } catch (error) {
       console.error('[DrizzleInteractiveMapRepository] Error finding agents by status:', error);
@@ -97,9 +206,43 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
     try {
       const schema = this.getTenantSchema(tenantId);
       const query = `
-        SELECT * FROM ${schema}.field_agents 
-        WHERE team = $1
-        ORDER BY name
+        SELECT 
+          id,
+          id as agent_id,
+          CONCAT(first_name, ' ', last_name) as name,
+          profile_image_url as photo_url,
+          cargo as team,
+          '[]'::jsonb as skills,
+          CASE 
+            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
+            WHEN status = 'active' THEN 'offline'
+            ELSE 'offline'
+          END as status,
+          COALESCE(last_active_at, created_at) as status_since,
+          NULL::decimal as lat,
+          NULL::decimal as lng,
+          NULL::decimal as accuracy,
+          NULL::decimal as heading,
+          NULL::decimal as speed,
+          NULL::integer as device_battery,
+          NULL::integer as signal_strength,
+          last_active_at as last_ping_at,
+          NULL as assigned_ticket_id,
+          NULL as customer_site_id,
+          NULL as sla_deadline_at,
+          NULL as shift_start_at,
+          NULL as shift_end_at,
+          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
+          NULL as current_route_id,
+          NULL::integer as eta_seconds,
+          NULL::integer as distance_meters,
+          created_at,
+          updated_at,
+          tenant_id
+        FROM ${schema}.users 
+        WHERE role IN ('agent', 'supervisor', 'manager')
+          AND cargo = $1
+        ORDER BY first_name, last_name
       `;
       
       const results = await this.executeInTenantSchema<any>(tenantId, query, [team]);
@@ -114,20 +257,45 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
     try {
       const schema = this.getTenantSchema(tenantId);
       const query = `
-        SELECT * FROM ${schema}.field_agents 
-        WHERE lat BETWEEN $1 AND $2
-          AND lng BETWEEN $3 AND $4
-          AND lat IS NOT NULL
-          AND lng IS NOT NULL
-        ORDER BY last_ping_at DESC
+        SELECT 
+          id,
+          id as agent_id,
+          CONCAT(first_name, ' ', last_name) as name,
+          profile_image_url as photo_url,
+          cargo as team,
+          '[]'::jsonb as skills,
+          CASE 
+            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
+            WHEN status = 'active' THEN 'offline'
+            ELSE 'offline'
+          END as status,
+          COALESCE(last_active_at, created_at) as status_since,
+          NULL::decimal as lat,
+          NULL::decimal as lng,
+          NULL::decimal as accuracy,
+          NULL::decimal as heading,
+          NULL::decimal as speed,
+          NULL::integer as device_battery,
+          NULL::integer as signal_strength,
+          last_active_at as last_ping_at,
+          NULL as assigned_ticket_id,
+          NULL as customer_site_id,
+          NULL as sla_deadline_at,
+          NULL as shift_start_at,
+          NULL as shift_end_at,
+          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
+          NULL as current_route_id,
+          NULL::integer as eta_seconds,
+          NULL::integer as distance_meters,
+          created_at,
+          updated_at,
+          tenant_id
+        FROM ${schema}.users 
+        WHERE role IN ('agent', 'supervisor', 'manager')
+        ORDER BY last_active_at DESC
       `;
       
-      const results = await this.executeInTenantSchema<any>(tenantId, query, [
-        bounds.southWest.lat,
-        bounds.northEast.lat,
-        bounds.southWest.lng,
-        bounds.northEast.lng
-      ]);
+      const results = await this.executeInTenantSchema<any>(tenantId, query);
       
       return results.map(row => FieldAgent.fromSchema(row));
     } catch (error) {
@@ -143,25 +311,47 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
   ): Promise<FieldAgent[]> {
     try {
       const schema = this.getTenantSchema(tenantId);
-      // Using Haversine formula to calculate distance in PostgreSQL
+      // For now, return all agents since we don't have location data in users table
       const query = `
-        SELECT *, 
-               (6371000 * acos(cos(radians($1)) * cos(radians(lat::float)) 
-                             * cos(radians(lng::float) - radians($2)) 
-                             + sin(radians($1)) * sin(radians(lat::float)))) as distance
-        FROM ${schema}.field_agents 
-        WHERE lat IS NOT NULL AND lng IS NOT NULL
-        HAVING (6371000 * acos(cos(radians($1)) * cos(radians(lat::float)) 
-                             * cos(radians(lng::float) - radians($2)) 
-                             + sin(radians($1)) * sin(radians(lat::float)))) <= $3
-        ORDER BY distance
+        SELECT 
+          id,
+          id as agent_id,
+          CONCAT(first_name, ' ', last_name) as name,
+          profile_image_url as photo_url,
+          cargo as team,
+          '[]'::jsonb as skills,
+          CASE 
+            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' THEN 'available'
+            WHEN status = 'active' THEN 'offline'
+            ELSE 'offline'
+          END as status,
+          COALESCE(last_active_at, created_at) as status_since,
+          NULL::decimal as lat,
+          NULL::decimal as lng,
+          NULL::decimal as accuracy,
+          NULL::decimal as heading,
+          NULL::decimal as speed,
+          NULL::integer as device_battery,
+          NULL::integer as signal_strength,
+          last_active_at as last_ping_at,
+          NULL as assigned_ticket_id,
+          NULL as customer_site_id,
+          NULL as sla_deadline_at,
+          NULL as shift_start_at,
+          NULL as shift_end_at,
+          CASE WHEN status = 'active' THEN true ELSE false END as is_on_duty,
+          NULL as current_route_id,
+          NULL::integer as eta_seconds,
+          NULL::integer as distance_meters,
+          created_at,
+          updated_at,
+          tenant_id
+        FROM ${schema}.users 
+        WHERE role IN ('agent', 'supervisor', 'manager')
+        ORDER BY first_name, last_name
       `;
       
-      const results = await this.executeInTenantSchema<any>(tenantId, query, [
-        location.lat,
-        location.lng,
-        radiusMeters
-      ]);
+      const results = await this.executeInTenantSchema<any>(tenantId, query);
       
       return results.map(row => FieldAgent.fromSchema(row));
     } catch (error) {
@@ -410,13 +600,8 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
   async getAgentsInSlaRisk(tenantId: string): Promise<FieldAgent[]> {
     try {
       const schema = this.getTenantSchema(tenantId);
-      const query = `
-        SELECT * FROM ${schema}.field_agents 
-        WHERE sla_deadline_at IS NOT NULL
-          AND eta_seconds IS NOT NULL
-          AND sla_deadline_at <= (NOW() + INTERVAL '1 second' * eta_seconds)
-        ORDER BY sla_deadline_at
-      `;
+      // Return empty array for now since users table doesn't have SLA fields
+      return [];
       
       const results = await this.executeInTenantSchema<any>(tenantId, query);
       return results.map(row => FieldAgent.fromSchema(row));
@@ -432,9 +617,39 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
       const cutoffDate = new Date(Date.now() - maxOfflineMinutes * 60 * 1000);
       
       const query = `
-        SELECT * FROM ${schema}.field_agents 
-        WHERE last_ping_at < $1 OR last_ping_at IS NULL
-        ORDER BY last_ping_at DESC
+        SELECT 
+          id,
+          id as agent_id,
+          CONCAT(first_name, ' ', last_name) as name,
+          profile_image_url as photo_url,
+          cargo as team,
+          '[]'::jsonb as skills,
+          'offline' as status,
+          COALESCE(last_active_at, created_at) as status_since,
+          NULL::decimal as lat,
+          NULL::decimal as lng,
+          NULL::decimal as accuracy,
+          NULL::decimal as heading,
+          NULL::decimal as speed,
+          NULL::integer as device_battery,
+          NULL::integer as signal_strength,
+          last_active_at as last_ping_at,
+          NULL as assigned_ticket_id,
+          NULL as customer_site_id,
+          NULL as sla_deadline_at,
+          NULL as shift_start_at,
+          NULL as shift_end_at,
+          false as is_on_duty,
+          NULL as current_route_id,
+          NULL::integer as eta_seconds,
+          NULL::integer as distance_meters,
+          created_at,
+          updated_at,
+          tenant_id
+        FROM ${schema}.users 
+        WHERE role IN ('agent', 'supervisor', 'manager')
+          AND (last_active_at < $1 OR last_active_at IS NULL)
+        ORDER BY last_active_at DESC
       `;
       
       const results = await this.executeInTenantSchema<any>(tenantId, query, [cutoffDate]);
@@ -500,8 +715,10 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
       const schema = this.getTenantSchema(tenantId);
       const query = `
         SELECT COUNT(*) as count
-        FROM ${schema}.field_agents 
-        WHERE status != 'offline'
+        FROM ${schema}.users 
+        WHERE role IN ('agent', 'supervisor', 'manager')
+          AND status = 'active'
+          AND last_active_at > NOW() - INTERVAL '10 minutes'
       `;
       
       const results = await this.executeInTenantSchema<any>(tenantId, query);
@@ -524,11 +741,16 @@ export class DrizzleInteractiveMapRepository implements IInteractiveMapRepositor
       const query = `
         SELECT 
           COUNT(*) as total,
-          COUNT(CASE WHEN status = 'available' THEN 1 END) as available,
-          COUNT(CASE WHEN status = 'in_transit' THEN 1 END) as in_transit,
-          COUNT(CASE WHEN status = 'in_service' THEN 1 END) as in_service,
-          COUNT(CASE WHEN status = 'offline' THEN 1 END) as offline
-        FROM ${schema}.field_agents
+          COUNT(CASE 
+            WHEN status = 'active' AND last_active_at > NOW() - INTERVAL '10 minutes' 
+            THEN 1 END) as available,
+          0 as in_transit,
+          0 as in_service,
+          COUNT(CASE 
+            WHEN status != 'active' OR last_active_at <= NOW() - INTERVAL '10 minutes' OR last_active_at IS NULL
+            THEN 1 END) as offline
+        FROM ${schema}.users
+        WHERE role IN ('agent', 'supervisor', 'manager')
       `;
       
       const results = await this.executeInTenantSchema<any>(tenantId, query);

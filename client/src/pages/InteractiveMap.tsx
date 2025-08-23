@@ -90,8 +90,9 @@ export default function InteractiveMap() {
         params.append('teams', filterTeam);
       }
       
-      const response = await apiRequest(`/api/interactive-map/agents?${params.toString()}`);
-      return response;
+      const url = `/api/interactive-map/agents?${params.toString()}`;
+      const response = await apiRequest('GET', url);
+      return await response.json();
     },
     refetchInterval: 15000 // Auto-refresh every 15 seconds
   });
@@ -99,15 +100,13 @@ export default function InteractiveMap() {
   // ✅ Simulate location update
   const locationUpdateMutation = useMutation({
     mutationFn: async (data: { agentId: string; lat: number; lng: number }) => {
-      return apiRequest('/api/interactive-map/agents/location', {
-        method: 'POST',
-        body: JSON.stringify({
-          agentId: data.agentId,
-          lat: data.lat,
-          lng: data.lng,
-          accuracy: 10
-        })
+      const response = await apiRequest('POST', '/api/interactive-map/agents/location', {
+        agentId: data.agentId,
+        lat: data.lat,
+        lng: data.lng,
+        accuracy: 10
       });
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/interactive-map/agents'] });
