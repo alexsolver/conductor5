@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +101,10 @@ export default function ModuleIntegrityControl() {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
+  
+  // Check if this is SaaS Admin page
+  const isSaasAdmin = location.includes('/saas-admin/module-integrity');
 
   // Fetch module information
   const { data: modulesData, isLoading: modulesLoading } = useQuery({

@@ -66,6 +66,10 @@ export default function TranslationManager() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
+  
+  // Check if this is SaaS Admin page
+  const isSaasAdmin = location.includes('/saas-admin/translation-manager');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingTranslations, setEditingTranslations] = useState<Record<string, string>>({});
