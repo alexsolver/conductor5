@@ -21,6 +21,7 @@ export enum Permission {
   PLATFORM_VIEW_ANALYTICS = 'platform:view_analytics',
   PLATFORM_MANAGE_USERS = 'platform:manage_users',
   PLATFORM_SYSTEM_CONFIG = 'platform:system_config',
+  PLATFORM_MANAGE_INTEGRATIONS = 'platform:manage_integrations',
   
   // Tenant Management
   TENANT_MANAGE_SETTINGS = 'tenant:manage_settings',
@@ -60,13 +61,13 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.PLATFORM_VIEW_ANALYTICS,
     Permission.PLATFORM_MANAGE_USERS,
     Permission.PLATFORM_SYSTEM_CONFIG,
+    Permission.PLATFORM_MANAGE_INTEGRATIONS,
     
     // All tenant permissions (across all tenants)
     Permission.TENANT_MANAGE_SETTINGS,
     Permission.TENANT_MANAGE_USERS,
     Permission.TENANT_VIEW_ANALYTICS,
     Permission.TENANT_MANAGE_BILLING,
-    Permission.TENANT_MANAGE_INTEGRATIONS,
     
     // All ticket permissions
     Permission.TICKET_VIEW_ALL,

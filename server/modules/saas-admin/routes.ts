@@ -285,4 +285,96 @@ router.post('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async
   }
 });
 
+/**
+ * GET /api/saas-admin/integrations
+ * Lista todas as integrações da plataforma
+ */
+router.get('/integrations', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
+
+    await controller.getAllIntegrations(req, res);
+  } catch (error) {
+    console.error('Error fetching integrations:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch integrations' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/integrations/openweather
+ * Obter configuração da integração OpenWeather
+ */
+router.get('/integrations/openweather', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
+
+    await controller.getOpenWeatherIntegration(req, res);
+  } catch (error) {
+    console.error('Error fetching OpenWeather integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch OpenWeather integration' });
+  }
+});
+
+/**
+ * PUT /api/saas-admin/integrations/openweather/api-key
+ * Atualizar chave da API OpenWeather
+ */
+router.put('/integrations/openweather/api-key', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
+
+    await controller.updateOpenWeatherApiKey(req, res);
+  } catch (error) {
+    console.error('Error updating OpenWeather API key:', error);
+    res.status(500).json({ success: false, message: 'Failed to update OpenWeather API key' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/integrations/status/:status
+ * Listar integrações por status
+ */
+router.get('/integrations/status/:status', requirePermission(Permission.PLATFORM_MANAGE_INTEGRATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
+
+    await controller.getIntegrationsByStatus(req, res);
+  } catch (error) {
+    console.error('Error fetching integrations by status:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch integrations by status' });
+  }
+});
+
 export default router;

@@ -22,6 +22,9 @@ export * from "./schema-knowledge-base";
 // Interactive Map Module Schema - Clean Architecture
 export * from "./schema-interactive-map";
 
+// SaaS Admin Module Schema - Clean Architecture
+export * from "./schema-saas-admin";
+
 // Selective export from contracts to avoid conflicts - Export only enums
 export {
   contractTypeEnum,

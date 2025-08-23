@@ -1,0 +1,267 @@
+// ===========================================================================================
+// DRIZZLE INTEGRATION REPOSITORY - SaaS Admin Infrastructure Layer
+// ===========================================================================================
+// Seguindo rigorosamente o padrão Clean Architecture especificado em 1qa.md
+// Infrastructure Layer → Implementação técnica específica com Drizzle
+
+import { db } from '../../../../db';
+import { schema } from '../../../../shared/schema';
+import { eq, and } from 'drizzle-orm';
+import { Integration, IntegrationConfig } from '../../domain/entities/Integration';
+import { IIntegrationRepository } from '../../domain/repositories/IIntegrationRepository';
+
+export class DrizzleIntegrationRepository implements IIntegrationRepository {
+  
+  // ✅ SEMPRE usar o padrão estabelecido (1qa.md line 52)
+  constructor() {
+    if (!db) throw new Error('Database connection required');
+  }
+
+  async findAll(): Promise<Integration[]> {
+    try {
+      // Para SaaS admin, as integrações são globais (não específicas por tenant)
+      const results = await db
+        .select()
+        .from(schema.saasIntegrations)
+        .orderBy(schema.saasIntegrations.name);
+
+      return results.map(this.mapToEntity);
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error finding all integrations:', error);
+      throw new Error('Failed to fetch integrations');
+    }
+  }
+
+  async findById(integrationId: string): Promise<Integration | null> {
+    try {
+      const [result] = await db
+        .select()
+        .from(schema.saasIntegrations)
+        .where(eq(schema.saasIntegrations.id, integrationId))
+        .limit(1);
+
+      return result ? this.mapToEntity(result) : null;
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error finding integration by ID:', error);
+      throw new Error('Failed to fetch integration');
+    }
+  }
+
+  async findByProvider(provider: string): Promise<Integration | null> {
+    try {
+      const [result] = await db
+        .select()
+        .from(schema.saasIntegrations)
+        .where(eq(schema.saasIntegrations.provider, provider))
+        .limit(1);
+
+      return result ? this.mapToEntity(result) : null;
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error finding integration by provider:', error);
+      throw new Error('Failed to fetch integration');
+    }
+  }
+
+  async save(integration: Integration): Promise<Integration> {
+    try {
+      const [result] = await db
+        .insert(schema.saasIntegrations)
+        .values({
+          id: integration.id,
+          name: integration.name,
+          provider: integration.provider,
+          description: integration.description,
+          config: integration.config,
+          status: integration.status,
+          createdAt: integration.createdAt,
+          updatedAt: integration.updatedAt
+        })
+        .returning();
+
+      return this.mapToEntity(result);
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error saving integration:', error);
+      throw new Error('Failed to save integration');
+    }
+  }
+
+  async update(integrationId: string, updates: Partial<Integration>): Promise<Integration | null> {
+    try {
+      const [result] = await db
+        .update(schema.saasIntegrations)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(schema.saasIntegrations.id, integrationId))
+        .returning();
+
+      return result ? this.mapToEntity(result) : null;
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error updating integration:', error);
+      throw new Error('Failed to update integration');
+    }
+  }
+
+  async delete(integrationId: string): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(schema.saasIntegrations)
+        .where(eq(schema.saasIntegrations.id, integrationId));
+
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error deleting integration:', error);
+      throw new Error('Failed to delete integration');
+    }
+  }
+
+  // OpenWeather specific operations
+  async getOpenWeatherConfig(): Promise<Integration | null> {
+    return this.findByProvider('openweather');
+  }
+
+  async updateOpenWeatherApiKey(apiKey: string): Promise<Integration> {
+    try {
+      // Check if OpenWeather integration exists
+      let integration = await this.getOpenWeatherConfig();
+      
+      if (!integration) {
+        // Create new OpenWeather integration
+        integration = Integration.createOpenWeatherIntegration(apiKey);
+        return await this.save(integration);
+      } else {
+        // Update existing integration
+        const updatedConfig: IntegrationConfig = {
+          ...integration.config,
+          apiKey,
+          lastTested: new Date()
+        };
+        
+        const updatedIntegration = integration.updateConfig(updatedConfig);
+        const result = await this.update(integration.id, updatedIntegration);
+        
+        if (!result) {
+          throw new Error('Failed to update OpenWeather integration');
+        }
+        
+        return result;
+      }
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error updating OpenWeather API key:', error);
+      throw new Error('Failed to update OpenWeather API key');
+    }
+  }
+
+  async findByStatus(status: 'connected' | 'error' | 'disconnected'): Promise<Integration[]> {
+    try {
+      const results = await db
+        .select()
+        .from(schema.saasIntegrations)
+        .where(eq(schema.saasIntegrations.status, status));
+
+      return results.map(this.mapToEntity);
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error finding integrations by status:', error);
+      throw new Error('Failed to fetch integrations by status');
+    }
+  }
+
+  async updateStatus(integrationId: string, status: 'connected' | 'error' | 'disconnected'): Promise<void> {
+    try {
+      await db
+        .update(schema.saasIntegrations)
+        .set({ 
+          status,
+          updatedAt: new Date()
+        })
+        .where(eq(schema.saasIntegrations.id, integrationId));
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error updating integration status:', error);
+      throw new Error('Failed to update integration status');
+    }
+  }
+
+  async testConnection(integrationId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const integration = await this.findById(integrationId);
+      if (!integration) {
+        return { success: false, message: 'Integration not found' };
+      }
+
+      if (!integration.canMakeRequest()) {
+        return { success: false, message: 'Integration not properly configured' };
+      }
+
+      // For OpenWeather, test with a simple API call
+      if (integration.isOpenWeatherIntegration()) {
+        try {
+          const testUrl = `${integration.config.baseUrl}/weather?lat=0&lon=0&appid=${integration.config.apiKey}`;
+          const response = await fetch(testUrl, { 
+            method: 'GET',
+            timeout: integration.config.timeout || 5000
+          });
+          
+          if (response.ok) {
+            await this.updateStatus(integrationId, 'connected');
+            return { success: true, message: 'Connection successful' };
+          } else {
+            await this.updateStatus(integrationId, 'error');
+            return { success: false, message: `API returned status: ${response.status}` };
+          }
+        } catch (error) {
+          await this.updateStatus(integrationId, 'error');
+          return { success: false, message: 'Connection failed: Network error' };
+        }
+      }
+
+      return { success: false, message: 'Test not implemented for this provider' };
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error testing connection:', error);
+      return { success: false, message: 'Test failed due to internal error' };
+    }
+  }
+
+  async updateConfig(integrationId: string, config: any): Promise<Integration | null> {
+    try {
+      const integration = await this.findById(integrationId);
+      if (!integration) return null;
+
+      const updatedIntegration = integration.updateConfig(config);
+      return await this.update(integrationId, updatedIntegration);
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error updating integration config:', error);
+      throw new Error('Failed to update integration config');
+    }
+  }
+
+  async getEnabledIntegrations(): Promise<Integration[]> {
+    try {
+      const results = await db
+        .select()
+        .from(schema.saasIntegrations)
+        .where(and(
+          eq(schema.saasIntegrations.status, 'connected')
+        ));
+
+      return results.map(this.mapToEntity).filter(integration => integration.isActive());
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error finding enabled integrations:', error);
+      throw new Error('Failed to fetch enabled integrations');
+    }
+  }
+
+  // Map database result to domain entity
+  private mapToEntity(row: any): Integration {
+    return new Integration(
+      row.id,
+      row.name,
+      row.provider,
+      row.description,
+      row.config || {},
+      row.status,
+      row.createdAt,
+      row.updatedAt
+    );
+  }
+}

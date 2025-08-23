@@ -85,6 +85,12 @@ export default function SaasAdminIntegrations() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Query específica para OpenWeather
+  const { data: openWeatherData, isLoading: isOpenWeatherLoading } = useQuery({
+    queryKey: ['/api/saas-admin/integrations/openweather'],
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Form para configurar integração
   const configForm = useForm({
     resolver: zodResolver(integrationConfigSchema),
@@ -112,12 +118,22 @@ export default function SaasAdminIntegrations() {
         enabled: Boolean(config.enabled)
       };
 
+      // Rota específica para OpenWeather API key
+      if (integrationId === 'openweather') {
+        const url = `/api/saas-admin/integrations/openweather/api-key`;
+        return apiRequest('PUT', url, {
+          apiKey: sanitizedConfig.apiKey,
+          testConnection: Boolean(sanitizedConfig.testConnection)
+        });
+      }
+      
       const url = `/api/saas-admin/integrations/${integrationId}/config`;
       return apiRequest('PUT', url, sanitizedConfig);
     },
     onSuccess: (data) => {
       console.log('✅ [SAAS-ADMIN-CONFIG] Configuração salva com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
       setIsConfigDialogOpen(false);
       configForm.reset();
       toast({
@@ -175,6 +191,7 @@ export default function SaasAdminIntegrations() {
       console.log('✅ [SAAS-ADMIN-TEST] Result field:', data?.result);
       
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
 
       // Check both data.success and success fields
       const isSuccess = data?.success === true || data?.success === 'true';
@@ -247,6 +264,16 @@ export default function SaasAdminIntegrations() {
       status: 'disconnected',
       apiKeyConfigured: false,
       config: {}
+    },
+    {
+      id: 'openweather',
+      name: 'OpenWeather API',
+      provider: 'openweather',
+      description: 'Serviço de dados meteorológicos para o mapa interativo do sistema',
+      icon: CloudRain,
+      status: openWeatherData?.data?.status || 'disconnected',
+      apiKeyConfigured: !!(openWeatherData?.data?.config?.apiKey),
+      config: openWeatherData?.data?.config || {}
     }
   ];
 
