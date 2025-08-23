@@ -2259,7 +2259,7 @@ export const InteractiveMap: React.FC = () => {
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
                           <span className="flex-1">{status.replace('_', ' ')}</span>
                           <Badge variant="secondary" className="text-xs">
-                            {agents.filter(a => a.status === status).length}
+                            {filteredAgents.filter(a => a.status === status).length}
                           </Badge>
                         </div>
                       ))}
@@ -2472,7 +2472,7 @@ export const InteractiveMap: React.FC = () => {
                   >
                     <EyeOff className="w-4 h-4" />
                   </Button>
-                </CardTitle>
+                </CardHeader>
               </CardHeader>
               {legendExpanded && (
                 <CardContent className="space-y-2">
@@ -2481,7 +2481,7 @@ export const InteractiveMap: React.FC = () => {
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
                       <span className="flex-1">{status.replace('_', ' ')}</span>
                       <Badge variant="secondary" className="text-xs">
-                        {agents.filter(a => a.status === status).length}
+                        {filteredAgents.filter(a => a.status === status).length}
                       </Badge>
                     </div>
                   ))}
