@@ -105,6 +105,22 @@
   z-index: 99999 !important;
 }
 
+/* Force modal overlay to always appear above fullscreen content */
+body.fullscreen-map-active [data-radix-dialog-overlay] {
+  z-index: 100000 !important;
+  position: fixed !important;
+}
+
+body.fullscreen-map-active [data-radix-dialog-content] {
+  z-index: 100001 !important;
+  position: fixed !important;
+}
+
+/* Ensure all dialog portals render at body level in fullscreen */
+body.fullscreen-map-active [data-radix-portal] {
+  z-index: 100000 !important;
+}
+
 .fullscreen-map {
   position: absolute !important;
   top: 0 !important;

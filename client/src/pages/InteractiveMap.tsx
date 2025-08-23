@@ -1786,7 +1786,7 @@ export const InteractiveMap: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl z-[99999]">
+              <DialogContent className="max-w-2xl" style={{ zIndex: isFullscreen ? 99999 : 'auto' }}>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Layers className="w-5 h-5" />
