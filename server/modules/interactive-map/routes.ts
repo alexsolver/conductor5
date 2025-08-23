@@ -3,6 +3,9 @@
 
 import express, { Request, Response } from 'express';
 import { InteractiveMapApplicationService } from './application/services/InteractiveMapApplicationService';
+import { MapExportService } from './domain/services/MapExportService';
+import { MapAuditService } from './domain/services/MapAuditService';
+import { ExternalApiService } from './infrastructure/services/ExternalApiService';
 import { db } from '../../db';
 import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 
@@ -19,8 +22,8 @@ router.use(jwtAuth);
 // ✅ Field Agents Routes
 
 // GET /api/interactive-map/agents - List all field agents with filters
-router.get('/agents', async (req: AuthenticatedRequest, res: Response) => {
-  await controller.getFieldAgents(req, res);
+router.get('/agents', async (req: Request, res: Response) => {
+  await controller.getFieldAgents(req as AuthenticatedRequest, res);
 });
 
 // GET /api/interactive-map/agents/stats - Get agent statistics
@@ -51,6 +54,135 @@ router.get('/agents/:agentId/history', async (req: Request, res: Response) => {
 // POST /api/interactive-map/agents/location - Update agent location
 router.post('/agents/location', async (req: Request, res: Response) => {
   await controller.updateAgentLocation(req, res);
+});
+
+// ✅ Export Routes
+
+// POST /api/interactive-map/export/csv - Export agents to CSV
+router.post('/export/csv', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { agents, filters } = req.body;
+    const result = MapExportService.exportToCSV(agents, filters);
+    
+    if (result.success) {
+      // Log audit event
+      await MapAuditService.logDataExport(
+        req.user!.id,
+        req.user!.tenantId!,
+        'csv',
+        { agentCount: agents.length, includesPersonalData: true },
+        { userAgent: req.get('User-Agent'), ipAddress: req.ip }
+      );
+      
+      res.setHeader('Content-Type', result.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+      res.send(result.data);
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Export failed' });
+  }
+});
+
+// POST /api/interactive-map/export/geojson - Export agents to GeoJSON
+router.post('/export/geojson', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { agents, filters } = req.body;
+    const result = MapExportService.exportToGeoJSON(agents, filters);
+    
+    if (result.success) {
+      // Log audit event
+      await MapAuditService.logDataExport(
+        req.user!.id,
+        req.user!.tenantId!,
+        'geojson',
+        { agentCount: agents.length, includesPersonalData: true },
+        { userAgent: req.get('User-Agent'), ipAddress: req.ip }
+      );
+      
+      res.setHeader('Content-Type', result.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+      res.send(result.data);
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Export failed' });
+  }
+});
+
+// POST /api/interactive-map/export/pdf - Export agents to PDF
+router.post('/export/pdf', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { agents, filters } = req.body;
+    const result = MapExportService.exportToPDF(agents, filters);
+    
+    if (result.success) {
+      // Log audit event
+      await MapAuditService.logDataExport(
+        req.user!.id,
+        req.user!.tenantId!,
+        'pdf',
+        { agentCount: agents.length, includesPersonalData: true },
+        { userAgent: req.get('User-Agent'), ipAddress: req.ip }
+      );
+      
+      res.setHeader('Content-Type', result.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+      res.send(result.data);
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Export failed' });
+  }
+});
+
+// ✅ Audit Routes
+
+// GET /api/interactive-map/audit - Get audit logs
+router.get('/audit', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { userId, eventType, dateRange, limit = 50, offset = 0 } = req.query;
+    
+    const filters: any = {
+      limit: Number(limit),
+      offset: Number(offset)
+    };
+    
+    if (userId) filters.userId = userId as string;
+    if (eventType) filters.eventType = Array.isArray(eventType) ? eventType : [eventType];
+    if (dateRange) {
+      const range = JSON.parse(dateRange as string);
+      filters.dateRange = {
+        start: new Date(range.start),
+        end: new Date(range.end)
+      };
+    }
+    
+    const logs = await MapAuditService.getAuditLogs(req.user!.tenantId!, filters);
+    res.json({ success: true, data: logs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to retrieve audit logs' });
+  }
+});
+
+// GET /api/interactive-map/audit/privacy-report - Generate privacy report
+router.get('/audit/privacy-report', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    const dateRange = {
+      start: new Date(startDate as string),
+      end: new Date(endDate as string)
+    };
+    
+    const report = await MapAuditService.generatePrivacyReport(req.user!.tenantId!, dateRange);
+    res.json({ success: true, data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to generate privacy report' });
+  }
 });
 
 // POST /api/interactive-map/agents/location/batch - Batch update agent locations
@@ -133,5 +265,87 @@ if (process.env.NODE_ENV === 'development') {
     }
   });
 }
+
+// ✅ External Data Routes
+
+// GET /api/interactive-map/external/weather - Get weather data
+router.get('/external/weather', async (req: Request, res: Response) => {
+  try {
+    const { lat, lng } = req.query;
+    
+    if (!lat || !lng) {
+      return res.status(400).json({ success: false, error: 'Latitude and longitude required' });
+    }
+    
+    const weather = await ExternalApiService.getCachedData(
+      `weather_${lat}_${lng}`,
+      () => ExternalApiService.getWeatherData(Number(lat), Number(lng)),
+      10 // 10 minutes cache
+    );
+    
+    res.json({ success: true, data: weather });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to fetch weather data' });
+  }
+});
+
+// GET /api/interactive-map/external/traffic - Get traffic data
+router.get('/external/traffic', async (req: Request, res: Response) => {
+  try {
+    const { north, south, east, west } = req.query;
+    
+    if (!north || !south || !east || !west) {
+      return res.status(400).json({ success: false, error: 'Bounds parameters required' });
+    }
+    
+    const bounds = {
+      north: Number(north),
+      south: Number(south),
+      east: Number(east),
+      west: Number(west)
+    };
+    
+    const traffic = await ExternalApiService.getCachedData(
+      `traffic_${north}_${south}_${east}_${west}`,
+      () => ExternalApiService.getTrafficData(bounds),
+      5 // 5 minutes cache
+    );
+    
+    res.json({ success: true, data: traffic });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to fetch traffic data' });
+  }
+});
+
+// GET /api/interactive-map/external/combined - Get combined external data
+router.get('/external/combined', async (req: Request, res: Response) => {
+  try {
+    const { centerLat, centerLng, north, south, east, west } = req.query;
+    
+    if (!centerLat || !centerLng || !north || !south || !east || !west) {
+      return res.status(400).json({ success: false, error: 'Center coordinates and bounds required' });
+    }
+    
+    const bounds = {
+      north: Number(north),
+      south: Number(south),
+      east: Number(east),
+      west: Number(west)
+    };
+    
+    const data = await ExternalApiService.getCachedData(
+      `combined_${centerLat}_${centerLng}_${north}_${south}_${east}_${west}`,
+      () => ExternalApiService.getMapLayerData(Number(centerLat), Number(centerLng), bounds),
+      10 // 10 minutes cache
+    );
+    
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to fetch external data' });
+  }
+});
+
+// Initialize cache cleanup
+ExternalApiService.startCacheCleanup();
 
 export default router;
