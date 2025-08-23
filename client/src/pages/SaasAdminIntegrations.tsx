@@ -25,7 +25,8 @@ import {
   AlertTriangle,
   ExternalLink,
   Key,
-  Plug
+  Plug,
+  CloudRain
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
