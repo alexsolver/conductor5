@@ -881,6 +881,7 @@ export const InteractiveMap: React.FC = () => {
   const [mapZoom, setMapZoom] = useState(12);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
+  const [legendExpanded, setLegendExpanded] = useState(true);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   
@@ -1395,36 +1396,48 @@ export const InteractiveMap: React.FC = () => {
           {showLegend && (
             <Card className="absolute bottom-4 left-4 z-[1000] w-64">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Legenda</CardTitle>
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <span>Legenda</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLegendExpanded(!legendExpanded)}
+                    data-testid="toggle-legend-btn"
+                  >
+                    {legendExpanded ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </Button>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {Object.entries(STATUS_COLORS).map(([status, color]) => (
-                  <div key={status} className="flex items-center gap-2 text-sm">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                    <span className="flex-1">{status.replace('_', ' ')}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {agents.filter(a => a.status === status).length}
-                    </Badge>
+              {legendExpanded && (
+                <CardContent className="space-y-2">
+                  {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                    <div key={status} className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
+                      <span className="flex-1">{status.replace('_', ' ')}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {agents.filter(a => a.status === status).length}
+                      </Badge>
+                    </div>
+                  ))}
+                  
+                  <Separator className="my-2" />
+                  
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      Aviso de bateria
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      Aviso de sinal
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      Ticket atribuído
+                    </div>
                   </div>
-                ))}
-                
-                <Separator className="my-2" />
-                
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    Aviso de bateria
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                    Aviso de sinal
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    Ticket atribuído
-                  </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
           )}
 
