@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
-import { jwtAuth } from "./middleware/jwtAuth";
+import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { enhancedTenantValidator } from './middleware/tenantValidator';
 import { 
   tenantSchemaEnforcer, 

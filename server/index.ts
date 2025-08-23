@@ -17,7 +17,7 @@ import { tenantSchemaManager } from './utils/tenantSchemaValidator';
 import { dailySchemaChecker } from './scripts/dailySchemaCheck';
 import translationsRoutes from './routes/translations';
 import translationCompletionRoutes from './routes/translationCompletion';
-import { jwtAuth as authenticateToken } from './middleware/jwtAuth'; // Import authenticateToken
+import { jwtAuth as authenticateToken, AuthenticatedRequest } from './middleware/jwtAuth'; // Import authenticateToken
 
 // Import routes
 import authRoutes from './modules/auth/routes';
@@ -25,7 +25,7 @@ import customersRoutes from './modules/customers/routes';
 import beneficiariesRoutes from './modules/beneficiaries/routes-working';
 import locationsRoutes from './modules/locations/routes';
 import ticketsRoutes from './modules/tickets/routes';
-import timecardRoutes from './modules/timecard/routes-working';
+// import timecardRoutes from './modules/timecard/routes-working'; // Duplicate removed
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {

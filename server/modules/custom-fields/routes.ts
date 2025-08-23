@@ -8,7 +8,8 @@ console.log('🔥 [CUSTOM-FIELDS-ROUTER] Timestamp:', new Date().toISOString());
 import { Router } from 'express';
 import { CustomFieldController } from './application/controllers/CustomFieldController';
 import { SimplifiedCustomFieldRepository } from './infrastructure/repositories/SimplifiedCustomFieldRepository';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
+import { Response } from 'express';
 
 const router = Router();
 
@@ -27,7 +28,7 @@ const customFieldController = new CustomFieldController(customFieldRepository, l
 console.log('🔥 [CUSTOM-FIELDS-ROUTER] Controllers initialized following Clean Architecture');
 
 // ✅ 1QA.MD: All routes use JWT authentication middleware
-router.get('/fields/:moduleType', jwtAuth, async (req: any, res: any) => {
+router.get('/fields/:moduleType', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   const startTime = Date.now();
   logger.logInfo('=== GET /fields/:moduleType ROUTE CALLED ===', { 
     moduleType: req.params.moduleType,
@@ -56,7 +57,7 @@ router.get('/fields/:moduleType', jwtAuth, async (req: any, res: any) => {
   }
 });
 
-router.post('/fields', jwtAuth, async (req: any, res: any) => {
+router.post('/fields', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   const startTime = Date.now();
   logger.logInfo('=== POST /fields ROUTE CALLED ===', {
     body: req.body,
