@@ -43,7 +43,12 @@ import {
   History,
   CloudRain,
   Globe,
-  Map
+  Map,
+  Thermometer,
+  Droplets,
+  Wind,
+  Database,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -239,7 +244,7 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
             }
 
             const result = await response.json();
-            
+
             if (result.success && result.data) {
               console.log(`✅ [WEATHER-LAYER] Real weather data fetched for ${location.name}`);
               return {
@@ -273,7 +278,7 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
 
         const results = await Promise.all(weatherPromises);
         setWeatherData(results);
-        
+
         const realDataCount = results.filter(r => r.isRealData).length;
         console.log(`🌤️ [WEATHER-LAYER] Weather data loaded: ${realDataCount}/${results.length} real, ${results.length - realDataCount} fallback`);
 
@@ -1263,6 +1268,9 @@ export const InteractiveMap: React.FC = () => {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [activeLayer, setActiveLayer] = useState<'osm' | 'satellite'>('osm'); // State for the help modal
 
+  // State for the selected point to display in the modal
+  const [selectedPoint, setSelectedPoint] = useState<any>(null); // Use 'any' for mock data structure
+
   // Auto-hide sidebar when component mounts and show when unmounts
   useEffect(() => {
     setSidebarHidden(true);
@@ -1514,6 +1522,18 @@ export const InteractiveMap: React.FC = () => {
   const handleAgentClick = useCallback((agent: AgentPosition) => {
     setSelectedAgent(agent);
     setMapCenter([agent.lat!, agent.lng!]);
+    // Set the selected point for the modal
+    setSelectedPoint({
+      name: agent.name,
+      weather: { // Mock weather data structure for the modal
+        temperature: agent.device_battery, // Using battery as placeholder
+        humidity: agent.signal_strength ? Math.abs(agent.signal_strength) : 70, // Using signal as placeholder
+        windSpeed: agent.speed || 10, // Using speed as placeholder
+        description: agent.status === 'available' ? 'Bom' : agent.status === 'in_transit' ? 'Parcialmente nublado' : 'Nublado', // Mock description
+        condition: agent.status === 'available' ? 'Céu Limpo' : agent.status === 'in_transit' ? 'Ensolarado' : 'Chuva Leve', // Mock condition
+        lastUpdate: new Date().toLocaleTimeString()
+      }
+    });
   }, []);
 
   const handleExportData = useCallback(() => {
@@ -1562,6 +1582,7 @@ export const InteractiveMap: React.FC = () => {
           setSelectedAgent(null);
           setSelectedAgents([]);
           setIsHelpModalOpen(false); // Close help modal on Escape
+          setSelectedPoint(null); // Close the weather modal on Escape
           break;
         case 'r':
           if (e.ctrlKey || e.metaKey) {
@@ -2363,6 +2384,102 @@ export const InteractiveMap: React.FC = () => {
               <div className="bg-background p-4 rounded-lg shadow-lg flex items-center gap-3">
                 <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                 <span>Carregando...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Weather/Point Details Modal */}
+          {selectedPoint && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+              <div className="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <div className="flex items-center gap-2">
+                    <Sun className="w-5 h-5 text-yellow-500" />
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      {selectedPoint.name}
+                    </h3>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedPoint(null)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-4 space-y-4">
+                  {/* Temperatura e Umidade */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-red-50 p-3 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Thermometer className="w-4 h-4 text-red-500" />
+                        <span className="text-xs font-medium text-red-700">Temperatura</span>
+                      </div>
+                      <div className="text-lg font-bold text-red-900">
+                        {selectedPoint.weather.temperature}°C
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Droplets className="w-4 h-4 text-blue-500" />
+                        <span className="text-xs font-medium text-blue-700">Umidade</span>
+                      </div>
+                      <div className="text-lg font-bold text-blue-900">
+                        {selectedPoint.weather.humidity}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vento e Status */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Wind className="w-4 h-4 text-gray-500" />
+                        <span className="text-xs font-medium text-gray-700">Vento</span>
+                      </div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {selectedPoint.weather.windSpeed} km/h
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-50 p-3 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Sun className="w-4 h-4 text-yellow-500" />
+                        <span className="text-xs font-medium text-yellow-700">Status</span>
+                      </div>
+                      <div className="text-sm font-bold text-yellow-900 leading-tight">
+                        {selectedPoint.weather.description}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Condição */}
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Database className="w-4 h-4 text-green-500" />
+                      <span className="text-xs font-medium text-green-700">Condição</span>
+                    </div>
+                    <p className="text-sm text-green-800 font-medium">
+                      {selectedPoint.weather.condition}
+                    </p>
+                  </div>
+
+                  {/* Footer com fonte e atualização */}
+                  <div className="pt-3 border-t border-gray-200 bg-gray-50 -mx-4 px-4 pb-4 rounded-b-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Database className="w-3 h-3 text-green-500" />
+                        <span className="text-xs text-green-600 font-medium">Dados OpenWeather</span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {selectedPoint.weather.lastUpdate}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
