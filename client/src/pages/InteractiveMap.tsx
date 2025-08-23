@@ -1317,7 +1317,7 @@ export const InteractiveMap: React.FC = () => {
     <TooltipProvider>
       <div className={`h-screen flex flex-col ${settings.darkMode ? 'dark' : ''} ${settings.highContrastMode ? 'high-contrast' : ''}`}>
           {/* Header Fixo - Sempre Visível */}
-          <div className="flex items-center justify-between p-4 bg-background border-b sticky top-0 z-40">
+          <div className="flex items-center justify-between p-4 bg-background border-b sticky top-0 z-[9999]">
             <div className="flex items-center gap-4">
               {/* Botão de Toggle do Sidebar */}
               <Button
@@ -1815,7 +1815,7 @@ export const InteractiveMap: React.FC = () => {
           {/* Main Content */}
           <div className="flex-1 relative">
           {/* Map Container */}
-          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+          <div className={`h-full ${isFullscreen ? 'fixed inset-0 z-[8000]' : ''}`}>
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
