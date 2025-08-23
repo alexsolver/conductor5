@@ -1904,6 +1904,25 @@ export const InteractiveMap: React.FC = () => {
 
           {/* Main Content */}
           <div className={`${isFullscreen ? 'fullscreen-map-container bg-background overflow-hidden' : 'flex-1 relative'}`}>
+            
+            {/* Botão de sair do fullscreen - sempre visível */}
+            {isFullscreen && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="fixed top-4 right-4 z-[10001] bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-red-50 hover:border-red-300"
+                onClick={() => {
+                  setIsFullscreen(false);
+                  document.body.classList.remove('fullscreen-map-active');
+                  document.body.style.cssText = '';
+                  document.documentElement.style.cssText = '';
+                }}
+                data-testid="fullscreen-exit"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+            
             {/* Map Container */}
             <div className={`${isFullscreen ? 'fullscreen-map' : 'h-full'}`}>
             <MapContainer
