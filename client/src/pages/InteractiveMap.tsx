@@ -1850,9 +1850,9 @@ export const InteractiveMap: React.FC = () => {
               </LayersControl>
 
               {/* Agent Markers */}
-              {visibleAgents.map(agent => (
-                agent.lat !== null && agent.lng !== null && (
-                  <React.Fragment key={agent.id}>
+              {visibleAgents.map(agent => 
+                agent.lat !== null && agent.lng !== null ? (
+                  <div key={agent.id}>
                     <Marker
                       position={[agent.lat, agent.lng]}
                       icon={createAgentIcon(agent, settings)}
@@ -1878,9 +1878,9 @@ export const InteractiveMap: React.FC = () => {
                         }}
                       />
                     )}
-                  </React.Fragment>
-                )
-              ))}
+                  </div>
+                ) : null
+              )}
 
               {/* Ticket Markers */}
               {showTickets && mockTickets.map(ticket => (
