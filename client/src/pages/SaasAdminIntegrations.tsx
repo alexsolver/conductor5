@@ -239,33 +239,39 @@ export default function SaasAdminIntegrations() {
   // Use data from API when available, adding icons to each integration
   const apiIntegrations = integrationsData?.integrations || integrationsData?.data?.integrations || [];
   
-  const baseIntegrations: Integration[] = apiIntegrations.map((integration: any) => ({
-    ...integration,
-    icon: integration.id === 'openai' ? Brain : 
-          integration.id === 'deepseek' ? Bot : 
-          integration.id === 'google-ai' ? Zap : 
-          integration.id === 'openweather' ? CloudRain : Brain
-  }));
+  let integrations: Integration[];
+  
+  // Se há dados da API, use-os com ícones
+  if (apiIntegrations.length > 0) {
+    const baseIntegrations: Integration[] = apiIntegrations.map((integration: any) => ({
+      ...integration,
+      icon: integration.id === 'openai' ? Brain : 
+            integration.id === 'deepseek' ? Bot : 
+            integration.id === 'google-ai' ? Zap : 
+            integration.id === 'openweather' ? CloudRain : Brain
+    }));
 
-  // Always include OpenWeather card even if not in API response
-  const openWeatherExists = baseIntegrations.some(i => i.id === 'openweather');
-  if (!openWeatherExists) {
-    baseIntegrations.push({
-      id: 'openweather',
-      name: 'OpenWeather API',
-      provider: 'openweather',
-      description: 'Serviço de dados meteorológicos para o mapa interativo do sistema',
-      icon: CloudRain,
-      status: openWeatherData?.status || openWeatherData?.data?.status || 'disconnected',
-      apiKeyConfigured: !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
-      config: openWeatherData?.config || openWeatherData?.data?.config || {},
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-  }
-
-  // Fallback integrations if no API data
-  const integrations: Integration[] = baseIntegrations.length > 0 ? baseIntegrations : [
+    // Always include OpenWeather card even if not in API response
+    const openWeatherExists = baseIntegrations.some(i => i.id === 'openweather');
+    if (!openWeatherExists) {
+      baseIntegrations.push({
+        id: 'openweather',
+        name: 'OpenWeather API',
+        provider: 'openweather',
+        description: 'Serviço de dados meteorológicos para o mapa interativo do sistema',
+        icon: CloudRain,
+        status: openWeatherData?.status || openWeatherData?.data?.status || 'disconnected',
+        apiKeyConfigured: !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+        config: openWeatherData?.config || openWeatherData?.data?.config || {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+    
+    integrations = baseIntegrations;
+  } else {
+    // Fallback integrations if no API data
+    integrations = [
     {
       id: 'openai',
       name: 'OpenAI',
@@ -314,7 +320,8 @@ export default function SaasAdminIntegrations() {
       createdAt: new Date(),
       updatedAt: new Date()
     }
-  ];
+    ];
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
