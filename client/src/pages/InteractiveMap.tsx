@@ -1907,20 +1907,26 @@ export const InteractiveMap: React.FC = () => {
             
             {/* Botão de sair do fullscreen - sempre visível */}
             {isFullscreen && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="fixed top-4 right-4 z-[10001] bg-white/95 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-red-50 hover:border-red-300"
-                onClick={() => {
+              <button
+                className="fixed top-4 left-4 z-[10001] bg-red-500/90 hover:bg-red-600/90 backdrop-blur-sm shadow-lg border-2 border-red-600 rounded-md p-3 transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Exit fullscreen clicked');
                   setIsFullscreen(false);
                   document.body.classList.remove('fullscreen-map-active');
                   document.body.style.cssText = '';
                   document.documentElement.style.cssText = '';
                 }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 data-testid="fullscreen-exit"
+                title="Sair do modo fullscreen"
               >
-                <X className="w-4 h-4" />
-              </Button>
+                <X className="w-5 h-5 text-white font-bold" />
+              </button>
             )}
             
             {/* Map Container */}
