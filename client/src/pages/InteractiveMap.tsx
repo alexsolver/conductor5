@@ -1568,22 +1568,7 @@ export const InteractiveMap: React.FC = () => {
   const handleAgentClick = useCallback((agent: AgentPosition) => {
     setSelectedAgent(agent);
     setMapCenter([agent.lat!, agent.lng!]);
-    
-    // Only set weather data if weather layer is enabled
-    if (showWeatherLayer) {
-      setSelectedPoint({
-        name: agent.name,
-        weather: { // Mock weather data structure for the modal
-          temperature: agent.device_battery, // Using battery as placeholder
-          humidity: agent.signal_strength ? Math.abs(agent.signal_strength) : 70, // Using signal as placeholder
-          windSpeed: agent.speed || 10, // Using speed as placeholder
-          description: agent.status === 'available' ? 'Bom' : agent.status === 'in_transit' ? 'Parcialmente nublado' : 'Nublado', // Mock description
-          condition: agent.status === 'available' ? 'Céu Limpo' : agent.status === 'in_transit' ? 'Ensolarado' : 'Chuva Leve', // Mock condition
-          lastUpdate: new Date().toLocaleTimeString()
-        }
-      });
-    }
-  }, [showWeatherLayer]);
+  }, []);
 
   const handleExportData = useCallback(() => {
     const dataToExport = {
