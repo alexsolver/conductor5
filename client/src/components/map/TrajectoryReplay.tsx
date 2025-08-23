@@ -23,6 +23,8 @@ import {
   Download
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Polyline, Marker } from 'react-leaflet';
+import { Icon } from 'leaflet';
 // Map elements now rendered in InteractiveMap within MapContainer
 
 // ===========================================================================================
@@ -217,9 +219,9 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
 
   useEffect(() => {
     if (trajectory && trajectory.points.length > 0) {
-      setSelectedPoint(trajectory.points[playbackState.currentIndex]);
+      setSelectedPoint(trajectory.points[currentIndex]);
     }
-  }, [trajectory, playbackState.currentIndex]);
+  }, [trajectory, currentIndex]);
 
   // ===========================================================================================
   // Helper Functions
@@ -252,7 +254,7 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
   const renderTrajectoryPath = () => {
     if (!trajectory || !isVisible) return null;
 
-    const currentPath = trajectory.points.slice(0, playbackState.currentIndex + 1);
+    const currentPath = trajectory.points.slice(0, currentIndex + 1);
     const positions = currentPath.map(point => [point.lat, point.lng] as [number, number]);
 
     return (
@@ -518,15 +520,15 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
                   </div>
                   <div>
                     <div className="text-muted-foreground">Distância</div>
-                    <div className="font-medium">{trajectory.totalDistance.toFixed(2)} km</div>
+                    <div className="font-medium">{(trajectory.totalDistance || 0).toFixed(2)} km</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">Vel. Máxima</div>
-                    <div className="font-medium">{trajectory.maxSpeed.toFixed(1)} km/h</div>
+                    <div className="font-medium">{(trajectory.maxSpeed || 0).toFixed(1)} km/h</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">Vel. Média</div>
-                    <div className="font-medium">{trajectory.avgSpeed.toFixed(1)} km/h</div>
+                    <div className="font-medium">{(trajectory.avgSpeed || 0).toFixed(1)} km/h</div>
                   </div>
                 </div>
 
