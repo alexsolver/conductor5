@@ -225,8 +225,10 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
   // Helper Functions
   // ===========================================================================================
 
-  const formatDuration = (startTime: Date, endTime: Date): string => {
-    const diff = endTime.getTime() - startTime.getTime();
+  const formatDuration = (startTime: Date | string, endTime: Date | string): string => {
+    const start = typeof startTime === 'string' ? new Date(startTime) : startTime;
+    const end = typeof endTime === 'string' ? new Date(endTime) : endTime;
+    const diff = end.getTime() - start.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes}m`;
