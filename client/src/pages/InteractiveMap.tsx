@@ -2295,6 +2295,11 @@ export const InteractiveMap: React.FC = () => {
                               setSelectedAgent(null);
                               setTrajectoryAgentId(selectedAgent.id);
                               
+                              // Forçar fechamento do popup do Leaflet
+                              if (mapRef.current) {
+                                mapRef.current.closePopup();
+                              }
+                              
                               // Mapear o ID do agente para o agent_id correto
                               const agentIdMapping: { [key: string]: string } = {
                                 '1': 'agent-001', // João Silva
@@ -2621,6 +2626,36 @@ export const InteractiveMap: React.FC = () => {
                   setSelectedTrajectory(null);
                   setCurrentTrajectoryIndex(0);
                   setTrajectoryAgentId(null);
+                }}
+                onPeriodChange={async (startTime, endTime) => {
+                  console.log('🔄 [PERIOD] Atualizando período da trajetória:', { startTime, endTime });
+                  if (!trajectoryAgentId) return;
+                  
+                  const agentIdMapping: { [key: string]: string } = {
+                    '1': 'agent-001',
+                    '2': 'agent-002',
+                    '3': 'agent-003',
+                  };
+                  
+                  const mappedAgentId = agentIdMapping[trajectoryAgentId] || trajectoryAgentId;
+                  
+                  try {
+                    const response = await fetch(`/api/interactive-map/trajectory/${mappedAgentId}?start=${startTime}&end=${endTime}`, {
+                      method: 'GET',
+                      credentials: 'include',
+                      headers: { 'Content-Type': 'application/json' },
+                    });
+                    
+                    if (response.ok) {
+                      const data = await response.json();
+                      if (data.success) {
+                        setSelectedTrajectory(data.data);
+                        setCurrentTrajectoryIndex(0);
+                      }
+                    }
+                  } catch (error) {
+                    console.error('❌ [PERIOD] Erro ao atualizar período:', error);
+                  }
                 }}
                 onExport={async (format) => {
                   console.log(`📥 [EXPORT] Exportando trajetória ${format.toUpperCase()}...`);

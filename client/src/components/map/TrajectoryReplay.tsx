@@ -58,6 +58,7 @@ interface TrajectoryReplayProps {
   onIndexChange: (index: number) => void;
   onClose: () => void;
   onExport: (format: 'geojson' | 'csv') => Promise<void>;
+  onPeriodChange?: (startTime: string, endTime: string) => Promise<void>;
   isVisible: boolean;
 }
 
@@ -77,6 +78,7 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
   onIndexChange,
   onClose,
   onExport,
+  onPeriodChange,
   isVisible
 }) => {
   const { toast } = useToast();
@@ -92,6 +94,18 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<TrajectoryPoint | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Period state - Default to last 8 hours
+  const getDefaultDates = () => {
+    const now = new Date();
+    const eightHoursAgo = new Date(now.getTime() - 8 * 60 * 60 * 1000);
+    return {
+      startDate: eightHoursAgo.toISOString().slice(0, 16),
+      endDate: now.toISOString().slice(0, 16)
+    };
+  };
+  
+  const [periodDates, setPeriodDates] = useState(getDefaultDates());
 
   // Refs
   const playbackTimer = useRef<NodeJS.Timeout | null>(null);
@@ -299,6 +313,76 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
         </CardHeader>
         
         <CardContent className="space-y-4">
+          {/* Period Selection Section */}
+          <div className="border-b pb-3 mb-3 space-y-2">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              📅 Período da Trajetória
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Início</label>
+                <input
+                  type="datetime-local"
+                  value={periodDates.startDate}
+                  onChange={(e) => setPeriodDates(prev => ({ ...prev, startDate: e.target.value }))}
+                  className="w-full text-xs px-2 py-1 border rounded"
+                  data-testid="start-date-input"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Fim</label>
+                <input
+                  type="datetime-local"
+                  value={periodDates.endDate}
+                  onChange={(e) => setPeriodDates(prev => ({ ...prev, endDate: e.target.value }))}
+                  className="w-full text-xs px-2 py-1 border rounded"
+                  data-testid="end-date-input"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-xs"
+                onClick={() => {
+                  const now = new Date();
+                  const eightHoursAgo = new Date(now.getTime() - 8 * 60 * 60 * 1000);
+                  setPeriodDates({
+                    startDate: eightHoursAgo.toISOString().slice(0, 16),
+                    endDate: now.toISOString().slice(0, 16)
+                  });
+                }}
+              >
+                Últimas 8h
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-xs"
+                onClick={() => {
+                  const now = new Date();
+                  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                  setPeriodDates({
+                    startDate: dayAgo.toISOString().slice(0, 16),
+                    endDate: now.toISOString().slice(0, 16)
+                  });
+                }}
+              >
+                Último dia
+              </Button>
+              {onPeriodChange && (
+                <Button
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => onPeriodChange(periodDates.startDate, periodDates.endDate)}
+                >
+                  Atualizar
+                </Button>
+              )}
+            </div>
+          </div>
+          
           {/* Timeline Slider */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -334,7 +418,7 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => skipToPoint(Math.max(0, playbackState.currentIndex - 10))}
+              onClick={() => skipToPoint(Math.max(0, currentIndex - 10))}
               data-testid="rewind-btn"
             >
               <Rewind className="w-4 h-4" />
@@ -351,7 +435,7 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => skipToPoint(Math.min(trajectory.points.length - 1, playbackState.currentIndex + 10))}
+              onClick={() => skipToPoint(Math.min(trajectory.points.length - 1, currentIndex + 10))}
               data-testid="forward-btn"
             >
               <FastForward className="w-4 h-4" />
@@ -364,10 +448,13 @@ export const TrajectoryReplay: React.FC<TrajectoryReplayProps> = ({
               <span className="text-sm">Velocidade:</span>
               <Select
                 value={playbackState.speed.toString()}
-                onValueChange={(value) => setPlaybackState(prev => ({ ...prev, speed: Number(value) }))}
+                onValueChange={(value) => {
+                  console.log('🎛️ [SPEED] Mudando velocidade para:', value + 'x');
+                  setPlaybackState(prev => ({ ...prev, speed: Number(value) }));
+                }}
               >
                 <SelectTrigger className="w-20" data-testid="speed-selector">
-                  <SelectValue />
+                  <SelectValue placeholder={`${playbackState.speed}x`} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0.5">0.5x</SelectItem>
