@@ -26,7 +26,7 @@ import beneficiariesRoutes from './modules/beneficiaries/routes-working';
 import locationsRoutes from './modules/locations/routes';
 import ticketsRoutes from './modules/tickets/routes';
 import timecardRoutes from './modules/timecard/routes-working';
-import customFieldsRoutes from './modules/custom-fields/routes-working';
+import customFieldsRoutes from './modules/custom-fields/routes';
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
