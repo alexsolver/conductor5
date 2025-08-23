@@ -377,4 +377,159 @@ router.get('/integrations/status/:status', requirePermission(Permission.PLATFORM
   }
 });
 
+/**
+ * TRANSLATION MANAGEMENT - SaaS Admin Global Routes
+ * These endpoints manage translations across the entire platform
+ */
+
+/**
+ * GET /api/saas-admin/translations/languages
+ * Get all available languages
+ */
+router.get('/translations/languages', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    // Import translation routes to delegate
+    const translationsRoutes = await import('../../routes/translations');
+    // Execute the same logic but in SaaS Admin context
+    const languages = ['en', 'pt-BR', 'es', 'fr', 'de'];
+    res.json({ success: true, languages });
+  } catch (error) {
+    console.error('Error fetching languages:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch languages' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/translations/:language
+ * Get translations for a specific language
+ */
+router.get('/translations/:language', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { language } = req.params;
+    // Delegate to translation service but with SaaS admin permissions
+    const translationService = await import('../../services/TranslationService');
+    const translations = await translationService.getTranslations(language);
+    res.json({ success: true, translations });
+  } catch (error) {
+    console.error('Error fetching translations:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch translations' });
+  }
+});
+
+/**
+ * PUT /api/saas-admin/translations/:language
+ * Update translations for a specific language
+ */
+router.put('/translations/:language', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { language } = req.params;
+    const { translations } = req.body;
+    
+    const translationService = await import('../../services/TranslationService');
+    await translationService.saveTranslations(language, translations);
+    
+    res.json({ success: true, message: 'Translations updated successfully' });
+  } catch (error) {
+    console.error('Error updating translations:', error);
+    res.status(500).json({ success: false, message: 'Failed to update translations' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/translations/keys/all
+ * Get all available translation keys
+ */
+router.get('/translations/keys/all', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const translationService = await import('../../services/TranslationService');
+    const keys = await translationService.getAllTranslationKeys();
+    res.json({ success: true, ...keys });
+  } catch (error) {
+    console.error('Error fetching translation keys:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch translation keys' });
+  }
+});
+
+/**
+ * POST /api/saas-admin/translations/:language/restore
+ * Restore translations from backup
+ */
+router.post('/translations/:language/restore', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const { language } = req.params;
+    
+    const translationService = await import('../../services/TranslationService');
+    await translationService.restoreTranslations(language);
+    
+    res.json({ success: true, message: 'Translations restored successfully' });
+  } catch (error) {
+    console.error('Error restoring translations:', error);
+    res.status(500).json({ success: false, message: 'Failed to restore translations' });
+  }
+});
+
+/**
+ * TRANSLATION COMPLETION - SaaS Admin Routes
+ */
+
+/**
+ * GET /api/saas-admin/translation-completion/analyze
+ * Analyze translation gaps across all languages
+ */
+router.get('/translation-completion/analyze', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const translationCompletionService = await import('../../services/TranslationCompletionService');
+    const analysis = await translationCompletionService.analyzeTranslationGaps();
+    res.json({ success: true, ...analysis });
+  } catch (error) {
+    console.error('Error analyzing translations:', error);
+    res.status(500).json({ success: false, message: 'Failed to analyze translations' });
+  }
+});
+
+/**
+ * POST /api/saas-admin/translation-completion/scan-keys
+ * Scan for translation keys in source files
+ */
+router.post('/translation-completion/scan-keys', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const translationCompletionService = await import('../../services/TranslationCompletionService');
+    const result = await translationCompletionService.scanTranslationKeys();
+    res.json({ success: true, ...result });
+  } catch (error) {
+    console.error('Error scanning translation keys:', error);
+    res.status(500).json({ success: false, message: 'Failed to scan translation keys' });
+  }
+});
+
+/**
+ * POST /api/saas-admin/translation-completion/expand-scan
+ * Comprehensive translation expansion scanning
+ */
+router.post('/translation-completion/expand-scan', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const translationCompletionService = await import('../../services/TranslationCompletionService');
+    const result = await translationCompletionService.expandTranslationScan();
+    res.json({ success: true, ...result });
+  } catch (error) {
+    console.error('Error expanding translation scan:', error);
+    res.status(500).json({ success: false, message: 'Failed to expand translation scan' });
+  }
+});
+
+/**
+ * GET /api/saas-admin/translations/expand-scan
+ * Ultra-comprehensive scanning for more translation keys
+ */
+router.get('/translations/expand-scan', requirePermission(Permission.PLATFORM_MANAGE_TRANSLATIONS), async (req: AuthorizedRequest, res) => {
+  try {
+    const translationService = await import('../../services/TranslationService');
+    const result = await translationService.expandTranslationScan();
+    res.json({ success: true, ...result });
+  } catch (error) {
+    console.error('Error expanding translation scan:', error);
+    res.status(500).json({ success: false, message: 'Failed to expand translation scan' });
+  }
+});
+
 export default router;

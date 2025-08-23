@@ -98,9 +98,9 @@ export default function TranslationManager() {
 
   // Get available languages from API
   const { data: languagesData, isLoading: isLoadingLanguages } = useQuery({
-    queryKey: ['/api/translations/languages'],
+    queryKey: ['/api/saas-admin/translations/languages'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/translations/languages');
+      const response = await apiRequest('GET', '/api/saas-admin/translations/languages');
       if (!response.ok) throw new Error('Failed to fetch languages');
       return response.json();
     }
@@ -117,9 +117,9 @@ export default function TranslationManager() {
 
   // Get translations for selected language
   const { data: translationData, isLoading: isLoadingTranslations, refetch } = useQuery<TranslationData>({
-    queryKey: ['/api/translations', selectedLanguage],
+    queryKey: ['/api/saas-admin/translations', selectedLanguage],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/translations/${selectedLanguage}`);
+      const response = await apiRequest('GET', `/api/saas-admin/translations/${selectedLanguage}`);
       if (!response.ok) throw new Error('Failed to fetch translations');
       return response.json();
     },
@@ -128,10 +128,10 @@ export default function TranslationManager() {
 
   // Fetch all available translation keys
   const { data: allKeysData, isLoading: isLoadingKeys } = useQuery<AllKeysData>({
-    queryKey: ['/api/translations/keys/all'],
+    queryKey: ['/api/saas-admin/translations/keys/all'],
     queryFn: async () => {
       console.log('🔍 [FRONTEND] Fetching all translation keys...');
-      const response = await apiRequest('GET', '/api/translations/keys/all');
+      const response = await apiRequest('GET', '/api/saas-admin/translations/keys/all');
       if (!response.ok) {
         console.error('❌ [FRONTEND] Keys fetch failed:', response.status, response.statusText);
         throw new Error(`Failed to fetch translation keys: ${response.status}`);
@@ -156,13 +156,13 @@ export default function TranslationManager() {
   // Save translations mutation
   const saveTranslationMutation = useMutation({
     mutationFn: async (data: { translations: Record<string, any> }) => {
-      const response = await apiRequest('PUT', `/api/translations/${selectedLanguage}`, data);
+      const response = await apiRequest('PUT', `/api/saas-admin/translations/${selectedLanguage}`, data);
       if (!response.ok) throw new Error('Failed to save translations');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
-      queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/translations', selectedLanguage] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/translations/keys/all'] });
       toast({
         title: "Translations Saved",
         description: `Translations updated successfully for ${selectedLanguage.toUpperCase()}`,
@@ -181,12 +181,12 @@ export default function TranslationManager() {
   // Restore backup mutation
   const restoreBackupMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', `/api/translations/${selectedLanguage}/restore`);
+      const response = await apiRequest('POST', `/api/saas-admin/translations/${selectedLanguage}/restore`);
       if (!response.ok) throw new Error('Failed to restore backup');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/translations', selectedLanguage] });
       toast({
         title: "Backup Restored",
         description: `Backup restored successfully for ${selectedLanguage.toUpperCase()}`,
@@ -296,7 +296,7 @@ export default function TranslationManager() {
     setAnalyzing(true);
     console.log('🔍 [FRONTEND-SAFE] Analyzing translation completeness...');
     try {
-      const response = await fetch('/api/translation-completion/analyze', {
+      const response = await fetch('/api/saas-admin/translation-completion/analyze', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -343,7 +343,7 @@ export default function TranslationManager() {
     setExpandingKeys(true);
     try {
       console.log('📡 [FRONTEND] Starting expansion scan...');
-      const response = await fetch('/api/translation-completion/expand-scan', {
+      const response = await fetch('/api/saas-admin/translation-completion/expand-scan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -367,7 +367,7 @@ export default function TranslationManager() {
 
       // Refresh the scanned keys
       refetch(); // Refresh current language translations
-      queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] }); // Refresh all keys
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/translations/keys/all'] }); // Refresh all keys
 
       // Show success message
       console.log(`✅ [FRONTEND] Expansion scan completed: Found ${result.data?.totalKeys || 'unknown'} total keys (${result.data?.improvement || 0} more than before). Report generated.`);
@@ -398,7 +398,7 @@ export default function TranslationManager() {
     console.log('🔍 [FRONTEND] Starting translation key scanning...');
 
     try {
-      const response = await fetch('/api/translation-completion/scan-keys', {
+      const response = await fetch('/api/saas-admin/translation-completion/scan-keys', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -711,13 +711,13 @@ export default function TranslationManager() {
           onClick={async () => {
             setIsExpandedScanning(true);
             try {
-              const response = await fetch('/api/translations/expand-scan', {
+              const response = await fetch('/api/saas-admin/translations/expand-scan', {
                 method: 'GET',
                 credentials: 'include',
               });
               const data = await response.json();
               setExpandedScanResult(data.data);
-              await queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
+              await queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/translations/keys/all'] });
               toast({
                 title: "Ultra-Comprehensive Scan Complete!",
                 description: `Found ${data.data?.totalKeys || 0} keys (${data.data?.improvement || 0} more, ${data.data?.expansionRatio || '0%'} expansion)`,

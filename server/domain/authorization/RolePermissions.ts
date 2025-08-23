@@ -22,6 +22,7 @@ export enum Permission {
   PLATFORM_MANAGE_USERS = 'platform:manage_users',
   PLATFORM_SYSTEM_CONFIG = 'platform:system_config',
   PLATFORM_MANAGE_INTEGRATIONS = 'platform:manage_integrations',
+  PLATFORM_MANAGE_TRANSLATIONS = 'platform:manage_translations',
   
   // Tenant Management
   TENANT_MANAGE_SETTINGS = 'tenant:manage_settings',
@@ -62,6 +63,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.PLATFORM_MANAGE_USERS,
     Permission.PLATFORM_SYSTEM_CONFIG,
     Permission.PLATFORM_MANAGE_INTEGRATIONS,
+    Permission.PLATFORM_MANAGE_TRANSLATIONS,
     
     // All tenant permissions (across all tenants)
     Permission.TENANT_MANAGE_SETTINGS,
