@@ -277,11 +277,7 @@ router.get('/external/weather', jwtAuth, async (req: AuthenticatedRequest, res: 
       return res.status(400).json({ success: false, error: 'Latitude and longitude required' });
     }
 
-    // Check if OpenWeather integration is enabled and configured
-    const isIntegrationEnabled = await interactiveMapService.isExternalIntegrationEnabled('openweather');
-    if (!isIntegrationEnabled) {
-      return res.status(400).json({ success: false, error: 'OpenWeather integration is not enabled or configured.' });
-    }
+    // ExternalApiService will handle API key validation internally
 
     const weather = await ExternalApiService.getCachedData(
       `weather_${lat}_${lng}`,

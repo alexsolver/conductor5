@@ -87,7 +87,7 @@ export class ExternalApiService {
         return cached.data;
       }
 
-      console.log(`🌤️ [WEATHER-API] Fetching real weather data for lat:${lat}, lng:${lng}`);
+      console.log(`🌤️ [WEATHER-API] Fetching real weather data for lat:${lat}, lng:${lng} with API key: ${apiKey.substring(0, 10)}...`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -107,11 +107,14 @@ export class ExternalApiService {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          console.error(`❌ [WEATHER-API] OpenWeather API error: ${response.status}`);
+          console.error(`❌ [WEATHER-API] OpenWeather API error: ${response.status} - ${response.statusText}`);
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error(`❌ [WEATHER-API] Error details: ${errorText}`);
           return this.getFallbackWeatherData(lat, lng);
         }
 
         const data = await response.json();
+        console.log('🌤️ [WEATHER-API] Raw OpenWeather response:', JSON.stringify(data, null, 2));
         
         const weatherData: WeatherData = {
           temperature: Math.round(data.main.temp),
@@ -129,7 +132,7 @@ export class ExternalApiService {
           expires: Date.now() + (10 * 60 * 1000)
         });
 
-        console.log('✅ [WEATHER-API] Real weather data fetched successfully');
+        console.log('✅ [WEATHER-API] Real weather data fetched successfully:', weatherData);
         return weatherData;
 
       } catch (fetchError: any) {
@@ -152,10 +155,11 @@ export class ExternalApiService {
 
   // ✅ Fallback data when API is unavailable
   private static getFallbackWeatherData(lat: number, lng: number): WeatherData {
+    console.log('⚠️ [WEATHER-API] Using fallback simulated data - API key not available or API failed');
     // Generate realistic fallback data based on location
     const temp = 20 + Math.random() * 10; // 20-30°C range
-    const conditions = ['clear sky', 'few clouds', 'scattered clouds', 'partly cloudy'];
-    const condition = conditions[Math.floor(Math.random() * conditions.length)];
+    const conditions = ['Dados simulados', 'clear sky', 'few clouds', 'scattered clouds', 'partly cloudy'];
+    const condition = conditions[0]; // Always show "Dados simulados" for fallback
     
     return {
       temperature: Math.round(temp),
