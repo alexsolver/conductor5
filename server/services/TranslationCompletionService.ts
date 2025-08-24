@@ -1639,24 +1639,54 @@ Respond ONLY with a JSON object where keys are the original text and values are 
       const content = await fs.readFile(filePath, 'utf-8');
       const module = this.getModuleFromPath(filePath);
       
-      // Patterns to find hardcoded strings
+      // Comprehensive patterns to find hardcoded strings
       const hardcodedPatterns = [
-        // Placeholders
+        // Form attributes and props
         /placeholder\s*=\s*["`']([^"`']+)["`']/g,
-        // Titles and labels  
         /title\s*=\s*["`']([^"`']+)["`']/g,
         /label\s*=\s*["`']([^"`']+)["`']/g,
         /aria-label\s*=\s*["`']([^"`']+)["`']/g,
-        // Employment terminology strings
+        
+        // Toast and alert patterns (most common missing!)
+        /title:\s*["`']([^"`']+)["`']/g,
+        /description:\s*["`']([^"`']+)["`']/g,
+        /message:\s*["`']([^"`']+)["`']/g,
+        
+        // JSX element content (TableHead, FormLabel, Button, etc.)
+        />\s*([A-Z][A-Za-z\s]{2,50})\s*</g,
+        
+        // Object properties with string values
+        /(\w+):\s*["`']([A-Z][A-Za-z\s]{2,50})["`']/g,
+        
+        // Array elements with strings
+        /\[\s*["`']([A-Z][A-Za-z\s]{2,50})["`']/g,
+        /,\s*["`']([A-Z][A-Za-z\s]{2,50})["`']/g,
+        
+        // Direct string assignments
+        /=\s*["`']([A-Z][A-Za-z\s]{2,50})["`']/g,
+        
+        // Common UI text patterns
+        /["`'](Success|Error|Warning|Info|Loading|Please|Enter|Type|Click|Search|Filter|Sort|Save|Cancel|Delete|Edit|View|Show|Hide|Open|Close|Back|Next|Previous|First|Last|Today|New|Create|Update|All|None|Yes|No|OK|Apply|Confirm|Reset|Clear|Submit|Upload|Download|Export|Import|Print|Copy|Move|Remove|Add|Insert|Replace|Refresh|Reload|Retry|Undo|Redo|Cut|Paste|Select|Choose|Browse|Find|Locate|Navigate|Go|Start|Stop|Pause|Resume|Play|Disable|Enable|Activate|Deactivate|Active|Inactive|Available|Unavailable|Online|Offline|Connected|Disconnected|Valid|Invalid|Required|Optional|Complete|Incomplete|Pending|Processing|Failed|Cancelled)["`']/g,
+        
+        // Portuguese/Spanish/other language strings
+        /["`'](Nome|Tipo|Status|Data|Hora|Email|Telefone|Endereço|Categoria|Descrição|Comentário|Observação|Empresa|Cliente|Usuário|Senha|Login|Sair|Entrar|Cadastrar|Salvar|Cancelar|Excluir|Editar|Visualizar|Buscar|Pesquisar|Filtrar|Ordenar|Criar|Novo|Atualizar|Todos|Nenhum|Sim|Não|Erro|Sucesso|Aviso|Informação|Carregando|Digite|Clique|Selecione|Escolha|Procurar|Localizar|Navegar|Ir|Iniciar|Parar|Pausar|Continuar|Reproduzir|Desativar|Ativar|Ativo|Inativo|Disponível|Indisponível|Online|Offline|Conectado|Desconectado|Válido|Inválido|Obrigatório|Opcional|Completo|Incompleto|Pendente|Processando|Falhou|Cancelado|Categoria|Subcategoria|Prioridade|Urgência|Impacto|Assunto|Cliente|Responsável|Criado|Atualizado|Ações|Detalhes|Histórico|Anexos|Comunicação|Notas|Materiais|Serviços|Fornecedores|Hierarquia|Unidade|Código|Coordenadas|Configurações|Preferências|Perfil|Conta|Administração|Sistema|Plataforma|Aplicação|Módulo|Componente|Serviço|Biblioteca|Documentação|Manual|Guia|Tutorial|Ajuda|Suporte|Contato|Sobre|Termos|Privacidade|Política|Licença|Copyright|Versão)["`']/g,
+        
+        // English common UI strings
+        /["`'](Name|Type|Status|Date|Time|Email|Phone|Address|Category|Description|Comment|Observation|Company|Customer|User|Password|Login|Logout|Enter|Register|Save|Cancel|Delete|Edit|View|Search|Filter|Sort|Create|New|Update|All|None|Yes|No|Error|Success|Warning|Information|Loading|Please|Click|Select|Choose|Browse|Find|Locate|Navigate|Go|Start|Stop|Pause|Continue|Play|Disable|Enable|Active|Inactive|Available|Unavailable|Online|Offline|Connected|Disconnected|Valid|Invalid|Required|Optional|Complete|Incomplete|Pending|Processing|Failed|Cancelled|Subject|Priority|Urgency|Impact|Customer|Assignee|Created|Updated|Actions|Details|History|Attachments|Communication|Notes|Materials|Services|Suppliers|Hierarchy|Unit|Code|Coordinates|Settings|Preferences|Profile|Account|Administration|System|Platform|Application|Module|Component|Service|Library|Documentation|Manual|Guide|Tutorial|Help|Support|Contact|About|Terms|Privacy|Policy|License|Version)["`']/g,
+        
+        // Employment/timecard specific terms
         /pageTitle:\s*["`']([^"`']+)["`']/g,
         /menuLabel:\s*["`']([^"`']+)["`']/g,
         /clockIn:\s*["`']([^"`']+)["`']/g,
         /working:\s*["`']([^"`']+)["`']/g,
-        // Toast/error messages
-        /title:\s*["`']([^"`']+)["`']/g,
-        /description:\s*["`']([^"`']+)["`']/g,
-        // Hard-coded Portuguese/Spanish strings
-        /["`'](?:Erro|Error|Falha|Buscar|Digite|Exibir|Ocultar|Mostrar|Esconder|Ensolarado|trajetória)[^"`']*["`']/g
+        
+        // Forms and validation messages
+        /errorMessage:\s*["`']([^"`']+)["`']/g,
+        /successMessage:\s*["`']([^"`']+)["`']/g,
+        /validationMessage:\s*["`']([^"`']+)["`']/g,
+        
+        // Any quoted string starting with capital letter (catch-all)
+        /["`']([A-Z][A-Za-z0-9\s]{2,100})["`']/g
       ];
 
       for (const pattern of hardcodedPatterns) {

@@ -3758,5 +3758,19 @@
   "tickets.fields.slaStatus": "SLA Status",
   "tickets.fields.tags": "Tags",
   "tickets.fields.source": "Source",
-  "tickets.fields.satisfaction": "Customer Satisfaction"
+  "tickets.fields.satisfaction": "Customer Satisfaction",
+  "common.code": "Code",
+  "common.unit": "Unit",
+  "common.hierarchy": "Hierarchy",
+  "common.companies": "Companies",
+  "common.suppliers": "Suppliers",
+  "common.coordinates": "Coordinates",
+  "common.createdAt": "Created At",
+  "tickets.placeholders.description": "Description",
+  "common.selectCategory": "Select Category",
+  "tickets.placeholders.subcategory": "Select Subcategory",
+  "common.selectPriority": "Select Priority",
+  "common.selectImpact": "Select Impact",
+  "common.selectUrgency": "Select Urgency",
+  "--- Mensagem Original --- De: ${email": "--- Original Message --- From: ${email"
 }
