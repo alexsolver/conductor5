@@ -83,7 +83,7 @@ export const CompanyTemplateSelector: React.FC<CompanyTemplateSelectorProps> = (
   const companies: Company[] = companiesResponse?.data?.companies || [];
 
   const handleValueChange = (selectedValue: string) => {
-    if (selectedValue === 'all' || selectedValue === '') {
+    if (selectedValue === 'all') {
       onValueChange('');
     } else {
       onValueChange(selectedValue);
@@ -132,7 +132,7 @@ export const CompanyTemplateSelector: React.FC<CompanyTemplateSelectorProps> = (
       </Label>
       
       <Select 
-        value={value || ''} 
+        value={value || 'all'} 
         onValueChange={handleValueChange}
         disabled={disabled || isLoading}
       >
@@ -140,7 +140,7 @@ export const CompanyTemplateSelector: React.FC<CompanyTemplateSelectorProps> = (
           <SelectValue placeholder={isLoading ? "Carregando empresas..." : placeholder} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todas as empresas</SelectItem>
+          <SelectItem value="all">Todas as empresas</SelectItem>
           {isLoading ? (
             <SelectItem value="loading" disabled>
               <div className="flex items-center gap-2">
