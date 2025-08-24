@@ -49,7 +49,7 @@ export class TicketTemplateApplicationService {
 
     // Filtrar por hierarquia de empresa
     const filteredTemplates = templates.filter(template => 
-      TicketTemplateDomainService.canBeUsedByCompany(template, companyId)
+      TicketTemplateDomainService.canBeUsedByCompany(template, companyId || null)
     );
 
     // Aplicar busca textual se fornecida
@@ -124,7 +124,7 @@ export class TicketTemplateApplicationService {
     }
 
     // Verificar se a empresa pode usar o template
-    if (!TicketTemplateDomainService.canBeUsedByCompany(template, companyId)) {
+    if (!TicketTemplateDomainService.canBeUsedByCompany(template, companyId || null)) {
       throw new Error('Template não disponível para esta empresa');
     }
 
@@ -279,7 +279,7 @@ export class TicketTemplateApplicationService {
     
     // Filtrar por hierarquia
     const filteredTemplates = templates.filter(template => 
-      TicketTemplateDomainService.canBeUsedByCompany(template, companyId)
+      TicketTemplateDomainService.canBeUsedByCompany(template, companyId || null)
     );
 
     return filteredTemplates.slice(0, limit);
@@ -300,7 +300,7 @@ export class TicketTemplateApplicationService {
     });
 
     const filteredTemplates = templates.filter(template => 
-      TicketTemplateDomainService.canBeUsedByCompany(template, companyId)
+      TicketTemplateDomainService.canBeUsedByCompany(template, companyId || null)
     );
 
     // Gerar analytics do domínio
@@ -324,7 +324,7 @@ export class TicketTemplateApplicationService {
     const templates = await this.templateRepository.findActive(tenantId);
     
     const filteredTemplates = templates.filter(template => 
-      TicketTemplateDomainService.canBeUsedByCompany(template, companyId)
+      TicketTemplateDomainService.canBeUsedByCompany(template, companyId || null)
     );
 
     const categories = [...new Set(filteredTemplates.map(t => t.category))];
