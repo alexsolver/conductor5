@@ -2,7 +2,10 @@
 // Clean Architecture infrastructure repository implementation
 
 import { eq, and, desc, gte, lte, count, avg, sum } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { 
   slaDefinitions, 
   slaInstances, 
@@ -21,13 +24,29 @@ import {
 } from '../../domain/repositories/SlaRepository';
 
 export class DrizzleSlaRepository implements SlaRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
   
   // ===== SLA DEFINITIONS =====
   
   async createSlaDefinition(slaData: Omit<SlaDefinition, 'id' | 'createdAt' | 'updatedAt'>): Promise<SlaDefinition> {
     console.log('[SLA-REPOSITORY] Creating SLA definition:', slaData.name);
     
-    const [createdSla] = await db.insert(slaDefinitions)
+    const tenantDb = await this.getTenantDb(slaData.tenantId);
+    const [createdSla] = await tenantDb.insert(slaDefinitions)
       .values({
         ...slaData,
         createdAt: new Date(),
@@ -42,7 +61,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaDefinitionById(id: string, tenantId: string): Promise<SlaDefinition | null> {
     console.log('[SLA-REPOSITORY] Getting SLA definition by ID:', id);
     
-    const [sla] = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [sla] = await tenantDb.select()
       .from(slaDefinitions)
       .where(and(
         eq(slaDefinitions.id, id),
@@ -56,7 +76,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaDefinitionsByTenant(tenantId: string): Promise<SlaDefinition[]> {
     console.log('[SLA-REPOSITORY] Getting SLA definitions for tenant:', tenantId);
     
-    const slas = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const slas = await tenantDb.select()
       .from(slaDefinitions)
       .where(eq(slaDefinitions.tenantId, tenantId))
       .orderBy(desc(slaDefinitions.createdAt));
@@ -72,7 +93,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   ): Promise<SlaDefinition | null> {
     console.log('[SLA-REPOSITORY] Updating SLA definition:', id);
     
-    const [updatedSla] = await db.update(slaDefinitions)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [updatedSla] = await tenantDb.update(slaDefinitions)
       .set({
         ...updates,
         updatedAt: new Date()
@@ -89,7 +111,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async deleteSlaDefinition(id: string, tenantId: string): Promise<boolean> {
     console.log('[SLA-REPOSITORY] Deleting SLA definition:', id);
     
-    const result = await db.delete(slaDefinitions)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.delete(slaDefinitions)
       .where(and(
         eq(slaDefinitions.id, id),
         eq(slaDefinitions.tenantId, tenantId)
@@ -103,7 +126,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async createSlaInstance(instanceData: Omit<SlaInstance, 'id' | 'createdAt' | 'updatedAt'>): Promise<SlaInstance> {
     console.log('[SLA-REPOSITORY] Creating SLA instance for ticket:', instanceData.ticketId);
     
-    const [createdInstance] = await db.insert(slaInstances)
+    const tenantDb = await this.getTenantDb(instanceData.tenantId);
+    const [createdInstance] = await tenantDb.insert(slaInstances)
       .values({
         ...instanceData,
         createdAt: new Date(),
@@ -118,7 +142,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaInstanceById(id: string, tenantId: string): Promise<SlaInstance | null> {
     console.log('[SLA-REPOSITORY] Getting SLA instance by ID:', id);
     
-    const [instance] = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [instance] = await tenantDb.select()
       .from(slaInstances)
       .where(and(
         eq(slaInstances.id, id),
@@ -132,7 +157,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaInstancesByTicket(ticketId: string, tenantId: string): Promise<SlaInstance[]> {
     console.log('[SLA-REPOSITORY] Getting SLA instances for ticket:', ticketId);
     
-    const instances = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const instances = await tenantDb.select()
       .from(slaInstances)
       .where(and(
         eq(slaInstances.ticketId, ticketId),
@@ -147,7 +173,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaInstancesByDefinition(slaDefinitionId: string, tenantId: string): Promise<SlaInstance[]> {
     console.log('[SLA-REPOSITORY] Getting SLA instances for definition:', slaDefinitionId);
     
-    const instances = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const instances = await tenantDb.select()
       .from(slaInstances)
       .where(and(
         eq(slaInstances.slaDefinitionId, slaDefinitionId),
@@ -165,7 +192,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   ): Promise<SlaInstance | null> {
     console.log('[SLA-REPOSITORY] Updating SLA instance:', id);
     
-    const [updatedInstance] = await db.update(slaInstances)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [updatedInstance] = await tenantDb.update(slaInstances)
       .set({
         ...updates,
         updatedAt: new Date()
@@ -182,7 +210,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getActiveSlaInstances(tenantId: string): Promise<SlaInstance[]> {
     console.log('[SLA-REPOSITORY] Getting active SLA instances for tenant:', tenantId);
     
-    const instances = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const instances = await tenantDb.select()
       .from(slaInstances)
       .where(and(
         eq(slaInstances.tenantId, tenantId),
@@ -196,7 +225,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getBreachedSlaInstances(tenantId: string): Promise<SlaInstance[]> {
     console.log('[SLA-REPOSITORY] Getting breached SLA instances for tenant:', tenantId);
     
-    const instances = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const instances = await tenantDb.select()
       .from(slaInstances)
       .where(and(
         eq(slaInstances.tenantId, tenantId),
@@ -213,7 +243,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async createSlaEvent(eventData: Omit<SlaEvent, 'id' | 'createdAt'>): Promise<SlaEvent> {
     console.log('[SLA-REPOSITORY] Creating SLA event:', eventData.eventType);
     
-    const [createdEvent] = await db.insert(slaEvents)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [createdEvent] = await tenantDb.insert(slaEvents)
       .values({
         ...eventData,
         createdAt: new Date()
@@ -226,7 +257,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaEventsByInstance(slaInstanceId: string, tenantId: string): Promise<SlaEvent[]> {
     console.log('[SLA-REPOSITORY] Getting SLA events for instance:', slaInstanceId);
     
-    const events = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const events = await tenantDb.select()
       .from(slaEvents)
       .where(and(
         eq(slaEvents.slaInstanceId, slaInstanceId),
@@ -240,7 +272,8 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaEventsByTicket(ticketId: string, tenantId: string): Promise<SlaEvent[]> {
     console.log('[SLA-REPOSITORY] Getting SLA events for ticket:', ticketId);
     
-    const events = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId);
+    const events = await tenantDb.select()
       .from(slaEvents)
       .where(and(
         eq(slaEvents.ticketId, ticketId),
@@ -256,7 +289,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async createSlaViolation(violationData: Omit<SlaViolation, 'id' | 'createdAt' | 'updatedAt'>): Promise<SlaViolation> {
     console.log('[SLA-REPOSITORY] Creating SLA violation for ticket:', violationData.ticketId);
     
-    const [createdViolation] = await db.insert(slaViolations)
+    const [createdViolation] = await tenantDb.insert(slaViolations)
       .values({
         ...violationData,
         createdAt: new Date(),
@@ -271,7 +304,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaViolationById(id: string, tenantId: string): Promise<SlaViolation | null> {
     console.log('[SLA-REPOSITORY] Getting SLA violation by ID:', id);
     
-    const [violation] = await db.select()
+    const [violation] = await tenantDb.select()
       .from(slaViolations)
       .where(and(
         eq(slaViolations.id, id),
@@ -285,7 +318,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaViolationsByTicket(ticketId: string, tenantId: string): Promise<SlaViolation[]> {
     console.log('[SLA-REPOSITORY] Getting SLA violations for ticket:', ticketId);
     
-    const violations = await db.select()
+    const violations = await tenantDb.select()
       .from(slaViolations)
       .where(and(
         eq(slaViolations.ticketId, ticketId),
@@ -299,7 +332,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaViolationsByDefinition(slaDefinitionId: string, tenantId: string): Promise<SlaViolation[]> {
     console.log('[SLA-REPOSITORY] Getting SLA violations for definition:', slaDefinitionId);
     
-    const violations = await db.select()
+    const violations = await tenantDb.select()
       .from(slaViolations)
       .where(and(
         eq(slaViolations.slaDefinitionId, slaDefinitionId),
@@ -317,7 +350,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   ): Promise<SlaViolation | null> {
     console.log('[SLA-REPOSITORY] Updating SLA violation:', id);
     
-    const [updatedViolation] = await db.update(slaViolations)
+    const [updatedViolation] = await tenantDb.update(slaViolations)
       .set({
         ...updates,
         updatedAt: new Date()
@@ -334,7 +367,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getUnresolvedViolations(tenantId: string): Promise<SlaViolation[]> {
     console.log('[SLA-REPOSITORY] Getting unresolved violations for tenant:', tenantId);
     
-    const violations = await db.select()
+    const violations = await tenantDb.select()
       .from(slaViolations)
       .where(and(
         eq(slaViolations.tenantId, tenantId),
@@ -363,14 +396,14 @@ export class DrizzleSlaRepository implements SlaRepository {
     ) : baseClause;
 
     // Get total instances
-    const [totalResult] = await db.select({
+    const [totalResult] = await tenantDb.select({
       count: count()
     })
     .from(slaInstances)
     .where(whereClause);
 
     // Get met instances (completed without breach)
-    const [metResult] = await db.select({
+    const [metResult] = await tenantDb.select({
       count: count()
     })
     .from(slaInstances)
@@ -381,7 +414,7 @@ export class DrizzleSlaRepository implements SlaRepository {
     ));
 
     // Get violated instances
-    const [violatedResult] = await db.select({
+    const [violatedResult] = await tenantDb.select({
       count: count()
     })
     .from(slaInstances)
@@ -391,7 +424,7 @@ export class DrizzleSlaRepository implements SlaRepository {
     ));
 
     // Get average times
-    const [avgTimes] = await db.select({
+    const [avgTimes] = await tenantDb.select({
       avgResponse: avg(slaInstances.responseTimeMinutes),
       avgResolution: avg(slaInstances.resolutionTimeMinutes),
       avgIdle: avg(slaInstances.idleTimeMinutes)
@@ -400,7 +433,7 @@ export class DrizzleSlaRepository implements SlaRepository {
     .where(whereClause);
 
     // Get escalation data
-    const [escalationResult] = await db.select({
+    const [escalationResult] = await tenantDb.select({
       count: count(),
       total: sum(slaInstances.escalationLevel)
     })
@@ -488,7 +521,7 @@ export class DrizzleSlaRepository implements SlaRepository {
     
     // This is a simplified implementation
     // In a real system, you would use more sophisticated date grouping
-    const violations = await db.select()
+    const violations = await tenantDb.select()
       .from(slaViolations)
       .where(eq(slaViolations.tenantId, tenantId))
       .orderBy(desc(slaViolations.createdAt));

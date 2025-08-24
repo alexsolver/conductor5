@@ -6,7 +6,10 @@
  */
 
 import { sql, eq, and, desc, asc, gte, lte, like, isNull, isNotNull, count } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { IExpenseApprovalRepository } from '../../domain/repositories/IExpenseApprovalRepository';
 import { ExpenseReport, InsertExpenseReport, ExpenseFilters, ExpenseListOptions } from '../../domain/entities/ExpenseReport';
 import { ExpenseItem, InsertExpenseItem } from '../../domain/entities/ExpenseReport';
@@ -15,6 +18,17 @@ import { ExpensePolicy } from '../../domain/entities/ExpensePolicy';
 import { CorporateCard, CardTransaction } from '../../domain/entities/CorporateCard';
 
 export class DrizzleExpenseApprovalRepository implements IExpenseApprovalRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
   private getSchemaName(tenantId: string): string {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
@@ -24,7 +38,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🔧 [DrizzleExpenseApprovalRepository] Creating expense report:', reportData.title);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       INSERT INTO ${sql.identifier(schemaName)}.expense_reports (
         tenant_id, report_number, employee_id, title, description, status,
         submission_date, approval_date, payment_date, total_amount, currency,
@@ -56,7 +71,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🔍 [DrizzleExpenseApprovalRepository] Finding expense report by ID:', id);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.expense_reports 
       WHERE tenant_id = ${tenantId} AND id = ${id} AND is_active = true 
       LIMIT 1
@@ -304,7 +320,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     `;
     
     params.push(tenantId, id);
-    const result = await db.execute(sql.raw(query, params)) as any;
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql.raw(query, params)) as any;
     
     if (result.rows.length === 0) {
       throw new Error('Expense report not found or update failed');
@@ -318,7 +335,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🗑️ [DrizzleExpenseApprovalRepository] Soft deleting expense report:', id);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       UPDATE ${sql.identifier(schemaName)}.expense_reports 
       SET is_active = false, updated_at = NOW()
       WHERE tenant_id = ${tenantId} AND id = ${id} AND is_active = true
@@ -333,7 +351,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🔢 [DrizzleExpenseApprovalRepository] Generating report number for year:', year);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT COUNT(*) + 1 as next_sequence
       FROM ${sql.identifier(schemaName)}.expense_reports 
       WHERE tenant_id = ${tenantId} 
@@ -354,7 +373,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🔧 [DrizzleExpenseApprovalRepository] Creating expense item:', itemData.description);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       INSERT INTO ${sql.identifier(schemaName)}.expense_items (
         tenant_id, expense_report_id, item_number, expense_type, category,
         subcategory, description, expense_date, amount, currency, exchange_rate,
@@ -386,7 +406,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🔍 [DrizzleExpenseApprovalRepository] Finding expense items for report:', reportId);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.expense_items 
       WHERE tenant_id = ${tenantId} AND expense_report_id = ${reportId} AND is_active = true
       ORDER BY item_number ASC
@@ -437,7 +458,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     `;
     
     params.push(tenantId, id);
-    const result = await db.execute(sql.raw(query, params)) as any;
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql.raw(query, params)) as any;
     
     if (result.rows.length === 0) {
       throw new Error('Expense item not found or update failed');
@@ -451,7 +473,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🗑️ [DrizzleExpenseApprovalRepository] Soft deleting expense item:', id);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       UPDATE ${sql.identifier(schemaName)}.expense_items 
       SET is_active = false, updated_at = NOW()
       WHERE tenant_id = ${tenantId} AND id = ${id} AND is_active = true
@@ -465,7 +488,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
   // Approval Workflows (stub implementations)
   async findApprovalWorkflows(tenantId: string): Promise<ExpenseApprovalWorkflow[]> {
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.expense_approval_workflows 
       WHERE tenant_id = ${tenantId} AND is_active = true
       ORDER BY name ASC
@@ -476,7 +500,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
 
   async findDefaultApprovalWorkflow(tenantId: string): Promise<ExpenseApprovalWorkflow | null> {
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.expense_approval_workflows 
       WHERE tenant_id = ${tenantId} AND is_active = true AND is_default = true
       LIMIT 1
@@ -540,7 +565,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('📊 [DrizzleExpenseApprovalRepository] Getting dashboard metrics');
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT 
         COUNT(CASE WHEN status = 'submitted' THEN 1 END) as total_submitted,
         COUNT(CASE WHEN status IN ('submitted', 'under_review') THEN 1 END) as total_pending,
@@ -598,7 +624,8 @@ export class DrizzleExpenseApprovalRepository implements IExpenseApprovalReposit
     console.log('🔍 [DrizzleExpenseApprovalRepository] Finding audit trail for:', entityType, entityId);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.expense_audit_trail 
       WHERE tenant_id = ${tenantId} AND entity_type = ${entityType} AND entity_id = ${entityId}
       ORDER BY timestamp DESC

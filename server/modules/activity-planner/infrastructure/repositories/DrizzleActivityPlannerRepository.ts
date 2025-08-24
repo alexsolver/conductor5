@@ -157,7 +157,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   // Activity Templates
   async createTemplate(template: Omit<ActivityTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivityTemplate> {
-    const [created] = await db.insert(activityTemplates).values({
+    const [created] = await tenantDb.insert(activityTemplates).values({
       ...template,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -217,7 +217,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   // Activity Schedules
   async createSchedule(schedule: Omit<ActivitySchedule, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivitySchedule> {
-    const [created] = await db.insert(activitySchedules).values({
+    const [created] = await tenantDb.insert(activitySchedules).values({
       ...schedule,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -308,7 +308,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
   // Activity Instances
   async createInstance(instance: Omit<ActivityInstance, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivityInstance> {
     const schemaData = this.mapEntityToSchema(instance);
-    const [created] = await db.insert(activityInstances).values({
+    const [created] = await tenantDb.insert(activityInstances).values({
       ...schemaData,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -318,7 +318,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   async updateInstance(id: string, tenantId: string, instance: Partial<ActivityInstance>): Promise<ActivityInstance> {
     const schemaData = this.mapEntityToSchema(instance);
-    const [updated] = await db.update(activityInstances)
+    const [updated] = await tenantDb.update(activityInstances)
       .set({ ...schemaData, updatedAt: new Date() })
       .where(and(eq(activityInstances.id, id), eq(activityInstances.tenantId, tenantId)))
       .returning();
@@ -333,7 +333,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
   }
 
   async getInstanceById(id: string, tenantId: string): Promise<ActivityInstance | null> {
-    const [instance] = await db.select()
+    const [instance] = await tenantDb.select()
       .from(activityInstances)
       .where(and(eq(activityInstances.id, id), eq(activityInstances.tenantId, tenantId)));
 
@@ -432,7 +432,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   // Instance Management Methods
   async getOverdueInstances(tenantId: string): Promise<ActivityInstance[]> {
-    const instances = await db.select()
+    const instances = await tenantDb.select()
       .from(activityInstances)
       .where(and(
         eq(activityInstances.tenantId, tenantId),
@@ -448,7 +448,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
     const future = new Date();
     future.setDate(now.getDate() + days);
 
-    const instances = await db.select()
+    const instances = await tenantDb.select()
       .from(activityInstances)
       .where(and(
         eq(activityInstances.tenantId, tenantId),
@@ -592,7 +592,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   // Activity Workflows (simplified implementations)
   async createWorkflow(workflow: Omit<ActivityWorkflow, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivityWorkflow> {
-    const [created] = await db.insert(activityWorkflows).values({
+    const [created] = await tenantDb.insert(activityWorkflows).values({
       ...workflow,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -649,7 +649,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   // Activity Resources (simplified implementations)
   async createResource(resource: Omit<ActivityResource, 'id' | 'createdAt'>): Promise<ActivityResource> {
-    const [created] = await db.insert(activityResources).values({
+    const [created] = await tenantDb.insert(activityResources).values({
       ...resource,
       createdAt: new Date()
     }).returning();
@@ -689,7 +689,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   // Activity History & Audit
   async createHistoryEntry(history: Omit<ActivityHistoryType, 'id' | 'performedAt'>): Promise<ActivityHistoryType> {
-    const [created] = await db.insert(activityHistory).values({
+    const [created] = await tenantDb.insert(activityHistory).values({
       ...history,
       performedAt: new Date()
     }).returning();
@@ -722,7 +722,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       updatedAt: now
     }));
 
-    return await db.insert(activityInstances).values(instancesToInsert).returning();
+    return await tenantDb.insert(activityInstances).values(instancesToInsert).returning();
   }
 
   async bulkUpdateInstanceStatus(instanceIds: string[], tenantId: string, status: string, updatedBy: string): Promise<void> {

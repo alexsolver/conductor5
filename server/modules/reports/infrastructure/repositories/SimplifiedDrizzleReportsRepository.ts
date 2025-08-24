@@ -58,7 +58,8 @@ export class SimplifiedDrizzleReportsRepository {
   async createReport(reportData: Omit<SimpleReport, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<SimpleReport> {
     if (!tenantId) throw new Error('Tenant ID required for multi-tenant isolation');
     
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       INSERT INTO reports (
         tenant_id, name, description, data_source, report_type, 
         status, owner_id, created_by, config, created_at, updated_at
@@ -106,7 +107,8 @@ export class SimplifiedDrizzleReportsRepository {
     const offset = filters.offset || 0;
     
     // Get reports
-    const result = await db.execute(sql.raw(`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql.raw(`
       SELECT * FROM reports 
       ${whereClause}
       ORDER BY ${orderBy} ${order}
@@ -114,7 +116,7 @@ export class SimplifiedDrizzleReportsRepository {
     `));
     
     // Get total count
-    const countResult = await db.execute(sql.raw(`
+    const countResult = await tenantDb.execute(sql.raw(`
       SELECT COUNT(*) as count FROM reports ${whereClause}
     `));
     
@@ -144,7 +146,8 @@ export class SimplifiedDrizzleReportsRepository {
   async createDashboard(dashboardData: Omit<SimpleDashboard, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<SimpleDashboard> {
     if (!tenantId) throw new Error('Tenant ID required for multi-tenant isolation');
     
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       INSERT INTO dashboards (
         tenant_id, name, description, layout, owner_id, 
         is_public, refresh_interval, created_at, updated_at
@@ -193,7 +196,8 @@ export class SimplifiedDrizzleReportsRepository {
     
     try {
       // ✅ 1QA.MD COMPLIANCE: Check if table exists in tenant schema first
-      const tableExistsResult = await db.execute(sql.raw(`
+      const tenantDb = await this.getTenantDb(tenantId);
+      const tableExistsResult = await tenantDb.execute(sql.raw(`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
           WHERE table_schema = '${schemaName}' 
@@ -253,7 +257,7 @@ export class SimplifiedDrizzleReportsRepository {
       }
 
       // Get dashboards from tenant schema
-      const result = await db.execute(sql.raw(`
+      const result = await tenantDb.execute(sql.raw(`
         SELECT * FROM "${schemaName}".dashboards 
         ${whereClause}
         ORDER BY ${orderBy} ${order}
@@ -261,7 +265,7 @@ export class SimplifiedDrizzleReportsRepository {
       `));
       
       // Get total count
-      const countResult = await db.execute(sql.raw(`
+      const countResult = await tenantDb.execute(sql.raw(`
         SELECT COUNT(*) as count FROM "${schemaName}".dashboards ${whereClause}
       `));
       

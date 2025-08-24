@@ -4,7 +4,10 @@
 // ===========================================================================================
 
 import { eq, and, sql, desc, asc, gte, lte, inArray, isNotNull, or } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { EnhancedFieldAgent, EnhancedFieldAgentResponse } from '../../domain/entities/EnhancedFieldAgent';
 import { 
   agentPositions, 
@@ -72,9 +75,27 @@ export interface NearbyAgentsQuery {
 
 export class DrizzleInteractiveMapRepository {
   private readonly schema: string;
+  private readonly tenantId: string;
 
   constructor(tenantId: string) {
     this.schema = `tenant_${tenantId}`;
+    this.tenantId = tenantId;
+  }
+
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb() {
+    const schemaName = this.getSchemaName(this.tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
   // ===========================================================================================
@@ -411,7 +432,8 @@ export class DrizzleInteractiveMapRepository {
     signalStrength?: number;
     capturedAt: Date;
   }): Promise<void> {
-    await db.insert(agentPositions).values({
+    const tenantDb = await this.getTenantDb();
+    await tenantDb.insert(agentPositions).values({
       agentId,
       tenantId: this.schema.replace('tenant_', ''),
       lat: positionData.lat.toString(),
@@ -438,7 +460,8 @@ export class DrizzleInteractiveMapRepository {
     appVersion?: string;
   }): Promise<void> {
     // Upsert device status
-    await db.insert(agentDeviceStatus).values({
+    const tenantDb = await this.getTenantDb();
+    await tenantDb.insert(agentDeviceStatus).values({
       agentId,
       tenantId: this.schema.replace('tenant_', ''),
       isOnline: deviceData.isOnline,
@@ -477,7 +500,8 @@ export class DrizzleInteractiveMapRepository {
     distanceMeters?: number;
     status?: string;
   }): Promise<string> {
-    const result = await db.insert(agentRoutes).values({
+    const tenantDb = await this.getTenantDb();
+    const result = await tenantDb.insert(agentRoutes).values({
       agentId,
       tenantId: this.schema.replace('tenant_', ''),
       ticketId: routeData.ticketId,
@@ -508,7 +532,8 @@ export class DrizzleInteractiveMapRepository {
     ticketId?: string;
     changedBy?: string;
   }): Promise<void> {
-    await db.insert(agentStatusHistory).values({
+    const tenantDb = await this.getTenantDb();
+    await tenantDb.insert(agentStatusHistory).values({
       agentId,
       tenantId: this.schema.replace('tenant_', ''),
       fromStatus: statusChange.fromStatus,

@@ -4,7 +4,10 @@
  */
 
 import { sql } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { Asset, InsertAsset } from '../../domain/entities/Asset';
 import { 
   IAssetRepository, 
@@ -14,6 +17,18 @@ import {
 } from '../../domain/repositories/IAssetRepository';
 
 export class DrizzleAssetRepository implements IAssetRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
   private getSchemaName(tenantId: string): string {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
@@ -22,7 +37,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🔧 [DrizzleAssetRepository] Creating asset:', assetData.tag);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       INSERT INTO ${sql.identifier(schemaName)}.assets (
         tenant_id, location_id, parent_asset_id, tag, name, model, manufacturer,
         serial_number, criticality, status, meters_json, mtbf, mttr,
@@ -50,7 +66,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🔍 [DrizzleAssetRepository] Finding asset by ID:', id);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.assets 
       WHERE tenant_id = ${tenantId} AND id = ${id} AND is_active = true 
       LIMIT 1
@@ -101,14 +118,15 @@ export class DrizzleAssetRepository implements IAssetRepository {
     }
     
     const offset = (page - 1) * limit;
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.assets 
       WHERE tenant_id = ${tenantId} AND is_active = true
       ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `) as any;
     
-    const countResult = await db.execute(sql`
+    const countResult = await tenantDb.execute(sql`
       SELECT COUNT(*) as count FROM ${sql.identifier(schemaName)}.assets 
       WHERE tenant_id = ${tenantId} AND is_active = true
     `) as any;
@@ -134,7 +152,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🔍 [DrizzleAssetRepository] Finding assets by location:', locationId);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.assets 
       WHERE tenant_id = ${tenantId} AND location_id = ${locationId} AND is_active = true
       ORDER BY name ASC
@@ -147,7 +166,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🔍 [DrizzleAssetRepository] Finding children assets');
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.assets 
       WHERE tenant_id = ${tenantId} AND parent_asset_id = ${parentAssetId} AND is_active = true
       ORDER BY name ASC
@@ -186,7 +206,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🔍 [DrizzleAssetRepository] Getting hierarchy by location:', locationId);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.assets 
       WHERE tenant_id = ${tenantId} AND location_id = ${locationId} 
       AND parent_asset_id IS NULL AND is_active = true
@@ -205,7 +226,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🔍 [DrizzleAssetRepository] Finding assets needing maintenance');
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       SELECT * FROM ${sql.identifier(schemaName)}.assets 
       WHERE tenant_id = ${tenantId} AND is_active = true
       AND next_maintenance_date <= NOW()
@@ -235,7 +257,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     meters[meterName] = { value, timestamp: new Date().toISOString() };
 
     const schemaName = this.getSchemaName(tenantId);
-    await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.execute(sql`
       UPDATE ${sql.identifier(schemaName)}.assets 
       SET meters_json = ${JSON.stringify(meters)}, updated_by = ${updatedBy}, updated_at = NOW()
       WHERE tenant_id = ${tenantId} AND id = ${assetId}
@@ -248,7 +271,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🔧 [DrizzleAssetRepository] Updating asset:', id);
     
     const schemaName = this.getSchemaName(tenantId);
-    const result = await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.execute(sql`
       UPDATE ${sql.identifier(schemaName)}.assets 
       SET name = ${updateData.name || null}, updated_by = ${updatedBy}, updated_at = NOW()
       WHERE tenant_id = ${tenantId} AND id = ${id}
@@ -264,7 +288,8 @@ export class DrizzleAssetRepository implements IAssetRepository {
     console.log('🗑️ [DrizzleAssetRepository] Soft deleting asset:', id);
     
     const schemaName = this.getSchemaName(tenantId);
-    await db.execute(sql`
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.execute(sql`
       UPDATE ${sql.identifier(schemaName)}.assets 
       SET is_active = false, updated_at = NOW()
       WHERE tenant_id = ${tenantId} AND id = ${id}

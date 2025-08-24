@@ -5,7 +5,10 @@
  */
 
 import { eq, and, gte, lte, isNull, desc } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { sql } from 'drizzle-orm';
 
 import type { IGdprComplianceRepository } from '../../domain/repositories/IGdprComplianceRepository';
@@ -40,10 +43,26 @@ import {
 } from '@shared/schema-gdpr-compliance-clean';
 
 export class DrizzleGdprComplianceRepository implements IGdprComplianceRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
   
   // ✅ 1. Cookie Consents Implementation
   async createCookieConsent(data: InsertCookieConsent): Promise<CookieConsent> {
-    const [result] = await db.insert(cookieConsents).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(cookieConsents).values(data).returning();
     return CookieConsent.create(result);
   }
 
@@ -90,7 +109,8 @@ export class DrizzleGdprComplianceRepository implements IGdprComplianceRepositor
 
   // ✅ 2. Data Consents Implementation
   async createDataConsent(data: InsertDataConsent): Promise<DataConsent> {
-    const [result] = await db.insert(dataConsents).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(dataConsents).values(data).returning();
     return result;
   }
 
@@ -125,7 +145,8 @@ export class DrizzleGdprComplianceRepository implements IGdprComplianceRepositor
 
   // ✅ 3-7. Data Subject Requests Implementation
   async createDataSubjectRequest(data: InsertDataSubjectRequest): Promise<DataSubjectRequest> {
-    const [result] = await db.insert(dataSubjectRequests).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(dataSubjectRequests).values(data).returning();
     return DataSubjectRequest.create(result);
   }
 
@@ -185,7 +206,8 @@ export class DrizzleGdprComplianceRepository implements IGdprComplianceRepositor
 
   // ✅ 8. Audit Logs Implementation
   async createAuditLog(data: InsertGdprAuditLog): Promise<GdprAuditLog> {
-    const [result] = await db.insert(gdprAuditLogs).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(gdprAuditLogs).values(data).returning();
     return result;
   }
 
@@ -223,7 +245,8 @@ export class DrizzleGdprComplianceRepository implements IGdprComplianceRepositor
 
   // ✅ 9. Privacy Policies Implementation
   async createPrivacyPolicy(data: InsertPrivacyPolicy): Promise<PrivacyPolicy> {
-    const [result] = await db.insert(privacyPolicies).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(privacyPolicies).values(data).returning();
     return result;
   }
 
@@ -279,7 +302,8 @@ export class DrizzleGdprComplianceRepository implements IGdprComplianceRepositor
 
   // ✅ 10. Security Incidents Implementation
   async createSecurityIncident(data: InsertSecurityIncident): Promise<SecurityIncident> {
-    const [result] = await db.insert(securityIncidents).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(securityIncidents).values(data).returning();
     return SecurityIncident.create(result);
   }
 
@@ -356,7 +380,8 @@ export class DrizzleGdprComplianceRepository implements IGdprComplianceRepositor
 
   // ✅ 11. Data Retention Policies Implementation
   async createDataRetentionPolicy(data: InsertDataRetentionPolicy): Promise<DataRetentionPolicy> {
-    const [result] = await db.insert(dataRetentionPolicies).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(dataRetentionPolicies).values(data).returning();
     return result;
   }
 
@@ -398,7 +423,8 @@ export class DrizzleGdprComplianceRepository implements IGdprComplianceRepositor
 
   // ✅ 12. User Preferences Implementation
   async createGdprUserPreferences(data: InsertGdprUserPreferences): Promise<GdprUserPreferences> {
-    const [result] = await db.insert(gdprUserPreferences).values(data).returning();
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb.insert(gdprUserPreferences).values(data).returning();
     return result;
   }
 
