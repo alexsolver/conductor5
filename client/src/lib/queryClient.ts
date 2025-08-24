@@ -57,6 +57,17 @@ export const apiRequest = async (
   options: RequestInit = {}
 ): Promise<Response> => {
   console.log(`🌐 [API-REQUEST] ${method} ${url}`);
+  
+  // 🔍 Debug tokens for POST requests
+  if (method === 'POST') {
+    console.log('🔍 [API-REQUEST-DEBUG] POST request details:', {
+      method,
+      url,
+      hasData: !!data,
+      credentials: 'include',
+      cookiesWillBeSent: true
+    });
+  }
 
   const config: RequestInit = {
     method,
@@ -72,6 +83,8 @@ export const apiRequest = async (
     config.body = JSON.stringify(data);
   }
 
+  console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);
+  
   return fetch(url, config);
 };
 
