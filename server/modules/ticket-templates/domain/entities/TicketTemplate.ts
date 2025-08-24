@@ -13,8 +13,9 @@ export interface TicketTemplate {
   description?: string;
   category: string;
   subcategory?: string;
-  companyId?: string;
+  companyId?: string; // null for global templates, specific companyId for company-specific templates
   departmentId?: string;
+  isGlobal: boolean; // true for global templates, false for company-specific
   priority: 'low' | 'medium' | 'high' | 'urgent';
   templateType: 'standard' | 'quick' | 'escalation' | 'auto_response' | 'workflow';
   status: 'active' | 'inactive' | 'draft';
@@ -282,6 +283,15 @@ export class TicketTemplateDomainService {
     if (!template.category) errors.push('Categoria é obrigatória');
     if (!template.tenantId) errors.push('ID do tenant é obrigatório');
     if (!template.templateType) errors.push('Tipo do template é obrigatório');
+
+    // Hierarchical validation
+    if (template.isGlobal === undefined) errors.push('Campo isGlobal é obrigatório');
+    if (template.isGlobal === false && !template.companyId) {
+      errors.push('Templates específicos devem ter um companyId');
+    }
+    if (template.isGlobal === true && template.companyId) {
+      errors.push('Templates globais não devem ter companyId');
+    }
 
     // Name validation
     if (template.name && template.name.length < 3) {

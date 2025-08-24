@@ -3075,6 +3075,7 @@ export const ticketTemplates = pgTable("ticket_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }),
+  isGlobal: boolean("is_global").default(false).notNull(),,
 
   // Identificação
   name: varchar("name", { length: 255 }).notNull(),

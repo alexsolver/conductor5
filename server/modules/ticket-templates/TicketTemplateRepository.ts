@@ -5,32 +5,28 @@ import { eq, and, desc, asc, isNull, or } from 'drizzle-orm';
 export class TicketTemplateRepository {
   // ✅ 1QA.MD: Removendo dependência de schemaManager - usando db direto
 
-  async getTemplatesByCompany(
-    tenantId: string, 
-    customerCompanyId?: string, 
-    includePublic: boolean = true
-  ): Promise<TicketTemplate[]> {
+  async getTemplatesByCompany(tenantId: string, customerCompanyId?: string): Promise<TicketTemplate[]> {
     try {
-      // ✅ 1QA.MD COMPLIANCE: Drizzle ORM query with proper tenant isolation
-      const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
-      
+      const db = this.schemaManager.getDb();
+
       let whereConditions;
-      
-      if (companyId === null) {
-        // Show all public templates when no specific company
+
+      if (customerCompanyId === 'all' || customerCompanyId === undefined || customerCompanyId === null) {
+        // Show only global templates when no specific company is selected
         whereConditions = and(
           eq(ticketTemplates.tenantId, tenantId),
-          isNull(ticketTemplates.companyId),
+          eq(ticketTemplates.isGlobal, true),
           eq(ticketTemplates.isActive, true)
         );
       } else {
-        // Show company-specific + public templates
-        const companyConditions = includePublic 
-          ? or(
-              eq(ticketTemplates.companyId, companyId),
-              isNull(ticketTemplates.companyId)
-            )
-          : eq(ticketTemplates.companyId, companyId);
+        // Show global templates + company-specific templates
+        const companyConditions = or(
+          eq(ticketTemplates.isGlobal, true), // Global templates available to all
+          and(
+            eq(ticketTemplates.isGlobal, false),
+            eq(ticketTemplates.companyId, customerCompanyId)
+          )
+        );
 
         whereConditions = and(
           eq(ticketTemplates.tenantId, tenantId),
@@ -38,12 +34,13 @@ export class TicketTemplateRepository {
           eq(ticketTemplates.isActive, true)
         );
       }
-      
+
       return await db
         .select()
         .from(ticketTemplates)
         .where(whereConditions)
         .orderBy(
+          desc(ticketTemplates.isGlobal), // Global templates first
           asc(ticketTemplates.sortOrder),
           desc(ticketTemplates.usageCount),
           asc(ticketTemplates.name)
@@ -54,15 +51,66 @@ export class TicketTemplateRepository {
     }
   }
 
+  async getGlobalTemplates(tenantId: string): Promise<TicketTemplate[]> {
+    try {
+      const db = this.schemaManager.getDb();
+
+      return await db
+        .select()
+        .from(ticketTemplates)
+        .where(
+          and(
+            eq(ticketTemplates.tenantId, tenantId),
+            eq(ticketTemplates.isGlobal, true),
+            eq(ticketTemplates.isActive, true)
+          )
+        )
+        .orderBy(
+          asc(ticketTemplates.sortOrder),
+          desc(ticketTemplates.usageCount),
+          asc(ticketTemplates.name)
+        );
+    } catch (error) {
+      console.error('Error fetching global templates:', error);
+      return [];
+    }
+  }
+
+  async getCompanySpecificTemplates(tenantId: string, companyId: string): Promise<TicketTemplate[]> {
+    try {
+      const db = this.schemaManager.getDb();
+
+      return await db
+        .select()
+        .from(ticketTemplates)
+        .where(
+          and(
+            eq(ticketTemplates.tenantId, tenantId),
+            eq(ticketTemplates.isGlobal, false),
+            eq(ticketTemplates.companyId, companyId),
+            eq(ticketTemplates.isActive, true)
+          )
+        )
+        .orderBy(
+          asc(ticketTemplates.sortOrder),
+          desc(ticketTemplates.usageCount),
+          asc(ticketTemplates.name)
+        );
+    } catch (error) {
+      console.error('Error fetching company-specific templates:', error);
+      return [];
+    }
+  }
+
   async getTemplateById(tenantId: string, templateId: string): Promise<TicketTemplate | null> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     const query = `
       SELECT * FROM "${schemaName}".ticket_templates 
       WHERE tenant_id = $1 AND id = $2
     `;
-    
+
     const result = await pool.query(query, [tenantId, templateId]);
     return result.rows[0] || null;
   }
@@ -70,10 +118,10 @@ export class TicketTemplateRepository {
   async createTemplate(template: InsertTicketTemplate): Promise<TicketTemplate> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(template.tenantId);
-    
+
     // Handle null, undefined, or 'null' string values for customerCompanyId
     const companyId = template.customerCompanyId === 'null' || template.customerCompanyId === undefined || template.customerCompanyId === null ? null : template.customerCompanyId;
-    
+
     const query = `
       INSERT INTO "${schemaName}".ticket_templates (
         tenant_id, company_id, name, description, category, subcategory,
@@ -125,7 +173,7 @@ export class TicketTemplateRepository {
   async updateTemplate(tenantId: string, templateId: string, updates: Partial<InsertTicketTemplate>): Promise<TicketTemplate | null> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     const setClause = [];
     const values = [tenantId, templateId];
     let paramIndex = 3;
@@ -163,12 +211,12 @@ export class TicketTemplateRepository {
   async deleteTemplate(tenantId: string, templateId: string): Promise<boolean> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     const query = `
       DELETE FROM "${schemaName}".ticket_templates 
       WHERE tenant_id = $1 AND id = $2
     `;
-    
+
     const result = await pool.query(query, [tenantId, templateId]);
     return result.rowCount > 0;
   }
@@ -176,26 +224,26 @@ export class TicketTemplateRepository {
   async incrementUsage(tenantId: string, templateId: string): Promise<void> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     const query = `
       UPDATE "${schemaName}".ticket_templates 
       SET usage_count = usage_count + 1, last_used_at = NOW()
       WHERE tenant_id = $1 AND id = $2
     `;
-    
+
     await pool.query(query, [tenantId, templateId]);
   }
 
   async getTemplateStats(tenantId: string, customerCompanyId?: string): Promise<any> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     // Handle null, undefined, or 'null' string values
     const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
-    
+
     let whereClause = 'WHERE tenant_id = $1';
     const values = [tenantId];
-    
+
     if (companyId !== null) {
       whereClause += ' AND (company_id = $2 OR company_id IS NULL)';
       values.push(companyId);
@@ -214,7 +262,7 @@ export class TicketTemplateRepository {
       GROUP BY ROLLUP(category)
       ORDER BY category_count DESC
     `;
-    
+
     const result = await pool.query(query, values);
     return result.rows;
   }
@@ -227,16 +275,16 @@ export class TicketTemplateRepository {
   ): Promise<TicketTemplate[]> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     let whereClause = `
       WHERE tenant_id = $1 
       AND (company_id = $2 OR company_id IS NULL)
       AND is_active = true
       AND (name ILIKE $3 OR description ILIKE $3)
     `;
-    
+
     const values = [tenantId, customerCompanyId, `%${searchQuery}%`];
-    
+
     if (category) {
       whereClause += ' AND category = $4';
       values.push(category);
@@ -246,7 +294,7 @@ export class TicketTemplateRepository {
       SELECT * FROM "${schemaName}".ticket_templates ${whereClause}
       ORDER BY usage_count DESC, name ASC
     `;
-    
+
     const result = await pool.query(query, values);
     return result.rows;
   }
@@ -254,10 +302,10 @@ export class TicketTemplateRepository {
   async getPopularTemplates(tenantId: string, customerCompanyId?: string, limit: number = 10): Promise<TicketTemplate[]> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     let whereClause = 'WHERE tenant_id = $1';
     const values = [tenantId, limit];
-    
+
     if (customerCompanyId) {
       whereClause += ' AND (company_id = $3 OR company_id IS NULL)';
       values.push(customerCompanyId);
@@ -271,7 +319,7 @@ export class TicketTemplateRepository {
       ORDER BY usage_count DESC, last_used_at DESC
       LIMIT $2
     `;
-    
+
     const result = await pool.query(query, values);
     return result.rows;
   }
@@ -279,13 +327,13 @@ export class TicketTemplateRepository {
   async getTemplateCategories(tenantId: string, customerCompanyId?: string): Promise<string[]> {
     const pool = this.schemaManager.getPool();
     const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
+
     // Handle null, undefined, or 'null' string values
     const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
-    
+
     let whereClause = 'WHERE tenant_id = $1';
     const values = [tenantId];
-    
+
     if (companyId !== null) {
       whereClause += ' AND (company_id = $2 OR company_id IS NULL)';
       values.push(companyId);
@@ -297,7 +345,7 @@ export class TicketTemplateRepository {
       AND is_active = true
       ORDER BY category
     `;
-    
+
     const result = await pool.query(query, values);
     return result.rows.map(row => row.category);
   }

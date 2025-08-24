@@ -1680,6 +1680,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Estatísticas
     app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, ticketTemplateController.getTemplateStats.bind(ticketTemplateController));
 
+    // Templates globais
+    app.get('/api/ticket-templates/global', jwtAuth, ticketTemplateController.getGlobalTemplates.bind(ticketTemplateController));
+    app.post('/api/ticket-templates/create-global', jwtAuth, ticketTemplateController.createGlobalTemplate.bind(ticketTemplateController));
+
+    // Templates específicos por empresa
+    app.get('/api/ticket-templates/company-specific/:companyId', jwtAuth, ticketTemplateController.getCompanySpecificTemplates.bind(ticketTemplateController));
+    app.post('/api/ticket-templates/create-company/:companyId', jwtAuth, ticketTemplateController.createCompanyTemplate.bind(ticketTemplateController));
+
     console.log('✅ Ticket Templates routes registered');
   } catch (error) {
     console.warn('⚠️ Failed to load hierarchical controller:', error);

@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { TicketTemplateRepository } from './TicketTemplateRepository';
 import { insertTicketTemplateSchema } from '@shared/schema';
 import { z } from 'zod';
@@ -19,7 +19,7 @@ export class TicketTemplateController {
       const includePublic = req.query.includePublic !== 'false';
 
       const templates = await this.repository.getTemplatesByCompany(
-        tenantId, 
+        tenantId,
         customerCompanyId === 'all' ? undefined : customerCompanyId,
         includePublic
       );
@@ -38,7 +38,7 @@ export class TicketTemplateController {
       const tenantId = req.user.tenantId;
 
       const template = await this.repository.getTemplateById(tenantId, templateId);
-      
+
       if (!template) {
         return res.status(404).json({ success: false, error: 'Template not found' });
       }
@@ -69,25 +69,25 @@ export class TicketTemplateController {
         defaultType: req.body.type || req.body.defaultType || 'support',
         defaultCategory: req.body.defaultCategory || req.body.category || 'Geral'
       };
-      
+
       console.log('🐛 Debug - Input data for validation:', JSON.stringify(inputData, null, 2));
       console.log('🐛 Debug - customerCompanyId param:', customerCompanyId);
       console.log('🐛 Debug - converted customerCompanyId:', inputData.customerCompanyId);
-      
+
       const templateData = insertTicketTemplateSchema.parse(inputData);
 
       const template = await this.repository.createTemplate(templateData);
-      
+
       res.status(201).json({ success: true, data: template });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          success: false, 
+        return res.status(400).json({
+          success: false,
           error: 'Validation error',
-          details: error.errors 
+          details: error.errors
         });
       }
-      
+
       console.error('Error creating template:', error);
       res.status(500).json({ success: false, error: 'Failed to create template' });
     }
@@ -100,7 +100,7 @@ export class TicketTemplateController {
       const tenantId = req.user.tenantId;
 
       const template = await this.repository.updateTemplate(tenantId, templateId, req.body);
-      
+
       if (!template) {
         return res.status(404).json({ success: false, error: 'Template not found' });
       }
@@ -119,7 +119,7 @@ export class TicketTemplateController {
       const tenantId = req.user.tenantId;
 
       const deleted = await this.repository.deleteTemplate(tenantId, templateId);
-      
+
       if (!deleted) {
         return res.status(404).json({ success: false, error: 'Template not found' });
       }
@@ -138,7 +138,7 @@ export class TicketTemplateController {
       const tenantId = req.user.tenantId;
 
       const template = await this.repository.getTemplateById(tenantId, templateId);
-      
+
       if (!template) {
         return res.status(404).json({ success: false, error: 'Template not found' });
       }
@@ -181,7 +181,7 @@ export class TicketTemplateController {
       const tenantId = req.user.tenantId;
 
       const template = await this.repository.getTemplateById(tenantId, templateId);
-      
+
       if (!template) {
         return res.status(404).json({ success: false, error: 'Template not found' });
       }
@@ -292,12 +292,108 @@ export class TicketTemplateController {
     }
   }
 
+  // GET /api/ticket-templates/global
+  async getGlobalTemplates(req: Request, res: Response) {
+    try {
+      const tenantId = req.user.tenantId;
+
+      const templates = await this.repository.getGlobalTemplates(tenantId);
+
+      res.json({
+        success: true,
+        data: templates,
+        message: 'Global templates retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Error fetching global templates:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch global templates' });
+    }
+  }
+
+  // GET /api/ticket-templates/company-specific/:companyId
+  async getCompanySpecificTemplates(req: Request, res: Response) {
+    try {
+      const { companyId } = req.params;
+      const tenantId = req.user.tenantId;
+
+      if (!companyId) {
+        return res.status(400).json({ success: false, error: 'Company ID is required' });
+      }
+
+      const templates = await this.repository.getCompanySpecificTemplates(tenantId, companyId);
+
+      res.json({
+        success: true,
+        data: templates,
+        message: 'Company-specific templates retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Error fetching company-specific templates:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch company-specific templates' });
+    }
+  }
+
+  // POST /api/ticket-templates/create-global
+  async createGlobalTemplate(req: Request, res: Response) {
+    try {
+      const tenantId = req.user.tenantId;
+      const templateData = {
+        ...req.body,
+        tenantId,
+        companyId: null,
+        isGlobal: true
+      };
+
+      const template = await this.repository.createTemplate(templateData);
+
+      res.status(201).json({
+        success: true,
+        data: template,
+        message: 'Global template created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating global template:', error);
+      res.status(500).json({ success: false, error: 'Failed to create global template' });
+    }
+  }
+
+  // POST /api/ticket-templates/create-company/:companyId
+  async createCompanyTemplate(req: Request, res: Response) {
+    try {
+      const { companyId } = req.params;
+      const tenantId = req.user.tenantId;
+
+      if (!companyId) {
+        return res.status(400).json({ success: false, error: 'Company ID is required' });
+      }
+
+      const templateData = {
+        ...req.body,
+        tenantId,
+        companyId,
+        isGlobal: false
+      };
+
+      const template = await this.repository.createTemplate(templateData);
+
+      res.status(201).json({
+        success: true,
+        data: template,
+        message: 'Company-specific template created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating company template:', error);
+      res.status(500).json({ success: false, error: 'Failed to create company template' });
+    }
+  }
+
+
   private calculateEstimatedTime(template: any): number {
     // Estimar tempo baseado na quantidade de campos obrigatórios
     const requiredFields = template.requiredFields?.length || 0;
     const optionalFields = template.optionalFields?.length || 0;
     const hasDescription = template.defaultDescription ? 0 : 2;
-    
+
     // Base: 1 minuto + 30s por campo obrigatório + 15s por campo opcional + 2min se não tiver descrição
     return 1 + (requiredFields * 0.5) + (optionalFields * 0.25) + hasDescription;
   }
