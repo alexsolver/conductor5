@@ -404,28 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log('🚨 [TICKET-TEMPLATES-DIRECT] Controller created, registering endpoints...');
     
-    // Direct endpoint registration following 1qa.md
-    app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET / called');
-      await templateController.getTemplates(req, res);
-    });
-    
-    app.get('/api/ticket-templates/company/:companyId', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET /company/:companyId called');
-      await templateController.getTemplates(req, res);
-    });
-    
-    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET /company/:companyId/stats called');  
-      await templateController.getCompanyTemplateStats(req, res);
-    });
-    
-    app.get('/api/ticket-templates/categories', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET /categories called');
-      await templateController.getCategories(req, res);
-    });
-    
-    console.log('✅ [TICKET-TEMPLATES-DIRECT] All endpoints registered successfully!');
+    // REMOVED: Duplicate endpoints - using emergency final ones only
   } catch (error: any) {
     console.error('❌ [TICKET-TEMPLATES-DIRECT] Registration FAILED:', error);
     console.error('❌ [TICKET-TEMPLATES-DIRECT] Error details:', error.message);
