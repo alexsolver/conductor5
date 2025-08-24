@@ -1,0 +1,18 @@
+❌ [TICKET-TEMPLATE-REPO] Critical error creating ticket template: Error: Erro de banco de dados: column "company_id" of relation "ticket_templates" does not exist
+    at DrizzleTicketTemplateRepository.create (/home/runner/workspace/server/modules/ticket-templates/infrastructure/repositories/DrizzleTicketTemplateRepository.ts:117:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at CreateTicketTemplateUseCase.execute (/home/runner/workspace/server/modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase.ts:156:27)
+    at TicketTemplateController.createTemplate (/home/runner/workspace/server/modules/ticket-templates/application/controllers/TicketTemplateController.ts:74:22)
+    at <anonymous> (/home/runner/workspace/server/modules/ticket-templates/routes.ts:51:5)
+❌ [TICKET-TEMPLATE-REPO] Error stack: Error: Erro de banco de dados: column "company_id" of relation "ticket_templates" does not exist
+    at DrizzleTicketTemplateRepository.create (/home/runner/workspace/server/modules/ticket-templates/infrastructure/repositories/DrizzleTicketTemplateRepository.ts:117:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at CreateTicketTemplateUseCase.execute (/home/runner/workspace/server/modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase.ts:156:27)
+    at TicketTemplateController.createTemplate (/home/runner/workspace/server/modules/ticket-templates/application/controllers/TicketTemplateController.ts:74:22)
+    at <anonymous> (/home/runner/workspace/server/modules/ticket-templates/routes.ts:51:5)
+❌ [CREATE-TEMPLATE-USE-CASE] Repository error: Error: Falha ao criar template: Erro de banco de dados: column "company_id" of relation "ticket_templates" does not exist
+    at DrizzleTicketTemplateRepository.create (/home/runner/workspace/server/modules/ticket-templates/infrastructure/repositories/DrizzleTicketTemplateRepository.ts:142:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at CreateTicketTemplateUseCase.execute (/home/runner/workspace/server/modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase.ts:156:27)
+    at TicketTemplateController.createTemplate (/home/runner/workspace/server/modules/ticket-templates/application/controllers/TicketTemplateController.ts:74:22)
+    at <anonymous> (/home/runner/workspace/server/modules/ticket-templates/routes.ts:51:5)
