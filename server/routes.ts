@@ -4648,6 +4648,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/categories called');
       await templateController.getCategories(req, res);
     });
+
+    // 🚨 ADD MISSING POST ENDPOINT for template creation
+    app.post('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [EMERGENCY-ENDPOINT] POST /api/ticket-templates called');
+      console.log('🎯 [EMERGENCY-ENDPOINT] Request body:', req.body);
+      console.log('🎯 [EMERGENCY-ENDPOINT] User info:', (req as any).user);
+      try {
+        await templateController.createTemplate(req, res);
+        console.log('🎯 [EMERGENCY-ENDPOINT] POST Controller execution completed');
+      } catch (error) {
+        console.error('❌ [EMERGENCY-ENDPOINT] POST Controller error:', error);
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // 🚨 ADD MISSING DELETE ENDPOINT for template deletion
+    app.delete('/api/ticket-templates/:id', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [EMERGENCY-ENDPOINT] DELETE /api/ticket-templates/:id called');
+      console.log('🎯 [EMERGENCY-ENDPOINT] Template ID:', req.params.id);
+      try {
+        // TODO: Implement delete method in controller
+        res.status(501).json({ success: false, message: 'Delete not implemented yet' });
+      } catch (error) {
+        console.error('❌ [EMERGENCY-ENDPOINT] DELETE Controller error:', error);
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
     
     console.log('✅ [EMERGENCY-FINAL] Ticket templates endpoints registered successfully!');
   } catch (emergencyError: any) {
