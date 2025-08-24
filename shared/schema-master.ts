@@ -4,6 +4,9 @@
 // This file serves as the single entry point for all schema definitions
 // All actual table definitions are now separated into specialized files
 
+// Import Drizzle ORM essentials
+import { pgTable, varchar, text, timestamp, uuid, integer, boolean, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+
 // ========================================
 // SCHEMA IMPORTS - NEW ARCHITECTURE
 // ========================================
@@ -70,6 +73,9 @@ export const queryOperatorEnum = pgEnum("query_operator", [
   "EQ", "NEQ", "IN", "NOT_IN", "GT", "GTE", "LT", "LTE",
   "CONTAINS", "STARTS_WITH", "EXISTS", "BETWEEN"
 ]);
+
+// Import customers table reference from schema-tenant
+import { customers } from "./schema-tenant";
 
 // ✅ 1QA.MD: Approval Rules - Universal rules for any module
 export const approvalRules = pgTable("approval_rules", {
