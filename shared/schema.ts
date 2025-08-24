@@ -274,11 +274,9 @@ export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
 // Import from schema-tenant for tenant-specific tables
 import { 
   tickets as ticketsFromTenant,
-  ticketRelationships as ticketRelationshipsFromTenant,
-  ticketTemplates as ticketTemplatesFromTenant
+  ticketRelationships as ticketRelationshipsFromTenant
 } from './schema-tenant';
 
 // Re-export tenant tables with standard names
 export const tickets = ticketsFromTenant;
 export const ticketRelationships = ticketRelationshipsFromTenant;
-export const ticketTemplates = ticketTemplatesFromTenant;
