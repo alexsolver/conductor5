@@ -16,8 +16,38 @@ export * from "./schema-reports";
 // GDPR Compliance Module Schema - Clean Version
 export * from "./schema-gdpr-compliance-clean";
 
-// Knowledge Base Module Schema - Clean Architecture
-export * from "./schema-knowledge-base";
+// Knowledge Base Module Schema - Clean Architecture (excluding TemplateField to avoid conflicts)
+export {
+  knowledgeBaseStatusEnum,
+  knowledgeBaseCategoryEnum,
+  knowledgeBaseVisibilityEnum,
+  knowledgeBaseApprovalStatusEnum,
+  knowledgeBaseArticles,
+  knowledgeBaseArticleVersions,
+  knowledgeBaseAttachments,
+  knowledgeBaseRatings,
+  knowledgeBaseApprovals,
+  knowledgeBaseArticleRelations,
+  knowledgeBaseSearchLogs,
+  knowledgeBaseTemplates,
+  knowledgeBaseComments,
+  knowledgeBaseScheduledPublications,
+  insertKnowledgeBaseArticleSchema,
+  updateKnowledgeBaseArticleSchema,
+  insertKnowledgeBaseRatingSchema,
+  insertKnowledgeBaseApprovalSchema,
+  insertKnowledgeBaseRelationSchema,
+  insertKnowledgeBaseTemplateSchema,
+  insertKnowledgeBaseCommentSchema,
+  insertKnowledgeBaseScheduledPublicationSchema,
+  knowledgeBaseSearchSchema,
+  knowledgeBaseArticlesRelations,
+  knowledgeBaseArticleVersionsRelations,
+  knowledgeBaseAttachmentsRelations,
+  knowledgeBaseRatingsRelations,
+  knowledgeBaseApprovalsRelations,
+  knowledgeBaseArticleRelationsRelations
+} from "./schema-knowledge-base";
 
 // Interactive Map Module Schema - Clean Architecture
 export * from "./schema-interactive-map";
@@ -109,9 +139,12 @@ export {
 import type {
   User, Customer, Ticket, Tenant, Company, Beneficiary,
   TicketPlannedItem, TicketConsumedItem,
-  Item, PriceList, PricingRule,
-  CustomerItemMapping, InsertCustomerItemMapping
+  Item, CustomerItemMapping, InsertCustomerItemMapping
 } from "./schema-master";
+
+import type {
+  PriceList, PricingRule
+} from "./schema-materials-services";
 
 // User Notification Preferences - Re-export from notifications schema per 1qa.md
 export {
@@ -123,9 +156,13 @@ export {
 export type {
   User, Customer, Ticket, Tenant, Company, Beneficiary,
   TicketPlannedItem, TicketConsumedItem,
-  Item, PriceList, PricingRule,
-  CustomerItemMapping, InsertCustomerItemMapping
+  Item, CustomerItemMapping, InsertCustomerItemMapping
 };
+
+// Re-export materials-services types
+export type {
+  PriceList, PricingRule
+} from "./schema-materials-services";
 
 // User Notification Preferences types from notifications schema
 export type {
@@ -271,8 +308,7 @@ export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
 
 // ✅ 1QA.MD: Custom Fields imported from schema-master.ts to avoid duplicates
 
-// ✅ 1QA.MD: Ticket Templates export - ensuring availability for Clean Architecture modules
-export { ticketTemplates } from './schema-master';
+// ✅ 1QA.MD: Note - Ticket template functionality is handled through templateName/templateAlternative fields in tickets table
 
 // Import from schema-tenant for tenant-specific tables
 import { 
