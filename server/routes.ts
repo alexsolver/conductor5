@@ -381,21 +381,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
   console.log('🚨 [DEBUG] Reached after SaaS Admin - about to register TICKET-TEMPLATES...');
 
-  // 🚨 TICKET-TEMPLATES - MOVED OUT OF PROBLEMATIC TRY-CATCH per 1qa.md
-  console.log('🚨 [TICKET-TEMPLATES] EMERGENCY registration starting...');
+  // 🚨 TICKET-TEMPLATES - FIXED: Remove conflicting routes-working.ts
+  console.log('🚨 [TICKET-TEMPLATES] FINAL FIX registration starting...');
   console.log('🚨 [TICKET-TEMPLATES] TIMESTAMP:', new Date().toISOString());
   try {
-    console.log('🚨 [TICKET-TEMPLATES] Loading ticket-templates module...');
+    console.log('🚨 [TICKET-TEMPLATES] Loading ONLY routes.ts (not routes-working.ts)...');
     const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
-    console.log('🚨 [TICKET-TEMPLATES] Module loaded, registering routes...');
+    console.log('🚨 [TICKET-TEMPLATES] Module loaded successfully!');
+    console.log('🚨 [TICKET-TEMPLATES] Registering routes with middleware...');
     app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
-    console.log('✅ [TICKET-TEMPLATES] EMERGENCY registration SUCCESS!');
+    console.log('✅ [TICKET-TEMPLATES] FINAL FIX registration SUCCESS!');
   } catch (error: any) {
-    console.error('❌ [TICKET-TEMPLATES] EMERGENCY registration FAILED:', error);
+    console.error('❌ [TICKET-TEMPLATES] FINAL FIX registration FAILED:', error);
     console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
     console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
   }
-  console.log('🚨 [TICKET-TEMPLATES] Emergency block COMPLETED');
+  console.log('🚨 [TICKET-TEMPLATES] Final fix block COMPLETED');
 
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
