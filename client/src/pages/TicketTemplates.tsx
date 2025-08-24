@@ -113,87 +113,19 @@ export default function TicketTemplates() {
   });
 
   // Fetch templates based on selected company
-  // ✅ 1QA.MD: Optimized query with proper error handling
-  const { 
-    data: templatesResponse, 
-    error: templatesError, 
-    isLoading: templatesLoading,
-    refetch: refetchTemplates
-  } = useQuery({
+  const { data: templatesResponse, isLoading: templatesLoading } = useQuery({
     queryKey: ['ticket-templates', selectedCompany],
     queryFn: async () => {
       console.log('🔍 [TEMPLATES-QUERY] Fetching templates for company:', selectedCompany);
-
-      const params = new URLSearchParams();
-      if (selectedCompany && selectedCompany !== 'all') {
-        params.set('companyId', selectedCompany);
-      }
-      params.set('status', 'active');
-      params.set('includeAnalytics', 'true');
-
-      const url = `/api/ticket-templates?${params.toString()}`;
-      console.log('🌐 [API-REQUEST] GET', url);
-
-      const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log('📡 [API-RESPONSE] Status:', response.status, response.statusText);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ [API-ERROR] Response not ok:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-      }
-
+      const endpoint = selectedCompany === 'all' 
+        ? '/api/ticket-templates' 
+        : `/api/ticket-templates/company/${selectedCompany}`;
+      const response = await apiRequest('GET', endpoint);
       const data = await response.json();
-      console.log('📥 [API-RESPONSE] Raw response:', {
-        hasData: !!data,
-        success: data?.success,
-        dataKeys: data ? Object.keys(data) : [],
-        templatesCount: data?.data?.templates?.length || 0,
-        errors: data?.errors
-      });
-
-      // ✅ 1QA.MD: Validate response structure
-      if (!data) {
-        console.error('❌ [API-VALIDATION] No data received');
-        throw new Error('No data received from server');
-      }
-
-      if (data.success === false) {
-        console.error('❌ [API-VALIDATION] Server returned error:', data.errors);
-        throw new Error(data.errors?.join(', ') || 'Server returned error');
-      }
-
-      if (!data.data) {
-        console.error('❌ [API-VALIDATION] No data field in response');
-        throw new Error('Invalid response structure: missing data field');
-      }
-
-      console.log('✅ [API-VALIDATION] Response validation passed');
+      console.log('✅ [TEMPLATES-QUERY] Response:', data);
       return data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes  
-    retry: (failureCount, error) => {
-      console.log('🔄 [QUERY-RETRY] Attempt:', failureCount, 'Error:', error.message);
-      return failureCount < 3;
-    },
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-    onError: (error) => {
-      console.error('❌ [QUERY-ERROR] Final query error:', error);
-    },
-    onSuccess: (data) => {
-      console.log('✅ [QUERY-SUCCESS] Query completed successfully with data:', {
-        templatesCount: data?.data?.templates?.length || 0
-      });
-    }
+    enabled: !!selectedCompany,
   });
 
   // Query para buscar estatísticas
@@ -224,6 +156,7 @@ export default function TicketTemplates() {
     console.log('🔄 [TEMPLATES-PROCESSING] Processing templates response:', {
       hasResponse: !!templatesResponse,
       responseType: typeof templatesResponse,
+      isSuccess: templatesResponse?.success,
       hasData: !!templatesResponse?.data
     });
 
@@ -232,78 +165,33 @@ export default function TicketTemplates() {
       return [];
     }
 
-    console.log('🔍 [TEMPLATES-PROCESSING] Response structure:', {
-      success: templatesResponse.success,
-      hasData: !!templatesResponse.data,
-      dataType: typeof templatesResponse.data,
-      hasTemplates: !!templatesResponse.data?.templates,
-      templatesType: typeof templatesResponse.data?.templates,
-      templatesLength: templatesResponse.data?.templates?.length || 0
-    });
+    // ✅ 1QA.MD: Robust response handling
+    if (templatesResponse.success && templatesResponse.data?.templates) {
+      console.log('✅ [TEMPLATES-PROCESSING] Found templates:', templatesResponse.data.templates.length);
+      return Array.isArray(templatesResponse.data.templates) ? templatesResponse.data.templates : [];
+    }
 
-    if (!templatesResponse.success) {
-      console.log('❌ [TEMPLATES-PROCESSING] Response indicates failure:', templatesResponse.errors);
+    // Fallback: check if response is directly an array
+    if (Array.isArray(templatesResponse)) {
+      console.log('✅ [TEMPLATES-PROCESSING] Direct array response:', templatesResponse.length);
+      return templatesResponse;
+    }
+
+    // Additional fallback: check if data is at root level
+    if (templatesResponse.data && Array.isArray(templatesResponse.data)) {
+      console.log('✅ [TEMPLATES-PROCESSING] Root data array:', templatesResponse.data.length);
+      return templatesResponse.data;
+    }
+
+    // Handle error responses
+    if (templatesResponse.success === false) {
+      console.log('❌ [TEMPLATES-PROCESSING] API error response:', templatesResponse.errors);
       return [];
     }
 
-    if (!templatesResponse.data) {
-      console.log('❌ [TEMPLATES-PROCESSING] No data field in response');
-      return [];
-    }
-
-    if (!templatesResponse.data.templates) {
-      console.log('❌ [TEMPLATES-PROCESSING] No templates field in data');
-      return [];
-    }
-
-    if (!Array.isArray(templatesResponse.data.templates)) {
-      console.log('❌ [TEMPLATES-PROCESSING] Templates is not an array:', typeof templatesResponse.data.templates);
-      return [];
-    }
-
-    const allTemplates = templatesResponse.data.templates;
-    console.log('✅ [TEMPLATES-PROCESSING] Templates found:', {
-      count: allTemplates.length,
-      firstTemplate: allTemplates[0] ? {
-        id: allTemplates[0].id,
-        name: allTemplates[0].name,
-        category: allTemplates[0].category
-      } : null
-    });
-
-    // Apply filters
-    const filteredTemplates = allTemplates.filter((template: any) => {
-      console.log('🔍 [TEMPLATE-FILTER] Checking template:', {
-        id: template.id,
-        name: template.name,
-        category: template.category
-      });
-
-      // Apply search filter
-      if (searchTerm) {
-        const matchesSearch = template.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          template.description?.toLowerCase().includes(searchTerm.toLowerCase());
-        if (!matchesSearch) {
-          console.log('❌ [TEMPLATE-FILTER] Search filter failed for:', template.name);
-          return false;
-        }
-      }
-
-      // Apply category filter
-      if (selectedCategory && selectedCategory !== 'all') {
-        if (template.category !== selectedCategory) {
-          console.log('❌ [TEMPLATE-FILTER] Category filter failed:', template.category, '!==', selectedCategory);
-          return false;
-        }
-      }
-
-      console.log('✅ [TEMPLATE-FILTER] Template passed filters:', template.name);
-      return true;
-    });
-
-    console.log('🎯 [TEMPLATES-PROCESSING] Final filtered templates:', filteredTemplates.length);
-    return filteredTemplates;
-  }, [templatesResponse, searchTerm, selectedCategory]);
+    console.log('❌ [TEMPLATES-PROCESSING] Unexpected response structure:', templatesResponse);
+    return [];
+  }, [templatesResponse]);
   const stats = statsResponse?.data || {};
   const categories = categoriesResponse?.data || [];
 
@@ -402,21 +290,12 @@ export default function TicketTemplates() {
   };
 
   // Filtrar templates
-  const filteredTemplates = React.useMemo(() => {
-    if (!templatesResponse || !templatesResponse.data || !templatesResponse.data.templates) {
-      return [];
-    }
-
-    const allTemplates = templatesResponse.data.templates;
-
-    return allTemplates.filter((template: TicketTemplate) => {
-      const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           template.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-  }, [templatesResponse, searchTerm, selectedCategory]);
-
+  const filteredTemplates = templates.filter((template: TicketTemplate) => {
+    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         template.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -581,13 +460,6 @@ export default function TicketTemplates() {
                   <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="text-gray-500 mt-2">Carregando templates...</p>
-                  </div>
-                ) : templatesError ? (
-                  <div className="text-center py-8 text-red-500">
-                    <p>Erro ao carregar templates: {templatesError.message}</p>
-                    <Button onClick={() => refetchTemplates()} className="mt-4">
-                      Tentar Novamente
-                    </Button>
                   </div>
                 ) : filteredTemplates.length === 0 ? (
                   <div className="text-center py-8">

@@ -10,130 +10,10 @@
 
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
 import { TicketTemplate, TicketTemplateMetadata, UserFeedback } from '../../domain/entities/TicketTemplate';
-import { GetTicketTemplatesRequest, GetTicketTemplatesResponse } from '../../application/use-cases/ticket-templates/GetTicketTemplates'; // Assuming these types exist
 
-// Assume db is available in the environment
-// import db from './database'; // Example import
-
-// Mocking db for demonstration purposes
-const db = {
-  query: async (query: string, params: any[]) => {
-    console.log("Mock db query:", query, params);
-    // Mock response for findAll for demonstration
-    if (query.includes('ticket_templates') && query.includes('tenant_id = $1')) {
-      const mockTenantId = params[0];
-      if (mockTenantId === '3f99462f-3621-4b1b-bea8-782acc50d62e') {
-        return {
-          rows: [
-            {
-              id: 'template_support_001',
-              tenant_id: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-              company_id: null,
-              name: 'Template de Suporte Técnico',
-              description: 'Template padrão para tickets de suporte técnico',
-              category: 'support',
-              subcategory: 'technical',
-              priority: 'medium',
-              template_type: 'standard',
-              status: 'active',
-              fields: JSON.stringify([
-                {
-                  id: 'title',
-                  name: 'title',
-                  label: 'Título do Ticket',
-                  type: 'text',
-                  required: true,
-                  placeholder: 'Descreva brevemente o problema',
-                  order: 1,
-                  section: 'basic',
-                  readonly: false,
-                  hidden: false,
-                  validation: {
-                    required: true,
-                    minLength: 5,
-                    maxLength: 200,
-                    errorMessage: 'Título deve ter entre 5 e 200 caracteres'
-                  }
-                }
-              ]),
-              automation: JSON.stringify({ enabled: true, autoAssign: { enabled: true, rules: [] } }),
-              workflow: JSON.stringify({ enabled: false, stages: [] }),
-              permissions: JSON.stringify([]),
-              metadata: JSON.stringify({
-                version: '2.1.0',
-                author: 'system',
-                lastModifiedBy: 'admin',
-                lastModifiedAt: new Date(),
-                usage: { totalUses: 150, lastMonth: 45 },
-                analytics: { popularFields: ['title', 'description'], commonIssues: ['Problema de conexão'], userFeedback: [] },
-                compliance: { gdprCompliant: true, auditRequired: false }
-              }),
-              is_default: true,
-              is_system: false,
-              usage_count: 150,
-              last_used: new Date(),
-              tags: JSON.stringify(['suporte', 'tecnico', 'padrao']),
-              created_by: 'system',
-              created_at: new Date('2024-01-01'),
-              updated_at: new Date(),
-              is_active: true
-            },
-            {
-              id: 'template_incident_001',
-              tenant_id: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-              company_id: null,
-              name: 'Incidente Rápido',
-              description: 'Template para registro rápido de incidentes',
-              category: 'incident',
-              priority: 'high',
-              template_type: 'quick',
-              status: 'active',
-              fields: JSON.stringify([
-                {
-                  id: 'title',
-                  name: 'title',
-                  label: 'Título do Incidente',
-                  type: 'text',
-                  required: true,
-                  placeholder: 'Ex: Sistema indisponível',
-                  order: 1,
-                  readonly: false,
-                  hidden: false
-                }
-              ]),
-              automation: JSON.stringify({ enabled: true, autoAssign: { enabled: true, rules: [] } }),
-              workflow: JSON.stringify({ enabled: true, stages: [], approvals: [] }),
-              permissions: JSON.stringify([]),
-              metadata: JSON.stringify({
-                version: '1.2.0',
-                author: 'incident_manager',
-                lastModifiedBy: 'incident_manager',
-                lastModifiedAt: new Date(),
-                usage: { totalUses: 25, lastMonth: 8 },
-                analytics: { popularFields: ['title', 'impact'], commonIssues: ['Sistema indisponível'], userFeedback: [] },
-                compliance: { gdprCompliant: true, auditRequired: true }
-              }),
-              is_default: false,
-              is_system: false,
-              usage_count: 25,
-              last_used: new Date(Date.now() - 24 * 60 * 60 * 1000), // yesterday
-              tags: JSON.stringify(['incidente', 'rapido', 'critico']),
-              created_by: 'incident_manager',
-              created_at: new Date('2024-03-01'),
-              updated_at: new Date(),
-              is_active: true
-            }
-          ]
-        };
-      }
-      // Mock response for table existence check
-      if (query.includes('information_schema.tables')) {
-        return { rows: [{ exists: true }] };
-      }
-      return { rows: [] };
-    }
-  }
-};
+// Assume schemaManager and crypto are available in the environment
+// import schemaManager from './schemaManager'; // Example import
+// import crypto from 'crypto'; // Example import
 
 // Mocking schemaManager and crypto for demonstration purposes
 const schemaManager = {
@@ -210,8 +90,8 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
   private userFeedback: Map<string, UserFeedback[]> = new Map();
   private db: any; // Placeholder for database connection
 
-  constructor(dbInstance?: any) { // Renamed param to avoid conflict with mock db
-    this.db = dbInstance || db; // Use provided instance or the mock db
+  constructor(db?: any) {
+    this.db = db; // Assume db connection is passed or managed elsewhere
     this.initializeMockData();
   }
 
@@ -595,8 +475,7 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
               id: 'incident_manager',
               name: 'Gerente de Incidentes'
             }
-          ],
-          template: 'novo_ticket_suporte'
+          ]
         },
         escalation: {
           enabled: true,
@@ -946,303 +825,34 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
     return true;
   }
 
-  // Helper method to parse JSON fields from the database
-  private parseJsonField(field: string | null | undefined, defaultValue: any): any {
-    if (!field) {
-      return defaultValue;
-    }
+  async findAll(tenantId: string): Promise<TicketTemplate[]> {
     try {
-      return JSON.parse(field);
-    } catch (e) {
-      console.error('❌ [REPOSITORY] Failed to parse JSON field:', field, e);
-      return defaultValue;
-    }
-  }
+      console.log('🔍 [TEMPLATE-REPO] Finding all templates for tenant:', tenantId);
 
-  // Helper method to generate analytics data
-  private generateAnalytics(templates: TicketTemplate[]): any {
-    const totalUsage = templates.reduce((sum, t) => sum + t.usageCount, 0);
-    const categories = templates.reduce((acc, t) => {
-      acc[t.category] = (acc[t.category] || 0) + 1;
-      return acc;
-    }, {});
-    const types = templates.reduce((acc, t) => {
-      acc[t.templateType] = (acc[t.templateType] || 0) + 1;
-      return acc;
-    }, {});
+      // const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      // const pool = schemaManager.getPool();
 
-    return {
-      totalTemplates: templates.length,
-      totalUsage,
-      categories,
-      types
-    };
-  }
+      // const query = `
+      //   SELECT 
+      //     id, tenant_id as "tenantId", company_id as "companyId", name, description, 
+      //     category, priority, urgency, impact, usage_count, estimated_hours, 
+      //     requires_approval, auto_assign, is_popular, default_title, default_description,
+      //     custom_fields, is_active, created_at as "createdAt", updated_at as "updatedAt",
+      //     created_by as "createdBy", updated_by as "updatedBy"
+      //   FROM "${schemaName}".ticket_templates 
+      //   WHERE tenant_id = $1 AND is_active = true
+      //   ORDER BY name ASC
+      // `;
 
-  // Helper method to generate usage statistics
-  private generateUsageStats(templates: TicketTemplate[]): any {
-    const sortedTemplates = [...templates].sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
-    const mostUsed = sortedTemplates.slice(0, 5).map(t => ({ name: t.name, usageCount: t.usageCount }));
-    const leastUsed = sortedTemplates.reverse().slice(0, 5).map(t => ({ name: t.name, usageCount: t.usageCount }));
+      // const result = await pool.query(query, [tenantId]);
+      // console.log(`✅ [TEMPLATE-REPO] Found ${result.rows.length} templates`);
+      // return result.rows.map(row => this.mapRowToEntity(row));
 
-    return {
-      mostUsed,
-      leastUsed
-    };
-  }
-
-
-  async findAll(request: GetTicketTemplatesRequest): Promise<GetTicketTemplatesResponse> {
-    try {
-      console.log('🚨 [REPOSITORY] === STARTING FIND ALL ===');
-      console.log('🔍 [REPOSITORY] Request:', {
-        tenantId: request.tenantId,
-        companyId: request.companyId,
-        hasFilters: !!request.filters
-      });
-
-      if (!request.tenantId) {
-        console.error('❌ [REPOSITORY] Missing tenantId in request');
-        return {
-          success: false,
-          errors: ['Tenant ID is required']
-        };
-      }
-
-      const schemaName = `tenant_${request.tenantId.replace(/-/g, '_')}`;
-      console.log('🔍 [REPOSITORY] Schema name:', schemaName);
-
-      // ✅ 1QA.MD: Verify table exists first
-      const tableCheckQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = $1 
-          AND table_name = 'ticket_templates'
-        );
-      `;
-
-      const tableCheck = await db.query(tableCheckQuery, [schemaName]);
-      console.log('🔍 [REPOSITORY] Table exists check:', tableCheck.rows[0]?.exists);
-
-      if (!tableCheck.rows[0]?.exists) {
-        console.error('❌ [REPOSITORY] ticket_templates table does not exist in schema:', schemaName);
-        return {
-          success: false,
-          errors: [`Table ticket_templates not found in schema ${schemaName}`]
-        };
-      }
-
-      // ✅ 1QA.MD: Build base query with proper schema context
-      let query = `
-        SELECT 
-          id,
-          tenant_id,
-          name,
-          description,
-          category,
-          subcategory,
-          company_id,
-          department_id,
-          priority,
-          template_type,
-          status,
-          fields,
-          automation,
-          workflow,
-          permissions,
-          metadata,
-          is_default,
-          is_system,
-          usage_count,
-          last_used,
-          tags,
-          created_by,
-          created_at,
-          updated_at,
-          is_active
-        FROM "${schemaName}".ticket_templates
-        WHERE tenant_id = $1
-      `;
-
-      const params: any[] = [request.tenantId];
-      let paramIndex = 2;
-
-      // ✅ Apply filters systematically
-      if (request.filters?.status && request.filters.status !== 'all') {
-        query += ` AND status = $${paramIndex}`;
-        params.push(request.filters.status);
-        paramIndex++;
-      } else {
-        // Default to active templates only
-        query += ` AND status = 'active' AND is_active = true`;
-      }
-
-      if (request.companyId && request.companyId !== 'all') {
-        query += ` AND (company_id = $${paramIndex} OR company_id IS NULL)`;
-        params.push(request.companyId);
-        paramIndex++;
-      }
-
-      if (request.filters?.category) {
-        query += ` AND category = $${paramIndex}`;
-        params.push(request.filters.category);
-        paramIndex++;
-      }
-
-      if (request.filters?.templateType) {
-        query += ` AND template_type = $${paramIndex}`;
-        params.push(request.filters.templateType);
-        paramIndex++;
-      }
-
-      if (request.filters?.departmentId) {
-        query += ` AND department_id = $${paramIndex}`;
-        params.push(request.filters.departmentId);
-        paramIndex++;
-      }
-
-      if (request.search) {
-        query += ` AND (name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
-        params.push(`%${request.search}%`);
-        paramIndex++;
-      }
-
-      if (request.filters?.tags && request.filters.tags.length > 0) {
-        query += ` AND tags && $${paramIndex}::text[]`;
-        params.push(request.filters.tags);
-        paramIndex++;
-      }
-
-      // ✅ Add ordering
-      query += ` ORDER BY created_at DESC`;
-
-      console.log('🔍 [REPOSITORY] Final query:', query);
-      console.log('🔍 [REPOSITORY] Query params:', params);
-
-      // Execute query with error handling
-      let result;
-      try {
-        result = await db.query(query, params);
-      } catch (queryError) {
-        console.error('❌ [REPOSITORY] Query execution failed:', queryError);
-
-        // Try fallback query without schema quotes
-        const fallbackQuery = query.replace(`"${schemaName}"`, schemaName);
-        console.log('🔄 [REPOSITORY] Trying fallback query:', fallbackQuery);
-
-        try {
-          result = await db.query(fallbackQuery, params);
-          console.log('✅ [REPOSITORY] Fallback query succeeded');
-        } catch (fallbackError) {
-          console.error('❌ [REPOSITORY] Fallback query also failed:', fallbackError);
-          throw queryError; // Throw original error
-        }
-      }
-
-      console.log('📤 [REPOSITORY] Raw query result:', {
-        rowCount: result.rows?.length || 0,
-        hasRows: !!result.rows,
-        firstRowKeys: result.rows?.[0] ? Object.keys(result.rows[0]) : []
-      });
-
-      if (!result.rows || result.rows.length === 0) {
-        console.log('⚠️ [REPOSITORY] No templates found - checking if any exist at all');
-
-        // Check if any templates exist for debugging
-        const countQuery = `SELECT COUNT(*) as total FROM "${schemaName}".ticket_templates WHERE tenant_id = $1`;
-        try {
-          const countResult = await db.query(countQuery, [request.tenantId]);
-          console.log('🔍 [REPOSITORY] Total templates in DB:', countResult.rows[0]?.total || 0);
-        } catch (e) {
-          console.log('🔍 [REPOSITORY] Could not count templates:', e.message);
-        }
-
-        return {
-          success: true,
-          data: {
-            templates: [],
-            totalCount: 0,
-            analytics: null,
-            usageStatistics: null
-          }
-        };
-      }
-
-      // ✅ 1QA.MD: Transform database rows to domain entities
-      const templates: TicketTemplate[] = result.rows.map((row, index) => {
-        console.log(`🔄 [REPOSITORY] Processing row ${index + 1}:`, {
-          id: row.id,
-          name: row.name,
-          status: row.status,
-          is_active: row.is_active
-        });
-
-        const template: TicketTemplate = {
-          id: row.id,
-          tenantId: row.tenant_id,
-          name: row.name || 'Unnamed Template',
-          description: row.description || '',
-          category: row.category || 'general',
-          subcategory: row.subcategory,
-          companyId: row.company_id,
-          departmentId: row.department_id,
-          priority: row.priority || 'medium',
-          templateType: row.template_type || 'standard',
-          status: row.status || 'active',
-          fields: this.parseJsonField(row.fields, []),
-          automation: this.parseJsonField(row.automation, { enabled: false }),
-          workflow: this.parseJsonField(row.workflow, { enabled: false, stages: [] }),
-          permissions: this.parseJsonField(row.permissions, []),
-          metadata: this.parseJsonField(row.metadata, {
-            version: '1.0.0',
-            author: row.created_by,
-            lastModifiedBy: row.created_by,
-            lastModifiedAt: new Date(),
-            changeLog: [],
-            usage: { totalUses: row.usage_count || 0, lastMonth: 0 },
-            analytics: { popularFields: [], commonIssues: [], userFeedback: [] },
-            compliance: { gdprCompliant: true, auditRequired: false }
-          }),
-          isDefault: row.is_default || false,
-          isSystem: row.is_system || false,
-          usageCount: row.usage_count || 0,
-          lastUsed: row.last_used ? new Date(row.last_used) : undefined,
-          tags: this.parseJsonField(row.tags, []),
-          createdBy: row.created_by,
-          createdAt: new Date(row.created_at),
-          updatedAt: new Date(row.updated_at),
-          isActive: row.is_active !== false
-        };
-
-        console.log(`✅ [REPOSITORY] Transformed template ${index + 1}:`, {
-          id: template.id,
-          name: template.name,
-          category: template.category,
-          status: template.status,
-          isActive: template.isActive
-        });
-
-        return template;
-      });
-
-      console.log('🎉 [REPOSITORY] Successfully transformed templates:', templates.length);
-
-      return {
-        success: true,
-        data: {
-          templates,
-          totalCount: templates.length,
-          analytics: request.includeAnalytics ? this.generateAnalytics(templates) : null,
-          usageStatistics: request.includeUsageStats ? this.generateUsageStats(templates) : null
-        }
-      };
-
-    } catch (error) {
-      console.error('❌ [REPOSITORY] Error in findAll:', error);
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Database query failed']
-      };
+      // Mocking the return for the frontend issue
+      return this.templates.filter(t => t.tenantId === tenantId && t.isActive);
+    } catch (error: any) {
+      console.error('❌ [TEMPLATE-REPO] findAll error:', error);
+      throw error;
     }
   }
 
