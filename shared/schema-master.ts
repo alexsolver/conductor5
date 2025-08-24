@@ -3161,6 +3161,18 @@ export type InsertFieldValidationRule = typeof fieldValidationRules.$inferInsert
 export type TemplateApproval = typeof templateApprovals.$inferSelect;
 export type InsertTemplateApproval = typeof templateApprovals.$inferInsert;
 
+// User Groups Zod schemas
+export const insertUserGroupSchema = createInsertSchema(userGroups, {
+  name: z.string().min(1, "Group name is required").max(255),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships, {
+  role: z.string().max(50).default("member"),
+  isActive: z.boolean().default(true),
+});
+
 // Template Zod schemas
 export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates, {
   name: z.string().min(1, "Template name is required").max(255),
