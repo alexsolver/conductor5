@@ -175,7 +175,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         const realSchedules = await tenantDb.execute(sql`
           SELECT ws.*
           FROM work_schedules ws
-          WHERE ws.tenant_id = ${tenantId} AND ws.is_active = true
+          WHERE ws.tenant_id = ${tenantId}
         `);
 
         console.log('[REAL-DATA] Found real work schedules:', realSchedules.rows.length);
