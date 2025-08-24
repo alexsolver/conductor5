@@ -4,7 +4,7 @@
  */
 
 import { Router } from 'express';
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
+import { jwtAuth } from '../middleware/jwtAuth';
 import { TranslationCompletionService } from '../services/TranslationCompletionService';
 
 const router = Router();
@@ -14,7 +14,7 @@ const translationService = new TranslationCompletionService();
  * GET /api/translation-completion/analyze
  * Analisa gaps de tradução em todos os idiomas
  */
-router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.get('/analyze', jwtAuth, async (req: any, res: any) => {
   try {
     // Verificar se usuário é SaaS admin
     if (req.user?.role !== 'saas_admin') {
@@ -64,7 +64,7 @@ router.get('/analyze', jwtAuth, async (req: AuthenticatedRequest, res) => {
  * POST /api/translation-completion/scan-keys
  * Escaneia chaves de tradução nos arquivos fonte
  */
-router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/scan-keys', jwtAuth, async (req: any, res: any) => {
   try {
     if (req.user?.role !== 'saas_admin') {
       return res.status(403).json({
@@ -116,7 +116,7 @@ router.post('/scan-keys', jwtAuth, async (req: AuthenticatedRequest, res) => {
  * POST /api/translation-completion/expand-scan
  * Comprehensive translation expansion scanning
  */
-router.post('/expand-scan', jwtAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/expand-scan', jwtAuth, async (req: any, res: any) => {
   try {
     if (req.user?.role !== 'saas_admin') {
       return res.status(403).json({
@@ -350,18 +350,80 @@ router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res
 
 /**
  * POST /api/translation-completion/auto-complete-all
- * DISABLED - Esta funcionalidade foi desabilitada permanentemente
- * pois estava sobrescrevendo correções manuais e gerando objetos aninhados
+ * Análise segura de auto-completar todas as traduções
  */
-router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  // FUNCIONALIDADE DESABILITADA PERMANENTEMENTE
-  return res.status(423).json({
-    success: false,
-    message: 'Auto-complete funcionalidade foi desabilitada permanentemente',
-    reason: 'Esta funcionalidade estava gerando objetos aninhados e sobrescrevendo correções manuais.',
-    alternative: 'Use o editor manual de traduções para fazer correções específicas.'
-  });
-  // RESTO DA FUNCIONALIDADE COMENTADA - FUNCIONALIDADE DESABILITADA PERMANENTEMENTE
+router.post('/auto-complete-all', jwtAuth, async (req: any, res: any) => {
+  try {
+    // Verificar acesso SaaS Admin
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'SaaS admin access required'
+      });
+    }
+
+    console.log('🚀 [AUTO-COMPLETE-ALL] Starting safe auto-complete analysis...');
+    
+    // Buscar todas as chaves de tradução
+    const scannedKeys = await translationService.scanCodebaseForTranslationKeys();
+    console.log(`🔍 [AUTO-COMPLETE-ALL] Found ${scannedKeys.length} keys to analyze`);
+    
+    // Gerar relatório de completude (análise segura)
+    const report = await translationService.generateCompletenessReportWithKeys(scannedKeys);
+    
+    // Calcular quantas traduções seriam adicionadas
+    let totalMissing = 0;
+    if (report?.gaps) {
+      for (const gap of report.gaps) {
+        totalMissing += gap.missingKeys?.length || 0;
+      }
+    }
+
+    // Calcular por linguagem
+    const languageStats = report?.summary?.languageStats || {};
+    let totalWouldBeAdded = 0;
+    for (const [lang, stats] of Object.entries(languageStats)) {
+      totalWouldBeAdded += (stats as any).missingKeys || 0;
+    }
+    
+    console.log(`✅ [AUTO-COMPLETE-ALL] Analysis completed: ${totalWouldBeAdded} translations could be added`);
+    
+    // Retornar análise segura (sem modificar arquivos)
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json({
+      success: true,
+      data: {
+        summary: {
+          totalKeys: report?.summary?.totalKeys || scannedKeys.length,
+          translationsAnalyzed: totalWouldBeAdded,
+          languagesProcessed: Object.keys(languageStats).length,
+          simulationMode: true,
+          safeMode: true
+        },
+        report: report,
+        recommendations: {
+          mostNeeded: Object.entries(languageStats)
+            .sort((a, b) => ((b[1] as any).missingKeys || 0) - ((a[1] as any).missingKeys || 0))
+            .slice(0, 3)
+            .map(([lang, stats]) => ({ 
+              language: lang, 
+              missing: (stats as any).missingKeys,
+              completeness: (stats as any).completeness
+            }))
+        }
+      },
+      message: `Análise segura concluída! ${totalWouldBeAdded} traduções ausentes encontradas em ${Object.keys(languageStats).length} idiomas.`
+    });
+
+  } catch (error) {
+    console.error('❌ [AUTO-COMPLETE-ALL] Error in safe analysis:', error);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({
+      success: false,
+      message: 'Falha na análise de auto-completar',
+      error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error'
+    });
+  }
 });
 
 /**
