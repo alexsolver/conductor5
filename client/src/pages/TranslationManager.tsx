@@ -112,7 +112,7 @@ export default function TranslationManager() {
 
   // Auto-complete mutation following 1qa.md patterns
   const autoCompleteMutation = useMutation({
-    mutationFn: () => apiRequest('/api/saas-admin/translation-completion/auto-complete-all', 'POST'),
+    mutationFn: () => apiRequest('POST', '/api/saas-admin/translation-completion/auto-complete-all'),
     onSuccess: (response: AutoCompleteResponse) => {
       toast({
         title: "Análise Concluída",
@@ -125,6 +125,26 @@ export default function TranslationManager() {
       toast({
         title: "Erro na Análise",
         description: error.message || "Falha ao executar análise automática",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Scan keys mutation
+  const scanKeysMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/saas-admin/translation-completion/scan-keys'),
+    onSuccess: (response: any) => {
+      toast({
+        title: "Scan Concluído",
+        description: `${response.data?.totalKeys || 0} chaves encontradas`,
+        duration: 5000
+      });
+      refetchAnalysis();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro no Scan",
+        description: error.message || "Falha ao escanear chaves",
         variant: "destructive"
       });
     }
@@ -144,7 +164,7 @@ export default function TranslationManager() {
   // Save translations mutation
   const saveTranslationsMutation = useMutation({
     mutationFn: (data: { language: string; translations: Record<string, string> }) =>
-      apiRequest(`/api/saas-admin/translations/${data.language}`, 'PUT', data.translations),
+      apiRequest('PUT', `/api/saas-admin/translations/${data.language}`, data.translations),
     onSuccess: () => {
       toast({
         title: "Traduções Salvas",
@@ -166,6 +186,11 @@ export default function TranslationManager() {
   // Handle auto-complete action
   const handleAutoComplete = () => {
     autoCompleteMutation.mutate();
+  };
+
+  // Handle scan keys action
+  const handleScanKeys = () => {
+    scanKeysMutation.mutate();
   };
 
   // Handle save translations
@@ -249,6 +274,19 @@ export default function TranslationManager() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={handleScanKeys}
+            disabled={scanKeysMutation.isPending}
+            variant="outline"
+            data-testid="button-scan-keys"
+          >
+            {scanKeysMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Search className="h-4 w-4 mr-2" />
+            )}
+            Escanear Chaves
+          </Button>
           <Button
             onClick={handleAutoComplete}
             disabled={autoCompleteMutation.isPending}

@@ -1023,9 +1023,18 @@ router.post('/translations/:language/restore', async (req: AuthorizedRequest, re
  */
 router.get('/translation-completion/analyze', async (req: AuthorizedRequest, res) => {
   try {
-    const translationCompletionService = await import('../../services/TranslationCompletionService');
-    const analysis = await translationCompletionService.analyzeTranslationGaps();
-    res.json({ success: true, ...analysis });
+    const { TranslationCompletionService } = await import('../../services/TranslationCompletionService');
+    const service = new TranslationCompletionService();
+    
+    // Use the correct method from the service
+    const scannedKeys = await service.scanCodebaseForTranslationKeys();
+    const analysis = await service.generateCompletenessReportWithKeys(scannedKeys);
+    
+    res.json({ 
+      success: true, 
+      data: analysis,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
     console.error('Error analyzing translations:', error);
     res.status(500).json({ success: false, message: 'Failed to analyze translations' });
@@ -1038,8 +1047,9 @@ router.get('/translation-completion/analyze', async (req: AuthorizedRequest, res
  */
 router.post('/translation-completion/scan-keys', async (req: AuthorizedRequest, res) => {
   try {
-    const translationCompletionService = await import('../../services/TranslationCompletionService');
-    const result = await translationCompletionService.scanTranslationKeys();
+    const { TranslationCompletionService } = await import('../../services/TranslationCompletionService');
+    const service = new TranslationCompletionService();
+    const result = await service.scanExistingTranslationFiles();
     res.json({ success: true, ...result });
   } catch (error) {
     console.error('Error scanning translation keys:', error);
@@ -1053,8 +1063,9 @@ router.post('/translation-completion/scan-keys', async (req: AuthorizedRequest, 
  */
 router.post('/translation-completion/expand-scan', async (req: AuthorizedRequest, res) => {
   try {
-    const translationCompletionService = await import('../../services/TranslationCompletionService');
-    const result = await translationCompletionService.expandTranslationScan();
+    const { TranslationCompletionService } = await import('../../services/TranslationCompletionService');
+    const service = new TranslationCompletionService();
+    const result = await service.scanCodebaseForTranslationKeys();
     res.json({ success: true, ...result });
   } catch (error) {
     console.error('Error expanding translation scan:', error);
