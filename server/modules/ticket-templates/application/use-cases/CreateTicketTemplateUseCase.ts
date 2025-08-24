@@ -7,7 +7,8 @@
  */
 
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
-import { TicketTemplate, TicketTemplateDomainService, TicketTemplateField, TicketTemplateAutomation, TicketTemplateWorkflow } from '../../domain/entities/TicketTemplate';
+import { TicketTemplate, TicketTemplateField, TicketTemplateAutomation, TicketTemplateWorkflow } from '../../domain/entities/TicketTemplate';
+import { TicketTemplateDomainService } from '../../domain/services/TicketTemplateDomainService';
 
 export interface CreateTicketTemplateRequest {
   tenantId: string;

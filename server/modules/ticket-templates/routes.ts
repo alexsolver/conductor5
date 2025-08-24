@@ -12,24 +12,29 @@ import { DrizzleTicketTemplateRepository } from './infrastructure/repositories/D
 import { TicketTemplateApplicationService } from './application/services/TicketTemplateApplicationService';
 import { TicketTemplateController } from './application/controllers/TicketTemplateController';
 
-// ✅ 1QA.MD: Dependency injection setup - Clean Architecture
-const ticketTemplateRepository = new DrizzleTicketTemplateRepository();
-
 // ✅ Import Use Cases 
 import { CreateTicketTemplateUseCase } from './application/use-cases/CreateTicketTemplateUseCase';
 import { GetTicketTemplatesUseCase } from './application/use-cases/GetTicketTemplatesUseCase';
 import { UpdateTicketTemplateUseCase } from './application/use-cases/UpdateTicketTemplateUseCase';
 
+// ✅ 1QA.MD: Dependency injection setup - Clean Architecture com logs
+console.log('🔧 [TICKET-TEMPLATES-ROUTES] Initializing dependencies...');
+
+const ticketTemplateRepository = new DrizzleTicketTemplateRepository();
+console.log('✅ [TICKET-TEMPLATES-ROUTES] Repository created successfully');
+
 // ✅ 1QA.MD: Proper Use Case injection matching Controller constructor
 const createTicketTemplateUseCase = new CreateTicketTemplateUseCase(ticketTemplateRepository);
 const getTicketTemplatesUseCase = new GetTicketTemplatesUseCase(ticketTemplateRepository);
 const updateTicketTemplateUseCase = new UpdateTicketTemplateUseCase(ticketTemplateRepository);
+console.log('✅ [TICKET-TEMPLATES-ROUTES] Use Cases created successfully');
 
 const ticketTemplateController = new TicketTemplateController(
   createTicketTemplateUseCase,
   getTicketTemplatesUseCase,
   updateTicketTemplateUseCase
 );
+console.log('✅ [TICKET-TEMPLATES-ROUTES] Controller initialized successfully');
 
 const router = Router();
 
@@ -43,6 +48,9 @@ router.get('/company/:companyId', async (req, res) => {
 
 // GET /api/ticket-templates/company/:companyId/stats - Estatísticas por empresa (compatibilidade)
 router.get('/company/:companyId/stats', async (req, res) => {
+  console.log('🎯 [TICKET-TEMPLATES-ROUTE] /company/:companyId/stats accessed');
+  console.log('🎯 [TICKET-TEMPLATES-ROUTE] CompanyId:', req.params.companyId);
+  console.log('🎯 [TICKET-TEMPLATES-ROUTE] User:', (req as any).user);
   await ticketTemplateController.getTemplates(req, res);
 });
 

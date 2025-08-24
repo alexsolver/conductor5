@@ -385,6 +385,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/tickets', ticketsRoutes);
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
 
+  // ✅ TICKET-TEMPLATES - EMERGENCIAL DIRECT REGISTRATION per 1qa.md
+  try {
+    console.log('🚨 [TICKET-TEMPLATES] Emergency direct registration starting...');
+    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
+    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
+    console.log('✅ [TICKET-TEMPLATES] Emergency registration completed successfully!');
+  } catch (error) {
+    console.error('❌ [TICKET-TEMPLATES] Emergency registration failed:', error);
+    console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
+  }
+
   // ✅ NOTIFICATIONS & ALERTS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
   app.use('/api', notificationRoutes);
@@ -1587,7 +1598,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
     const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
     // ✅ 1QA.MD: Import Clean Architecture Ticket Template routes
+    console.log('🔧 [TICKET-TEMPLATES] About to import ticket-templates routes...');
     const ticketTemplateRoutes = await import('./modules/ticket-templates/routes');
+    console.log('🔧 [TICKET-TEMPLATES] Successfully imported ticket-templates routes');
     const hierarchicalController = new TicketMetadataController(); // Reusing the controller for consistency
     const categoryHierarchyController = new TicketHierarchicalController();
 
@@ -1644,10 +1657,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // ========================================
 
     // ✅ 1QA.MD: Register Clean Architecture Ticket Template routes
+    console.log('🔧 [TICKET-TEMPLATES] Attempting to register routes...');
+    console.log('🔧 [TICKET-TEMPLATES] ticketTemplateRoutes:', typeof ticketTemplateRoutes);
+    console.log('🔧 [TICKET-TEMPLATES] ticketTemplateRoutes.default:', typeof ticketTemplateRoutes.default);
+    
     app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes.default);
-    console.log('✅ Clean Architecture Ticket Templates routes registered');
+    console.log('✅ Clean Architecture Ticket Templates routes registered successfully');
   } catch (error) {
-    console.warn('⚠️ Failed to load hierarchical controller:', error);
+    console.error('❌ [TICKET-TEMPLATES] Failed to load ticket-templates module:', error);
+    console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
+    console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
   }
 
   // ========================================

@@ -7,11 +7,25 @@
  */
 
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import { CreateTicketTemplateUseCase } from '../use-cases/CreateTicketTemplateUseCase';
 import { GetTicketTemplatesUseCase } from '../use-cases/GetTicketTemplatesUseCase';
 import { UpdateTicketTemplateUseCase } from '../use-cases/UpdateTicketTemplateUseCase';
-import { GetTicketTemplatesRequest } from '../interfaces/TicketTemplateInterfaces'; // Assuming this interface exists
+
+// ✅ 1QA.MD: Interface definida inline por simplicidade
+interface GetTicketTemplatesRequest {
+  tenantId: string;
+  userRole: string;
+  companyId?: string;
+  templateId?: string;
+  filters?: {
+    category?: string;
+    subcategory?: string;
+    templateType?: string;
+    status?: string;
+    departmentId?: string;
+  };
+}
 
 export class TicketTemplateController {
   constructor(
