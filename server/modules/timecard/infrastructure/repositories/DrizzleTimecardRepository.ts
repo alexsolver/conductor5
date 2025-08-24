@@ -185,12 +185,12 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         console.log('[DEBUG-ROWS] Raw data:', realSchedules.rows);
         
         if (realSchedules.rows.length > 0) {
-          return realSchedules.rows.map((row: any) => ({
+          const mappedSchedules = realSchedules.rows.map((row: any) => ({
             id: row.id,
             userId: row.user_id,
             scheduleType: row.schedule_type || '5x2',
             scheduleName: row.schedule_name || 'Escala de Trabalho',
-            workDays: row.work_days ? JSON.parse(row.work_days) : [1, 2, 3, 4, 5],
+            workDays: Array.isArray(row.work_days) ? row.work_days : (row.work_days ? JSON.parse(row.work_days) : [1, 2, 3, 4, 5]),
             startTime: row.start_time || '08:00',
             endTime: row.end_time || '18:00',
             breakStart: row.break_start || '12:00',
@@ -203,6 +203,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
             useWeeklySchedule: row.use_weekly_schedule || false,
             weeklySchedule: row.weekly_schedule ? JSON.parse(row.weekly_schedule) : null
           }));
+          console.log('[SUCCESS] Returning mapped schedules:', mappedSchedules.length);
+          return mappedSchedules;
         }
       } catch (tableError) {
         console.log('[DRIZZLE-QA] Work schedules table not found, using default schedules');
