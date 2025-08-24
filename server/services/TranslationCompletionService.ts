@@ -353,15 +353,17 @@ export class TranslationCompletionService {
   }
 
   /**
-   * AI-powered translation completion using OpenAI
+   * AI-powered translation completion for next incomplete language (NEW VERSION)
    */
   async performAITranslationCompletion(): Promise<{
     success: boolean;
     completed: number;
     message: string;
     details: Record<string, number>;
+    nextLanguage?: string;
+    allComplete?: boolean;
   }> {
-    console.log('🤖 [AI-TRANSLATE] Starting AI-powered translation completion...');
+    console.log('🤖 [AI-TRANSLATE] Starting AI-powered translation completion (SINGLE LANGUAGE MODE)...');
     
     try {
       console.log('🤖 [AI-TRANSLATE] Step 1: Initializing OpenAI...');
@@ -377,50 +379,67 @@ export class TranslationCompletionService {
       }
       console.log('✅ [AI-TRANSLATE] OpenAI initialized successfully');
       
-      console.log('🤖 [AI-TRANSLATE] Step 2: Scanning translation keys...');
-
-      // Get all keys to translate
+      console.log('🤖 [AI-TRANSLATE] Step 2: Finding next incomplete language...');
       const allKeys = await this.scanCodebaseForTranslationKeys();
-      const completedCount = { total: 0 };
-      const languageDetails: Record<string, number> = {};
-
+      
+      // Find first incomplete language
+      let targetLanguage: string | null = null;
+      let missingKeys: TranslationKey[] = [];
+      
       for (const language of this.SUPPORTED_LANGUAGES) {
-        console.log(`🤖 [AI-TRANSLATE] Processing ${language}...`);
-        
         const translations = await this.loadTranslations(language);
-        const missingKeys = allKeys.filter(keyObj => !this.hasTranslation(translations, keyObj.key));
+        const missing = allKeys.filter(keyObj => !this.hasTranslation(translations, keyObj.key));
         
-        if (missingKeys.length === 0) {
-          console.log(`✅ [AI-TRANSLATE] ${language} already complete`);
-          languageDetails[language] = 0;
-          continue;
+        if (missing.length > 0) {
+          targetLanguage = language;
+          missingKeys = missing;
+          console.log(`🎯 [AI-TRANSLATE] Selected ${language} with ${missing.length} missing keys`);
+          break;
         }
-
-        // Process in batches to avoid API limits
-        const batchSize = 20;
-        let batchCompleted = 0;
-        
-        for (let i = 0; i < missingKeys.length; i += batchSize) {
-          const batch = missingKeys.slice(i, i + batchSize);
-          const batchTranslations = await this.translateBatchWithAI(openai, batch, language);
-          
-          if (batchTranslations) {
-            await this.saveBatchTranslations(language, batchTranslations);
-            batchCompleted += Object.keys(batchTranslations).length;
-          }
-        }
-        
-        languageDetails[language] = batchCompleted;
-        completedCount.total += batchCompleted;
-        
-        console.log(`✅ [AI-TRANSLATE] ${language}: ${batchCompleted} keys completed`);
       }
-
+      
+      if (!targetLanguage) {
+        console.log('✅ [AI-TRANSLATE] All languages are complete!');
+        return {
+          success: true,
+          completed: 0,
+          message: 'Todas as traduções estão completas!',
+          details: {},
+          allComplete: true
+        };
+      }
+      
+      console.log(`🤖 [AI-TRANSLATE] Processing ${targetLanguage} with ${missingKeys.length} missing keys...`);
+      
+      // Process in larger batches (100 instead of 20)
+      const BATCH_SIZE = 100;
+      let totalCompleted = 0;
+      
+      for (let i = 0; i < missingKeys.length; i += BATCH_SIZE) {
+        const batch = missingKeys.slice(i, i + BATCH_SIZE);
+        console.log(`🔄 [AI-TRANSLATE] Processing batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(missingKeys.length/BATCH_SIZE)} (${batch.length} keys)`);
+        
+        const batchTranslations = await this.translateBatchWithAI(openai, batch, targetLanguage);
+        
+        if (batchTranslations) {
+          await this.saveBatchTranslations(targetLanguage, batchTranslations);
+          totalCompleted += Object.keys(batchTranslations).length;
+          console.log(`💾 [AI-TRANSLATE] Saved ${Object.keys(batchTranslations).length} translations for ${targetLanguage}`);
+        }
+      }
+      
+      console.log(`✅ [AI-TRANSLATE] ${targetLanguage}: ${totalCompleted} keys completed`);
+      
+      // Check if there are more languages to process
+      const nextIncompleteLanguage = await this.findNextIncompleteLanguage(allKeys, targetLanguage);
+      
       return {
         success: true,
-        completed: completedCount.total,
-        message: `IA completou ${completedCount.total} traduções em ${Object.keys(languageDetails).length} idiomas`,
-        details: languageDetails
+        completed: totalCompleted,
+        message: `IA completou ${totalCompleted} traduções para ${targetLanguage}`,
+        details: { [targetLanguage]: totalCompleted },
+        nextLanguage: nextIncompleteLanguage || undefined,
+        allComplete: !nextIncompleteLanguage
       };
       
     } catch (error) {
@@ -428,10 +447,29 @@ export class TranslationCompletionService {
       return {
         success: false,
         completed: 0,
-        message: `Erro na tradução IA: ${error.message}`,
+        message: `Erro na tradução IA: ${(error as Error).message}`,
         details: {}
       };
     }
+  }
+
+  /**
+   * Find the next incomplete language after the current one
+   */
+  private async findNextIncompleteLanguage(allKeys: TranslationKey[], currentLanguage: string): Promise<string | null> {
+    const currentIndex = this.SUPPORTED_LANGUAGES.indexOf(currentLanguage);
+    const remainingLanguages = this.SUPPORTED_LANGUAGES.slice(currentIndex + 1);
+    
+    for (const language of remainingLanguages) {
+      const translations = await this.loadTranslations(language);
+      const missingKeys = allKeys.filter(keyObj => !this.hasTranslation(translations, keyObj.key));
+      
+      if (missingKeys.length > 0) {
+        return language;
+      }
+    }
+    
+    return null;
   }
 
   /**
@@ -443,7 +481,7 @@ export class TranslationCompletionService {
     targetLanguage: string
   ): Promise<Record<string, string> | null> {
     try {
-      const languageNames = {
+      const languageNames: Record<string, string> = {
         'en': 'English',
         'pt-BR': 'Portuguese (Brazil)', 
         'es': 'Spanish',
