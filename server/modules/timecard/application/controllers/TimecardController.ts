@@ -969,11 +969,8 @@ export class TimecardController {
         .where(and(
           eq(timecardEntries.userId, targetUserId),
           eq(timecardEntries.tenantId, tenantId),
-          sql`(
-            (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
-            OR
-            (${timecardEntries.checkIn} IS NULL AND DATE(${timecardEntries.createdAt}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.createdAt}) <= ${endDate.toISOString().split('T')[0]})
-          )`
+          sql`DATE(COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})) >= ${startDate.toISOString().split('T')[0]}`,
+          sql`DATE(COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})) <= ${endDate.toISOString().split('T')[0]}`
         ))
         .orderBy(sql`COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})`);
 

@@ -1,0 +1,46 @@
+[TIMECARD-REPORTS] Error fetching report: 
+Error {}
+
+[TIMECARD-MIRROR] Error fetching report: 
+Error {}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+[TIMECARD-MIRROR] Error fetching report: 
+Error {}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Users fetch error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"
+stack: "SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON↵ at queryFn (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/WorkSchedules.tsx:301:35)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+[TIMECARD-MIRROR] Error fetching report: 
+Error {}
+message: "HTTP 500: Internal Server Error"
+stack: "Error: HTTP 500: Internal Server Error↵ at queryFn (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/Timecard.tsx:85:17)"
+get stack: ƒ ()

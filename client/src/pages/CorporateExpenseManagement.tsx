@@ -452,7 +452,7 @@ function ExpenseReportsList() {
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-[150px]" data-testid="select-status-filter">
-                <SelectValue placeholder={t("common.status") || "Status"} />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
