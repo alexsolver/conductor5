@@ -146,7 +146,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         if (filters.departmentId) whereConditions.push(eq(ticketTemplates.departmentId, filters.departmentId));
         if (filters.isDefault !== undefined) whereConditions.push(eq(ticketTemplates.isDefault, filters.isDefault));
         if (filters.isSystem !== undefined) whereConditions.push(eq(ticketTemplates.isSystem, filters.isSystem));
-
+        
         // Company filter with hierarchy support
         if (filters.companyId) {
           whereConditions.push(
@@ -664,122 +664,5 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async updateSystemTemplate(id: string, updates: Partial<TicketTemplate>): Promise<TicketTemplate | null> {
     return this.update(id, 'system', updates);
-  }
-
-  async findByTenant(tenantId: string): Promise<TicketTemplate[]> {
-    this.logger.info('DrizzleTicketTemplateRepository: Finding templates by tenant', { tenantId });
-
-    try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      // Mock data for now - replace with actual Drizzle query when schema is ready
-      return [
-        {
-          id: '1',
-          tenantId,
-          name: 'Support Request Template',
-          description: 'Template for general support requests',
-          category: 'support',
-          companyId: 'company1',
-          priority: 'medium',
-          templateType: 'standard',
-          status: 'active',
-          fields: [],
-          automation: { enabled: false },
-          workflow: { enabled: false, stages: [] },
-          permissions: [],
-          metadata: {
-            version: '1.0',
-            author: 'System',
-            lastModifiedBy: 'System',
-            lastModifiedAt: new Date(),
-            changeLog: [],
-            usage: {
-              totalUses: 0,
-              lastMonth: 0
-            },
-            analytics: {
-              popularFields: [],
-              commonIssues: [],
-              userFeedback: []
-            },
-            compliance: {
-              gdprCompliant: true,
-              auditRequired: false
-            }
-          },
-          isDefault: false,
-          isSystem: false,
-          usageCount: 0,
-          tags: [],
-          createdBy: 'system',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isActive: true
-        },
-        {
-          id: '2',
-          tenantId,
-          name: 'Hardware Issue Template',
-          description: 'Template for hardware-related issues',
-          category: 'hardware',
-          companyId: 'company2',
-          priority: 'high',
-          templateType: 'standard',
-          status: 'active',
-          fields: [],
-          automation: { enabled: false },
-          workflow: { enabled: false, stages: [] },
-          permissions: [],
-          metadata: {
-            version: '1.0',
-            author: 'System',
-            lastModifiedBy: 'System',
-            lastModifiedAt: new Date(),
-            changeLog: [],
-            usage: {
-              totalUses: 0,
-              lastMonth: 0
-            },
-            analytics: {
-              popularFields: [],
-              commonIssues: [],
-              userFeedback: []
-            },
-            compliance: {
-              gdprCompliant: true,
-              auditRequired: false
-            }
-          },
-          isDefault: false,
-          isSystem: false,
-          usageCount: 0,
-          tags: [],
-          createdBy: 'system',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isActive: true
-        }
-      ];
-    } catch (error) {
-      this.logger.error('DrizzleTicketTemplateRepository: Error finding templates by tenant', error);
-      throw error;
-    }
-  }
-
-  async findByTenantAndCompany(tenantId: string, companyId: string): Promise<TicketTemplate[]> {
-    this.logger.info('DrizzleTicketTemplateRepository: Finding templates by tenant and company', { 
-      tenantId, 
-      companyId 
-    });
-
-    try {
-      // Get all templates first and filter by company
-      const allTemplates = await this.findByTenant(tenantId);
-      return allTemplates.filter(template => template.companyId === companyId);
-    } catch (error) {
-      this.logger.error('DrizzleTicketTemplateRepository: Error finding templates by tenant and company', error);
-      throw error;
-    }
   }
 }

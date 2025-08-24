@@ -1,171 +1,236 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Building2, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { apiRequest } from '@/lib/queryClient';
+import { Building2, Globe } from 'lucide-react';
 
 interface Company {
   id: string;
   name: string;
-  cnpj?: string;
-  industry?: string;
-  size?: string;
-  status: string;
-  isActive: boolean;
+  displayName: string;
+  description: string;
+  size: string;
+  subscriptionTier: string;
 }
 
 interface CompanyTemplateSelectorProps {
-  value?: string;
-  onValueChange: (value: string) => void;
-  className?: string;
-  placeholder?: string;
-  disabled?: boolean;
+  selectedCompany: string;
+  onCompanyChange: (companyId: string) => void;
+  showStats?: boolean;
 }
 
-// API helper seguindo o padrão do sistema
-const apiRequest = async (method: string, url: string, data?: any) => {
-  const config: RequestInit = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-  };
-
-  if (data) {
-    config.body = JSON.stringify(data);
-  }
-
-  const response = await fetch(url, config);
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
-  }
-
-  return response.json();
-};
-
-export const CompanyTemplateSelector: React.FC<CompanyTemplateSelectorProps> = ({
-  value,
-  onValueChange,
-  className,
-  placeholder = "Selecione uma empresa",
-  disabled = false
-}) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Query para buscar empresas do módulo empresas v2
-  const { 
-    data: companiesResponse, 
-    isLoading, 
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ['/api/companies/v2/', searchTerm],
+export default function CompanyTemplateSelector({ 
+  selectedCompany, 
+  onCompanyChange, 
+  showStats = true 
+}: CompanyTemplateSelectorProps) {
+  // Fetch companies
+  const { data: companiesResponse, isLoading: companiesLoading } = useQuery({
+    queryKey: ['/api/customers/companies'],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('limit', '100');
-      params.append('sortBy', 'name');
-      params.append('sortOrder', 'asc');
-      params.append('isActive', 'true');
-      
-      if (searchTerm && searchTerm.length > 0) {
-        params.append('name', searchTerm);
-      }
-
-      return await apiRequest('GET', `/api/companies/v2/?${params.toString()}`);
+      const response = await apiRequest('GET', '/api/customers/companies');
+      return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    retry: 3,
   });
 
-  const companies: Company[] = companiesResponse?.data?.companies || [];
+  const companies: Company[] = Array.isArray(companiesResponse?.companies) ? companiesResponse.companies : [];
 
-  const handleValueChange = (selectedValue: string) => {
-    if (selectedValue === 'all') {
-      onValueChange('');
-    } else {
-      onValueChange(selectedValue);
+  // Fetch template stats for selected company
+  const { data: statsResponse } = useQuery({
+    queryKey: ['/api/ticket-templates/stats', selectedCompany],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCompany && selectedCompany !== 'all') {
+        params.append('companyId', selectedCompany);
+      }
+      const response = await apiRequest('GET', `/api/ticket-templates/stats?${params.toString()}`);
+      return response.json();
+    },
+    enabled: showStats && selectedCompany
+  });
+
+  const stats = statsResponse?.data || {};
+
+  const getCompanyInfo = (companyId: string) => {
+    if (companyId === 'all') {
+      return {
+        name: 'Todos os Clientes',
+        description: 'Templates globais disponíveis para todos',
+        icon: <Globe className="w-4 h-4" />
+      };
+    }
+    
+    const company = companies.find(c => c.id === companyId);
+    return {
+      name: company?.displayName || company?.name || 'Cliente não encontrado',
+      description: company?.description || 'Sem descrição',
+      icon: <Building2 className="w-4 h-4" />
+    };
+  };
+
+  const selectedCompanyInfo = getCompanyInfo(selectedCompany);
+
+  const getSubscriptionColor = (tier: string) => {
+    switch (tier?.toLowerCase()) {
+      case 'enterprise': return 'bg-purple-100 text-purple-800';
+      case 'professional': return 'bg-blue-100 text-blue-800';
+      case 'basic': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getCompanyDisplay = (company: Company) => {
-    // Conforme especificado no 1qa.md, mostrar apenas o nome da empresa
-    return company.name || 'Empresa sem nome';
+  const getSizeColor = (size: string) => {
+    switch (size?.toLowerCase()) {
+      case 'large': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'small': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  if (error) {
+  const getSizeLabel = (size: string) => {
+    switch (size?.toLowerCase()) {
+      case 'large': return 'Grande';
+      case 'medium': return 'Médio';
+      case 'small': return 'Pequeno';
+      default: return size || 'N/A';
+    }
+  };
+
+  const getTierLabel = (tier: string) => {
+    switch (tier?.toLowerCase()) {
+      case 'enterprise': return 'Enterprise';
+      case 'professional': return 'Profissional';
+      case 'basic': return 'Básico';
+      default: return tier || 'N/A';
+    }
+  };
+
+  if (companiesLoading) {
     return (
-      <div className={className}>
-        <Label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <Building2 className="w-4 h-4" />
-          Empresa
-        </Label>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Erro ao carregar empresas. Verifique sua conexão.
-            <button 
-              onClick={() => refetch()} 
-              className="ml-2 text-sm underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 rounded px-1"
-            >
-              Tentar novamente
-            </button>
-          </AlertDescription>
-        </Alert>
-      </div>
+      <Card className="animate-pulse">
+        <CardContent className="p-4">
+          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+          <div className="h-8 bg-gray-200 rounded"></div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className={className}>
-      <Label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-        <Building2 className="w-4 h-4" />
-        Empresa Selecionada
-      </Label>
-      
-      <Select 
-        value={value || 'all'} 
-        onValueChange={handleValueChange}
-        disabled={disabled || isLoading}
-      >
-        <SelectTrigger className="border-purple-200 focus:border-purple-400">
-          <SelectValue placeholder={isLoading ? "Carregando empresas..." : placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todas as empresas</SelectItem>
-          {isLoading ? (
-            <SelectItem value="loading" disabled>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                Carregando...
-              </div>
-            </SelectItem>
-          ) : companies.length === 0 ? (
-            <SelectItem value="no-companies" disabled>
-              Nenhuma empresa encontrada
-            </SelectItem>
-          ) : (
-            companies.map((company) => (
-              <SelectItem key={company.id} value={company.id}>
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-gray-400" />
-                  <span className="font-medium">{getCompanyDisplay(company)}</span>
+    <div className="space-y-4">
+      {/* Company Selector */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            {selectedCompanyInfo.icon}
+            Selecionar Cliente
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Select value={selectedCompany} onValueChange={onCompanyChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    <span>Todos os Clientes (Templates Globais)</span>
+                  </div>
+                </SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      <span>{company.displayName || company.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Selected Company Info */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h4 className="font-medium">{selectedCompanyInfo.name}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedCompanyInfo.description}
+                  </p>
                 </div>
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
-      
-      {companies.length > 0 && !isLoading && (
-        <p className="text-xs text-gray-500 mt-1">
-          {companies.length} empresa{companies.length !== 1 ? 's' : ''} encontrada{companies.length !== 1 ? 's' : ''}
-        </p>
+                
+                {selectedCompany !== 'all' && (
+                  <div className="flex gap-2 ml-4">
+                    {(() => {
+                      const company = companies.find(c => c.id === selectedCompany);
+                      if (!company) return null;
+                      
+                      return (
+                        <>
+                          <Badge className={getSubscriptionColor(company.subscriptionTier)}>
+                            {getTierLabel(company.subscriptionTier)}
+                          </Badge>
+                          <Badge className={getSizeColor(company.size)}>
+                            {getSizeLabel(company.size)}
+                          </Badge>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Template Stats for Selected Company */}
+      {showStats && stats && Object.keys(stats).length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Estatísticas de Templates</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">{stats.total_templates || 0}</p>
+                <p className="text-sm text-muted-foreground">Total</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">{stats.active_templates || 0}</p>
+                <p className="text-sm text-muted-foreground">Ativos</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-orange-600">{Math.round(stats.avg_usage || 0)}</p>
+                <p className="text-sm text-muted-foreground">Uso Médio</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-600">{stats.max_usage || 0}</p>
+                <p className="text-sm text-muted-foreground">Mais Usado</p>
+              </div>
+            </div>
+
+            {stats.templates_by_category && stats.templates_by_category.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  Categorias Disponíveis
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {stats.templates_by_category.map((category: any, index: number) => (
+                    <Badge key={category.category} variant="outline">
+                      {category.category} ({category.count})
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
-};
-
-export default CompanyTemplateSelector;
+}

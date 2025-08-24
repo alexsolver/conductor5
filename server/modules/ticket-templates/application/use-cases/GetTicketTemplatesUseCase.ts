@@ -108,12 +108,11 @@ export class GetTicketTemplatesUseCase {
           }
         );
       }
-      // 3. Get all templates with filters, including companyId
+      // 3. Get all templates with filters
       else {
         templates = await this.ticketTemplateRepository.findAll(
           request.tenantId,
-          request.filters,
-          request.companyId // Pass companyId to findAll
+          request.filters
         );
       }
 

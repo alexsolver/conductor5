@@ -16,7 +16,8 @@ import {
   Plus, Edit, Trash2, FileText, Settings, BarChart3, Building2, 
   Clock, Activity, Search, Filter
 } from 'lucide-react';
-import { CompanyTemplateSelector } from '@/components/templates/CompanyTemplateSelector';
+
+// Componentes customizados serão adicionados conforme necessário
 
 // Schema de validação
 const templateFormSchema = z.object({
@@ -83,7 +84,7 @@ const apiRequest = async (method: string, url: string, data?: any) => {
 
 export default function TicketTemplates() {
   const [activeTab, setActiveTab] = useState('templates');
-  const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -117,7 +118,7 @@ export default function TicketTemplates() {
     queryKey: ['/api/ticket-templates', selectedCompany],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedCompany && selectedCompany !== '' && selectedCompany !== 'all') {
+      if (selectedCompany && selectedCompany !== 'all') {
         params.append('companyId', selectedCompany);
       }
       const response = await apiRequest('GET', `/api/ticket-templates?${params.toString()}`);
@@ -130,7 +131,7 @@ export default function TicketTemplates() {
     queryKey: ['/api/ticket-templates/stats', selectedCompany],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedCompany && selectedCompany !== '' && selectedCompany !== 'all') {
+      if (selectedCompany && selectedCompany !== 'all') {
         params.append('companyId', selectedCompany);
       }
       const response = await apiRequest('GET', `/api/ticket-templates/stats?${params.toString()}`);
@@ -143,7 +144,7 @@ export default function TicketTemplates() {
     queryKey: ['/api/ticket-templates/categories', selectedCompany],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedCompany && selectedCompany !== '' && selectedCompany !== 'all') {
+      if (selectedCompany && selectedCompany !== 'all') {
         params.append('companyId', selectedCompany);
       }
       const response = await apiRequest('GET', `/api/ticket-templates/categories?${params.toString()}`);
@@ -255,11 +256,19 @@ export default function TicketTemplates() {
 
         {/* Company Selector */}
         <div className="bg-white rounded-lg shadow-sm border p-4">
-          <CompanyTemplateSelector
-            value={selectedCompany}
-            onValueChange={setSelectedCompany}
-            placeholder="Selecione uma empresa"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            🏢 Empresa Selecionada
+          </label>
+          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+            <SelectTrigger className="border-purple-200 focus:border-purple-400">
+              <SelectValue placeholder="Selecione uma empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as empresas</SelectItem>
+              <SelectItem value="company1">Empresa 1</SelectItem>
+              <SelectItem value="company2">Empresa 2</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Main Tabs */}

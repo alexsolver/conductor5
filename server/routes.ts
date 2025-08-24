@@ -20,7 +20,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, companies } from "@shared/schema";
-import { eq, and, or, desc, asc, sql, count, isNull, isNotNull, like, ilike, gt, lt, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, sql, asc } from "drizzle-orm";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
 
@@ -1787,6 +1787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ✅ CORRETO - Seguindo padrões 1qa.md - USANDO SQL DIRETO PARA ESTABILIDADE
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
+
       console.log('[PROFILE-GET] Using PostgreSQL direct following 1qa.md patterns');
 
       // ✅ CORRETO - Query SQL direta com tenant isolation obrigatório seguindo 1qa.md
@@ -2567,45 +2568,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('Locations module not available:', error);
   }
 
-  // ✅ CLEAN ARCHITECTURE - APPROVAL MANAGEMENT MODULE
-  // Approval Management Routes - Comprehensive approval workflow system
-  try {
-    const { approvalRoutes } = await import('./modules/approvals/routes/approvalRoutes');
-    if (approvalRoutes) {
-      app.use('/api/approvals', jwtAuth, approvalRoutes);
-      console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
-    } else {
-      console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module not properly exported, skipping registration');
-    }
-  } catch (error) {
-    console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module failed to load:', error.message);
-  }
-
-  // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - CONTRACT MANAGEMENT MODULE
-  // Contract Management Routes - Complete contract lifecycle management system
-  try {
-    const contractRoutes = await import('./modules/contracts/routes');
-    if (contractRoutes.default) {
-      app.use('/api/contracts', jwtAuth, contractRoutes.default);
-      console.log('✅ [CONTRACT-MANAGEMENT] Routes registered successfully at /api/contracts');
-    } else {
-      console.warn('⚠️ [CONTRACT-MANAGEMENT] Routes module not properly exported, skipping registration');
-    }
-
-    // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - EXPENSE APPROVAL MODULE
-    // Corporate Expense Management Routes - Complete expense approval workflow system
-    const expenseApprovalRoutes = await import('./modules/expense-approval/routes/expenseApprovalRoutes');
-    if (expenseApprovalRoutes.default) {
-      app.use('/api/expense-approval', jwtAuth, expenseApprovalRoutes.default);
-      console.log('✅ [EXPENSE-APPROVAL] Routes registered successfully at /api/expense-approval');
-    } else {
-      console.warn('⚠️ [EXPENSE-APPROVAL] Routes module not properly exported, skipping registration');
-    }
-  } catch (error) {
-    console.warn('⚠️ [CONTRACT-EXPENSE-MANAGEMENT] Routes module failed to load:', error.message);
-  }
-
-
   // ✅ LOCATIONS NEW MODULE per 1qa.md Clean Architecture
   try {
     const { default: locationsNewRouter } = await import('./modules/locations/routes-new');
@@ -2616,6 +2578,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('❌ [LOCATIONS-NEW-MODULE] Failed to load locations-new module:', error);
     console.error('❌ [LOCATIONS-NEW-MODULE] Error details:', error.message);
   }
+
+  // Removed OmniBridge Routes - defined earlier
 
   // Helper functions for channel transformation
   function getChannelIcon(type: string): string {
@@ -3432,171 +3396,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating priority:', error);
       res.status(500).json({ message: 'Failed to create priority' });
-    }
-  });
-
-  // Companies v2 Clean Architecture endpoints - List first to avoid route conflict
-  app.get('/api/companies/v2/', jwtAuth, tenantValidator, async (req: any, res: any) => {
-    try {
-      const tenantId = req.user.tenantId;
-      const {
-        page = 1,
-        limit = 50,
-        sortBy = 'name',
-        sortOrder = 'asc',
-        name,
-        cnpj,
-        industry,
-        size,
-        status,
-        subscriptionTier,
-        state,
-        city,
-        isActive,
-        dateFrom,
-        dateTo
-      } = req.query;
-
-      console.log(`🏢 [COMPANIES-LIST] Fetching companies for tenant ${tenantId}`);
-
-      // Build where conditions
-      const whereConditions = [
-        eq(companies.tenantId, tenantId)
-      ];
-
-      if (name) {
-        whereConditions.push(ilike(companies.name, `%${name}%`));
-      }
-
-      if (cnpj) {
-        whereConditions.push(ilike(companies.cnpj, `%${cnpj}%`));
-      }
-
-      if (industry) {
-        whereConditions.push(eq(companies.industry, industry));
-      }
-
-      if (size) {
-        whereConditions.push(eq(companies.size, size));
-      }
-
-      if (status) {
-        whereConditions.push(eq(companies.status, status));
-      }
-
-      if (subscriptionTier) {
-        whereConditions.push(eq(companies.subscriptionTier, subscriptionTier));
-      }
-
-      if (state) {
-        whereConditions.push(eq(companies.state, state));
-      }
-
-      if (city) {
-        whereConditions.push(eq(companies.city, city));
-      }
-
-      if (isActive !== undefined) {
-        whereConditions.push(eq(companies.isActive, isActive === 'true'));
-      }
-
-      if (dateFrom) {
-        whereConditions.push(gte(companies.createdAt, new Date(dateFrom)));
-      }
-
-      if (dateTo) {
-        whereConditions.push(lte(companies.createdAt, new Date(dateTo)));
-      }
-
-      // Calculate offset
-      const offset = (parseInt(page) - 1) * parseInt(limit);
-
-      // Order by clause
-      const orderBy = sortOrder === 'desc' ? desc(companies[sortBy]) : asc(companies[sortBy]);
-
-      // Execute query
-      const result = await db.select()
-        .from(companies)
-        .where(and(...whereConditions))
-        .orderBy(orderBy)
-        .limit(parseInt(limit))
-        .offset(offset);
-
-      // Count total
-      const countResult = await db.select({ count: sql`count(*)` })
-        .from(companies)
-        .where(and(...whereConditions));
-
-      const total = parseInt(countResult[0].count);
-      const totalPages = Math.ceil(total / parseInt(limit));
-
-      res.json({
-        success: true,
-        data: {
-          companies: result,
-          pagination: {
-            page: parseInt(page),
-            limit: parseInt(limit),
-            total,
-            totalPages,
-            hasNext: parseInt(page) < totalPages,
-            hasPrev: parseInt(page) > 1
-          }
-        }
-      });
-
-    } catch (error) {
-      console.error('❌ [COMPANIES-LIST] Error fetching companies:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch companies'
-      });
-    }
-  });
-
-  // Single company endpoint - must be after list endpoint to avoid route conflict
-  app.get('/api/companies/v2/:id', jwtAuth, tenantValidator, async (req: any, res: any) => {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user.tenantId;
-
-      console.log(`🏢 [COMPANY-GET] Fetching company ${id} for tenant ${tenantId}`);
-
-      // Check if ID is valid UUID
-      if (!id || id.length !== 36) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid company ID format'
-        });
-      }
-
-      const result = await db.select()
-        .from(companies)
-        .where(and(
-          eq(companies.id, id),
-          eq(companies.tenantId, tenantId),
-          eq(companies.isActive, true)
-        ))
-        .limit(1);
-
-      if (result.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Company not found'
-        });
-      }
-
-      res.json({
-        success: true,
-        data: result[0]
-      });
-
-    } catch (error) {
-      console.error('❌ [COMPANY-GET] Error fetching company:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch company'
-      });
     }
   });
 
@@ -4463,6 +4262,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('⚠️ [OMNIBRIDGE] Routes module failed to load:', error.message);
   }
+
+  // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPROVAL MANAGEMENT MODULE
+  // Approval Management Routes - Comprehensive approval workflow system
+  try {
+    const { approvalRoutes } = await import('./modules/approvals/routes/approvalRoutes');
+    if (approvalRoutes) {
+      app.use('/api/approvals', approvalRoutes);
+      console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
+    } else {
+      console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module not properly exported, skipping registration');
+    }
+  } catch (error) {
+    console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module failed to load:', error.message);
+  }
+
+  // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - CONTRACT MANAGEMENT MODULE
+  // Contract Management Routes - Complete contract lifecycle management system
+  try {
+    const contractRoutes = await import('./modules/contracts/routes');
+    if (contractRoutes.default) {
+      app.use('/api/contracts', jwtAuth, contractRoutes.default);
+      console.log('✅ [CONTRACT-MANAGEMENT] Routes registered successfully at /api/contracts');
+    } else {
+      console.warn('⚠️ [CONTRACT-MANAGEMENT] Routes module not properly exported, skipping registration');
+    }
+
+    // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - EXPENSE APPROVAL MODULE
+    // Corporate Expense Management Routes - Complete expense approval workflow system
+    const expenseApprovalRoutes = await import('./modules/expense-approval/routes/expenseApprovalRoutes');
+    if (expenseApprovalRoutes.default) {
+      app.use('/api/expense-approval', jwtAuth, expenseApprovalRoutes.default);
+      console.log('✅ [EXPENSE-APPROVAL] Routes registered successfully at /api/expense-approval');
+    } else {
+      console.warn('⚠️ [EXPENSE-APPROVAL] Routes module not properly exported, skipping registration');
+    }
+  } catch (error) {
+    console.warn('⚠️ [CONTRACT-EXPENSE-MANAGEMENT] Routes module failed to load:', error.message);
+  }
+
+
 
   // SaaS Admin - Save Integration Configuration
   app.put('/api/saas-admin/integrations/:integrationId/config', jwtAuth, async (req: AuthenticatedRequest, res) => {
