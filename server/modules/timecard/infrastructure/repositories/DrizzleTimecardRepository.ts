@@ -179,7 +179,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         `);
 
         console.log('[REAL-DATA] Found real work schedules:', realSchedules.rows.length);
-
+        
         if (realSchedules.rows.length > 0) {
           return realSchedules.rows.map((row: any) => ({
             id: row.id,
@@ -204,26 +204,9 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         console.log('[DRIZZLE-QA] Work schedules table not found, using default schedules');
       }
 
-      // Return default schedules only if no real data exists
-      const defaultSchedules = usersList.map(user => ({
-        id: `default-${user.id}`,
-        userId: user.id,
-        scheduleType: '5x2',
-        scheduleName: 'Escala Padrão (5x2)',
-        workDays: [1, 2, 3, 4, 5],
-        startTime: '08:00',
-        endTime: '18:00',
-        breakStart: '12:00',
-        breakEnd: '13:00',
-        isActive: true,
-        tenantId: tenantId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
-      }));
-
-      console.log('[DEFAULT-DATA] Using default schedules:', defaultSchedules.length);
-      return defaultSchedules;
+      // Se não encontrou schedules reais, retorna array vazio
+      console.log('[NO-DATA] No work schedules found in database');
+      return [];
     } catch (error: any) {
       console.error('[DRIZZLE-QA] Error fetching work schedules:', error);
       return [];
