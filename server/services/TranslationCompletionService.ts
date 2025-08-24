@@ -1163,7 +1163,15 @@ Respond ONLY with a JSON object where keys are the original text and values are 
       }
     });
 
-    console.log(`🔍 [CODEBASE-SCAN] Found ${keys.length} total keys from comprehensive scan`);
+    // NEW: Scan for hardcoded strings in React components
+    const hardcodedKeys = await this.scanForHardcodedStrings();
+    hardcodedKeys.forEach(key => {
+      if (!keys.find(k => k.key === key.key)) {
+        keys.push(key);
+      }
+    });
+
+    console.log(`🔍 [CODEBASE-SCAN] Found ${keys.length} total keys from comprehensive scan (includes hardcoded strings)`);
     return keys;
   }
 
@@ -1574,5 +1582,125 @@ Respond ONLY with a JSON object where keys are the original text and values are 
     }
 
     return current;
+  }
+
+  /**
+   * NEW: Scan for hardcoded strings in React components and other files
+   */
+  async scanForHardcodedStrings(): Promise<TranslationKey[]> {
+    console.log('🔍 [HARDCODED-SCAN] Starting hardcoded strings scanning...');
+    const keys: TranslationKey[] = [];
+
+    try {
+      const directories = [
+        path.join(process.cwd(), 'client', 'src', 'pages'),
+        path.join(process.cwd(), 'client', 'src', 'components'),  
+        path.join(process.cwd(), 'client', 'src', 'contexts'),
+        path.join(process.cwd(), 'client', 'src', 'utils')
+      ];
+
+      for (const dir of directories) {
+        try {
+          await this.scanDirectoryForHardcodedStrings(dir, keys);
+        } catch (error) {
+          console.warn(`⚠️ [HARDCODED-SCAN] Error scanning ${dir}:`, (error as Error).message);
+        }
+      }
+
+      console.log(`🔍 [HARDCODED-SCAN] Found ${keys.length} hardcoded strings`);
+      return keys;
+
+    } catch (error) {
+      console.error('❌ [HARDCODED-SCAN] Error during hardcoded scanning:', error);
+      return [];
+    }
+  }
+
+  private async scanDirectoryForHardcodedStrings(directory: string, keys: TranslationKey[]): Promise<void> {
+    try {
+      const files = await fs.readdir(directory, { withFileTypes: true });
+      
+      for (const file of files) {
+        const fullPath = path.join(directory, file.name);
+        
+        if (file.isDirectory() && !['node_modules', '.git', 'dist', 'build'].includes(file.name)) {
+          await this.scanDirectoryForHardcodedStrings(fullPath, keys);
+        } else if (file.isFile() && (file.name.endsWith('.tsx') || file.name.endsWith('.ts') || file.name.endsWith('.js') || file.name.endsWith('.jsx'))) {
+          await this.scanFileForHardcodedStrings(fullPath, keys);
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ [HARDCODED-SCAN] Error reading directory ${directory}:`, (error as Error).message);
+    }
+  }
+
+  private async scanFileForHardcodedStrings(filePath: string, keys: TranslationKey[]): Promise<void> {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const module = this.getModuleFromPath(filePath);
+      
+      // Patterns to find hardcoded strings
+      const hardcodedPatterns = [
+        // Placeholders
+        /placeholder\s*=\s*["`']([^"`']+)["`']/g,
+        // Titles and labels  
+        /title\s*=\s*["`']([^"`']+)["`']/g,
+        /label\s*=\s*["`']([^"`']+)["`']/g,
+        /aria-label\s*=\s*["`']([^"`']+)["`']/g,
+        // Employment terminology strings
+        /pageTitle:\s*["`']([^"`']+)["`']/g,
+        /menuLabel:\s*["`']([^"`']+)["`']/g,
+        /clockIn:\s*["`']([^"`']+)["`']/g,
+        /working:\s*["`']([^"`']+)["`']/g,
+        // Toast/error messages
+        /title:\s*["`']([^"`']+)["`']/g,
+        /description:\s*["`']([^"`']+)["`']/g,
+        // Hard-coded Portuguese/Spanish strings
+        /["`'](?:Erro|Error|Falha|Buscar|Digite|Exibir|Ocultar|Mostrar|Esconder|Ensolarado|trajetória)[^"`']*["`']/g
+      ];
+
+      for (const pattern of hardcodedPatterns) {
+        const matches = content.matchAll(pattern);
+        
+        for (const match of matches) {
+          const stringValue = match[1]?.trim();
+          if (stringValue && stringValue.length > 2 && this.isValidHardcodedString(stringValue)) {
+            const key = this.generateKeyFromString(stringValue);
+            keys.push({
+              key,
+              module: module,
+              usage: [filePath], 
+              priority: 'medium'
+            });
+          }
+        }
+      }
+
+    } catch (error) {
+      console.warn(`⚠️ [HARDCODED-SCAN] Error scanning file ${filePath}:`, (error as Error).message);
+    }
+  }
+
+  private isValidHardcodedString(str: string): boolean {
+    // Filter out technical strings
+    const excludePatterns = [
+      /^https?:\/\//,         // URLs
+      /^[0-9a-fA-F-]{36}$/,   // UUIDs
+      /^[0-9\.\-\+\(\)\s]+$/, // Only numbers
+      /^[A-Z_]{2,}$/,         // Constants
+      /^\s*$/,                // Empty/whitespace
+      /^[#@$%&]/              // Technical prefixes
+    ];
+
+    return !excludePatterns.some(pattern => pattern.test(str));
+  }
+
+  private generateKeyFromString(str: string): string {
+    // Convert hardcoded string to translation key
+    return `hardcoded.${str
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '_')
+      .substring(0, 50)}`;
   }
 }

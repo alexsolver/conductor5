@@ -1969,5 +1969,7 @@
   "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}\n\n${email.content}": "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}\n\n${email.content}",
   "--- Mensagem Original ---\nDe: ${email": "--- Mensagem Original ---\nDe: ${email",
   "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email": "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email",
-  "\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email": "\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email"
+  "\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email": "\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email",
+  "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}": "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}",
+  "--- Mensagem Original --- De: ${email.from} Data: ${new Date(email": "--- Mensagem Original --- De: ${email.from} Data: ${new Date(email"
 }
