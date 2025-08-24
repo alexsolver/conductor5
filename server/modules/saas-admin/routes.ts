@@ -13,13 +13,24 @@ router.use(jwtAuth);
 
 // SaaS Admin validation middleware - Apply to specific routes only
 const requireSaasAdmin = (req: AuthenticatedRequest, res: any, next: any) => {
+  console.log('🔥 [SAAS-ADMIN-MIDDLEWARE] User check:', {
+    hasUser: !!req.user,
+    userRole: req.user?.role,
+    userEmail: req.user?.email,
+    expectedRole: 'saas_admin',
+    isMatch: req.user?.role === 'saas_admin'
+  });
+  
   if (!req.user || req.user.role !== 'saas_admin') {
+    console.log('❌ [SAAS-ADMIN-MIDDLEWARE] Access denied - user role mismatch');
     return res.status(403).json({
       success: false,
       message: 'SaaS Admin access required',
       code: 'FORBIDDEN'
     });
   }
+  
+  console.log('✅ [SAAS-ADMIN-MIDDLEWARE] Access granted');
   next();
 };
 
