@@ -8,7 +8,7 @@
  * @created 2025-08-24 - Fixed controller execution
  */
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { DrizzleTicketTemplateRepository } from './infrastructure/repositories/DrizzleTicketTemplateRepository';
 import { TicketTemplateController } from './application/controllers/TicketTemplateController';
 
@@ -44,9 +44,19 @@ console.log('✅ [TICKET-TEMPLATES-ROUTES] Router initialized');
 // ✅ 1QA.MD: Clean Architecture routes - Presentation Layer
 
 // POST /api/ticket-templates - Criar template
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   console.log('🎯 [ROUTES] POST / called - Creating template');
-  await ticketTemplateController.createTemplate(req as any, res);
+  console.log('🎯 [ROUTES] Request body:', req.body);
+  try {
+    await ticketTemplateController.createTemplate(req as any, res);
+  } catch (error) {
+    console.error('❌ [ROUTES] Error in POST /', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      errors: [error instanceof Error ? error.message : 'Unknown error']
+    });
+  }
 });
 
 // GET /api/ticket-templates - Listar templates
