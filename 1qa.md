@@ -28,6 +28,7 @@ Frontend Data Binding - Para garantir que o frontend receba dados corretos
    - Alterar estruturas de dados em produção
    - Refatorar sem necessidade crítica
    - Quebrar backward compatibility
+   - Criar chaves de tradução fora do padrão i18n
 3. PADRÃO SISTÊMICO DA PLATAFORMA
 📋 ESTRUTURA OBRIGATÓRIA a ser seguida:
 server/modules/[module-name]/
