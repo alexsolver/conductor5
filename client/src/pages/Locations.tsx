@@ -738,7 +738,7 @@ export default function Locations() {
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("common.status") || "Status"} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
@@ -823,12 +823,12 @@ export default function Locations() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Coordenadas</TableHead>
-                  <TableHead>Criado em</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead>{t("common.name") || "Nome"}</TableHead>
+                  <TableHead>{t("common.type") || "Tipo"}</TableHead>
+                  <TableHead>{t("common.status") || "Status"}</TableHead>
+                  <TableHead>{t("common.coordinates") || "Coordenadas"}</TableHead>
+                  <TableHead>{t("common.createdAt") || "Criado em"}</TableHead>
+                  <TableHead className="text-right">{t("common.actions") || "Ações"}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

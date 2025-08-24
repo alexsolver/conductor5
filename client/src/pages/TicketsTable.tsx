@@ -1705,7 +1705,7 @@ const TicketsTable = React.memo(() => {
                       fieldName="priority"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select priority"
+                      placeholder={t("common.selectPriority") || "Selecione a prioridade"}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1724,7 +1724,7 @@ const TicketsTable = React.memo(() => {
                       fieldName="impact"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select impact"
+                      placeholder={t("common.selectImpact") || "Selecione o impacto"}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1743,7 +1743,7 @@ const TicketsTable = React.memo(() => {
                       fieldName="urgency"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select urgency"
+                      placeholder={t("common.selectUrgency") || "Selecione a urgência"}
                     />
                   </FormControl>
                   <FormMessage />

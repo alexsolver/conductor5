@@ -292,7 +292,7 @@ export default function ContractManagement() {
                 onValueChange={(value) => setFilters({ ...filters, status: value === 'all' ? undefined : value })}
               >
                 <SelectTrigger data-testid="select-status-filter">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("common.status") || "Status"} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Status</SelectItem>

@@ -729,15 +729,15 @@ export default function ItemCatalog() {
                         />
                       </TableHead>
                     )}
-                    <TableHead>Nome</TableHead>
-                    <TableHead className="w-24">Tipo</TableHead>
-                    <TableHead className="w-32">Código</TableHead>
-                    <TableHead className="w-24">Unidade</TableHead>
-                    <TableHead className="w-32">Hierarquia</TableHead>
-                    <TableHead className="w-32">Empresas</TableHead>
-                    <TableHead className="w-32">Fornecedores</TableHead>
-                    <TableHead className="w-24">Status</TableHead>
-                    <TableHead className="w-32">Ações</TableHead>
+                    <TableHead>{t("common.name") || "Nome"}</TableHead>
+                    <TableHead className="w-24">{t("common.type") || "Tipo"}</TableHead>
+                    <TableHead className="w-32">{t("common.code") || "Código"}</TableHead>
+                    <TableHead className="w-24">{t("common.unit") || "Unidade"}</TableHead>
+                    <TableHead className="w-32">{t("common.hierarchy") || "Hierarquia"}</TableHead>
+                    <TableHead className="w-32">{t("common.companies") || "Empresas"}</TableHead>
+                    <TableHead className="w-32">{t("common.suppliers") || "Fornecedores"}</TableHead>
+                    <TableHead className="w-24">{t("common.status") || "Status"}</TableHead>
+                    <TableHead className="w-32">{t("common.actions") || "Ações"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
