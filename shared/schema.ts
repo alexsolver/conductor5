@@ -178,15 +178,15 @@ export {
   locationTypeEnum,
   geometryTypeEnum,
   locationStatusEnum,
+  segurityLevelEnum as locationSecurityLevelEnum,
+  accessTypeEnum as locationAccessTypeEnum,
+  membershipTypeEnum as locationMembershipTypeEnum,
+  groupTypeEnum as locationGroupTypeEnum,
   segmentTypeEnum,
   areaTypeEnum,
   routeTypeEnum,
   difficultyLevelEnum,
   serviceLevelEnum,
-  securityLevelEnum,
-  accessTypeEnum,
-  membershipTypeEnum,
-  groupTypeEnum,
   locations as geoLocations,
   locationSegments,
   locationAreas,
@@ -319,11 +319,7 @@ export {
   meterTypeEnum,
   calibrationStatusEnum,
   calibrationFrequencyEnum,
-  meterReadingTypeEnum,
-  securityLevelEnum as locationSecurityLevelEnum, // Renamed to avoid conflict
-  accessTypeEnum as locationAccessTypeEnum,     // Renamed to avoid conflict
-  membershipTypeEnum as locationMembershipTypeEnum, // Renamed to avoid conflict
-  groupTypeEnum as locationGroupTypeEnum,       // Renamed to avoid conflict
+  meterReadingTypeEnum
   companyLogoStorageEnum,
   companyFileStorageEnum,
   ticketCategoryEnum,
