@@ -289,7 +289,6 @@ export {
   languageEnum,
   timezoneEnum,
   emailFormatEnum,
-  addressFormatEnum,
   phoneFormatEnum,
   vatRegimeEnum,
   fiscalPositionEnum,
