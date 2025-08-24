@@ -317,24 +317,34 @@ export class TranslationCompletionService {
    */
   private async initializeOpenAI(): Promise<OpenAI | null> {
     try {
-      if (this.openaiClient) return this.openaiClient;
+      if (this.openaiClient) {
+        console.log('🤖 [AI-INIT] Using cached OpenAI client');
+        return this.openaiClient;
+      }
 
       console.log('🤖 [AI-INIT] Initializing OpenAI client...');
       
       // Get OpenAI configuration from SaaS Admin integrations
+      console.log('🤖 [AI-INIT] Step 1: Getting OpenAI config from integrations...');
       const openaiConfig = await this.integrationRepository.getIntegrationConfig('openai');
+      console.log('🤖 [AI-INIT] Config result:', { 
+        hasConfig: !!openaiConfig, 
+        hasApiKey: !!openaiConfig?.apiKey,
+        apiKeyStart: openaiConfig?.apiKey?.substring(0, 10) + '...'
+      });
       
       if (!openaiConfig?.apiKey) {
-        console.warn('⚠️ [AI-INIT] OpenAI API key not configured in integrations');
+        console.error('❌ [AI-INIT] OpenAI API key not configured in integrations');
         return null;
       }
 
+      console.log('🤖 [AI-INIT] Step 2: Creating OpenAI client...');
       // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       this.openaiClient = new OpenAI({ 
         apiKey: openaiConfig.apiKey 
       });
 
-      console.log('✅ [AI-INIT] OpenAI client initialized successfully');
+      console.log('✅ [AI-INIT] OpenAI client created successfully');
       return this.openaiClient;
     } catch (error) {
       console.error('❌ [AI-INIT] Error initializing OpenAI:', error);
@@ -354,8 +364,10 @@ export class TranslationCompletionService {
     console.log('🤖 [AI-TRANSLATE] Starting AI-powered translation completion...');
     
     try {
+      console.log('🤖 [AI-TRANSLATE] Step 1: Initializing OpenAI...');
       const openai = await this.initializeOpenAI();
       if (!openai) {
+        console.error('❌ [AI-TRANSLATE] OpenAI initialization failed');
         return {
           success: false,
           completed: 0,
@@ -363,6 +375,9 @@ export class TranslationCompletionService {
           details: {}
         };
       }
+      console.log('✅ [AI-TRANSLATE] OpenAI initialized successfully');
+      
+      console.log('🤖 [AI-TRANSLATE] Step 2: Scanning translation keys...');
 
       // Get all keys to translate
       const allKeys = await this.scanCodebaseForTranslationKeys();
