@@ -271,6 +271,9 @@ export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
 
 // ✅ 1QA.MD: Custom Fields imported from schema-master.ts to avoid duplicates
 
+// ✅ 1QA.MD: Ticket Templates export - ensuring availability for Clean Architecture modules
+export { ticketTemplates } from './schema-master';
+
 // Import from schema-tenant for tenant-specific tables
 import { 
   tickets as ticketsFromTenant,
