@@ -120,18 +120,18 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
   private async ensureTenantSchema(schemaName: string): Promise<void> {
     try {
       // ✅ 1QA.MD: Check if schema exists first using proper SQL syntax
-      const schemaExistsQuery = `
+      const schemaExistsQuery = sql`
         SELECT schema_name 
         FROM information_schema.schemata 
-        WHERE schema_name = $1
+        WHERE schema_name = ${schemaName}
       `;
       
-      const schemaExists = await db.execute(sql.raw(schemaExistsQuery, [schemaName]));
+      const schemaExists = await db.execute(schemaExistsQuery);
       
       if (schemaExists.rows.length === 0) {
         // ✅ 1QA.MD: Create schema using raw SQL to avoid identifier issues
-        const createSchemaQuery = `CREATE SCHEMA IF NOT EXISTS "${schemaName}"`;
-        await db.execute(sql.raw(createSchemaQuery));
+        const createSchemaQuery = sql.raw(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
+        await db.execute(createSchemaQuery);
         console.log('🔥 [CUSTOM-FIELDS-REPO] Tenant schema created:', schemaName);
       } else {
         console.log('🔥 [CUSTOM-FIELDS-REPO] Tenant schema already exists:', schemaName);
