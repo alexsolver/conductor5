@@ -1260,11 +1260,7 @@ router.get('/module-integrity/monitoring', async (req: AuthorizedRequest, res) =
   }
 });
 
-// Add saas-admin prefixed routes for translations
-router.use('/translations', translationsRoutes);
-router.use('/translation-completion', translationCompletionRoutes);
-
-// AI-powered translation auto-complete endpoint
+// AI-powered translation auto-complete endpoint - MUST BE BEFORE router.use!
 router.post('/translation-completion/auto-complete-all', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res: any) => {
   console.log('🔥 [DEBUG] ENDPOINT HIT! translation-completion/auto-complete-all');
   console.log('🔥 [DEBUG] User:', req.user?.email);
@@ -1315,5 +1311,9 @@ router.post('/translation-completion/auto-complete-all', jwtAuth, requireSaasAdm
     });
   }
 });
+
+// Add saas-admin prefixed routes for translations - AFTER specific endpoints
+router.use('/translations', translationsRoutes);
+router.use('/translation-completion', translationCompletionRoutes);
 
 export default router;
