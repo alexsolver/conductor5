@@ -374,22 +374,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
 
-  // 🚨 MOVED UP: TICKET-TEMPLATES registration BEFORE other routes per 1qa.md
-  console.log('🚨 [TICKET-TEMPLATES-MOVED] Registration moved to HIGH PRIORITY...');
-  console.log('🚨 [TICKET-TEMPLATES-MOVED] TIMESTAMP:', new Date().toISOString());
+  // 🚨 DIRECT REGISTRATION: TICKET-TEMPLATES following 1qa.md Clean Architecture
+  console.log('🚨 [TICKET-TEMPLATES-DIRECT] DIRECT registration starting...');
+  console.log('🚨 [TICKET-TEMPLATES-DIRECT] TIMESTAMP:', new Date().toISOString());
+  
+  // Direct controller instantiation following 1qa.md
   try {
-    console.log('🚨 [TICKET-TEMPLATES-MOVED] Loading routes.ts module...');
-    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
-    console.log('🚨 [TICKET-TEMPLATES-MOVED] Module loaded successfully!');
-    console.log('🚨 [TICKET-TEMPLATES-MOVED] Registering with middleware...');
-    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
-    console.log('✅ [TICKET-TEMPLATES-MOVED] HIGH PRIORITY registration SUCCESS!');
+    console.log('🚨 [TICKET-TEMPLATES-DIRECT] Creating controller directly...');
+    const { DrizzleTicketTemplateRepository } = await import('./modules/ticket-templates/infrastructure/repositories/DrizzleTicketTemplateRepository');
+    const { GetTicketTemplatesUseCase } = await import('./modules/ticket-templates/application/use-cases/GetTicketTemplatesUseCase');
+    const { CreateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase');
+    const { UpdateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase');
+    const { TicketTemplateController } = await import('./modules/ticket-templates/application/controllers/TicketTemplateController');
+    
+    const templateRepository = new DrizzleTicketTemplateRepository();
+    const getTemplatesUseCase = new GetTicketTemplatesUseCase(templateRepository);
+    const createTemplateUseCase = new CreateTicketTemplateUseCase(templateRepository);  
+    const updateTemplateUseCase = new UpdateTicketTemplateUseCase(templateRepository);
+    const templateController = new TicketTemplateController(createTemplateUseCase, getTemplatesUseCase, updateTemplateUseCase);
+    
+    console.log('🚨 [TICKET-TEMPLATES-DIRECT] Controller created, registering endpoints...');
+    
+    // Direct endpoint registration following 1qa.md
+    app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET / called');
+      await templateController.getTemplates(req, res);
+    });
+    
+    app.get('/api/ticket-templates/company/:companyId', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET /company/:companyId called');
+      await templateController.getTemplates(req, res);
+    });
+    
+    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET /company/:companyId/stats called');  
+      await templateController.getCompanyTemplateStats(req, res);
+    });
+    
+    app.get('/api/ticket-templates/categories', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [TICKET-TEMPLATES-ENDPOINT] GET /categories called');
+      await templateController.getCategories(req, res);
+    });
+    
+    console.log('✅ [TICKET-TEMPLATES-DIRECT] All endpoints registered successfully!');
   } catch (error: any) {
-    console.error('❌ [TICKET-TEMPLATES-MOVED] HIGH PRIORITY registration FAILED:', error);
-    console.error('❌ [TICKET-TEMPLATES-MOVED] Error details:', error.message);
-    console.error('❌ [TICKET-TEMPLATES-MOVED] Stack trace:', error.stack);
+    console.error('❌ [TICKET-TEMPLATES-DIRECT] Registration FAILED:', error);
+    console.error('❌ [TICKET-TEMPLATES-DIRECT] Error details:', error.message);
+    console.error('❌ [TICKET-TEMPLATES-DIRECT] Stack trace:', error.stack);
   }
-  console.log('🚨 [TICKET-TEMPLATES-MOVED] High priority block COMPLETED');
+  console.log('🚨 [TICKET-TEMPLATES-DIRECT] Direct registration block COMPLETED');
 
   // ✅ Priority 1.5: SaaS Admin routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [SAAS-ADMIN] Initializing SaaS Admin Clean Architecture routes...');
