@@ -7,17 +7,39 @@
  * @compliance 1qa.md - Infrastructure Layer - Drizzle Implementation
  */
 
-import { db } from '../../../../db';
-import { ticketTemplates } from '../../../../../shared/schema-master.js';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '../../../../../shared/schema';
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
 import { TicketTemplate, UserFeedback } from '../../domain/entities/TicketTemplate';
 import { eq, and, or, isNull, desc, asc, like, inArray, sql, count } from 'drizzle-orm';
+import { Pool } from 'pg';
 
 export class DrizzleTicketTemplateRepository implements ITicketTemplateRepository {
+  
+  // ✅ 1QA.MD: Tenant Schema Isolation - seguindo padrão do sistema
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
 
-  // ✅ 1QA.MD: Basic CRUD Operations
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Basic CRUD Operations with tenant schema isolation
   async create(template: Omit<TicketTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<TicketTemplate> {
     try {
+      console.log('🔒 [TICKET-TEMPLATE-REPO] Creating template in tenant schema:', this.getSchemaName(template.tenantId));
+      
+      const tenantDb = await this.getTenantDb(template.tenantId);
+      
       const newTemplate = {
         ...template,
         id: crypto.randomUUID(),
@@ -31,48 +53,59 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         tags: template.tags
       };
 
-      const result = await db
-        .insert(ticketTemplates)
+      console.log('📝 [TICKET-TEMPLATE-REPO] Inserting into tenant-specific schema:', this.getSchemaName(template.tenantId));
+      
+      const result = await tenantDb
+        .insert(schema.ticketTemplates)
         .values(newTemplate as any)
         .returning();
 
+      console.log('✅ [TICKET-TEMPLATE-REPO] Template created successfully in tenant schema');
       return this.mapFromDatabase(result[0]);
     } catch (error) {
-      console.error('Error creating ticket template:', error);
+      console.error('❌ [TICKET-TEMPLATE-REPO] Error creating ticket template:', error);
       throw new Error('Falha ao criar template');
     }
   }
 
   async findById(id: string, tenantId: string): Promise<TicketTemplate | null> {
     try {
-      const result = await db
+      console.log('🔍 [TICKET-TEMPLATE-REPO] Finding template by ID in tenant schema:', this.getSchemaName(tenantId));
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      const result = await tenantDb
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
+          eq(schema.ticketTemplates.id, id),
+          eq(schema.ticketTemplates.tenantId, tenantId)
         ));
 
       return result.length > 0 ? this.mapFromDatabase(result[0]) : null;
     } catch (error) {
-      console.error('Error finding template by ID:', error);
+      console.error('❌ [TICKET-TEMPLATE-REPO] Error finding template by ID:', error);
       return null;
     }
   }
 
   async findByName(name: string, tenantId: string): Promise<TicketTemplate | null> {
     try {
-      const result = await db
+      console.log('🔍 [TICKET-TEMPLATE-REPO] Finding template by name in tenant schema:', this.getSchemaName(tenantId));
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      const result = await tenantDb
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(
-          eq(ticketTemplates.name, name),
-          eq(ticketTemplates.tenantId, tenantId)
+          eq(schema.ticketTemplates.name, name),
+          eq(schema.ticketTemplates.tenantId, tenantId)
         ));
 
       return result.length > 0 ? this.mapFromDatabase(result[0]) : null;
     } catch (error) {
-      console.error('Error finding template by name:', error);
+      console.error('❌ [TICKET-TEMPLATE-REPO] Error finding template by name:', error);
       return null;
     }
   }
@@ -91,12 +124,16 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       if (updates.permissions) updateData.permissions = JSON.stringify(updates.permissions);
       if (updates.metadata) updateData.metadata = JSON.stringify(updates.metadata);
 
-      const result = await db
-        .update(ticketTemplates)
+      console.log('✏️ [TICKET-TEMPLATE-REPO] Updating template in tenant schema:', this.getSchemaName(tenantId));
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      const result = await tenantDb
+        .update(schema.ticketTemplates)
         .set(updateData)
         .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
+          eq(schema.ticketTemplates.id, id),
+          eq(schema.ticketTemplates.tenantId, tenantId)
         ))
         .returning();
 
@@ -109,11 +146,15 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async delete(id: string, tenantId: string): Promise<boolean> {
     try {
-      const result = await db
-        .delete(ticketTemplates)
+      console.log('🗑️ [TICKET-TEMPLATE-REPO] Deleting template in tenant schema:', this.getSchemaName(tenantId));
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      const result = await tenantDb
+        .delete(schema.ticketTemplates)
         .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
+          eq(schema.ticketTemplates.id, id),
+          eq(schema.ticketTemplates.tenantId, tenantId)
         ));
 
       return (result.rowCount ?? 0) > 0;
@@ -136,18 +177,18 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     tags?: string[];
   }): Promise<TicketTemplate[]> {
     try {
-      let whereConditions = [eq(ticketTemplates.tenantId, tenantId)];
+      let whereConditions = [eq(schema.ticketTemplates.tenantId, tenantId)];
 
       if (filters) {
-        if (filters.category) whereConditions.push(eq(ticketTemplates.category, filters.category));
-        if (filters.subcategory) whereConditions.push(eq(ticketTemplates.subcategory, filters.subcategory));
+        if (filters.category) whereConditions.push(eq(schema.ticketTemplates.category, filters.category));
+        if (filters.subcategory) whereConditions.push(eq(schema.ticketTemplates.subcategory, filters.subcategory));
         // templateType, status, departmentId, isDefault, isSystem não existem no schema atual
         
         // Company filter with hierarchy support
         if (filters.companyId) {
           const companyCondition = or(
-            eq(ticketTemplates.companyId, filters.companyId),
-            isNull(ticketTemplates.companyId)
+            eq(schema.ticketTemplates.companyId, filters.companyId),
+            isNull(schema.ticketTemplates.companyId)
           );
           if (companyCondition) {
             whereConditions.push(companyCondition);
@@ -157,9 +198,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
       const result = await db
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(...whereConditions))
-        .orderBy(asc(ticketTemplates.name));
+        .orderBy(asc(schema.ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -171,19 +212,19 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async findByCategory(tenantId: string, category: string, subcategory?: string): Promise<TicketTemplate[]> {
     try {
       let whereConditions = [
-        eq(ticketTemplates.tenantId, tenantId),
-        eq(ticketTemplates.category, category)
+        eq(schema.ticketTemplates.tenantId, tenantId),
+        eq(schema.ticketTemplates.category, category)
       ];
 
       if (subcategory) {
-        whereConditions.push(eq(ticketTemplates.subcategory, subcategory));
+        whereConditions.push(eq(schema.ticketTemplates.subcategory, subcategory));
       }
 
       const result = await db
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(...whereConditions))
-        .orderBy(asc(ticketTemplates.name));
+        .orderBy(asc(schema.ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -196,12 +237,12 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     try {
       const result = await db
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.defaultType, templateType)
+          eq(schema.ticketTemplates.tenantId, tenantId),
+          eq(schema.ticketTemplates.defaultType, templateType)
         ))
-        .orderBy(asc(ticketTemplates.name));
+        .orderBy(asc(schema.ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -214,15 +255,15 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     try {
       const result = await db
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
+          eq(schema.ticketTemplates.tenantId, tenantId),
           or(
-            eq(ticketTemplates.companyId, companyId),
-            isNull(ticketTemplates.companyId)
+            eq(schema.ticketTemplates.companyId, companyId),
+            isNull(schema.ticketTemplates.companyId)
           )
         ))
-        .orderBy(asc(ticketTemplates.name));
+        .orderBy(asc(schema.ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -235,12 +276,12 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     try {
       const result = await db
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.isActive, true)
+          eq(schema.ticketTemplates.tenantId, tenantId),
+          eq(schema.ticketTemplates.isActive, true)
         ))
-        .orderBy(asc(ticketTemplates.name));
+        .orderBy(asc(schema.ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -253,9 +294,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     try {
       const result = await db
         .select()
-        .from(ticketTemplates)
-        .where(eq(ticketTemplates.tenantId, tenantId))
-        .orderBy(asc(ticketTemplates.name));
+        .from(schema.ticketTemplates)
+        .where(eq(schema.ticketTemplates.tenantId, tenantId))
+        .orderBy(asc(schema.ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -271,29 +312,29 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     tags?: string[];
   }): Promise<TicketTemplate[]> {
     try {
-      let whereConditions = [eq(ticketTemplates.tenantId, tenantId)];
+      let whereConditions = [eq(schema.ticketTemplates.tenantId, tenantId)];
 
       // Text search
       const searchTerm = `%${query.toLowerCase()}%`;
       const searchCondition = or(
-        like(ticketTemplates.name, searchTerm),
-        like(ticketTemplates.description, searchTerm),
-        like(ticketTemplates.category, searchTerm)
+        like(schema.ticketTemplates.name, searchTerm),
+        like(schema.ticketTemplates.description, searchTerm),
+        like(schema.ticketTemplates.category, searchTerm)
       );
       if (searchCondition) {
         whereConditions.push(searchCondition);
       }
 
       if (filters) {
-        if (filters.category) whereConditions.push(eq(ticketTemplates.category, filters.category));
+        if (filters.category) whereConditions.push(eq(schema.ticketTemplates.category, filters.category));
         // templateType não existe no schema atual
       }
 
       const result = await db
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(...whereConditions))
-        .orderBy(desc(ticketTemplates.usageCount), desc(sql`COALESCE(${ticketTemplates.lastUsedAt}, '1970-01-01')`), asc(ticketTemplates.name));
+        .orderBy(desc(schema.ticketTemplates.usageCount), desc(sql`COALESCE(${schema.ticketTemplates.lastUsedAt}, '1970-01-01')`), asc(schema.ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -316,13 +357,13 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async incrementUsageCount(id: string, tenantId: string): Promise<boolean> {
     try {
       const result = await db
-        .update(ticketTemplates)
+        .update(schema.ticketTemplates)
         .set({
-          usageCount: sql`${ticketTemplates.usageCount} + 1`
+          usageCount: sql`${schema.ticketTemplates.usageCount} + 1`
         })
         .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
+          eq(schema.ticketTemplates.id, id),
+          eq(schema.ticketTemplates.tenantId, tenantId)
         ));
 
       return (result.rowCount ?? 0) > 0;
@@ -335,13 +376,13 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async updateLastUsed(id: string, tenantId: string): Promise<boolean> {
     try {
       const result = await db
-        .update(ticketTemplates)
+        .update(schema.ticketTemplates)
         .set({
           lastUsedAt: new Date()
         })
         .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
+          eq(schema.ticketTemplates.id, id),
+          eq(schema.ticketTemplates.tenantId, tenantId)
         ));
 
       return (result.rowCount ?? 0) > 0;
@@ -355,12 +396,12 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     try {
       const result = await db
         .select()
-        .from(ticketTemplates)
+        .from(schema.ticketTemplates)
         .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.isActive, true)
+          eq(schema.ticketTemplates.tenantId, tenantId),
+          eq(schema.ticketTemplates.isActive, true)
         ))
-        .orderBy(desc(ticketTemplates.usageCount), desc(sql`COALESCE(${ticketTemplates.lastUsedAt}, '1970-01-01')`))
+        .orderBy(desc(schema.ticketTemplates.usageCount), desc(sql`COALESCE(${schema.ticketTemplates.lastUsedAt}, '1970-01-01')`))
         .limit(limit || 10);
 
       return result.map(row => this.mapFromDatabase(row));
@@ -436,9 +477,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     try {
       const result = await db
         .select()
-        .from(ticketTemplates)
-        .where(eq(ticketTemplates.tenantId, tenantId))
-        .orderBy(asc(ticketTemplates.usageCount))
+        .from(schema.ticketTemplates)
+        .where(eq(schema.ticketTemplates.tenantId, tenantId))
+        .orderBy(asc(schema.ticketTemplates.usageCount))
         .limit(limit || 10);
 
       return result.map(row => this.mapFromDatabase(row));
