@@ -141,11 +141,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       if (filters) {
         if (filters.category) whereConditions.push(eq(ticketTemplates.category, filters.category));
         if (filters.subcategory) whereConditions.push(eq(ticketTemplates.subcategory, filters.subcategory));
-        if (filters.templateType) whereConditions.push(eq(ticketTemplates.templateType, filters.templateType));
-        if (filters.status) whereConditions.push(eq(ticketTemplates.status, filters.status));
-        if (filters.departmentId) whereConditions.push(eq(ticketTemplates.departmentId, filters.departmentId));
-        if (filters.isDefault !== undefined) whereConditions.push(eq(ticketTemplates.isDefault, filters.isDefault));
-        if (filters.isSystem !== undefined) whereConditions.push(eq(ticketTemplates.isSystem, filters.isSystem));
+        // templateType, status, departmentId, isDefault, isSystem não existem no schema atual
         
         // Company filter with hierarchy support
         if (filters.companyId) {
@@ -259,10 +255,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       const result = await db
         .select()
         .from(ticketTemplates)
-        .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.isDefault, true)
-        ))
+        .where(eq(ticketTemplates.tenantId, tenantId))
         .orderBy(asc(ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
@@ -294,14 +287,14 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
       if (filters) {
         if (filters.category) whereConditions.push(eq(ticketTemplates.category, filters.category));
-        if (filters.templateType) whereConditions.push(eq(ticketTemplates.templateType, filters.templateType));
+        // templateType não existe no schema atual
       }
 
       const result = await db
         .select()
         .from(ticketTemplates)
         .where(and(...whereConditions))
-        .orderBy(desc(ticketTemplates.usageCount), asc(ticketTemplates.name));
+        .orderBy(desc(ticketTemplates.usageCount), desc(sql`COALESCE(${ticketTemplates.lastUsedAt}, '1970-01-01')`), asc(ticketTemplates.name));
 
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -345,7 +338,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       const result = await db
         .update(ticketTemplates)
         .set({
-          lastUsed: new Date()
+          lastUsedAt: new Date()
         })
         .where(and(
           eq(ticketTemplates.id, id),
@@ -368,7 +361,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
           eq(ticketTemplates.tenantId, tenantId),
           eq(ticketTemplates.isActive, true)
         ))
-        .orderBy(desc(ticketTemplates.usageCount), desc(ticketTemplates.lastUsed))
+        .orderBy(desc(ticketTemplates.usageCount), desc(sql`COALESCE(${ticketTemplates.lastUsedAt}, '1970-01-01')`))
         .limit(limit || 10);
 
       return result.map(row => this.mapFromDatabase(row));
