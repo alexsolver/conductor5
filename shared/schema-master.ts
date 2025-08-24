@@ -314,7 +314,7 @@ export const tickets = pgTable("tickets", {
   createdBy: uuid("opened_by_id").references(() => users.id),
   updatedBy: uuid("updated_by"),
 
-  isActive: boolean("is_active").default(true).notNull(),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
@@ -3162,15 +3162,26 @@ export type TemplateApproval = typeof templateApprovals.$inferSelect;
 export type InsertTemplateApproval = typeof templateApprovals.$inferInsert;
 
 // Template Zod schemas
-export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
-  companyId: z.string().uuid().nullable().optional(),
-  defaultCategory: z.string().min(1, "Default category is required"),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates, {
+  name: z.string().min(1, "Template name is required").max(255),
+  category: z.string().max(100).optional(),
+  defaultType: z.enum(["support", "incident", "request", "change"]).default("support"),
+  defaultPriority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+  defaultStatus: z.enum(["open", "in_progress", "resolved", "closed"]).default("open"),
+  usageCount: z.number().int().min(0).default(0),
+  sortOrder: z.number().int().default(0),
+  isGlobal: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  requiredFields: z.array(z.string()).default([]),
+  optionalFields: z.array(z.string()).default([]),
+  hiddenFields: z.array(z.string()).default([]),
+  customFields: z.record(z.any()).default({}),
+  autoAssignmentRules: z.record(z.any()).default({}),
+  slaOverride: z.record(z.any()).default({}),
+});
 
-export const insertTemplateVersionSchema = createInsertSchema(templateVersions);
-export const insertDynamicFieldDefinitionSchema = createInsertSchema(dynamicFieldDefinitions);
-export const insertFieldValidationRuleSchema = createInsertSchema(fieldValidationRules);
-export const insertTemplateApprovalSchema = createInsertSchema(templateApprovals);
+export type TicketTemplate = typeof ticketTemplates.$inferSelect;
+export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
 
 export const ticketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   id: z.string().optional(),
