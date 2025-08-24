@@ -46,7 +46,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       const tenantSchema = this.getTenantSchema();
       console.log('🔥 [CUSTOM-FIELDS-REPO] Querying fields from schema:', tenantSchema);
       
-      const selectQuery = `
+      const selectQuery = sql`
         SELECT 
           id,
           module_type as "moduleType",
@@ -63,12 +63,12 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
           help_text as "helpText",
           created_at as "createdAt",
           updated_at as "updatedAt"
-        FROM "${tenantSchema}".custom_field_metadata
-        WHERE module_type = ? AND is_active = true
+        FROM ${sql.identifier(tenantSchema)}.custom_field_metadata
+        WHERE module_type = ${moduleType} AND is_active = true
         ORDER BY display_order ASC, created_at ASC
       `;
       
-      const result = await db.execute(sql.raw(selectQuery, [moduleType]));
+      const result = await db.execute(selectQuery);
       console.log('🔥 [CUSTOM-FIELDS-REPO] Query result:', result.rows?.length || 0, 'fields found');
       
       return result.rows as CustomFieldMetadata[];
@@ -168,20 +168,20 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
 
       const tenantSchema = this.getTenantSchema();
       
-      // ✅ 1QA.MD: Use SQL template literal for proper parameter binding
-      const insertQuery = sql.raw(
-        `INSERT INTO "${tenantSchema}".custom_field_metadata (
+      // ✅ 1QA.MD: Use proper SQL template with Drizzle for parameter binding
+      const insertQuery = sql`
+        INSERT INTO ${sql.identifier(tenantSchema)}.custom_field_metadata (
           id, module_type, field_name, field_type, field_label,
           is_required, validation_rules, field_options, placeholder,
           default_value, display_order, is_active, help_text,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true, ?, NOW(), NOW())`,
-        [
-          fieldId, moduleType, fieldName, fieldType, fieldLabel,
-          isRequired, JSON.stringify(validationRules), JSON.stringify(fieldOptions),
-          placeholder, defaultValue, displayOrder, helpText
-        ]
-      );
+        ) VALUES (
+          ${fieldId}, ${moduleType}, ${fieldName}, ${fieldType}, ${fieldLabel},
+          ${isRequired}, ${JSON.stringify(validationRules)}, ${JSON.stringify(fieldOptions)}, ${placeholder},
+          ${defaultValue}, ${displayOrder}, true, ${helpText},
+          NOW(), NOW()
+        )
+      `;
       
       await db.execute(insertQuery);
 
