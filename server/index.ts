@@ -445,7 +445,7 @@ app.use((req, res, next) => {
   app.use('/api/locations', locationsRoutes);
   app.use('/api/tickets', ticketsRoutes);
   app.use('/api/timecard', timecardRoutes);
-  
+
   // ✅ 1QA.MD: Import and register custom fields routes
   console.log('🔥 [SERVER] Registering custom-fields routes...');
   const customFieldsRoutes = (await import('./modules/custom-fields/routes')).default;
@@ -464,6 +464,13 @@ app.use((req, res, next) => {
   }, interactiveMapRoutes);
   console.log('🗺️ [SERVER] Interactive Map routes registered at /api/interactive-map');
   console.log('🌤️ [SERVER] Weather integration using SaaS Admin OpenWeather config');
+
+  // Approval routes registration
+  console.log('✅ [APPROVAL-MANAGEMENT] Registering approval routes...');
+  const approvalRoutes = (await import('./modules/approval-management/routes')).default;
+  app.use('/api/approvals', approvalRoutes);
+  console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
+
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

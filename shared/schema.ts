@@ -146,6 +146,19 @@ export type {
 export * from './schema-field-layout';
 export * from './schema-notifications';
 
+// ✅ 1QA.MD: Approval Rules Export - Critical for Approval Management Module
+// Export approval-related tables and enums from schema-master
+export {
+  approvalRules,
+  approvalInstances,
+  approvalDecisions,
+  approvalSteps,
+  approvalConditions,
+  approvalWorkflows,
+  approvalEntityTypeEnum,
+  queryOperatorEnum
+} from './schema-master';
+
 // Selective export from schema-sla to avoid queryOperatorEnum conflict with schema-master
 // TEMPORARILY COMMENTED TO FIX MODULE LOADING ISSUE - WILL RE-ENABLE ONCE SYSTEM IS STABLE
 // export {
