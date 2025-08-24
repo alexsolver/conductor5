@@ -1,4 +1,3 @@
-
 /**
  * ✅ 1QA.MD COMPLIANCE: DRIZZLE TICKET TEMPLATE REPOSITORY
  * Clean Architecture - Infrastructure Layer
@@ -57,7 +56,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         subcategory: template.subcategory || null,
         templateType: template.templateType || 'standard',
         priority: template.priority || 'medium',
-        urgency: template.urgency || 'medium', 
+        urgency: template.urgency || 'medium',
         impact: template.impact || 'medium',
         defaultTitle: template.defaultTitle || null,
         defaultDescription: template.defaultDescription || null,
@@ -101,20 +100,20 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
           .returning();
       } catch (dbError) {
         console.error('❌ [TICKET-TEMPLATE-REPO] Database insertion error:', dbError);
-        
+
         // ✅ 1QA.MD: Handle specific database errors
         if (dbError.message?.includes('duplicate key value')) {
           throw new Error('Um template com este nome já existe');
         }
-        
+
         if (dbError.message?.includes('violates foreign key constraint')) {
           throw new Error('Referência inválida detectada');
         }
-        
+
         if (dbError.message?.includes('violates not-null constraint')) {
           throw new Error('Campo obrigatório em branco detectado');
         }
-        
+
         throw new Error('Erro de banco de dados: ' + dbError.message);
       }
 
@@ -128,7 +127,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
       // ✅ 1QA.MD: Map and validate result
       const mappedTemplate = this.mapFromDatabase(createdTemplate);
-      
+
       if (!mappedTemplate.id) {
         throw new Error('Template criado mas ID não encontrado');
       }
@@ -138,7 +137,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     } catch (error) {
       console.error('❌ [TICKET-TEMPLATE-REPO] Critical error creating ticket template:', error);
       console.error('❌ [TICKET-TEMPLATE-REPO] Error stack:', error instanceof Error ? error.stack : 'No stack');
-      
+
       // ✅ 1QA.MD: Re-throw with detailed context
       throw new Error(`Falha ao criar template: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
@@ -252,7 +251,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async findAll(tenantId: string, filters?: any): Promise<TicketTemplate[]> {
     try {
       console.log('🔍 [TICKET-TEMPLATE-REPO] Finding all templates for tenant:', tenantId);
-      
+
       let query = db.select().from(ticketTemplates).where(eq(ticketTemplates.tenantId, tenantId));
 
       if (filters) {
@@ -271,7 +270,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         if (filters.companyId) {
           query = query.where(and(
             eq(ticketTemplates.tenantId, tenantId),
-            eq(ticketTemplates.companyId, filters.companyId)
+            eq(ticketTemplates.customerCompanyId, filters.companyId)
           ));
         }
         if (filters.isActive !== undefined) {
@@ -283,7 +282,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       }
 
       const result = await query.orderBy(desc(ticketTemplates.createdAt));
-      
+
       console.log('✅ [TICKET-TEMPLATE-REPO] Found templates:', result.length);
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
@@ -346,7 +345,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         .from(ticketTemplates)
         .where(and(
           eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.companyId, companyId),
+          eq(ticketTemplates.customerCompanyId, companyId),
           eq(ticketTemplates.isActive, true)
         ))
         .orderBy(desc(ticketTemplates.usageCount));
@@ -459,11 +458,11 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   // ✅ 1QA.MD: Helper method to map database row to domain entity
   private mapFromDatabase(row: any): TicketTemplate {
     console.log('🔄 [TICKET-TEMPLATE-REPO] Mapping database row to entity');
-    
+
     return {
       id: row.id,
-      tenantId: row.tenantId,
-      companyId: row.companyId,
+      tenantId: row.tenantId || row.tenant_id,
+      companyId: row.customerCompanyId || row.customer_company_id || null,
       name: row.name,
       description: row.description,
       category: row.category,
