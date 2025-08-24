@@ -51,7 +51,7 @@ router.get('/company/:companyId/stats', async (req, res) => {
   console.log('🎯 [TICKET-TEMPLATES-ROUTE] /company/:companyId/stats accessed');
   console.log('🎯 [TICKET-TEMPLATES-ROUTE] CompanyId:', req.params.companyId);
   console.log('🎯 [TICKET-TEMPLATES-ROUTE] User:', (req as any).user);
-  await ticketTemplateController.getTemplates(req as any, res);
+  await ticketTemplateController.getCompanyTemplateStats(req as any, res);
 });
 
 // GET /api/ticket-templates/company/:companyId/categories - Categorias por empresa (compatibilidade)
@@ -96,7 +96,7 @@ router.get('/categories', async (req, res) => {
 
 // GET /api/ticket-templates/stats - Estatísticas dos templates (alias para analytics)
 router.get('/stats', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
+  await ticketTemplateController.getCompanyTemplateStats(req as any, res);
 });
 
 // GET /api/ticket-templates/analytics - Analytics dos templates

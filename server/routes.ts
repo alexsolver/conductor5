@@ -379,26 +379,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/saas-admin', saasAdminRoutes);
   console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
 
+  // 🚨 TICKET-TEMPLATES - EMERGENCIAL REGISTRATION MOVED TO TOP per 1qa.md
+  console.log('🚨 [TICKET-TEMPLATES] PRIORITY EMERGENCY registration starting...');
+  try {
+    console.log('🚨 [TICKET-TEMPLATES] Loading ticket-templates module...');
+    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
+    console.log('🚨 [TICKET-TEMPLATES] Module loaded, registering routes...');
+    app.use('/api/ticket-templates', jwtAuth as any, enhancedTenantValidator as any, tenantSchemaEnforcer as any, ticketTemplateRoutes);
+    console.log('✅ [TICKET-TEMPLATES] EMERGENCY registration SUCCESS!');
+  } catch (error: any) {
+    console.error('❌ [TICKET-TEMPLATES] EMERGENCY registration FAILED:', error);
+    console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
+    console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
+  }
+  console.log('🚨 [TICKET-TEMPLATES] Emergency block COMPLETED');
+
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
   app.use('/api/tickets', ticketsRoutes);
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
-
-  // ✅ TICKET-TEMPLATES - EMERGENCIAL DIRECT REGISTRATION per 1qa.md
-  console.log('🚨 [TICKET-TEMPLATES] Starting emergency registration block...');
-  try {
-    console.log('🚨 [TICKET-TEMPLATES] Emergency direct registration starting...');
-    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
-    console.log('🚨 [TICKET-TEMPLATES] Import successful, registering routes...');
-    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
-    console.log('✅ [TICKET-TEMPLATES] Emergency registration completed successfully!');
-  } catch (error: any) {
-    console.error('❌ [TICKET-TEMPLATES] Emergency registration failed:', error);
-    console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
-    console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
-  }
-  console.log('🚨 [TICKET-TEMPLATES] Emergency registration block finished');
 
   // ✅ NOTIFICATIONS & ALERTS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
