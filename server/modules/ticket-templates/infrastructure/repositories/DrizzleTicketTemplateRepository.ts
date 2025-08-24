@@ -8,7 +8,7 @@
  */
 
 import { db } from '../../../../db';
-import { ticketTemplates } from '../../../../shared/schema-master';
+import { ticketTemplates } from '../../../../shared/schema-master.js';
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
 import { TicketTemplate, UserFeedback } from '../../domain/entities/TicketTemplate';
 import { eq, and, or, isNull, desc, asc, like, inArray, sql, count } from 'drizzle-orm';
