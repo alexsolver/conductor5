@@ -309,7 +309,7 @@ export const tickets = pgTable("tickets", {
   slaElapsedPercent: decimal("sla_elapsed_percent", { precision: 5, scale: 2 }).default("0"), // Percentual decorrido 0-100
   slaStatus: varchar("sla_status", { length: 20 }).default("none"), // none, active, warning, breached
   appliedSlaId: uuid("applied_sla_id"), // ID da definição SLA aplicada
-  
+
   // Audit fields
   createdBy: uuid("opened_by_id").references(() => users.id),
   updatedBy: uuid("updated_by"),
@@ -1351,9 +1351,9 @@ export const ticketDefaultConfigurations = pgTable("ticket_default_configuration
   index("ticket_default_configs_customer_idx").on(table.tenantId, table.customerId),
 ]);
 
-// ===========================
+// ========================================
 // NOTIFICATIONS SYSTEM TABLES
-// ===========================
+// ========================================
 
 export const notifications = pgTable('notifications', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -1496,7 +1496,7 @@ export type LocalizationContext = typeof localizationContext.$inferSelect;
 export type InsertLocalizationContext = typeof localizationContext.$inferInsert;
 
 export type Holiday = typeof holidays.$inferSelect;
-export type InsertHoliday = typeof holidays.$inferInsert;
+export type InsertHoliday = typeof holidays.$insert;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
@@ -3402,10 +3402,10 @@ export type Asset = typeof assets.$inferSelect;
 export type InsertAsset = typeof assets.$inferInsert;
 
 export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
-export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
+export type InsertAssetMaintenance = typeof assetMaintenance.$insert;
 
 export type AssetMeter = typeof assetMeters.$inferSelect;
-export type InsertAssetMeter = typeof assetMeters.$inferInsert;
+export type InsertAssetMeter = typeof assetMeters.$insert;
 
 export type AssetLocation = typeof assetLocations.$inferSelect;
 export type InsertAssetLocation = typeof assetLocations.$inferInsert;
@@ -3431,7 +3431,7 @@ export type InsertComplianceScore = typeof complianceScores.$inferInsert;
 
 // Approval schemas and types will be defined after table declarations below
 
-// Zod schemas para validação
+// Zod schemas for validation
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
   name: z.string().min(1, "Nome da visualização é obrigatório"),
   columns: z.array(z.object({
@@ -3508,7 +3508,7 @@ export const approverTypeEnum = pgEnum("approver_type", [
 
 // Query builder operators
 export const queryOperatorEnum = pgEnum("query_operator", [
-  "EQ", "NEQ", "IN", "NOT_IN", "GT", "GTE", "LT", "LTE", 
+  "EQ", "NEQ", "IN", "NOT_IN", "GT", "GTE", "LT", "LTE",
   "CONTAINS", "STARTS_WITH", "EXISTS", "BETWEEN"
 ]);
 
@@ -3518,30 +3518,30 @@ export const approvalRules = pgTable("approval_rules", {
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  
+
   // Module context
   moduleType: approvalEntityTypeEnum("module_type").notNull(),
   entityType: varchar("entity_type", { length: 100 }).notNull(), // Specific entity within module
-  
+
   // Query builder conditions (JSON structure)
   queryConditions: jsonb("query_conditions").notNull(),
-  
+
   // Approval pipeline configuration
   approvalSteps: jsonb("approval_steps").notNull(),
-  
+
   // SLA settings - aligned with database reality
   slaHours: integer("sla_hours").default(24),
   businessHoursOnly: boolean("business_hours_only").default(true),
   autoApprovalConditions: jsonb("auto_approval_conditions").default({}),
   escalationSettings: jsonb("escalation_settings").default({}),
-  
+
   // Hierarchical association
   companyId: uuid("company_id").references(() => customers.id), // Associate with customer/company
 
   // Configuration
   isActive: boolean("is_active").default(true),
   priority: integer("priority").default(0), // Higher priority rules evaluated first
-  
+
   // Audit fields
   createdById: uuid("created_by_id").notNull(),
   updatedById: uuid("updated_by_id"),
@@ -3559,21 +3559,21 @@ export const approvalInstances = pgTable("approval_instances", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   ruleId: uuid("rule_id").references(() => approvalRules.id).notNull(),
-  
+
   // Entity being approved
   entityType: approvalEntityTypeEnum("entity_type").notNull(),
   entityId: uuid("entity_id").notNull(),
   entityData: jsonb("entity_data"), // Snapshot of entity at approval time
-  
+
   // Workflow state
   currentStepIndex: integer("current_step_index").default(0),
   status: approvalStatusEnum("status").default("pending"),
-  
+
   // Request information
   requestedById: uuid("requested_by_id").notNull(),
   requestReason: text("request_reason"),
   urgencyLevel: integer("urgency_level").default(1), // 1-5 scale
-  
+
   // SLA tracking
   slaDeadline: timestamp("sla_deadline"),
   slaElapsedMinutes: integer("sla_elapsed_minutes"),
@@ -3581,16 +3581,16 @@ export const approvalInstances = pgTable("approval_instances", {
   firstReminderSent: timestamp("first_reminder_sent"),
   secondReminderSent: timestamp("second_reminder_sent"),
   escalatedAt: timestamp("escalated_at"),
-  
+
   // Completion data
   completedAt: timestamp("completed_at"),
   completedById: uuid("completed_by_id"),
   completionReason: text("completion_reason"),
-  
+
   // Metrics
   totalResponseTimeMinutes: integer("total_response_time_minutes"),
   slaViolated: boolean("sla_violated").default(false),
-  
+
   // Audit fields
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3608,30 +3608,30 @@ export const approvalSteps = pgTable("approval_steps", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
-  
+
   // Step configuration
   stepIndex: integer("step_index").notNull(),
   stepName: varchar("step_name", { length: 255 }).notNull(),
   decisionMode: stepDecisionModeEnum("decision_mode").notNull(),
   quorumCount: integer("quorum_count"), // Required when decision_mode = QUORUM
-  
+
   // Step status
   status: approvalStatusEnum("status").default("pending"),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-  
+
   // SLA for this step
   stepSlaHours: integer("step_sla_hours").default(24),
   stepDeadline: timestamp("step_deadline"),
-  
+
   // Approvers for this step
   approverConfiguration: jsonb("approver_configuration").notNull(),
-  
+
   // Results
   approvedCount: integer("approved_count").default(0),
   rejectedCount: integer("rejected_count").default(0),
   totalApprovers: integer("total_approvers").default(0),
-  
+
   // Audit fields
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3649,32 +3649,32 @@ export const approvalDecisions = pgTable("approval_decisions", {
   tenantId: uuid("tenant_id").notNull(),
   instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
   stepId: uuid("step_id").references(() => approvalSteps.id).notNull(),
-  
+
   // Approver information
   approverType: approverTypeEnum("approver_type").notNull(),
   approverId: uuid("approver_id"), // User ID when approver_type = user
   approverGroupId: uuid("approver_group_id"), // Group ID when approver_type = user_group
   approverName: varchar("approver_name", { length: 255 }).notNull(),
-  
+
   // Decision details
   decision: approvalDecisionEnum("decision").notNull(),
   comments: text("comments").notNull(),
   attachments: jsonb("attachments"), // File attachments for decision
-  
+
   // Timing
   decidedAt: timestamp("decided_at").defaultNow(),
   notifiedAt: timestamp("notified_at"),
   responseTimeMinutes: integer("response_time_minutes"),
-  
+
   // Delegation/Escalation tracking
   delegatedToId: uuid("delegated_to_id"),
   escalatedFromStepId: uuid("escalated_from_step_id"),
   escalationReason: text("escalation_reason"),
-  
+
   // Audit information
   ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: text("user_agent"),
-  
+
   // System tracking
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3693,30 +3693,30 @@ export const approvalNotifications = pgTable("approval_notifications", {
   tenantId: uuid("tenant_id").notNull(),
   instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
   stepId: uuid("step_id").references(() => approvalSteps.id),
-  
+
   // Recipient information
   recipientType: varchar("recipient_type", { length: 50 }).notNull(), // user, external_email, webhook
   recipientId: uuid("recipient_id"),
   recipientEmail: varchar("recipient_email", { length: 255 }),
-  
+
   // Notification details
   notificationType: varchar("notification_type", { length: 50 }).notNull(), // request, reminder, escalation, completion
   channel: varchar("channel", { length: 50 }).notNull(), // email, in_app, sms, webhook, slack
   subject: varchar("subject", { length: 500 }),
   content: text("content"),
-  
-  // Delivery tracking
+
+  // Deliverytracking
   sentAt: timestamp("sent_at"),
   deliveredAt: timestamp("delivered_at"),
   readAt: timestamp("read_at"),
   status: varchar("status", { length: 20 }).default("pending"), // pending, sent, delivered, failed, read
   errorMessage: text("error_message"),
-  
+
   // Retry logic
   retryCount: integer("retry_count").default(0),
   maxRetries: integer("max_retries").default(3),
   nextRetryAt: timestamp("next_retry_at"),
-  
+
   // System tracking
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3733,24 +3733,24 @@ export const approvalNotifications = pgTable("approval_notifications", {
 export const approvalDelegations = pgTable("approval_delegations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Delegation details
   delegatorId: uuid("delegator_id").notNull(), // User delegating authority
   delegateId: uuid("delegate_id").notNull(), // User receiving authority
-  
+
   // Scope of delegation
   moduleTypes: text("module_types").array(), // Which modules this delegation covers
   ruleIds: text("rule_ids").array(), // Specific rules (null = all rules)
   maxValue: decimal("max_value", { precision: 15, scale: 2 }), // Maximum value they can approve
-  
+
   // Timing
   validFrom: timestamp("valid_from").defaultNow(),
   validUntil: timestamp("valid_until"),
-  
+
   // Status
   isActive: boolean("is_active").default(true),
   delegationReason: text("delegation_reason"),
-  
+
   // Audit fields
   createdById: uuid("created_by_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
