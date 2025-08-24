@@ -528,27 +528,51 @@ export class TicketTemplateController {
 
   async getTemplateStatsByCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
+      console.log('🔍 [TEMPLATE-CONTROLLER] Getting stats for company:', req.params.companyId);
+
       const { companyId } = req.params;
       const tenantId = req.user?.tenantId;
+      const userRole = req.user?.role;
 
-      if (!tenantId) {
-        res.status(400).json({
+      if (!tenantId || !userRole) {
+        res.status(401).json({
           success: false,
-          message: 'Tenant ID is required',
-          code: 'TENANT_ID_REQUIRED'
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
         });
         return;
       }
 
-      const stats = await this.getTicketTemplatesUseCase.getTemplateStatsByCompany(companyId, tenantId);
+      const result = await this.getTicketTemplatesUseCase.execute({
+        tenantId,
+        userRole,
+        companyId: companyId === 'all' ? undefined : companyId,
+        includeAnalytics: true
+      });
+
+      if (!result.success) {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to get template statistics',
+          errors: result.errors
+        });
+        return;
+      }
+
+      console.log('✅ [TEMPLATE-CONTROLLER] Stats retrieved for company:', result.data?.templates?.length || 0);
 
       res.json({
         success: true,
         message: 'Template statistics retrieved successfully',
-        data: stats
+        data: {
+          analytics: result.data?.analytics || {},
+          templates: result.data?.templates || [],
+          totalCount: result.data?.templates?.length || 0,
+          companyId: companyId === 'all' ? null : companyId
+        }
       });
     } catch (error) {
-      console.error('[GET-TEMPLATE-STATS-BY-COMPANY-CONTROLLER]', error);
+      console.error('❌ [GET-TEMPLATE-STATS-BY-COMPANY-CONTROLLER]', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : 'Failed to get template statistics',
@@ -558,7 +582,7 @@ export class TicketTemplateController {
   }
 
   /**
-   * Get templates by company
+   * ✅ 1QA.MD: Get templates by company (Clean Architecture compliance)
    * GET /ticket-templates/company/:companyId
    */
   getTemplatesByCompany = async (req: AuthenticatedRequest, res: Response) => {
@@ -566,34 +590,44 @@ export class TicketTemplateController {
       console.log('🔍 [TEMPLATE-CONTROLLER] Getting templates for company:', req.params.companyId);
 
       const companyId = req.params.companyId;
-      const tenantId = (req as any).user?.tenantId;
+      const tenantId = req.user?.tenantId;
+      const userRole = req.user?.role;
 
-      if (!tenantId) {
-        res.status(400).json({
+      if (!tenantId || !userRole) {
+        res.status(401).json({
           success: false,
-          message: 'Tenant ID is required'
+          message: 'Authentication required'
         });
         return;
       }
 
-      // Handle "all" companies case
-      let templates;
-      if (companyId === 'all') {
-        templates = await this.getTicketTemplatesUseCase.execute(tenantId);
-      } else {
-        templates = await this.getTicketTemplatesUseCase.executeByCompany(companyId, tenantId);
+      const result = await this.getTicketTemplatesUseCase.execute({
+        tenantId,
+        userRole,
+        companyId: companyId === 'all' ? undefined : companyId,
+        includeAnalytics: false
+      });
+
+      if (!result.success) {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to get templates',
+          errors: result.errors
+        });
+        return;
       }
 
-      console.log('✅ [TEMPLATE-CONTROLLER] Templates retrieved:', templates?.length || 0);
+      console.log('✅ [TEMPLATE-CONTROLLER] Templates retrieved for company:', result.data?.templates?.length || 0);
 
       res.json({
         success: true,
+        message: 'Templates retrieved successfully',
         data: {
-          templates: templates || []
+          templates: result.data?.templates || []
         }
       });
     } catch (error) {
-      console.error('❌ [TEMPLATE-CONTROLLER] Get templates by company error:', error);
+      console.error('❌ [TEMPLATE-CONTROLLER] getTemplatesByCompany error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve templates',
