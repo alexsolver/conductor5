@@ -892,6 +892,13 @@ Respond ONLY with a JSON object where keys are the original text and values are 
   }
 
   private hasTranslation(translations: Record<string, any>, key: string): boolean {
+    // First check direct key (most common case in flat JSON files)
+    if (key in translations) {
+      const value = translations[key];
+      return value !== undefined && value !== null && value !== '';
+    }
+
+    // Fallback: check nested structure for complex keys
     const keys = key.split('.');
     let current = translations;
 
@@ -939,10 +946,10 @@ Respond ONLY with a JSON object where keys are the original text and values are 
         completeness
       };
       
-      console.log(`📊 [COMPLETION-REPORT] ${language}: ${existingKeys}/${keys.length} keys (${completeness}%)`);
+      console.log(`📊 [COMPLETION-REPORT] ${language}: ${existingKeys}/${keys.length} keys (${completeness}%) - [FIXED COUNT]`);
     }
     
-    console.log(`✅ [COMPLETION-REPORT] Report generated successfully with ${keys.length} total keys`);
+    console.log(`✅ [COMPLETION-REPORT] Report generated successfully with ${keys.length} total keys [IMPROVED LOGIC]`);
     
     return {
       scannedAt: new Date().toISOString(),
