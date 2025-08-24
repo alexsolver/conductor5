@@ -319,7 +319,7 @@ export {
   meterTypeEnum,
   calibrationStatusEnum,
   calibrationFrequencyEnum,
-  meterReadingTypeEnum
+  meterReadingTypeEnum,
   companyLogoStorageEnum,
   companyFileStorageEnum,
   ticketCategoryEnum,
