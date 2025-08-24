@@ -43,16 +43,29 @@ export class CreateTicketTemplateUseCase {
   constructor(private ticketTemplateRepository: ITicketTemplateRepository) {}
 
   async execute(templateData: any): Promise<any> {
-    try {
-      console.log('🎯 [CREATE-TEMPLATE-UC] Executing with data:', templateData);
+    console.log('🚀 [CREATE-TEMPLATE-USE-CASE] Starting execution with data:', {
+      tenantId: templateData.tenantId,
+      name: templateData.name,
+      category: templateData.category,
+      companyId: templateData.companyId,
+      hasFields: !!templateData.fields
+    });
 
-      // Validate required fields
-      if (!templateData.name || !templateData.description || !templateData.category) {
-        throw new Error('Name, description, and category are required');
+    try {
+      // ✅ 1QA.MD: Comprehensive validation
+      if (!templateData.tenantId) {
+        console.log('❌ [CREATE-TEMPLATE-USE-CASE] Missing tenant ID');
+        throw new Error('Tenant ID is required');
       }
 
-      if (!templateData.tenantId) {
-        throw new Error('Tenant ID is required');
+      if (!templateData.name || templateData.name.trim().length === 0) {
+        console.log('❌ [CREATE-TEMPLATE-USE-CASE] Missing template name');
+        throw new Error('Template name is required');
+      }
+
+      if (!templateData.category || templateData.category.trim().length === 0) {
+        console.log('❌ [CREATE-TEMPLATE-USE-CASE] Missing category');
+        throw new Error('Template category is required');
       }
 
       // Prepare template data with proper defaults

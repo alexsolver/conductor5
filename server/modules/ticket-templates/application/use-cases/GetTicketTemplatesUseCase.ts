@@ -43,76 +43,93 @@ export class GetTicketTemplatesUseCase {
   constructor(private ticketTemplateRepository: ITicketTemplateRepository) {}
 
   async execute(request: GetTicketTemplatesRequest): Promise<GetTicketTemplatesResponse> {
+    console.log('🎯 [GET-TEMPLATES-USE-CASE] Starting execution with request:', {
+      tenantId: request.tenantId,
+      userRole: request.userRole,
+      companyId: request.companyId,
+      hasFilters: !!request.filters
+    });
+
     try {
-      console.log('🎯 [GET-TEMPLATES-UC] Executing with request:', request);
-
-      // Validate required fields following 1qa.md standards
-      if (!request.tenantId) {
-        throw new Error('Tenant ID is required');
-      }
-
-      if (!request.userRole) {
-        throw new Error('User role is required');
+      // ✅ 1QA.MD: Validate request parameters
+      if (!request.tenantId || !request.userRole) {
+        console.log('❌ [GET-TEMPLATES-USE-CASE] Invalid request - missing tenantId or userRole');
+        return {
+          success: false,
+          errors: ['Tenant ID and user role are required']
+        };
       }
 
       // Get templates based on request parameters
-      let templates: TicketTemplate[] = [];
+      let allTemplates: TicketTemplate[] = [];
 
       if (request.templateId) {
         // Get single template
         const template = await this.ticketTemplateRepository.findById(request.templateId, request.tenantId);
-        templates = template ? [template] : [];
+        allTemplates = template ? [template] : [];
       } else if (request.companyId && request.companyId !== 'all') {
         // Get templates by company
-        templates = await this.ticketTemplateRepository.findByCompany(request.companyId, request.tenantId);
+        allTemplates = await this.ticketTemplateRepository.findByCompany(request.companyId, request.tenantId);
       } else {
         // Get all templates for tenant
-        templates = await this.ticketTemplateRepository.findByTenant(request.tenantId);
+        allTemplates = await this.ticketTemplateRepository.findByTenant(request.tenantId);
       }
 
       // Apply filters if provided
       if (request.filters) {
-        templates = this.applyFilters(templates, request.filters);
+        allTemplates = this.applyFilters(allTemplates, request.filters);
       }
 
       // Apply search if provided
       if (request.search) {
-        templates = this.applySearch(templates, request.search);
+        allTemplates = this.applySearch(allTemplates, request.search);
       }
 
-      console.log('✅ [GET-TEMPLATES-UC] Found templates:', templates.length);
+      console.log('✅ [GET-TEMPLATES-USE-CASE] Templates retrieved successfully:', {
+        count: allTemplates.length,
+        templateIds: allTemplates.map(t => t.id),
+        companyFilter: request.companyId
+      });
 
       // Prepare analytics if requested
       let analytics = undefined;
-      let usageStatistics = undefined;
+      let usageStats = undefined; // Renamed from usageStatistics for consistency in scope
       let fieldAnalytics = undefined;
 
       if (request.includeAnalytics) {
-        analytics = this.generateAnalytics(templates);
+        analytics = this.generateAnalytics(allTemplates);
       }
 
       if (request.includeUsageStats) {
-        usageStatistics = this.generateUsageStats(templates);
+        usageStats = this.generateUsageStats(allTemplates);
       }
 
-      const response = {
-        success: true,
-        data: {
-          templates,
-          ...(analytics && { analytics }),
-          ...(usageStatistics && { usageStatistics }),
-          ...(fieldAnalytics && { fieldAnalytics })
-        }
+      // ✅ 1QA.MD: Build response with consistent structure
+      const responseData = {
+        templates: allTemplates || [], // Always ensure array
+        ...(request.includeAnalytics && analytics && { analytics }),
+        ...(request.includeUsageStats && usageStats && { usageStatistics: usageStats }),
+        ...(fieldAnalytics && { fieldAnalytics })
       };
 
-      console.log('🚀 [GET-TEMPLATES-UC] Response prepared successfully');
-      return response;
+      console.log('📤 [GET-TEMPLATES-USE-CASE] Sending response with structure:', {
+        hasTemplates: Array.isArray(responseData.templates),
+        templatesCount: responseData.templates?.length || 0,
+        hasAnalytics: !!responseData.analytics,
+        hasUsageStats: !!responseData.usageStatistics,
+        success: true
+      });
+
+      return {
+        success: true,
+        data: responseData
+      };
 
     } catch (error) {
-      console.error('❌ [GET-TEMPLATES-UC] Error:', error);
+      console.error('❌ [GET-TEMPLATES-USE-CASE] Uncaught error during execution:', error);
       return {
         success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error instanceof Error ? error.message : 'An unexpected error occurred']
       };
     }
   }
@@ -153,8 +170,9 @@ export class GetTicketTemplatesUseCase {
       return acc;
     }, {} as Record<string, number>);
 
-    const averageUsage = templates.reduce((sum, t) => sum + (t.usageCount || 0), 0) / totalTemplates || 0;
-    const maxUsage = Math.max(...templates.map(t => t.usageCount || 0));
+    const usageCounts = templates.map(t => t.usageCount || 0);
+    const averageUsage = totalTemplates > 0 ? usageCounts.reduce((sum, count) => sum + count, 0) / totalTemplates : 0;
+    const maxUsage = totalTemplates > 0 ? Math.max(...usageCounts) : 0;
 
     return {
       totalTemplates,
@@ -180,20 +198,24 @@ export class GetTicketTemplatesUseCase {
     try {
       const templates = await this.ticketTemplateRepository.findByCompany(companyId, tenantId);
 
+      const usageCounts = templates.map(t => t.usageCount || 0);
+      const avgUsage = templates.length > 0 ? usageCounts.reduce((sum, count) => sum + count, 0) / templates.length : 0;
+      const maxUsage = templates.length > 0 ? Math.max(...usageCounts) : 0;
+
       return {
         success: true,
         data: {
           total_templates: templates.length,
           active_templates: templates.filter(t => t.status === 'active').length,
-          avg_usage: templates.reduce((sum, t) => sum + (t.usageCount || 0), 0) / templates.length || 0,
-          max_usage: Math.max(...templates.map(t => t.usageCount || 0))
+          avg_usage: Math.round(avgUsage * 100) / 100,
+          max_usage: maxUsage
         }
       };
     } catch (error) {
       console.error('❌ [GET-TEMPLATES-UC] getTemplateStatsByCompany error:', error);
       return {
         success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error instanceof Error ? error.message : 'An unexpected error occurred']
       };
     }
   }

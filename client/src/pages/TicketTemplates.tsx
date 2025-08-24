@@ -153,17 +153,22 @@ export default function TicketTemplates() {
   });
 
   const templates = React.useMemo(() => {
-    console.log('🔄 [TEMPLATES-PROCESSING] Processing templates response:', templatesResponse);
+    console.log('🔄 [TEMPLATES-PROCESSING] Processing templates response:', {
+      hasResponse: !!templatesResponse,
+      responseType: typeof templatesResponse,
+      isSuccess: templatesResponse?.success,
+      hasData: !!templatesResponse?.data
+    });
 
     if (!templatesResponse) {
       console.log('❌ [TEMPLATES-PROCESSING] No response data');
       return [];
     }
 
-    // Check if response has the expected structure
+    // ✅ 1QA.MD: Robust response handling
     if (templatesResponse.success && templatesResponse.data?.templates) {
       console.log('✅ [TEMPLATES-PROCESSING] Found templates:', templatesResponse.data.templates.length);
-      return templatesResponse.data.templates;
+      return Array.isArray(templatesResponse.data.templates) ? templatesResponse.data.templates : [];
     }
 
     // Fallback: check if response is directly an array
@@ -178,6 +183,12 @@ export default function TicketTemplates() {
       return templatesResponse.data;
     }
 
+    // Handle error responses
+    if (templatesResponse.success === false) {
+      console.log('❌ [TEMPLATES-PROCESSING] API error response:', templatesResponse.errors);
+      return [];
+    }
+
     console.log('❌ [TEMPLATES-PROCESSING] Unexpected response structure:', templatesResponse);
     return [];
   }, [templatesResponse]);
@@ -187,20 +198,48 @@ export default function TicketTemplates() {
   // Mutation para criar template
   const createTemplateMutation = useMutation({
     mutationFn: async (data: TemplateFormData) => {
-      console.log('🚀 [CREATE-TEMPLATE] Creating template:', data);
-      const endpoint = selectedCompany === 'all' 
-        ? '/api/ticket-templates' 
-        : `/api/ticket-templates`;
+      console.log('🚀 [CREATE-TEMPLATE] Creating template:', {
+        name: data.name,
+        category: data.category,
+        companyId: selectedCompany === 'all' ? null : selectedCompany
+      });
+      
+      const endpoint = '/api/ticket-templates';
 
+      // ✅ 1QA.MD: Consistent payload structure
       const payload = {
         ...data,
         companyId: selectedCompany === 'all' ? null : selectedCompany,
         defaultTags: data.defaultTags || '',
         customFields: null,
+        isActive: true,
+        usageCount: 0,
+        tags: data.defaultTags ? data.defaultTags.split(',').map(t => t.trim()) : [],
+        templateType: 'standard',
+        status: 'active',
+        fields: [],
+        automation: {
+          enabled: false,
+          autoAssign: { enabled: false, rules: [] },
+          autoTags: { enabled: false, tags: [] },
+          sla: { enabled: false }
+        },
+        workflow: {
+          enabled: false,
+          stages: []
+        },
+        permissions: []
       };
 
       console.log('📤 [CREATE-TEMPLATE] Payload:', payload);
       const response = await apiRequest('POST', endpoint, payload);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [CREATE-TEMPLATE] API Error:', response.status, errorText);
+        throw new Error(`Failed to create template: ${response.status} ${errorText}`);
+      }
+      
       const result = await response.json();
       console.log('✅ [CREATE-TEMPLATE] Response:', result);
       return result;
