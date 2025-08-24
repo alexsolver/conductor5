@@ -87,7 +87,10 @@ export class TicketTemplateController {
    */
   getTemplates = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log('🎯 [CONTROLLER] GET /api/ticket-templates called with query:', req.query);
+      console.log('🚨 [TEMPLATE-CONTROLLER] === STARTING EXECUTION ===');
+      console.log('🎯 [TEMPLATE-CONTROLLER] GET /api/ticket-templates called');
+      console.log('🎯 [TEMPLATE-CONTROLLER] Query params:', req.query);
+      console.log('🎯 [TEMPLATE-CONTROLLER] Headers:', req.headers.authorization ? 'HAS_AUTH' : 'NO_AUTH');
 
       const user = (req as any).user;
       if (!user || !user.tenantId) {
@@ -229,6 +232,9 @@ export class TicketTemplateController {
    */
   getCategories = async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('🚨 [CATEGORIES-CONTROLLER] === STARTING CATEGORIES EXECUTION ===');
+      console.log('🎯 [CATEGORIES-CONTROLLER] User:', req.user);
+      
       const tenantId = req.user?.tenantId;
       const userRole = req.user?.role;
 
@@ -495,6 +501,10 @@ export class TicketTemplateController {
    */
   getCompanyTemplateStats = async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('🚨 [STATS-CONTROLLER] === STARTING STATS EXECUTION ===');
+      console.log('🎯 [STATS-CONTROLLER] CompanyId:', req.params.companyId);
+      console.log('🎯 [STATS-CONTROLLER] User:', req.user);
+      
       const tenantId = req.user?.tenantId;
       const userRole = req.user?.role;
       const companyId = req.params.companyId;
