@@ -1433,6 +1433,51 @@ export const customerItemMappings = pgTable("customer_item_mappings", {
   unique("customer_item_mappings_unique").on(table.tenantId, table.customerId, table.itemId),
 ]);
 
+// ✅ 1QA.MD: Ticket Templates - Template management for tickets
+export const ticketTemplates = pgTable("ticket_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  companyId: uuid("company_id"),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(),
+  subcategory: varchar("subcategory", { length: 100 }),
+  templateType: varchar("template_type", { length: 50 }).default("standard"),
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  urgency: varchar("urgency", { length: 20 }).default("medium"),
+  impact: varchar("impact", { length: 20 }).default("medium"),
+  defaultTitle: varchar("default_title", { length: 500 }),
+  defaultDescription: text("default_description"),
+  defaultTags: text("default_tags"),
+  estimatedHours: integer("estimated_hours"),
+  isActive: boolean("is_active").default(true),
+  isDefault: boolean("is_default").default(false),
+  isSystem: boolean("is_system").default(false),
+  requiresApproval: boolean("requires_approval").default(false),
+  autoAssign: boolean("auto_assign").default(false),
+  defaultAssigneeId: uuid("default_assignee_id"),
+  defaultAssigneeRole: varchar("default_assignee_role", { length: 100 }),
+  usageCount: integer("usage_count").default(0),
+  lastUsedAt: timestamp("last_used_at"),
+  fields: jsonb("fields").default("[]"),
+  automation: jsonb("automation").default("{}"),
+  workflow: jsonb("workflow").default("{}"),
+  permissions: jsonb("permissions").default("[]"),
+  metadata: jsonb("metadata").default("{}"),
+  status: varchar("status", { length: 20 }).default("active"),
+  version: varchar("version", { length: 20 }).default("1.0.0"),
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+}, (table) => [
+  index("ticket_templates_tenant_idx").on(table.tenantId),
+  index("ticket_templates_tenant_category_idx").on(table.tenantId, table.category),
+  index("ticket_templates_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("ticket_templates_tenant_company_idx").on(table.tenantId, table.companyId),
+  unique("ticket_templates_tenant_name_unique").on(table.tenantId, table.name)
+]);
+
 // ========================================
 // SCHEMA VALIDATION & TYPES  
 // ========================================
@@ -1512,6 +1557,7 @@ export const insertItemLinkSchema = createInsertSchema(itemLinks);
 export const insertItemCustomerLinkSchema = createInsertSchema(itemCustomerLinks);
 export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks);
 export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings);
+export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates);
 
 // Types
 export type Customer = typeof customers.$inferSelect;
@@ -1660,3 +1706,5 @@ export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
 export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
 export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
 export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
+export type TicketTemplate = typeof ticketTemplates.$inferSelect;
+export type InsertTicketTemplate = z.infer<typeof insertTicketTemplateSchema>;
