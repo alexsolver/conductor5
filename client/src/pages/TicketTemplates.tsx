@@ -130,11 +130,11 @@ export default function TicketTemplates() {
 
   // Query para buscar estatísticas
   const { data: statsResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/stats', selectedCompany],
+    queryKey: ['ticket-templates-stats', selectedCompany],
     queryFn: async () => {
       const endpoint = selectedCompany === 'all' 
         ? '/api/ticket-templates/analytics' 
-        : `/api/ticket-templates/analytics?companyId=${selectedCompany}`;
+        : `/api/ticket-templates/company/${selectedCompany}/stats`;
       const response = await apiRequest('GET', endpoint);
       return response.json();
     },
@@ -142,7 +142,7 @@ export default function TicketTemplates() {
 
   // Query para buscar categorias
   const { data: categoriesResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/categories', selectedCompany],
+    queryKey: ['ticket-templates-categories', selectedCompany],
     queryFn: async () => {
       const endpoint = selectedCompany === 'all' 
         ? '/api/ticket-templates/categories' 
@@ -190,11 +190,29 @@ export default function TicketTemplates() {
 
   // Mutation para criar template
   const createTemplateMutation = useMutation({
-    mutationFn: (data: TemplateFormData) => 
-      apiRequest('POST', `/api/ticket-templates/company/${selectedCompany}`, data),
+    mutationFn: async (data: TemplateFormData) => {
+      console.log('🚀 [CREATE-TEMPLATE] Creating template:', data);
+      const endpoint = selectedCompany === 'all' 
+        ? '/api/ticket-templates' 
+        : `/api/ticket-templates`;
+      
+      const payload = {
+        ...data,
+        companyId: selectedCompany === 'all' ? null : selectedCompany,
+        defaultTags: data.defaultTags || '',
+        customFields: null,
+      };
+      
+      console.log('📤 [CREATE-TEMPLATE] Payload:', payload);
+      const response = await apiRequest('POST', endpoint, payload);
+      const result = await response.json();
+      console.log('✅ [CREATE-TEMPLATE] Response:', result);
+      return result;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-stats', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-categories', selectedCompany] });
       setIsCreateOpen(false);
       form.reset();
       toast({
@@ -203,6 +221,7 @@ export default function TicketTemplates() {
       });
     },
     onError: (error: any) => {
+      console.error('❌ [CREATE-TEMPLATE] Error:', error);
       toast({
         title: "Erro ao criar template",
         description: error.message || "Ocorreu um erro inesperado.",
@@ -215,8 +234,9 @@ export default function TicketTemplates() {
   const deleteTemplateMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/ticket-templates/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-stats', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-categories', selectedCompany] });
       toast({
         title: "Template excluído",
         description: "O template foi excluído com sucesso.",

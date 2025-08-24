@@ -37,7 +37,7 @@ router.get('/company/:companyId/categories', async (req, res) => {
   await ticketTemplateController.getCategories(req, res);
 });
 
-// POST /api/ticket-templates/company/:companyId - Criar template por empresa (compatibilidade)
+// POST /api/ticket-templates/company/:companyId - Create template for specific company (legacy support)
 router.post('/company/:companyId', async (req, res) => {
   await ticketTemplateController.createTemplate(req, res);
 });
@@ -67,7 +67,6 @@ router.get('/popular', async (req, res) => {
 // GET /api/ticket-templates/company/:companyId/stats - Get company template statistics
 router.get('/company/:companyId/stats', ticketTemplateController.getTemplateStatsByCompany.bind(ticketTemplateController));
 // Get templates by company
-router.get('/company/:companyId/stats', ticketTemplateController.getTemplateStatsByCompany.bind(ticketTemplateController));
 router.get('/company/:companyId', ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
 
 // GET /api/ticket-templates/categories - Categorias disponíveis
@@ -90,7 +89,7 @@ router.get('/:id', async (req, res) => {
   await ticketTemplateController.getTemplateById(req, res);
 });
 
-// POST /api/ticket-templates - Criar template
+// POST /api/ticket-templates - Create template (can include companyId in body)
 router.post('/', async (req, res) => {
   await ticketTemplateController.createTemplate(req, res);
 });

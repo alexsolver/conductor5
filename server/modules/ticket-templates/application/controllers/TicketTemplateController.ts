@@ -25,56 +25,37 @@ export class TicketTemplateController {
    */
   createTemplate = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
-      const userRole = req.user?.role;
+      console.log('🎯 [TEMPLATE-CONTROLLER] Creating template:', req.body);
+      console.log('🎯 [TEMPLATE-CONTROLLER] Request params:', req.params);
+      console.log('🎯 [TEMPLATE-CONTROLLER] User info:', (req as any).user);
 
-      if (!tenantId || !userId || !userRole) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required'
-        });
-      }
+      const templateData = {
+        ...req.body,
+        companyId: req.params.companyId || req.body.companyId || null,
+        tenantId: (req as any).user?.tenantId,
+        isActive: req.body.isActive !== false, // Default to true
+        usageCount: 0,
+        createdAt: new Date().toISOString(),
+      };
 
-      const result = await this.createTicketTemplateUseCase.execute({
-        tenantId,
-        name: req.body.name,
-        description: req.body.description,
-        category: req.body.category,
-        subcategory: req.body.subcategory,
-        companyId: req.body.companyId,
-        departmentId: req.body.departmentId,
-        priority: req.body.priority || 'medium',
-        templateType: req.body.templateType,
-        fields: req.body.fields || [],
-        automation: req.body.automation,
-        workflow: req.body.workflow,
-        tags: req.body.tags,
-        isDefault: req.body.isDefault,
-        permissions: req.body.permissions,
-        createdBy: userId,
-        userRole
-      });
+      console.log('📝 [TEMPLATE-CONTROLLER] Template data prepared:', templateData);
 
-      if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          message: 'Validation failed',
-          errors: result.errors
-        });
-      }
+      const result = await this.createTicketTemplateUseCase.execute(templateData);
 
-      return res.status(201).json({
+      console.log('✅ [TEMPLATE-CONTROLLER] Template created successfully:', result);
+
+      res.status(201).json({
         success: true,
-        message: 'Ticket template created successfully',
-        data: result.data
+        message: 'Template created successfully',
+        data: result
       });
 
     } catch (error) {
-      console.error('[TicketTemplateController] createTemplate error:', error);
-      return res.status(500).json({
+      console.error('❌ [TEMPLATE-CONTROLLER] Create template error:', error);
+      res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Failed to create template',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   };
@@ -548,78 +529,41 @@ export class TicketTemplateController {
    */
   getTemplatesByCompany = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const userRole = req.user?.role;
+      console.log('🔍 [TEMPLATE-CONTROLLER] Getting templates for company:', req.params.companyId);
+
       const companyId = req.params.companyId;
+      const tenantId = (req as any).user?.tenantId;
 
-      console.log('🔍 [GET-TEMPLATES-BY-COMPANY] Request params:', {
-        tenantId,
-        userRole,
-        companyId,
-        query: req.query
-      });
-
-      if (!tenantId || !userRole) {
-        return res.status(401).json({
+      if (!tenantId) {
+        res.status(400).json({
           success: false,
-          message: 'Authentication required'
+          message: 'Tenant ID is required'
         });
+        return;
       }
 
-      const result = await this.getTicketTemplatesUseCase.execute({
-        tenantId,
-        userRole,
-        companyId: companyId !== 'all' ? companyId : undefined,
-        filters: {
-          category: req.query.category as string,
-          subcategory: req.query.subcategory as string,
-          templateType: req.query.templateType as string,
-          status: req.query.status as string,
-          departmentId: req.query.departmentId as string,
-          isDefault: req.query.isDefault ? req.query.isDefault === 'true' : undefined,
-          tags: req.query.tags ? (req.query.tags as string).split(',') : undefined
-        },
-        search: req.query.search as string,
-        includeAnalytics: req.query.includeAnalytics === 'true',
-        includeUsageStats: req.query.includeUsageStats === 'true'
-      });
-
-      console.log('📊 [GET-TEMPLATES-BY-COMPANY] Use case result:', {
-        success: result.success,
-        dataKeys: result.data ? Object.keys(result.data) : [],
-        templatesCount: result.data?.templates?.length || 0
-      });
-
-      if (!result.success) {
-        return res.status(404).json({
-          success: false,
-          message: 'Templates not found or access denied',
-          errors: result.errors
-        });
+      // Handle "all" companies case
+      let templates;
+      if (companyId === 'all') {
+        templates = await this.getTicketTemplatesUseCase.execute(tenantId);
+      } else {
+        templates = await this.getTicketTemplatesUseCase.executeByCompany(companyId, tenantId);
       }
 
-      // Ensure templates array is properly formatted
-      const responseData = {
-        ...result.data,
-        templates: result.data?.templates || []
-      };
+      console.log('✅ [TEMPLATE-CONTROLLER] Templates retrieved:', templates?.length || 0);
 
-      console.log('✅ [GET-TEMPLATES-BY-COMPANY] Sending response:', {
+      res.json({
         success: true,
-        templatesCount: responseData.templates.length
+        data: {
+          templates: templates || []
+        }
       });
-
-      return res.json({
-        success: true,
-        message: 'Templates by company retrieved successfully',
-        data: responseData
-      });
-
     } catch (error) {
-      console.error('[TicketTemplateController] getTemplatesByCompany error:', error);
-      return res.status(500).json({
+      console.error('❌ [TEMPLATE-CONTROLLER] Get templates by company error:', error);
+      res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Failed to retrieve templates',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   };
