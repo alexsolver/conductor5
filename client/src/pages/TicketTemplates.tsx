@@ -192,8 +192,67 @@ export default function TicketTemplates() {
     console.log('❌ [TEMPLATES-PROCESSING] Unexpected response structure:', templatesResponse);
     return [];
   }, [templatesResponse]);
-  const stats = statsResponse?.data || {};
-  const categories = categoriesResponse?.data || [];
+  
+  // ✅ 1QA.MD: Robust data processing - ensure stats is always an object
+  const stats = React.useMemo(() => {
+    if (!statsResponse) return {};
+    if (statsResponse.success && statsResponse.data) {
+      return Array.isArray(statsResponse.data) && statsResponse.data.length > 0 
+        ? statsResponse.data[0] 
+        : statsResponse.data;
+    }
+    return statsResponse.data || {};
+  }, [statsResponse]);
+
+  // ✅ 1QA.MD: Robust data processing - ensure categories is always an array
+  const categories = React.useMemo(() => {
+    console.log('🔄 [CATEGORIES-PROCESSING] Processing categories response:', {
+      hasResponse: !!categoriesResponse,
+      responseType: typeof categoriesResponse,
+      isSuccess: categoriesResponse?.success,
+      hasData: !!categoriesResponse?.data
+    });
+
+    if (!categoriesResponse) {
+      console.log('❌ [CATEGORIES-PROCESSING] No response data');
+      return [];
+    }
+
+    // Handle successful response with categories array
+    if (categoriesResponse.success && categoriesResponse.data?.categories) {
+      const cats = Array.isArray(categoriesResponse.data.categories) 
+        ? categoriesResponse.data.categories 
+        : [];
+      console.log('✅ [CATEGORIES-PROCESSING] Found categories:', cats.length);
+      return cats;
+    }
+
+    // Handle direct array response
+    if (Array.isArray(categoriesResponse.data)) {
+      console.log('✅ [CATEGORIES-PROCESSING] Direct array response:', categoriesResponse.data.length);
+      return categoriesResponse.data;
+    }
+
+    // Handle direct array at root level
+    if (Array.isArray(categoriesResponse)) {
+      console.log('✅ [CATEGORIES-PROCESSING] Root array response:', categoriesResponse.length);
+      return categoriesResponse;
+    }
+
+    // Extract unique categories from templates if available
+    if (templates && Array.isArray(templates) && templates.length > 0) {
+      const extractedCategories = Array.from(new Set(
+        templates
+          .map((template: TicketTemplate) => template.category)
+          .filter(Boolean)
+      ));
+      console.log('✅ [CATEGORIES-PROCESSING] Extracted from templates:', extractedCategories.length);
+      return extractedCategories;
+    }
+
+    console.log('❌ [CATEGORIES-PROCESSING] Defaulting to empty array');
+    return [];
+  }, [categoriesResponse, templates]);
 
   // Mutation para criar template
   const createTemplateMutation = useMutation({
