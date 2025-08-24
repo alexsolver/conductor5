@@ -1,7 +1,7 @@
 /**
  * Ticket Template Controller
  * Clean Architecture - Application Layer
- * 
+ *
  * @module TicketTemplateController
  * @created 2025-08-12 - Phase 20 Clean Architecture Implementation
  */
@@ -11,6 +11,9 @@ import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { CreateTicketTemplateUseCase } from '../use-cases/CreateTicketTemplateUseCase';
 import { GetTicketTemplatesUseCase } from '../use-cases/GetTicketTemplatesUseCase';
 import { UpdateTicketTemplateUseCase } from '../use-cases/UpdateTicketTemplateUseCase';
+
+// Assuming logger is available in this scope or imported
+// import logger from '../../../utils/logger'; // Example import
 
 export class TicketTemplateController {
   constructor(

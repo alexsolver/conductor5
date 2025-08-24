@@ -52,7 +52,7 @@ export interface ITicketTemplateRepository {
   // Usage Operations
   incrementUsageCount(id: string, tenantId: string): Promise<boolean>;
   updateLastUsed(id: string, tenantId: string): Promise<boolean>;
-  
+
   getUsageStatistics(tenantId: string, timeRange?: {
     startDate: Date;
     endDate: Date;
