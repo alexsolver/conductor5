@@ -174,6 +174,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         const tenantDb = await this.getTenantDb(tenantId);
         console.log('[DEBUG-SQL] Executing query for tenant:', tenantId);
         
+        // The getTenantDb already sets search_path to correct tenant schema
         const realSchedules = await tenantDb.execute(sql`
           SELECT ws.*
           FROM work_schedules ws
