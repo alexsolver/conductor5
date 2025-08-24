@@ -4635,7 +4635,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Register endpoints with proper middleware
     app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
       console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates called');
-      await templateController.getTemplates(req, res);
+      console.log('🎯 [EMERGENCY-ENDPOINT] Request params:', req.params);
+      console.log('🎯 [EMERGENCY-ENDPOINT] Request query:', req.query);
+      console.log('🎯 [EMERGENCY-ENDPOINT] User info:', (req as any).user);
+      try {
+        await templateController.getTemplates(req, res);
+        console.log('🎯 [EMERGENCY-ENDPOINT] Controller execution completed');
+      } catch (error) {
+        console.error('❌ [EMERGENCY-ENDPOINT] Controller error:', error);
+        res.status(500).json({ success: false, error: error.message });
+      }
     });
     
     app.get('/api/ticket-templates/company/:companyId', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
@@ -4645,7 +4654,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
       console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/company/:companyId/stats called');
-      await templateController.getCompanyTemplateStats(req, res);
+      console.log('🎯 [EMERGENCY-ENDPOINT] CompanyId:', req.params.companyId);
+      console.log('🎯 [EMERGENCY-ENDPOINT] User info:', (req as any).user);
+      try {
+        await templateController.getCompanyTemplateStats(req, res);
+        console.log('🎯 [EMERGENCY-ENDPOINT] Stats controller execution completed');
+      } catch (error) {
+        console.error('❌ [EMERGENCY-ENDPOINT] Stats controller error:', error);
+        res.status(500).json({ success: false, error: error.message });
+      }
     });
     
     app.get('/api/ticket-templates/categories', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
