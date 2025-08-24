@@ -4616,6 +4616,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🚨 EMERGENCY TICKET-TEMPLATES - Final attempt following 1qa.md
+  console.log('🚨 [EMERGENCY-FINAL] Registering ticket-templates as FINAL emergency...');
+  try {
+    const { DrizzleTicketTemplateRepository } = await import('./modules/ticket-templates/infrastructure/repositories/DrizzleTicketTemplateRepository');
+    const { GetTicketTemplatesUseCase } = await import('./modules/ticket-templates/application/use-cases/GetTicketTemplatesUseCase');
+    const { CreateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase');
+    const { UpdateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase');
+    const { TicketTemplateController } = await import('./modules/ticket-templates/application/controllers/TicketTemplateController');
+    
+    console.log('🚨 [EMERGENCY-FINAL] Creating final controller instance...');
+    const templateRepository = new DrizzleTicketTemplateRepository();
+    const getTemplatesUseCase = new GetTicketTemplatesUseCase(templateRepository);
+    const createTemplateUseCase = new CreateTicketTemplateUseCase(templateRepository);
+    const updateTemplateUseCase = new UpdateTicketTemplateUseCase(templateRepository);
+    const templateController = new TicketTemplateController(createTemplateUseCase, getTemplatesUseCase, updateTemplateUseCase);
+    
+    // Register endpoints with proper middleware
+    app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates called');
+      await templateController.getTemplates(req, res);
+    });
+    
+    app.get('/api/ticket-templates/company/:companyId', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/company/:companyId called');
+      await templateController.getTemplates(req, res);
+    });
+    
+    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/company/:companyId/stats called');
+      await templateController.getCompanyTemplateStats(req, res);
+    });
+    
+    app.get('/api/ticket-templates/categories', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/categories called');
+      await templateController.getCategories(req, res);
+    });
+    
+    console.log('✅ [EMERGENCY-FINAL] Ticket templates endpoints registered successfully!');
+  } catch (emergencyError: any) {
+    console.error('❌ [EMERGENCY-FINAL] Final registration failed:', emergencyError.message);
+    console.error('❌ [EMERGENCY-FINAL] Stack:', emergencyError.stack);
+  }
+
   const httpServer = createServer(app);
   return httpServer;
 }
