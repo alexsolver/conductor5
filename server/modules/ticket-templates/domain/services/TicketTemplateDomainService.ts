@@ -10,7 +10,7 @@
 import { TicketTemplate } from '../entities/TicketTemplate';
 
 export class TicketTemplateDomainService {
-  
+
   /**
    * ✅ 1QA.MD: Validação completa de templates
    */
@@ -43,7 +43,7 @@ export class TicketTemplateDomainService {
         if (!field.name) errors.push(`Campo ${index + 1}: nome é obrigatório`);
         if (!field.label) errors.push(`Campo ${index + 1}: rótulo é obrigatório`);
         if (!field.type) errors.push(`Campo ${index + 1}: tipo é obrigatório`);
-        
+
         if (['select', 'multiselect', 'radio'].includes(field.type) && (!field.options || field.options.length === 0)) {
           errors.push(`Campo ${field.name}: opções são obrigatórias para campos do tipo ${field.type}`);
         }
@@ -60,12 +60,18 @@ export class TicketTemplateDomainService {
   /**
    * ✅ 1QA.MD: Verificar se template pode ser usado pela empresa
    */
-  static canBeUsedByCompany(template: TicketTemplate, companyId: string | null): boolean {
-    // Templates globais (sem companyId) podem ser usados por qualquer empresa
-    if (!template.companyId) return true;
-    
-    // Templates específicos só podem ser usados pela empresa proprietária
-    return template.companyId === companyId;
+  static canBeUsedByCompany(template: TicketTemplate, companyId?: string): boolean {
+    // Templates sem restrição de empresa podem ser usados por qualquer um
+    if (!template.companyId) {
+      return true;
+    }
+
+    // Templates com restrição de empresa só podem ser usados por aquela empresa
+    if (companyId && template.companyId === companyId) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -73,10 +79,10 @@ export class TicketTemplateDomainService {
    */
   static calculateComplexityScore(template: TicketTemplate): number {
     let score = 0;
-    
+
     // Score base por campo
     score += template.fields.length * 2;
-    
+
     // Complexidade por tipo de campo
     template.fields.forEach(field => {
       switch (field.type) {
@@ -149,7 +155,7 @@ export class TicketTemplateDomainService {
     const complexityScore = this.calculateComplexityScore(template);
     const baseTime = 15; // 15 minutos base
     const complexityMultiplier = complexityScore / 20;
-    
+
     return Math.round(baseTime + (baseTime * complexityMultiplier));
   }
 
@@ -191,7 +197,7 @@ export class TicketTemplateDomainService {
     const daysSinceLastUse = template.lastUsed ? 
       Math.floor((Date.now() - new Date(template.lastUsed).getTime()) / (1000 * 60 * 60 * 24)) : 
       999;
-    
+
     if (daysSinceLastUse > 90) {
       issues.push({
         type: 'info',

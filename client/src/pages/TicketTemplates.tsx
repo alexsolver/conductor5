@@ -115,27 +115,39 @@ export default function TicketTemplates() {
 
   // Query para buscar templates
   const { data: templatesResponse, isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates/company', selectedCompany],
+    queryKey: ['/api/ticket-templates', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}`);
+      const params = new URLSearchParams();
+      if (selectedCompany && selectedCompany !== 'all') {
+        params.append('companyId', selectedCompany);
+      }
+      const response = await apiRequest('GET', `/api/ticket-templates?${params.toString()}`);
       return response.json();
     },
   });
 
   // Query para buscar estatísticas
   const { data: statsResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
+    queryKey: ['/api/ticket-templates/stats', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/stats`);
+      const params = new URLSearchParams();
+      if (selectedCompany && selectedCompany !== 'all') {
+        params.append('companyId', selectedCompany);
+      }
+      const response = await apiRequest('GET', `/api/ticket-templates/stats?${params.toString()}`);
       return response.json();
     },
   });
 
   // Query para buscar categorias
   const { data: categoriesResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'],
+    queryKey: ['/api/ticket-templates/categories', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/categories`);
+      const params = new URLSearchParams();
+      if (selectedCompany && selectedCompany !== 'all') {
+        params.append('companyId', selectedCompany);
+      }
+      const response = await apiRequest('GET', `/api/ticket-templates/categories?${params.toString()}`);
       return response.json();
     },
   });

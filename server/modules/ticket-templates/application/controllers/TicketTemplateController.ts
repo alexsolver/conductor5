@@ -88,8 +88,23 @@ export class TicketTemplateController {
     try {
       const tenantId = req.user?.tenantId;
       const userRole = req.user?.role;
-      const companyId = req.user?.companyId;
+      const companyIdFromAuth = req.user?.companyId; // Renamed to avoid conflict with query param
       const templateId = req.params.id;
+
+      const {
+        companyId: companyIdQuery, // Alias for clarity
+        selectedCompany,
+        category,
+        templateType,
+        status,
+        search,
+        limit,
+        offset,
+        orderBy,
+        orderDirection,
+        includeAnalytics,
+        includeUsageStats
+      } = req.query;
 
       if (!tenantId || !userRole) {
         return res.status(401).json({
@@ -98,23 +113,30 @@ export class TicketTemplateController {
         });
       }
 
+      // Map selectedCompany to companyId for compatibility, prioritizing query param
+      const effectiveCompanyId = selectedCompany || companyIdQuery || companyIdFromAuth;
+
       const result = await this.getTicketTemplatesUseCase.execute({
         tenantId,
         templateId,
         userRole,
-        companyId,
+        companyId: effectiveCompanyId as string,
         filters: {
-          category: req.query.category as string,
+          category: category as string,
           subcategory: req.query.subcategory as string,
-          templateType: req.query.templateType as string,
-          status: req.query.status as string,
+          templateType: templateType as string,
+          status: status as string,
           departmentId: req.query.departmentId as string,
           isDefault: req.query.isDefault ? req.query.isDefault === 'true' : undefined,
           tags: req.query.tags ? (req.query.tags as string).split(',') : undefined
         },
-        search: req.query.search as string,
-        includeAnalytics: req.query.includeAnalytics === 'true',
-        includeUsageStats: req.query.includeUsageStats === 'true'
+        search: search as string,
+        includeAnalytics: includeAnalytics === 'true',
+        includeUsageStats: includeUsageStats === 'true',
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
+        orderBy: orderBy as string,
+        orderDirection: orderDirection as 'asc' | 'desc'
       });
 
       if (!result.success) {
@@ -221,7 +243,7 @@ export class TicketTemplateController {
       }
 
       // Extract unique categories from templates
-      const categories = result.data?.templates 
+      const categories = result.data?.templates
         ? [...new Set(result.data.templates.map(t => t.category))]
         : [];
 
