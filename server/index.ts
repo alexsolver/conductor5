@@ -466,10 +466,28 @@ app.use((req, res, next) => {
   console.log('🌤️ [SERVER] Weather integration using SaaS Admin OpenWeather config');
 
   // Approval routes registration
-  console.log('✅ [APPROVAL-MANAGEMENT] Registering approval routes...');
-  const approvalRoutes = (await import('./modules/approvals/routes')).default;
-  app.use('/api/approvals', approvalRoutes);
-  console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
+  try {
+    console.log('✅ [APPROVAL-MANAGEMENT] Registering approval routes...');
+    const approvalRoutes = (await import('./modules/approvals/routes')).default;
+    
+    // ✅ 1QA.MD: Validate router before using it
+    if (!approvalRoutes) {
+      console.error('❌ [APPROVAL-MANAGEMENT] Approval routes returned undefined');
+      throw new Error('Approval routes module returned undefined');
+    }
+    
+    if (typeof approvalRoutes !== 'function') {
+      console.error('❌ [APPROVAL-MANAGEMENT] Approval routes is not a function:', typeof approvalRoutes);
+      throw new Error('Approval routes is not a valid Express Router');
+    }
+    
+    app.use('/api/approvals', approvalRoutes);
+    console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
+    
+  } catch (approvalError) {
+    console.error('❌ [APPROVAL-MANAGEMENT] Failed to load approval routes:', approvalError);
+    console.log('⚠️ [APPROVAL-MANAGEMENT] Continuing without approval routes for now');
+  }
 
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
