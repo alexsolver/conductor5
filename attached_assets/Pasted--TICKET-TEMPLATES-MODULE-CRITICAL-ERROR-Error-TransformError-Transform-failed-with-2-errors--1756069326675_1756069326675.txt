@@ -1,0 +1,29 @@
+❌ [TICKET-TEMPLATES-MODULE] CRITICAL ERROR: Error [TransformError]: Transform failed with 2 errors:
+/home/runner/workspace/server/modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase.ts:276:13: ERROR: Multiple exports with the same name "UpdateTicketTemplateUseCase"
+/home/runner/workspace/server/modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase.ts:276:13: ERROR: The symbol "UpdateTicketTemplateUseCase" has already been declared
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)
+❌ [TICKET-TEMPLATES-MODULE] Stack: TransformError: Transform failed with 2 errors:
+/home/runner/workspace/server/modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase.ts:276:13: ERROR: Multiple exports with the same name "UpdateTicketTemplateUseCase"
+/home/runner/workspace/server/modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase.ts:276:13: ERROR: The symbol "UpdateTicketTemplateUseCase" has already been declared
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)
+❌ [TICKET-TEMPLATES-MODULE] Message: Transform failed with 2 errors:
+/home/runner/workspace/server/modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase.ts:276:13: ERROR: Multiple exports with the same name "UpdateTicketTemplateUseCase"
+/home/runner/workspace/server/modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase.ts:276:13: ERROR: The symbol "UpdateTicketTemplateUseCase" has already been declared
