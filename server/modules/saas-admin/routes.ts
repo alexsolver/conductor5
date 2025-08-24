@@ -1255,14 +1255,22 @@ router.use('/translation-completion', translationCompletionRoutes);
 
 // AI-powered translation auto-complete endpoint
 router.post('/translation-completion/auto-complete-all', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res: any) => {
+  console.log('🔥 [DEBUG] ENDPOINT HIT! translation-completion/auto-complete-all');
+  console.log('🔥 [DEBUG] User:', req.user?.email);
+  
   try {
     console.log('🤖 [AI-TRANSLATE] Auto-complete-all requested by:', req.user?.email);
     
+    console.log('🔥 [DEBUG] Importing TranslationCompletionService...');
     const { TranslationCompletionService } = await import('../../services/TranslationCompletionService');
+    console.log('🔥 [DEBUG] Creating service instance...');
     const translationService = new TranslationCompletionService();
+    console.log('🔥 [DEBUG] Service created successfully');
     
     // Use AI to complete missing translations
+    console.log('🔥 [DEBUG] Calling performAITranslationCompletion...');
     const aiResult = await translationService.performAITranslationCompletion();
+    console.log('🔥 [DEBUG] AI completion finished, result:', { success: aiResult.success });
     console.log(`🤖 [AI-TRANSLATE] AI completion result:`, {
       success: aiResult.success,
       completed: aiResult.completed
