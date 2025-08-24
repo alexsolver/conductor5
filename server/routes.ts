@@ -68,6 +68,8 @@ import reportsRoutes from './modules/reports/routes';
 import { knowledgeBaseRoutes } from './modules/knowledge-base/routes';
 // ✅ 1QA.MD COMPLIANCE: Import custom fields module routes
 import customFieldRoutes from './modules/custom-fields/routes';
+// ✅ 1QA.MD COMPLIANCE: Import Company Clean Architecture routes
+import companiesCleanRoutes from './modules/companies/routes-clean';
 
 console.log('🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥');
 
@@ -1509,7 +1511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRoutes.default);
 
-  // Removed OmniBridge routes - now defined earlier before middleware
+  // Removed OmniBridge routes - defined earlier
 
   // Tenant endpoint for fetching tenant details
   app.get('/api/tenants/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -1787,7 +1789,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ✅ CORRETO - Seguindo padrões 1qa.md - USANDO SQL DIRETO PARA ESTABILIDADE
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
-
       console.log('[PROFILE-GET] Using PostgreSQL direct following 1qa.md patterns');
 
       // ✅ CORRETO - Query SQL direta com tenant isolation obrigatório seguindo 1qa.md
@@ -2578,8 +2579,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('❌ [LOCATIONS-NEW-MODULE] Failed to load locations-new module:', error);
     console.error('❌ [LOCATIONS-NEW-MODULE] Error details:', error.message);
   }
-
-  // Removed OmniBridge Routes - defined earlier
 
   // Helper functions for channel transformation
   function getChannelIcon(type: string): string {

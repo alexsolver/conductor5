@@ -454,4 +454,60 @@ export class TicketTemplateController {
       });
     }
   };
+
+  /**
+   * Get company template statistics
+   * GET /ticket-templates/company/:companyId/stats
+   */
+  getCompanyTemplateStats = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userRole = req.user?.role;
+      const companyId = req.params.companyId;
+
+      if (!tenantId || !userRole) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      const result = await this.getTicketTemplatesUseCase.execute({
+        tenantId,
+        userRole,
+        companyId: companyId !== 'all' ? companyId : undefined,
+        includeAnalytics: true,
+        includeUsageStats: true
+      });
+
+      if (!result.success) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to get company template statistics',
+          errors: result.errors
+        });
+      }
+
+      const stats = {
+        total_templates: result.data?.templates?.length || 0,
+        active_templates: result.data?.templates?.filter(t => t.status === 'active').length || 0,
+        avg_usage: result.data?.analytics?.averageUsage || 0,
+        max_usage: result.data?.analytics?.maxUsage || 0,
+        templates_by_category: result.data?.analytics?.templatesByCategory || {}
+      };
+
+      return res.json({
+        success: true,
+        message: 'Company template statistics retrieved successfully',
+        data: [stats]
+      });
+
+    } catch (error) {
+      console.error('[TicketTemplateController] getCompanyTemplateStats error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  };
 }

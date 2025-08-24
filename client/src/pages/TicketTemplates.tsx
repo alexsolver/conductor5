@@ -16,8 +16,7 @@ import {
   Plus, Edit, Trash2, FileText, Settings, BarChart3, Building2, 
   Clock, Activity, Search, Filter
 } from 'lucide-react';
-
-// Componentes customizados serão adicionados conforme necessário
+import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
 
 // Schema de validação
 const templateFormSchema = z.object({
@@ -251,21 +250,13 @@ export default function TicketTemplates() {
           </div>
         </div>
 
-        {/* Company Selector */}
+        {/* Company Selector - Integrated with Companies Module */}
         <div className="bg-white rounded-lg shadow-sm border p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            🏢 Empresa Selecionada
-          </label>
-          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-            <SelectTrigger className="border-purple-200 focus:border-purple-400">
-              <SelectValue placeholder="Selecione uma empresa" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as empresas</SelectItem>
-              <SelectItem value="company1">Empresa 1</SelectItem>
-              <SelectItem value="company2">Empresa 2</SelectItem>
-            </SelectContent>
-          </Select>
+          <CompanyTemplateSelector 
+            selectedCompany={selectedCompany}
+            onCompanyChange={setSelectedCompany}
+            showStats={true}
+          />
         </div>
 
         {/* Main Tabs */}

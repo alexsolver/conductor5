@@ -64,6 +64,11 @@ router.get('/popular', async (req, res) => {
   await ticketTemplateController.getPopularTemplates(req, res);
 });
 
+// GET /api/ticket-templates/company/:companyId/stats - Get company template statistics
+router.get('/company/:companyId/stats', async (req, res) => {
+  await ticketTemplateController.getCompanyTemplateStats(req, res);
+});
+
 // GET /api/ticket-templates/categories - Categorias disponíveis
 router.get('/categories', async (req, res) => {
   await ticketTemplateController.getCategories(req, res);
