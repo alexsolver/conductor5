@@ -381,6 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 🚨 TICKET-TEMPLATES - MOVED OUT OF PROBLEMATIC TRY-CATCH per 1qa.md
   console.log('🚨 [TICKET-TEMPLATES] EMERGENCY registration starting...');
+  console.log('🚨 [TICKET-TEMPLATES] TIMESTAMP:', new Date().toISOString());
   try {
     console.log('🚨 [TICKET-TEMPLATES] Loading ticket-templates module...');
     const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
