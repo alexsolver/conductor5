@@ -172,6 +172,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       // Check if work_schedules table exists and query real data
       try {
         const tenantDb = await this.getTenantDb(tenantId);
+        console.log('[DEBUG-SQL] Executing query for tenant:', tenantId);
+        
         const realSchedules = await tenantDb.execute(sql`
           SELECT ws.*
           FROM work_schedules ws
@@ -179,6 +181,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         `);
 
         console.log('[REAL-DATA] Found real work schedules:', realSchedules.rows.length);
+        console.log('[DEBUG-ROWS] Raw data:', realSchedules.rows);
         
         if (realSchedules.rows.length > 0) {
           return realSchedules.rows.map((row: any) => ({
