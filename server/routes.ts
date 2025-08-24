@@ -379,20 +379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/saas-admin', saasAdminRoutes);
   console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
 
-  // 🚨 TICKET-TEMPLATES - EMERGENCIAL REGISTRATION MOVED TO TOP per 1qa.md
-  console.log('🚨 [TICKET-TEMPLATES] PRIORITY EMERGENCY registration starting...');
-  try {
-    console.log('🚨 [TICKET-TEMPLATES] Loading ticket-templates module...');
-    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
-    console.log('🚨 [TICKET-TEMPLATES] Module loaded, registering routes...');
-    app.use('/api/ticket-templates', jwtAuth as any, enhancedTenantValidator as any, tenantSchemaEnforcer as any, ticketTemplateRoutes);
-    console.log('✅ [TICKET-TEMPLATES] EMERGENCY registration SUCCESS!');
-  } catch (error: any) {
-    console.error('❌ [TICKET-TEMPLATES] EMERGENCY registration FAILED:', error);
-    console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
-    console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
-  }
-  console.log('🚨 [TICKET-TEMPLATES] Emergency block COMPLETED');
+  // ❌ DUPLICATE ROUTE REGISTRATION REMOVED - only keep the one at line 1668
 
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
