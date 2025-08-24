@@ -28,14 +28,16 @@ export default function CompanyTemplateSelector({
 }: CompanyTemplateSelectorProps) {
   // Fetch companies from clean architecture module
   const { data: companiesResponse, isLoading: companiesLoading } = useQuery({
-    queryKey: ['/api/companies/v2'],
+    queryKey: ['/api/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/companies/v2');
+      const response = await apiRequest('GET', '/api/companies');
       return response.json();
     },
   });
 
-  const companies: Company[] = Array.isArray(companiesResponse?.data) 
+  const companies: Company[] = companiesResponse?.success 
+    ? (Array.isArray(companiesResponse.data) ? companiesResponse.data : [])
+    : Array.isArray(companiesResponse?.data) 
     ? companiesResponse.data 
     : Array.isArray(companiesResponse) 
     ? companiesResponse 

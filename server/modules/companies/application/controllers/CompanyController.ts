@@ -10,9 +10,9 @@ import { UpdateCompanyUseCase } from '../use-cases/UpdateCompanyUseCase';
 import { FindCompanyUseCase } from '../use-cases/FindCompanyUseCase';
 import { DeleteCompanyUseCase } from '../use-cases/DeleteCompanyUseCase';
 import { CompanyDomainService } from '../../domain/entities/Company';
-import { 
-  CreateCompanyDTO, 
-  UpdateCompanyDTO, 
+import {
+  CreateCompanyDTO,
+  UpdateCompanyDTO,
   CompanyResponseDTO,
   CompanyListResponseDTO,
   CompanyFiltersDTO,
@@ -38,7 +38,7 @@ export class CompanyController {
       };
 
       const company = await this.createCompanyUseCase.execute(createDTO);
-      
+
       const responseDTO: CompanyResponseDTO = this.mapToResponseDTO(company);
 
       res.status(201).json({
@@ -65,11 +65,11 @@ export class CompanyController {
       };
 
       const company = await this.updateCompanyUseCase.updateByTenantScope(
-        id, 
-        req.user?.tenantId || '', 
+        id,
+        req.user?.tenantId || '',
         updateDTO
       );
-      
+
       const responseDTO: CompanyResponseDTO = this.mapToResponseDTO(company);
 
       res.json({
@@ -90,9 +90,9 @@ export class CompanyController {
   async getCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const company = await this.findCompanyUseCase.findById(id, req.user?.tenantId);
-      
+
       if (!company) {
         res.status(404).json({
           success: false,
@@ -122,12 +122,12 @@ export class CompanyController {
   async getCompanyProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const companyProfile = await this.findCompanyUseCase.getCompanyProfile(
-        id, 
+        id,
         req.user?.tenantId || ''
       );
-      
+
       if (!companyProfile) {
         res.status(404).json({
           success: false,
@@ -156,14 +156,14 @@ export class CompanyController {
     try {
       const filters: CompanyFiltersDTO = this.extractFilters(req.query);
       const pagination: PaginationOptions = this.extractPagination(req.query);
-      
+
       const result = await this.findCompanyUseCase.findWithFilters(
-        this.convertFiltersToEntityFilters(filters), 
-        pagination, 
+        this.convertFiltersToEntityFilters(filters),
+        pagination,
         req.user?.tenantId
       );
-      
-      const responseDTOs: CompanyResponseDTO[] = result.companies.map(company => 
+
+      const responseDTOs: CompanyResponseDTO[] = result.companies.map(company =>
         this.mapToResponseDTO(company)
       );
 
@@ -179,7 +179,11 @@ export class CompanyController {
         }
       };
 
-      res.json(response);
+      return res.json({
+        success: true,
+        message: 'Companies retrieved successfully',
+        data: result.data || []
+      });
     } catch (error) {
       console.error('[LIST-COMPANIES-CONTROLLER]', error);
       res.status(500).json({
@@ -193,7 +197,7 @@ export class CompanyController {
   async searchCompanies(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { search } = req.query;
-      
+
       if (!search || typeof search !== 'string') {
         res.status(400).json({
           success: false,
@@ -204,14 +208,14 @@ export class CompanyController {
       }
 
       const pagination: PaginationOptions = this.extractPagination(req.query);
-      
+
       const result = await this.findCompanyUseCase.searchCompanies(
-        search, 
-        req.user?.tenantId, 
+        search,
+        req.user?.tenantId,
         pagination
       );
-      
-      const responseDTOs: CompanyResponseDTO[] = result.companies.map(company => 
+
+      const responseDTOs: CompanyResponseDTO[] = result.companies.map(company =>
         this.mapToResponseDTO(company)
       );
 
@@ -241,7 +245,7 @@ export class CompanyController {
   async getCompanyStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const stats = await this.findCompanyUseCase.getStatistics(req.user?.tenantId);
-      
+
       const responseDTO: CompanyStatsDTO = {
         total: stats.total,
         active: stats.active,
@@ -293,10 +297,10 @@ export class CompanyController {
   async deleteCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       await this.deleteCompanyUseCase.deleteByTenantScope(
-        id, 
-        req.user?.tenantId || '', 
+        id,
+        req.user?.tenantId || '',
         req.user?.id
       );
 
@@ -317,13 +321,13 @@ export class CompanyController {
   async restoreCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const company = await this.deleteCompanyUseCase.restore(
-        id, 
-        req.user?.tenantId, 
+        id,
+        req.user?.tenantId,
         req.user?.id
       );
-      
+
       const responseDTO: CompanyResponseDTO = this.mapToResponseDTO(company);
 
       res.json({
@@ -344,7 +348,7 @@ export class CompanyController {
   async bulkUpdateCompanies(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { companyIds, updates } = req.body;
-      
+
       if (!companyIds || !Array.isArray(companyIds) || companyIds.length === 0) {
         res.status(400).json({
           success: false,
@@ -358,8 +362,8 @@ export class CompanyController {
         ...updates,
         updatedById: req.user?.id
       });
-      
-      const responseDTOs: CompanyResponseDTO[] = companies.map(company => 
+
+      const responseDTOs: CompanyResponseDTO[] = companies.map(company =>
         this.mapToResponseDTO(company)
       );
 
@@ -382,9 +386,9 @@ export class CompanyController {
     try {
       const { type } = req.params; // 'create' or 'update'
       const { companyId } = req.query;
-      
+
       let validation;
-      
+
       if (type === 'create') {
         const createDTO: CreateCompanyDTO = {
           ...req.body,
@@ -394,7 +398,7 @@ export class CompanyController {
       } else if (type === 'update' && companyId) {
         const updateDTO: UpdateCompanyDTO = req.body;
         validation = await this.updateCompanyUseCase.validateUpdateData(
-          companyId as string, 
+          companyId as string,
           updateDTO
         );
       } else {
@@ -427,7 +431,7 @@ export class CompanyController {
   // Helper methods
   private mapToResponseDTO(company: any): CompanyResponseDTO {
     const displayData = this.companyDomainService.formatCompanyDisplay(company);
-    
+
     return {
       id: company.id,
       tenantId: company.tenantId,

@@ -196,7 +196,7 @@ export class FindCompanyUseCase {
     recentCompanies: number;
   }> {
     const stats = await this.companyRepository.getStatistics(tenantId);
-    
+
     // Convert to more readable format for frontend
     return {
       total: stats.total,
@@ -218,7 +218,7 @@ export class FindCompanyUseCase {
 
   async getCompanyProfile(companyId: string, tenantId: string): Promise<any | null> {
     const company = await this.companyRepository.findByIdAndTenant(companyId, tenantId);
-    
+
     if (!company) {
       return null;
     }
@@ -237,13 +237,13 @@ export class FindCompanyUseCase {
       size: company.size,
       status: company.status,
       subscriptionTier: company.subscriptionTier,
-      
+
       // Contact information
       email: company.email,
       phone: company.phone,
       formattedPhone: displayData.formattedPhone,
       website: company.website,
-      
+
       // Address information
       address: {
         street: company.address,
@@ -256,15 +256,15 @@ export class FindCompanyUseCase {
         formattedZipCode: displayData.formattedZipCode,
         fullAddress: displayData.fullAddress
       },
-      
+
       // Business identifiers
       companyCode: this.companyDomainService.generateCompanyCode(company.name, company.cnpj),
-      
+
       // System fields
       isActive: company.isActive,
       createdAt: company.createdAt.toISOString(),
       updatedAt: company.updatedAt.toISOString(),
-      
+
       // Additional metrics (would be populated from related data)
       customerCount: 0,
       ticketCount: 0

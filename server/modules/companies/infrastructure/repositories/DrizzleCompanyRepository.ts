@@ -45,7 +45,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       console.log('🔍 [DrizzleCompanyRepository] findByIdAndTenant called:', { id, tenantId });
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await db.execute(sql.raw(`
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
@@ -238,7 +238,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         FROM "${schemaName}".companies
         WHERE ${whereClause}
       `;
-      
+
       const countResult = await pool.query(countQuery, params);
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
@@ -260,7 +260,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         ORDER BY created_at DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
       `;
-      
+
       const finalParams = [...params, pagination.limit, offset];
       const results = await pool.query(dataQuery, finalParams);
 
@@ -350,7 +350,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       console.log('🔍 [DrizzleCompanyRepository] findByTenant called:', { tenantId });
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await db.execute(sql`
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
@@ -818,7 +818,6 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       website: row.website || '', // Using actual website column
       address: row.address || '',
       addressNumber: '',
-      complement: '',
       neighborhood: '',
       city: row.city || '', // Using actual city column from database
       state: row.state || '', // Using actual state column from database

@@ -42,7 +42,7 @@ export default function TemplateSelector({
 
   // Fetch templates
   const { data: templatesResponse, isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates/company', companyId],
+    queryKey: ['/api/ticket-templates', companyId],
     queryFn: async () => {
       const endpoint = companyId === 'all' 
         ? '/api/ticket-templates' 
