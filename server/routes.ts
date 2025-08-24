@@ -366,6 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
+  console.log('🚨 [DEBUG] About to start route registration sequence...');
 
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
@@ -378,6 +379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const saasAdminRoutes = (await import('./modules/saas-admin/routes')).default;
   app.use('/api/saas-admin', saasAdminRoutes);
   console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
+  console.log('🚨 [DEBUG] Reached after SaaS Admin - about to register TICKET-TEMPLATES...');
 
   // 🚨 TICKET-TEMPLATES - MOVED OUT OF PROBLEMATIC TRY-CATCH per 1qa.md
   console.log('🚨 [TICKET-TEMPLATES] EMERGENCY registration starting...');
