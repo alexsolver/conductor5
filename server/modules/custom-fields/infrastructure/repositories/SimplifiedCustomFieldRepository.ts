@@ -64,7 +64,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
           created_at as "createdAt",
           updated_at as "updatedAt"
         FROM "${tenantSchema}".custom_field_metadata
-        WHERE module_type = $1 AND is_active = true
+        WHERE module_type = ? AND is_active = true
         ORDER BY display_order ASC, created_at ASC
       `;
       
