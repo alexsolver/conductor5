@@ -548,10 +548,10 @@ export default function SlaManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                {complianceStats.slaViolatedTickets}
+                {complianceStats?.slaViolatedTickets ?? 0}
               </div>
               <p className="text-xs text-gray-600">
-                Taxa de escalonamento: {complianceStats.escalationRate.toFixed(1)}%
+                Taxa de escalonamento: {(complianceStats?.escalationRate ?? 0).toFixed(1)}%
               </p>
             </CardContent>
           </Card>
