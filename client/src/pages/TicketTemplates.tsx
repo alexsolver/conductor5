@@ -1,61 +1,42 @@
-/**
- * ✅ UX IMPROVEMENT: TICKET TEMPLATES PAGE
- * Seguindo user preferences: Text-based hierarchical menus com dropdowns
- * Design system: Gradient-focused com Shadcn UI
- */
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { apiRequest } from '@/lib/queryClient';
 import { 
-  Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, 
-  Users, Clock, Building2, Settings, ChevronDown, ChevronRight,
-  FolderOpen, FileText, Star, TrendingUp, Activity
+  Plus, Edit, Trash2, FileText, Settings, BarChart3, Building2, 
+  Clock, Activity, Search, Filter
 } from 'lucide-react';
 
-// Import new components
-import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
-import CustomFieldsEditor, { CustomField } from '@/components/templates/CustomFieldsEditor';
-import TemplateAnalytics from '@/components/templates/TemplateAnalytics';
-import TemplateEditor from '@/components/templates/TemplateEditor';
-import TemplateCanvasEditor from '@/components/templates/TemplateCanvasEditor';
-import { TemplateHierarchyManager } from '@/components/template-builder/hierarchy/TemplateHierarchyManager';
-import { ApprovalWorkflow } from '@/components/template-builder/workflow/ApprovalWorkflow';
-import { AuditTrail } from '@/components/template-builder/audit/AuditTrail';
+// Componentes customizados serão adicionados conforme necessário
 
-// Schema para validação do formulário
-const templateSchema = z.object({
-  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
-  category: z.string().min(1, "Categoria é obrigatória"),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-  urgency: z.enum(['low', 'medium', 'high', 'critical']),
-  impact: z.enum(['low', 'medium', 'high', 'critical']),
-  defaultTitle: z.string().min(5, "Título padrão deve ter pelo menos 5 caracteres"),
-  defaultDescription: z.string().min(20, "Descrição padrão deve ter pelo menos 20 caracteres"),
-  defaultTags: z.string().optional(),
-  estimatedHours: z.number().min(0).max(100),
+// Schema de validação
+const templateFormSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().min(1, 'Descrição é obrigatória'),
+  category: z.string().min(1, 'Categoria é obrigatória'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  urgency: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  impact: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  defaultTitle: z.string(),
+  defaultDescription: z.string(),
+  defaultTags: z.string(),
+  estimatedHours: z.number().min(0),
   requiresApproval: z.boolean(),
   autoAssign: z.boolean(),
-  defaultAssigneeRole: z.string().optional(),
+  defaultAssigneeRole: z.string(),
 });
 
-type TemplateFormData = z.infer<typeof templateSchema>;
+type TemplateFormData = z.infer<typeof templateFormSchema>;
 
 interface TicketTemplate {
   id: string;
@@ -67,40 +48,54 @@ interface TicketTemplate {
   impact: string;
   default_title: string;
   default_description: string;
-  default_tags: string;
+  default_tags?: string;
   estimated_hours: number;
+  usage_count?: number;
   requires_approval: boolean;
   auto_assign: boolean;
-  default_assignee_role: string;
+  default_assignee_role?: string;
   is_active: boolean;
-  usage_count: number;
-  created_at: string;
-  updated_at: string;
   custom_fields?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
+// API helper
+const apiRequest = async (method: string, url: string, data?: any) => {
+  const config: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  };
+
+  if (data) {
+    config.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(url, config);
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status}`);
+  }
+
+  return response;
+};
+
 export default function TicketTemplates() {
-  // ✅ UX: Hierarchical state management
-  const [activeView, setActiveView] = useState<'list' | 'analytics' | 'categories'>('list');
+  const [activeTab, setActiveTab] = useState('templates');
+  const [selectedCompany, setSelectedCompany] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TicketTemplate | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<'name' | 'usage' | 'created'>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-  const [selectedCompany, setSelectedCompany] = useState<string>('all');
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
-  const [activeTab, setActiveTab] = useState('templates');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Form para criar/editar templates
   const form = useForm<TemplateFormData>({
-    resolver: zodResolver(templateSchema),
+    resolver: zodResolver(templateFormSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -118,7 +113,7 @@ export default function TicketTemplates() {
     },
   });
 
-  // Query para buscar templates baseado na empresa selecionada
+  // Query para buscar templates
   const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ['/api/ticket-templates/company', selectedCompany],
     queryFn: async () => {
@@ -127,9 +122,7 @@ export default function TicketTemplates() {
     },
   });
 
-  const templates = Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
-
-  // Query para buscar estatísticas baseado na empresa selecionada
+  // Query para buscar estatísticas
   const { data: statsResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
     queryFn: async () => {
@@ -138,9 +131,7 @@ export default function TicketTemplates() {
     },
   });
 
-  const stats = statsResponse?.data?.[0] || {};
-
-  // Query para buscar categorias baseado na empresa selecionada
+  // Query para buscar categorias
   const { data: categoriesResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'],
     queryFn: async () => {
@@ -149,35 +140,18 @@ export default function TicketTemplates() {
     },
   });
 
-  const categories = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
+  const templates = templatesResponse?.data || [];
+  const stats = statsResponse?.data || {};
+  const categories = categoriesResponse?.data || [];
 
   // Mutation para criar template
   const createTemplateMutation = useMutation({
-    mutationFn: (data: TemplateFormData & { customFields?: CustomField[] }) => 
-      apiRequest('POST', `/api/ticket-templates/company/${selectedCompany}`, {
-        ...data,
-        // Required fields
-        companyId: selectedCompany === 'all' ? null : selectedCompany,
-        defaultCategory: data.category, // Use the selected category as default
-        // Optional fields with defaults
-        defaultTitle: data.defaultTitle,
-        defaultDescription: data.defaultDescription,
-        defaultTags: data.defaultTags,
-        estimatedHours: data.estimatedHours,
-        requiresApproval: data.requiresApproval,
-        autoAssign: data.autoAssign,
-        defaultAssigneeRole: data.defaultAssigneeRole,
-        customFields: JSON.stringify(data.customFields || customFields),
-        hiddenFields: JSON.stringify(customFields.filter(f => f.hidden).map(f => f.name)),
-        requiredFields: JSON.stringify(customFields.filter(f => f.required).map(f => f.name)),
-        optionalFields: JSON.stringify(customFields.filter(f => !f.required && !f.hidden).map(f => f.name)),
-      }),
+    mutationFn: (data: TemplateFormData) => 
+      apiRequest('POST', `/api/ticket-templates/company/${selectedCompany}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'] });
       setIsCreateOpen(false);
-      setCustomFields([]);
       form.reset();
       toast({
         title: "Template criado",
@@ -187,31 +161,6 @@ export default function TicketTemplates() {
     onError: (error: any) => {
       toast({
         title: "Erro ao criar template",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Mutation para atualizar template
-  const updateTemplateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<TemplateFormData> }) =>
-      apiRequest('PUT', `/api/ticket-templates/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'] });
-      setIsEditOpen(false);
-      setEditingTemplate(null);
-      setCustomFields([]);
-      form.reset();
-      toast({
-        title: "Template atualizado",
-        description: "O template foi atualizado com sucesso.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar template",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -229,52 +178,10 @@ export default function TicketTemplates() {
         description: "O template foi excluído com sucesso.",
       });
     },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao excluir template",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
-      });
-    },
   });
 
-  // Handlers
   const handleCreateTemplate = (data: TemplateFormData) => {
-    createTemplateMutation.mutate({ ...data, customFields });
-  };
-
-  const handleEditTemplate = (template: TicketTemplate) => {
-    setEditingTemplate(template);
-
-    // Parse custom fields if they exist
-    try {
-      const parsedCustomFields = template.custom_fields ? JSON.parse(template.custom_fields) : [];
-      setCustomFields(parsedCustomFields);
-    } catch (e) {
-      setCustomFields([]);
-    }
-
-    form.reset({
-      name: template.name,
-      description: template.description,
-      category: template.category,
-      priority: template.priority as any,
-      urgency: template.urgency as any,
-      impact: template.impact as any,
-      defaultTitle: template.default_title,
-      defaultDescription: template.default_description,
-      defaultTags: template.default_tags || '',
-      estimatedHours: template.estimated_hours,
-      requiresApproval: template.requires_approval,
-      autoAssign: template.auto_assign,
-      defaultAssigneeRole: template.default_assignee_role || '',
-    });
-    setIsEditOpen(true);
-  };
-
-  const handleUpdateTemplate = (data: TemplateFormData) => {
-    if (!editingTemplate) return;
-    updateTemplateMutation.mutate({ id: editingTemplate.id, data });
+    createTemplateMutation.mutate(data);
   };
 
   const handleDeleteTemplate = (id: string) => {
@@ -284,7 +191,7 @@ export default function TicketTemplates() {
   };
 
   // Filtrar templates
-  const filteredTemplates = (templates || []).filter((template: TicketTemplate) => {
+  const filteredTemplates = templates.filter((template: TicketTemplate) => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
@@ -312,521 +219,390 @@ export default function TicketTemplates() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Templates de Tickets</h1>
-          <p className="text-muted-foreground">
-            Sistema completo de templates com campos customizáveis e análise inteligente
-          </p>
-        </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Template
-        </Button>
-      </div>
-
-      {/* Company Selector */}
-      <CompanyTemplateSelector 
-        selectedCompany={selectedCompany}
-        onCompanyChange={setSelectedCompany}
-        showStats={false}
-      />
-
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Gerenciar Templates
-          </TabsTrigger>
-          <TabsTrigger value="editor" className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Editor Visual
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Analytics e Relatórios
-          </TabsTrigger>
-          <TabsTrigger value="company" className="flex items-center gap-2">
-            <Building2 className="w-4 h-4" />
-            Configurações da Empresa
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="templates" className="space-y-6">
-
-        {/* Stats Cards */}
-        {stats && Object.keys(stats).length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
-                  </div>
-                  <BarChart3 className="w-8 h-8 text-blue-500" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Ativos</p>
-                    <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
-                  </div>
-                  <Users className="w-8 h-8 text-green-500" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Uso médio</p>
-                    <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
-                  </div>
-                  <Clock className="w-8 h-8 text-orange-500" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Mais usado</p>
-                    <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
-                  </div>
-                  <BarChart3 className="w-8 h-8 text-purple-500" />
-                </div>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
+      <div className="p-6 space-y-6">
+        {/* Header com Gradiente */}
+        <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 rounded-lg p-6 text-white shadow-lg">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                Templates de Tickets
+              </h1>
+              <p className="text-blue-100 mt-2">
+                Sistema completo de templates com Clean Architecture e análise inteligente
+              </p>
+            </div>
+            <Button 
+              onClick={() => setIsCreateOpen(true)}
+              className="bg-white text-purple-600 hover:bg-purple-50 shadow-lg"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Template
+            </Button>
           </div>
-        )}
+        </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar templates..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+        {/* Company Selector */}
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            🏢 Empresa Selecionada
+          </label>
+          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+            <SelectTrigger className="border-purple-200 focus:border-purple-400">
+              <SelectValue placeholder="Selecione uma empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as empresas</SelectItem>
+              <SelectItem value="company1">Empresa 1</SelectItem>
+              <SelectItem value="company2">Empresa 2</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="templates" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Gerenciar Templates
+            </TabsTrigger>
+            <TabsTrigger value="editor" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Editor Visual
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Analytics e Relatórios
+            </TabsTrigger>
+            <TabsTrigger value="company" className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              Configurações da Empresa
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="templates" className="space-y-6">
+            {/* Painel de Controle Hierárquico */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="border-b bg-gradient-to-r from-gray-50 to-blue-50 p-4">
+                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-blue-600" />
+                  Painel de Controle de Templates
+                </h2>
+              </div>
+              
+              <div className="p-4 space-y-4">
+                {/* Filtros Hierárquicos */}
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex-1 min-w-64">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      🔍 Buscar Templates
+                    </label>
+                    <Input
+                      placeholder="Digite o nome ou descrição..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="border-purple-200 focus:border-purple-400"
+                    />
+                  </div>
+                  
+                  <div className="flex-1 min-w-48">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📁 Categoria
+                    </label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="border-blue-200 focus:border-blue-400">
+                        <SelectValue placeholder="Todas as categorias" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as categorias</SelectItem>
+                        {categories.map((category: string) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Estatísticas em Formato Lista */}
+                {stats && Object.keys(stats).length > 0 && (
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4">
+                    <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-purple-600" />
+                      Estatísticas Resumidas
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">{stats.total || 0}</div>
+                        <div className="text-sm text-gray-600">Total</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">{stats.active || 0}</div>
+                        <div className="text-sm text-gray-600">Ativos</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-cyan-600">{stats.popular || 0}</div>
+                        <div className="text-sm text-gray-600">Populares</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{stats.categories || 0}</div>
+                        <div className="text-sm text-gray-600">Categorias</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as categorias</SelectItem>
-                {categories.map((category: string) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Templates Grid */}
-      {isLoading ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Carregando templates...</p>
-        </div>
-      ) : filteredTemplates.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {searchTerm || selectedCategory !== 'all' ? 
-              'Nenhum template encontrado com os filtros aplicados.' :
-              'Nenhum template encontrado. Crie o primeiro!'
-            }
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemplates.map((template: TicketTemplate) => (
-            <Card key={template.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{template.name}</CardTitle>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditTemplate(template)}
+            {/* Lista Hierárquica de Templates */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="border-b bg-gradient-to-r from-gray-50 to-blue-50 p-4">
+                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  Templates Disponíveis ({filteredTemplates.length})
+                </h2>
+              </div>
+              
+              <div className="divide-y">
+                {isLoading ? (
+                  <div className="p-4 text-center text-gray-500">
+                    <div className="inline-flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                      Carregando templates...
+                    </div>
+                  </div>
+                ) : filteredTemplates.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                    <p>Nenhum template encontrado</p>
+                    <Button 
+                      variant="link" 
+                      onClick={() => setIsCreateOpen(true)}
+                      className="text-purple-600 hover:text-purple-700"
                     >
-                      <Edit className="w-4 h-4" />
+                      Criar primeiro template
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteTemplate(template.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  </div>
+                ) : (
+                  filteredTemplates.map((template: TicketTemplate) => (
+                    <div key={template.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between w-full text-left">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-blue-600" />
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <h3 className="font-medium text-gray-900">{template.name}</h3>
+                              <Badge 
+                                variant="outline" 
+                                className="border-purple-200 text-purple-700 bg-purple-50"
+                              >
+                                {template.category}
+                              </Badge>
+                              <Badge className={`${getPriorityColor(template.priority)} border-0`}>
+                                {getPriorityLabel(template.priority)}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">{template.description}</p>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {template.estimated_hours}h
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Activity className="w-4 h-4" />
+                              {template.usage_count || 0} usos
+                            </div>
+                          </div>
+
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteTemplate(template.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="editor" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="border-b bg-gradient-to-r from-gray-50 to-blue-50 p-4">
+                <h2 className="text-lg font-semibold text-gray-800">Editor Visual de Templates</h2>
+                <p className="text-gray-600 mt-1">
+                  Crie templates usando drag-and-drop com campos do sistema e customizados.
+                </p>
+              </div>
+              <div className="p-6">
+                <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <Plus className="w-12 h-12 mx-auto mb-3" />
+                    <p>Editor visual será carregado aqui</p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {template.description}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="border-b bg-gradient-to-r from-gray-50 to-blue-50 p-4">
+                <h2 className="text-lg font-semibold text-gray-800">Analytics e Relatórios</h2>
+                <p className="text-gray-600 mt-1">
+                  Análises detalhadas de uso e performance dos templates.
                 </p>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">{template.category}</Badge>
-                    <Badge className={getPriorityColor(template.priority)}>
-                      {getPriorityLabel(template.priority)}
-                    </Badge>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">{stats.total || 0}</div>
+                    <div className="text-sm text-purple-700">Templates Totais</div>
                   </div>
-
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Estimativa: {template.estimated_hours}h</p>
-                    <p>Usado: {template.usage_count || 0} vezes</p>
-                    {template.requires_approval && (
-                      <p className="text-orange-600">Requer aprovação</p>
-                    )}
-                    {template.auto_assign && (
-                      <p className="text-blue-600">Atribuição automática</p>
-                    )}
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{stats.active || 0}</div>
+                    <div className="text-sm text-blue-700">Templates Ativos</div>
                   </div>
+                  <div className="bg-gradient-to-r from-cyan-50 to-cyan-100 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-cyan-600">{stats.categories || 0}</div>
+                    <div className="text-sm text-cyan-700">Categorias</div>
+                  </div>
+                </div>
+                <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <BarChart3 className="w-12 h-12 mx-auto mb-3" />
+                    <p>Gráficos de analytics serão exibidos aqui</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
 
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-muted-foreground">
-                      Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')}
+          <TabsContent value="company" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="border-b bg-gradient-to-r from-gray-50 to-blue-50 p-4">
+                <h2 className="text-lg font-semibold text-gray-800">Configurações da Empresa</h2>
+                <p className="text-gray-600 mt-1">
+                  Personalize templates específicos para esta empresa.
+                </p>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2 text-purple-700">Templates Personalizados</h4>
+                    <p className="text-sm text-gray-600">
+                      Crie templates específicos com campos customizados para esta empresa.
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2 text-blue-700">Aprovações Automáticas</h4>
+                    <p className="text-sm text-gray-600">
+                      Configure regras de aprovação baseadas no perfil da empresa.
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-        </TabsContent>
-
-        <TabsContent value="editor" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Editor Visual de Templates</CardTitle>
-              <p className="text-muted-foreground">
-                Crie templates de abertura e atribuição usando drag-and-drop. Inclui campos do sistema e campos customizados.
-              </p>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="h-[800px]">
-                <TemplateCanvasEditor
-                  onSave={(template) => {
-                    console.log('Template salvo:', template);
-                    // Aqui você pode implementar a lógica de salvamento
-                    createTemplateMutation.mutate({
-                      name: template.name,
-                      description: template.description,
-                      category: template.category,
-                      defaultTitle: template.name,
-                      defaultDescription: template.description,
-                      priority: 'medium',
-                      urgency: 'medium',
-                      impact: 'medium',
-                      estimatedHours: 2,
-                      requiresApproval: false,
-                      autoAssign: false,
-                      defaultAssigneeRole: '',
-                      customFields: template.fields
-                    });
-                  }}
-                  onPreview={(template) => {
-                    console.log('Preview do template:', template);
-                    toast({
-                      title: "Preview do Template",
-                      description: `Template "${template.name}" carregado para preview.`,
-                    });
-                  }}
-                />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <TemplateAnalytics companyId={selectedCompany} />
-        </TabsContent>
-
-        <TabsContent value="company" className="space-y-6">
-          <CompanyTemplateSelector 
-            selectedCompany={selectedCompany}
-            onCompanyChange={setSelectedCompany}
-            showStats={true}
-          />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações Avançadas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Configure templates específicos para esta empresa, definindo terminologias 
-                e fluxos personalizados que atendem às necessidades específicas do cliente.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="p-4">
-                  <h4 className="font-medium mb-2">Templates Personalizados</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Crie templates específicos para esta empresa com campos customizados.
-                  </p>
-                </Card>
-                <Card className="p-4">
-                  <h4 className="font-medium mb-2">Aprovações Automáticas</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Configure regras de aprovação baseadas no perfil da empresa.
-                  </p>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Criar Novo Template - {selectedCompany === 'all' ? 'Global' : 'Específico da Empresa'}</DialogTitle>
-          </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Template *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Problema de Hardware" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Suporte Técnico" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
+          </TabsContent>
+        </Tabs>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição *</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descreva quando este template deve ser usado..."
-                      rows={3}
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {/* Create Dialog */}
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Criar Novo Template</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Template *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Problema de Hardware" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Suporte Técnico" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prioridade Padrão</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="medium">Média</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="critical">Crítica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="urgency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Urgência Padrão</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="medium">Média</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="critical">Crítica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="impact"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Impacto Padrão</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Baixo</SelectItem>
-                        <SelectItem value="medium">Médio</SelectItem>
-                        <SelectItem value="high">Alto</SelectItem>
-                        <SelectItem value="critical">Crítico</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsCreateOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createTemplateMutation.isPending}
-              >
-                {createTemplateMutation.isPending ? 'Criando...' : 'Criar Template'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog - Similar structure with populated fields */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Template</DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => {
-              if (editingTemplate) {
-                updateTemplateMutation.mutate({ id: editingTemplate.id, data });
-              }
-            })} className="space-y-4">
-              {/* Similar form structure as create, but populated with current values */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome do Template *</FormLabel>
+                      <FormLabel>Descrição *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Problema de Hardware" {...field} />
+                        <Textarea 
+                          placeholder="Descreva quando este template deve ser usado..."
+                          rows={3}
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Categoria *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Suporte Técnico" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição *</FormLabel>
-                  <FormControl>
-                      <Textarea 
-                        placeholder="Descreva quando este template deve ser usado..."
-                        rows={3}
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsEditOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={updateTemplateMutation.isPending}
-                >
-                  {updateTemplateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsCreateOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createTemplateMutation.isPending}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  >
+                    {createTemplateMutation.isPending ? 'Criando...' : 'Criar Template'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
