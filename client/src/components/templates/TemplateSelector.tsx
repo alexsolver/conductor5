@@ -41,7 +41,7 @@ export default function TemplateSelector({
   const [showPopularOnly, setShowPopularOnly] = useState(false);
 
   // Fetch templates
-  const { data: templatesResponse, isLoading } = useQuery({
+  const { data: templatesResponse, isLoading: templatesLoading, error: templatesError } = useQuery({
     queryKey: ['template-selector-templates', companyId],
     queryFn: async () => {
       console.log('🔍 [TEMPLATE-SELECTOR] Fetching templates for company:', companyId);
@@ -58,7 +58,7 @@ export default function TemplateSelector({
 
   const templates = React.useMemo(() => {
     console.log('🔄 [TEMPLATE-SELECTOR-PROCESSING] Processing templates response:', templatesResponse);
-    
+
     if (!templatesResponse) {
       console.log('❌ [TEMPLATE-SELECTOR-PROCESSING] No response data');
       return [];
@@ -118,7 +118,7 @@ export default function TemplateSelector({
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
     const matchesPopular = !showPopularOnly || popularTemplates.some((p: TemplatePreview) => p.id === template.id);
-    
+
     return matchesSearch && matchesCategory && matchesPopular;
   });
 
@@ -230,10 +230,14 @@ export default function TemplateSelector({
       </Card>
 
       {/* Templates Grid */}
-      {isLoading ? (
+      {templatesLoading ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Carregando templates...</p>
         </div>
+      ) : (templatesError as any) ? (
+         <div className="text-center py-12">
+           <p className="text-red-500">Erro ao carregar templates: {(templatesError as any).message}</p>
+         </div>
       ) : filteredTemplates.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
@@ -267,7 +271,7 @@ export default function TemplateSelector({
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {template.description}
                   </p>
-                  
+
                   <div className="flex gap-2 flex-wrap">
                     <Badge className={getPriorityColor(template.priority)}>
                       {getPriorityLabel(template.priority)}
@@ -283,7 +287,7 @@ export default function TemplateSelector({
                       </Badge>
                     )}
                   </div>
-                  
+
                   <div className="text-sm text-muted-foreground space-y-1">
                     <div className="flex items-center gap-2">
                       <Clock className="w-3 h-3" />

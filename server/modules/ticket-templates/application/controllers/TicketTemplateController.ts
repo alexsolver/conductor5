@@ -133,6 +133,12 @@ export class TicketTemplateController {
       };
 
       console.log('✅ [TEMPLATE-CONTROLLER] Sending successful response with', responseData.templates.length, 'templates');
+      console.log('📤 [TEMPLATE-CONTROLLER] Response structure check:', {
+        hasSuccess: true,
+        hasData: !!responseData,
+        hasTemplatesArray: Array.isArray(responseData.templates),
+        templatesLength: responseData.templates.length
+      });
 
       return res.json({
         success: true,

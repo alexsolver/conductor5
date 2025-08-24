@@ -154,35 +154,31 @@ export default function TicketTemplates() {
 
   const templates = React.useMemo(() => {
     console.log('🔄 [TEMPLATES-PROCESSING] Processing templates response:', templatesResponse);
-    
+
     if (!templatesResponse) {
       console.log('❌ [TEMPLATES-PROCESSING] No response data');
       return [];
     }
 
-    // Handle different response formats
-    if (templatesResponse.success && templatesResponse.data) {
-      if (Array.isArray(templatesResponse.data.templates)) {
-        console.log('✅ [TEMPLATES-PROCESSING] Found templates array in data.templates:', templatesResponse.data.templates.length);
-        return templatesResponse.data.templates;
-      }
-      if (Array.isArray(templatesResponse.data)) {
-        console.log('✅ [TEMPLATES-PROCESSING] Found templates array in data:', templatesResponse.data.length);
-        return templatesResponse.data;
-      }
+    // Check if response has the expected structure
+    if (templatesResponse.success && templatesResponse.data?.templates) {
+      console.log('✅ [TEMPLATES-PROCESSING] Found templates:', templatesResponse.data.templates.length);
+      return templatesResponse.data.templates;
     }
 
-    if (Array.isArray(templatesResponse.data)) {
-      console.log('✅ [TEMPLATES-PROCESSING] Found templates array:', templatesResponse.data.length);
-      return templatesResponse.data;
-    }
-
+    // Fallback: check if response is directly an array
     if (Array.isArray(templatesResponse)) {
-      console.log('✅ [TEMPLATES-PROCESSING] Found templates array in response:', templatesResponse.length);
+      console.log('✅ [TEMPLATES-PROCESSING] Direct array response:', templatesResponse.length);
       return templatesResponse;
     }
 
-    console.log('❌ [TEMPLATES-PROCESSING] No valid templates found, returning empty array');
+    // Additional fallback: check if data is at root level
+    if (templatesResponse.data && Array.isArray(templatesResponse.data)) {
+      console.log('✅ [TEMPLATES-PROCESSING] Root data array:', templatesResponse.data.length);
+      return templatesResponse.data;
+    }
+
+    console.log('❌ [TEMPLATES-PROCESSING] Unexpected response structure:', templatesResponse);
     return [];
   }, [templatesResponse]);
   const stats = statsResponse?.data || {};
@@ -195,14 +191,14 @@ export default function TicketTemplates() {
       const endpoint = selectedCompany === 'all' 
         ? '/api/ticket-templates' 
         : `/api/ticket-templates`;
-      
+
       const payload = {
         ...data,
         companyId: selectedCompany === 'all' ? null : selectedCompany,
         defaultTags: data.defaultTags || '',
         customFields: null,
       };
-      
+
       console.log('📤 [CREATE-TEMPLATE] Payload:', payload);
       const response = await apiRequest('POST', endpoint, payload);
       const result = await response.json();
