@@ -7,13 +7,13 @@
  */
 
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
-import { TicketTemplate, TicketTemplateDomainService } from '../../domain/entities/TicketTemplate';
+import { TicketTemplate } from '../../domain/entities/TicketTemplate';
 
 export interface GetTicketTemplatesRequest {
   tenantId: string;
-  templateId?: string;
   userRole: string;
   companyId?: string;
+  templateId?: string;
   filters?: {
     category?: string;
     subcategory?: string;
@@ -32,34 +32,9 @@ export interface GetTicketTemplatesResponse {
   success: boolean;
   data?: {
     templates: TicketTemplate[];
-    template?: TicketTemplate;
-    analytics?: {
-      totalTemplates: number;
-      activeTemplates: number;
-      mostUsedTemplate: TicketTemplate | null;
-      averageComplexity: number;
-      templatesByCategory: Record<string, number>;
-      templatesByType: Record<string, number>;
-    };
-    usageStatistics?: {
-      totalUsage: number;
-      popularTemplates: Array<{
-        template: TicketTemplate;
-        usageCount: number;
-        lastUsed?: Date;
-      }>;
-      usageByCategory: Record<string, number>;
-      usageByType: Record<string, number>;
-      usageByCompany: Record<string, number>;
-      averageFieldCount: number;
-      complexityDistribution: Record<string, number>;
-    };
-    fieldAnalytics?: {
-      mostUsedFields: Array<{ name: string; type: string; count: number }>;
-      fieldTypeDistribution: Record<string, number>;
-      validationUsage: Record<string, number>;
-      conditionalLogicUsage: number;
-    };
+    analytics?: any;
+    usageStatistics?: any;
+    fieldAnalytics?: any;
   };
   errors?: string[];
 }
@@ -69,159 +44,157 @@ export class GetTicketTemplatesUseCase {
 
   async execute(request: GetTicketTemplatesRequest): Promise<GetTicketTemplatesResponse> {
     try {
-      console.log('🔍 [GET-TICKET-TEMPLATES-USE-CASE] Executing with request:', {
-        tenantId: request.tenantId,
-        templateId: request.templateId,
-        userRole: request.userRole,
-        companyId: request.companyId,
-        hasFilters: !!request.filters,
-        search: request.search
-      });
+      console.log('🎯 [GET-TEMPLATES-UC] Executing with request:', request);
 
+      // Validate required fields following 1qa.md standards
+      if (!request.tenantId) {
+        throw new Error('Tenant ID is required');
+      }
+
+      if (!request.userRole) {
+        throw new Error('User role is required');
+      }
+
+      // Get templates based on request parameters
       let templates: TicketTemplate[] = [];
-      let singleTemplate: TicketTemplate | null = null;
 
-      // 1. Get specific template if ID provided
       if (request.templateId) {
-        console.log('📄 [GET-TICKET-TEMPLATES-USE-CASE] Getting single template:', request.templateId);
-        singleTemplate = await this.ticketTemplateRepository.findById(
-          request.templateId,
-          request.tenantId
-        );
-
-        if (!singleTemplate) {
-          return {
-            success: false,
-            errors: ['Template não encontrado']
-          };
-        }
-
-        // Check permissions
-        if (!TicketTemplateDomainService.hasPermission(singleTemplate, request.userRole, 'view')) {
-          return {
-            success: false,
-            errors: ['Permissão insuficiente para visualizar este template']
-          };
-        }
-
-        templates = [singleTemplate];
-      }
-      // 2. Search templates if query provided
-      else if (request.search) {
-        console.log('🔍 [GET-TICKET-TEMPLATES-USE-CASE] Searching templates with query:', request.search);
-        templates = await this.ticketTemplateRepository.search(
-          request.tenantId,
-          request.search,
-          {
-            category: request.filters?.category,
-            templateType: request.filters?.templateType,
-            tags: request.filters?.tags
-          }
-        );
-      }
-      // 3. Get templates by company
-      else if (request.companyId) {
-        console.log('🏢 [GET-TICKET-TEMPLATES-USE-CASE] Getting templates by company:', request.companyId);
-        templates = await this.getTemplatesByCompany(request.companyId, request.tenantId);
-      }
-      // 4. Get all templates with filters
-      else {
-        console.log('📋 [GET-TICKET-TEMPLATES-USE-CASE] Getting all templates with filters');
-        templates = await this.ticketTemplateRepository.findAll(
-          request.tenantId,
-          request.filters
-        );
+        // Get single template
+        const template = await this.ticketTemplateRepository.findById(request.templateId, request.tenantId);
+        templates = template ? [template] : [];
+      } else if (request.companyId && request.companyId !== 'all') {
+        // Get templates by company
+        templates = await this.ticketTemplateRepository.findByCompany(request.companyId, request.tenantId);
+      } else {
+        // Get all templates for tenant
+        templates = await this.ticketTemplateRepository.findByTenant(request.tenantId);
       }
 
-      console.log('📊 [GET-TICKET-TEMPLATES-USE-CASE] Raw templates found:', templates.length);
+      // Apply filters if provided
+      if (request.filters) {
+        templates = this.applyFilters(templates, request.filters);
+      }
 
-      // 5. Filter templates based on permissions and company access
-      const accessibleTemplates = templates.filter(template =>
-        TicketTemplateDomainService.hasPermission(template, request.userRole, 'view') &&
-        TicketTemplateDomainService.canUseTemplate(template, request.userRole, request.companyId)
-      );
+      // Apply search if provided
+      if (request.search) {
+        templates = this.applySearch(templates, request.search);
+      }
 
-      console.log('✅ [GET-TICKET-TEMPLATES-USE-CASE] Accessible templates:', accessibleTemplates.length);
+      console.log('✅ [GET-TEMPLATES-UC] Found templates:', templates.length);
 
-      // 6. Generate analytics if requested
-      let analytics;
+      // Prepare analytics if requested
+      let analytics = undefined;
+      let usageStatistics = undefined;
+      let fieldAnalytics = undefined;
+
       if (request.includeAnalytics) {
-        analytics = TicketTemplateDomainService.generateUsageAnalytics(accessibleTemplates);
+        analytics = this.generateAnalytics(templates);
       }
 
-      // 7. Get usage statistics if requested
-      let usageStatistics;
       if (request.includeUsageStats) {
-        usageStatistics = await this.ticketTemplateRepository.getUsageStatistics(request.tenantId);
+        usageStatistics = this.generateUsageStats(templates);
       }
 
-      // 8. Get field analytics if requested
-      let fieldAnalytics;
-      if (request.includeAnalytics) {
-        fieldAnalytics = await this.ticketTemplateRepository.getFieldAnalytics(request.tenantId);
-      }
-
-      const responseData = {
-        templates: accessibleTemplates,
-        template: singleTemplate || undefined,
-        analytics,
-        usageStatistics,
-        fieldAnalytics
-      };
-
-      console.log('✅ [GET-TICKET-TEMPLATES-USE-CASE] Returning response with:', {
-        templatesCount: responseData.templates.length,
-        hasAnalytics: !!responseData.analytics,
-        hasUsageStats: !!responseData.usageStatistics,
-        hasFieldAnalytics: !!responseData.fieldAnalytics
-      });
-
-      return {
+      const response = {
         success: true,
-        data: responseData
+        data: {
+          templates,
+          ...(analytics && { analytics }),
+          ...(usageStatistics && { usageStatistics }),
+          ...(fieldAnalytics && { fieldAnalytics })
+        }
       };
+
+      console.log('🚀 [GET-TEMPLATES-UC] Response prepared successfully');
+      return response;
 
     } catch (error) {
-      console.error('[GetTicketTemplatesUseCase] Error:', error);
+      console.error('❌ [GET-TEMPLATES-UC] Error:', error);
       return {
         success: false,
-        errors: ['Erro interno do servidor']
+        errors: [error instanceof Error ? error.message : 'Unknown error']
       };
     }
+  }
+
+  private applyFilters(templates: TicketTemplate[], filters: any): TicketTemplate[] {
+    return templates.filter(template => {
+      if (filters.category && template.category !== filters.category) return false;
+      if (filters.subcategory && template.subcategory !== filters.subcategory) return false;
+      if (filters.templateType && template.templateType !== filters.templateType) return false;
+      if (filters.status && template.status !== filters.status) return false;
+      if (filters.departmentId && template.departmentId !== filters.departmentId) return false;
+      if (filters.isDefault !== undefined && template.isDefault !== filters.isDefault) return false;
+      if (filters.tags && filters.tags.length > 0) {
+        const templateTags = template.tags || [];
+        const hasMatchingTag = filters.tags.some((tag: string) => templateTags.includes(tag));
+        if (!hasMatchingTag) return false;
+      }
+      return true;
+    });
+  }
+
+  private applySearch(templates: TicketTemplate[], search: string): TicketTemplate[] {
+    const searchLower = search.toLowerCase();
+    return templates.filter(template =>
+      template.name.toLowerCase().includes(searchLower) ||
+      template.description.toLowerCase().includes(searchLower) ||
+      (template.category && template.category.toLowerCase().includes(searchLower)) ||
+      (template.subcategory && template.subcategory.toLowerCase().includes(searchLower))
+    );
+  }
+
+  private generateAnalytics(templates: TicketTemplate[]): any {
+    const totalTemplates = templates.length;
+    const activeTemplates = templates.filter(t => t.status === 'active').length;
+
+    const templatesByCategory = templates.reduce((acc, template) => {
+      acc[template.category] = (acc[template.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const averageUsage = templates.reduce((sum, t) => sum + (t.usageCount || 0), 0) / totalTemplates || 0;
+    const maxUsage = Math.max(...templates.map(t => t.usageCount || 0));
+
+    return {
+      totalTemplates,
+      activeTemplates,
+      templatesByCategory,
+      averageUsage: Math.round(averageUsage * 100) / 100,
+      maxUsage
+    };
+  }
+
+  private generateUsageStats(templates: TicketTemplate[]): any {
+    const popularTemplates = templates
+      .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
+      .slice(0, 10);
+
+    return {
+      popularTemplates,
+      totalUsage: templates.reduce((sum, t) => sum + (t.usageCount || 0), 0)
+    };
   }
 
   async getTemplateStatsByCompany(companyId: string, tenantId: string): Promise<any> {
     try {
-      console.log(`🔍 [GET-TEMPLATE-STATS] Getting stats for company ${companyId}, tenant ${tenantId}`);
+      const templates = await this.ticketTemplateRepository.findByCompany(companyId, tenantId);
 
-      const stats = await this.ticketTemplateRepository.getTemplateStatsByCompany(companyId, tenantId);
-
-      console.log(`✅ [GET-TEMPLATE-STATS] Retrieved stats:`, stats);
-      return stats;
+      return {
+        success: true,
+        data: {
+          total_templates: templates.length,
+          active_templates: templates.filter(t => t.status === 'active').length,
+          avg_usage: templates.reduce((sum, t) => sum + (t.usageCount || 0), 0) / templates.length || 0,
+          max_usage: Math.max(...templates.map(t => t.usageCount || 0))
+        }
+      };
     } catch (error) {
-      console.error(`❌ [GET-TEMPLATE-STATS] Error:`, error);
-      throw new Error(`Failed to get template statistics: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  async getTemplatesByCompany(companyId: string, tenantId: string): Promise<TicketTemplate[]> {
-    try {
-      console.log(`🔍 [GET-TEMPLATES-BY-COMPANY] Getting templates for company ${companyId}, tenant ${tenantId}`);
-
-      if (companyId === 'all') {
-        // Assuming a method to get all templates, if not available, this needs to be implemented or handled.
-        // For now, let's assume it exists or fall back to fetching all without company filter if appropriate.
-        // If ticketTemplateRepository.findAll is intended for all, use that.
-        return await this.ticketTemplateRepository.findAll(tenantId); // Adjust if findAll requires filters
-      }
-
-      const templates = await this.ticketTemplateRepository.findByCompanyId(companyId, tenantId);
-
-      console.log(`✅ [GET-TEMPLATES-BY-COMPANY] Found ${templates.length} templates`);
-      return templates;
-    } catch (error) {
-      console.error(`❌ [GET-TEMPLATES-BY-COMPANY] Error:`, error);
-      throw new Error(`Failed to get templates by company: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ [GET-TEMPLATES-UC] getTemplateStatsByCompany error:', error);
+      return {
+        success: false,
+        errors: [error instanceof Error ? error.message : 'Unknown error']
+      };
     }
   }
 }

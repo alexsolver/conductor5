@@ -928,9 +928,19 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
     return this.templates.filter(t => t.tenantId === tenantId && t.templateType === templateType);
   }
 
-  async findByCompany(tenantId: string, companyId: string): Promise<TicketTemplate[]> {
-    // Mock implementation
-    return this.templates.filter(t => t.tenantId === tenantId && (t.companyId === companyId || t.companyId === null));
+  async findByCompany(companyId: string, tenantId: string): Promise<TicketTemplate[]> {
+    console.log('🏢 [SIMPLIFIED-REPO] Finding templates for company:', companyId, 'tenant:', tenantId);
+
+    // Get all tenant templates first
+    const tenantTemplates = await this.findByTenant(tenantId);
+
+    // Filter by company
+    const companyTemplates = tenantTemplates.filter(t => 
+      t.companyId === companyId || (!t.companyId && companyId === 'all')
+    );
+
+    console.log('✅ [SIMPLIFIED-REPO] Found company templates:', companyTemplates.length);
+    return companyTemplates;
   }
 
   async findActive(tenantId: string): Promise<TicketTemplate[]> {
@@ -1234,4 +1244,146 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
   async getSystemTemplates(): Promise<TicketTemplate[]> { return []; }
   async createSystemTemplate(): Promise<TicketTemplate> { return this.templates[0]; }
   async updateSystemTemplate(): Promise<TicketTemplate | null> { return this.templates[0]; }
+
+  // Helper to map database row to entity, adjusted for mock data structure
+  private mapRowToEntity(row: any): TicketTemplate {
+    return {
+      id: row.id,
+      tenantId: row.tenantId,
+      companyId: row.companyId,
+      name: row.name,
+      description: row.description,
+      category: row.category,
+      subcategory: row.subcategory,
+      priority: row.priority,
+      templateType: row.templateType,
+      status: row.status,
+      fields: row.custom_fields ? JSON.parse(row.custom_fields) : [], // Assuming custom_fields is stored as JSON string
+      automation: row.automation, // Assuming automation is stored as JSON or object
+      workflow: row.workflow, // Assuming workflow is stored as JSON or object
+      permissions: row.permissions, // Assuming permissions is stored as JSON or array
+      metadata: row.metadata, // Assuming metadata is stored as JSON or object
+      isDefault: row.isDefault,
+      isSystem: row.isSystem,
+      usageCount: row.usage_count,
+      lastUsed: row.lastUsed,
+      tags: row.tags,
+      createdBy: row.createdBy,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      isActive: row.is_active
+    };
+  }
+
+  // New method to ensure consistent template structure
+  private ensureTemplateStructure(template: any): TicketTemplate {
+    return {
+      id: template.id || crypto.randomUUID(),
+      tenantId: template.tenantId,
+      companyId: template.companyId || null,
+      name: template.name || 'Untitled Template',
+      description: template.description || 'No description',
+      category: template.category || 'General',
+      subcategory: template.subcategory || null,
+      priority: template.priority || 'medium',
+      urgency: template.urgency || 'medium',
+      impact: template.impact || 'medium',
+      templateType: template.templateType || 'standard',
+      status: template.status || 'active',
+      isActive: template.isActive !== false,
+      isDefault: template.isDefault || false,
+      usageCount: template.usageCount || 0,
+      tags: template.tags || [],
+      fields: template.fields || [],
+      automation: template.automation || null,
+      workflow: template.workflow || null,
+      permissions: template.permissions || [],
+      createdAt: template.createdAt || new Date().toISOString(),
+      updatedAt: template.updatedAt || new Date().toISOString(),
+      createdBy: template.createdBy || 'system',
+      updatedBy: template.updatedBy || null,
+      departmentId: template.departmentId || null,
+      customFields: template.customFields || null
+    };
+  }
+
+  // New method to provide default templates if none exist
+  private getDefaultTemplates(tenantId: string): TicketTemplate[] {
+    return [
+      {
+        id: crypto.randomUUID(),
+        tenantId,
+        companyId: null,
+        name: 'Suporte Técnico Geral',
+        description: 'Template padrão para tickets de suporte técnico',
+        category: 'Suporte',
+        subcategory: 'Técnico',
+        priority: 'medium',
+        urgency: 'medium', 
+        impact: 'medium',
+        templateType: 'standard',
+        status: 'active',
+        isActive: true,
+        isDefault: true,
+        usageCount: 5,
+        tags: ['suporte', 'técnico'],
+        fields: [],
+        automation: null,
+        workflow: null,
+        permissions: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: 'system',
+        updatedBy: null,
+        departmentId: null,
+        customFields: null
+      },
+      {
+        id: crypto.randomUUID(),
+        tenantId,
+        companyId: null,
+        name: 'Solicitação de Acesso',
+        description: 'Template para solicitações de acesso a sistemas',
+        category: 'Acesso',
+        subcategory: 'Permissões',
+        priority: 'high',
+        urgency: 'high',
+        impact: 'medium',
+        templateType: 'standard',
+        status: 'active',
+        isActive: true,
+        isDefault: true,
+        usageCount: 8,
+        tags: ['acesso', 'permissões'],
+        fields: [],
+        automation: null,
+        workflow: null,
+        permissions: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: 'system',
+        updatedBy: null,
+        departmentId: null,
+        customFields: null
+      }
+    ];
+  }
+
+  async findByTenant(tenantId: string): Promise<TicketTemplate[]> {
+    console.log('📊 [SIMPLIFIED-REPO] Finding templates for tenant:', tenantId);
+
+    // Ensure we always return valid template data
+    if (this.templates.length === 0) {
+      // Initialize with default templates if none exist
+      this.templates = this.getDefaultTemplates(tenantId);
+    }
+
+    // Filter by tenantId and ensure all templates have required fields
+    const filteredTemplates = this.templates
+      .filter(t => t.tenantId === tenantId)
+      .map(template => this.ensureTemplateStructure(template));
+
+    console.log('✅ [SIMPLIFIED-REPO] Found templates:', filteredTemplates.length);
+    return filteredTemplates;
+  }
 }

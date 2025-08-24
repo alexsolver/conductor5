@@ -67,22 +67,29 @@ export class TicketTemplateController {
    */
   getTemplates = async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('🎯 [TEMPLATE-CONTROLLER] Getting templates with params:', req.params);
+      console.log('🎯 [TEMPLATE-CONTROLLER] Query params:', req.query);
+
       const tenantId = req.user?.tenantId;
       const userRole = req.user?.role;
-      const companyId = req.user?.companyId;
+      const companyId = req.params.companyId || req.query.companyId || req.user?.companyId || 'all';
       const templateId = req.params.id;
 
+      console.log('🔑 [TEMPLATE-CONTROLLER] Auth info:', { tenantId, userRole, companyId, templateId });
+
       if (!tenantId || !userRole) {
+        console.log('❌ [TEMPLATE-CONTROLLER] Authentication failed');
         return res.status(401).json({
           success: false,
           message: 'Authentication required'
         });
       }
 
-      const result = await this.getTicketTemplatesUseCase.execute({
+      const request = {
         tenantId,
         userRole,
         companyId: companyId !== 'all' ? companyId : undefined,
+        templateId,
         filters: {
           category: req.query.category as string,
           subcategory: req.query.subcategory as string,
@@ -95,9 +102,21 @@ export class TicketTemplateController {
         search: req.query.search as string,
         includeAnalytics: req.query.includeAnalytics === 'true',
         includeUsageStats: req.query.includeUsageStats === 'true'
+      };
+
+      console.log('📤 [TEMPLATE-CONTROLLER] Executing use case with request:', request);
+
+      const result = await this.getTicketTemplatesUseCase.execute(request);
+
+      console.log('📥 [TEMPLATE-CONTROLLER] Use case result:', { 
+        success: result.success, 
+        hasData: !!result.data,
+        templateCount: result.data?.templates?.length || 0,
+        errors: result.errors
       });
 
       if (!result.success) {
+        console.log('❌ [TEMPLATE-CONTROLLER] Use case failed:', result.errors);
         return res.status(404).json({
           success: false,
           message: 'Templates not found or access denied',
@@ -105,17 +124,28 @@ export class TicketTemplateController {
         });
       }
 
+      // Ensure we always return data with templates array
+      const responseData = {
+        templates: result.data?.templates || [],
+        ...(result.data?.analytics && { analytics: result.data.analytics }),
+        ...(result.data?.usageStatistics && { usageStatistics: result.data.usageStatistics }),
+        ...(result.data?.fieldAnalytics && { fieldAnalytics: result.data.fieldAnalytics })
+      };
+
+      console.log('✅ [TEMPLATE-CONTROLLER] Sending successful response with', responseData.templates.length, 'templates');
+
       return res.json({
         success: true,
         message: 'Templates retrieved successfully',
-        data: result.data
+        data: responseData
       });
 
     } catch (error) {
-      console.error('[TicketTemplateController] getTemplates error:', error);
+      console.error('❌ [TEMPLATE-CONTROLLER] getTemplates error:', error);
       return res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   };
