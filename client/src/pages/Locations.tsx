@@ -1,5 +1,6 @@
 // NEW LOCATIONS MODULE - Frontend Interface
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, MapPin, Route, Users, BarChart3, Filter, Edit, Trash2, Star, Tag, Heart, Settings, Upload, TreePine, FileText, Clock, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +34,8 @@ const locationFormSchema = z.object({
 type LocationFormData = z.infer<typeof locationFormSchema>;
 
 export default function Locations() {
+  const { t } = useTranslation();
+  
   // Update token on page load
   const updateTokenForLocationsPage = () => {
     const freshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1NGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjYwNzM4LCJleHAiOjE3NTM3NDcxMzgsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.VsZXdQfRK4y5s9t0I6AJp8c-k9M6YQ8Hj-EZzWv8mNY";
@@ -347,7 +350,7 @@ export default function Locations() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Status" />
+                              <SelectValue placeholder={t("common.status") || "Status"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>

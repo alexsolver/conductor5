@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -146,6 +147,8 @@ const measurementUnits = [
 ];
 
 export default function ItemCatalog() {
+  const { t } = useTranslation();
+  
   // Estados principais
   const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'item-edit'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -653,7 +656,7 @@ export default function ItemCatalog() {
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("common.status") || "Status"} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
