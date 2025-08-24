@@ -288,3 +288,41 @@ export const customFields = pgTable('custom_fields', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+// Import from schema-tenant for tenant-specific tables
+import { 
+  tickets as ticketsFromTenant,
+  ticketHistory as ticketHistoryFromTenant,
+  ticketRelationships as ticketRelationshipsFromTenant,
+  ticketTemplates as ticketTemplatesFromTenant
+} from './schema-tenant';
+
+// Re-export tenant tables with standard names
+export const tickets = ticketsFromTenant;
+export const ticketHistory = ticketHistoryFromTenant;
+export const ticketRelationships = ticketRelationshipsFromTenant;
+export const ticketTemplates = ticketTemplatesFromTenant;
+
+// Export all tables for use in repositories
+export {
+  // Core tables
+  users,
+  companies,
+  customers,
+  tickets,
+  ticketHistory,
+  ticketRelationships,
+  ticketTemplates,
+
+  // Additional modules
+  notifications,
+  customFields,
+  locations,
+  materials,
+  services,
+  contracts,
+  approvalRules,
+  approvalInstances,
+  knowledgeBase,
+  knowledgeBaseArticles
+};
