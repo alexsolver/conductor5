@@ -40,8 +40,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     console.log('🔥 [CUSTOM-FIELDS-REPO] getFieldsByModule called with:', moduleType);
 
     try {
-      // ✅ 1QA.MD: Ensure table exists first
-      await this.ensureCustomFieldsTable();
+      // ✅ 1QA.MD: Ensure schema and table exist first
+      await this.ensureSchemaAndTable();
 
       const tenantSchema = this.getTenantSchema();
       console.log('🔥 [CUSTOM-FIELDS-REPO] Querying fields from schema:', tenantSchema);
@@ -77,10 +77,14 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     }
   }
 
-  private async ensureCustomFieldsTable(): Promise<void> {
+  private async ensureSchemaAndTable(): Promise<void> {
     try {
-      // ✅ 1QA.MD: Create custom_field_metadata table if it doesn't exist
       const tenantSchema = this.getTenantSchema();
+      
+      // ✅ 1QA.MD: First ensure the tenant schema exists
+      await this.ensureTenantSchema(tenantSchema);
+      
+      // ✅ 1QA.MD: Then create custom_field_metadata table if it doesn't exist
       const createTableQuery = `
         CREATE TABLE IF NOT EXISTS ${tenantSchema}.custom_field_metadata (
           id VARCHAR(255) PRIMARY KEY,
@@ -104,10 +108,35 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
 
       // Use direct SQL execution
       await db.execute(sql.raw(createTableQuery));
-      console.log('🔥 [CUSTOM-FIELDS-REPO] Custom fields table ensured');
+      console.log('🔥 [CUSTOM-FIELDS-REPO] Custom fields table ensured in schema:', tenantSchema);
     } catch (error) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Table creation error:', error);
-      // Don't throw here - let the application continue
+      // ✅ 1QA.MD: Don't throw here - let the application continue gracefully
+    }
+  }
+
+  private async ensureTenantSchema(schemaName: string): Promise<void> {
+    try {
+      // ✅ 1QA.MD: Check if schema exists first
+      const schemaExistsQuery = `
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name = $1
+      `;
+      
+      const schemaExists = await db.execute(sql.raw(schemaExistsQuery, [schemaName]));
+      
+      if (schemaExists.rows.length === 0) {
+        // ✅ 1QA.MD: Create schema if it doesn't exist
+        const createSchemaQuery = `CREATE SCHEMA IF NOT EXISTS ${schemaName}`;
+        await db.execute(sql.raw(createSchemaQuery));
+        console.log('🔥 [CUSTOM-FIELDS-REPO] Tenant schema created:', schemaName);
+      } else {
+        console.log('🔥 [CUSTOM-FIELDS-REPO] Tenant schema already exists:', schemaName);
+      }
+    } catch (error) {
+      console.error('🔥 [CUSTOM-FIELDS-REPO] Schema creation error:', error);
+      throw new Error(`Failed to ensure tenant schema: ${error.message}`);
     }
   }
 
@@ -115,8 +144,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     console.log('🔥 [CUSTOM-FIELDS-REPO] createField called with:', fieldData);
 
     try {
-      // ✅ 1QA.MD: Ensure table exists first
-      await this.ensureCustomFieldsTable();
+      // ✅ 1QA.MD: Ensure schema and table exist first
+      await this.ensureSchemaAndTable();
 
       const {
         moduleType,
@@ -202,8 +231,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     console.log('🔥 [CUSTOM-FIELDS-REPO] updateField called with:', { fieldId, fieldData });
 
     try {
-      // ✅ 1QA.MD: Ensure table exists first
-      await this.ensureCustomFieldsTable();
+      // ✅ 1QA.MD: Ensure schema and table exist first
+      await this.ensureSchemaAndTable();
 
       const {
         fieldLabel,
@@ -288,8 +317,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     console.log('🔥 [CUSTOM-FIELDS-REPO] deleteField called with:', fieldId);
 
     try {
-      // ✅ 1QA.MD: Ensure table exists first
-      await this.ensureCustomFieldsTable();
+      // ✅ 1QA.MD: Ensure schema and table exist first
+      await this.ensureSchemaAndTable();
 
       // ✅ 1QA.MD: Soft delete by setting is_active = false
       const query = `
