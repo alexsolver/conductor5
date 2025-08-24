@@ -408,27 +408,6 @@ export type InsertGdprUserPreferences = z.infer<typeof insertGdprUserPreferences
 
 export type GdprReport = typeof gdprReports.$inferSelect;
 export type InsertGdprReport = z.infer<typeof insertGdprReportSchema>;
-  assignedUserId: uuid('assigned_user_id'),
-  reviewerUserId: uuid('reviewer_user_id'),
-  approverUserId: uuid('approver_user_id'),
-  
-  // Workflow tracking
-  submittedAt: timestamp('submitted_at'),
-  approvedAt: timestamp('approved_at'),
-  publishedAt: timestamp('published_at'),
-  
-  // Audit fields
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: uuid('created_by').notNull(),
-  updatedBy: uuid('updated_by').notNull(),
-  tenantId: uuid('tenant_id').notNull(),
-  
-  // Soft delete
-  deletedAt: timestamp('deleted_at'),
-  deletedBy: uuid('deleted_by'),
-  isActive: boolean('is_active').notNull().default(true)
-});
 
 // ✅ GDPR Report Templates Table
 export const gdprReportTemplates = pgTable('gdpr_report_templates', {
@@ -513,13 +492,6 @@ export const gdprAuditLog = pgTable('gdpr_audit_log', {
 });
 
 // ✅ Insert Schemas using drizzle-zod
-export const insertGdprReportSchema = createInsertSchema(gdprReports).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-  deletedBy: true
-});
 
 export const insertGdprReportTemplateSchema = createInsertSchema(gdprReportTemplates).omit({
   id: true,
@@ -537,20 +509,12 @@ export const insertGdprComplianceTaskSchema = createInsertSchema(gdprComplianceT
   deletedBy: true
 });
 
-export const insertGdprAuditLogSchema = createInsertSchema(gdprAuditLog).omit({
-  id: true,
-  createdAt: true
-});
 
-// ✅ Select Types
-export type GdprReport = typeof gdprReports.$inferSelect;
-export type InsertGdprReport = z.infer<typeof insertGdprReportSchema>;
-
+// ✅ Additional Select Types
 export type GdprReportTemplate = typeof gdprReportTemplates.$inferSelect;
 export type InsertGdprReportTemplate = z.infer<typeof insertGdprReportTemplateSchema>;
 
 export type GdprComplianceTask = typeof gdprComplianceTasks.$inferSelect;
 export type InsertGdprComplianceTask = z.infer<typeof insertGdprComplianceTaskSchema>;
 
-export type GdprAuditLog = typeof gdprAuditLog.$inferSelect;
-export type InsertGdprAuditLog = z.infer<typeof insertGdprAuditLogSchema>;
+export type GdprAuditLogNew = typeof gdprAuditLog.$inferSelect;

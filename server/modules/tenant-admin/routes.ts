@@ -1,20 +1,21 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { requireTenantAdmin, requirePermission, requireTenantAccess, AuthorizedRequest } from '../../middleware/authorizationMiddleware';
-import { Permission } from '../../domain/authorization/RolePermissions';
+import { requirePermission, requireTenantAccess, AuthorizedRequest } from '../../middleware/rbacMiddleware';
 import { DependencyContainer } from '../../application/services/DependencyContainer';
 
 const router = Router();
 
-// Aplicar middlewares de autenticação e autorização
+// Apply authentication middleware
 router.use(jwtAuth);
-router.use(requireTenantAdmin);
+
+// Tenant admin middleware - check if user has tenant management permissions
+const requireTenantAdmin = requirePermission('tenant', 'manage_settings');
 
 /**
  * GET /api/tenant-admin/settings
  * Obter configurações do tenant
  */
-router.get('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+router.get('/settings', requirePermission('tenant', 'manage_settings'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -49,7 +50,7 @@ router.get('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
  * PUT /api/tenant-admin/settings
  * Atualizar configurações do tenant
  */
-router.put('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+router.put('/settings', requirePermission('tenant', 'manage_settings'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -83,7 +84,7 @@ router.put('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
  * GET /api/tenant-admin/branding
  * Obter configurações de branding do tenant
  */
-router.get('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+router.get('/branding', requirePermission('tenant', 'manage_settings'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -160,7 +161,7 @@ router.get('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
  * PUT /api/tenant-admin/branding
  * Atualizar configurações de branding do tenant
  */
-router.put('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+router.put('/branding', requirePermission('tenant', 'manage_settings'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -212,7 +213,7 @@ router.put('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
  * GET /api/tenant-admin/users
  * Listar usuários do tenant
  */
-router.get('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.get('/users', requirePermission('tenant', 'manage_users'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -242,7 +243,7 @@ router.get('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (r
  * POST /api/tenant-admin/users
  * Criar novo usuário no tenant
  */
-router.post('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.post('/users', requirePermission('tenant', 'manage_users'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -300,7 +301,7 @@ router.post('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (
  * PUT /api/tenant-admin/users/:userId
  * Atualizar usuário do tenant
  */
-router.put('/users/:userId', requirePermission(Permission.TENANT_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
+router.put('/users/:userId', requirePermission('tenant', 'manage_users'), async (req: AuthorizedRequest, res) => {
   try {
     const { userId } = req.params;
     const tenantId = req.user!.tenantId;
@@ -339,7 +340,7 @@ router.put('/users/:userId', requirePermission(Permission.TENANT_MANAGE_USERS), 
  * GET /api/tenant-admin/analytics
  * Analytics do tenant
  */
-router.get('/analytics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
+router.get('/analytics', requirePermission('tenant', 'view_analytics'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -363,7 +364,7 @@ router.get('/analytics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), as
  * GET /api/tenant-admin/slas
  * Obter SLAs do tenant
  */
-router.get('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+router.get('/slas', requirePermission('tenant', 'manage_settings'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -410,7 +411,7 @@ router.get('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async 
  * POST /api/tenant-admin/slas
  * Criar novo SLA
  */
-router.post('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+router.post('/slas', requirePermission('tenant', 'manage_settings'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
@@ -451,7 +452,7 @@ router.post('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async
  * GET /api/tenant-admin/sla-metrics
  * Métricas de SLA do tenant
  */
-router.get('/sla-metrics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
+router.get('/sla-metrics', requirePermission('tenant', 'view_analytics'), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
     
