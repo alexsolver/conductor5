@@ -169,45 +169,41 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
       console.log('[DRIZZLE-QA] Skipping users query - table not in tenant schema');
 
-      // Check if work_schedules table exists and query real data
-      try {
-        const tenantDb = await this.getTenantDb(tenantId);
-        console.log('[DEBUG-SQL] Executing query for tenant:', tenantId);
-        
-        // The getTenantDb already sets search_path to correct tenant schema
-        const realSchedules = await tenantDb.execute(sql`
-          SELECT ws.*
-          FROM work_schedules ws
-          WHERE ws.tenant_id = ${tenantId}
-        `);
+      // Query real data from tenant schema 
+      const tenantDb = await this.getTenantDb(tenantId);
+      console.log('[DEBUG-SQL] Executing query for tenant:', tenantId);
+      
+      // The getTenantDb already sets search_path to correct tenant schema
+      const realSchedules = await tenantDb.execute(sql`
+        SELECT ws.*
+        FROM work_schedules ws
+        WHERE ws.tenant_id = ${tenantId}
+      `);
 
-        console.log('[REAL-DATA] Found real work schedules:', realSchedules.rows.length);
-        console.log('[DEBUG-ROWS] Raw data:', realSchedules.rows);
-        
-        if (realSchedules.rows.length > 0) {
-          const mappedSchedules = realSchedules.rows.map((row: any) => ({
-            id: row.id,
-            userId: row.user_id,
-            scheduleType: row.schedule_type || '5x2',
-            scheduleName: row.schedule_name || 'Escala de Trabalho',
-            workDays: Array.isArray(row.work_days) ? row.work_days : (row.work_days ? JSON.parse(row.work_days) : [1, 2, 3, 4, 5]),
-            startTime: row.start_time || '08:00',
-            endTime: row.end_time || '18:00',
-            breakStart: row.break_start || '12:00',
-            breakEnd: row.break_end || '13:00',
-            isActive: row.is_active,
-            tenantId: row.tenant_id,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at,
-            userName: 'Usuário',
-            useWeeklySchedule: row.use_weekly_schedule || false,
-            weeklySchedule: row.weekly_schedule ? JSON.parse(row.weekly_schedule) : null
-          }));
-          console.log('[SUCCESS] Returning mapped schedules:', mappedSchedules.length);
-          return mappedSchedules;
-        }
-      } catch (tableError) {
-        console.log('[DRIZZLE-QA] Work schedules table not found, using default schedules');
+      console.log('[REAL-DATA] Found real work schedules:', realSchedules.rows.length);
+      console.log('[DEBUG-ROWS] Raw data:', realSchedules.rows);
+      
+      if (realSchedules.rows.length > 0) {
+        const mappedSchedules = realSchedules.rows.map((row: any) => ({
+          id: row.id,
+          userId: row.user_id,
+          scheduleType: row.schedule_type || '5x2',
+          scheduleName: row.schedule_name || 'Escala de Trabalho',
+          workDays: Array.isArray(row.work_days) ? row.work_days : (row.work_days ? JSON.parse(row.work_days) : [1, 2, 3, 4, 5]),
+          startTime: row.start_time || '08:00',
+          endTime: row.end_time || '18:00',
+          breakStart: row.break_start || '12:00',
+          breakEnd: row.break_end || '13:00',
+          isActive: row.is_active,
+          tenantId: row.tenant_id,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          userName: 'Usuário',
+          useWeeklySchedule: row.use_weekly_schedule || false,
+          weeklySchedule: row.weekly_schedule ? JSON.parse(row.weekly_schedule) : null
+        }));
+        console.log('[SUCCESS] Returning mapped schedules:', mappedSchedules.length);
+        return mappedSchedules;
       }
 
       // Se não encontrou schedules reais, retorna array vazio
