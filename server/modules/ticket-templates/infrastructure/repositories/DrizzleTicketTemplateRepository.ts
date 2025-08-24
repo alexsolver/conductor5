@@ -26,14 +26,14 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   private async getTenantDb(tenantId: string) {
     const schemaName = this.getSchemaName(tenantId);
     console.log('🔒 [TENANT-DB] Creating connection for schema:', schemaName);
-    
+
     try {
       const tenantPool = new Pool({
         connectionString: process.env.DATABASE_URL,
         options: `-c search_path=${schemaName}`,
         ssl: false,
       });
-      
+
       const tenantDb = drizzle(tenantPool, { schema });
       console.log('✅ [TENANT-DB] Connection created successfully');
       return tenantDb;
@@ -55,7 +55,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
       // Use main database connection instead of tenant-specific for now
       console.log('📝 [TICKET-TEMPLATE-REPO] Preparing template data for insertion');
-      
+
       const newTemplate = {
         id: crypto.randomUUID(),
         tenantId: template.tenantId,
@@ -96,7 +96,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       return this.mapFromDatabase(result[0]);
     } catch (error) {
       console.error('❌ [TICKET-TEMPLATE-REPO] Error creating ticket template:', error);
-      
+
       // Provide more specific error messages
       if (error.code === '23505') {
         throw new Error('Template with this name already exists');
@@ -105,7 +105,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       } else if (error.code === '23502') {
         throw new Error('Missing required field');
       }
-      
+
       throw new Error(`Failed to create template: ${error.message || 'Unknown error'}`);
     }
   }
@@ -220,19 +220,19 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   }): Promise<TicketTemplate[]> {
     try {
       console.log('🔍 [TICKET-TEMPLATE-REPO] Finding all templates for tenant:', tenantId);
-      
+
       let whereConditions = [eq(schema.ticketTemplates.tenantId, tenantId)];
 
       if (filters) {
         console.log('🔍 [TICKET-TEMPLATE-REPO] Applying filters:', filters);
-        
+
         if (filters.category) {
           whereConditions.push(eq(schema.ticketTemplates.category, filters.category));
         }
         if (filters.subcategory) {
           whereConditions.push(eq(schema.ticketTemplates.subcategory, filters.subcategory));
         }
-        
+
         // Company filter with hierarchy support
         if (filters.companyId) {
           const companyCondition = or(
@@ -464,7 +464,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   // ✅ 1QA.MD: Helper method to map database row to domain entity
   private mapFromDatabase(row: any): TicketTemplate {
     console.log('🔄 [TICKET-TEMPLATE-REPO] Mapping database row to domain entity:', { id: row.id, name: row.name });
-    
+
     return {
       id: row.id,
       tenantId: row.tenantId || row.tenant_id, // Handle both field names
@@ -501,34 +501,100 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   // ✅ 1QA.MD: Helper method to parse tags from string
   private parseTagsFromString(tagsString: string): string[] {
-    if (!tagsString || typeof tagsString !== 'string') return [];
-    return tagsString.split(',').map(tag => tag.trim()).filter(Boolean);
-  }
-        lastModifiedBy: row.created_by, // ✅ 1QA.MD: Using real database field name
-        lastModifiedAt: row.updated_at, // ✅ 1QA.MD: Using real database field name
-        changeLog: [],
-        usage: { totalUses: row.usage_count || 0, lastMonth: 0 }, // ✅ 1QA.MD: Using real database field name
-        analytics: { popularFields: [], commonIssues: [], userFeedback: [] },
-        compliance: { gdprCompliant: true, auditRequired: false }
-      }),
-      isDefault: false, // ✅ 1QA.MD: Field doesn't exist in DB, use fallback
-      isSystem: false, // ✅ 1QA.MD: Field doesn't exist in DB, use fallback
-      usageCount: row.usage_count || 0, // ✅ 1QA.MD: Using real database field name
-      lastUsed: row.last_used_at, // ✅ 1QA.MD: Using real database field name
-      tags: Array.isArray(row.tags) ? row.tags : [],
-      createdBy: row.created_by, // ✅ 1QA.MD: Using real database field name
-      createdAt: row.created_at, // ✅ 1QA.MD: Using real database field name
-      updatedAt: row.updated_at, // ✅ 1QA.MD: Using real database field name
-      isActive: row.is_active // ✅ 1QA.MD: Using real database field name
-    };
+    if (!tagsString || typeof tagsString !== 'string') {
+      return [];
+    }
+
+    try {
+      // Try parsing as JSON array first
+      if (tagsString.startsWith('[') && tagsString.endsWith(']')) {
+        const parsed = JSON.parse(tagsString);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+
+      // Parse as comma-separated string
+      return tagsString
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+    } catch (error) {
+      console.warn('[TICKET-TEMPLATE-REPO] Error parsing tags:', error);
+      return [];
+    }
   }
 
-  private safeJsonParse(jsonString: string | any, defaultValue: any): any {
-    if (typeof jsonString === 'object') return jsonString;
-    try {
-      return JSON.parse(jsonString || 'null') || defaultValue;
-    } catch {
+  // ✅ 1QA.MD: Helper method to safely parse JSON fields
+  private safeJsonParse(jsonString: any, defaultValue: any = null): any {
+    if (!jsonString) return defaultValue;
+
+    if (typeof jsonString === 'object') {
+      return jsonString;
+    }
+
+    if (typeof jsonString !== 'string') {
       return defaultValue;
+    }
+
+    try {
+      return JSON.parse(jsonString);
+    } catch (error) {
+      console.warn('[TICKET-TEMPLATE-REPO] Error parsing JSON:', error);
+      return defaultValue;
+    }
+  }
+
+  // ✅ 1QA.MD: Analytics and Usage Tracking Operations
+  async getTemplateUsageAnalytics(tenantId: string, dateRange?: {
+    startDate: Date;
+    endDate: Date;
+  }): Promise<any[]> {
+    try {
+      const tenantDb = await this.getTenantDb(tenantId);
+
+      let whereConditions = [eq(schema.ticketTemplates.tenantId, tenantId)];
+
+      if (dateRange) {
+        // Add date range conditions if needed
+      }
+
+      const result = await tenantDb
+        .select({
+          id: schema.ticketTemplates.id,
+          name: schema.ticketTemplates.name,
+          category: schema.ticketTemplates.category,
+          usageCount: schema.ticketTemplates.usageCount,
+          lastUsedAt: schema.ticketTemplates.lastUsedAt
+        })
+        .from(schema.ticketTemplates)
+        .where(and(...whereConditions))
+        .orderBy(desc(schema.ticketTemplates.usageCount));
+
+      return result;
+    } catch (error) {
+      console.error('Error getting template usage analytics:', error);
+      return [];
+    }
+  }
+
+  // ✅ 1QA.MD: Category Statistics
+  async getCategoryStatistics(tenantId: string): Promise<any[]> {
+    try {
+      const tenantDb = await this.getTenantDb(tenantId);
+
+      const result = await tenantDb
+        .select({
+          category: schema.ticketTemplates.category,
+          count: count(schema.ticketTemplates.id),
+          avgUsage: sql`AVG(${schema.ticketTemplates.usageCount})`
+        })
+        .from(schema.ticketTemplates)
+        .where(eq(schema.ticketTemplates.tenantId, tenantId))
+        .groupBy(schema.ticketTemplates.category);
+
+      return result;
+    } catch (error) {
+      console.error('Error getting category statistics:', error);
+      return [];
     }
   }
 
