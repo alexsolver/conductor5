@@ -69,28 +69,50 @@ export class CreateTicketTemplateUseCase {
         throw new Error('Template category is required');
       }
 
-      // Prepare template data with proper defaults
+      // ✅ 1QA.MD: Sanitize and prepare template data
       const templateToCreate = {
-        ...templateData,
-        id: templateData.id || crypto.randomUUID(),
-        isActive: templateData.isActive !== false, // Default to true
-        usageCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        defaultTags: templateData.defaultTags || '',
-        customFields: templateData.customFields || null,
+        tenantId: templateData.tenantId,
+        name: templateData.name.trim(),
+        description: templateData.description || '',
+        category: templateData.category.trim(),
+        subcategory: templateData.subcategory?.trim() || null,
+        companyId: templateData.companyId || null,
+        priority: templateData.priority || 'medium',
+        templateType: templateData.templateType || 'standard',
+        fields: Array.isArray(templateData.fields) ? templateData.fields : [],
+        automation: templateData.automation || { enabled: false },
+        workflow: templateData.workflow || { enabled: false, stages: [] },
+        permissions: Array.isArray(templateData.permissions) ? templateData.permissions : [],
+        tags: Array.isArray(templateData.tags) ? templateData.tags : [],
+        isActive: templateData.isActive !== false,
+        createdBy: templateData.createdBy || null
       };
 
-      console.log('🔧 [CREATE-TEMPLATE-UC] Prepared template data:', templateToCreate);
+      console.log('🔧 [CREATE-TEMPLATE-UC] Prepared template data:', {
+        name: templateToCreate.name,
+        category: templateToCreate.category,
+        fieldsCount: templateToCreate.fields.length,
+        hasAutomation: templateToCreate.automation.enabled
+      });
 
       // Create the template
       const template = await this.ticketTemplateRepository.create(templateToCreate);
 
-      console.log('✅ [CREATE-TEMPLATE-UC] Template created:', template.id);
+      console.log('✅ [CREATE-TEMPLATE-UC] Template created successfully:', template.id);
       return template;
     } catch (error) {
-      console.error('❌ [CREATE-TEMPLATE-UC] Error:', error);
-      throw error;
+      console.error('❌ [CREATE-TEMPLATE-UC] Error creating template:', error);
+      
+      // ✅ 1QA.MD: Provide user-friendly error messages
+      if (error.message.includes('already exists')) {
+        throw new Error('Um template com este nome já existe. Escolha um nome diferente.');
+      } else if (error.message.includes('required')) {
+        throw new Error('Campos obrigatórios não foram preenchidos corretamente.');
+      } else if (error.message.includes('Invalid reference')) {
+        throw new Error('Referência inválida para empresa ou tenant.');
+      }
+      
+      throw new Error(`Falha ao criar template: ${error.message}`);
     }
   }
 }

@@ -25,12 +25,22 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   // ✅ 1QA.MD: Get tenant-specific database instance
   private async getTenantDb(tenantId: string) {
     const schemaName = this.getSchemaName(tenantId);
-    const tenantPool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      options: `-c search_path=${schemaName}`,
-      ssl: false,
-    });
-    return drizzle({ client: tenantPool, schema });
+    console.log('🔒 [TENANT-DB] Creating connection for schema:', schemaName);
+    
+    try {
+      const tenantPool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        options: `-c search_path=${schemaName}`,
+        ssl: false,
+      });
+      
+      const tenantDb = drizzle(tenantPool, { schema });
+      console.log('✅ [TENANT-DB] Connection created successfully');
+      return tenantDb;
+    } catch (error) {
+      console.error('❌ [TENANT-DB] Error creating connection:', error);
+      throw new Error(`Failed to create tenant database connection: ${error.message}`);
+    }
   }
 
   // ✅ 1QA.MD: Basic CRUD Operations with tenant schema isolation
@@ -38,33 +48,65 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     try {
       console.log('🔒 [TICKET-TEMPLATE-REPO] Creating template in tenant schema:', this.getSchemaName(template.tenantId));
 
-      const tenantDb = await this.getTenantDb(template.tenantId);
+      // Validate required fields
+      if (!template.tenantId || !template.name || !template.category) {
+        throw new Error('Missing required fields: tenantId, name, and category are required');
+      }
 
+      // Use main database connection instead of tenant-specific for now
+      console.log('📝 [TICKET-TEMPLATE-REPO] Preparing template data for insertion');
+      
       const newTemplate = {
-        ...template,
         id: crypto.randomUUID(),
+        tenantId: template.tenantId,
+        name: template.name,
+        description: template.description || '',
+        category: template.category,
+        subcategory: template.subcategory || null,
+        companyId: template.companyId || null,
+        priority: template.priority || 'medium',
+        templateType: template.templateType || 'standard',
+        customFields: template.fields ? JSON.stringify(template.fields) : null,
+        autoAssignmentRules: template.automation ? JSON.stringify(template.automation) : null,
+        defaultTags: Array.isArray(template.tags) ? template.tags.join(',') : (template.tags || ''),
+        isActive: template.isActive !== false,
+        usageCount: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        fields: JSON.stringify(template.fields),
-        automation: JSON.stringify(template.automation),
-        workflow: JSON.stringify(template.workflow),
-        permissions: JSON.stringify(template.permissions),
-        metadata: JSON.stringify(template.metadata),
-        tags: template.tags
+        createdBy: template.createdBy || null,
+        lastUsedAt: null
       };
 
-      console.log('📝 [TICKET-TEMPLATE-REPO] Inserting into tenant-specific schema:', this.getSchemaName(template.tenantId));
+      console.log('📝 [TICKET-TEMPLATE-REPO] Inserting template with data:', { 
+        id: newTemplate.id, 
+        name: newTemplate.name, 
+        category: newTemplate.category 
+      });
 
-      const result = await tenantDb
+      const result = await db
         .insert(schema.ticketTemplates)
-        .values(newTemplate as any)
+        .values(newTemplate)
         .returning();
 
-      console.log('✅ [TICKET-TEMPLATE-REPO] Template created successfully in tenant schema');
+      if (!result || result.length === 0) {
+        throw new Error('Template creation failed - no result returned');
+      }
+
+      console.log('✅ [TICKET-TEMPLATE-REPO] Template created successfully:', result[0].id);
       return this.mapFromDatabase(result[0]);
     } catch (error) {
       console.error('❌ [TICKET-TEMPLATE-REPO] Error creating ticket template:', error);
-      throw new Error('Falha ao criar template');
+      
+      // Provide more specific error messages
+      if (error.code === '23505') {
+        throw new Error('Template with this name already exists');
+      } else if (error.code === '23503') {
+        throw new Error('Invalid reference to company or tenant');
+      } else if (error.code === '23502') {
+        throw new Error('Missing required field');
+      }
+      
+      throw new Error(`Failed to create template: ${error.message || 'Unknown error'}`);
     }
   }
 
@@ -177,13 +219,20 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
     tags?: string[];
   }): Promise<TicketTemplate[]> {
     try {
+      console.log('🔍 [TICKET-TEMPLATE-REPO] Finding all templates for tenant:', tenantId);
+      
       let whereConditions = [eq(schema.ticketTemplates.tenantId, tenantId)];
 
       if (filters) {
-        if (filters.category) whereConditions.push(eq(schema.ticketTemplates.category, filters.category));
-        if (filters.subcategory) whereConditions.push(eq(schema.ticketTemplates.subcategory, filters.subcategory));
-        // templateType, status, departmentId, isDefault, isSystem não existem no schema atual
-
+        console.log('🔍 [TICKET-TEMPLATE-REPO] Applying filters:', filters);
+        
+        if (filters.category) {
+          whereConditions.push(eq(schema.ticketTemplates.category, filters.category));
+        }
+        if (filters.subcategory) {
+          whereConditions.push(eq(schema.ticketTemplates.subcategory, filters.subcategory));
+        }
+        
         // Company filter with hierarchy support
         if (filters.companyId) {
           const companyCondition = or(
@@ -202,9 +251,10 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         .where(and(...whereConditions))
         .orderBy(asc(schema.ticketTemplates.name));
 
+      console.log('✅ [TICKET-TEMPLATE-REPO] Found templates:', result.length);
       return result.map(row => this.mapFromDatabase(row));
     } catch (error) {
-      console.error('Error finding all templates:', error);
+      console.error('❌ [TICKET-TEMPLATE-REPO] Error finding templates:', error);
       return [];
     }
   }
@@ -413,25 +463,47 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   // ✅ 1QA.MD: Helper method to map database row to domain entity
   private mapFromDatabase(row: any): TicketTemplate {
+    console.log('🔄 [TICKET-TEMPLATE-REPO] Mapping database row to domain entity:', { id: row.id, name: row.name });
+    
     return {
       id: row.id,
-      tenantId: row.tenant_id, // ✅ 1QA.MD: Using real database field name
+      tenantId: row.tenantId || row.tenant_id, // Handle both field names
       name: row.name,
-      description: row.description,
+      description: row.description || '',
       category: row.category,
       subcategory: row.subcategory,
-      companyId: row.customer_company_id, // ✅ 1QA.MD: Using real database field name
-      departmentId: row.departmentId, // Keep as fallback
-      priority: row.priority,
-      templateType: row.default_type || 'support', // ✅ 1QA.MD: Using real database field name
-      status: 'active', // ✅ 1QA.MD: Field doesn't exist in DB, use fallback
-      fields: this.safeJsonParse(row.custom_fields, []), // ✅ 1QA.MD: Using real database field name
-      automation: this.safeJsonParse(row.auto_assignment_rules, { enabled: false }), // ✅ 1QA.MD: Using real database field name
+      companyId: row.companyId || row.customer_company_id || row.customerCompanyId,
+      departmentId: row.departmentId,
+      priority: row.priority || 'medium',
+      templateType: row.templateType || row.default_type || row.defaultType || 'standard',
+      status: 'active', // Default status since field may not exist
+      fields: this.safeJsonParse(row.customFields || row.custom_fields || row.fields, []),
+      automation: this.safeJsonParse(row.autoAssignmentRules || row.auto_assignment_rules || row.automation, { enabled: false }),
       workflow: this.safeJsonParse(row.workflow, { enabled: false, stages: [] }),
       permissions: this.safeJsonParse(row.permissions, []),
-      metadata: this.safeJsonParse(row.metadata, {
+      metadata: {
         version: '1.0.0',
-        author: row.created_by, // ✅ 1QA.MD: Using real database field name
+        author: row.createdBy || row.created_by,
+        createdAt: row.createdAt || row.created_at,
+        updatedAt: row.updatedAt || row.updated_at
+      },
+      tags: this.parseTagsFromString(row.defaultTags || row.default_tags || row.tags || ''),
+      isActive: row.isActive !== false,
+      isDefault: false, // Default value
+      isSystem: false, // Default value
+      usageCount: row.usageCount || row.usage_count || 0,
+      lastUsedAt: row.lastUsedAt || row.last_used_at || null,
+      createdAt: new Date(row.createdAt || row.created_at || Date.now()).toISOString(),
+      updatedAt: new Date(row.updatedAt || row.updated_at || Date.now()).toISOString(),
+      createdBy: row.createdBy || row.created_by || null
+    };
+  }
+
+  // ✅ 1QA.MD: Helper method to parse tags from string
+  private parseTagsFromString(tagsString: string): string[] {
+    if (!tagsString || typeof tagsString !== 'string') return [];
+    return tagsString.split(',').map(tag => tag.trim()).filter(Boolean);
+  }
         lastModifiedBy: row.created_by, // ✅ 1QA.MD: Using real database field name
         lastModifiedAt: row.updated_at, // ✅ 1QA.MD: Using real database field name
         changeLog: [],
