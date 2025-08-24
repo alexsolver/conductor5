@@ -114,13 +114,16 @@ export default function TicketTemplates() {
 
   // Fetch templates based on selected company
   const { data: templatesResponse, isLoading: templatesLoading } = useQuery({
-    queryKey: ['/api/ticket-templates', selectedCompany],
+    queryKey: ['ticket-templates', selectedCompany],
     queryFn: async () => {
+      console.log('🔍 [TEMPLATES-QUERY] Fetching templates for company:', selectedCompany);
       const endpoint = selectedCompany === 'all' 
         ? '/api/ticket-templates' 
         : `/api/ticket-templates/company/${selectedCompany}`;
       const response = await apiRequest('GET', endpoint);
-      return response.json();
+      const data = await response.json();
+      console.log('✅ [TEMPLATES-QUERY] Response:', data);
+      return data;
     },
     enabled: !!selectedCompany,
   });
@@ -149,13 +152,39 @@ export default function TicketTemplates() {
     },
   });
 
-  const templates = templatesResponse?.success 
-    ? (Array.isArray(templatesResponse.data) ? templatesResponse.data : [])
-    : Array.isArray(templatesResponse?.data) 
-    ? templatesResponse.data 
-    : Array.isArray(templatesResponse) 
-    ? templatesResponse 
-    : [];
+  const templates = React.useMemo(() => {
+    console.log('🔄 [TEMPLATES-PROCESSING] Processing templates response:', templatesResponse);
+    
+    if (!templatesResponse) {
+      console.log('❌ [TEMPLATES-PROCESSING] No response data');
+      return [];
+    }
+
+    // Handle different response formats
+    if (templatesResponse.success && templatesResponse.data) {
+      if (Array.isArray(templatesResponse.data.templates)) {
+        console.log('✅ [TEMPLATES-PROCESSING] Found templates array in data.templates:', templatesResponse.data.templates.length);
+        return templatesResponse.data.templates;
+      }
+      if (Array.isArray(templatesResponse.data)) {
+        console.log('✅ [TEMPLATES-PROCESSING] Found templates array in data:', templatesResponse.data.length);
+        return templatesResponse.data;
+      }
+    }
+
+    if (Array.isArray(templatesResponse.data)) {
+      console.log('✅ [TEMPLATES-PROCESSING] Found templates array:', templatesResponse.data.length);
+      return templatesResponse.data;
+    }
+
+    if (Array.isArray(templatesResponse)) {
+      console.log('✅ [TEMPLATES-PROCESSING] Found templates array in response:', templatesResponse.length);
+      return templatesResponse;
+    }
+
+    console.log('❌ [TEMPLATES-PROCESSING] No valid templates found, returning empty array');
+    return [];
+  }, [templatesResponse]);
   const stats = statsResponse?.data || {};
   const categories = categoriesResponse?.data || [];
 

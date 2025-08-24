@@ -542,34 +542,85 @@ export class TicketTemplateController {
     }
   }
 
-  async getTemplatesByCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
+  /**
+   * Get templates by company
+   * GET /ticket-templates/company/:companyId
+   */
+  getTemplatesByCompany = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { companyId } = req.params;
       const tenantId = req.user?.tenantId;
+      const userRole = req.user?.role;
+      const companyId = req.params.companyId;
 
-      if (!tenantId) {
-        res.status(400).json({
+      console.log('🔍 [GET-TEMPLATES-BY-COMPANY] Request params:', {
+        tenantId,
+        userRole,
+        companyId,
+        query: req.query
+      });
+
+      if (!tenantId || !userRole) {
+        return res.status(401).json({
           success: false,
-          message: 'Tenant ID is required',
-          code: 'TENANT_ID_REQUIRED'
+          message: 'Authentication required'
         });
-        return;
       }
 
-      const templates = await this.getTicketTemplatesUseCase.getTemplatesByCompany(companyId, tenantId);
-
-      res.json({
-        success: true,
-        message: 'Templates retrieved successfully',
-        data: templates
+      const result = await this.getTicketTemplatesUseCase.execute({
+        tenantId,
+        userRole,
+        companyId: companyId !== 'all' ? companyId : undefined,
+        filters: {
+          category: req.query.category as string,
+          subcategory: req.query.subcategory as string,
+          templateType: req.query.templateType as string,
+          status: req.query.status as string,
+          departmentId: req.query.departmentId as string,
+          isDefault: req.query.isDefault ? req.query.isDefault === 'true' : undefined,
+          tags: req.query.tags ? (req.query.tags as string).split(',') : undefined
+        },
+        search: req.query.search as string,
+        includeAnalytics: req.query.includeAnalytics === 'true',
+        includeUsageStats: req.query.includeUsageStats === 'true'
       });
+
+      console.log('📊 [GET-TEMPLATES-BY-COMPANY] Use case result:', {
+        success: result.success,
+        dataKeys: result.data ? Object.keys(result.data) : [],
+        templatesCount: result.data?.templates?.length || 0
+      });
+
+      if (!result.success) {
+        return res.status(404).json({
+          success: false,
+          message: 'Templates not found or access denied',
+          errors: result.errors
+        });
+      }
+
+      // Ensure templates array is properly formatted
+      const responseData = {
+        ...result.data,
+        templates: result.data?.templates || []
+      };
+
+      console.log('✅ [GET-TEMPLATES-BY-COMPANY] Sending response:', {
+        success: true,
+        templatesCount: responseData.templates.length
+      });
+
+      return res.json({
+        success: true,
+        message: 'Templates by company retrieved successfully',
+        data: responseData
+      });
+
     } catch (error) {
-      console.error('[GET-TEMPLATES-BY-COMPANY-CONTROLLER]', error);
-      res.status(500).json({
+      console.error('[TicketTemplateController] getTemplatesByCompany error:', error);
+      return res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to get templates',
-        code: 'GET_TEMPLATES_ERROR'
+        message: 'Internal server error'
       });
     }
-  }
+  };
 }

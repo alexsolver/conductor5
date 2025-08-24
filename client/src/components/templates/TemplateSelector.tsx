@@ -42,24 +42,53 @@ export default function TemplateSelector({
 
   // Fetch templates
   const { data: templatesResponse, isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates', companyId],
+    queryKey: ['template-selector-templates', companyId],
     queryFn: async () => {
+      console.log('🔍 [TEMPLATE-SELECTOR] Fetching templates for company:', companyId);
       const endpoint = companyId === 'all' 
         ? '/api/ticket-templates' 
         : `/api/ticket-templates/company/${companyId}`;
       const response = await apiRequest('GET', endpoint);
-      return response.json();
+      const data = await response.json();
+      console.log('✅ [TEMPLATE-SELECTOR] Response:', data);
+      return data;
     },
     enabled: !!companyId,
   });
 
-  const templates = templatesResponse?.success 
-    ? (Array.isArray(templatesResponse.data) ? templatesResponse.data : [])
-    : Array.isArray(templatesResponse?.data) 
-    ? templatesResponse.data 
-    : Array.isArray(templatesResponse) 
-    ? templatesResponse 
-    : [];
+  const templates = React.useMemo(() => {
+    console.log('🔄 [TEMPLATE-SELECTOR-PROCESSING] Processing templates response:', templatesResponse);
+    
+    if (!templatesResponse) {
+      console.log('❌ [TEMPLATE-SELECTOR-PROCESSING] No response data');
+      return [];
+    }
+
+    // Handle different response formats
+    if (templatesResponse.success && templatesResponse.data) {
+      if (Array.isArray(templatesResponse.data.templates)) {
+        console.log('✅ [TEMPLATE-SELECTOR-PROCESSING] Found templates array in data.templates:', templatesResponse.data.templates.length);
+        return templatesResponse.data.templates;
+      }
+      if (Array.isArray(templatesResponse.data)) {
+        console.log('✅ [TEMPLATE-SELECTOR-PROCESSING] Found templates array in data:', templatesResponse.data.length);
+        return templatesResponse.data;
+      }
+    }
+
+    if (Array.isArray(templatesResponse.data)) {
+      console.log('✅ [TEMPLATE-SELECTOR-PROCESSING] Found templates array:', templatesResponse.data.length);
+      return templatesResponse.data;
+    }
+
+    if (Array.isArray(templatesResponse)) {
+      console.log('✅ [TEMPLATE-SELECTOR-PROCESSING] Found templates array in response:', templatesResponse.length);
+      return templatesResponse;
+    }
+
+    console.log('❌ [TEMPLATE-SELECTOR-PROCESSING] No valid templates found, returning empty array');
+    return [];
+  }, [templatesResponse]);
 
   // Fetch categories
   const { data: categoriesResponse } = useQuery({
