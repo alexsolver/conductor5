@@ -386,15 +386,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
 
   // ✅ TICKET-TEMPLATES - EMERGENCIAL DIRECT REGISTRATION per 1qa.md
+  console.log('🚨 [TICKET-TEMPLATES] Starting emergency registration block...');
   try {
     console.log('🚨 [TICKET-TEMPLATES] Emergency direct registration starting...');
     const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
+    console.log('🚨 [TICKET-TEMPLATES] Import successful, registering routes...');
     app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
     console.log('✅ [TICKET-TEMPLATES] Emergency registration completed successfully!');
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [TICKET-TEMPLATES] Emergency registration failed:', error);
     console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
+    console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
   }
+  console.log('🚨 [TICKET-TEMPLATES] Emergency registration block finished');
 
   // ✅ NOTIFICATIONS & ALERTS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');

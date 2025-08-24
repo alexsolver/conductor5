@@ -43,7 +43,7 @@ const router = Router();
 // ✅ COMPATIBILITY ROUTES: Suporte para padrões legacy /company/companyId
 // GET /api/ticket-templates/company/:companyId - Templates por empresa (compatibilidade)
 router.get('/company/:companyId', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
+  await ticketTemplateController.getTemplates(req as any, res);
 });
 
 // GET /api/ticket-templates/company/:companyId/stats - Estatísticas por empresa (compatibilidade)
@@ -51,7 +51,7 @@ router.get('/company/:companyId/stats', async (req, res) => {
   console.log('🎯 [TICKET-TEMPLATES-ROUTE] /company/:companyId/stats accessed');
   console.log('🎯 [TICKET-TEMPLATES-ROUTE] CompanyId:', req.params.companyId);
   console.log('🎯 [TICKET-TEMPLATES-ROUTE] User:', (req as any).user);
-  await ticketTemplateController.getTemplates(req, res);
+  await ticketTemplateController.getTemplates(req as any, res);
 });
 
 // GET /api/ticket-templates/company/:companyId/categories - Categorias por empresa (compatibilidade)
@@ -78,7 +78,7 @@ router.get('/company/:companyId/search', async (req, res) => {
 
 // GET /api/ticket-templates - Buscar templates
 router.get('/', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
+  await ticketTemplateController.getTemplates(req as any, res);
 });
 
 // GET /api/ticket-templates/popular - Templates populares
@@ -106,12 +106,12 @@ router.get('/analytics', async (req, res) => {
 
 // GET /api/ticket-templates/:id - Buscar template por ID
 router.get('/:id', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
+  await ticketTemplateController.getTemplates(req as any, res);
 });
 
 // POST /api/ticket-templates - Create template (can include companyId in body)
 router.post('/', async (req, res) => {
-  await ticketTemplateController.createTemplate(req, res);
+  await ticketTemplateController.createTemplate(req as any, res);
 });
 
 // PUT /api/ticket-templates/:id - Atualizar template
