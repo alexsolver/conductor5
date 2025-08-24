@@ -99,20 +99,18 @@ export class CreateTicketTemplateUseCase {
       const template = await this.ticketTemplateRepository.create(templateToCreate);
 
       console.log('✅ [CREATE-TEMPLATE-UC] Template created successfully:', template.id);
-      return template;
+      return {
+        success: true,
+        data: template
+      };
     } catch (error) {
-      console.error('❌ [CREATE-TEMPLATE-UC] Error creating template:', error);
-      
-      // ✅ 1QA.MD: Provide user-friendly error messages
-      if (error.message.includes('already exists')) {
-        throw new Error('Um template com este nome já existe. Escolha um nome diferente.');
-      } else if (error.message.includes('required')) {
-        throw new Error('Campos obrigatórios não foram preenchidos corretamente.');
-      } else if (error.message.includes('Invalid reference')) {
-        throw new Error('Referência inválida para empresa ou tenant.');
-      }
-      
-      throw new Error(`Falha ao criar template: ${error.message}`);
+      console.error('❌ [CREATE-TEMPLATE-USE-CASE] Error:', error);
+
+      // ✅ 1QA.MD: Return structured error response instead of throwing
+      return {
+        success: false,
+        errors: [error instanceof Error ? error.message : 'Erro interno do servidor']
+      };
     }
   }
 }

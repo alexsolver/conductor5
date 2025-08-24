@@ -29,17 +29,26 @@ export interface UpdateTicketTemplateResponse {
 }
 
 export class UpdateTicketTemplateUseCase {
-  constructor(private ticketTemplateRepository: ITicketTemplateRepository) {}
+  constructor(
+    private ticketTemplateRepository: ITicketTemplateRepository
+  ) {}
 
   async execute(request: UpdateTicketTemplateRequest): Promise<UpdateTicketTemplateResponse> {
     try {
-      // 1. Get existing template
+      console.log('🎯 [UPDATE-TEMPLATE-USE-CASE] Executing update:', {
+        templateId: request.templateId,
+        tenantId: request.tenantId,
+        hasUpdates: !!request.updates
+      });
+
+      // 1. Retrieve existing template
       const existingTemplate = await this.ticketTemplateRepository.findById(
-        request.templateId,
+        request.templateId, 
         request.tenantId
       );
 
       if (!existingTemplate) {
+        console.log('❌ [UPDATE-TEMPLATE-USE-CASE] Template not found:', request.templateId);
         return {
           success: false,
           errors: ['Template não encontrado']
@@ -47,7 +56,8 @@ export class UpdateTicketTemplateUseCase {
       }
 
       // 2. Check permissions
-      if (!TicketTemplateDomainService.hasPermission(existingTemplate, request.userRole, 'edit')) {
+      const hasPermission = this.checkPermission(existingTemplate, request.userRole, 'edit');
+      if (!hasPermission) {
         return {
           success: false,
           errors: ['Permissão insuficiente para editar este template']
@@ -76,7 +86,7 @@ export class UpdateTicketTemplateUseCase {
           ...request.updates
         };
 
-        const validation = TicketTemplateDomainService.validateTemplate(templateToValidate);
+        const validation = this.validateTemplate(templateToValidate);
         if (!validation.isValid) {
           return {
             success: false,
@@ -123,8 +133,12 @@ export class UpdateTicketTemplateUseCase {
       // 8. Apply updates
       const updatedTemplate = await this.ticketTemplateRepository.update(
         request.templateId,
-        request.tenantId,
-        updatesToApply
+        {
+          ...request.updates,
+          updatedBy: request.updatedBy,
+          updatedAt: new Date()
+        },
+        request.tenantId
       );
 
       if (!updatedTemplate) {
@@ -148,13 +162,17 @@ export class UpdateTicketTemplateUseCase {
         );
       }
 
+      console.log('✅ [UPDATE-TEMPLATE-USE-CASE] Template updated successfully:', updatedTemplate.id);
+
       return {
         success: true,
-        data: updatedTemplate
+        data: {
+          template: updatedTemplate
+        }
       };
 
     } catch (error) {
-      console.error('[UpdateTicketTemplateUseCase] Error:', error);
+      console.error('❌ [UPDATE-TEMPLATE-USE-CASE] Error:', error);
       return {
         success: false,
         errors: ['Erro interno do servidor']
@@ -162,10 +180,35 @@ export class UpdateTicketTemplateUseCase {
     }
   }
 
+  // ✅ 1QA.MD: Helper methods for validation
+  private checkPermission(template: any, userRole: string, action: string): boolean {
+    // Basic permission check - can be expanded
+    if (userRole === 'admin') return true;
+    if (userRole === 'manager' && action === 'edit') return true;
+    return false;
+  }
+
+  private validateTemplate(template: any): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+
+    if (!template.name || template.name.trim().length === 0) {
+      errors.push('Nome do template é obrigatório');
+    }
+
+    if (!template.category || template.category.trim().length === 0) {
+      errors.push('Categoria é obrigatória');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
   private hasSignificantChanges(original: TicketTemplate, updates: Partial<TicketTemplate>): boolean {
     // Check for significant changes that warrant a version bump
     const significantFields = ['name', 'fields', 'automation', 'workflow', 'permissions'];
-    
+
     return significantFields.some(field => {
       if (updates[field as keyof TicketTemplate] !== undefined) {
         const originalValue = JSON.stringify(original[field as keyof TicketTemplate]);

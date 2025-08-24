@@ -2,7 +2,7 @@
  * ✅ 1QA.MD COMPLIANCE: DRIZZLE TICKET TEMPLATE REPOSITORY
  * Clean Architecture - Infrastructure Layer
  * Implementação do repository usando Drizzle ORM
- * 
+ *
  * @module DrizzleTicketTemplateRepository
  * @compliance 1qa.md - Infrastructure Layer - Drizzle Implementation
  */
@@ -77,10 +77,10 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         lastUsedAt: null
       };
 
-      console.log('📝 [TICKET-TEMPLATE-REPO] Inserting template with data:', { 
-        id: newTemplate.id, 
-        name: newTemplate.name, 
-        category: newTemplate.category 
+      console.log('📝 [TICKET-TEMPLATE-REPO] Inserting template with data:', {
+        id: newTemplate.id,
+        name: newTemplate.name,
+        category: newTemplate.category
       });
 
       const result = await db
@@ -858,11 +858,11 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
       console.log('📊 [REPO] Database query result:', {
         count: result.length,
-        templates: result.map(t => ({ 
-          id: t.id, 
-          name: t.name, 
+        templates: result.map(t => ({
+          id: t.id,
+          name: t.name,
           isActive: t.is_active,
-          category: t.category 
+          category: t.category
         }))
       });
 

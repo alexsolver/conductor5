@@ -49,12 +49,23 @@ export class TicketTemplateController {
       console.log('🎯 [TEMPLATE-CONTROLLER] Request params:', req.params);
       console.log('🎯 [TEMPLATE-CONTROLLER] User info:', (req as any).user);
 
+      const user = (req as any).user;
+      if (!user || !user.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+          errors: ['User or tenantId missing']
+        });
+      }
+
       const templateData = {
         ...req.body,
         companyId: req.params.companyId || req.body.companyId || null,
-        tenantId: (req as any).user?.tenantId,
+        tenantId: user.tenantId,
+        createdBy: user.id,
         isActive: req.body.isActive !== false, // Default to true
         usageCount: 0,
+        fields: req.body.fields || [],
         createdAt: new Date().toISOString(),
       };
 
@@ -62,20 +73,29 @@ export class TicketTemplateController {
 
       const result = await this.createTicketTemplateUseCase.execute(templateData);
 
-      console.log('✅ [TEMPLATE-CONTROLLER] Template created successfully:', result);
+      console.log('✅ [TEMPLATE-CONTROLLER] Use case result:', result);
+
+      // ✅ 1QA.MD: Handle both success and error cases from use case
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to create template',
+          errors: result.errors || ['Unknown validation error']
+        });
+      }
 
       res.status(201).json({
         success: true,
         message: 'Template created successfully',
-        data: result
+        data: result.data
       });
 
     } catch (error) {
       console.error('❌ [TEMPLATE-CONTROLLER] Create template error:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to create template',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        message: 'Internal server error',
+        errors: [error instanceof Error ? error.message : 'Unknown error']
       });
     }
   };
