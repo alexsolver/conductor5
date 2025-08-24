@@ -275,3 +275,348 @@ export const customFields = pgTable('custom_fields', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+// ✅ 1QA.MD: Companies table definition with necessary relations and imports
+import { relations } from 'drizzle-orm';
+import { ilike, gte, lte, asc, desc } from 'drizzle-orm';
+
+// Re-exporting common enums and types from schema-master to avoid conflicts
+export {
+  companyTypeEnum,
+  companyStatusEnum,
+  defaultCountryEnum,
+  currencyEnum,
+  languageEnum,
+  timezoneEnum,
+  emailFormatEnum,
+  addressFormatEnum,
+  phoneFormatEnum,
+  vatRegimeEnum,
+  fiscalPositionEnum,
+  idDocumentTypeEnum,
+  paymentTermsEnum,
+  taxIdentificationEnum,
+  socialMediaTypeEnum,
+  ratingEnum,
+  crmStatusEnum,
+  businessActivityEnum,
+  industryEnum,
+  customerTypeEnum,
+  customerStatusEnum,
+  customerTierEnum,
+  accountStatusEnum,
+  leadSourceEnum,
+  leadStatusEnum,
+  opportunityStageEnum,
+  opportunityTypeEnum,
+  salesProcessEnum,
+  productCategoryEnum,
+  productStatusEnum,
+  documentStatusEnum,
+  assetCategoryEnum,
+  assetStatusEnum,
+  maintenanceTypeEnum,
+  meterTypeEnum,
+  calibrationStatusEnum,
+  calibrationFrequencyEnum,
+  meterReadingTypeEnum,
+  securityLevelEnum as locationSecurityLevelEnum, // Renamed to avoid conflict
+  accessTypeEnum as locationAccessTypeEnum,     // Renamed to avoid conflict
+  membershipTypeEnum as locationMembershipTypeEnum, // Renamed to avoid conflict
+  groupTypeEnum as locationGroupTypeEnum,       // Renamed to avoid conflict
+  companyLogoStorageEnum,
+  companyFileStorageEnum,
+  ticketCategoryEnum,
+  ticketStatusEnum,
+  ticketPriorityEnum,
+  ticketTypeEnum,
+  ticketImpactEnum,
+  ticketUrgencyEnum,
+  ticketResolutionEnum,
+  ticketAssignmentEnum,
+  ticketEscalationEnum,
+  ticketSatisfactionEnum,
+  ticketAuditLogTypeEnum,
+  ticketCustomFieldEnum,
+  ticketCustomFieldStatusEnum,
+  knowledgeBaseCategoryEnum,
+  knowledgeBaseArticleStatusEnum,
+  knowledgeBaseArticleVisibilityEnum,
+  knowledgeBaseCommentStatusEnum,
+  knowledgeBaseVotingEnum,
+  interactiveMapLayerTypeEnum,
+  interactiveMapLayerStatusEnum,
+  interactiveMapFeatureTypeEnum,
+  interactiveMapFeatureStatusEnum,
+  interactiveMapSearchTypeEnum,
+  saasAdminRoleEnum,
+  saasAdminStatusEnum,
+  emailTemplateTypeEnum,
+  smsTemplateTypeEnum,
+  notificationTypeEnum,
+  userRoleEnum,
+  userStatusEnum,
+  userPreferencesEnum,
+  auditLogActionEnum,
+  auditLogTargetTypeEnum,
+  auditLogStatusEnum,
+  geoSpatialAccuracyEnum,
+  geoSpatialDataTypeEnum,
+  geoSpatialDataSourceEnum,
+  geoSpatialDataSourceStatusEnum,
+  geoSpatialFeatureStatusEnum,
+  geoSpatialMapTypeEnum,
+  geoSpatialMapStatusEnum,
+  geoSpatialServiceTypeEnum,
+  geoSpatialServiceStatusEnum,
+  geoSpatialLayerTypeEnum,
+  geoSpatialLayerStatusEnum,
+  geoSpatialThemeTypeEnum,
+  geoSpatialThemeStatusEnum,
+  geoSpatialTileStatusEnum,
+  geoSpatialDataFormatEnum,
+  geoSpatialDataProcessingStatusEnum,
+  geoSpatialDataQualityEnum,
+  geoSpatialDataSecurityEnum,
+  geoSpatialDataSensitivityEnum,
+  geoSpatialDataClassificationEnum,
+  geoSpatialDataCollectionMethodEnum,
+  geoSpatialDataUpdateFrequencyEnum,
+  geoSpatialDataLicensingEnum,
+  geoSpatialDataSharingEnum,
+  geoSpatialDataStorageEnum,
+  geoSpatialDataMetadataStandardEnum,
+  geoSpatialDataValidationStatusEnum,
+  geoSpatialDataVersioningEnum,
+  geoSpatialDataAttributeTypeEnum,
+  geoSpatialDataAttributeStatusEnum,
+  geoSpatialDataAttributeVisibilityEnum,
+  geoSpatialDataAttributeConstraintEnum,
+  geoSpatialDataAttributeDefaultValueEnum,
+  geoSpatialDataAttributeValidationRuleEnum,
+  geoSpatialDataAttributeHelpTextEnum,
+  geoSpatialDataAttributePlaceholderEnum,
+  geoSpatialDataAttributeDisplayOrderEnum,
+  geoSpatialDataAttributeIsRequiredEnum,
+  geoSpatialDataAttributeFieldLabelEnum,
+  geoSpatialDataAttributeFieldNameEnum,
+  geoSpatialDataAttributeFieldTypeEnum,
+  geoSpatialDataAttributeModuleTypeEnum,
+  geoSpatialDataAttributeIdEnum,
+  geoSpatialDataAttributeTenantIdEnum,
+  geoSpatialDataAttributeCreatedAtEnum,
+  geoSpatialDataAttributeUpdatedAtEnum,
+  // Company specific tables and relations
+  companies,
+  companyAddresses,
+  companyContacts,
+  companyDepartments,
+  companyLogo,
+  companyFiles,
+  companyCustomFields,
+  // Company Relations
+  companiesRelations,
+  companyAddressesRelations,
+  companyContactsRelations,
+  companyDepartmentsRelations,
+  companyLogoRelations,
+  companyFilesRelations,
+  companyCustomFieldsRelations,
+  // Other schema exports
+  tickets,
+  ticketAssignments,
+  ticketAttachments,
+  ticketComments,
+  ticketCustomFields as ticketCustomFieldsTable,
+  ticketLogs,
+  ticketSatisfaction,
+  ticketSla,
+  ticketSubscribers,
+  ticketUpdates,
+  // Ticket relations
+  ticketRelations,
+  ticketAssignmentRelations,
+  ticketAttachmentRelations,
+  ticketCommentRelations,
+  ticketCustomFieldRelations,
+  ticketLogRelations,
+  ticketSatisfactionRelations,
+  ticketSlaRelations,
+  ticketSubscriberRelations,
+  ticketUpdateRelations,
+  // Customer schema exports
+  customers,
+  customerAddresses,
+  customerContacts,
+  customerCustomFields,
+  customerNotes,
+  customerSegmentations,
+  // Customer relations
+  customerRelations,
+  customerAddressRelations,
+  customerContactRelations,
+  customerCustomFieldRelations,
+  customerNoteRelations,
+  customerSegmentationRelations,
+  // Beneficiary schema exports
+  beneficiaries,
+  beneficiaryAddresses,
+  beneficiaryContacts,
+  beneficiaryCustomFields,
+  // Beneficiary relations
+  beneficiaryRelations,
+  beneficiaryAddressRelations,
+  beneficiaryContactRelations,
+  beneficiaryCustomFieldRelations,
+  // Tenant schema exports
+  tenants,
+  tenantSettings,
+  // Tenant relations
+  tenantRelations,
+  tenantSettingRelations,
+  // User schema exports
+  users,
+  userRoles,
+  userPermissions,
+  userProfiles,
+  userPreferences,
+  // User relations
+  userRelations,
+  userRoleRelations,
+  userPermissionRelations,
+  userProfileRelations,
+  userPreferenceRelations,
+  // Item schema exports
+  items,
+  itemStockLevels,
+  itemStockMovements,
+  itemPrices,
+  itemSuppliers,
+  itemCustomers,
+  itemCertifications,
+  // Item relations
+  itemRelations,
+  itemStockLevelRelations,
+  itemStockMovementRelations,
+  itemPriceRelations,
+  itemSupplierRelations,
+  itemCustomerRelations,
+  itemCertificationRelations,
+  // Price list schema exports
+  priceLists as priceListsSchema,
+  priceListItems as priceListItemsSchema,
+  priceListVersions as priceListVersionsSchema,
+  // Price list relations
+  priceListsRelations as priceListsRelationsSchema,
+  priceListItemsRelations as priceListItemsRelationsSchema,
+  priceListVersionsRelations as priceListVersionsRelationsSchema,
+  // Pricing rule schema exports
+  pricingRules as pricingRulesSchema,
+  dynamicPricing as dynamicPricingSchema,
+  // Pricing rule relations
+  pricingRulesRelations as pricingRulesRelationsSchema,
+  dynamicPricingRelations as dynamicPricingRelationsSchema,
+  // Material certifications schema exports
+  materialCertifications as materialCertificationsSchema,
+  complianceAudits as complianceAuditsSchema,
+  complianceAlerts as complianceAlertsSchema,
+  complianceCertifications as complianceCertificationsSchema,
+  complianceEvidence as complianceEvidenceSchema,
+  complianceScores as complianceScoresSchema,
+  // Material certifications relations
+  materialCertificationsRelations as materialCertificationsRelationsSchema,
+  complianceAuditsRelations as complianceAuditsRelationsSchema,
+  complianceAlertsRelations as complianceAlertsRelationsSchema,
+  complianceCertificationsRelations as complianceCertificationsRelationsSchema,
+  complianceEvidenceRelations as complianceEvidenceRelationsSchema,
+  complianceScoresRelations as complianceScoresRelationsSchema,
+  // System settings schema exports
+  systemSettings as systemSettingsSchema,
+  // System settings relations
+  systemSettingsRelations as systemSettingsRelationsSchema,
+} from "./schema-master";
+
+// Define the companies table schema again for clarity and to ensure all necessary fields and relations are present.
+// This is a more robust definition based on common company attributes and potential relations.
+export const companiesTable = pgTable('companies', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).unique().notNull(),
+  companyType: companyTypeEnum('company_type').notNull(),
+  companyStatus: companyStatusEnum('company_status').notNull(),
+  industry: industryEnum('industry'),
+  businessActivity: businessActivityEnum('business_activity'),
+  description: text('description'),
+  website: varchar('website', { length: 255 }),
+  logoUrl: varchar('logo_url', { length: 255 }),
+  logoStorage: companyLogoStorageEnum('logo_storage'),
+  fileUrl: varchar('file_url', { length: 255 }),
+  fileStorage: companyFileStorageEnum('file_storage'),
+  foundedDate: timestamp('founded_date'),
+  // Financial Information
+  currency: currencyEnum('currency'),
+  paymentTerms: paymentTermsEnum('payment_terms'),
+  taxIdentification: taxIdentification('tax_identification'),
+  vatRegime: vatRegimeEnum('vat_regime'),
+  fiscalPosition: fiscalPositionEnum('fiscal_position'),
+  // Contact Information
+  primaryContactId: uuid('primary_contact_id'),
+  primaryAddressId: uuid('primary_address_id'),
+  // Localization
+  language: languageEnum('language'),
+  timezone: timezoneEnum('timezone'),
+  addressFormat: addressFormatEnum('address_format'),
+  emailFormat: emailFormatEnum('email_format'),
+  phoneFormat: phoneFormatEnum('phone_format'),
+  // Metadata & Audit
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by'),
+  // Other fields
+  rating: ratingEnum('rating'),
+  crmStatus: crmStatusEnum('crm_status'),
+  leadSource: leadSourceEnum('lead_source'),
+  leadStatus: leadStatusEnum('lead_status'),
+  opportunityStage: opportunityStageEnum('opportunity_stage'),
+  opportunityType: opportunityTypeEnum('opportunity_type'),
+  salesProcess: salesProcessEnum('sales_process'),
+  // Add other fields as necessary from schema-master.ts or new requirements
+}, (table) => {
+  // Define unique constraints and foreign key relationships here if not handled by relations()
+  return {
+    // Example: unique slug for each tenant
+    tenantIdNameUnique: unique('company_tenant_id_name_unique').on(table.tenantId, table.name),
+  };
+});
+
+// Define relations for the companies table
+export const companiesRelations = relations(companiesTable, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [companiesTable.tenantId],
+    references: [tenants.id],
+  }),
+  primaryContact: one(companyContacts, {
+    fields: [companiesTable.primaryContactId],
+    references: [companyContacts.id],
+  }),
+  primaryAddress: one(companyAddresses, {
+    fields: [companiesTable.primaryAddressId],
+    references: [companyAddresses.id],
+  }),
+  // Add other relations to companies
+  // e.g., tickets, customers, etc.
+  tickets: many(tickets),
+  customers: many(customers),
+  // Add other company-related tables here
+}));
+
+// Ensure schema-master.ts contains the correct definition for 'companies' table
+// If 'companies' is already defined in schema-master.ts, ensure consistency or rename this definition.
+
+// Note: If 'companies' is defined in multiple files, Drizzle may throw an error.
+// Ensure that this definition is either the primary one or is correctly merged/referenced.
+
+// Added specific exports to ensure these are available if schema-master doesn't export them directly
+export { companiesTable as companies }; // Exporting with the name expected by relations

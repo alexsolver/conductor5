@@ -91,14 +91,8 @@ export const CompanyTemplateSelector: React.FC<CompanyTemplateSelectorProps> = (
   };
 
   const getCompanyDisplay = (company: Company) => {
-    let display = company.name;
-    if (company.cnpj) {
-      display += ` (${company.cnpj})`;
-    }
-    if (company.industry) {
-      display += ` - ${company.industry}`;
-    }
-    return display;
+    // Conforme especificado no 1qa.md, mostrar apenas o nome da empresa
+    return company.name || 'Empresa sem nome';
   };
 
   if (error) {
@@ -111,10 +105,10 @@ export const CompanyTemplateSelector: React.FC<CompanyTemplateSelectorProps> = (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Erro ao carregar empresas: {error.message}
+            Erro ao carregar empresas. Verifique sua conexão.
             <button 
               onClick={() => refetch()} 
-              className="ml-2 text-sm underline hover:no-underline"
+              className="ml-2 text-sm underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 rounded px-1"
             >
               Tentar novamente
             </button>
@@ -157,12 +151,7 @@ export const CompanyTemplateSelector: React.FC<CompanyTemplateSelectorProps> = (
               <SelectItem key={company.id} value={company.id}>
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-gray-400" />
-                  <span>{getCompanyDisplay(company)}</span>
-                  {company.size && (
-                    <span className="text-xs text-gray-500 ml-auto">
-                      {company.size}
-                    </span>
-                  )}
+                  <span className="font-medium">{getCompanyDisplay(company)}</span>
                 </div>
               </SelectItem>
             ))
