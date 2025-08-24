@@ -1,23 +1,23 @@
 /**
  * ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATES ROUTES
  * Clean Architecture - Presentation Layer
- * Definição de endpoints RESTful
+ * Definição de endpoints RESTful seguindo padrões rigorosos
  * 
  * @module TicketTemplateRoutes
- * @compliance 1qa.md - Presentation Layer - Routes
+ * @compliance 1qa.md - Clean Architecture
+ * @created 2025-08-24 - Fixed controller execution
  */
 
 import { Router } from 'express';
 import { DrizzleTicketTemplateRepository } from './infrastructure/repositories/DrizzleTicketTemplateRepository';
-import { TicketTemplateApplicationService } from './application/services/TicketTemplateApplicationService';
 import { TicketTemplateController } from './application/controllers/TicketTemplateController';
 
-// ✅ Import Use Cases 
+// ✅ 1QA.MD: Import Use Cases 
 import { CreateTicketTemplateUseCase } from './application/use-cases/CreateTicketTemplateUseCase';
 import { GetTicketTemplatesUseCase } from './application/use-cases/GetTicketTemplatesUseCase';
 import { UpdateTicketTemplateUseCase } from './application/use-cases/UpdateTicketTemplateUseCase';
 
-// ✅ 1QA.MD: Dependency injection setup - Clean Architecture com logs
+// ✅ 1QA.MD: Dependency injection setup - Clean Architecture
 console.log('🔧 [TICKET-TEMPLATES-ROUTES] Initializing dependencies...');
 
 const ticketTemplateRepository = new DrizzleTicketTemplateRepository();
@@ -29,109 +29,82 @@ const getTicketTemplatesUseCase = new GetTicketTemplatesUseCase(ticketTemplateRe
 const updateTicketTemplateUseCase = new UpdateTicketTemplateUseCase(ticketTemplateRepository);
 console.log('✅ [TICKET-TEMPLATES-ROUTES] Use Cases created successfully');
 
+// ✅ 1QA.MD: Controller instantiation with proper dependency injection
 const ticketTemplateController = new TicketTemplateController(
   createTicketTemplateUseCase,
   getTicketTemplatesUseCase,
   updateTicketTemplateUseCase
 );
-console.log('✅ [TICKET-TEMPLATES-ROUTES] Controller initialized successfully');
+console.log('✅ [TICKET-TEMPLATES-ROUTES] Controller created successfully');
 
+// ✅ 1QA.MD: Router instance
 const router = Router();
+console.log('✅ [TICKET-TEMPLATES-ROUTES] Router initialized');
 
-// ✅ 1QA.MD: RESTful endpoints following Clean Architecture
+// ✅ 1QA.MD: Clean Architecture routes - Presentation Layer
 
-// ✅ COMPATIBILITY ROUTES: Suporte para padrões legacy /company/companyId
-// GET /api/ticket-templates/company/:companyId - Templates por empresa (compatibilidade)
-router.get('/company/:companyId', async (req, res) => {
-  await ticketTemplateController.getTemplates(req as any, res);
-});
-
-// GET /api/ticket-templates/company/:companyId/stats - Estatísticas por empresa (compatibilidade)
-router.get('/company/:companyId/stats', async (req, res) => {
-  console.log('🎯 [TICKET-TEMPLATES-ROUTE] /company/:companyId/stats accessed');
-  console.log('🎯 [TICKET-TEMPLATES-ROUTE] CompanyId:', req.params.companyId);
-  console.log('🎯 [TICKET-TEMPLATES-ROUTE] User:', (req as any).user);
-  await ticketTemplateController.getCompanyTemplateStats(req as any, res);
-});
-
-// GET /api/ticket-templates/company/:companyId/categories - Categorias por empresa (compatibilidade)
-router.get('/company/:companyId/categories', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
-});
-
-// POST /api/ticket-templates/company/:companyId - Create template for specific company (legacy support)
-router.post('/company/:companyId', async (req, res) => {
-  await ticketTemplateController.createTemplate(req as any, res);
-});
-
-// GET /api/ticket-templates/company/:companyId/popular - Templates populares por empresa (compatibilidade)
-router.get('/company/:companyId/popular', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
-});
-
-// GET /api/ticket-templates/company/:companyId/search - Buscar templates por empresa (compatibilidade)
-router.get('/company/:companyId/search', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
-});
-
-// ✅ DIRECT ROUTES: Novos padrões Clean Architecture
-
-// GET /api/ticket-templates - Buscar templates
-router.get('/', async (req, res) => {
-  await ticketTemplateController.getTemplates(req as any, res);
-});
-
-// GET /api/ticket-templates/popular - Templates populares
-router.get('/popular', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
-});
-
-// ✅ 1QA.MD: Clean Architecture routes (remove duplicate conflicting routes)
-// These routes are handled by the compatibility routes above
-
-// GET /api/ticket-templates/categories - Categorias disponíveis
-router.get('/categories', async (req, res) => {
-  await ticketTemplateController.getCategories(req as any, res);
-});
-
-// GET /api/ticket-templates/stats - Estatísticas dos templates (alias para analytics)
-router.get('/stats', async (req, res) => {
-  await ticketTemplateController.getCompanyTemplateStats(req as any, res);
-});
-
-// GET /api/ticket-templates/analytics - Analytics dos templates
-router.get('/analytics', async (req, res) => {
-  await ticketTemplateController.getTemplates(req, res);
-});
-
-// GET /api/ticket-templates/:id - Buscar template por ID
-router.get('/:id', async (req, res) => {
-  await ticketTemplateController.getTemplates(req as any, res);
-});
-
-// POST /api/ticket-templates - Create template (can include companyId in body)
+// POST /api/ticket-templates - Criar template
 router.post('/', async (req, res) => {
+  console.log('🎯 [ROUTES] POST / called - Creating template');
   await ticketTemplateController.createTemplate(req as any, res);
+});
+
+// GET /api/ticket-templates - Listar templates
+router.get('/', async (req, res) => {
+  console.log('🎯 [ROUTES] GET / called - Getting templates');
+  await ticketTemplateController.getTemplates(req, res);
 });
 
 // PUT /api/ticket-templates/:id - Atualizar template
 router.put('/:id', async (req, res) => {
-  res.status(501).json({ success: false, message: 'Method not implemented' });
+  console.log('🎯 [ROUTES] PUT /:id called - Updating template');
+  await ticketTemplateController.updateTemplate(req as any, res);
 });
 
-// DELETE /api/ticket-templates/:id - Deletar template
-router.delete('/:id', async (req, res) => {
-  res.status(501).json({ success: false, message: 'Method not implemented' });
+// GET /api/ticket-templates/categories - Categorias disponíveis
+router.get('/categories', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /categories called');
+  await ticketTemplateController.getCategories(req as any, res);
 });
 
-// POST /api/ticket-templates/:id/clone - Clonar template
-router.post('/:id/clone', async (req, res) => {
-  res.status(501).json({ success: false, message: 'Method not implemented' });
+// GET /api/ticket-templates/defaults - Templates padrão
+router.get('/defaults', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /defaults called');
+  await ticketTemplateController.getDefaultTemplates(req as any, res);
 });
 
-// POST /api/ticket-templates/:id/use - Incrementar uso do template
-router.post('/:id/use', async (req, res) => {
-  res.status(501).json({ success: false, message: 'Method not implemented' });
+// GET /api/ticket-templates/popular - Templates populares
+router.get('/popular', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /popular called');
+  await ticketTemplateController.getPopularTemplates(req as any, res);
 });
 
-export { router as default };
+// GET /api/ticket-templates/:id/analytics - Analytics do template
+router.get('/:id/analytics', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /:id/analytics called');
+  await ticketTemplateController.getTemplateAnalytics(req as any, res);
+});
+
+// GET /api/ticket-templates/category/:category - Templates por categoria
+router.get('/category/:category', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /category/:category called');
+  await ticketTemplateController.getTemplatesByCategory(req as any, res);
+});
+
+// ✅ COMPATIBILITY ROUTES: Manter compatibilidade com frontend existente
+
+// GET /api/ticket-templates/company/:companyId/stats - Estatísticas por empresa
+router.get('/company/:companyId/stats', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /company/:companyId/stats called');
+  await ticketTemplateController.getCompanyTemplateStats(req as any, res);
+});
+
+// GET /api/ticket-templates/company/:companyId - Templates por empresa
+router.get('/company/:companyId', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /company/:companyId called');
+  await ticketTemplateController.getTemplates(req, res);
+});
+
+console.log('✅ [TICKET-TEMPLATES-ROUTES] All routes registered successfully');
+
+export default router;

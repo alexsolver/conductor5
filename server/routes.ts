@@ -383,32 +383,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Continue execution even if auth fails
   }
 
-  // 🚨 DIRECT REGISTRATION: TICKET-TEMPLATES following 1qa.md Clean Architecture
-  console.log('🚨 [TICKET-TEMPLATES-DIRECT] DIRECT registration starting...');
-  console.log('🚨 [TICKET-TEMPLATES-DIRECT] TIMESTAMP:', new Date().toISOString());
+  // ✅ 1QA.MD COMPLIANCE: TICKET-TEMPLATES Clean Architecture
+  console.log('🚨 [TICKET-TEMPLATES-MODULE] === STARTING REGISTRATION ===');
+  console.log('🚨 [TICKET-TEMPLATES-MODULE] Timestamp:', new Date().toISOString());
   
-  // Direct controller instantiation following 1qa.md
   try {
-    console.log('🚨 [TICKET-TEMPLATES-DIRECT] Creating controller directly...');
+    // ✅ 1QA.MD: Clean Architecture dependency injection
     const { DrizzleTicketTemplateRepository } = await import('./modules/ticket-templates/infrastructure/repositories/DrizzleTicketTemplateRepository');
     const { GetTicketTemplatesUseCase } = await import('./modules/ticket-templates/application/use-cases/GetTicketTemplatesUseCase');
     const { CreateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase');
     const { UpdateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase');
     const { TicketTemplateController } = await import('./modules/ticket-templates/application/controllers/TicketTemplateController');
     
+    // ✅ 1QA.MD: Infrastructure Layer instantiation
     const templateRepository = new DrizzleTicketTemplateRepository();
+    console.log('✅ [TICKET-TEMPLATES-MODULE] Repository instantiated');
+    
+    // ✅ 1QA.MD: Application Layer - Use Cases instantiation
     const getTemplatesUseCase = new GetTicketTemplatesUseCase(templateRepository);
     const createTemplateUseCase = new CreateTicketTemplateUseCase(templateRepository);  
     const updateTemplateUseCase = new UpdateTicketTemplateUseCase(templateRepository);
-    const templateController = new TicketTemplateController(createTemplateUseCase, getTemplatesUseCase, updateTemplateUseCase);
+    console.log('✅ [TICKET-TEMPLATES-MODULE] Use Cases instantiated');
     
-    console.log('🚨 [TICKET-TEMPLATES-DIRECT] Controller created, registering endpoints...');
+    // ✅ 1QA.MD: Application Layer - Controller instantiation
+    const templateController = new TicketTemplateController(
+      createTemplateUseCase, 
+      getTemplatesUseCase, 
+      updateTemplateUseCase
+    );
+    console.log('✅ [TICKET-TEMPLATES-MODULE] Controller instantiated');
     
-    // REMOVED: Duplicate endpoints - using emergency final ones only
+    // ✅ 1QA.MD: Presentation Layer - Route registration
+    console.log('🔗 [TICKET-TEMPLATES-MODULE] Registering endpoints...');
+
+    // GET /api/ticket-templates - Lista todos os templates
+    app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-TEMPLATES] /api/ticket-templates called');
+      try {
+        await templateController.getTemplates(req, res);
+      } catch (error) {
+        console.error('❌ [GET-TEMPLATES] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // POST /api/ticket-templates - Cria novo template
+    app.post('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [CREATE-TEMPLATE] /api/ticket-templates called');
+      try {
+        await templateController.createTemplate(req, res);
+      } catch (error) {
+        console.error('❌ [CREATE-TEMPLATE] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // PUT /api/ticket-templates/:id - Atualiza template
+    app.put('/api/ticket-templates/:id', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [UPDATE-TEMPLATE] /api/ticket-templates/:id called');
+      try {
+        await templateController.updateTemplate(req, res);
+      } catch (error) {
+        console.error('❌ [UPDATE-TEMPLATE] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // GET /api/ticket-templates/categories - Lista categorias
+    app.get('/api/ticket-templates/categories', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-CATEGORIES] /api/ticket-templates/categories called');
+      try {
+        await templateController.getCategories(req, res);
+      } catch (error) {
+        console.error('❌ [GET-CATEGORIES] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // GET /api/ticket-templates/company/:companyId/stats - Estatísticas por empresa
+    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-COMPANY-STATS] /api/ticket-templates/company/:companyId/stats called');
+      try {
+        await templateController.getCompanyTemplateStats(req, res);
+      } catch (error) {
+        console.error('❌ [GET-COMPANY-STATS] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // GET /api/ticket-templates/company/:companyId - Templates por empresa
+    app.get('/api/ticket-templates/company/:companyId', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-COMPANY-TEMPLATES] /api/ticket-templates/company/:companyId called');
+      try {
+        await templateController.getTemplates(req, res);
+      } catch (error) {
+        console.error('❌ [GET-COMPANY-TEMPLATES] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // GET /api/ticket-templates/defaults - Templates padrão
+    app.get('/api/ticket-templates/defaults', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-DEFAULTS] /api/ticket-templates/defaults called');
+      try {
+        await templateController.getDefaultTemplates(req, res);
+      } catch (error) {
+        console.error('❌ [GET-DEFAULTS] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // GET /api/ticket-templates/popular - Templates populares
+    app.get('/api/ticket-templates/popular', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-POPULAR] /api/ticket-templates/popular called');
+      try {
+        await templateController.getPopularTemplates(req, res);
+      } catch (error) {
+        console.error('❌ [GET-POPULAR] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // GET /api/ticket-templates/:id/analytics - Analytics do template
+    app.get('/api/ticket-templates/:id/analytics', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-ANALYTICS] /api/ticket-templates/:id/analytics called');
+      try {
+        await templateController.getTemplateAnalytics(req, res);
+      } catch (error) {
+        console.error('❌ [GET-ANALYTICS] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    // GET /api/ticket-templates/category/:category - Templates por categoria
+    app.get('/api/ticket-templates/category/:category', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+      console.log('🎯 [GET-BY-CATEGORY] /api/ticket-templates/category/:category called');
+      try {
+        await templateController.getTemplatesByCategory(req, res);
+      } catch (error) {
+        console.error('❌ [GET-BY-CATEGORY] Error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+      }
+    });
+
+    console.log('✅ [TICKET-TEMPLATES-MODULE] All endpoints registered successfully');
+    console.log('🚨 [TICKET-TEMPLATES-MODULE] === REGISTRATION COMPLETE ===');
+    
   } catch (error: any) {
-    console.error('❌ [TICKET-TEMPLATES-DIRECT] Registration FAILED:', error);
-    console.error('❌ [TICKET-TEMPLATES-DIRECT] Error details:', error.message);
-    console.error('❌ [TICKET-TEMPLATES-DIRECT] Stack trace:', error.stack);
+    console.error('❌ [TICKET-TEMPLATES-MODULE] Registration FAILED:', error);
+    console.error('❌ [TICKET-TEMPLATES-MODULE] Error details:', error.message);
+    console.error('❌ [TICKET-TEMPLATES-MODULE] Stack trace:', error.stack);
   }
   console.log('🚨 [TICKET-TEMPLATES-DIRECT] Direct registration block COMPLETED');
 
