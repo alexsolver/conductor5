@@ -19,14 +19,32 @@ import translationsRoutes from './routes/translations';
 import translationCompletionRoutes from './routes/translationCompletion';
 import { jwtAuth as authenticateToken, AuthenticatedRequest } from './middleware/jwtAuth'; // Import authenticateToken
 
-// Import routes
+// Import modules routes
+import ticketRoutes from './modules/tickets/routes';
 import authRoutes from './modules/auth/routes';
-import customersRoutes from './modules/customers/routes';
-import beneficiariesRoutes from './modules/beneficiaries/routes-working';
-import locationsRoutes from './modules/locations/routes';
-import ticketsRoutes from './modules/tickets/routes';
+import customerRoutes from './modules/customers/routes';
+import customFieldRoutes from './modules/custom-fields/routes';
+import beneficiaryRoutes from './modules/beneficiaries/routes';
+import locationRoutes from './modules/locations/routes';
+import companyRoutes from './modules/companies/routes-clean';
+import userRoutes from './modules/users/routes-clean';
+import timecardRoutes from './modules/timecard/routes';
+import notificationRoutes from './modules/notifications/routes';
+import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import saasAdminRoutes from './modules/saas-admin/routes';
-// import timecardRoutes from './modules/timecard/routes-working'; // Duplicate removed
+import tenantAdminRoutes from './modules/tenant-admin/routes';
+import materialServiceRoutes from './modules/materials-services/routes';
+import approvalRoutes from './modules/approvals/routes';
+import expenseApprovalRoutes from './modules/expense-approval/routes';
+import contractRoutes from './modules/contracts/routes';
+import reportRoutes from './modules/reports/routes';
+import gdprRoutes from './modules/gdpr-compliance/routes';
+import slaRoutes from './modules/sla/routes/slaRoutes';
+import omniBridgeRoutes from './modules/omnibridge/routes';
+import interactiveMapRoutes from './modules/interactive-map/routes';
+import activityPlannerRoutes from './modules/activity-planner/routes';
+import ticketRelationshipRoutes from './modules/ticket-relationships/routes';
+import ticketTemplateRoutes from './modules/ticket-templates/routes';
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
@@ -439,13 +457,32 @@ app.use((req, res, next) => {
   });
 
   // Register routes
+  app.use('/api/tickets', jwtAuth, tenantValidator, ticketRoutes);
+  app.use('/api/ticket-templates', jwtAuth, tenantValidator, ticketTemplateRoutes);
   app.use('/api/auth', authRoutes);
-  app.use('/api/customers', customersRoutes);
-  app.use('/api/beneficiaries', beneficiariesRoutes);
-  app.use('/api/locations', locationsRoutes);
-  app.use('/api/tickets', ticketsRoutes);
-  app.use('/api/timecard', timecardRoutes);
-  
+  app.use('/api/customers', jwtAuth, tenantValidator, customerRoutes);
+  app.use('/api/custom-fields', jwtAuth, tenantValidator, customFieldRoutes);
+  app.use('/api/beneficiaries', jwtAuth, tenantValidator, beneficiaryRoutes);
+  app.use('/api/locations', jwtAuth, tenantValidator, locationRoutes);
+  app.use('/api/companies', jwtAuth, tenantValidator, companyRoutes);
+  app.use('/api/users', jwtAuth, tenantValidator, userRoutes);
+  app.use('/api/timecard', jwtAuth, tenantValidator, timecardRoutes);
+  app.use('/api/notifications', jwtAuth, tenantValidator, notificationRoutes);
+  app.use('/api/knowledge-base', jwtAuth, tenantValidator, knowledgeBaseRoutes);
+  app.use('/api/saas-admin', jwtAuth, tenantValidator, saasAdminRoutes);
+  app.use('/api/tenant-admin', jwtAuth, tenantValidator, tenantAdminRoutes);
+  app.use('/api/materials-services', jwtAuth, tenantValidator, materialServiceRoutes);
+  app.use('/api/approvals', jwtAuth, tenantValidator, approvalRoutes);
+  app.use('/api/expense-approval', jwtAuth, tenantValidator, expenseApprovalRoutes);
+  app.use('/api/contracts', jwtAuth, tenantValidator, contractRoutes);
+  app.use('/api/reports', jwtAuth, tenantValidator, reportRoutes);
+  app.use('/api/gdpr', jwtAuth, tenantValidator, gdprRoutes);
+  app.use('/api/sla', jwtAuth, tenantValidator, slaRoutes);
+  app.use('/api/omnibridge', jwtAuth, tenantValidator, omniBridgeRoutes);
+  app.use('/api/interactive-map', jwtAuth, tenantValidator, interactiveMapRoutes);
+  app.use('/api/activity-planner', jwtAuth, tenantValidator, activityPlannerRoutes);
+  app.use('/api/ticket-relationships', jwtAuth, tenantValidator, ticketRelationshipRoutes);
+
   // ✅ 1QA.MD: Import and register custom fields routes
   console.log('🔥 [SERVER] Registering custom-fields routes...');
   const customFieldsRoutes = (await import('./modules/custom-fields/routes')).default;
