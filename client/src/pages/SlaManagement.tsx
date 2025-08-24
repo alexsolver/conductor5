@@ -205,27 +205,27 @@ export default function SlaManagement() {
   // Queries
   const { data: slaDefinitions, isLoading: isLoadingSlas } = useQuery({
     queryKey: ['/api/sla/definitions'],
-    queryFn: () => apiRequest('/api/sla/definitions').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/sla/definitions').then(res => res.json()),
   });
 
   const { data: activeInstances } = useQuery({
     queryKey: ['/api/sla/instances/active'],
-    queryFn: () => apiRequest('/api/sla/instances/active').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/sla/instances/active').then(res => res.json()),
   });
 
   const { data: breachedInstances } = useQuery({
     queryKey: ['/api/sla/instances/breached'],
-    queryFn: () => apiRequest('/api/sla/instances/breached').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/sla/instances/breached').then(res => res.json()),
   });
 
   const { data: violations } = useQuery({
     queryKey: ['/api/sla/violations'],
-    queryFn: () => apiRequest('/api/sla/violations').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/sla/violations').then(res => res.json()),
   });
 
   const { data: complianceStats } = useQuery({
     queryKey: ['/api/sla/analytics/compliance'],
-    queryFn: () => apiRequest('/api/sla/analytics/compliance').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/sla/analytics/compliance').then(res => res.json()),
   });
 
   // Estado para controle do workflow
@@ -234,7 +234,7 @@ export default function SlaManagement() {
   // Queries para workflows
   const { data: workflows, isLoading: isLoadingWorkflows } = useQuery({
     queryKey: ['/api/sla/workflows'],
-    queryFn: () => apiRequest('/api/sla/workflows').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/sla/workflows').then(res => res.json()),
   });
 
   // Mutations
