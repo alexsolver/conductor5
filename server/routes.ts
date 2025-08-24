@@ -4654,12 +4654,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🎯 [EMERGENCY-ENDPOINT] POST /api/ticket-templates called');
       console.log('🎯 [EMERGENCY-ENDPOINT] Request body:', req.body);
       console.log('🎯 [EMERGENCY-ENDPOINT] User info:', (req as any).user);
+      console.log('🎯 [EMERGENCY-ENDPOINT] Controller instance:', templateController ? 'EXISTS' : 'MISSING');
+      console.log('🎯 [EMERGENCY-ENDPOINT] CreateTemplate method:', typeof templateController?.createTemplate);
+      
       try {
+        console.log('🔥 [EMERGENCY-ENDPOINT] About to call controller.createTemplate...');
         await templateController.createTemplate(req, res);
         console.log('🎯 [EMERGENCY-ENDPOINT] POST Controller execution completed');
       } catch (error) {
         console.error('❌ [EMERGENCY-ENDPOINT] POST Controller error:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('❌ [EMERGENCY-ENDPOINT] POST Error stack:', error?.stack);
+        if (!res.headersSent) {
+          res.status(500).json({ success: false, error: error?.message || 'Unknown error' });
+        }
       }
     });
 
