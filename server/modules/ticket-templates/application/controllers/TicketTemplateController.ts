@@ -24,7 +24,12 @@ interface GetTicketTemplatesRequest {
     templateType?: string;
     status?: string;
     departmentId?: string;
+    isDefault?: boolean;
+    tags?: string[];
   };
+  search?: string;
+  includeAnalytics?: boolean;
+  includeUsageStats?: boolean;
 }
 
 export class TicketTemplateController {
