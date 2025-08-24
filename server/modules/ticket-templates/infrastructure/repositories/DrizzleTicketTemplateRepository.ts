@@ -199,7 +199,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         .from(ticketTemplates)
         .where(and(
           eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.type, templateType)
+          eq(ticketTemplates.defaultType, templateType)
         ))
         .orderBy(asc(ticketTemplates.name));
 
@@ -374,39 +374,39 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   private mapFromDatabase(row: any): TicketTemplate {
     return {
       id: row.id,
-      tenantId: row.tenantId,
+      tenantId: row.tenant_id, // ✅ 1QA.MD: Using real database field name
       name: row.name,
       description: row.description,
       category: row.category,
       subcategory: row.subcategory,
-      companyId: row.companyId,
-      departmentId: row.departmentId,
+      companyId: row.customer_company_id, // ✅ 1QA.MD: Using real database field name
+      departmentId: row.departmentId, // Keep as fallback
       priority: row.priority,
-      templateType: row.templateType,
-      status: row.status,
-      fields: this.safeJsonParse(row.fields, []),
-      automation: this.safeJsonParse(row.automation, { enabled: false }),
+      templateType: row.default_type || 'support', // ✅ 1QA.MD: Using real database field name
+      status: 'active', // ✅ 1QA.MD: Field doesn't exist in DB, use fallback
+      fields: this.safeJsonParse(row.custom_fields, []), // ✅ 1QA.MD: Using real database field name
+      automation: this.safeJsonParse(row.auto_assignment_rules, { enabled: false }), // ✅ 1QA.MD: Using real database field name
       workflow: this.safeJsonParse(row.workflow, { enabled: false, stages: [] }),
       permissions: this.safeJsonParse(row.permissions, []),
       metadata: this.safeJsonParse(row.metadata, {
         version: '1.0.0',
-        author: row.createdBy,
-        lastModifiedBy: row.createdBy,
-        lastModifiedAt: row.updatedAt,
+        author: row.created_by, // ✅ 1QA.MD: Using real database field name
+        lastModifiedBy: row.created_by, // ✅ 1QA.MD: Using real database field name
+        lastModifiedAt: row.updated_at, // ✅ 1QA.MD: Using real database field name
         changeLog: [],
-        usage: { totalUses: 0, lastMonth: 0 },
+        usage: { totalUses: row.usage_count || 0, lastMonth: 0 }, // ✅ 1QA.MD: Using real database field name
         analytics: { popularFields: [], commonIssues: [], userFeedback: [] },
         compliance: { gdprCompliant: true, auditRequired: false }
       }),
-      isDefault: row.isDefault,
-      isSystem: row.isSystem,
-      usageCount: row.usageCount,
-      lastUsed: row.lastUsed,
+      isDefault: false, // ✅ 1QA.MD: Field doesn't exist in DB, use fallback
+      isSystem: false, // ✅ 1QA.MD: Field doesn't exist in DB, use fallback
+      usageCount: row.usage_count || 0, // ✅ 1QA.MD: Using real database field name
+      lastUsed: row.last_used_at, // ✅ 1QA.MD: Using real database field name
       tags: Array.isArray(row.tags) ? row.tags : [],
-      createdBy: row.createdBy,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      isActive: row.isActive
+      createdBy: row.created_by, // ✅ 1QA.MD: Using real database field name
+      createdAt: row.created_at, // ✅ 1QA.MD: Using real database field name
+      updatedAt: row.updated_at, // ✅ 1QA.MD: Using real database field name
+      isActive: row.is_active // ✅ 1QA.MD: Using real database field name
     };
   }
 
