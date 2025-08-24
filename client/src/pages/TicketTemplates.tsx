@@ -192,7 +192,7 @@ export default function TicketTemplates() {
     console.log('❌ [TEMPLATES-PROCESSING] Unexpected response structure:', templatesResponse);
     return [];
   }, [templatesResponse]);
-  
+
   // ✅ 1QA.MD: Robust data processing - ensure stats is always an object
   const stats = React.useMemo(() => {
     if (!statsResponse) return {};
@@ -696,7 +696,7 @@ export default function TicketTemplates() {
                       <FormItem>
                         <FormLabel>Nome do Template *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: Problema de Hardware" {...field} />
+                          <Input {...field} placeholder="Ex: Problema de Hardware" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -710,7 +710,7 @@ export default function TicketTemplates() {
                       <FormItem>
                         <FormLabel>Categoria *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: Suporte Técnico" {...field} />
+                          <Input {...field} placeholder="Ex: Suporte Técnico" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -726,9 +726,9 @@ export default function TicketTemplates() {
                       <FormLabel>Descrição *</FormLabel>
                       <FormControl>
                         <Textarea 
+                          {...field}
                           placeholder="Descreva quando este template deve ser usado..."
                           rows={3}
-                          {...field} 
                         />
                       </FormControl>
                       <FormMessage />

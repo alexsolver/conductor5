@@ -71,7 +71,12 @@ export class TicketTemplateController {
 
       console.log('📝 [TEMPLATE-CONTROLLER] Template data prepared:', templateData);
 
-      const result = await this.createTicketTemplateUseCase.execute(templateData);
+      const result = await this.createTicketTemplateUseCase.execute({
+        tenantId: user.tenantId,
+        createdBy: user.id,
+        userRole: user.role || 'user',
+        templateData: templateData
+      });
 
       console.log('✅ [TEMPLATE-CONTROLLER] Use case result:', result);
 
