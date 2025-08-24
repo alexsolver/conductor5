@@ -111,13 +111,13 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
+}, (table) => ({
   // TENANT ISOLATION: Email must be unique per tenant
-  unique("users_tenant_email_unique").on(table.tenantId, table.email),
-  index("users_tenant_idx").on(table.tenantId),
-  index("users_role_idx").on(table.role),
-  index("users_active_idx").on(table.isActive),
-]);
+  usersTenantEmailUnique: unique("users_tenant_email_unique").on(table.tenantId, table.email),
+  usersTenantIdx: index("users_tenant_idx").on(table.tenantId),
+  usersRoleIdx: index("users_role_idx").on(table.role),
+  usersActiveIdx: index("users_active_idx").on(table.isActive),
+}));
 
 // NOTE: userGroups, userGroupMemberships and departments tables are defined later in the file
 
@@ -3351,7 +3351,7 @@ export const queryOperatorEnum = pgEnum("query_operator", [
 // Approval Rules - Universal rules for any module
 export const approvalRules = pgTable("approval_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId("tenant_id").notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
 
