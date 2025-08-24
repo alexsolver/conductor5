@@ -269,25 +269,7 @@ export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
   updatedBy: varchar('updated_by', { length: 36 })
 });
 
-// ✅ 1QA.MD: Custom Fields table definition
-export const customFields = pgTable('custom_fields', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  moduleType: varchar('module_type', { length: 50 }).notNull(), // customers, tickets, beneficiaries, etc.
-  fieldName: varchar('field_name', { length: 100 }).notNull(), // Technical name for the field
-  fieldType: varchar('field_type', { length: 50 }).notNull(), // text, number, select, etc.
-  fieldLabel: varchar('field_label', { length: 200 }).notNull(), // Display name for the field
-  isRequired: boolean('is_required').default(false).notNull(),
-  validationRules: json('validation_rules'),
-  fieldOptions: json('field_options'), // For select/multiselect fields
-  placeholder: varchar('placeholder', { length: 500 }),
-  defaultValue: varchar('default_value', { length: 500 }),
-  displayOrder: integer('display_order').default(0).notNull(),
-  helpText: text('help_text'),
-  isActive: boolean('is_active').default(true).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
+// ✅ 1QA.MD: Custom Fields imported from schema-master.ts to avoid duplicates
 
 // Import from schema-tenant for tenant-specific tables
 import { 
@@ -302,27 +284,3 @@ export const tickets = ticketsFromTenant;
 export const ticketHistory = ticketHistoryFromTenant;
 export const ticketRelationships = ticketRelationshipsFromTenant;
 export const ticketTemplates = ticketTemplatesFromTenant;
-
-// Export all tables for use in repositories
-export {
-  // Core tables
-  users,
-  companies,
-  customers,
-  tickets,
-  ticketHistory,
-  ticketRelationships,
-  ticketTemplates,
-
-  // Additional modules
-  notifications,
-  customFields,
-  locations,
-  materials,
-  services,
-  contracts,
-  approvalRules,
-  approvalInstances,
-  knowledgeBase,
-  knowledgeBaseArticles
-};
