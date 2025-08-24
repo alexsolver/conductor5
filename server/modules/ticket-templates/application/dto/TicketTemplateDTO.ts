@@ -149,7 +149,6 @@ export const UpdateTicketTemplateDTO = z.object({
 export const GetTicketTemplatesDTO = z.object({
   tenantId: z.string().uuid(),
   companyId: z.string().uuid().optional().nullable(),
-  selectedCompany: z.string().uuid().optional().nullable(), // Para compatibilidade com frontend
   category: z.string().optional(),
   subcategory: z.string().optional(),
   templateType: z.enum(['standard', 'quick', 'escalation', 'auto_response', 'workflow']).optional(),
@@ -217,8 +216,7 @@ export const TicketTemplateResponseDTO = z.object({
 // ✅ 1QA.MD: DTO para analytics
 export const TemplateAnalyticsDTO = z.object({
   tenantId: z.string().uuid(),
-  companyId: z.string().uuid().optional().nullable(),
-  selectedCompany: z.string().uuid().optional().nullable(), // Para compatibilidade com frontend
+  companyId: z.string().uuid().optional(),
   dateRange: z.object({
     startDate: z.date(),
     endDate: z.date()

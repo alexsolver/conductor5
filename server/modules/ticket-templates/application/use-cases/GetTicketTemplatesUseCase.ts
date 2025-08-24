@@ -119,8 +119,7 @@ export class GetTicketTemplatesUseCase {
       // 4. Filter templates based on permissions and company access
       const accessibleTemplates = templates.filter(template =>
         TicketTemplateDomainService.hasPermission(template, request.userRole, 'view') &&
-        TicketTemplateDomainService.canUseTemplate(template, request.userRole, request.companyId) &&
-        TicketTemplateDomainService.canBeUsedByCompany(template, request.companyId)
+        TicketTemplateDomainService.canUseTemplate(template, request.userRole, request.companyId)
       );
 
       // 5. Generate analytics if requested

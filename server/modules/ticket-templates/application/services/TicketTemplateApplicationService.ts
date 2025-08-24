@@ -44,7 +44,7 @@ export class TicketTemplateApplicationService {
       category,
       templateType,
       status,
-      companyId: companyId || undefinedd
+      companyId: companyId || undefined
     });
 
     // Filtrar por hierarquia de empresa

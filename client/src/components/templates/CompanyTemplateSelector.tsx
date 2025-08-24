@@ -39,19 +39,15 @@ export default function CompanyTemplateSelector({
 
   // Fetch template stats for selected company
   const { data: statsResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/stats', selectedCompany],
+    queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (selectedCompany && selectedCompany !== 'all') {
-        params.append('companyId', selectedCompany);
-      }
-      const response = await apiRequest('GET', `/api/ticket-templates/stats?${params.toString()}`);
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/stats`);
       return response.json();
     },
-    enabled: showStats && selectedCompany
+    enabled: showStats
   });
 
-  const stats = statsResponse?.data || {};
+  const stats = statsResponse?.data?.[0] || {};
 
   const getCompanyInfo = (companyId: string) => {
     if (companyId === 'all') {
