@@ -1,3 +1,9 @@
+/**
+ * ✅ UX IMPROVEMENT: TICKET TEMPLATES PAGE
+ * Seguindo user preferences: Text-based hierarchical menus com dropdowns
+ * Design system: Gradient-focused com Shadcn UI
+ */
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +15,18 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
-import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock, Building2, Settings } from 'lucide-react';
+import { 
+  Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, 
+  Users, Clock, Building2, Settings, ChevronDown, ChevronRight,
+  FolderOpen, FileText, Star, TrendingUp, Activity
+} from 'lucide-react';
 
 // Import new components
 import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
@@ -68,11 +80,17 @@ interface TicketTemplate {
 }
 
 export default function TicketTemplates() {
+  // ✅ UX: Hierarchical state management
+  const [activeView, setActiveView] = useState<'list' | 'analytics' | 'categories'>('list');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TicketTemplate | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'name' | 'usage' | 'created'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [activeTab, setActiveTab] = useState('templates');

@@ -144,7 +144,7 @@ export class GetTicketTemplatesUseCase {
         success: true,
         data: {
           templates: accessibleTemplates,
-          template: singleTemplate,
+          template: singleTemplate || undefined,
           analytics,
           usageStatistics,
           fieldAnalytics
