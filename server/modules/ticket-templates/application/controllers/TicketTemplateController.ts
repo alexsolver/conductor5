@@ -250,7 +250,7 @@ export class TicketTemplateController {
 
       // Extract unique categories from templates
       const categories = result.data?.templates 
-        ? [...new Set(result.data.templates.map(t => t.category))]
+        ? Array.from(new Set(result.data.templates.map(t => t.category)))
         : [];
 
       const subcategories = result.data?.templates
@@ -353,7 +353,7 @@ export class TicketTemplateController {
         tenantId,
         userRole,
         filters: {
-          isDefault: true
+          status: 'active'
         }
       });
 
