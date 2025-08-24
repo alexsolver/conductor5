@@ -15,8 +15,8 @@ export * from "./schema-tenant";
 export * from "./schema-notifications";
 export * from "./schema-expense-approval";
 
-// Import temporary missing tables
-export * from "./schema-temp";
+// Import temporary missing tables - COMPLETED: All tables consolidated into schema-tenant.ts
+// export * from "./schema-temp"; // Removed: All 29 tables successfully migrated to schema-tenant.ts
 
 // ========================================
 // RE-EXPORT VALIDATION SCHEMAS
