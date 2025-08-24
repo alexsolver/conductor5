@@ -1,7 +1,9 @@
 // ✅ 1QA.MD COMPLIANCE: Activity Planner Drizzle Repository Implementation
 // Clean Architecture Infrastructure Layer - Database Repository
 
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '@shared/schema';
 import { eq, and, desc, asc, like, between, count, sum, gte, lte, inArray, isNull, or, sql } from 'drizzle-orm';
 import { 
   activityCategories,
@@ -21,8 +23,25 @@ import {
 } from '@shared/schema-activity-planner';
 import { IActivityPlannerRepository, ActivityFilters, ActivitySummary } from '../../domain/repositories/IActivityPlannerRepository';
 import type { ActivityInstance } from '../../domain/entities/ActivityInstance';
+import { Pool } from 'pg';
 
 export class DrizzleActivityPlannerRepository implements IActivityPlannerRepository {
+
+  // ✅ 1QA.MD: Tenant Schema Isolation - seguindo padrão do sistema
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
 
   // Type Mappers to ensure consistency between domain entities and schema types
   private mapEntityToSchema(instance: Omit<ActivityInstance, 'id' | 'createdAt' | 'updatedAt'>): Omit<ActivityInstanceType, 'id' | 'createdAt' | 'updatedAt'> {
@@ -58,18 +77,28 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
     };
   }
 
-  // Activity Categories
+  // ✅ 1QA.MD: Activity Categories with Tenant Isolation
   async createCategory(category: Omit<ActivityCategory, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivityCategory> {
-    const [created] = await db.insert(activityCategories).values({
+    console.log('📋 [ACTIVITY-PLANNER] Creating category in tenant schema:', this.getSchemaName(category.tenantId));
+    
+    const tenantDb = await this.getTenantDb(category.tenantId);
+    
+    const [created] = await tenantDb.insert(activityCategories).values({
       ...category,
       createdAt: new Date(),
       updatedAt: new Date()
     }).returning();
+    
+    console.log('✅ [ACTIVITY-PLANNER] Category created successfully');
     return created;
   }
 
   async updateCategory(id: string, tenantId: string, category: Partial<ActivityCategory>): Promise<ActivityCategory> {
-    const [updated] = await db
+    console.log('✏️ [ACTIVITY-PLANNER] Updating category in tenant schema:', this.getSchemaName(tenantId));
+    
+    const tenantDb = await this.getTenantDb(tenantId);
+    
+    const [updated] = await tenantDb
       .update(activityCategories)
       .set({ ...category, updatedAt: new Date() })
       .where(and(eq(activityCategories.id, id), eq(activityCategories.tenantId, tenantId)))
@@ -82,13 +111,21 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
   }
 
   async deleteCategory(id: string, tenantId: string): Promise<void> {
-    await db
+    console.log('🗑️ [ACTIVITY-PLANNER] Deleting category in tenant schema:', this.getSchemaName(tenantId));
+    
+    const tenantDb = await this.getTenantDb(tenantId);
+    
+    await tenantDb
       .delete(activityCategories)
       .where(and(eq(activityCategories.id, id), eq(activityCategories.tenantId, tenantId)));
   }
 
   async getCategoryById(id: string, tenantId: string): Promise<ActivityCategory | null> {
-    const [category] = await db
+    console.log('🔍 [ACTIVITY-PLANNER] Finding category in tenant schema:', this.getSchemaName(tenantId));
+    
+    const tenantDb = await this.getTenantDb(tenantId);
+    
+    const [category] = await tenantDb
       .select()
       .from(activityCategories)
       .where(and(eq(activityCategories.id, id), eq(activityCategories.tenantId, tenantId)));

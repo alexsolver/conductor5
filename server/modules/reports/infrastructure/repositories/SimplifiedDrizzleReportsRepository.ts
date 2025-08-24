@@ -2,7 +2,10 @@
 // Infrastructure Layer - Direct SQL with ORM patterns
 
 import { eq, and, desc, asc, like, sql } from 'drizzle-orm';
-import { db } from '../../../../../shared/schema';
+import { db, pool } from '../../../../../shared/schema';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '../../../../../shared/schema';
+import { Pool } from 'pg';
 
 export interface SimpleReport {
   id: string;
@@ -33,6 +36,22 @@ export interface SimpleDashboard {
 }
 
 export class SimplifiedDrizzleReportsRepository {
+  
+  // ✅ 1QA.MD: Tenant Schema Isolation - seguindo padrão do sistema
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
   
   // ✅ REPORTS CRUD - DIRECT SQL WITH ORM
   
@@ -116,7 +135,7 @@ export class SimplifiedDrizzleReportsRepository {
     
     return {
       reports,
-      total: parseInt(countResult.rows[0].count)
+      total: parseInt((countResult.rows[0] as any).count)
     };
   }
 
@@ -261,7 +280,7 @@ export class SimplifiedDrizzleReportsRepository {
       
       return {
         dashboards,
-        total: parseInt(countResult.rows[0].count)
+        total: parseInt((countResult.rows[0] as any).count)
       };
     } catch (error) {
       console.error(`❌ [DASHBOARDS-ORM] Error querying tenant schema ${schemaName}:`, error);
