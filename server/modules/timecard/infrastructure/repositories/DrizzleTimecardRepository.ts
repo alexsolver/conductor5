@@ -164,7 +164,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
 
       // Get users for this tenant (skip since users table doesn't exist in tenant schema)
-      const tenantDb = await this.getTenantDb(tenantId);
       const usersList: any[] = []; // Empty since users table doesn't exist
 
       console.log('[DRIZZLE-QA] Skipping users query - table not in tenant schema');
