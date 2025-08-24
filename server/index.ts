@@ -467,7 +467,7 @@ app.use((req, res, next) => {
 
   // Approval routes registration
   console.log('✅ [APPROVAL-MANAGEMENT] Registering approval routes...');
-  const approvalRoutes = (await import('./modules/approval-management/routes')).default;
+  const approvalRoutes = (await import('./modules/approvals/routes')).default;
   app.use('/api/approvals', approvalRoutes);
   console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
 
