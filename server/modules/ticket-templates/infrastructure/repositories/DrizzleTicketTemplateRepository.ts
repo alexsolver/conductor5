@@ -21,15 +21,39 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async create(template: Omit<TicketTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<TicketTemplate> {
     try {
       console.log('🔒 [TICKET-TEMPLATE-REPO] Creating template in tenant schema');
-      console.log('📝 [TICKET-TEMPLATE-REPO] Preparing template data for insertion');
+      console.log('📝 [TICKET-TEMPLATE-REPO] Input template data:', {
+        name: template.name,
+        category: template.category,
+        tenantId: template.tenantId,
+        hasFields: !!template.fields,
+        hasAutomation: !!template.automation
+      });
 
+      // ✅ 1QA.MD: Validate required fields
+      if (!template.tenantId || typeof template.tenantId !== 'string') {
+        throw new Error('Tenant ID é obrigatório');
+      }
+
+      if (!template.name || typeof template.name !== 'string') {
+        throw new Error('Nome do template é obrigatório');
+      }
+
+      if (!template.category || typeof template.category !== 'string') {
+        throw new Error('Categoria do template é obrigatória');
+      }
+
+      if (!template.createdBy || typeof template.createdBy !== 'string') {
+        throw new Error('Created By é obrigatório');
+      }
+
+      // ✅ 1QA.MD: Prepare template data with safe JSON serialization
       const templateData = {
         id: crypto.randomUUID(),
         tenantId: template.tenantId,
         companyId: template.companyId || null,
-        name: template.name,
+        name: template.name.trim(),
         description: template.description || null,
-        category: template.category,
+        category: template.category.trim(),
         subcategory: template.subcategory || null,
         templateType: template.templateType || 'standard',
         priority: template.priority || 'medium',
@@ -48,11 +72,11 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         defaultAssigneeRole: template.defaultAssigneeRole || null,
         usageCount: template.usageCount || 0,
         lastUsedAt: template.lastUsedAt || null,
-        fields: template.fields ? JSON.stringify(template.fields) : null,
-        automation: template.automation ? JSON.stringify(template.automation) : null,
-        workflow: template.workflow ? JSON.stringify(template.workflow) : null,
-        permissions: template.permissions ? JSON.stringify(template.permissions) : null,
-        metadata: template.metadata ? JSON.stringify(template.metadata) : null,
+        fields: this.safeJSONStringify(template.fields, []),
+        automation: this.safeJSONStringify(template.automation, { enabled: false }),
+        workflow: this.safeJSONStringify(template.workflow, { enabled: false, stages: [] }),
+        permissions: this.safeJSONStringify(template.permissions, []),
+        metadata: this.safeJSONStringify(template.metadata, {}),
         status: template.status || 'active',
         version: template.version || '1.0.0',
         createdBy: template.createdBy,
@@ -61,27 +85,75 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         updatedAt: new Date()
       };
 
-      console.log('📝 [TICKET-TEMPLATE-REPO] Inserting template with data:', {
+      console.log('📝 [TICKET-TEMPLATE-REPO] Prepared template data for insertion:', {
         id: templateData.id,
         name: templateData.name,
-        category: templateData.category
+        category: templateData.category,
+        tenantId: templateData.tenantId
       });
 
-      const result = await db
-        .insert(ticketTemplates)
-        .values(templateData)
-        .returning();
-
-      if (!result || result.length === 0) {
-        throw new Error('Failed to create template - no result returned');
+      // ✅ 1QA.MD: Database insertion with comprehensive error handling
+      let result;
+      try {
+        result = await db
+          .insert(ticketTemplates)
+          .values(templateData)
+          .returning();
+      } catch (dbError) {
+        console.error('❌ [TICKET-TEMPLATE-REPO] Database insertion error:', dbError);
+        
+        // ✅ 1QA.MD: Handle specific database errors
+        if (dbError.message?.includes('duplicate key value')) {
+          throw new Error('Um template com este nome já existe');
+        }
+        
+        if (dbError.message?.includes('violates foreign key constraint')) {
+          throw new Error('Referência inválida detectada');
+        }
+        
+        if (dbError.message?.includes('violates not-null constraint')) {
+          throw new Error('Campo obrigatório em branco detectado');
+        }
+        
+        throw new Error('Erro de banco de dados: ' + dbError.message);
       }
 
-      console.log('✅ [TICKET-TEMPLATE-REPO] Template created successfully:', result[0].id);
-      return this.mapFromDatabase(result[0]);
+      if (!result || result.length === 0) {
+        console.error('❌ [TICKET-TEMPLATE-REPO] No result returned from database');
+        throw new Error('Nenhum resultado retornado do banco de dados');
+      }
+
+      const createdTemplate = result[0];
+      console.log('✅ [TICKET-TEMPLATE-REPO] Template created successfully:', createdTemplate.id);
+
+      // ✅ 1QA.MD: Map and validate result
+      const mappedTemplate = this.mapFromDatabase(createdTemplate);
+      
+      if (!mappedTemplate.id) {
+        throw new Error('Template criado mas ID não encontrado');
+      }
+
+      return mappedTemplate;
 
     } catch (error) {
-      console.error('❌ [TICKET-TEMPLATE-REPO] Error creating ticket template:', error);
-      throw new Error(`Failed to create template: ${error.message}`);
+      console.error('❌ [TICKET-TEMPLATE-REPO] Critical error creating ticket template:', error);
+      console.error('❌ [TICKET-TEMPLATE-REPO] Error stack:', error instanceof Error ? error.stack : 'No stack');
+      
+      // ✅ 1QA.MD: Re-throw with detailed context
+      throw new Error(`Falha ao criar template: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    }
+  }
+
+  // ✅ 1QA.MD: Helper method for safe JSON serialization
+  private safeJSONStringify(value: any, defaultValue: any = null): string | null {
+    try {
+      if (value === null || value === undefined) {
+        return defaultValue ? JSON.stringify(defaultValue) : null;
+      }
+      return JSON.stringify(value);
+    } catch (error) {
+      console.error('❌ [TICKET-TEMPLATE-REPO] JSON stringify error:', error);
+      return defaultValue ? JSON.stringify(defaultValue) : null;
     }
   }
 

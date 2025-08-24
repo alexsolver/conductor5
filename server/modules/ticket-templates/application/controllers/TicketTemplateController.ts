@@ -254,7 +254,7 @@ export class TicketTemplateController {
     try {
       console.log('🚨 [CATEGORIES-CONTROLLER] === STARTING CATEGORIES EXECUTION ===');
       console.log('🎯 [CATEGORIES-CONTROLLER] User:', req.user);
-      
+
       const tenantId = req.user?.tenantId;
       const userRole = req.user?.role;
 
@@ -524,7 +524,7 @@ export class TicketTemplateController {
       console.log('🚨 [STATS-CONTROLLER] === STARTING STATS EXECUTION ===');
       console.log('🎯 [STATS-CONTROLLER] CompanyId:', req.params.companyId);
       console.log('🎯 [STATS-CONTROLLER] User:', req.user);
-      
+
       const tenantId = req.user?.tenantId;
       const userRole = req.user?.role;
       const companyId = req.params.companyId;
