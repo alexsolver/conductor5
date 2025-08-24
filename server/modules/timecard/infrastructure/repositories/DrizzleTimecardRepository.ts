@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
+import { eq, and, or, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db, pool } from '../../../../db';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
@@ -83,40 +83,12 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .insert(timecardEntries)
       .values({
         tenantId: data.tenantId,
+        timecardId: data.timecardId,
         userId: data.userId,
-        checkIn: data.checkIn,
-        checkOut: data.checkOut,
-        breakStart: data.breakStart,
-        breakEnd: data.breakEnd,
-        totalHours: data.totalHours,
-        notes: data.notes,
+        entryType: data.entryType, // 'clock_in', 'clock_out', 'break_start', 'break_end'
+        timestamp: data.timestamp,
         location: data.location,
-        isManualEntry: data.isManualEntry || false,
-        approvedBy: data.approvedBy,
-        status: data.status || 'pending',
-        // CLT compliance fields
-        nsr: data.nsr || 0,
-        recordHash: data.recordHash || '',
-        previousRecordHash: data.previousRecordHash,
-        digitalSignature: data.digitalSignature,
-        signatureTimestamp: data.signatureTimestamp,
-        signedBy: data.signedBy,
-        deviceInfo: data.deviceInfo,
-        ipAddress: data.ipAddress,
-        geoLocation: data.geoLocation,
-        modificationHistory: data.modificationHistory || [],
-        modifiedBy: data.modifiedBy,
-        modificationReason: data.modificationReason,
-        locationCoordinates: data.locationCoordinates,
-        locationAddress: data.locationAddress,
-        breaks: data.breaks || [],
-        overtimeHours: data.overtimeHours || '0',
-        verifiedBy: data.verifiedBy,
-        verificationDate: data.verificationDate,
-        isDeleted: data.isDeleted || false,
-        deletedAt: data.deletedAt,
-        deletedBy: data.deletedBy,
-        deletionReason: data.deletionReason
+        notes: data.notes
       })
       .returning();
     return entry;
@@ -135,13 +107,16 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         and(
           eq(timecardEntries.tenantId, tenantId),
           eq(timecardEntries.userId, userId),
-          sql`(
-            (${timecardEntries.checkIn} >= ${startOfDay} AND ${timecardEntries.checkIn} <= ${endOfDay}) OR
-            (${timecardEntries.checkOut} >= ${startOfDay} AND ${timecardEntries.checkOut} <= ${endOfDay}) OR
-            (${timecardEntries.breakStart} >= ${startOfDay} AND ${timecardEntries.breakStart} <= ${endOfDay}) OR
-            (${timecardEntries.breakEnd} >= ${startOfDay} AND ${timecardEntries.breakEnd} <= ${endOfDay}) OR
-            (${timecardEntries.createdAt} >= ${startOfDay} AND ${timecardEntries.createdAt} <= ${endOfDay})
-          )`
+          or(
+            and(
+              gte(timecardEntries.timestamp, startOfDay),
+              lte(timecardEntries.timestamp, endOfDay)
+            ),
+            and(
+              gte(timecardEntries.createdAt, startOfDay),
+              lte(timecardEntries.createdAt, endOfDay)
+            )
+          )
         )
       )
       .orderBy(desc(timecardEntries.createdAt));
@@ -154,17 +129,17 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     ];
 
     if (startDate) {
-      conditions.push(gte(timecardEntries.checkIn, startDate));
+      conditions.push(gte(timecardEntries.timestamp, startDate));
     }
     if (endDate) {
-      conditions.push(lte(timecardEntries.checkIn, endDate));
+      conditions.push(lte(timecardEntries.timestamp, endDate));
     }
 
     return await db
       .select()
       .from(timecardEntries)
       .where(and(...conditions))
-      .orderBy(desc(timecardEntries.checkIn));
+      .orderBy(desc(timecardEntries.timestamp));
   }
 
   async updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any> {
@@ -460,18 +435,20 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         tenantId: data.tenantId,
         name: data.name,
         description: data.description || null,
-        scheduleType: data.scheduleType,
-        workDays: JSON.stringify(data.workDays || []),
-        startTime: data.startTime || null,
-        endTime: data.endTime || null,
-        breakStart: data.breakStart || null,
-        breakEnd: data.breakEnd || null,
-        breakDurationMinutes: data.breakDurationMinutes || null,
-        useWeeklySchedule: data.useWeeklySchedule || false,
-        weeklySchedule: data.weeklySchedule ? JSON.stringify(data.weeklySchedule) : null,
-        flexibilityWindow: data.flexibilityWindow || 0,
-        isActive: data.isActive ?? true,
-        createdBy: data.createdBy || null
+        template: {
+          scheduleType: data.scheduleType,
+          workDays: data.workDays || [],
+          startTime: data.startTime || null,
+          endTime: data.endTime || null,
+          breakStart: data.breakStart || null,
+          breakEnd: data.breakEnd || null,
+          breakDurationMinutes: data.breakDurationMinutes || null,
+          useWeeklySchedule: data.useWeeklySchedule || false,
+          weeklySchedule: data.weeklySchedule || null,
+          flexibilityWindow: data.flexibilityWindow || 0,
+          createdBy: data.createdBy || null
+        },
+        isActive: data.isActive ?? true
       };
 
       console.log('[REPO-TEMPLATE-CREATE] Inserting template data:', templateData);
@@ -708,12 +685,10 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .values({
         tenantId: data.tenantId,
         userId: data.userId,
-        date: data.date || new Date(),
-        regularHours: data.regularHours || '0',
-        overtimeHours: data.overtimeHours || '0',
-        compensatedHours: data.compensatedHours || '0',
+        entryDate: data.entryDate || new Date().toISOString().split('T')[0],
+        hoursWorked: data.hoursWorked || '0',
+        hoursExpected: data.hoursExpected || '0',
         balance: data.balance || '0',
-        type: data.type || 'credit',
         description: data.description || ''
       })
       .returning();
