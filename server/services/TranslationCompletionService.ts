@@ -1,6 +1,8 @@
 import { promises as fs } from 'fs';
 import * as fsSync from 'fs';
 import path from 'path';
+import OpenAI from 'openai';
+import { DrizzleIntegrationRepository } from '../modules/saas-admin/infrastructure/repositories/DrizzleIntegrationRepository';
 
 // Types for translation completion service
 export interface TranslationKey {
@@ -59,6 +61,9 @@ export class TranslationCompletionService {
     'french': 'fr',
     'german': 'de'
   };
+
+  private integrationRepository: DrizzleIntegrationRepository;
+  private openaiClient?: OpenAI;
 
   // Massive list of common translations for intelligent completion
   private readonly AUTO_TRANSLATIONS: Record<string, Record<string, string>> = {
@@ -304,6 +309,189 @@ export class TranslationCompletionService {
 
   constructor() {
     this.TRANSLATIONS_DIR = path.join(process.cwd(), 'client', 'src', 'i18n', 'locales');
+    this.integrationRepository = new DrizzleIntegrationRepository();
+  }
+
+  /**
+   * Initialize OpenAI client using configured API key from integrations
+   */
+  private async initializeOpenAI(): Promise<OpenAI | null> {
+    try {
+      if (this.openaiClient) return this.openaiClient;
+
+      console.log('🤖 [AI-INIT] Initializing OpenAI client...');
+      
+      // Get OpenAI configuration from SaaS Admin integrations
+      const openaiConfig = await this.integrationRepository.getIntegrationConfig('openai');
+      
+      if (!openaiConfig?.apiKey) {
+        console.warn('⚠️ [AI-INIT] OpenAI API key not configured in integrations');
+        return null;
+      }
+
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      this.openaiClient = new OpenAI({ 
+        apiKey: openaiConfig.apiKey 
+      });
+
+      console.log('✅ [AI-INIT] OpenAI client initialized successfully');
+      return this.openaiClient;
+    } catch (error) {
+      console.error('❌ [AI-INIT] Error initializing OpenAI:', error);
+      return null;
+    }
+  }
+
+  /**
+   * AI-powered translation completion using OpenAI
+   */
+  async performAITranslationCompletion(): Promise<{
+    success: boolean;
+    completed: number;
+    message: string;
+    details: Record<string, number>;
+  }> {
+    console.log('🤖 [AI-TRANSLATE] Starting AI-powered translation completion...');
+    
+    try {
+      const openai = await this.initializeOpenAI();
+      if (!openai) {
+        return {
+          success: false,
+          completed: 0,
+          message: 'OpenAI não configurada nas integrações',
+          details: {}
+        };
+      }
+
+      // Get all keys to translate
+      const allKeys = await this.scanCodebaseForTranslationKeys();
+      const completedCount = { total: 0 };
+      const languageDetails: Record<string, number> = {};
+
+      for (const language of this.SUPPORTED_LANGUAGES) {
+        console.log(`🤖 [AI-TRANSLATE] Processing ${language}...`);
+        
+        const translations = await this.loadTranslations(language);
+        const missingKeys = allKeys.filter(keyObj => !this.hasTranslation(translations, keyObj.key));
+        
+        if (missingKeys.length === 0) {
+          console.log(`✅ [AI-TRANSLATE] ${language} already complete`);
+          languageDetails[language] = 0;
+          continue;
+        }
+
+        // Process in batches to avoid API limits
+        const batchSize = 20;
+        let batchCompleted = 0;
+        
+        for (let i = 0; i < missingKeys.length; i += batchSize) {
+          const batch = missingKeys.slice(i, i + batchSize);
+          const batchTranslations = await this.translateBatchWithAI(openai, batch, language);
+          
+          if (batchTranslations) {
+            await this.saveBatchTranslations(language, batchTranslations);
+            batchCompleted += Object.keys(batchTranslations).length;
+          }
+        }
+        
+        languageDetails[language] = batchCompleted;
+        completedCount.total += batchCompleted;
+        
+        console.log(`✅ [AI-TRANSLATE] ${language}: ${batchCompleted} keys completed`);
+      }
+
+      return {
+        success: true,
+        completed: completedCount.total,
+        message: `IA completou ${completedCount.total} traduções em ${Object.keys(languageDetails).length} idiomas`,
+        details: languageDetails
+      };
+      
+    } catch (error) {
+      console.error('❌ [AI-TRANSLATE] Error in AI translation:', error);
+      return {
+        success: false,
+        completed: 0,
+        message: `Erro na tradução IA: ${error.message}`,
+        details: {}
+      };
+    }
+  }
+
+  /**
+   * Translate batch of keys using OpenAI
+   */
+  private async translateBatchWithAI(
+    openai: OpenAI, 
+    keys: TranslationKey[], 
+    targetLanguage: string
+  ): Promise<Record<string, string> | null> {
+    try {
+      const languageNames = {
+        'en': 'English',
+        'pt-BR': 'Portuguese (Brazil)', 
+        'es': 'Spanish',
+        'fr': 'French',
+        'de': 'German'
+      };
+
+      const prompt = `You are a professional translator for a customer support SaaS platform. 
+Translate the following keys to ${languageNames[targetLanguage] || targetLanguage}. 
+Keep the translations professional, clear, and contextually appropriate for business software.
+
+Keys to translate:
+${keys.map(k => `"${k.key}"`).join('\n')}
+
+Respond ONLY with a JSON object where keys are the original text and values are the translations:`;
+
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "You are a professional translator. Respond only with valid JSON." },
+          { role: "user", content: prompt }
+        ],
+        response_format: { type: "json_object" }
+      });
+
+      const content = response.choices[0].message.content;
+      if (!content) return null;
+
+      return JSON.parse(content);
+    } catch (error) {
+      console.error('❌ [AI-TRANSLATE] Error translating batch:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Save batch translations to file
+   */
+  private async saveBatchTranslations(language: string, translations: Record<string, string>): Promise<void> {
+    try {
+      const mappedLanguage = this.LANGUAGE_MAPPING[language] || language;
+      const filePath = path.join(this.TRANSLATIONS_DIR, `${mappedLanguage}.json`);
+      
+      // Load existing translations
+      let existingTranslations = {};
+      try {
+        const content = await fs.readFile(filePath, 'utf-8');
+        existingTranslations = JSON.parse(content);
+      } catch {
+        // File doesn't exist or is invalid, start with empty object
+      }
+
+      // Merge new translations
+      const mergedTranslations = { ...existingTranslations, ...translations };
+      
+      // Save back to file
+      await fs.writeFile(filePath, JSON.stringify(mergedTranslations, null, 2), 'utf-8');
+      
+      console.log(`💾 [AI-TRANSLATE] Saved ${Object.keys(translations).length} translations for ${language}`);
+    } catch (error) {
+      console.error(`❌ [AI-TRANSLATE] Error saving translations for ${language}:`, error);
+    }
   }
 
   /**

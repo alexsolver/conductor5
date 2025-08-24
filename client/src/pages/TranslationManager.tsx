@@ -110,21 +110,22 @@ export default function TranslationManager() {
     enabled: !!selectedLanguage && user?.role === 'saas_admin'
   });
 
-  // Auto-complete mutation following 1qa.md patterns
+  // AI-powered auto-complete mutation following 1qa.md patterns
   const autoCompleteMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/saas-admin/translation-completion/auto-complete-all'),
     onSuccess: (response: AutoCompleteResponse) => {
+      const completedCount = response.data?.completed || 0;
       toast({
-        title: "Análise Concluída",
-        description: response.message,
-        duration: 5000
+        title: "🤖 Tradução IA Concluída",
+        description: `${completedCount} traduções criadas automaticamente pela IA`,
+        duration: 6000
       });
       refetchAnalysis();
     },
     onError: (error: any) => {
       toast({
-        title: "Erro na Análise",
-        description: error.message || "Falha ao executar análise automática",
+        title: "Erro na IA",
+        description: error.message || "Falha na tradução automática com IA",
         variant: "destructive"
       });
     }
@@ -270,7 +271,10 @@ export default function TranslationManager() {
             Gerenciador de Traduções
           </h1>
           <p className="text-muted-foreground mt-2">
-            Sistema completo de gerenciamento de traduções - 5 idiomas suportados
+            Sistema completo de gerenciamento de traduções com IA - 5 idiomas suportados
+          </p>
+          <p className="text-sm text-purple-600 dark:text-purple-400 mt-1">
+            Powered by OpenAI GPT-4o para traduções automáticas inteligentes
           </p>
         </div>
         <div className="flex gap-2">
@@ -290,7 +294,7 @@ export default function TranslationManager() {
           <Button
             onClick={handleAutoComplete}
             disabled={autoCompleteMutation.isPending}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             data-testid="button-auto-complete"
           >
             {autoCompleteMutation.isPending ? (
@@ -298,7 +302,7 @@ export default function TranslationManager() {
             ) : (
               <PlayCircle className="h-4 w-4 mr-2" />
             )}
-            Completar Automaticamente
+            Completar com IA
           </Button>
         </div>
       </div>

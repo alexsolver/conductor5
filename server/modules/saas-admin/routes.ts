@@ -1253,51 +1253,45 @@ router.get('/module-integrity/monitoring', async (req: AuthorizedRequest, res) =
 router.use('/translations', translationsRoutes);
 router.use('/translation-completion', translationCompletionRoutes);
 
-// Add working auto-complete endpoint following 1qa.md patterns
+// AI-powered translation auto-complete endpoint
 router.post('/translation-completion/auto-complete-all', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res: any) => {
   try {
-    console.log('🚀 [SAAS-ADMIN] Auto-complete-all requested by:', req.user?.email);
+    console.log('🤖 [AI-TRANSLATE] Auto-complete-all requested by:', req.user?.email);
     
     const { TranslationCompletionService } = await import('../../services/TranslationCompletionService');
     const translationService = new TranslationCompletionService();
     
-    // Get all translation keys first
-    const scannedKeys = await translationService.scanCodebaseForTranslationKeys();
-    console.log(`🔍 [SAAS-ADMIN] Found ${scannedKeys.length} keys to process`);
-    
-    // Generate completion report with current keys
-    const report = await translationService.generateCompletenessReportWithKeys(scannedKeys);
-    
-    // Count translations that would be added
-    let totalAdded = 0;
-    if (report?.gaps) {
-      for (const gap of report.gaps) {
-        totalAdded += gap.missingKeys?.length || 0;
-      }
-    }
-    
-    console.log(`✅ [SAAS-ADMIN] Auto-complete simulation: ${totalAdded} translations would be added`);
-    
-    // Return success with simulated results (safe approach)
-    res.json({
-      success: true,
-      data: {
-        summary: {
-          totalKeys: report?.summary?.totalKeys || scannedKeys.length,
-          translationsAdded: totalAdded,
-          languagesProcessed: Object.keys(report?.summary?.languageStats || {}).length,
-          simulationMode: true
-        },
-        report: report
-      },
-      message: `Auto-complete analysis completed! Found ${totalAdded} missing translations across all languages.`
+    // Use AI to complete missing translations
+    const aiResult = await translationService.performAITranslationCompletion();
+    console.log(`🤖 [AI-TRANSLATE] AI completion result:`, {
+      success: aiResult.success,
+      completed: aiResult.completed
     });
     
+    if (aiResult.success) {
+      res.json({
+        success: true,
+        data: {
+          completed: aiResult.completed,
+          details: aiResult.details,
+          aiPowered: true
+        },
+        message: aiResult.message,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: aiResult.message,
+        data: aiResult.details
+      });
+    }
+    
   } catch (error) {
-    console.error('❌ [SAAS-ADMIN] Auto-complete error:', error);
+    console.error('❌ [AI-TRANSLATE] Auto-complete error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to complete auto-completion analysis',
+      message: 'Failed to complete AI auto-completion',
       error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error'
     });
   }
