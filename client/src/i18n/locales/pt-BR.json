@@ -935,7 +935,7 @@
   "integracoes": "Integrações",
   "ticketConfiguration": "Configuração de Tickets",
   "ticketTemplates": "Modelos de Tickets",
-  "customFields.title": "Campos Personalizados",
+  "customFields.title": "Campos Customizados",
   "customFields.description": "Gerencie campos personalizados para diferentes módulos do sistema",
   "customFields.createField": "Criar Campo",
   "customFields.hide": "Ocultar",
