@@ -1584,10 +1584,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
     const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
-    const { TicketTemplateController } = await import('./modules/ticket-templates/TicketTemplateController');
+    // ✅ 1QA.MD: Import Clean Architecture Ticket Template routes
+    const ticketTemplateRoutes = await import('./modules/ticket-templates/routes');
     const hierarchicalController = new TicketMetadataController(); // Reusing the controller for consistency
     const categoryHierarchyController = new TicketHierarchicalController();
-    const ticketTemplateController = new TicketTemplateController(schemaManager);
 
     // Customer-specific configuration routes - only bind if methods exist
     if (hierarchicalController.getCustomerConfiguration) {
@@ -1641,46 +1641,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // TICKET TEMPLATESROUTES
     // ========================================
 
-    // Simplified routes (show all public templates)
-    app.get('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
-      req.params = { ...req.params, companyId: 'all' };
-      return await ticketTemplateController.getTemplatesByCompany(req, res);
-    });
-    app.post('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
-      req.params = { ...req.params, companyId: 'all' };
-      return await ticketTemplateController.createTemplate(req, res);
-    });
-    app.get('/api/ticket-templates/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {  
-      req.params = { ...req.params, companyId: 'all' };
-      return await ticketTemplateController.getTemplateStats(req, res);
-    });
-    app.get('/api/ticket-templates/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
-      req.params = { ...req.params, companyId: 'all' };
-      return await ticketTemplateController.getTemplateCategories(req, res);
-    });
-
-    // Templates por empresa
-    app.get('/api/ticket-templates/company/:companyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
-    app.post('/api/ticket-templates/company/:companyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
-
-    // CRUD individual de templates
-    app.get('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.getTemplateById.bind(ticketTemplateController));
-    app.put('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.updateTemplate.bind(ticketTemplateController));
-    app.delete('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.deleteTemplate.bind(ticketTemplateController));
-
-    // Busca e filtros
-    app.get('/api/ticket-templates/company/:companyId/search', jwtAuth, ticketTemplateController.searchTemplates.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/company/:companyId/categories', jwtAuth, ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/company/:companyId/popular', jwtAuth, ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
-
-    // Aplicar template e preview
-    app.post('/api/ticket-templates/:templateId/apply', jwtAuth, ticketTemplateController.applyTemplate.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/:templateId/preview', jwtAuth, ticketTemplateController.previewTemplate.bind(ticketTemplateController));
-
-    // Estatísticas
-    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, ticketTemplateController.getTemplateStats.bind(ticketTemplateController));
-
-    console.log('✅ Ticket Templates routes registered');
+    // ✅ 1QA.MD: Register Clean Architecture Ticket Template routes
+    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes.default);
+    console.log('✅ Clean Architecture Ticket Templates routes registered');
   } catch (error) {
     console.warn('⚠️ Failed to load hierarchical controller:', error);
   }

@@ -71,4 +71,4 @@ router.post('/:id/use', async (req, res) => {
   await ticketTemplateController.useTemplate(req, res);
 });
 
-export default router;
+export { router as default };
