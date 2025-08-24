@@ -11,6 +11,7 @@ import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { CreateTicketTemplateUseCase } from '../use-cases/CreateTicketTemplateUseCase';
 import { GetTicketTemplatesUseCase } from '../use-cases/GetTicketTemplatesUseCase';
 import { UpdateTicketTemplateUseCase } from '../use-cases/UpdateTicketTemplateUseCase';
+import { GetTicketTemplatesRequest } from '../interfaces/TicketTemplateInterfaces'; // Assuming this interface exists
 
 export class TicketTemplateController {
   constructor(
@@ -65,96 +66,93 @@ export class TicketTemplateController {
    * GET /ticket-templates
    * GET /ticket-templates/:id
    */
-  getTemplates = async (req: AuthenticatedRequest, res: Response) => {
+  getTemplates = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log('🎯 [TEMPLATE-CONTROLLER] Getting templates with params:', req.params);
-      console.log('🎯 [TEMPLATE-CONTROLLER] Query params:', req.query);
+      console.log('🎯 [CONTROLLER] GET /api/ticket-templates called with query:', req.query);
 
-      const tenantId = req.user?.tenantId;
-      const userRole = req.user?.role;
-      const companyId = req.params.companyId || req.query.companyId || req.user?.companyId || 'all';
-      const templateId = req.params.id;
-
-      console.log('🔑 [TEMPLATE-CONTROLLER] Auth info:', { tenantId, userRole, companyId, templateId });
-
-      if (!tenantId || !userRole) {
-        console.log('❌ [TEMPLATE-CONTROLLER] Authentication failed');
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required'
+      const user = (req as any).user;
+      if (!user || !user.tenantId) {
+        console.log('❌ [CONTROLLER] User or tenantId missing');
+        res.status(401).json({ 
+          success: false, 
+          errors: ['Authentication required'] 
         });
+        return;
       }
 
-      const request = {
-        tenantId,
-        userRole,
-        companyId: companyId !== 'all' ? companyId : undefined,
-        templateId,
+      // ✅ 1QA.MD: Build comprehensive request
+      const getTemplatesRequest: GetTicketTemplatesRequest = {
+        tenantId: user.tenantId,
+        userRole: user.role || 'user',
+        companyId: req.query.companyId as string,
+        templateId: req.query.templateId as string,
         filters: {
           category: req.query.category as string,
           subcategory: req.query.subcategory as string,
           templateType: req.query.templateType as string,
-          status: req.query.status as string,
+          status: req.query.status as string || 'active',
           departmentId: req.query.departmentId as string,
           isDefault: req.query.isDefault ? req.query.isDefault === 'true' : undefined,
-          tags: req.query.tags ? (req.query.tags as string).split(',') : undefined
+          tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
         },
         search: req.query.search as string,
         includeAnalytics: req.query.includeAnalytics === 'true',
         includeUsageStats: req.query.includeUsageStats === 'true'
       };
 
-      console.log('📤 [TEMPLATE-CONTROLLER] Executing use case with request:', request);
+      console.log('📋 [CONTROLLER] Request prepared:', {
+        tenantId: getTemplatesRequest.tenantId,
+        userRole: getTemplatesRequest.userRole,
+        companyId: getTemplatesRequest.companyId,
+        hasFilters: !!getTemplatesRequest.filters
+      });
 
-      const result = await this.getTicketTemplatesUseCase.execute(request);
+      // Execute use case
+      const result = await this.getTicketTemplatesUseCase.execute(getTemplatesRequest);
 
-      console.log('📥 [TEMPLATE-CONTROLLER] Use case result:', { 
-        success: result.success, 
+      console.log('📤 [CONTROLLER] Use case result:', {
+        success: result.success,
         hasData: !!result.data,
-        templateCount: result.data?.templates?.length || 0,
-        errors: result.errors
+        templatesCount: result.data?.templates?.length || 0,
+        hasErrors: !!result.errors
       });
 
       if (!result.success) {
-        console.log('❌ [TEMPLATE-CONTROLLER] Use case failed:', result.errors);
-        return res.status(404).json({
+        console.log('❌ [CONTROLLER] Use case failed:', result.errors);
+        res.status(400).json({
           success: false,
-          message: 'Templates not found or access denied',
-          errors: result.errors
+          errors: result.errors || ['Failed to fetch templates']
         });
+        return;
       }
 
-      // Ensure we always return data with templates array
+      // ✅ 1QA.MD: Always ensure templates array exists
       const responseData = {
-        templates: result.data?.templates || [],
-        ...(result.data?.analytics && { analytics: result.data.analytics }),
-        ...(result.data?.usageStatistics && { usageStatistics: result.data.usageStatistics }),
-        ...(result.data?.fieldAnalytics && { fieldAnalytics: result.data.fieldAnalytics })
+        ...result.data,
+        templates: result.data?.templates || []
       };
 
-      console.log('✅ [TEMPLATE-CONTROLLER] Sending successful response with', responseData.templates.length, 'templates');
-      console.log('📤 [TEMPLATE-CONTROLLER] Response structure check:', {
-        hasSuccess: true,
-        hasData: !!responseData,
-        hasTemplatesArray: Array.isArray(responseData.templates),
-        templatesLength: responseData.templates.length
+      console.log('🚀 [CONTROLLER] Sending final response:', {
+        success: true,
+        templatesCount: responseData.templates.length,
+        hasAnalytics: !!responseData.analytics,
+        hasUsageStats: !!responseData.usageStatistics
       });
 
-      return res.json({
+      // ✅ 1QA.MD: Consistent response structure
+      res.status(200).json({
         success: true,
-        message: 'Templates retrieved successfully',
         data: responseData
       });
 
     } catch (error) {
-      console.error('❌ [TEMPLATE-CONTROLLER] getTemplates error:', error);
-      return res.status(500).json({
+      console.error('❌ [CONTROLLER] Uncaught error:', error);
+      res.status(500).json({
         success: false,
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        errors: [error instanceof Error ? error.message : 'Internal server error']
       });
     }
-  };
+  }
 
   /**
    * Update ticket template

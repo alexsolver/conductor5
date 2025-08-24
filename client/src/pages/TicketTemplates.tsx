@@ -203,7 +203,7 @@ export default function TicketTemplates() {
         category: data.category,
         companyId: selectedCompany === 'all' ? null : selectedCompany
       });
-      
+
       const endpoint = '/api/ticket-templates';
 
       // ✅ 1QA.MD: Consistent payload structure
@@ -233,13 +233,13 @@ export default function TicketTemplates() {
 
       console.log('📤 [CREATE-TEMPLATE] Payload:', payload);
       const response = await apiRequest('POST', endpoint, payload);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ [CREATE-TEMPLATE] API Error:', response.status, errorText);
         throw new Error(`Failed to create template: ${response.status} ${errorText}`);
       }
-      
+
       const result = await response.json();
       console.log('✅ [CREATE-TEMPLATE] Response:', result);
       return result;
@@ -457,22 +457,23 @@ export default function TicketTemplates() {
 
               <div className="divide-y">
                 {templatesLoading ? (
-                  <div className="p-4 text-center text-gray-500">
-                    <div className="inline-flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                      Carregando templates...
-                    </div>
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-500 mt-2">Carregando templates...</p>
                   </div>
                 ) : filteredTemplates.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <p>Nenhum template encontrado</p>
-                    <Button 
-                      variant="link" 
-                      onClick={() => setIsCreateOpen(true)}
-                      className="text-purple-600 hover:text-purple-700"
-                    >
-                      Criar primeiro template
+                  <div className="text-center py-8">
+                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum template encontrado</h3>
+                    <p className="text-gray-500 mb-4">
+                      {selectedCompany === 'all' 
+                        ? 'Não há templates globais disponíveis no momento.'
+                        : 'Não há templates disponíveis para a empresa selecionada.'
+                      }
+                    </p>
+                    <Button onClick={() => setIsCreateOpen(true)} className="bg-blue-600 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Criar Primeiro Template
                     </Button>
                   </div>
                 ) : (

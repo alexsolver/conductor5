@@ -929,22 +929,24 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
   }
 
   async findByCompany(companyId: string, tenantId: string): Promise<TicketTemplate[]> {
-    try {
-      console.log('🎯 [SIMPLIFIED-REPO] Finding templates by company:', { companyId, tenantId });
+    console.log('🔍 [REPO] findByCompany called with companyId:', companyId, 'tenantId:', tenantId);
 
-      // Return all mock templates for any company (demo behavior)
-      const filtered = this.templates.filter(template => 
-        template.tenantId === tenantId || template.tenantId === '3f99462f-3621-4b1b-bea8-782acc50d62e'
+    if (companyId === 'all') {
+      // Return all templates for tenant (global templates)
+      const globalTemplates = this.templates.filter(template => 
+        template.tenantId === tenantId && template.companyId === null
       );
-
-      console.log('✅ [SIMPLIFIED-REPO] Found templates for company:', filtered.length);
-      console.log('📋 [SIMPLIFIED-REPO] Company templates data:', filtered.map(t => ({ id: t.id, name: t.name })));
-
-      return filtered;
-    } catch (error) {
-      console.error('❌ [SIMPLIFIED-REPO] findByCompany error:', error);
-      return [];
+      console.log('📋 [REPO] Found global templates:', globalTemplates.length);
+      return globalTemplates;
     }
+
+    // Return templates for specific company
+    const companyTemplates = this.templates.filter(template => 
+      template.tenantId === tenantId && 
+      (template.companyId === companyId || template.companyId === null)
+    );
+    console.log('📋 [REPO] Found company templates:', companyTemplates.length);
+    return companyTemplates;
   }
 
   async findActive(tenantId: string): Promise<TicketTemplate[]> {
@@ -1374,21 +1376,9 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
   }
 
   async findByTenant(tenantId: string): Promise<TicketTemplate[]> {
-    try {
-      console.log('🎯 [SIMPLIFIED-REPO] Finding templates by tenant:', tenantId);
-
-      // Return all mock templates for any tenant (for demo purposes)
-      const filtered = this.templates.filter(template => 
-        template.tenantId === tenantId || template.tenantId === '3f99462f-3621-4b1b-bea8-782acc50d62e'
-      );
-
-      console.log('✅ [SIMPLIFIED-REPO] Found templates:', filtered.length);
-      console.log('📋 [SIMPLIFIED-REPO] Templates data:', filtered.map(t => ({ id: t.id, name: t.name })));
-
-      return filtered;
-    } catch (error) {
-      console.error('❌ [SIMPLIFIED-REPO] findByTenant error:', error);
-      return [];
-    }
+    console.log('🔍 [REPO] findByTenant called with tenantId:', tenantId);
+    const filtered = this.templates.filter(template => template.tenantId === tenantId);
+    console.log('📋 [REPO] Found templates for tenant:', filtered.length);
+    return filtered;
   }
 }
