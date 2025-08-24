@@ -166,50 +166,24 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       // ✅ 1QA.MD: Generate UUID for new field
       const fieldId = `cf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      const query = `
-        INSERT INTO custom_field_metadata (
-          id, module_type, field_name, field_type, field_label,
-          is_required, validation_rules, field_options, placeholder,
-          default_value, display_order, is_active, help_text,
-          created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, $12, NOW(), NOW()
-        ) RETURNING 
-          id,
-          module_type as "moduleType",
-          field_name as "fieldName", 
-          field_type as "fieldType",
-          field_label as "fieldLabel",
-          is_required as "isRequired",
-          validation_rules as "validationRules",
-          field_options as "fieldOptions",
-          placeholder,
-          default_value as "defaultValue",
-          display_order as "displayOrder",
-          is_active as "isActive",
-          help_text as "helpText",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-      `;
-
       const tenantSchema = this.getTenantSchema();
       
-      const insertQuery = `
-        INSERT INTO "${tenantSchema}".custom_field_metadata (
+      // ✅ 1QA.MD: Use SQL template literal for proper parameter binding
+      const insertQuery = sql.raw(
+        `INSERT INTO "${tenantSchema}".custom_field_metadata (
           id, module_type, field_name, field_type, field_label,
           is_required, validation_rules, field_options, placeholder,
           default_value, display_order, is_active, help_text,
           created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, $12, NOW(), NOW()
-        )
-      `;
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true, ?, NOW(), NOW())`,
+        [
+          fieldId, moduleType, fieldName, fieldType, fieldLabel,
+          isRequired, JSON.stringify(validationRules), JSON.stringify(fieldOptions),
+          placeholder, defaultValue, displayOrder, helpText
+        ]
+      );
       
-      await db.execute(sql.raw(insertQuery, [
-        fieldId, moduleType, fieldName, fieldType, fieldLabel,
-        isRequired, JSON.stringify(validationRules), JSON.stringify(fieldOptions),
-        placeholder, defaultValue, displayOrder, helpText
-      ]));
+      await db.execute(insertQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field created successfully');
       return {
@@ -252,62 +226,33 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         isActive = true
       } = fieldData;
 
-      const query = `
-        UPDATE custom_field_metadata 
-        SET 
-          field_label = COALESCE($2, field_label),
-          is_required = COALESCE($3, is_required),
-          validation_rules = COALESCE($4, validation_rules),
-          field_options = COALESCE($5, field_options),
-          placeholder = COALESCE($6, placeholder),
-          default_value = COALESCE($7, default_value),
-          display_order = COALESCE($8, display_order),
-          help_text = COALESCE($9, help_text),
-          is_active = COALESCE($10, is_active),
-          updated_at = NOW()
-        WHERE id = $1
-        RETURNING 
-          id,
-          module_type as "moduleType",
-          field_name as "fieldName", 
-          field_type as "fieldType",
-          field_label as "fieldLabel",
-          is_required as "isRequired",
-          validation_rules as "validationRules",
-          field_options as "fieldOptions",
-          placeholder,
-          default_value as "defaultValue",
-          display_order as "displayOrder",
-          is_active as "isActive",
-          help_text as "helpText",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-      `;
-
       const tenantSchema = this.getTenantSchema();
       
-      const updateQuery = `
-        UPDATE "${tenantSchema}".custom_field_metadata 
+      // ✅ 1QA.MD: Use SQL template literal for proper parameter binding
+      const updateQuery = sql.raw(
+        `UPDATE "${tenantSchema}".custom_field_metadata 
         SET 
-          field_label = COALESCE($2, field_label),
-          is_required = COALESCE($3, is_required),
-          validation_rules = COALESCE($4, validation_rules),
-          field_options = COALESCE($5, field_options),
-          placeholder = COALESCE($6, placeholder),
-          default_value = COALESCE($7, default_value),
-          display_order = COALESCE($8, display_order),
-          help_text = COALESCE($9, help_text),
-          is_active = COALESCE($10, is_active),
+          field_label = COALESCE(?, field_label),
+          is_required = COALESCE(?, is_required),
+          validation_rules = COALESCE(?, validation_rules),
+          field_options = COALESCE(?, field_options),
+          placeholder = COALESCE(?, placeholder),
+          default_value = COALESCE(?, default_value),
+          display_order = COALESCE(?, display_order),
+          help_text = COALESCE(?, help_text),
+          is_active = COALESCE(?, is_active),
           updated_at = NOW()
-        WHERE id = $1
-      `;
+        WHERE id = ?`,
+        [
+          fieldLabel, isRequired, 
+          validationRules ? JSON.stringify(validationRules) : null,
+          fieldOptions ? JSON.stringify(fieldOptions) : null,
+          placeholder, defaultValue, displayOrder, helpText, isActive,
+          fieldId
+        ]
+      );
       
-      await db.execute(sql.raw(updateQuery, [
-        fieldId, fieldLabel, isRequired, 
-        validationRules ? JSON.stringify(validationRules) : null,
-        fieldOptions ? JSON.stringify(fieldOptions) : null,
-        placeholder, defaultValue, displayOrder, helpText, isActive
-      ]));
+      await db.execute(updateQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field updated successfully');
       return {
@@ -335,22 +280,17 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       // ✅ 1QA.MD: Ensure schema and table exist first
       await this.ensureSchemaAndTable();
 
-      // ✅ 1QA.MD: Soft delete by setting is_active = false
-      const query = `
-        UPDATE custom_field_metadata 
-        SET is_active = false, updated_at = NOW()
-        WHERE id = $1
-      `;
-
       const tenantSchema = this.getTenantSchema();
       
-      const deleteQuery = `
-        UPDATE "${tenantSchema}".custom_field_metadata 
+      // ✅ 1QA.MD: Use SQL template literal for proper parameter binding - Soft delete by setting is_active = false
+      const deleteQuery = sql.raw(
+        `UPDATE "${tenantSchema}".custom_field_metadata 
         SET is_active = false, updated_at = NOW()
-        WHERE id = $1
-      `;
+        WHERE id = ?`,
+        [fieldId]
+      );
       
-      await db.execute(sql.raw(deleteQuery, [fieldId]));
+      await db.execute(deleteQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field deleted successfully');
     } catch (error) {
