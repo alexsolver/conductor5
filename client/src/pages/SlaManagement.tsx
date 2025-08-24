@@ -507,10 +507,10 @@ export default function SlaManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {complianceStats.compliancePercentage.toFixed(1)}%
+                {(complianceStats?.compliancePercentage ?? 0).toFixed(1)}%
               </div>
               <p className="text-xs text-gray-600">
-                {complianceStats.slaMetTickets} de {complianceStats.totalTickets} tickets
+                {complianceStats?.slaMetTickets ?? 0} de {complianceStats?.totalTickets ?? 0} tickets
               </p>
             </CardContent>
           </Card>
@@ -522,7 +522,7 @@ export default function SlaManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {Math.round(complianceStats.avgResponseTimeMinutes)}min
+                {Math.round(complianceStats?.avgResponseTimeMinutes ?? 0)}min
               </div>
               <p className="text-xs text-gray-600">Tempo médio de primeira resposta</p>
             </CardContent>
@@ -535,7 +535,7 @@ export default function SlaManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {Math.round(complianceStats.avgResolutionTimeMinutes)}min
+                {Math.round(complianceStats?.avgResolutionTimeMinutes ?? 0)}min
               </div>
               <p className="text-xs text-gray-600">Tempo médio de resolução</p>
             </CardContent>
