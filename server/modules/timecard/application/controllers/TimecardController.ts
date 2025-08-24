@@ -960,7 +960,7 @@ export class TimecardController {
         endDateStr: endDate.toISOString().split('T')[0]
       });
 
-      // Buscar todos os registros do período (pending e approved)
+      // Buscar todos os registros do período 
       console.log('[ATTENDANCE-REPORT] Executing query for target user:', targetUserId, 'tenant:', tenantId);
 
       const records = await db
@@ -969,7 +969,6 @@ export class TimecardController {
         .where(and(
           eq(timecardEntries.userId, targetUserId),
           eq(timecardEntries.tenantId, tenantId),
-          inArray(timecardEntries.status, ['pending', 'approved']),
           sql`(
             (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
             OR

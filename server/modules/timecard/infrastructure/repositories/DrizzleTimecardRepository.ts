@@ -163,30 +163,18 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
 
-      // Get users for this tenant
+      // Get users for this tenant (skip since users table doesn't exist in tenant schema)
       const tenantDb = await this.getTenantDb(tenantId);
-      const usersList = await tenantDb
-        .select({
-          id: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email
-        })
-        .from(users)
-        .where(and(
-          eq(users.tenantId, tenantId),
-          eq(users.isActive, true)
-        ));
+      const usersList: any[] = []; // Empty since users table doesn't exist
 
-      console.log('[DRIZZLE-QA] Found users for schedules:', usersList.length);
+      console.log('[DRIZZLE-QA] Skipping users query - table not in tenant schema');
 
       // Check if work_schedules table exists and query real data
       try {
         const tenantDb = await this.getTenantDb(tenantId);
         const realSchedules = await tenantDb.execute(sql`
-          SELECT ws.*, u.first_name, u.last_name, u.email
+          SELECT ws.*
           FROM work_schedules ws
-          LEFT JOIN users u ON ws.user_id = u.id
           WHERE ws.tenant_id = ${tenantId} AND ws.is_active = true
         `);
 
@@ -207,7 +195,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
             tenantId: row.tenant_id,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
-            userName: `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.email || 'Usuário',
+            userName: 'Usuário',
             useWeeklySchedule: row.use_weekly_schedule || false,
             weeklySchedule: row.weekly_schedule ? JSON.parse(row.weekly_schedule) : null
           }));
