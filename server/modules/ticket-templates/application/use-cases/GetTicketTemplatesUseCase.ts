@@ -205,7 +205,7 @@ export class GetTicketTemplatesUseCase {
 
   async getTemplateStatsByCompany(companyId: string, tenantId: string): Promise<any> {
     try {
-      const templates = await this.ticketTemplateRepository.findByCompany(companyId, tenantId);
+      const templates = await this.ticketTemplateRepository.findByCompany(tenantId, companyId);
 
       const usageCounts = templates.map(t => t.usageCount || 0);
       const avgUsage = templates.length > 0 ? usageCounts.reduce((sum, count) => sum + count, 0) / templates.length : 0;
