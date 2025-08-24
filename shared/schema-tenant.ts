@@ -439,7 +439,7 @@ export const timecards = pgTable("timecards", {
 export const timecardEntries = pgTable("timecard_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  timecardId: uuid("timecard_id").notNull(),
+  timecardId: uuid("timecard_id"),
   userId: uuid("user_id").notNull(),
   entryType: varchar("entry_type", { length: 20 }).notNull(), // 'clock_in', 'clock_out', 'break_start', 'break_end'
   timestamp: timestamp("timestamp").notNull(),
