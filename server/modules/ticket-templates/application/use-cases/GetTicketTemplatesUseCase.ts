@@ -69,10 +69,10 @@ export class GetTicketTemplatesUseCase {
         allTemplates = template ? [template] : [];
       } else if (request.companyId && request.companyId !== 'all') {
         // Get templates by company
-        allTemplates = await this.ticketTemplateRepository.findByCompany(request.companyId, request.tenantId);
+        allTemplates = await this.ticketTemplateRepository.findByCompany(request.tenantId, request.companyId);
       } else {
-        // Get all templates for tenant
-        allTemplates = await this.ticketTemplateRepository.findByTenant(request.tenantId);
+        // Get all templates for tenant (using findAll without company filter)
+        allTemplates = await this.ticketTemplateRepository.findAll(request.tenantId);
       }
 
       // Apply filters if provided
@@ -105,12 +105,21 @@ export class GetTicketTemplatesUseCase {
       }
 
       // ✅ 1QA.MD: Build response with consistent structure
-      const responseData = {
-        templates: allTemplates || [], // Always ensure array
-        ...(request.includeAnalytics && analytics && { analytics }),
-        ...(request.includeUsageStats && usageStats && { usageStatistics: usageStats }),
-        ...(fieldAnalytics && { fieldAnalytics })
+      const responseData: any = {
+        templates: allTemplates || [] // Always ensure array
       };
+
+      if (request.includeAnalytics && analytics) {
+        responseData.analytics = analytics;
+      }
+
+      if (request.includeUsageStats && usageStats) {
+        responseData.usageStatistics = usageStats;
+      }
+
+      if (fieldAnalytics) {
+        responseData.fieldAnalytics = fieldAnalytics;
+      }
 
       console.log('📤 [GET-TEMPLATES-USE-CASE] Sending response with structure:', {
         hasTemplates: Array.isArray(responseData.templates),
@@ -155,7 +164,7 @@ export class GetTicketTemplatesUseCase {
     const searchLower = search.toLowerCase();
     return templates.filter(template =>
       template.name.toLowerCase().includes(searchLower) ||
-      template.description.toLowerCase().includes(searchLower) ||
+      (template.description && template.description.toLowerCase().includes(searchLower)) ||
       (template.category && template.category.toLowerCase().includes(searchLower)) ||
       (template.subcategory && template.subcategory.toLowerCase().includes(searchLower))
     );

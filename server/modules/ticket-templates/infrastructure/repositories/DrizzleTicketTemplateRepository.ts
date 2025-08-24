@@ -199,7 +199,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         .from(ticketTemplates)
         .where(and(
           eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.templateType, templateType)
+          eq(ticketTemplates.type, templateType)
         ))
         .orderBy(asc(ticketTemplates.name));
 
@@ -238,7 +238,6 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         .from(ticketTemplates)
         .where(and(
           eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.status, 'active'),
           eq(ticketTemplates.isActive, true)
         ))
         .orderBy(asc(ticketTemplates.name));
