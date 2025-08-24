@@ -55,16 +55,22 @@ export class TicketTemplateRepository {
   }
 
   async getTemplateById(tenantId: string, templateId: string): Promise<TicketTemplate | null> {
-    const pool = this.schemaManager.getPool();
-    const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
-    const query = `
-      SELECT * FROM "${schemaName}".ticket_templates 
-      WHERE tenant_id = $1 AND id = $2
-    `;
-    
-    const result = await pool.query(query, [tenantId, templateId]);
-    return result.rows[0] || null;
+    try {
+      // ✅ 1QA.MD COMPLIANCE: Using Drizzle ORM with proper tenant isolation
+      const templates = await db
+        .select()
+        .from(ticketTemplates)
+        .where(and(
+          eq(ticketTemplates.tenantId, tenantId),
+          eq(ticketTemplates.id, templateId)
+        ))
+        .limit(1);
+        
+      return templates[0] || null;
+    } catch (error) {
+      console.error('Error fetching template by ID:', error);
+      return null;
+    }
   }
 
   async createTemplate(template: InsertTicketTemplate): Promise<TicketTemplate> {
