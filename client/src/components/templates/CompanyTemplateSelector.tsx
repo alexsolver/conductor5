@@ -28,14 +28,14 @@ export default function CompanyTemplateSelector({
 }: CompanyTemplateSelectorProps) {
   // Fetch companies
   const { data: companiesResponse, isLoading: companiesLoading } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/customers/companies');
+      const response = await apiRequest('GET', '/api/companies');
       return response.json();
     },
   });
 
-  const companies: Company[] = Array.isArray(companiesResponse?.companies) ? companiesResponse.companies : [];
+  const companies: Company[] = Array.isArray(companiesResponse?.data) ? companiesResponse.data : [];
 
   // Fetch template stats for selected company
   const { data: statsResponse } = useQuery({

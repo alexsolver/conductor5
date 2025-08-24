@@ -101,7 +101,7 @@ cleanCompaniesRouter.get('/by-status/:status', jwtAuth, async (req: Authenticate
   try {
     const { status } = req.params;
     const companies = await findCompanyUseCase.findByStatus(status, req.user?.tenantId || '');
-    
+
     res.json({
       success: true,
       message: `Found ${companies.length} companies with status: ${status}`,
@@ -122,7 +122,7 @@ cleanCompaniesRouter.get('/by-size/:size', jwtAuth, async (req: AuthenticatedReq
   try {
     const { size } = req.params;
     const companies = await findCompanyUseCase.findBySize(size, req.user?.tenantId || '');
-    
+
     res.json({
       success: true,
       message: `Found ${companies.length} companies with size: ${size}`,
@@ -143,7 +143,7 @@ cleanCompaniesRouter.get('/by-subscription/:tier', jwtAuth, async (req: Authenti
   try {
     const { tier } = req.params;
     const companies = await findCompanyUseCase.findBySubscription(tier, req.user?.tenantId || '');
-    
+
     res.json({
       success: true,
       message: `Found ${companies.length} companies with subscription: ${tier}`,
@@ -164,7 +164,7 @@ cleanCompaniesRouter.get('/by-industry/:industry', jwtAuth, async (req: Authenti
   try {
     const { industry } = req.params;
     const companies = await findCompanyUseCase.findByIndustry(industry, req.user?.tenantId || '');
-    
+
     res.json({
       success: true,
       message: `Found ${companies.length} companies in industry: ${industry}`,
@@ -185,11 +185,11 @@ cleanCompaniesRouter.get('/by-location', jwtAuth, async (req: AuthenticatedReque
   try {
     const { state, city } = req.query;
     const companies = await findCompanyUseCase.findByLocation(
-      (state as string) || undefined, 
-      (city as string) || undefined, 
+      (state as string) || undefined,
+      (city as string) || undefined,
       req.user?.tenantId
     );
-    
+
     res.json({
       success: true,
       message: `Found ${companies.length} companies in location`,
@@ -211,7 +211,7 @@ cleanCompaniesRouter.get('/recent/:days', jwtAuth, async (req: AuthenticatedRequ
   try {
     const days = parseInt(req.params.days) || 30;
     const companies = await findCompanyUseCase.findRecentCompanies(req.user?.tenantId || '', days);
-    
+
     res.json({
       success: true,
       message: `Found ${companies.length} companies created in last ${days} days`,
@@ -237,7 +237,7 @@ cleanCompaniesRouter.get('/check/cnpj/:cnpj', jwtAuth, async (req: Authenticated
   try {
     const { cnpj } = req.params;
     const company = await findCompanyUseCase.findByCNPJ(cnpj, req.user?.tenantId || undefined);
-    
+
     res.json({
       success: true,
       message: company ? 'CNPJ already exists' : 'CNPJ is available',
@@ -261,7 +261,7 @@ cleanCompaniesRouter.get('/check/email/:email', jwtAuth, async (req: Authenticat
   try {
     const { email } = req.params;
     const company = await findCompanyUseCase.findByEmail(email, req.user?.tenantId || undefined);
-    
+
     res.json({
       success: true,
       message: company ? 'Email already exists' : 'Email is available',

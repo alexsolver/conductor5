@@ -100,9 +100,8 @@ export class TicketTemplateController {
 
       const result = await this.getTicketTemplatesUseCase.execute({
         tenantId,
-        templateId,
         userRole,
-        companyId,
+        companyId: companyId !== 'all' ? companyId : undefined,
         filters: {
           category: req.query.category as string,
           subcategory: req.query.subcategory as string,

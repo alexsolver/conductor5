@@ -115,27 +115,36 @@ export default function TicketTemplates() {
 
   // Query para buscar templates
   const { data: templatesResponse, isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates/company', selectedCompany],
+    queryKey: ['/api/ticket-templates', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}`);
+      const endpoint = selectedCompany === 'all' 
+        ? '/api/ticket-templates' 
+        : `/api/ticket-templates?companyId=${selectedCompany}`;
+      const response = await apiRequest('GET', endpoint);
       return response.json();
     },
   });
 
   // Query para buscar estatísticas
   const { data: statsResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
+    queryKey: ['/api/ticket-templates/stats', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/stats`);
+      const endpoint = selectedCompany === 'all' 
+        ? '/api/ticket-templates/analytics' 
+        : `/api/ticket-templates/analytics?companyId=${selectedCompany}`;
+      const response = await apiRequest('GET', endpoint);
       return response.json();
     },
   });
 
   // Query para buscar categorias
   const { data: categoriesResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/company', selectedCompany, 'categories'],
+    queryKey: ['/api/ticket-templates/categories', selectedCompany],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/categories`);
+      const endpoint = selectedCompany === 'all' 
+        ? '/api/ticket-templates/categories' 
+        : `/api/ticket-templates/categories?companyId=${selectedCompany}`;
+      const response = await apiRequest('GET', endpoint);
       return response.json();
     },
   });
