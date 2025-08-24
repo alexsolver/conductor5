@@ -1,14 +1,33 @@
-import { db, sql } from '../../../../db';
+import { db, sql, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
 import { AutomationRuleEntity } from '../../domain/entities/AutomationRule';
 
 export class DrizzleAutomationRuleRepository implements IAutomationRuleRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
 
   async create(rule: AutomationRuleEntity): Promise<AutomationRuleEntity> {
     try {
       console.log(`🔍 [DrizzleAutomationRuleRepository] Creating rule: ${rule.name}`);
 
-      const result = await db.execute(sql`
+      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const result = await tenantDb.execute(sql`
         INSERT INTO omnibridge_rules (
           id, tenant_id, name, description, is_enabled, trigger_type, action_type,
           trigger_conditions, action_parameters, triggers, actions, priority,
@@ -61,7 +80,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rule: ${id} for tenant: ${tenantId}`);
 
     try {
-      const result = await db.execute(sql`
+      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const result = await tenantDb.execute(sql`
         SELECT * FROM omnibridge_rules 
         WHERE id = ${id} AND tenant_id = ${tenantId}
       `);
@@ -82,7 +102,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
 
     try {
-      const result = await db.execute(sql`
+      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const result = await tenantDb.execute(sql`
         SELECT * FROM omnibridge_rules WHERE tenant_id = ${tenantId} 
         ORDER BY priority ASC, created_at DESC
       `);
@@ -101,7 +122,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     totalExecutions: number;
   }> {
     try {
-      const result = await db.execute(sql`
+      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const result = await tenantDb.execute(sql`
         SELECT 
           COUNT(*) as total_rules,
           COUNT(CASE WHEN is_enabled = true THEN 1 END) as enabled_rules,
@@ -133,7 +155,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     try {
       console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${rule.id}`);
 
-      const result = await db.execute(sql`
+      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const result = await tenantDb.execute(sql`
         UPDATE omnibridge_rules SET
           name = ${rule.name}, description = ${rule.description || ''}, 
           is_enabled = ${rule.isActive}, priority = ${rule.priority},
@@ -161,7 +184,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     try {
       console.log(`🗑️ [DrizzleAutomationRuleRepository] Deleting rule: ${id}`);
 
-      await db.execute(sql`
+      const tenantDb = await this.getTenantDb(tenantId);
+      await tenantDb.execute(sql`
         DELETE FROM omnibridge_rules WHERE id = ${id} AND tenant_id = ${tenantId}
       `);
 

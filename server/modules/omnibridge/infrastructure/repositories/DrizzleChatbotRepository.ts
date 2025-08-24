@@ -1,16 +1,36 @@
 
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { omnibridgeChatbots } from '../../../../../shared/schema';
 import { IChatbotRepository } from '../../domain/repositories/IChatbotRepository';
 import { Chatbot, ChatbotEntity, ChatbotWorkflowStep } from '../../domain/entities/Chatbot';
 
 export class DrizzleChatbotRepository implements IChatbotRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
   async create(chatbot: Chatbot): Promise<Chatbot> {
     try {
       console.log('🔧 [DrizzleChatbotRepository] Creating chatbot:', chatbot.name);
       
-      const result = await db.insert(omnibridgeChatbots).values({
+      const tenantDb = await this.getTenantDb(chatbot.tenantId);
+      const result = await tenantDb.insert(omnibridgeChatbots).values({
         id: chatbot.id,
         tenantId: chatbot.tenantId,
         name: chatbot.name,
@@ -36,7 +56,8 @@ export class DrizzleChatbotRepository implements IChatbotRepository {
 
   async findById(id: string, tenantId: string): Promise<Chatbot | null> {
     try {
-      const result = await db
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb
         .select()
         .from(omnibridgeChatbots)
         .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)))
@@ -53,7 +74,8 @@ export class DrizzleChatbotRepository implements IChatbotRepository {
     try {
       console.log('🔍 [DrizzleChatbotRepository] Finding chatbots for tenant:', tenantId);
       
-      const result = await db
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb
         .select()
         .from(omnibridgeChatbots)
         .where(eq(omnibridgeChatbots.tenantId, tenantId));
@@ -89,7 +111,8 @@ export class DrizzleChatbotRepository implements IChatbotRepository {
       
       updateData.updatedAt = new Date();
 
-      const result = await db
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb
         .update(omnibridgeChatbots)
         .set(updateData)
         .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)))
@@ -107,7 +130,8 @@ export class DrizzleChatbotRepository implements IChatbotRepository {
     try {
       console.log('🗑️ [DrizzleChatbotRepository] Deleting chatbot:', id);
       
-      const result = await db
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb
         .delete(omnibridgeChatbots)
         .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)))
         .returning();

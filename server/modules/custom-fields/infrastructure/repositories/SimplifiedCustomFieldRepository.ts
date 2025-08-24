@@ -4,7 +4,10 @@
 console.log('🔥 [CUSTOM-FIELDS-REPO] *** FILE LOADING START *** following 1qa.md');
 console.log('🔥 [CUSTOM-FIELDS-REPO] Timestamp:', new Date().toISOString());
 
-import { db, sql } from '../../../../db';
+import { db, sql, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '@shared/schema';
+import { Pool } from 'pg';
 import { CustomFieldMetadata } from '../../domain/entities/CustomField';
 
 // Simplified interface for basic operations
@@ -34,6 +37,17 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
     // Convert hyphens to underscores to match database schema format
     const schemaName = this.tenantId.replace(/-/g, '_');
     return `tenant_${schemaName}`;
+  }
+
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb() {
+    const schemaName = this.getTenantSchema();
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
   }
 
   async getFieldsByModule(moduleType: string): Promise<CustomFieldMetadata[]> {
@@ -68,7 +82,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         ORDER BY display_order ASC, created_at ASC
       `;
       
-      const result = await db.execute(selectQuery);
+      const tenantDb = await this.getTenantDb();
+      const result = await tenantDb.execute(selectQuery);
       console.log('🔥 [CUSTOM-FIELDS-REPO] Query result:', result.rows?.length || 0, 'fields found');
       
       return result.rows as CustomFieldMetadata[];
@@ -108,8 +123,9 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         );
       `;
 
-      // Use direct SQL execution with proper schema quoting
-      await db.execute(sql.raw(createTableQuery));
+      // ✅ 1QA.MD: Use tenant-specific database connection
+      const tenantDb = await this.getTenantDb();
+      await tenantDb.execute(sql.raw(createTableQuery));
       console.log('🔥 [CUSTOM-FIELDS-REPO] Custom fields table ensured in schema:', tenantSchema);
     } catch (error) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Table creation error:', error);
@@ -126,12 +142,13 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         WHERE schema_name = ${schemaName}
       `;
       
-      const schemaExists = await db.execute(schemaExistsQuery);
+      const tenantDb = await this.getTenantDb();
+      const schemaExists = await tenantDb.execute(schemaExistsQuery);
       
       if (schemaExists.rows.length === 0) {
         // ✅ 1QA.MD: Create schema using raw SQL to avoid identifier issues
         const createSchemaQuery = sql.raw(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
-        await db.execute(createSchemaQuery);
+        await tenantDb.execute(createSchemaQuery);
         console.log('🔥 [CUSTOM-FIELDS-REPO] Tenant schema created:', schemaName);
       } else {
         console.log('🔥 [CUSTOM-FIELDS-REPO] Tenant schema already exists:', schemaName);
@@ -183,7 +200,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         )
       `;
       
-      await db.execute(insertQuery);
+      const tenantDb = await this.getTenantDb();
+      await tenantDb.execute(insertQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field created successfully');
       return {
@@ -252,7 +270,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         ]
       );
       
-      await db.execute(updateQuery);
+      const tenantDb = await this.getTenantDb();
+      await tenantDb.execute(updateQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field updated successfully');
       return {
@@ -290,7 +309,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
         [fieldId]
       );
       
-      await db.execute(deleteQuery);
+      const tenantDb = await this.getTenantDb();
+      await tenantDb.execute(deleteQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field deleted successfully');
     } catch (error) {

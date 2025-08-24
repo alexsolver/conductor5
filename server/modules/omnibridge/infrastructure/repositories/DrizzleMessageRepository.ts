@@ -1,4 +1,6 @@
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from '../../../../../shared/schema';
 import { MessageEntity } from '../../domain/entities/Message';
 import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
@@ -6,10 +8,27 @@ import { eq, and, desc, asc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 
 export class DrizzleMessageRepository implements IMessageRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
   async findById(id: string, tenantId: string): Promise<MessageEntity | null> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const result = await db.select().from(schema.omnibridgeMessages)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.select().from(schema.omnibridgeMessages)
       .where(and(
         eq(schema.omnibridgeMessages.id, id),
         eq(schema.omnibridgeMessages.tenantId, tenantId)
@@ -43,7 +62,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async findByTenant(tenantId: string, limit: number = 50, offset: number = 0): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const results = await db.select().from(schema.omnibridgeMessages)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select().from(schema.omnibridgeMessages)
       .where(eq(schema.omnibridgeMessages.tenantId, tenantId))
       .orderBy(desc(schema.omnibridgeMessages.createdAt))
       .limit(limit)
@@ -73,7 +93,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async findByChannel(channelId: string, tenantId: string): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const results = await db.select().from(schema.omnibridgeMessages)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select().from(schema.omnibridgeMessages)
       .where(and(
         eq(schema.omnibridgeMessages.tenantId, tenantId),
         eq(schema.omnibridgeMessages.channelId, channelId)
@@ -104,7 +125,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async findByStatus(status: string, tenantId: string): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const results = await db.select().from(schema.omnibridgeMessages)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select().from(schema.omnibridgeMessages)
       .where(and(
         eq(schema.omnibridgeMessages.tenantId, tenantId),
         eq(schema.omnibridgeMessages.status, status)
@@ -135,7 +157,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async findByPriority(priority: string, tenantId: string): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const results = await db.select().from(schema.omnibridgeMessages)
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select().from(schema.omnibridgeMessages)
       .where(and(
         eq(schema.omnibridgeMessages.tenantId, tenantId),
         eq(schema.omnibridgeMessages.priority, priority)
@@ -164,7 +187,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   }
 
   async create(message: MessageEntity): Promise<MessageEntity> {
-    const result = await db.insert(schema.omnibridgeMessages).values({
+    const tenantDb = await this.getTenantDb(message.tenantId);
+    const result = await tenantDb.insert(schema.omnibridgeMessages).values({
       id: message.id,
       tenantId: message.tenantId,
       channelId: message.channelId,
@@ -186,7 +210,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   }
 
   async update(message: MessageEntity): Promise<MessageEntity> {
-    await db.update(schema.omnibridgeMessages).set({
+    const tenantDb = await this.getTenantDb(message.tenantId);
+    await tenantDb.update(schema.omnibridgeMessages).set({
       status: message.status,
       priority: message.priority,
       tags: message.tags,
@@ -204,7 +229,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async delete(id: string, tenantId: string): Promise<boolean> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    await db.delete(schema.omnibridgeMessages).where(
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.delete(schema.omnibridgeMessages).where(
       and(
         eq(schema.omnibridgeMessages.id, id),
         eq(schema.omnibridgeMessages.tenantId, tenantId)
@@ -217,7 +243,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async markAsRead(id: string, tenantId: string): Promise<boolean> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    await db.update(schema.omnibridgeMessages).set({
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.update(schema.omnibridgeMessages).set({
       status: 'read',
       updatedAt: new Date()
     }).where(
@@ -233,7 +260,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async markAsProcessed(id: string, tenantId: string): Promise<boolean> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    await db.update(schema.omnibridgeMessages).set({
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.update(schema.omnibridgeMessages).set({
       status: 'processed',
       updatedAt: new Date()
     }).where(
@@ -250,7 +278,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
     console.log(`🏷️ [DrizzleMessageRepository] Updating tags for message: ${messageId}`);
 
     try {
-      await db.execute(`
+      const tenantDb = await this.getTenantDb(tenantId);
+      await tenantDb.execute(`
         UPDATE omnibridge_messages SET
           tags = $1, updated_at = $2
         WHERE id = $3 AND tenant_id = $4
@@ -272,7 +301,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
     console.log(`⚡ [DrizzleMessageRepository] Updating priority for message: ${messageId}`);
 
     try {
-      await db.execute(`
+      const tenantDb = await this.getTenantDb(tenantId);
+      await tenantDb.execute(`
         UPDATE omnibridge_messages SET
           priority = $1, updated_at = $2
         WHERE id = $3 AND tenant_id = $4
@@ -294,7 +324,8 @@ export class DrizzleMessageRepository implements IMessageRepository {
     console.log(`🔄 [DrizzleMessageRepository] Updating status for message: ${messageId}`);
 
     try {
-      await db.execute(`
+      const tenantDb = await this.getTenantDb(tenantId);
+      await tenantDb.execute(`
         UPDATE omnibridge_messages SET
           status = $1, updated_at = $2
         WHERE id = $3 AND tenant_id = $4

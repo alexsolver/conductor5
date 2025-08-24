@@ -1,9 +1,28 @@
 import { eq, and, gte, desc, count, asc, sql } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { userSkills, skills as technicalSkills, users, qualityCertifications } from '@shared/schema';
 import type { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 
 export class DrizzleUserSkillRepository implements IUserSkillRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
   async create(userSkill: {
     userId: string;
     skillId: string;
@@ -11,7 +30,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     tenantId: string;
     notes?: string;
   }) {
-    const [result] = await db.insert(userSkills).values({
+    const tenantDb = await this.getTenantDb(userSkill.tenantId);
+    const [result] = await tenantDb.insert(userSkills).values({
       id: crypto.randomUUID(),
       userId: userSkill.userId,
       skillId: userSkill.skillId,
@@ -27,7 +47,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async findByTenant(tenantId: string) {
-    return await db.select({
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb.select({
       id: userSkills.id,
       userId: userSkills.userId,
       skillId: userSkills.skillId,
@@ -51,7 +72,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async findByUserId(userId: string) {
-    return await db.select({
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb.select({
       id: userSkills.id,
       userId: userSkills.userId,
       skillId: userSkills.skillId,
@@ -77,7 +99,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     level?: number;
     notes?: string;
   }) {
-    const [result] = await db.update(userSkills)
+    const tenantDb = await this.getTenantDb(data.tenantId || '');
+    const [result] = await tenantDb.update(userSkills)
       .set({
         ...data,
         updatedAt: new Date(),
@@ -89,7 +112,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async delete(id: string) {
-    await db.update(userSkills)
+    const tenantDb = await this.getTenantDb(tenantId || '');
+    await tenantDb.update(userSkills)
       .set({ 
         isActive: false,
         updatedAt: new Date(),
@@ -98,7 +122,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async findById(id: string) {
-    const [result] = await db.select()
+    const tenantDb = await this.getTenantDb(tenantId || '');
+    const [result] = await tenantDb.select()
       .from(userSkills)
       .where(eq(userSkills.id, id))
       .limit(1);
@@ -107,7 +132,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async getExpiredCertifications(tenantId: string) {
-    return await db.select({
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb.select({
       id: qualityCertifications.id,
       itemId: qualityCertifications.itemId,
       certificationName: qualityCertifications.certificationName,
@@ -123,7 +149,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async getExpiringCertifications(tenantId: string, days: number = 30) {
-    return await db.select({
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb.select({
       id: qualityCertifications.id,
       itemId: qualityCertifications.itemId,
       certificationName: qualityCertifications.certificationName,
@@ -139,7 +166,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async getTopRatedTechnicians(tenantId: string, limit: number = 10) {
-    return await db.select({
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb.select({
       userId: userSkills.userId,
       userName: users.name,
       averageLevel: sql<number>`AVG(${userSkills.level})`,
@@ -158,7 +186,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async getSkillGapAnalysis(tenantId: string) {
-    const results = await db.select({
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select({
       skillId: technicalSkills.id,
       skillName: technicalSkills.name,
       category: technicalSkills.category,
@@ -222,7 +251,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   }
 
   async findTechniciansForTask(requiredSkills: string[], minLevel: number = 3, tenantId: string) {
-    const results = await db.select({
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select({
       userId: userSkills.userId,
       userName: users.name,
       skillId: userSkills.skillId,

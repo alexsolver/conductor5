@@ -4,8 +4,12 @@
  */
 
 // ✅ 1QA.MD COMPLIANCE: TICKETS REPOSITORY PADRONIZADO
-import { eq, and } from 'drizzle-orm';
-import { db, sql, tickets } from '@shared/schema';
+import { eq, and, sql } from 'drizzle-orm';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
+import { tickets } from '@shared/schema';
 import { Ticket } from '../../domain/entities/Ticket';
 import {
   ITicketRepository,
@@ -19,32 +23,35 @@ import { SqlParameterValidator } from '../../../../utils/sqlParameterValidator';
 
 
 export class DrizzleTicketRepositoryClean implements ITicketRepository {
-  private pool: any;
-
   constructor(private logger: Logger) {
-    // ✅ CORREÇÃO CRÍTICA: Inicializar pool connection seguindo 1qa.md
-    this.initializePool();
+    console.log('✅ [DrizzleTicketRepositoryClean] Repository initialized following 1qa.md');
   }
 
-  private async initializePool() {
-    try {
-      // ✅ 1QA.MD COMPLIANCE: Usar pool de @shared/schema
-      const { pool } = await import('@shared/schema');
-      this.pool = pool;
-      console.log('✅ [DrizzleTicketRepositoryClean] Pool initialized successfully following 1qa.md');
-    } catch (error) {
-      console.error('❌ [DrizzleTicketRepositoryClean] Failed to initialize pool:', error);
-      this.logger.error('Failed to initialize database pool', { error: error.message });
-    }
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
     console.log('🔍 [DrizzleTicketRepositoryClean] findById called:', { id, tenantId });
 
     try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
 
-      const result = await db.execute(sql`
+      const result = await tenantDb.execute(sql`
         SELECT 
           t.id,
           t.number,
@@ -112,8 +119,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async findByNumber(number: string, tenantId: string): Promise<Ticket | null> {
     try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const result = await db.execute(sql`
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
+      const result = await tenantDb.execute(sql`
         SELECT 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -139,7 +148,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
     try {
       console.log('🔍 [DrizzleTicketRepositoryClean] findWithFilters called with:', { filters, pagination, tenantId });
 
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
       const offset = (pagination.page - 1) * pagination.limit;
 
       // Build WHERE conditions
@@ -164,7 +175,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       }
 
       // Count total records - ONLY ACTIVE tickets
-      const countResult = await db.execute(sql.raw(`
+      const countResult = await tenantDb.execute(sql.raw(`
         SELECT COUNT(*) as total
         FROM ${schemaName}.tickets
         WHERE is_active = true ${whereClause}
@@ -174,7 +185,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const totalPages = Math.ceil(total / pagination.limit);
 
       // Fetch paginated results with JOIN para incluir dados de clientes e empresas
-      const results = await db.execute(sql.raw(`
+      const results = await tenantDb.execute(sql.raw(`
         SELECT 
           t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
           t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
@@ -222,8 +233,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async findAll(tenantId: string): Promise<Ticket[]> {
     try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const result = await db.execute(sql`
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
+      const result = await tenantDb.execute(sql`
         SELECT 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -243,8 +256,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async findByUserId(userId: string, tenantId: string): Promise<Ticket[]> {
     try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const result = await db.execute(sql`
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
+      const result = await tenantDb.execute(sql`
         SELECT 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -460,7 +475,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         RETURNING id
       `;
 
-      const result = await db.execute(query);
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb.execute(query);
       const deletedTicket = result.rows?.[0];
 
       if (!deletedTicket) {
@@ -478,7 +494,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
   async updateLastActivity(ticketId: string, tenantId: string): Promise<void> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      await db.execute(sql`
+      const tenantDb = await this.getTenantDb(tenantId);
+      await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets
         SET updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${tenantId}
@@ -500,13 +517,14 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Get total count of active tickets
-      const totalResult = await db.execute(sql`
+      const tenantDb = await this.getTenantDb(tenantId);
+      const totalResult = await tenantDb.execute(sql`
         SELECT COUNT(*) as total FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId}
       `);
       const total = Number(totalResult.rows[0]?.total || 0);
 
       // Get count by status
-      const statusResult = await db.execute(sql`
+      const statusResult = await tenantDb.execute(sql`
         SELECT status, COUNT(*) as count FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId} GROUP BY status
       `);
       const byStatus: Record<string, number> = statusResult.rows.reduce((acc, row: any) => {
@@ -515,7 +533,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       }, {} as Record<string, number>);
 
       // Get count by priority
-      const priorityResult = await db.execute(sql`
+      const priorityResult = await tenantDb.execute(sql`
         SELECT priority, COUNT(*) as count FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId} GROUP BY priority
       `);
       const byPriority: Record<string, number> = priorityResult.rows.reduce((acc, row: any) => {
@@ -528,7 +546,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const overdueCount = 0; 
 
       // Get today's count (tickets created today)
-      const todayResult = await db.execute(sql`
+      const todayResult = await tenantDb.execute(sql`
         SELECT COUNT(*) as count FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId} AND DATE(created_at) = CURRENT_DATE
       `);
       const todayCount = Number(todayResult.rows[0]?.count || 0);

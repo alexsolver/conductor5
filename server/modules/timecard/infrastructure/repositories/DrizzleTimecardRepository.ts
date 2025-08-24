@@ -1,5 +1,8 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { 
   timecardEntries,
   hourBankEntries, 
@@ -57,9 +60,26 @@ export interface TimecardRepository {
 }
 
 export class DrizzleTimecardRepository implements TimecardRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
   // Timecard Entries Implementation
   async createTimecardEntry(data: any): Promise<any> {
-    const [entry] = await db
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [entry] = await tenantDb
       .insert(timecardEntries)
       .values({
         tenantId: data.tenantId,
@@ -157,7 +177,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async deleteTimecardEntry(id: string, tenantId: string): Promise<void> {
-    await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb
       .delete(timecardEntries)
       .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)));
   }
@@ -168,7 +189,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
 
       // Get users for this tenant
-      const usersList = await db
+      const tenantDb = await this.getTenantDb(tenantId);
+      const usersList = await tenantDb
         .select({
           id: users.id,
           firstName: users.firstName,
@@ -185,7 +207,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
       // Check if work_schedules table exists and query real data
       try {
-        const realSchedules = await db.execute(sql`
+        const tenantDb = await this.getTenantDb(tenantId);
+        const realSchedules = await tenantDb.execute(sql`
           SELECT ws.*, u.first_name, u.last_name, u.email
           FROM work_schedules ws
           LEFT JOIN users u ON ws.user_id = u.id
@@ -271,7 +294,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       scheduleData.breakDurationMinutes = data.breakDurationMinutes || 60;
     }
 
-    const workSchedule = await db.insert(workSchedules).values(scheduleData).returning();
+    const tenantDb = await this.getTenantDb(tenantId);
+    const workSchedule = await tenantDb.insert(workSchedules).values(scheduleData).returning();
 
     return workSchedule[0];
   }
@@ -284,7 +308,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       // Try bulk insert into database
       for (const userId of userIds) {
-        const result = await db.execute(sql`
+        const tenantDb = await this.getTenantDb(tenantId);
+        const result = await tenantDb.execute(sql`
           INSERT INTO work_schedules (
             tenant_id, user_id, schedule_type, schedule_name, work_days,
             start_time, end_time, break_start, break_end, is_active,

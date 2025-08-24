@@ -4,7 +4,10 @@
  */
 
 import { eq, and, or, like, ilike, gte, lte, inArray, desc, asc, count, isNull, sql } from 'drizzle-orm';
-import { db, schemaManager } from '../../../../db';
+import { db, schemaManager, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { companies } from '@shared/schema';
 import { Company, CompanySize, CompanyStatus, SubscriptionTier } from '../../domain/entities/Company';
 import {
@@ -25,6 +28,22 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     error: (message: string, context?: any) => console.error(`[DrizzleCompanyRepository] ${message}`, context)
   };
 
+  // ✅ 1QA.MD: Get tenant-specific database instance  
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+
   async findById(id: string): Promise<Company | null> {
     try {
       const result = await db
@@ -44,9 +63,11 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     try {
       console.log('🔍 [DrizzleCompanyRepository] findByIdAndTenant called:', { id, tenantId });
 
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
 
-      const result = await db.execute(sql.raw(`
+      const result = await tenantDb.execute(sql.raw(`
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
           description, industry, size, email, phone, website, address,
@@ -349,9 +370,11 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     try {
       console.log('🔍 [DrizzleCompanyRepository] findByTenant called:', { tenantId });
 
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
 
-      const result = await db.execute(sql`
+      const result = await tenantDb.execute(sql`
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
           description, industry, size, email, phone, website, address,

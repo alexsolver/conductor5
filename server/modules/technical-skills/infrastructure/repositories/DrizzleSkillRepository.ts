@@ -1,13 +1,33 @@
 import { eq, and, like, desc } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { skills } from '@shared/schema';
 import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 import { Skill, SkillEntity } from '../../domain/entities/Skill';
 
 export class DrizzleSkillRepository implements ISkillRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+  
   async create(skill: Skill): Promise<Skill> {
     // Usar apenas campos básicos que existem no banco
-    const [result] = await db.insert(skills).values({
+    const tenantDb = await this.getTenantDb(skill.tenantId || '');
+    const [result] = await tenantDb.insert(skills).values({
       name: skill.name,
       category: skill.category,
       description: skill.description || '',
@@ -18,8 +38,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
     return this.mapToSkill(result);
   }
 
-  async findById(id: string): Promise<Skill | null> {
-    const result = await db.select({
+  async findById(id: string, tenantId?: string): Promise<Skill | null> {
+    const tenantDb = await this.getTenantDb(tenantId || '');
+    const result = await tenantDb.select({
       id: skills.id,
       name: skills.name,
       category: skills.category,
@@ -43,7 +64,8 @@ export class DrizzleSkillRepository implements ISkillRepository {
     search?: string;
     tenantId?: string;
   }): Promise<Skill[]> {
-    let query = db.select({
+    const tenantDb = await this.getTenantDb(filters?.tenantId || '');
+    let query = tenantDb.select({
       id: skills.id,
       name: skills.name,
       category: skills.category,
@@ -80,7 +102,8 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async update(skill: Skill): Promise<Skill> {
-    const [result] = await db.update(skills)
+    const tenantDb = await this.getTenantDb(skill.tenantId || '');
+    const [result] = await tenantDb.update(skills)
       .set({
         name: skill.name,
         category: skill.category,
@@ -110,7 +133,8 @@ export class DrizzleSkillRepository implements ISkillRepository {
     if (data.category !== undefined) updateData.category = data.category;
     if (data.description !== undefined) updateData.description = data.description;
 
-    const [result] = await db.update(skills)
+    const tenantDb = await this.getTenantDb(data.tenantId || '');
+    const [result] = await tenantDb.update(skills)
       .set(updateData)
       .where(eq(skills.id, data.id))
       .returning();
@@ -118,14 +142,16 @@ export class DrizzleSkillRepository implements ISkillRepository {
     return this.mapToSkill(result);
   }
 
-  async delete(id: string): Promise<void> {
-    await db.update(skills)
+  async delete(id: string, tenantId?: string): Promise<void> {
+    const tenantDb = await this.getTenantDb(tenantId || '');
+    await tenantDb.update(skills)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(skills.id, id));
   }
 
-  async findByCategory(category: string): Promise<Skill[]> {
-    const results = await db.select({
+  async findByCategory(category: string, tenantId?: string): Promise<Skill[]> {
+    const tenantDb = await this.getTenantDb(tenantId || '');
+    const results = await tenantDb.select({
       id: skills.id,
       name: skills.name,
       category: skills.category,
@@ -141,8 +167,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
     return results.map(this.mapToSkill);
   }
 
-  async findByNamePattern(pattern: string): Promise<Skill[]> {
-    const results = await db.select({
+  async findByNamePattern(pattern: string, tenantId?: string): Promise<Skill[]> {
+    const tenantDb = await this.getTenantDb(tenantId || '');
+    const results = await tenantDb.select({
       id: skills.id,
       name: skills.name,
       category: skills.category,
@@ -158,8 +185,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
     return results.map(this.mapToSkill);
   }
 
-  async getCategories(): Promise<string[]> {
-    const results = await db.selectDistinct({ category: skills.category }).from(skills)
+  async getCategories(tenantId?: string): Promise<string[]> {
+    const tenantDb = await this.getTenantDb(tenantId || '');
+    const results = await tenantDb.selectDistinct({ category: skills.category }).from(skills)
       .where(eq(skills.isActive, true));
 
     return results.map(r => r.category).filter(Boolean);

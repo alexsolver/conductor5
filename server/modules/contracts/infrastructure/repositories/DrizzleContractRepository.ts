@@ -1,7 +1,10 @@
 // ✅ 1QA.MD COMPLIANCE: Drizzle Contract Repository - Clean Architecture Infrastructure Layer
 // Database implementation following exact patterns from existing modules
 
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { eq, and, desc, asc, like, between, count, sum } from 'drizzle-orm';
 import { Contract } from '../../domain/entities/Contract';
 import { IContractRepository, ContractFilters, ContractSummary } from '../../domain/repositories/IContractRepository';
@@ -11,12 +14,28 @@ import { auditLogs } from '@shared/schema-materials-services';
 import { contracts, type Contract as ContractRecord, type InsertContract as InsertContractType } from '@shared/schema-contracts';
 
 export class DrizzleContractRepository implements IContractRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
   
   // ✅ Basic CRUD Operations
   async findById(id: string, tenantId: string): Promise<Contract | null> {
     console.log(`🔍 [ContractRepository] Finding contract by ID: ${id} for tenant: ${tenantId}`);
     
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select()
       .from(contracts)
       .where(and(
@@ -34,7 +53,8 @@ export class DrizzleContractRepository implements IContractRepository {
   async findAll(tenantId: string, filters?: ContractFilters): Promise<Contract[]> {
     console.log(`🔍 [ContractRepository] Finding all contracts for tenant: ${tenantId}`, filters);
     
-    let query = db
+    const tenantDb = await this.getTenantDb(tenantId);
+    let query = tenantDb
       .select()
       .from(contracts)
       .where(
@@ -90,7 +110,7 @@ export class DrizzleContractRepository implements IContractRepository {
       }
 
       // Rebuild query with all conditions
-      query = db
+      query = tenantDb
         .select()
         .from(contracts)
         .where(and(...conditions));
@@ -133,7 +153,8 @@ export class DrizzleContractRepository implements IContractRepository {
       isActive: contract.isActive
     };
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .insert(contracts)
       .values(contractData)
       .returning();
@@ -169,7 +190,8 @@ export class DrizzleContractRepository implements IContractRepository {
       updatedById: contract.updatedById
     };
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .update(contracts)
       .set(updateData)
       .where(and(
@@ -184,7 +206,8 @@ export class DrizzleContractRepository implements IContractRepository {
   async delete(id: string, tenantId: string): Promise<void> {
     console.log(`🗑️ [ContractRepository] Soft-deleting contract: ${id} for tenant: ${tenantId}`);
 
-    await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb
       .update(contracts)
       .set({ 
         isActive: false,
@@ -200,7 +223,8 @@ export class DrizzleContractRepository implements IContractRepository {
   async findByContractNumber(contractNumber: string, tenantId: string): Promise<Contract | null> {
     console.log(`🔍 [ContractRepository] Finding contract by number: ${contractNumber} for tenant: ${tenantId}`);
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select()
       .from(contracts)
       .where(and(
@@ -221,7 +245,8 @@ export class DrizzleContractRepository implements IContractRepository {
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() + daysThreshold);
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select()
       .from(contracts)
       .where(and(
@@ -238,7 +263,8 @@ export class DrizzleContractRepository implements IContractRepository {
   async findByCustomer(customerCompanyId: string, tenantId: string): Promise<Contract[]> {
     console.log(`🏢 [ContractRepository] Finding contracts by customer: ${customerCompanyId} for tenant: ${tenantId}`);
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select()
       .from(contracts)
       .where(and(
@@ -254,7 +280,8 @@ export class DrizzleContractRepository implements IContractRepository {
   async findByManager(managerId: string, tenantId: string): Promise<Contract[]> {
     console.log(`👤 [ContractRepository] Finding contracts by manager: ${managerId} for tenant: ${tenantId}`);
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select()
       .from(contracts)
       .where(and(
@@ -270,7 +297,8 @@ export class DrizzleContractRepository implements IContractRepository {
   async findByStatus(status: ContractStatus, tenantId: string): Promise<Contract[]> {
     console.log(`📊 [ContractRepository] Finding contracts by status: ${status} for tenant: ${tenantId}`);
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select()
       .from(contracts)
       .where(and(
@@ -287,7 +315,8 @@ export class DrizzleContractRepository implements IContractRepository {
   async getSummary(tenantId: string): Promise<ContractSummary> {
     console.log(`📈 [ContractRepository] Getting contract summary for tenant: ${tenantId}`);
 
-    const [totalResult] = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [totalResult] = await tenantDb
       .select({ 
         count: count(),
         totalValue: sum(contracts.totalValue)
@@ -298,7 +327,7 @@ export class DrizzleContractRepository implements IContractRepository {
         eq(contracts.isActive, true)
       ));
 
-    const [activeResult] = await db
+    const [activeResult] = await tenantDb
       .select({ count: count() })
       .from(contracts)
       .where(and(
@@ -310,7 +339,7 @@ export class DrizzleContractRepository implements IContractRepository {
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() + 30);
 
-    const [expiringResult] = await db
+    const [expiringResult] = await tenantDb
       .select({ count: count() })
       .from(contracts)
       .where(and(
@@ -320,7 +349,7 @@ export class DrizzleContractRepository implements IContractRepository {
         between(contracts.endDate, new Date().toISOString().split('T')[0], thresholdDate.toISOString().split('T')[0])
       ));
 
-    const [mrrResult] = await db
+    const [mrrResult] = await tenantDb
       .select({ totalMonthly: sum(contracts.monthlyValue) })
       .from(contracts)
       .where(and(
@@ -344,7 +373,8 @@ export class DrizzleContractRepository implements IContractRepository {
     const startDate = `${year}-01-01`;
     const endDate = `${year}-12-31`;
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select({ 
         month: contracts.startDate,
         count: count()
@@ -381,7 +411,8 @@ export class DrizzleContractRepository implements IContractRepository {
     const startDate = `${year}-01-01`;
     const endDate = `${year}-12-31`;
 
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .select({ 
         month: contracts.startDate,
         revenue: sum(contracts.totalValue)
@@ -423,7 +454,8 @@ export class DrizzleContractRepository implements IContractRepository {
   ): Promise<void> {
     console.log(`📝 [ContractRepository] Creating audit entry for tenant: ${tenantId}`);
 
-    await db.insert(auditLogs).values({
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.insert(auditLogs).values({
       tenantId,
       userId,
       action,

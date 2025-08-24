@@ -2,7 +2,10 @@
 // Concrete Repository: DrizzleApprovalRuleRepository - Drizzle ORM implementation
 
 import { eq, and, like, desc, asc, inArray, sql, ilike } from 'drizzle-orm';
-import { db } from '@shared/schema';
+import { db, pool } from '../../../../db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '@shared/schema';
 import { approvalRules } from '@shared/schema';
 import { ApprovalRule } from '../../domain/entities/ApprovalRule';
 import { 
@@ -13,9 +16,25 @@ import {
 } from '../../domain/repositories/IApprovalRuleRepository';
 
 export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
+  // ✅ 1QA.MD: Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ 1QA.MD: Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
   
   async create(data: CreateApprovalRuleData): Promise<ApprovalRule> {
-    const [result] = await db
+    const tenantDb = await this.getTenantDb(data.tenantId);
+    const [result] = await tenantDb
       .insert(approvalRules)
       .values({
         tenantId: data.tenantId,
@@ -41,7 +60,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async update(id: string, data: UpdateApprovalRuleData): Promise<ApprovalRule> {
-    const [result] = await db
+    const tenantDb = await this.getTenantDb(data.tenantId || 'default');
+    const [result] = await tenantDb
       .update(approvalRules)
       .set({
         name: data.name,
@@ -69,7 +89,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
-    const result = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .delete(approvalRules)
       .where(and(
         eq(approvalRules.id, id),
@@ -82,7 +103,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async findById(id: string, tenantId: string): Promise<ApprovalRule | null> {
-    const [result] = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [result] = await tenantDb
       .select()
       .from(approvalRules)
       .where(and(
@@ -94,7 +116,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async findByTenant(tenantId: string): Promise<ApprovalRule[]> {
-    const results = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(eq(approvalRules.tenantId, tenantId))
@@ -128,7 +151,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       );
     }
 
-    const results = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(and(...conditions))
@@ -148,7 +172,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       conditions.push(eq(approvalRules.entityType, entityType));
     }
 
-    const results = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(and(...conditions))
@@ -173,7 +198,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async findActiveRules(tenantId: string, moduleType: string): Promise<ApprovalRule[]> {
-    const results = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(and(
@@ -189,7 +215,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   async findByPriority(tenantId: string, ascending: boolean = true): Promise<ApprovalRule[]> {
     const orderBy = ascending ? asc(approvalRules.priority) : desc(approvalRules.priority);
     
-    const results = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(eq(approvalRules.tenantId, tenantId))
@@ -199,7 +226,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async countByTenant(tenantId: string): Promise<number> {
-    const [result] = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [result] = await tenantDb
       .select({ count: sql`count(*)`.mapWith(Number) })
       .from(approvalRules)
       .where(eq(approvalRules.tenantId, tenantId));
@@ -208,7 +236,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async countByModule(tenantId: string, moduleType: string): Promise<number> {
-    const [result] = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [result] = await tenantDb
       .select({ count: sql`count(*)`.mapWith(Number) })
       .from(approvalRules)
       .where(and(
@@ -220,7 +249,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async activateMultiple(ids: string[], tenantId: string): Promise<void> {
-    await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb
       .update(approvalRules)
       .set({ 
         isActive: true,
@@ -233,7 +263,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async deactivateMultiple(ids: string[], tenantId: string): Promise<void> {
-    await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb
       .update(approvalRules)
       .set({ 
         isActive: false,
@@ -247,7 +278,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
 
   async updatePriorities(updates: Array<{ id: string; priority: number }>, tenantId: string): Promise<void> {
     // Use a transaction for consistency
-    await db.transaction(async (tx) => {
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.transaction(async (tx) => {
       for (const update of updates) {
         await tx
           .update(approvalRules)
@@ -264,6 +296,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async checkNameUniqueness(name: string, tenantId: string, excludeId?: string): Promise<boolean> {
+    const tenantDb = await this.getTenantDb(tenantId);
     const conditions = [
       eq(approvalRules.tenantId, tenantId),
       ilike(approvalRules.name, name)
@@ -273,7 +306,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       conditions.push(sql`${approvalRules.id} != ${excludeId}`);
     }
 
-    const [result] = await db
+    const [result] = await tenantDb
       .select({ count: sql`count(*)`.mapWith(Number) })
       .from(approvalRules)
       .where(and(...conditions));
@@ -284,7 +317,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   async findConflictingRules(rule: ApprovalRule): Promise<ApprovalRule[]> {
     // Find rules with same module type and overlapping priority
     // This is a simplified conflict detection - you might want more sophisticated logic
-    const results = await db
+    const tenantDb = await this.getTenantDb(rule.tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(and(
@@ -302,7 +336,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
-    const results = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(and(
@@ -315,7 +350,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async findByCreator(tenantId: string, createdById: string): Promise<ApprovalRule[]> {
-    const results = await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb
       .select()
       .from(approvalRules)
       .where(and(
