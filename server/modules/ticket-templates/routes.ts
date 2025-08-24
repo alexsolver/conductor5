@@ -21,6 +21,39 @@ const router = Router();
 
 // ✅ 1QA.MD: RESTful endpoints following Clean Architecture
 
+// ✅ COMPATIBILITY ROUTES: Suporte para padrões legacy /company/companyId
+// GET /api/ticket-templates/company/:companyId - Templates por empresa (compatibilidade)
+router.get('/company/:companyId', async (req, res) => {
+  await ticketTemplateController.getTemplates(req, res);
+});
+
+// GET /api/ticket-templates/company/:companyId/stats - Estatísticas por empresa (compatibilidade)
+router.get('/company/:companyId/stats', async (req, res) => {
+  await ticketTemplateController.getAnalytics(req, res);
+});
+
+// GET /api/ticket-templates/company/:companyId/categories - Categorias por empresa (compatibilidade)
+router.get('/company/:companyId/categories', async (req, res) => {
+  await ticketTemplateController.getCategories(req, res);
+});
+
+// POST /api/ticket-templates/company/:companyId - Criar template por empresa (compatibilidade)
+router.post('/company/:companyId', async (req, res) => {
+  await ticketTemplateController.createTemplate(req, res);
+});
+
+// GET /api/ticket-templates/company/:companyId/popular - Templates populares por empresa (compatibilidade)
+router.get('/company/:companyId/popular', async (req, res) => {
+  await ticketTemplateController.getPopularTemplates(req, res);
+});
+
+// GET /api/ticket-templates/company/:companyId/search - Buscar templates por empresa (compatibilidade)
+router.get('/company/:companyId/search', async (req, res) => {
+  await ticketTemplateController.getTemplates(req, res);
+});
+
+// ✅ DIRECT ROUTES: Novos padrões Clean Architecture
+
 // GET /api/ticket-templates - Buscar templates
 router.get('/', async (req, res) => {
   await ticketTemplateController.getTemplates(req, res);
@@ -34,6 +67,11 @@ router.get('/popular', async (req, res) => {
 // GET /api/ticket-templates/categories - Categorias disponíveis
 router.get('/categories', async (req, res) => {
   await ticketTemplateController.getCategories(req, res);
+});
+
+// GET /api/ticket-templates/stats - Estatísticas dos templates (alias para analytics)
+router.get('/stats', async (req, res) => {
+  await ticketTemplateController.getAnalytics(req, res);
 });
 
 // GET /api/ticket-templates/analytics - Analytics dos templates
