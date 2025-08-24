@@ -370,9 +370,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
-  const authRoutes = (await import('./modules/auth/routes-clean')).default;
-  app.use('/api/auth', authRoutes);
-  console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
+  console.log('🚨 [DEBUG-CRITICAL] About to import auth routes...');
+  try {
+    const authRoutes = (await import('./modules/auth/routes-clean')).default;
+    console.log('🚨 [DEBUG-CRITICAL] Auth routes imported successfully');
+    app.use('/api/auth', authRoutes);
+    console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
+  } catch (authError: any) {
+    console.error('❌ [DEBUG-CRITICAL] Auth import FAILED:', authError);
+    console.error('❌ [DEBUG-CRITICAL] Error message:', authError.message);
+    console.error('❌ [DEBUG-CRITICAL] Stack trace:', authError.stack);
+    // Continue execution even if auth fails
+  }
 
   // 🚨 DIRECT REGISTRATION: TICKET-TEMPLATES following 1qa.md Clean Architecture
   console.log('🚨 [TICKET-TEMPLATES-DIRECT] DIRECT registration starting...');
