@@ -6663,5 +6663,7 @@
   "hardcoded.token_refreshed_successfully": "Token Refreshed Successfully",
   "hardcoded.displayname": "Display Name",
   "hardcoded.comum": "Common",
-  "hardcoded.breadcrumblink": "Breadcrumb Link"
+  "hardcoded.breadcrumblink": "Breadcrumb Link",
+  "\n\"\n\n--- Mensagem Original ---\nDe: ${email": "\n\"\n\n--- Original Message ---\nFrom: ${email",
+  "--- Mensagem Original ---\\nDe: ${email": "--- Original Message ---\\nFrom: ${email"
 }
