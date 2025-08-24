@@ -1276,16 +1276,16 @@ const TicketsTable = React.memo(() => {
 
     // Mapear colunas selecionadas para o formato esperado pelo schema
     const columnsData = [
-      { id: "number", label: "Número", visible: selectedColumns.includes("number"), order: 1, width: 120 },
-      { id: "subject", label: "Assunto", visible: selectedColumns.includes("subject"), order: 2, width: 300 },
-      { id: "customer", label: "Cliente", visible: selectedColumns.includes("customer"), order: 3, width: 150 },
-      { id: "category", label: "Categoria", visible: selectedColumns.includes("category"), order: 4, width: 120 },
-      { id: "status", label: "Status", visible: selectedColumns.includes("status"), order: 5, width: 120 },
-      { id: "priority", label: "Prioridade", visible: selectedColumns.includes("priority"), order: 6, width: 120 },
-      { id: "urgency", label: "Urgência", visible: selectedColumns.includes("urgency"), order: 7, width: 120 },
-      { id: "impact", label: "Impacto", visible: selectedColumns.includes("impact"), order: 8, width: 120 },
-      { id: "assigned_to", label: "Responsável", visible: selectedColumns.includes("assigned_to"), order: 9, width: 150 },
-      { id: "created", label: "Criado", visible: selectedColumns.includes("created"), order: 10, width: 150 }
+      { id: "number", label: t("tickets.fields.number") || "Número", visible: selectedColumns.includes("number"), order: 1, width: 120 },
+      { id: "subject", label: t("tickets.fields.subject") || "Assunto", visible: selectedColumns.includes("subject"), order: 2, width: 300 },
+      { id: "customer", label: t("tickets.fields.customer") || "Cliente", visible: selectedColumns.includes("customer"), order: 3, width: 150 },
+      { id: "category", label: t("tickets.fields.category") || "Categoria", visible: selectedColumns.includes("category"), order: 4, width: 120 },
+      { id: "status", label: t("tickets.fields.status") || "Status", visible: selectedColumns.includes("status"), order: 5, width: 120 },
+      { id: "priority", label: t("tickets.fields.priority") || "Prioridade", visible: selectedColumns.includes("priority"), order: 6, width: 120 },
+      { id: "urgency", label: t("tickets.fields.urgency") || "Urgência", visible: selectedColumns.includes("urgency"), order: 7, width: 120 },
+      { id: "impact", label: t("tickets.fields.impact") || "Impacto", visible: selectedColumns.includes("impact"), order: 8, width: 120 },
+      { id: "assigned_to", label: t("tickets.fields.assignedTo") || "Responsável", visible: selectedColumns.includes("assigned_to"), order: 9, width: 150 },
+      { id: "created", label: t("tickets.fields.created") || "Criado", visible: selectedColumns.includes("created"), order: 10, width: 150 }
     ];
 
     const viewData = {
@@ -1640,10 +1640,10 @@ const TicketsTable = React.memo(() => {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Detailed Description *</FormLabel>
+                <FormLabel>{t("tickets.fields.description") || "Descrição Detalhada"} *</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Detailed description of the problem or request"
+                    placeholder={t("tickets.placeholders.description") || "Descrição detalhada do problema ou solicitação"}
                     className="min-h-[100px]"
                     {...field}
                   />
@@ -1659,13 +1659,13 @@ const TicketsTable = React.memo(() => {
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>{t("tickets.fields.category") || "Categoria"}</FormLabel>
                   <FormControl>
                     <DynamicSelect
                       fieldName="category"
                       value={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select category"
+                      placeholder={t("common.selectCategory") || "Selecione a categoria"}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1678,9 +1678,9 @@ const TicketsTable = React.memo(() => {
               name="subcategory"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Subcategory</FormLabel>
+                  <FormLabel>{t("tickets.fields.subcategory") || "Subcategoria"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Specific subcategory" {...field} />
+                    <Input placeholder={t("tickets.placeholders.subcategory") || "Subcategoria específica"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
