@@ -112,9 +112,7 @@ export default function TranslationManager() {
 
   // Auto-complete mutation following 1qa.md patterns
   const autoCompleteMutation = useMutation({
-    mutationFn: () => apiRequest('/api/saas-admin/translation-completion/auto-complete-all', {
-      method: 'POST'
-    }),
+    mutationFn: () => apiRequest('/api/saas-admin/translation-completion/auto-complete-all', 'POST'),
     onSuccess: (response: AutoCompleteResponse) => {
       toast({
         title: "Análise Concluída",
@@ -146,10 +144,7 @@ export default function TranslationManager() {
   // Save translations mutation
   const saveTranslationsMutation = useMutation({
     mutationFn: (data: { language: string; translations: Record<string, string> }) =>
-      apiRequest(`/api/saas-admin/translations/${data.language}`, {
-        method: 'PUT',
-        body: data.translations
-      }),
+      apiRequest(`/api/saas-admin/translations/${data.language}`, 'PUT', data.translations),
     onSuccess: () => {
       toast({
         title: "Traduções Salvas",
