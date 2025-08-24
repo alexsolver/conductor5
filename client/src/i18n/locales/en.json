@@ -1989,5 +1989,7 @@
   "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email": "--- Original Message ---\nFrom: ${email.from}\nDate: ${new Date(email",
   "--- Mensagem Original ---\nDe: ${email": "--- Original Message ---\nFrom: ${email",
   "--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}": "--- Original Message ---\nFrom: ${email.from}\nDate: ${new Date(email.createdAt).toLocaleString()}",
-  "--- Mensagem Original --- De: ${email.from} Data: ${new Date(email": "--- Original Message --- From: ${email.from} Date: ${new Date(email"
+  "--- Mensagem Original --- De: ${email.from} Data: ${new Date(email": "--- Original Message --- From: ${email.from} Date: ${new Date(email",
+  "\\n\\n--- Mensagem Original ---\\nDe: ${email": "\\n\\n--- Original Message ---\\nFrom: ${email",
+  "\\n\\n--- Mensagem Original ---\\nDe: ${email.from}\\nData: ${new Date(email": "\\n\\n--- Original Message ---\\nFrom: ${email.from}\\nDate: ${new Date(email"
 }
