@@ -3748,5 +3748,15 @@
   "hardcoded.entrada": "Entrance",
   "hardcoded.incio_de_atividade": "Start of activity",
   "hardcoded.trabalhando": "Working",
-  "hardcoded.em_atividade": "In activity"
+  "hardcoded.em_atividade": "In activity",
+  "tickets.fields.number": "Ticket Number",
+  "tickets.fields.impact": "Impact",
+  "tickets.fields.createdBy": "Created By",
+  "tickets.fields.created": "Created On",
+  "tickets.fields.updated": "Last Updated On",
+  "tickets.fields.resolutionTime": "Resolution Time",
+  "tickets.fields.slaStatus": "SLA Status",
+  "tickets.fields.tags": "Tags",
+  "tickets.fields.source": "Source",
+  "tickets.fields.satisfaction": "Customer Satisfaction"
 }

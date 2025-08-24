@@ -739,15 +739,15 @@ const TicketsTable = React.memo(() => {
   // Obter visualização ativa
   const activeView = ticketViews.find((view: any) => view.id === selectedViewId);
   const activeColumns = activeView?.columns || [
-    { id: "number", label: "Número", visible: true, order: 1, width: 120 },
-    { id: "subject", label: "Assunto", visible: true, order: 2, width: 300 },
-    { id: "customer", label: "Cliente", visible: true, order: 3, width: 150 },
-    { id: "company", label: "Empresa", visible: true, order: 4, width: 150 },
-    { id: "category", label: "Categoria", visible: true, order: 5, width: 120 },
-    { id: "status", label: "Status", visible: true, order: 6, width: 120 },
-    { id: "priority", label: "Prioridade", visible: true, order: 7, width: 120 },
-    { id: "urgency", label: "Urgência", visible: true, order: 8, width: 120 },
-    { id: "created", label: "Criado", visible: true, order: 9, width: 150 }
+    { id: "number", label: t("tickets.fields.number") || "Número", visible: true, order: 1, width: 120 },
+    { id: "subject", label: t("tickets.fields.subject") || "Assunto", visible: true, order: 2, width: 300 },
+    { id: "customer", label: t("tickets.fields.customer") || "Cliente", visible: true, order: 3, width: 150 },
+    { id: "company", label: t("tickets.fields.company") || "Empresa", visible: true, order: 4, width: 150 },
+    { id: "category", label: t("tickets.fields.category") || "Categoria", visible: true, order: 5, width: 120 },
+    { id: "status", label: t("tickets.fields.status") || "Status", visible: true, order: 6, width: 120 },
+    { id: "priority", label: t("tickets.fields.priority") || "Prioridade", visible: true, order: 7, width: 120 },
+    { id: "urgency", label: t("tickets.fields.urgency") || "Urgência", visible: true, order: 8, width: 120 },
+    { id: "created", label: t("tickets.fields.created") || "Criado", visible: true, order: 9, width: 150 }
   ];
 
   // Filtrar apenas colunas visíveis e ordenar

@@ -1739,7 +1739,6 @@
   "tickets.fields.tags": "Tags",
   "tickets.fields.source": "Origem",
   "tickets.fields.satisfaction": "Satisfação",
-  "tickets.fields.subcategory": "Subcategoria",
   "tickets.fields.statusField": "tickets.campos.campoDeStatus",
   "tickets.fields.sla": "tickets.campos.sla",
   "tickets.fields.slaElapsed": "tickets.campos.slaDecorrido",
@@ -3731,5 +3730,7 @@
   "customFields.optional": "opcional",
   "customFields.active": "ativo",
   "customFields.inactive": "inativo",
-  "customFields": "camposPersonalizados"
+  "customFields": "camposPersonalizados",
+  "tickets.fields.impact": "tickets.campos.impacto",
+  "\n\n--- Mensagem Original ---\nDe: ${email": "\n\n--- Mensagem Original ---\nDe: ${email"
 }
