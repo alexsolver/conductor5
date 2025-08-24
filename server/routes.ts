@@ -374,6 +374,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
 
+  // 🚨 MOVED UP: TICKET-TEMPLATES registration BEFORE other routes per 1qa.md
+  console.log('🚨 [TICKET-TEMPLATES-MOVED] Registration moved to HIGH PRIORITY...');
+  console.log('🚨 [TICKET-TEMPLATES-MOVED] TIMESTAMP:', new Date().toISOString());
+  try {
+    console.log('🚨 [TICKET-TEMPLATES-MOVED] Loading routes.ts module...');
+    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
+    console.log('🚨 [TICKET-TEMPLATES-MOVED] Module loaded successfully!');
+    console.log('🚨 [TICKET-TEMPLATES-MOVED] Registering with middleware...');
+    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
+    console.log('✅ [TICKET-TEMPLATES-MOVED] HIGH PRIORITY registration SUCCESS!');
+  } catch (error: any) {
+    console.error('❌ [TICKET-TEMPLATES-MOVED] HIGH PRIORITY registration FAILED:', error);
+    console.error('❌ [TICKET-TEMPLATES-MOVED] Error details:', error.message);
+    console.error('❌ [TICKET-TEMPLATES-MOVED] Stack trace:', error.stack);
+  }
+  console.log('🚨 [TICKET-TEMPLATES-MOVED] High priority block COMPLETED');
+
   // ✅ Priority 1.5: SaaS Admin routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [SAAS-ADMIN] Initializing SaaS Admin Clean Architecture routes...');
   const saasAdminRoutes = (await import('./modules/saas-admin/routes')).default;
@@ -381,22 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
   console.log('🚨 [DEBUG] Reached after SaaS Admin - about to register TICKET-TEMPLATES...');
 
-  // 🚨 TICKET-TEMPLATES - FIXED: Remove conflicting routes-working.ts
-  console.log('🚨 [TICKET-TEMPLATES] FINAL FIX registration starting...');
-  console.log('🚨 [TICKET-TEMPLATES] TIMESTAMP:', new Date().toISOString());
-  try {
-    console.log('🚨 [TICKET-TEMPLATES] Loading ONLY routes.ts (not routes-working.ts)...');
-    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
-    console.log('🚨 [TICKET-TEMPLATES] Module loaded successfully!');
-    console.log('🚨 [TICKET-TEMPLATES] Registering routes with middleware...');
-    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
-    console.log('✅ [TICKET-TEMPLATES] FINAL FIX registration SUCCESS!');
-  } catch (error: any) {
-    console.error('❌ [TICKET-TEMPLATES] FINAL FIX registration FAILED:', error);
-    console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
-    console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
-  }
-  console.log('🚨 [TICKET-TEMPLATES] Final fix block COMPLETED');
+  // ✅ REMOVED: Duplicate ticket-templates registration - moved to high priority section above
 
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
