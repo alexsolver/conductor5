@@ -7,8 +7,8 @@
  * @compliance 1qa.md - Infrastructure Layer - Drizzle Implementation
  */
 
-import { db } from '../../../../db';
-import { ticketTemplates } from '../../../../db/schema';
+import { db } from '../../../db';
+import { ticketTemplates } from '../../../../shared/schema-master';
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
 import { TicketTemplate, UserFeedback } from '../../domain/entities/TicketTemplate';
 import { eq, and, or, isNull, desc, asc, like, inArray, sql, count } from 'drizzle-orm';
@@ -149,12 +149,13 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         
         // Company filter with hierarchy support
         if (filters.companyId) {
-          whereConditions.push(
-            or(
-              eq(ticketTemplates.companyId, filters.companyId),
-              isNull(ticketTemplates.companyId)
-            )
+          const companyCondition = or(
+            eq(ticketTemplates.companyId, filters.companyId),
+            isNull(ticketTemplates.companyId)
           );
+          if (companyCondition) {
+            whereConditions.push(companyCondition);
+          }
         }
       }
 
@@ -282,13 +283,14 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
       // Text search
       const searchTerm = `%${query.toLowerCase()}%`;
-      whereConditions.push(
-        or(
-          like(ticketTemplates.name, searchTerm),
-          like(ticketTemplates.description, searchTerm),
-          like(ticketTemplates.category, searchTerm)
-        )
+      const searchCondition = or(
+        like(ticketTemplates.name, searchTerm),
+        like(ticketTemplates.description, searchTerm),
+        like(ticketTemplates.category, searchTerm)
       );
+      if (searchCondition) {
+        whereConditions.push(searchCondition);
+      }
 
       if (filters) {
         if (filters.category) whereConditions.push(eq(ticketTemplates.category, filters.category));
