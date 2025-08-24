@@ -7,7 +7,7 @@
  * @compliance 1qa.md - Infrastructure Layer - Drizzle Implementation
  */
 
-import { db } from '../../../db';
+import { db } from '../../../../db';
 import { ticketTemplates } from '../../../../shared/schema-master';
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
 import { TicketTemplate, UserFeedback } from '../../domain/entities/TicketTemplate';
