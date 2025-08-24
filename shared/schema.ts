@@ -304,7 +304,6 @@ export {
   customerTypeEnum,
   customerStatusEnum,
   customerTierEnum,
-  accountStatusEnum,
   leadSourceEnum,
   leadStatusEnum,
   opportunityStageEnum,
