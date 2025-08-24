@@ -379,7 +379,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/saas-admin', saasAdminRoutes);
   console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
 
-  // ❌ DUPLICATE ROUTE REGISTRATION REMOVED - only keep the one at line 1668
+  // 🚨 TICKET-TEMPLATES - MOVED OUT OF PROBLEMATIC TRY-CATCH per 1qa.md
+  console.log('🚨 [TICKET-TEMPLATES] EMERGENCY registration starting...');
+  try {
+    console.log('🚨 [TICKET-TEMPLATES] Loading ticket-templates module...');
+    const ticketTemplateRoutes = (await import('./modules/ticket-templates/routes')).default;
+    console.log('🚨 [TICKET-TEMPLATES] Module loaded, registering routes...');
+    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes);
+    console.log('✅ [TICKET-TEMPLATES] EMERGENCY registration SUCCESS!');
+  } catch (error: any) {
+    console.error('❌ [TICKET-TEMPLATES] EMERGENCY registration FAILED:', error);
+    console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
+    console.error('❌ [TICKET-TEMPLATES] Stack trace:', error.stack);
+  }
+  console.log('🚨 [TICKET-TEMPLATES] Emergency block COMPLETED');
 
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
@@ -1588,10 +1601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
     const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
-    // ✅ 1QA.MD: Import Clean Architecture Ticket Template routes
-    console.log('🔧 [TICKET-TEMPLATES] About to import ticket-templates routes...');
-    const ticketTemplateRoutes = await import('./modules/ticket-templates/routes');
-    console.log('🔧 [TICKET-TEMPLATES] Successfully imported ticket-templates routes');
+    // ❌ TICKET-TEMPLATES MOVED TO TOP - avoid try-catch failure
     const hierarchicalController = new TicketMetadataController(); // Reusing the controller for consistency
     const categoryHierarchyController = new TicketHierarchicalController();
 
@@ -1647,13 +1657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // TICKET TEMPLATESROUTES
     // ========================================
 
-    // ✅ 1QA.MD: Register Clean Architecture Ticket Template routes
-    console.log('🔧 [TICKET-TEMPLATES] Attempting to register routes...');
-    console.log('🔧 [TICKET-TEMPLATES] ticketTemplateRoutes:', typeof ticketTemplateRoutes);
-    console.log('🔧 [TICKET-TEMPLATES] ticketTemplateRoutes.default:', typeof ticketTemplateRoutes.default);
-    
-    app.use('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, ticketTemplateRoutes.default);
-    console.log('✅ Clean Architecture Ticket Templates routes registered successfully');
+    // ❌ TICKET-TEMPLATES REGISTRATION MOVED TO TOP - avoid try-catch failure
   } catch (error) {
     console.error('❌ [TICKET-TEMPLATES] Failed to load ticket-templates module:', error);
     console.error('❌ [TICKET-TEMPLATES] Error details:', error.message);
