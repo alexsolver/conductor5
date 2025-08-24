@@ -16,7 +16,7 @@ import { eq, and, or, isNull, desc, asc, like, inArray, sql, count } from 'drizz
 import { Pool } from 'pg';
 
 export class DrizzleTicketTemplateRepository implements ITicketTemplateRepository {
-  
+
   // ✅ 1QA.MD: Tenant Schema Isolation - seguindo padrão do sistema
   private getSchemaName(tenantId: string): string {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
@@ -37,9 +37,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async create(template: Omit<TicketTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<TicketTemplate> {
     try {
       console.log('🔒 [TICKET-TEMPLATE-REPO] Creating template in tenant schema:', this.getSchemaName(template.tenantId));
-      
+
       const tenantDb = await this.getTenantDb(template.tenantId);
-      
+
       const newTemplate = {
         ...template,
         id: crypto.randomUUID(),
@@ -54,7 +54,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       };
 
       console.log('📝 [TICKET-TEMPLATE-REPO] Inserting into tenant-specific schema:', this.getSchemaName(template.tenantId));
-      
+
       const result = await tenantDb
         .insert(schema.ticketTemplates)
         .values(newTemplate as any)
@@ -71,9 +71,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async findById(id: string, tenantId: string): Promise<TicketTemplate | null> {
     try {
       console.log('🔍 [TICKET-TEMPLATE-REPO] Finding template by ID in tenant schema:', this.getSchemaName(tenantId));
-      
+
       const tenantDb = await this.getTenantDb(tenantId);
-      
+
       const result = await tenantDb
         .select()
         .from(schema.ticketTemplates)
@@ -92,9 +92,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async findByName(name: string, tenantId: string): Promise<TicketTemplate | null> {
     try {
       console.log('🔍 [TICKET-TEMPLATE-REPO] Finding template by name in tenant schema:', this.getSchemaName(tenantId));
-      
+
       const tenantDb = await this.getTenantDb(tenantId);
-      
+
       const result = await tenantDb
         .select()
         .from(schema.ticketTemplates)
@@ -125,9 +125,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
       if (updates.metadata) updateData.metadata = JSON.stringify(updates.metadata);
 
       console.log('✏️ [TICKET-TEMPLATE-REPO] Updating template in tenant schema:', this.getSchemaName(tenantId));
-      
+
       const tenantDb = await this.getTenantDb(tenantId);
-      
+
       const result = await tenantDb
         .update(schema.ticketTemplates)
         .set(updateData)
@@ -147,9 +147,9 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async delete(id: string, tenantId: string): Promise<boolean> {
     try {
       console.log('🗑️ [TICKET-TEMPLATE-REPO] Deleting template in tenant schema:', this.getSchemaName(tenantId));
-      
+
       const tenantDb = await this.getTenantDb(tenantId);
-      
+
       const result = await tenantDb
         .delete(schema.ticketTemplates)
         .where(and(
@@ -183,7 +183,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         if (filters.category) whereConditions.push(eq(schema.ticketTemplates.category, filters.category));
         if (filters.subcategory) whereConditions.push(eq(schema.ticketTemplates.subcategory, filters.subcategory));
         // templateType, status, departmentId, isDefault, isSystem não existem no schema atual
-        
+
         // Company filter with hierarchy support
         if (filters.companyId) {
           const companyCondition = or(
@@ -699,5 +699,158 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async updateSystemTemplate(id: string, updates: Partial<TicketTemplate>): Promise<TicketTemplate | null> {
     return this.update(id, 'system', updates);
+  }
+
+  // ✅ 1QA.MD: findByTenant method as per the original code structure, modified to include default template creation.
+  async findByTenant(tenantId: string): Promise<TicketTemplate[]> {
+    try {
+      console.log('🔍 [REPO] findByTenant called with tenantId:', tenantId);
+
+      // ✅ 1QA.MD: Query templates with proper filtering and ordering
+      const result = await db
+        .select()
+        .from(schema.ticketTemplates)
+        .where(
+          and(
+            eq(schema.ticketTemplates.tenantId, tenantId),
+            eq(schema.ticketTemplates.isActive, true)
+          )
+        )
+        .orderBy(schema.ticketTemplates.name);
+
+      console.log('📊 [REPO] Database query result:', {
+        count: result.length,
+        templates: result.map(t => ({ 
+          id: t.id, 
+          name: t.name, 
+          isActive: t.is_active,
+          category: t.category 
+        }))
+      });
+
+      // ✅ 1QA.MD: If no templates found, create default templates
+      if (result.length === 0) {
+        console.log('📝 [REPO] No templates found, creating default templates...');
+        await this.createDefaultTemplates(tenantId);
+
+        // Query again after creating defaults
+        const defaultResult = await db
+          .select()
+          .from(schema.ticketTemplates)
+          .where(
+            and(
+              eq(schema.ticketTemplates.tenantId, tenantId),
+              eq(schema.ticketTemplates.isActive, true)
+            )
+          )
+          .orderBy(schema.ticketTemplates.name);
+
+        console.log('📊 [REPO] Default templates created:', defaultResult.length);
+        const templates = defaultResult.map(row => this.mapFromDatabase(row));
+        return templates;
+      }
+
+      const templates = result.map(row => this.mapFromDatabase(row));
+
+      console.log('✅ [REPO] Templates mapped successfully:', {
+        count: templates.length,
+        names: templates.map(t => t.name)
+      });
+
+      return templates;
+
+    } catch (error) {
+      console.error('❌ [REPO] Error in findByTenant:', error);
+      return [];
+    }
+  }
+
+  // ✅ 1QA.MD: Create default templates if none exist
+  private async createDefaultTemplates(tenantId: string): Promise<void> {
+    try {
+      const defaultTemplates = [
+        {
+          name: 'Template Geral',
+          description: 'Template padrão para tickets gerais',
+          category: 'geral',
+          subcategory: 'suporte',
+          priority: 'media',
+          templateType: 'support',
+          tenantId,
+          isActive: true,
+          customFields: JSON.stringify([
+            {
+              id: 'description',
+              type: 'textarea',
+              label: 'Descrição do Problema',
+              required: true,
+              placeholder: 'Descreva detalhadamente o problema...'
+            },
+            {
+              id: 'urgency',
+              type: 'select',
+              label: 'Urgência',
+              required: true,
+              options: ['baixa', 'media', 'alta', 'critica']
+            }
+          ]),
+          autoAssignmentRules: JSON.stringify({ enabled: false }),
+          workflow: JSON.stringify({ enabled: false, stages: [] }),
+          permissions: JSON.stringify([]),
+          metadata: JSON.stringify({
+            version: '1.0.0',
+            author: 'system',
+            usage: { totalUses: 0 }
+          }),
+          usageCount: 0,
+          createdBy: 'system'
+        },
+        {
+          name: 'Template Técnico',
+          description: 'Template para problemas técnicos',
+          category: 'tecnico',
+          subcategory: 'infraestrutura',
+          priority: 'alta',
+          templateType: 'technical',
+          tenantId,
+          isActive: true,
+          customFields: JSON.stringify([
+            {
+              id: 'system',
+              type: 'select',
+              label: 'Sistema Afetado',
+              required: true,
+              options: ['servidor', 'rede', 'aplicacao', 'banco_dados']
+            },
+            {
+              id: 'impact',
+              type: 'select',
+              label: 'Impacto',
+              required: true,
+              options: ['baixo', 'medio', 'alto', 'critico']
+            }
+          ]),
+          autoAssignmentRules: JSON.stringify({ enabled: false }),
+          workflow: JSON.stringify({ enabled: false, stages: [] }),
+          permissions: JSON.stringify([]),
+          metadata: JSON.stringify({
+            version: '1.0.0',
+            author: 'system',
+            usage: { totalUses: 0 }
+          }),
+          usageCount: 0,
+          createdBy: 'system'
+        }
+      ];
+
+      for (const template of defaultTemplates) {
+        await db.insert(schema.ticketTemplates).values(template);
+      }
+
+      console.log('✅ [REPO] Default templates created successfully');
+
+    } catch (error) {
+      console.error('❌ [REPO] Error creating default templates:', error);
+    }
   }
 }

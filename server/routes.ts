@@ -4,11 +4,11 @@ import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { enhancedTenantValidator } from './middleware/tenantValidator';
-import { 
-  tenantSchemaEnforcer, 
-  databaseOperationInterceptor, 
+import {
+  tenantSchemaEnforcer,
+  databaseOperationInterceptor,
   runtimeSchemaValidator,
-  queryPatternAnalyzer 
+  queryPatternAnalyzer
 } from './middleware/tenantSchemaEnforcer';
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
 import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const insertQuery = `
-        INSERT INTO "${schemaName}".ticket_relationships 
+        INSERT INTO "${schemaName}".ticket_relationships
         (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         RETURNING *
@@ -168,9 +168,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("Error in bypass relationship:", error);
-      return res.status(500).json({ 
+      return res.status(500).json({
         success: false,
-        message: "Failed to create ticket relationship via bypass" 
+        message: "Failed to create ticket relationship via bypass"
       });
     }
   });
@@ -198,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Apply memory-based rate limiting middleware  
+  // Apply memory-based rate limiting middleware
   app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
   app.use('/api/auth/register', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
   app.use('/api/auth/password-reset', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
@@ -386,153 +386,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ 1QA.MD COMPLIANCE: TICKET-TEMPLATES Clean Architecture
   console.log('🚨 [TICKET-TEMPLATES-MODULE] === STARTING REGISTRATION ===');
   console.log('🚨 [TICKET-TEMPLATES-MODULE] Timestamp:', new Date().toISOString());
-  
+
   try {
-    // ✅ 1QA.MD: Clean Architecture dependency injection
-    const { DrizzleTicketTemplateRepository } = await import('./modules/ticket-templates/infrastructure/repositories/DrizzleTicketTemplateRepository');
-    const { GetTicketTemplatesUseCase } = await import('./modules/ticket-templates/application/use-cases/GetTicketTemplatesUseCase');
-    const { CreateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase');
-    const { UpdateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase');
-    const { TicketTemplateController } = await import('./modules/ticket-templates/application/controllers/TicketTemplateController');
-    
-    // ✅ 1QA.MD: Infrastructure Layer instantiation
-    const templateRepository = new DrizzleTicketTemplateRepository();
-    console.log('✅ [TICKET-TEMPLATES-MODULE] Repository instantiated');
-    
-    // ✅ 1QA.MD: Application Layer - Use Cases instantiation
-    const getTemplatesUseCase = new GetTicketTemplatesUseCase(templateRepository);
-    const createTemplateUseCase = new CreateTicketTemplateUseCase(templateRepository);  
-    const updateTemplateUseCase = new UpdateTicketTemplateUseCase(templateRepository);
-    console.log('✅ [TICKET-TEMPLATES-MODULE] Use Cases instantiated');
-    
-    // ✅ 1QA.MD: Application Layer - Controller instantiation
-    const templateController = new TicketTemplateController(
-      createTemplateUseCase, 
-      getTemplatesUseCase, 
-      updateTemplateUseCase
-    );
-    console.log('✅ [TICKET-TEMPLATES-MODULE] Controller instantiated');
-    
-    // ✅ 1QA.MD: Presentation Layer - Route registration
-    console.log('🔗 [TICKET-TEMPLATES-MODULE] Registering endpoints...');
+    // ✅ 1QA.MD: Import ticket-templates module routes directly
+    const ticketTemplateRoutes = await import('./modules/ticket-templates/routes');
 
-    // GET /api/ticket-templates - Lista todos os templates
-    app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-TEMPLATES] /api/ticket-templates called');
-      try {
-        await templateController.getTemplates(req, res);
-      } catch (error) {
-        console.error('❌ [GET-TEMPLATES] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
+    // ✅ 1QA.MD: Mount at correct path per specification
+    app.use('/api/ticket-templates', ticketTemplateRoutes.default);
 
-    // POST /api/ticket-templates - Cria novo template
-    app.post('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [CREATE-TEMPLATE] /api/ticket-templates called');
-      try {
-        await templateController.createTemplate(req, res);
-      } catch (error) {
-        console.error('❌ [CREATE-TEMPLATE] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // PUT /api/ticket-templates/:id - Atualiza template
-    app.put('/api/ticket-templates/:id', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [UPDATE-TEMPLATE] /api/ticket-templates/:id called');
-      try {
-        await templateController.updateTemplate(req, res);
-      } catch (error) {
-        console.error('❌ [UPDATE-TEMPLATE] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/ticket-templates/categories - Lista categorias
-    app.get('/api/ticket-templates/categories', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-CATEGORIES] /api/ticket-templates/categories called');
-      try {
-        await templateController.getCategories(req, res);
-      } catch (error) {
-        console.error('❌ [GET-CATEGORIES] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/ticket-templates/company/:companyId/stats - Estatísticas por empresa
-    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-COMPANY-STATS] /api/ticket-templates/company/:companyId/stats called');
-      try {
-        await templateController.getCompanyTemplateStats(req, res);
-      } catch (error) {
-        console.error('❌ [GET-COMPANY-STATS] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/ticket-templates/company/:companyId - Templates por empresa
-    app.get('/api/ticket-templates/company/:companyId', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-COMPANY-TEMPLATES] /api/ticket-templates/company/:companyId called');
-      try {
-        await templateController.getTemplates(req, res);
-      } catch (error) {
-        console.error('❌ [GET-COMPANY-TEMPLATES] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/ticket-templates/defaults - Templates padrão
-    app.get('/api/ticket-templates/defaults', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-DEFAULTS] /api/ticket-templates/defaults called');
-      try {
-        await templateController.getDefaultTemplates(req, res);
-      } catch (error) {
-        console.error('❌ [GET-DEFAULTS] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/ticket-templates/popular - Templates populares
-    app.get('/api/ticket-templates/popular', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-POPULAR] /api/ticket-templates/popular called');
-      try {
-        await templateController.getPopularTemplates(req, res);
-      } catch (error) {
-        console.error('❌ [GET-POPULAR] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/ticket-templates/:id/analytics - Analytics do template
-    app.get('/api/ticket-templates/:id/analytics', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-ANALYTICS] /api/ticket-templates/:id/analytics called');
-      try {
-        await templateController.getTemplateAnalytics(req, res);
-      } catch (error) {
-        console.error('❌ [GET-ANALYTICS] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/ticket-templates/category/:category - Templates por categoria
-    app.get('/api/ticket-templates/category/:category', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
-      console.log('🎯 [GET-BY-CATEGORY] /api/ticket-templates/category/:category called');
-      try {
-        await templateController.getTemplatesByCategory(req, res);
-      } catch (error) {
-        console.error('❌ [GET-BY-CATEGORY] Error:', error);
-        res.status(500).json({ success: false, error: 'Internal server error' });
-      }
-    });
-
-    console.log('✅ [TICKET-TEMPLATES-MODULE] All endpoints registered successfully');
+    console.log('✅ [TICKET-TEMPLATES-MODULE] Routes mounted successfully at /api/ticket-templates');
     console.log('🚨 [TICKET-TEMPLATES-MODULE] === REGISTRATION COMPLETE ===');
-    
-  } catch (error: any) {
-    console.error('❌ [TICKET-TEMPLATES-MODULE] Registration FAILED:', error);
-    console.error('❌ [TICKET-TEMPLATES-MODULE] Error details:', error.message);
-    console.error('❌ [TICKET-TEMPLATES-MODULE] Stack trace:', error.stack);
+
+  } catch (templateError: any) {
+    console.error('❌ [TICKET-TEMPLATES-MODULE] CRITICAL ERROR:', templateError);
+    console.error('❌ [TICKET-TEMPLATES-MODULE] Stack:', templateError.stack);
+    console.error('❌ [TICKET-TEMPLATES-MODULE] Message:', templateError.message);
   }
   console.log('🚨 [TICKET-TEMPLATES-DIRECT] Direct registration block COMPLETED');
 
@@ -545,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ REMOVED: Duplicate ticket-templates registration - moved to high priority section above
 
-  // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
+  // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
   app.use('/api/tickets', ticketsRoutes);
@@ -577,22 +445,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { DashboardGovernanceController } = await import('./modules/dashboards/infrastructure/DashboardGovernanceController');
   const governanceController = new DashboardGovernanceController();
 
-  app.get('/api/dashboards/governance/data-sources', (req, res) => 
+  app.get('/api/dashboards/governance/data-sources', (req, res) =>
     governanceController.getDataSources(req, res)
   );
-  app.get('/api/dashboards/governance/kpis/:dataSourceId', (req, res) => 
+  app.get('/api/dashboards/governance/kpis/:dataSourceId', (req, res) =>
     governanceController.getKPIs(req, res)
   );
-  app.post('/api/dashboards/kpi/:kpiId', (req, res) => 
+  app.post('/api/dashboards/kpi/:kpiId', (req, res) =>
     governanceController.calculateKPI(req, res)
   );
-  app.post('/api/dashboards/governance/validate-card', (req, res) => 
+  app.post('/api/dashboards/governance/validate-card', (req, res) =>
     governanceController.validateCard(req, res)
   );
-  app.post('/api/dashboards/governance/generate-dynamic', (req, res) => 
+  app.post('/api/dashboards/governance/generate-dynamic', (req, res) =>
     governanceController.generateDynamicCard(req, res)
   );
-  app.get('/api/dashboards/governance/permissions/:cardId', (req, res) => 
+  app.get('/api/dashboards/governance/permissions/:cardId', (req, res) =>
     governanceController.checkPermissions(req, res)
   );
   console.log('✅ [DASHBOARD-GOVERNANCE] Clean Architecture module registered at /api/dashboards/governance');
@@ -710,19 +578,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Query customers with their associated companies
       const result = await pool.query(
-        `SELECT 
+        `SELECT
           c.*,
           COALESCE(
             STRING_AGG(comp.name, ', ' ORDER BY comp.name),
             ''
           ) as associated_companies
         FROM "${schemaName}"."customers" c
-        LEFT JOIN "${schemaName}"."companies_relationships" cr 
+        LEFT JOIN "${schemaName}"."companies_relationships" cr
           ON c.id = cr.customer_id AND cr.is_active = true
-        LEFT JOIN "${schemaName}"."companies" comp 
+        LEFT JOIN "${schemaName}"."companies" comp
           ON cr.company_id = comp.id AND comp.is_active = true
-        WHERE c.tenant_id = $1 
-        GROUP BY c.id, c.tenant_id, c.first_name, c.last_name, c.email, 
+        WHERE c.tenant_id = $1
+        GROUP BY c.id, c.tenant_id, c.first_name, c.last_name, c.email,
                  c.phone, c.created_at, c.updated_at, c.address,
                  c.address_number, c.complement, c.neighborhood, c.city,
                  c.state, c.zip_code, c.is_active, c.customer_type
@@ -745,13 +613,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               LIMIT 3
             `, [customer.id]);
 
-            console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`, 
+            console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`,
               companiesResult.rows.map(r => r.name || r.display_name));
 
             // Fallback to company_memberships if companies_relationships has no data
             if (companiesResult.rows.length === 0) {
               const membershipTableExists = await pool.query(`
-                SELECT 1 FROM information_schema.tables 
+                SELECT 1 FROM information_schema.tables
                 WHERE table_schema = $1 AND table_name = 'company_memberships'
               `, [schemaName]);
 
@@ -819,11 +687,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error fetching customers:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         customers: [],
         total: 0,
-        message: "Failed to fetch customers" 
+        message: "Failed to fetch customers"
       });
     }
   });
@@ -841,8 +709,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
       const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."companies" 
-         WHERE tenant_id = $1 
+        `SELECT * FROM "${schemaName}"."companies"
+         WHERE tenant_id = $1
          AND status = 'active'
          ORDER BY name`,
         [req.user.tenantId]
@@ -863,9 +731,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(companies);
     } catch (error) {
       console.error('Error fetching customer companies:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customer companies' 
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch customer companies'
       });
     }
   });
@@ -892,7 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ✅ Fix: Use tickets table to find customers associated with a company
       const result = await pool.query(`
-        SELECT DISTINCT 
+        SELECT DISTINCT
           c.id,
           c.tenant_id,
           c.first_name,
@@ -956,7 +824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
 
       const result = await pool.query(
-        `INSERT INTO "${schemaName}"."companies" 
+        `INSERT INTO "${schemaName}"."companies"
          (tenant_id, name, display_name, description, size, subscription_tier, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
@@ -991,14 +859,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/customers/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const { 
-        name, displayName, description, industry, size, email, phone, website, 
-        subscriptionTier, status, document, address 
+      const {
+        name, displayName, description, industry, size, email, phone, website,
+        subscriptionTier, status, document, address
       } = req.body;
 
-      console.log(`[UPDATE-COMPANY-MAIN] Updating company ${id} with data:`, { 
-        name, displayName, industry, size, email, phone, website, subscriptionTier, status,
-        description, document, address
+      console.log(`[UPDATE-COMPANY-MAIN] Updating company ${id} with data:`, {
+        name, displayName, description, industry, size, email, phone, website, subscriptionTier, status,
+        document, address
       });
 
       const { schemaManager } = await import('./db');
@@ -1007,7 +875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Verify company exists first
       const existingCompany = await pool.query(`
-        SELECT * FROM "${schemaName}".companies 
+        SELECT * FROM "${schemaName}".companies
         WHERE id = $1 AND tenant_id = $2
       `, [id, req.user.tenantId]);
 
@@ -1039,8 +907,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const result = await pool.query(`
-        UPDATE "${schemaName}".companies 
-        SET name = $1, display_name = $2, description = $3, industry = $4, size = $5, 
+        UPDATE "${schemaName}".companies
+        SET name = $1, display_name = $2, description = $3, industry = $4, size = $5,
             email = $6, phone = $7, website = $8, subscription_tier = $9, status = $10,
             cnpj = $11, address = $12, updated_at = NOW()
         WHERE id = $13 AND tenant_id = $14
@@ -1104,7 +972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if company has associated customers
         const membershipsCheck = await pool.query(
-          `SELECT COUNT(*) as count FROM "${schemaName}"."company_memberships" 
+          `SELECT COUNT(*) as count FROM "${schemaName}"."company_memberships"
            WHERE company_id = $1 AND tenant_id = $2`,
           [companyId, req.user.tenantId]
         );
@@ -1120,7 +988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Soft delete the company (set is_active = false instead of hard delete)
         const result = await pool.query(
-          `UPDATE "${schemaName}"."companies" 
+          `UPDATE "${schemaName}"."companies"
            SET is_active = false, updated_at = CURRENT_TIMESTAMP
            WHERE id = $1 AND tenant_id = $2`,
           [companyId, req.user.tenantId]
@@ -1158,9 +1026,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!companyId || companyId === 'undefined' || companyId === 'null') {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Valid company ID is required' 
+        return res.status(400).json({
+          success: false,
+          message: 'Valid company ID is required'
         });
       }
 
@@ -1172,11 +1040,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get customers that ARE already associated with this company
       const query = `
-        SELECT DISTINCT 
-          c.id, 
-          c.first_name as "firstName", 
-          c.last_name as "lastName", 
-          c.email, 
+        SELECT DISTINCT
+          c.id,
+          c.first_name as "firstName",
+          c.last_name as "lastName",
+          c.email,
           c.phone,
           'PF' as "customerType",
           'Ativo' as "status",
@@ -1218,9 +1086,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!companyId || companyId === 'undefined' || companyId === 'null') {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Valid company ID is required' 
+        return res.status(400).json({
+          success: false,
+          message: 'Valid company ID is required'
         });
       }
 
@@ -1237,24 +1105,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (companyCheck.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Company not found' 
+        return res.status(404).json({
+          success: false,
+          message: 'Company not found'
         });
       }
 
-      // Get customers that are NOT already associated with this company  
+      // Get customers that are NOT already associated with this company
       const query = `
-        SELECT DISTINCT 
-          c.id, 
-          c.first_name as "firstName", 
-          c.last_name as "lastName", 
-          c.email, 
+        SELECT DISTINCT
+          c.id,
+          c.first_name as "firstName",
+          c.last_name as "lastName",
+          c.email,
           c.phone
         FROM "${schemaName}"."customers" c
         WHERE c.tenant_id = $1
         AND c.id NOT IN (
-          SELECT cr.customer_id 
+          SELECT cr.customer_id
           FROM "${schemaName}"."companies_relationships" cr
           WHERE cr.company_id = $2 AND cr.customer_id IS NOT NULL
         )
@@ -1291,23 +1159,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Associate multiple customers request:', { companyId, customerIds, isPrimary, tenantId });
 
       if (!tenantId) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Tenant required' 
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant required'
         });
       }
 
       if (!companyId || companyId === 'undefined' || companyId === 'null') {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Valid company ID is required' 
+        return res.status(400).json({
+          success: false,
+          message: 'Valid company ID is required'
         });
       }
 
       if (!Array.isArray(customerIds) || customerIds.length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Customer IDs array is required' 
+        return res.status(400).json({
+          success: false,
+          message: 'Customer IDs array is required'
         });
       }
 
@@ -1322,15 +1190,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (companyCheck.rows.length === 0) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Company not found' 
+        return res.status(404).json({
+          success: false,
+          message: 'Company not found'
         });
       }
 
       // Check for existing memberships
       const existingQuery = `
-        SELECT customer_id FROM "${schemaName}"."company_memberships" 
+        SELECT customer_id FROM "${schemaName}"."company_memberships"
         WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND is_active = true
       `;
 
@@ -1341,7 +1209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newCustomerIds = customerIds.filter(id => !existingCustomerIds.includes(id));
 
       if (newCustomerIds.length === 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
           message: 'All selected customers are already associated with this company',
           data: {
@@ -1355,7 +1223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = [];
       for (const customerId of newCustomerIds) {
         const insertQuery = `
-          INSERT INTO "${schemaName}"."company_memberships" 
+          INSERT INTO "${schemaName}"."company_memberships"
           (customer_id, company_id, role, is_primary, tenant_id, created_at)
           VALUES ($1, $2, $3, $4, $5, NOW())
           RETURNING *
@@ -1393,7 +1261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error: any) {
       console.error('Error associating multiple customers:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: 'Failed to associate customers',
         error: error.message
@@ -1457,7 +1325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Insert new customer with all supported fields (company field removed)
       const result = await pool.query(
-        `INSERT INTO "${schemaName}"."customers" 
+        `INSERT INTO "${schemaName}"."customers"
          (tenant_id, first_name, last_name, email, phone, address, city, state, zip_code, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
          RETURNING *`,
@@ -1594,7 +1462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (updateFields.length > 1) { // More than just updated_at
         const updateQuery = `
-          UPDATE "${schemaName}"."customers" 
+          UPDATE "${schemaName}"."customers"
           SET ${updateFields.join(', ')}
           ${whereClause}
           RETURNING *
@@ -1669,7 +1537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ REMOVED: Duplicate SaaS Admin registration - moved to Clean Architecture section above per 1qa.md
 
-  // Apply webhook routes BEFORE auth middleware 
+  // Apply webhook routes BEFORE auth middleware
   const webhooksRoutes = await import('./routes/webhooks');
   app.use('/api/webhooks', webhooksRoutes.default);
 
@@ -1751,7 +1619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
 
     const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
-    const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
+    const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');
     // ❌ TICKET-TEMPLATES MOVED TO TOP - avoid try-catch failure
     const hierarchicalController = new TicketMetadataController(); // Reusing the controller for consistency
     const categoryHierarchyController = new TicketHierarchicalController();
@@ -1958,10 +1826,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ✅ CORRETO - Query SQL direta com tenant isolation obrigatório seguindo 1qa.md
       const result = await pool.query(`
-        SELECT 
+        SELECT
           id, first_name, last_name, email, phone, role, tenant_id,
           department_id, position, created_at, updated_at, avatar_url, time_zone
-        FROM "public".users 
+        FROM "public".users
         WHERE id = $1 AND tenant_id = $2
       `, [userId, tenantId]);
 
@@ -2213,9 +2081,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
 
-      res.json({ 
+      res.json({
         success: true,
-        uploadURL 
+        uploadURL
       });
 
     } catch (error) {
@@ -2263,16 +2131,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Users table is in public schema, not tenant schema
       console.log('[PROFILE-PHOTO] Using public schema for users table');
       await pool.query(`
-        UPDATE "public".users 
+        UPDATE "public".users
         SET avatar_url = $1, updated_at = NOW()
         WHERE id = $2 AND tenant_id = $3
       `, [objectPath, userId, tenantId]);
 
       res.json({
         success: true,
-        data: { 
+        data: {
           avatarURL: objectPath,
-          avatar_url: objectPath 
+          avatar_url: objectPath
         },
         message: 'Profile photo updated successfully'
       });
@@ -2306,7 +2174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current user with password
       const userResult = await pool.query(`
-        SELECT password_hash FROM "${schemaName}".users 
+        SELECT password_hash FROM "${schemaName}".users
         WHERE id = $1 AND tenant_id = $2
       `, [userId, tenantId]);
 
@@ -2333,7 +2201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update password
       await pool.query(`
-        UPDATE "${schemaName}".users 
+        UPDATE "${schemaName}".users
         SET password_hash = $1, updated_at = NOW()
         WHERE id = $2 AND tenant_id = $3
       `, [hashedNewPassword, userId, tenantId]);
@@ -2407,12 +2275,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Users table is in public schema, not tenant schema
       console.log('[PREFERENCES-GET] Using public schema for users table');
       const result = await pool.query(`
-        SELECT 
+        SELECT
           'pt-BR' as language,
           true as "emailNotifications",
           true as "pushNotifications",
           false as "darkMode"
-        FROM "public".users 
+        FROM "public".users
         WHERE id = $1 AND tenant_id = $2
       `, [userId, tenantId]);
 
@@ -2458,7 +2326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Users table is in public schema, not tenant schema
       console.log('[PREFERENCES-UPDATE] Using public schema for users table');
       await pool.query(`
-        UPDATE "public".users 
+        UPDATE "public".users
         SET updated_at = NOW()
         WHERE id = $1 AND tenant_id = $2
       `, [userId, tenantId]);
@@ -2561,7 +2429,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;
-
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -2569,7 +2436,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Note: Customer locations functionality requires implementation of customerLocations table in schema
       // For now, return locations associated with the tenant
       const locations = await unifiedStorage.getLocations ? await unifiedStorage.getLocations(tenantId) : [];
-
       res.json({ locations });
     } catch (error) {
       console.error('Error fetching customer locations:', error);
@@ -2750,7 +2616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const iconMap: Record<string, string> = {
       'IMAP Email': 'Mail',
       'Gmail OAuth2': 'Mail',
-      'Outlook OAuth2': 'Mail', 
+      'Outlook OAuth2': 'Mail',
       'Email SMTP': 'Mail',
       'WhatsApp Business': 'MessageCircle',
       'Twilio SMS': 'MessageSquare',
@@ -2786,12 +2652,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return descMap[type] || 'Canal de comunicação';
   }
 
-  // Geolocation detection and formatting routes  
+  // Geolocation detection and formatting routes
   // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue
 
   // app.use('/api/internal-forms', internalFormsRoutes); // Temporarily removed
-
-
 
   // Locations API routes
   app.get('/api/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -2802,8 +2666,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const locations = await unifiedStorage.getLocations ? await unifiedStorage.getLocations(tenantId) : [];
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         data: locations,
         message: `Encontradas ${locations.length} localizações`
       });
@@ -2820,12 +2684,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
 
-      const location = await unifiedStorage.createLocation ? 
-        await unifiedStorage.createLocation(tenantId, req.body) : 
+      const location = await unifiedStorage.createLocation ?
+        await unifiedStorage.createLocation(tenantId, req.body) :
         { id: Date.now(), ...req.body, tenantId, createdAt: new Date().toISOString() };
 
-      res.status(201).json({ 
-        success: true, 
+      res.status(201).json({
+        success: true,
         data: location,
         message: 'Localização criada com sucesso'
       });
@@ -2901,7 +2765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ticket Templates routes are now integrated directly above
   // Auth routes already mounted above, removing duplicate
 
-  // Email Templates routes  
+  // Email Templates routes
   const { emailTemplatesRouter } = await import('./routes/emailTemplates');
   app.use('/api/email-templates', emailTemplatesRouter);
 
@@ -2919,9 +2783,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "Tenant ID required for integration toggle" 
+          message: "Tenant ID required for integration toggle"
         });
       }
 
@@ -2964,8 +2828,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        return res.status(400).json({ 
-          message: "Tenant ID required for integrations" 
+        return res.status(400).json({
+          message: "Tenant ID required for integrations"
         });
       }
 
@@ -3008,7 +2872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             id: 'whatsapp-business',
             name: 'WhatsApp Business',
-            category: 'Comunicação', 
+            category: 'Comunicação',
             description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
             enabled: false,
             status: 'disconnected',
@@ -3021,7 +2885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: 'Comunicação',
             description: 'Bot do Telegram para atendimento automatizado',
             enabled: false,
-            status: 'disconnected', 
+            status: 'disconnected',
             icon: 'MessageCircle',
             features: ['Bot integrado', 'Notificações em tempo real', 'Mensagens personalizadas']
           }
@@ -3039,17 +2903,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ [TENANT-INTEGRATIONS] Returning ${resultIntegrations.length} integrations to OmniBridge`);
 
       // Return in the format expected by OmniBridge
-      res.json({ 
+      res.json({
         data: resultIntegrations,
         success: true,
-        total: resultIntegrations.length 
+        total: resultIntegrations.length
       });
 
     } catch (error) {
       console.error('❌ [TENANT-INTEGRATIONS] Error fetching integrations:', error);
 
       // Return fallback structure instead of error to prevent OmniBridge breaks
-      res.json({ 
+      res.json({
         data: [
           {
             id: 'email-imap',
@@ -3120,7 +2984,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('❌ [TENANT-INTEGRATIONS] Error fetching integrations:', error);
 
       // Return fallback structure instead of error to prevent frontend breaks
-      res.json({ 
+      res.json({
         integrations: [],
         fallback: true,
         message: "Error fetching integrations, empty structure provided"
@@ -3158,7 +3022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`📧 [EMAIL-INBOX] Returning ${messages.length} messages for tenant: ${tenantId}`);
 
-      res.json({ 
+      res.json({
         messages,
         count: messages.length,
         tenantId: tenantId,
@@ -3169,7 +3033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('❌ [EMAIL-INBOX] Error fetching inbox messages:', error);
 
       // Return empty structure instead of error to prevent frontend breaks
-      res.json({ 
+      res.json({
         messages: [],
         count: 0,
         error: true,
@@ -3198,10 +3062,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error getting monitoring status:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         isMonitoring: false,
         status: 'error',
-        message: 'Failed to get monitoring status' 
+        message: 'Failed to get monitoring status'
       });
     }
   });
@@ -3354,8 +3218,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-
   // Status dos backups
   app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
   app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
@@ -3370,8 +3232,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/contracts', contractRoutes);
 
   // ✅ LEGACY MATERIALS SERVICES ROUTES REMOVED - Clean Architecture only per 1qa.md
-
-
 
   // ========================================
 
@@ -3395,7 +3255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const result = await pool.query(
-        `INSERT INTO "${schemaName}"."ticket_field_options" 
+        `INSERT INTO "${schemaName}"."ticket_field_options"
          (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
          VALUES ($1, 'category', $2, $3, $4, 0, false, true)
          RETURNING *`,
@@ -3429,7 +3289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."ticket_field_options" 
+        `SELECT * FROM "${schemaName}"."ticket_field_options"
          WHERE tenant_id = $1 AND fieldname = 'status' AND is_active = true
          ORDER BY sort_order`,
         [tenantId]
@@ -3467,7 +3327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const result = await pool.query(
-        `INSERT INTO "${schemaName}"."ticket_field_options" 
+        `INSERT INTO "${schemaName}"."ticket_field_options"
          (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
          VALUES ($1, 'status', $2, $3, $4, $5, false, true)
          RETURNING *`,
@@ -3502,7 +3362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."ticket_field_options" 
+        `SELECT * FROM "${schemaName}"."ticket_field_options"
          WHERE tenant_id = $1 AND fieldname = 'priority' AND is_active = true
          ORDER BY sort_order`,
         [tenantId]
@@ -3540,7 +3400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const result = await pool.query(
-        `INSERT INTO "${schemaName}"."ticket_field_options" 
+        `INSERT INTO "${schemaName}"."ticket_field_options"
          (tenant_id, fieldname, option_value, display_label, color_hex, sort_order, is_default, is_active)
          VALUES ($1, 'priority', $2, $3, $4, $5, false, true)
          RETURNING *`,
@@ -3591,7 +3451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       const result = await pool.query(`
-        SELECT * FROM "${schemaName}".companies 
+        SELECT * FROM "${schemaName}".companies
         WHERE id = $1 AND tenant_id = $2 AND is_active = true
       `, [id, tenantId]);
 
@@ -3644,7 +3504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all customer companies using direct SQL with proper field mapping
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           id,
           name,
           display_name as "displayName",
@@ -3662,7 +3522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updated_at as "updatedAt"
         FROM ${sql.identifier(schemaName)}.companies
         WHERE is_active = true
-        ORDER BY 
+        ORDER BY
           CASE WHEN name ILIKE '%default%' THEN 0 ELSE 1 END,
           status = 'active' DESC,
           name ASC
@@ -3676,9 +3536,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(companies);
     } catch (error) {
       console.error('Error fetching customer companies via compatibility route:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customer companies' 
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch customer companies'
       });
     }
   });
@@ -3703,7 +3563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get companies associated with this specific customer through the customer_companies relationship table
       const companies = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           c.id as company_id,
           c.name as company_name,
           c.display_name,
@@ -3722,7 +3582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cr.is_primary
         FROM ${sql.identifier(schemaName)}.companies_relationships cr
         INNER JOIN ${sql.identifier(schemaName)}.companies c ON cr.company_id = c.id
-        WHERE cr.customer_id = ${customerId} 
+        WHERE cr.customer_id = ${customerId}
           AND cr.is_active = true
           AND c.is_active = true
         ORDER BY c.name
@@ -3736,9 +3596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error fetching customer companies:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customer companies' 
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch customer companies'
       });
     }
   });
@@ -3767,16 +3627,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingRelation = existing.rows[0];
 
         if (existingRelation.is_active) {
-          return res.status(400).json({ 
-            success: false, 
-            message: 'Cliente já está associado a esta empresa' 
+          return res.status(400).json({
+            success: false,
+            message: 'Cliente já está associado a esta empresa'
           });
         } else {
           // Reactivate existing relationship
           const reactivated = await tenantDb.execute(sql`
             UPDATE ${sql.identifier(schemaName)}.companies_relationships
-            SET is_active = true, relationship_type = ${relationshipType}, 
-                is_primary = ${isPrimary}, start_date = CURRENT_DATE, 
+            SET is_active = true, relationship_type = ${relationshipType},
+                is_primary = ${isPrimary}, start_date = CURRENT_DATE,
                 updated_at = CURRENT_TIMESTAMP, end_date = NULL
             WHERE id = ${existingRelation.id}
             RETURNING *
@@ -3792,7 +3652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create new customer-company relationship
       const relationship = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.companies_relationships 
+        INSERT INTO ${sql.identifier(schemaName)}.companies_relationships
         (customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
         VALUES (${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
@@ -3805,9 +3665,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error adding customer to company:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Erro ao associar cliente à empresa' 
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao associar cliente à empresa'
       });
     }
   });
@@ -3838,9 +3698,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error removing customer from company:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to remove customer from company' 
+      res.status(500).json({
+        success: false,
+        message: 'Failed to remove customer from company'
       });
     }
   });
@@ -3860,16 +3720,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const configTest = await tenantDb.select().from(ticketFieldConfigurations).limit(1);
         const optionsTest = await tenantDb.select().from(ticketFieldOptions).limit(1);
 
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: 'Tables accessible',
           tenantId: tenantId,
           configRows: configTest.length,
           optionsRows: optionsTest.length
         });
       } catch (tableError) {
-        res.json({ 
-          success: false, 
+        res.json({
+          success: false,
           error: tableError.message,
           tenantId: tenantId,
           details: 'Tables may not exist in tenant schema'
@@ -3893,8 +3753,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(`
-        SELECT * FROM "${tenantSchema}".ticket_field_configurations 
-        WHERE tenant_id = '${tenantId}' AND is_active = true 
+        SELECT * FROM "${tenantSchema}".ticket_field_configurations
+        WHERE tenant_id = '${tenantId}' AND is_active = true
         ORDER BY sort_order
       `);
 
@@ -3929,7 +3789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       let query = `
-        SELECT * FROM "${tenantSchema}".ticket_field_options 
+        SELECT * FROM "${tenantSchema}".ticket_field_options
         WHERE tenant_id = '${tenantId}' AND active = true
       `;
 
@@ -4004,8 +3864,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Insert field options
       await tenantDb.insert(ticketFieldOptions).values(fieldOptions);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: 'Ticket metadata initialized successfully',
         counts: {
           fieldConfigurations: fieldConfigs.length,
@@ -4055,7 +3915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { pool } = await import('./db');
 
       const query = `
-        SELECT 
+        SELECT
           th.id,
           th.ticket_id,
           th.action_type,
@@ -4083,9 +3943,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Erro ao buscar histórico do ticket:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: "Erro interno do servidor" 
+      res.status(500).json({
+        success: false,
+        error: "Erro interno do servidor"
       });
     }
   });
@@ -4146,12 +4006,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         position: usersTable.cargo,
         isActive: usersTable.isActive
       })
-      .from(usersTable)
-      .where(and(
-        eq(usersTable.tenantId, tenantId),
-        eq(usersTable.isActive, true)
-      ))
-      .orderBy(usersTable.firstName);
+        .from(usersTable)
+        .where(and(
+          eq(usersTable.tenantId, tenantId),
+          eq(usersTable.isActive, true)
+        ))
+        .orderBy(usersTable.firstName);
 
       // Format response with proper name concatenation
       const formattedUsers = users.map(user => ({
@@ -4186,7 +4046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       const groups = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           ug.id,
           ug.name,
           ug.description,
@@ -4220,7 +4080,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       const members = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           u.id,
           COALESCE(CONCAT(u.first_name, ' ', u.last_name), u.email) as name,
           u.email,
@@ -4256,7 +4116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.user_groups 
+        INSERT INTO ${sql.identifier(schemaName)}.user_groups
         (tenant_id, name, description, is_active, created_by, created_at, updated_at)
         VALUES (${tenantId}, ${name}, ${description}, true, ${userId}, NOW(), NOW())
         RETURNING *
@@ -4465,17 +4325,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('⚠️ [CONTRACT-EXPENSE-MANAGEMENT] Routes module failed to load:', error.message);
   }
 
-
-
   // SaaS Admin - Save Integration Configuration
   app.put('/api/saas-admin/integrations/:integrationId/config', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       // Check if user is SaaS admin
       if (!req.user || req.user.role !== 'saas_admin') {
         console.error('❌ [SAAS-ADMIN-CONFIG] Access denied - not SaaS admin:', req.user?.role);
-        return res.status(403).json({ 
-          success: false, 
-          message: "Access denied. SaaS Admin role required." 
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. SaaS Admin role required."
         });
       }
 
@@ -4554,7 +4412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await pool.query(`
         INSERT INTO "public"."system_integrations" (integration_id, config, updated_at)
         VALUES ($1, $2, NOW())
-        ON CONFLICT (integration_id) 
+        ON CONFLICT (integration_id)
         DO UPDATE SET config = $2, updated_at = NOW()
       `, [integrationId, JSON.stringify(cleanedConfig)]);
 
@@ -4580,9 +4438,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check if user is SaaS admin
       if (!req.user || req.user.role !== 'saas_admin') {
-        return res.status(403).json({ 
-          success: false, 
-          message: "Access denied. SaaS Admin role required." 
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. SaaS Admin role required."
         });
       }
 
@@ -4604,7 +4462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pool = schemaManager.getPool();
 
       const configResult = await pool.query(`
-        SELECT config FROM "public"."system_integrations" 
+        SELECT config FROM "public"."system_integrations"
         WHERE integration_id = $1
       `, [integrationId]);
 
@@ -4693,7 +4551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastTested: new Date().toISOString()
           };
           await pool.query(`
-            UPDATE "public"."system_integrations" 
+            UPDATE "public"."system_integrations"
             SET config = $2, updated_at = NOW()
             WHERE integration_id = $1
           `, [integrationId, JSON.stringify(updatedConfig)]);
@@ -4727,50 +4585,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { CreateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/CreateTicketTemplateUseCase');
     const { UpdateTicketTemplateUseCase } = await import('./modules/ticket-templates/application/use-cases/UpdateTicketTemplateUseCase');
     const { TicketTemplateController } = await import('./modules/ticket-templates/application/controllers/TicketTemplateController');
-    
+
     console.log('🚨 [EMERGENCY-FINAL] Creating final controller instance...');
     const templateRepository = new DrizzleTicketTemplateRepository();
     const getTemplatesUseCase = new GetTicketTemplatesUseCase(templateRepository);
     const createTemplateUseCase = new CreateTicketTemplateUseCase(templateRepository);
     const updateTemplateUseCase = new UpdateTicketTemplateUseCase(templateRepository);
-    const templateController = new TicketTemplateController(createTemplateUseCase, getTemplatesUseCase, updateTemplateUseCase);
-    
+    const ticketTemplateController = new TicketTemplateController(createTemplateUseCase, getTemplatesUseCase, updateTemplateUseCase);
+
     // Register endpoints with proper middleware
-    app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
+    app.get('/api/ticket-templates', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: AuthenticatedRequest, res) => {
       console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates called');
       console.log('🎯 [EMERGENCY-ENDPOINT] Request params:', req.params);
       console.log('🎯 [EMERGENCY-ENDPOINT] Request query:', req.query);
       console.log('🎯 [EMERGENCY-ENDPOINT] User info:', (req as any).user);
       try {
-        await templateController.getTemplates(req, res);
+        await ticketTemplateController.getTemplates(req, res);
         console.log('🎯 [EMERGENCY-ENDPOINT] Controller execution completed');
       } catch (error) {
         console.error('❌ [EMERGENCY-ENDPOINT] Controller error:', error);
         res.status(500).json({ success: false, error: error.message });
       }
     });
-    
+
     app.get('/api/ticket-templates/company/:companyId', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
       console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/company/:companyId called');
-      await templateController.getTemplates(req, res);
+      await ticketTemplateController.getTemplates(req, res);
     });
-    
+
     app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
       console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/company/:companyId/stats called');
       console.log('🎯 [EMERGENCY-ENDPOINT] CompanyId:', req.params.companyId);
       console.log('🎯 [EMERGENCY-ENDPOINT] User info:', (req as any).user);
       try {
-        await templateController.getCompanyTemplateStats(req, res);
+        await ticketTemplateController.getCompanyTemplateStats(req, res);
         console.log('🎯 [EMERGENCY-ENDPOINT] Stats controller execution completed');
       } catch (error) {
         console.error('❌ [EMERGENCY-ENDPOINT] Stats controller error:', error);
         res.status(500).json({ success: false, error: error.message });
       }
     });
-    
+
     app.get('/api/ticket-templates/categories', jwtAuth, enhancedTenantValidator, tenantSchemaEnforcer, async (req: any, res) => {
       console.log('🎯 [EMERGENCY-ENDPOINT] GET /api/ticket-templates/categories called');
-      await templateController.getCategories(req, res);
+      await ticketTemplateController.getCategories(req, res);
     });
 
     // 🚨 ADD MISSING POST ENDPOINT for template creation
@@ -4778,12 +4636,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🎯 [EMERGENCY-ENDPOINT] POST /api/ticket-templates called');
       console.log('🎯 [EMERGENCY-ENDPOINT] Request body:', req.body);
       console.log('🎯 [EMERGENCY-ENDPOINT] User info:', (req as any).user);
-      console.log('🎯 [EMERGENCY-ENDPOINT] Controller instance:', templateController ? 'EXISTS' : 'MISSING');
-      console.log('🎯 [EMERGENCY-ENDPOINT] CreateTemplate method:', typeof templateController?.createTemplate);
-      
+      console.log('🎯 [EMERGENCY-ENDPOINT] Controller instance:', ticketTemplateController ? 'EXISTS' : 'MISSING');
+      console.log('🎯 [EMERGENCY-ENDPOINT] CreateTemplate method:', typeof ticketTemplateController?.createTemplate);
+
       try {
         console.log('🔥 [EMERGENCY-ENDPOINT] About to call controller.createTemplate...');
-        await templateController.createTemplate(req, res);
+        await ticketTemplateController.createTemplate(req, res);
         console.log('🎯 [EMERGENCY-ENDPOINT] POST Controller execution completed');
       } catch (error) {
         console.error('❌ [EMERGENCY-ENDPOINT] POST Controller error:', error);
@@ -4806,7 +4664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ success: false, error: error.message });
       }
     });
-    
+
     console.log('✅ [EMERGENCY-FINAL] Ticket templates endpoints registered successfully!');
   } catch (emergencyError: any) {
     console.error('❌ [EMERGENCY-FINAL] Final registration failed:', emergencyError.message);
