@@ -112,16 +112,17 @@ export default function TicketTemplates() {
     },
   });
 
-  // Query para buscar templates
-  const { data: templatesResponse, isLoading } = useQuery({
+  // Fetch templates based on selected company
+  const { data: templatesResponse, isLoading: templatesLoading } = useQuery({
     queryKey: ['/api/ticket-templates', selectedCompany],
     queryFn: async () => {
       const endpoint = selectedCompany === 'all' 
         ? '/api/ticket-templates' 
-        : `/api/ticket-templates?companyId=${selectedCompany}`;
+        : `/api/ticket-templates/company/${selectedCompany}`;
       const response = await apiRequest('GET', endpoint);
       return response.json();
     },
+    enabled: !!selectedCompany,
   });
 
   // Query para buscar estatísticas
@@ -148,7 +149,13 @@ export default function TicketTemplates() {
     },
   });
 
-  const templates = templatesResponse?.data || [];
+  const templates = templatesResponse?.success 
+    ? (Array.isArray(templatesResponse.data) ? templatesResponse.data : [])
+    : Array.isArray(templatesResponse?.data) 
+    ? templatesResponse.data 
+    : Array.isArray(templatesResponse) 
+    ? templatesResponse 
+    : [];
   const stats = statsResponse?.data || {};
   const categories = categoriesResponse?.data || [];
 
@@ -289,7 +296,7 @@ export default function TicketTemplates() {
                   Painel de Controle de Templates
                 </h2>
               </div>
-              
+
               <div className="p-4 space-y-4">
                 {/* Filtros Hierárquicos */}
                 <div className="flex flex-wrap gap-4">
@@ -304,7 +311,7 @@ export default function TicketTemplates() {
                       className="border-purple-200 focus:border-purple-400"
                     />
                   </div>
-                  
+
                   <div className="flex-1 min-w-48">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       📁 Categoria
@@ -363,9 +370,9 @@ export default function TicketTemplates() {
                   Templates Disponíveis ({filteredTemplates.length})
                 </h2>
               </div>
-              
+
               <div className="divide-y">
-                {isLoading ? (
+                {templatesLoading ? (
                   <div className="p-4 text-center text-gray-500">
                     <div className="inline-flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
@@ -392,7 +399,7 @@ export default function TicketTemplates() {
                           <div className="flex items-center gap-2">
                             <FileText className="w-5 h-5 text-blue-600" />
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
                               <h3 className="font-medium text-gray-900">{template.name}</h3>
@@ -548,7 +555,7 @@ export default function TicketTemplates() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="category"

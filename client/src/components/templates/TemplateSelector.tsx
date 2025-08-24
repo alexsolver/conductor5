@@ -46,13 +46,20 @@ export default function TemplateSelector({
     queryFn: async () => {
       const endpoint = companyId === 'all' 
         ? '/api/ticket-templates' 
-        : `/api/ticket-templates?companyId=${companyId}`;
+        : `/api/ticket-templates/company/${companyId}`;
       const response = await apiRequest('GET', endpoint);
       return response.json();
     },
+    enabled: !!companyId,
   });
 
-  const templates = Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
+  const templates = templatesResponse?.success 
+    ? (Array.isArray(templatesResponse.data) ? templatesResponse.data : [])
+    : Array.isArray(templatesResponse?.data) 
+    ? templatesResponse.data 
+    : Array.isArray(templatesResponse) 
+    ? templatesResponse 
+    : [];
 
   // Fetch categories
   const { data: categoriesResponse } = useQuery({

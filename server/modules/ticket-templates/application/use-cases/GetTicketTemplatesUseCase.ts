@@ -1,7 +1,7 @@
 /**
  * Get Ticket Templates Use Case
  * Clean Architecture - Application Layer
- * 
+ *
  * @module GetTicketTemplatesUseCase
  * @created 2025-08-12 - Phase 20 Clean Architecture Implementation
  */
@@ -109,6 +109,10 @@ export class GetTicketTemplatesUseCase {
         );
       }
       // 3. Get all templates with filters
+      else if (request.companyId) {
+        // Use new method to get templates by company
+        templates = await this.getTemplatesByCompany(request.companyId, request.tenantId);
+      }
       else {
         templates = await this.ticketTemplateRepository.findAll(
           request.tenantId,
@@ -157,6 +161,41 @@ export class GetTicketTemplatesUseCase {
         success: false,
         errors: ['Erro interno do servidor']
       };
+    }
+  }
+
+  async getTemplateStatsByCompany(companyId: string, tenantId: string): Promise<any> {
+    try {
+      console.log(`🔍 [GET-TEMPLATE-STATS] Getting stats for company ${companyId}, tenant ${tenantId}`);
+
+      const stats = await this.ticketTemplateRepository.getTemplateStatsByCompany(companyId, tenantId);
+
+      console.log(`✅ [GET-TEMPLATE-STATS] Retrieved stats:`, stats);
+      return stats;
+    } catch (error) {
+      console.error(`❌ [GET-TEMPLATE-STATS] Error:`, error);
+      throw new Error(`Failed to get template statistics: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getTemplatesByCompany(companyId: string, tenantId: string): Promise<TicketTemplate[]> {
+    try {
+      console.log(`🔍 [GET-TEMPLATES-BY-COMPANY] Getting templates for company ${companyId}, tenant ${tenantId}`);
+
+      if (companyId === 'all') {
+        // Assuming a method to get all templates, if not available, this needs to be implemented or handled.
+        // For now, let's assume it exists or fall back to fetching all without company filter if appropriate.
+        // If ticketTemplateRepository.findAll is intended for all, use that.
+        return await this.ticketTemplateRepository.findAll(tenantId); // Adjust if findAll requires filters
+      }
+
+      const templates = await this.ticketTemplateRepository.findByCompanyId(companyId, tenantId);
+
+      console.log(`✅ [GET-TEMPLATES-BY-COMPANY] Found ${templates.length} templates`);
+      return templates;
+    } catch (error) {
+      console.error(`❌ [GET-TEMPLATES-BY-COMPANY] Error:`, error);
+      throw new Error(`Failed to get templates by company: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

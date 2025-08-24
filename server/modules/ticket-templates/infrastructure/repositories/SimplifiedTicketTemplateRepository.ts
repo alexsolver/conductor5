@@ -713,25 +713,62 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
     return true;
   }
 
-  async findAll(tenantId: string, filters?: any): Promise<TicketTemplate[]> {
-    let templates = this.templates.filter(t => t.tenantId === tenantId);
+  async findAll(tenantId: string): Promise<TicketTemplate[]> {
+    try {
+      console.log('🔍 [TEMPLATE-REPO] Finding all templates for tenant:', tenantId);
 
-    if (filters) {
-      if (filters.category) templates = templates.filter(t => t.category === filters.category);
-      if (filters.subcategory) templates = templates.filter(t => t.subcategory === filters.subcategory);
-      if (filters.templateType) templates = templates.filter(t => t.templateType === filters.templateType);
-      if (filters.status) templates = templates.filter(t => t.status === filters.status);
-      if (filters.companyId) templates = templates.filter(t => t.companyId === filters.companyId);
-      if (filters.isDefault !== undefined) templates = templates.filter(t => t.isDefault === filters.isDefault);
-      if (filters.isSystem !== undefined) templates = templates.filter(t => t.isSystem === filters.isSystem);
-      if (filters.tags) {
-        templates = templates.filter(t => 
-          filters.tags.some((tag: string) => t.tags.includes(tag))
-        );
-      }
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const pool = schemaManager.getPool();
+
+      const query = `
+        SELECT 
+          id, tenant_id as "tenantId", company_id as "companyId", name, description, 
+          category, priority, urgency, impact, usage_count, estimated_hours, 
+          requires_approval, auto_assign, is_popular, default_title, default_description,
+          custom_fields, is_active, created_at as "createdAt", updated_at as "updatedAt",
+          created_by as "createdBy", updated_by as "updatedBy"
+        FROM "${schemaName}".ticket_templates 
+        WHERE tenant_id = $1 AND is_active = true
+        ORDER BY name ASC
+      `;
+
+      const result = await pool.query(query, [tenantId]);
+      console.log(`✅ [TEMPLATE-REPO] Found ${result.rows.length} templates`);
+
+      return result.rows.map(row => this.mapRowToEntity(row));
+    } catch (error: any) {
+      console.error('❌ [TEMPLATE-REPO] findAll error:', error);
+      throw error;
     }
+  }
 
-    return templates;
+  async findByCompanyId(companyId: string, tenantId: string): Promise<TicketTemplate[]> {
+    try {
+      console.log('🔍 [TEMPLATE-REPO] Finding templates for company:', companyId, 'tenant:', tenantId);
+
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const pool = schemaManager.getPool();
+
+      const query = `
+        SELECT 
+          id, tenant_id as "tenantId", company_id as "companyId", name, description, 
+          category, priority, urgency, impact, usage_count, estimated_hours, 
+          requires_approval, auto_assign, is_popular, default_title, default_description,
+          custom_fields, is_active, created_at as "createdAt", updated_at as "updatedAt",
+          created_by as "createdBy", updated_by as "updatedBy"
+        FROM "${schemaName}".ticket_templates 
+        WHERE tenant_id = $1 AND (company_id = $2 OR company_id IS NULL) AND is_active = true
+        ORDER BY name ASC
+      `;
+
+      const result = await pool.query(query, [tenantId, companyId]);
+      console.log(`✅ [TEMPLATE-REPO] Found ${result.rows.length} templates for company ${companyId}`);
+
+      return result.rows.map(row => this.mapRowToEntity(row));
+    } catch (error: any) {
+      console.error('❌ [TEMPLATE-REPO] findByCompanyId error:', error);
+      throw error;
+    }
   }
 
   async findByCategory(tenantId: string, category: string, subcategory?: string): Promise<TicketTemplate[]> {
@@ -815,9 +852,9 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
 
   async getUsageStatistics(tenantId: string): Promise<any> {
     const templates = await this.findAll(tenantId);
-    
+
     const totalUsage = templates.reduce((sum, t) => sum + t.usageCount, 0);
-    
+
     const popularTemplates = templates
       .map(t => ({ template: t, usageCount: t.usageCount, lastUsed: t.lastUsed }))
       .sort((a, b) => b.usageCount - a.usageCount)
@@ -847,7 +884,7 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
       let range = 'simple';
       if (complexity > 10) range = 'complex';
       else if (complexity > 5) range = 'medium';
-      
+
       acc[range] = (acc[range] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -898,7 +935,7 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
   async getFieldAnalytics(tenantId: string): Promise<any> {
     const templates = await this.findAll(tenantId);
     const allFields = templates.flatMap(t => t.fields);
-    
+
     const fieldTypeCounts = allFields.reduce((acc, field) => {
       acc[field.type] = (acc[field.type] || 0) + 1;
       return acc;
@@ -984,7 +1021,7 @@ export class SimplifiedTicketTemplateRepository implements ITicketTemplateReposi
   async getAverageRating(templateId: string, tenantId: string): Promise<number> {
     const feedback = await this.getUserFeedback(templateId, tenantId);
     if (feedback.length === 0) return 0;
-    
+
     const totalRating = feedback.reduce((sum, f) => sum + f.rating, 0);
     return Math.round((totalRating / feedback.length) * 100) / 100;
   }

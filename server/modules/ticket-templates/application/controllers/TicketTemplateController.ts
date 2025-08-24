@@ -510,4 +510,66 @@ export class TicketTemplateController {
       });
     }
   };
+
+  async getTemplateStatsByCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { companyId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          message: 'Tenant ID is required',
+          code: 'TENANT_ID_REQUIRED'
+        });
+        return;
+      }
+
+      const stats = await this.getTicketTemplatesUseCase.getTemplateStatsByCompany(companyId, tenantId);
+
+      res.json({
+        success: true,
+        message: 'Template statistics retrieved successfully',
+        data: stats
+      });
+    } catch (error) {
+      console.error('[GET-TEMPLATE-STATS-BY-COMPANY-CONTROLLER]', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to get template statistics',
+        code: 'GET_TEMPLATE_STATS_ERROR'
+      });
+    }
+  }
+
+  async getTemplatesByCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { companyId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          message: 'Tenant ID is required',
+          code: 'TENANT_ID_REQUIRED'
+        });
+        return;
+      }
+
+      const templates = await this.getTicketTemplatesUseCase.getTemplatesByCompany(companyId, tenantId);
+
+      res.json({
+        success: true,
+        message: 'Templates retrieved successfully',
+        data: templates
+      });
+    } catch (error) {
+      console.error('[GET-TEMPLATES-BY-COMPANY-CONTROLLER]', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to get templates',
+        code: 'GET_TEMPLATES_ERROR'
+      });
+    }
+  }
 }
