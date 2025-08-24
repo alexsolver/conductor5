@@ -1587,7 +1587,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { TicketTemplateController } = await import('./modules/ticket-templates/TicketTemplateController');
     const hierarchicalController = new TicketMetadataController(); // Reusing the controller for consistency
     const categoryHierarchyController = new TicketHierarchicalController();
-    const ticketTemplateController = new TicketTemplateController(schemaManager);
+    // Ticket Templates routes - hierarchical structure with companies
+    const ticketTemplateController = new TicketTemplateController();
 
     // Customer-specific configuration routes - only bind if methods exist
     if (hierarchicalController.getCustomerConfiguration) {
@@ -1832,7 +1833,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ✅ CORRETO - Seguindo padrões 1qa.md - USANDO SQL DIRETO PARA ESTABILIDADE
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
-
       console.log('[PROFILE-GET] Using PostgreSQL direct following 1qa.md patterns');
 
       // ✅ CORRETO - Query SQL direta com tenant isolation obrigatório seguindo 1qa.md
@@ -2612,109 +2612,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('Locations module not available:', error);
   }
-
-  // ✅ LOCATIONS NEW MODULE per 1qa.md Clean Architecture
-  try {
-    const { default: locationsNewRouter } = await import('./modules/locations/routes-new');
-    console.log('✅ [LOCATIONS-NEW-MODULE] Successfully imported locations-new module');
-    app.use('/api/locations-new', locationsNewRouter);
-    console.log('✅ [LOCATIONS-NEW-MODULE] Locations-new routes registered at /api/locations-new');
-  } catch (error) {
-    console.error('❌ [LOCATIONS-NEW-MODULE] Failed to load locations-new module:', error);
-    console.error('❌ [LOCATIONS-NEW-MODULE] Error details:', error.message);
-  }
-
-  // Removed OmniBridge Routes - defined earlier
-
-  // Helper functions for channel transformation
-  function getChannelIcon(type: string): string {
-    const iconMap: Record<string, string> = {
-      'IMAP Email': 'Mail',
-      'Gmail OAuth2': 'Mail',
-      'Outlook OAuth2': 'Mail', 
-      'Email SMTP': 'Mail',
-      'WhatsApp Business': 'MessageCircle',
-      'Twilio SMS': 'MessageSquare',
-      'Telegram Bot': 'Send',
-      'Facebook Messenger': 'MessageCircle',
-      'Web Chat': 'Globe',
-      'Zapier': 'Zap',
-      'Webhooks': 'Webhook',
-      'CRM Integration': 'Database',
-      'SSO/SAML': 'Shield',
-      'Chatbot IA': 'Bot'
-    };
-    return iconMap[type] || 'Settings';
-  }
-
-  function getChannelDescription(type: string): string {
-    const descMap: Record<string, string> = {
-      'IMAP Email': 'Recebimento de emails via protocolo IMAP',
-      'Gmail OAuth2': 'Integração OAuth2 com Gmail',
-      'Outlook OAuth2': 'Integração OAuth2 com Outlook',
-      'Email SMTP': 'Envio de emails via protocolo SMTP',
-      'WhatsApp Business': 'API oficial do WhatsApp Business',
-      'Twilio SMS': 'Envio e recebimento de SMS via Twilio',
-      'Telegram Bot': 'Bot para comunicação via Telegram',
-      'Facebook Messenger': 'Integração com Facebook Messenger',
-      'Web Chat': 'Widget de chat para websites',
-      'Zapier': 'Automações via Zapier',
-      'Webhooks': 'Recebimento de webhooks externos',
-      'CRM Integration': 'Sincronização com sistemas CRM',
-      'SSO/SAML': 'Autenticação única empresarial',
-      'Chatbot IA': 'Assistente virtual com IA'
-    };
-    return descMap[type] || 'Canal de comunicação';
-  }
-
-  // Geolocation detection and formatting routes  
-  // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue
-
-  // app.use('/api/internal-forms', internalFormsRoutes); // Temporarily removed
-
-
-
-  // Locations API routes
-  app.get('/api/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
-      }
-
-      const locations = await unifiedStorage.getLocations ? await unifiedStorage.getLocations(tenantId) : [];
-      res.json({ 
-        success: true, 
-        data: locations,
-        message: `Encontradas ${locations.length} localizações`
-      });
-    } catch (error) {
-      console.error('Error fetching locations:', error);
-      res.status(500).json({ success: false, message: 'Erro ao buscar localizações' });
-    }
-  });
-
-  app.post('/api/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
-      }
-
-      const location = await unifiedStorage.createLocation ? 
-        await unifiedStorage.createLocation(tenantId, req.body) : 
-        { id: Date.now(), ...req.body, tenantId, createdAt: new Date().toISOString() };
-
-      res.status(201).json({ 
-        success: true, 
-        data: location,
-        message: 'Localização criada com sucesso'
-      });
-    } catch (error) {
-      console.error('Error creating location:', error);
-      res.status(500).json({ success: false, message: 'Erro ao criar localização' });
-    }
-  });
 
   // ✅ LEGACY LOCATIONS ROUTES ELIMINATED - Clean Architecture only per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy locations routes eliminated');

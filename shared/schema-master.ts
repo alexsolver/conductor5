@@ -309,7 +309,7 @@ export const tickets = pgTable("tickets", {
   slaElapsedPercent: decimal("sla_elapsed_percent", { precision: 5, scale: 2 }).default("0"), // Percentual decorrido 0-100
   slaStatus: varchar("sla_status", { length: 20 }).default("none"), // none, active, warning, breached
   appliedSlaId: uuid("applied_sla_id"), // ID da definição SLA aplicada
-  
+
   // Audit fields
   createdBy: uuid("opened_by_id").references(() => users.id),
   updatedBy: uuid("updated_by"),
@@ -589,70 +589,8 @@ export const beneficiaries = pgTable("beneficiaries", {
   tenantCustomerIdx: index("beneficiaries_tenant_customer_idx").on(table.tenantId, table.customerId),
 }));
 
-
-
 // ========================================
-// ZOD SCHEMAS FOR VALIDATION
-// ========================================
-
-export const insertUserSchema = createInsertSchema(users);
-export const insertTenantSchema = createInsertSchema(tenants);
-export const insertCustomerSchema = createInsertSchema(customers);
-export const insertTicketSchema = createInsertSchema(tickets);
-export const insertTicketMessageSchema = createInsertSchema(ticketMessages);
-export const insertActivityLogSchema = createInsertSchema(activityLogs);
-export const insertLocationSchema = createInsertSchema(locations);
-export const insertCompanySchema = createInsertSchema(companies);
-// Schema manual para skills - evita referências a campos inexistentes
-export const insertSkillSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  category: z.string().min(1, "Categoria é obrigatória"),
-  description: z.string().optional(),
-  suggestedCertification: z.string().optional(),
-  certificationValidityMonths: z.number().optional(),
-  observations: z.string().optional(),
-  scaleOptions: z.array(z.object({
-    level: z.number(),
-    label: z.string(),
-    description: z.string()
-  })).optional(),
-  isActive: z.boolean().default(true),
-  tenantId: z.string().optional(),
-});
-export const insertCertificationSchema = createInsertSchema(certifications);
-export const insertUserSkillSchema = createInsertSchema(userSkills);
-export const insertUserGroupSchema = createInsertSchema(userGroups);
-export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships);
-export const insertBeneficiarySchema = createInsertSchema(beneficiaries);
-
-
-// Customer Company Memberships table - Many-to-many relationship
-export const customerCompanyMemberships = pgTable("customer_company_memberships", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
-  companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }).notNull(),
-  role: varchar("role", { length: 50 }).default("member").notNull(), // member, admin, contact - REQUIRED
-  isActive: boolean("is_active").default(true).notNull(), // REQUIRED for soft deletes
-  assignedAt: timestamp("assigned_at").defaultNow().notNull(), // REQUIRED for audit
-  assignedById: uuid("assigned_by_id").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(), // REQUIRED for audit
-  updatedAt: timestamp("updated_at").defaultNow().notNull(), // REQUIRED for audit
-}, (table) => [
-  unique("customer_company_memberships_unique").on(table.tenantId, table.customerId, table.companyId),
-  index("customer_company_memberships_tenant_customer_idx").on(table.tenantId, table.customerId),
-  index("customer_company_memberships_tenant_company_idx").on(table.tenantId, table.companyId),
-  index("customer_company_memberships_tenant_active_idx").on(table.tenantId, table.isActive),
-  index("customer_company_memberships_tenant_role_idx").on(table.tenantId, table.role),
-]);
-
-// Customer Company Memberships types
-export type CustomerCompanyMembership = typeof customerCompanyMemberships.$inferSelect;
-export type InsertCustomerCompanyMembership = typeof customerCompanyMemberships.$inferInsert;
-export const insertCustomerCompanyMembershipSchema = createInsertSchema(customerCompanyMemberships);
-
-// ========================================
-// TICKET HIERARCHICAL CATEGORIES (CATEGORIA → SUBCATEGORIA → AÇÃO)
+// TICKET CATEGORIES (CATEGORIA → SUBCATEGORIA → AÇÃO)
 // ========================================
 
 // Ticket Categories - Nível 1 da hierarquia
@@ -1484,8 +1422,6 @@ export type InsertUserSkill = typeof userSkills.$inferInsert;
 export type Beneficiary = typeof beneficiaries.$inferSelect;
 export type InsertBeneficiary = typeof beneficiaries.$inferInsert;
 
-
-
 export type MarketLocalization = typeof marketLocalization.$inferSelect;
 export type InsertMarketLocalization = typeof marketLocalization.$inferInsert;
 
@@ -1836,7 +1772,7 @@ export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 
 // User Group schemas for validation
-export const updateUserGroupSchema = insertUserGroupSchema.partial();
+export const updateUserGroupSchema = createInsertSchema(userGroups).partial();
 
 // ========================================
 // APPROVAL MANAGEMENT TABLES - Universal approval system (LEGACY - TO BE REMOVED)
@@ -3073,54 +3009,44 @@ export const insertSlaMetricSchema = createInsertSchema(slaMetrics);
 
 export const ticketTemplates = pgTable("ticket_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }),
-  isGlobal: boolean("is_global").default(false).notNull(),,
-
-  // Identificação
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  companyId: uuid("company_id").references(() => companies.id), // null for global templates
+  isGlobal: boolean("is_global").default(false).notNull(), // true for global, false for company-specific
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 100 }).notNull(),
   subcategory: varchar("subcategory", { length: 100 }),
-
-  // Configurações padrão do ticket
   defaultTitle: varchar("default_title", { length: 500 }),
   defaultDescription: text("default_description"),
-  defaultType: varchar("default_type", { length: 50 }).default("support").notNull(),
-  defaultPriority: varchar("default_priority", { length: 50 }).default("medium").notNull(),
-  defaultStatus: varchar("default_status", { length: 50 }).default("open").notNull(),
-  defaultCategory: varchar("default_category", { length: 100 }).notNull(),
-  defaultUrgency: varchar("default_urgency", { length: 50 }),
-  defaultImpact: varchar("default_impact", { length: 50 }),
-
-  // Atribuições automáticas
-  defaultAssigneeId: uuid("default_assignee_id"),
+  defaultType: varchar("default_type", { length: 50 }).default("support"),
+  defaultPriority: varchar("default_priority", { length: 20 }).default("medium"),
+  defaultStatus: varchar("default_status", { length: 50 }).default("open"),
+  defaultCategory: varchar("default_category", { length: 100 }),
+  defaultUrgency: varchar("default_urgency", { length: 20 }),
+  defaultImpact: varchar("default_impact", { length: 20 }),
+  defaultAssigneeId: uuid("default_assignee_id").references(() => users.id),
   defaultAssignmentGroup: varchar("default_assignment_group", { length: 100 }),
   defaultDepartment: varchar("default_department", { length: 100 }),
-
-  // Configurações de campos
-  requiredFields: text("required_fields").array().default([]),
-  optionalFields: text("optional_fields").array().default([]),
-  hiddenFields: text("hidden_fields").array().default([]),
+  requiredFields: text("required_fields").array(),
+  optionalFields: text("optional_fields").array(),
+  hiddenFields: text("hidden_fields").array(),
   customFields: jsonb("custom_fields").default({}),
-
-  // Automações e SLA
   autoAssignmentRules: jsonb("auto_assignment_rules").default({}),
   slaOverride: jsonb("sla_override").default({}),
-
-  // Metadados
   isActive: boolean("is_active").default(true),
-  isPublic: boolean("is_public").default(true),
   sortOrder: integer("sort_order").default(0),
   usageCount: integer("usage_count").default(0),
   lastUsedAt: timestamp("last_used_at"),
+  createdById: uuid("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  createdById: uuid("created_by_id").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow()
 }, (table) => [
-  index("templates_company_active_idx").on(table.tenantId, table.companyId, table.isActive, table.category),
-  index("templates_usage_idx").on(table.tenantId, table.companyId, table.usageCount.desc(), table.lastUsedAt.desc()),
-  unique("templates_unique_name").on(table.tenantId, table.companyId, table.name),
+  index("ticket_templates_tenant_idx").on(table.tenantId),
+  index("ticket_templates_company_idx").on(table.companyId),
+  index("ticket_templates_global_idx").on(table.isGlobal),
+  index("ticket_templates_category_idx").on(table.category),
+  index("ticket_templates_active_idx").on(table.isActive),
+  unique("ticket_templates_tenant_name_unique").on(table.tenantId, table.name)
 ]);
 
 // ========================================
@@ -3376,108 +3302,6 @@ export const customerItemMappings = pgTable("customer_item_mappings", {
   unique("customer_item_mappings_customer_sku_unique").on(table.tenantId, table.customerId, table.customSku),
 ]);
 
-
-
-// ========================================
-// ADDITIONAL MATERIALS & SERVICES TYPES
-// ========================================
-
-// Price Lists (LPU)
-export type PriceList = typeof priceLists.$inferSelect;
-export type InsertPriceList = typeof priceLists.$inferInsert;
-
-export type PriceListItem = typeof priceListItems.$inferSelect;
-export type InsertPriceListItem = typeof priceListItems.$inferInsert;
-
-export type PricingRule = typeof pricingRules.$inferSelect;
-export type InsertPricingRule = typeof pricingRules.$inferInsert;
-
-export type DynamicPricing = typeof dynamicPricing.$inferSelect;
-export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
-
-// ========================================
-// ASSET MANAGEMENT TYPES
-// ========================================
-
-export type Asset = typeof assets.$inferSelect;
-export type InsertAsset = typeof assets.$inferInsert;
-
-export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
-export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
-
-export type AssetMeter = typeof assetMeters.$inferSelect;
-export type InsertAssetMeter = typeof assetMeters.$inferInsert;
-
-export type AssetLocation = typeof assetLocations.$inferSelect;
-export type InsertAssetLocation = typeof assetLocations.$inferInsert;
-
-// ========================================
-// COMPLIANCE TYPES
-// ========================================
-
-export type ComplianceAudit = typeof complianceAudits.$inferSelect;
-export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
-
-export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
-export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
-
-export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
-export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
-
-export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
-export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
-
-export type ComplianceScore = typeof complianceScores.$inferSelect;
-export type InsertComplianceScore = typeof complianceScores.$inferInsert;
-
-// Approval schemas and types will be defined after table declarations below
-
-// Zod schemas para validação
-export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
-  name: z.string().min(1, "Nome da visualização é obrigatório"),
-  columns: z.array(z.object({
-    id: z.string(),
-    label: z.string(),
-    visible: z.boolean(),
-    order: z.number(),
-    width: z.number().optional(),
-  })),
-  filters: z.array(z.object({
-    column: z.string(),
-    operator: z.string(),
-    value: z.any(),
-  })).optional(),
-  sorting: z.array(z.object({
-    column: z.string(),
-    direction: z.enum(['asc', 'desc']),
-  })).optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true });
-
-export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares);
-export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences);
-
-// Customer Item Mappings validation schema
-export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
-  customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
-  customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
-  leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true });
-
-// Item Supplier Links validation schema
-export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks).extend({
-  partNumber: z.string().min(1, "Part number é obrigatório").optional(),
-  supplierItemName: z.string().min(1, "Nome do fornecedor deve ter pelo menos 1 caractere").optional(),
-  unitPrice: z.number().min(0, "Preço deve ser positivo").optional(),
-  leadTimeDays: z.number().int().min(0, "Prazo de entrega deve ser positivo").optional(),
-  minimumOrderQuantity: z.number().int().min(1, "Quantidade mínima deve ser pelo menos 1").optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true, lastPriceUpdate: true });
-
-// Select types for enhanced tables
-export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
-export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
-export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
-export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
-
 // ========================================
 // APPROVALS MODULE SCHEMA (Following 1qa.md patterns)
 // ========================================
@@ -3509,40 +3333,40 @@ export const approverTypeEnum = pgEnum("approver_type", [
 
 // Query builder operators
 export const queryOperatorEnum = pgEnum("query_operator", [
-  "EQ", "NEQ", "IN", "NOT_IN", "GT", "GTE", "LT", "LTE", 
+  "EQ", "NEQ", "IN", "NOT_IN", "GT", "GTE", "LT", "LTE",
   "CONTAINS", "STARTS_WITH", "EXISTS", "BETWEEN"
 ]);
 
 // Approval Rules - Universal rules for any module
 export const approvalRules = pgTable("approval_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  
+
   // Module context
   moduleType: approvalEntityTypeEnum("module_type").notNull(),
   entityType: varchar("entity_type", { length: 100 }).notNull(), // Specific entity within module
-  
+
   // Query builder conditions (JSON structure)
   queryConditions: jsonb("query_conditions").notNull(),
-  
+
   // Approval pipeline configuration
   approvalSteps: jsonb("approval_steps").notNull(),
-  
+
   // SLA settings - aligned with database reality
   slaHours: integer("sla_hours").default(24),
   businessHoursOnly: boolean("business_hours_only").default(true),
   autoApprovalConditions: jsonb("auto_approval_conditions").default({}),
   escalationSettings: jsonb("escalation_settings").default({}),
-  
+
   // Hierarchical association
   companyId: uuid("company_id").references(() => customers.id), // Associate with customer/company
 
   // Configuration
   isActive: boolean("is_active").default(true),
   priority: integer("priority").default(0), // Higher priority rules evaluated first
-  
+
   // Audit fields
   createdById: uuid("created_by_id").notNull(),
   updatedById: uuid("updated_by_id"),
@@ -3560,21 +3384,21 @@ export const approvalInstances = pgTable("approval_instances", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   ruleId: uuid("rule_id").references(() => approvalRules.id).notNull(),
-  
+
   // Entity being approved
   entityType: approvalEntityTypeEnum("entity_type").notNull(),
   entityId: uuid("entity_id").notNull(),
   entityData: jsonb("entity_data"), // Snapshot of entity at approval time
-  
+
   // Workflow state
   currentStepIndex: integer("current_step_index").default(0),
   status: approvalStatusEnum("status").default("pending"),
-  
+
   // Request information
   requestedById: uuid("requested_by_id").notNull(),
   requestReason: text("request_reason"),
   urgencyLevel: integer("urgency_level").default(1), // 1-5 scale
-  
+
   // SLA tracking
   slaDeadline: timestamp("sla_deadline"),
   slaElapsedMinutes: integer("sla_elapsed_minutes"),
@@ -3582,16 +3406,16 @@ export const approvalInstances = pgTable("approval_instances", {
   firstReminderSent: timestamp("first_reminder_sent"),
   secondReminderSent: timestamp("second_reminder_sent"),
   escalatedAt: timestamp("escalated_at"),
-  
+
   // Completion data
   completedAt: timestamp("completed_at"),
   completedById: uuid("completed_by_id"),
   completionReason: text("completion_reason"),
-  
+
   // Metrics
   totalResponseTimeMinutes: integer("total_response_time_minutes"),
   slaViolated: boolean("sla_violated").default(false),
-  
+
   // Audit fields
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3609,30 +3433,30 @@ export const approvalSteps = pgTable("approval_steps", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
-  
+
   // Step configuration
   stepIndex: integer("step_index").notNull(),
   stepName: varchar("step_name", { length: 255 }).notNull(),
   decisionMode: stepDecisionModeEnum("decision_mode").notNull(),
   quorumCount: integer("quorum_count"), // Required when decision_mode = QUORUM
-  
+
   // Step status
   status: approvalStatusEnum("status").default("pending"),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-  
+
   // SLA for this step
   stepSlaHours: integer("step_sla_hours").default(24),
   stepDeadline: timestamp("step_deadline"),
-  
+
   // Approvers for this step
   approverConfiguration: jsonb("approver_configuration").notNull(),
-  
+
   // Results
   approvedCount: integer("approved_count").default(0),
   rejectedCount: integer("rejected_count").default(0),
   totalApprovers: integer("total_approvers").default(0),
-  
+
   // Audit fields
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3650,32 +3474,32 @@ export const approvalDecisions = pgTable("approval_decisions", {
   tenantId: uuid("tenant_id").notNull(),
   instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
   stepId: uuid("step_id").references(() => approvalSteps.id).notNull(),
-  
+
   // Approver information
   approverType: approverTypeEnum("approver_type").notNull(),
   approverId: uuid("approver_id"), // User ID when approver_type = user
   approverGroupId: uuid("approver_group_id"), // Group ID when approver_type = user_group
   approverName: varchar("approver_name", { length: 255 }).notNull(),
-  
+
   // Decision details
   decision: approvalDecisionEnum("decision").notNull(),
   comments: text("comments").notNull(),
   attachments: jsonb("attachments"), // File attachments for decision
-  
+
   // Timing
   decidedAt: timestamp("decided_at").defaultNow(),
   notifiedAt: timestamp("notified_at"),
   responseTimeMinutes: integer("response_time_minutes"),
-  
+
   // Delegation/Escalation tracking
   delegatedToId: uuid("delegated_to_id"),
   escalatedFromStepId: uuid("escalated_from_step_id"),
   escalationReason: text("escalation_reason"),
-  
+
   // Audit information
   ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: text("user_agent"),
-  
+
   // System tracking
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3694,30 +3518,30 @@ export const approvalNotifications = pgTable("approval_notifications", {
   tenantId: uuid("tenant_id").notNull(),
   instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
   stepId: uuid("step_id").references(() => approvalSteps.id),
-  
+
   // Recipient information
   recipientType: varchar("recipient_type", { length: 50 }).notNull(), // user, external_email, webhook
   recipientId: uuid("recipient_id"),
   recipientEmail: varchar("recipient_email", { length: 255 }),
-  
+
   // Notification details
   notificationType: varchar("notification_type", { length: 50 }).notNull(), // request, reminder, escalation, completion
   channel: varchar("channel", { length: 50 }).notNull(), // email, in_app, sms, webhook, slack
   subject: varchar("subject", { length: 500 }),
   content: text("content"),
-  
+
   // Delivery tracking
   sentAt: timestamp("sent_at"),
   deliveredAt: timestamp("delivered_at"),
   readAt: timestamp("read_at"),
   status: varchar("status", { length: 20 }).default("pending"), // pending, sent, delivered, failed, read
   errorMessage: text("error_message"),
-  
+
   // Retry logic
   retryCount: integer("retry_count").default(0),
   maxRetries: integer("max_retries").default(3),
   nextRetryAt: timestamp("next_retry_at"),
-  
+
   // System tracking
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3734,24 +3558,24 @@ export const approvalNotifications = pgTable("approval_notifications", {
 export const approvalDelegations = pgTable("approval_delegations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Delegation details
   delegatorId: uuid("delegator_id").notNull(), // User delegating authority
   delegateId: uuid("delegate_id").notNull(), // User receiving authority
-  
+
   // Scope of delegation
   moduleTypes: text("module_types").array(), // Which modules this delegation covers
   ruleIds: text("rule_ids").array(), // Specific rules (null = all rules)
   maxValue: decimal("max_value", { precision: 15, scale: 2 }), // Maximum value they can approve
-  
+
   // Timing
   validFrom: timestamp("valid_from").defaultNow(),
   validUntil: timestamp("valid_until"),
-  
+
   // Status
   isActive: boolean("is_active").default(true),
   delegationReason: text("delegation_reason"),
-  
+
   // Audit fields
   createdById: uuid("created_by_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),

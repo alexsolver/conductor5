@@ -1,14 +1,14 @@
 import { Response, Request } from 'express';
 import { TicketTemplateRepository } from './TicketTemplateRepository';
-import { insertTicketTemplateSchema } from '@shared/schema';
+import { insertTicketTemplateSchema } from '@shared/schema-master';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../../middleware/jwtAuth';
 
 export class TicketTemplateController {
   private repository: TicketTemplateRepository;
 
-  constructor(schemaManager: any) {
-    this.repository = new TicketTemplateRepository(schemaManager);
+  constructor() {
+    this.repository = new TicketTemplateRepository();
   }
 
   // GET /api/ticket-templates/company/:customerCompanyId

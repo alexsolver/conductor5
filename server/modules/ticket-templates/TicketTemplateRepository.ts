@@ -1,5 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATE REPOSITORY PADRONIZADO
-import { db, sql, ticketTemplates, TicketTemplate, InsertTicketTemplate } from '@shared/schema';
+import { db, ticketTemplates, TicketTemplate, InsertTicketTemplate } from '@shared/schema-master';
 import { eq, and, desc, asc, isNull, or } from 'drizzle-orm';
 
 export class TicketTemplateRepository {
@@ -7,7 +7,6 @@ export class TicketTemplateRepository {
 
   async getTemplatesByCompany(tenantId: string, customerCompanyId?: string): Promise<TicketTemplate[]> {
     try {
-      const db = this.schemaManager.getDb();
 
       let whereConditions;
 
@@ -53,8 +52,6 @@ export class TicketTemplateRepository {
 
   async getGlobalTemplates(tenantId: string): Promise<TicketTemplate[]> {
     try {
-      const db = this.schemaManager.getDb();
-
       return await db
         .select()
         .from(ticketTemplates)
@@ -78,8 +75,6 @@ export class TicketTemplateRepository {
 
   async getCompanySpecificTemplates(tenantId: string, companyId: string): Promise<TicketTemplate[]> {
     try {
-      const db = this.schemaManager.getDb();
-
       return await db
         .select()
         .from(ticketTemplates)
@@ -103,71 +98,53 @@ export class TicketTemplateRepository {
   }
 
   async getTemplateById(tenantId: string, templateId: string): Promise<TicketTemplate | null> {
-    const pool = this.schemaManager.getPool();
-    const schemaName = this.schemaManager.getSchemaName(tenantId);
+    try {
+      const results = await db
+        .select()
+        .from(ticketTemplates)
+        .where(
+          and(
+            eq(ticketTemplates.tenantId, tenantId),
+            eq(ticketTemplates.id, templateId)
+          )
+        )
+        .limit(1);
 
-    const query = `
-      SELECT * FROM "${schemaName}".ticket_templates 
-      WHERE tenant_id = $1 AND id = $2
-    `;
-
-    const result = await pool.query(query, [tenantId, templateId]);
-    return result.rows[0] || null;
+      return results[0] || null;
+    } catch (error) {
+      console.error('Error fetching template by ID:', error);
+      return null;
+    }
   }
 
   async createTemplate(template: InsertTicketTemplate): Promise<TicketTemplate> {
-    const pool = this.schemaManager.getPool();
-    const schemaName = this.schemaManager.getSchemaName(template.tenantId);
+    try {
+      // Handle null, undefined, or 'null' string values for companyId
+      const processedTemplate = {
+        ...template,
+        companyId: template.companyId === 'null' || template.companyId === undefined || template.companyId === null ? null : template.companyId,
+        isGlobal: template.companyId === 'null' || template.companyId === undefined || template.companyId === null ? true : false,
+        defaultType: template.defaultType || 'support',
+        defaultPriority: template.defaultPriority || 'medium',
+        defaultStatus: template.defaultStatus || 'open',
+        defaultCategory: template.defaultCategory || template.category || 'Geral',
+        isActive: template.isActive ?? true,
+        sortOrder: template.sortOrder ?? 0,
+        customFields: template.customFields || {},
+        autoAssignmentRules: template.autoAssignmentRules || {},
+        slaOverride: template.slaOverride || {}
+      };
 
-    // Handle null, undefined, or 'null' string values for customerCompanyId
-    const companyId = template.customerCompanyId === 'null' || template.customerCompanyId === undefined || template.customerCompanyId === null ? null : template.customerCompanyId;
+      const results = await db
+        .insert(ticketTemplates)
+        .values(processedTemplate)
+        .returning();
 
-    const query = `
-      INSERT INTO "${schemaName}".ticket_templates (
-        tenant_id, company_id, name, description, category, subcategory,
-        default_title, default_description, default_type, default_priority, 
-        default_status, default_category, default_urgency, default_impact,
-        default_assignee_id, default_assignment_group, default_department,
-        required_fields, optional_fields, hidden_fields, custom_fields,
-        auto_assignment_rules, sla_override, is_active, 
-        sort_order, created_by
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-        $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
-      ) RETURNING *
-    `;
-
-    const values = [
-      template.tenantId,
-      companyId, // Use the processed companyId instead of original
-      template.name,
-      template.description,
-      template.category,
-      template.subcategory,
-      template.defaultTitle,
-      template.defaultDescription,
-      template.defaultType || 'support',
-      template.defaultPriority || 'medium',
-      template.defaultStatus || 'open',
-      template.defaultCategory || template.category || 'Geral',
-      template.defaultUrgency,
-      template.defaultImpact,
-      template.defaultAssigneeId,
-      template.defaultAssignmentGroup,
-      template.defaultDepartment,
-      template.requiredFields,
-      template.optionalFields,
-      template.hiddenFields,
-      JSON.stringify(template.customFields || {}),
-      JSON.stringify(template.autoAssignmentRules || {}),
-      JSON.stringify(template.slaOverride || {}),
-      template.isActive ?? true,
-      template.sortOrder ?? 0,
-      template.createdById
-    ];
-
-    const result = await pool.query(query, values);
-    return result.rows[0];
+      return results[0];
+    } catch (error) {
+      console.error('Error creating template:', error);
+      throw error;
+    }
   }
 
   async updateTemplate(tenantId: string, templateId: string, updates: Partial<InsertTicketTemplate>): Promise<TicketTemplate | null> {
