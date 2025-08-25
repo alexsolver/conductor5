@@ -64,6 +64,7 @@ export class TimecardController {
           );
           lastRecord = sortedRecords[0];
 
+          // ✅ 1QA.MD: Lógica limpa e simples para status
           // Verificar se há entrada ativa (sem saída correspondente)
           const hasActiveEntry = validRecords.some(record => record.check_in && !record.check_out);
 
@@ -175,12 +176,20 @@ export class TimecardController {
 
       // ✅ 1QA.MD: Usar nomes corretos das colunas da base de dados
       if (validatedData.checkOut && !validatedData.checkIn) {
-        const activeCheckIn = todayRecords.find(record => record.check_in && !record.check_out);
-        if (!activeCheckIn) {
+        // Procurar a entrada ativa mais recente (sem saída)
+        const activeCheckIns = todayRecords.filter(record => record.check_in && !record.check_out);
+        if (activeCheckIns.length === 0) {
           return res.status(400).json({
             message: 'Não é possível registrar saída sem uma entrada ativa'
           });
         }
+        
+        // Pegar a entrada mais recente sem saída
+        const activeCheckIn = activeCheckIns.sort((a, b) => 
+          new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
+        )[0];
+        
+        console.log('[TIMECARD-CREATE] Using most recent active entry:', activeCheckIn.id?.substring(0, 8));
 
         // ✅ 1QA.MD: Usar timestamp ISO diretamente para PostgreSQL
         // Update the existing check-in record with check-out time
