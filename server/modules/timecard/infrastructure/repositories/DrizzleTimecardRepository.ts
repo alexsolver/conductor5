@@ -83,12 +83,21 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .insert(timecardEntries)
       .values({
         tenantId: data.tenantId,
-        timecardId: data.timecardId,
         userId: data.userId,
-        entryType: data.entryType, // 'clock_in', 'clock_out', 'break_start', 'break_end'
-        timestamp: data.timestamp,
-        location: data.location,
-        notes: data.notes
+        checkIn: data.checkIn || null,
+        checkOut: data.checkOut || null,
+        breakStart: data.breakStart || null,
+        breakEnd: data.breakEnd || null,
+        totalWorkedMinutes: data.totalWorkedMinutes || 0,
+        breakDurationMinutes: data.breakDurationMinutes || 0,
+        overtimeMinutes: data.overtimeMinutes || 0,
+        status: data.status || 'draft',
+        notes: data.notes || null,
+        location: data.location || null,
+        ipAddress: data.ipAddress || null,
+        device: data.device || null,
+        isManualEntry: data.isManualEntry || false,
+        isActive: data.isActive !== false
       })
       .returning();
     return entry;

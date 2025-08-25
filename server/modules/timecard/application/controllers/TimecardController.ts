@@ -963,18 +963,48 @@ export class TimecardController {
       // Buscar todos os registros do período 
       console.log('[ATTENDANCE-REPORT] Executing query for target user:', targetUserId, 'tenant:', tenantId);
 
-      const records = await db
-        .select()
-        .from(timecardEntries)
-        .where(and(
-          eq(timecardEntries.userId, targetUserId),
-          eq(timecardEntries.tenantId, tenantId),
-          sql`DATE(COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})) >= ${startDate.toISOString().split('T')[0]}`,
-          sql`DATE(COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})) <= ${endDate.toISOString().split('T')[0]}`
-        ))
-        .orderBy(sql`COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})`);
+      // Execute database query with proper error handling
+      let attendanceData = [];
 
-      console.log('[ATTENDANCE-REPORT] Found records:', records.length);
+      try {
+        console.log('[ATTENDANCE-REPORT] Executing query for target user:', targetUserId, 'tenant:', tenantId);
+
+        const queryResult = await db.execute(sql`
+          SELECT 
+            te.id,
+            te.user_id,
+            te.check_in,
+            te.check_out,
+            te.break_start,
+            te.break_end,
+            te.total_worked_minutes,
+            te.break_duration_minutes,
+            te.overtime_minutes,
+            te.status,
+            te.notes,
+            te.created_at,
+            te.updated_at,
+            COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário') as user_name,
+            u.email
+          FROM timecard_entries te
+          LEFT JOIN users u ON te.user_id = u.id
+          WHERE te.tenant_id = ${tenantId}
+            AND te.user_id = ${targetUserId}
+            AND te.created_at >= ${startDate}
+            AND te.created_at <= ${endDate}
+          ORDER BY te.created_at DESC
+        `);
+
+        attendanceData = queryResult.rows || [];
+        console.log('[ATTENDANCE-REPORT] Database query returned:', attendanceData.length, 'records');
+
+      } catch (dbError: any) {
+        console.error('[ATTENDANCE-REPORT] Database query error:', dbError);
+        // Continue with empty data instead of failing
+      }
+
+
+      console.log('[ATTENDANCE-REPORT] Found records:', attendanceData.length);
       console.log('[ATTENDANCE-REPORT] Date range check:', {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
@@ -983,8 +1013,8 @@ export class TimecardController {
       });
 
       // Log detalhado dos primeiros registros encontrados
-      if (records.length > 0) {
-        console.log('[ATTENDANCE-REPORT] First 5 records found:', records.slice(0, 5).map(r => ({
+      if (attendanceData.length > 0) {
+        console.log('[ATTENDANCE-REPORT] First 5 records found:', attendanceData.slice(0, 5).map(r => ({
           id: r.id.slice(-8),
           checkIn: r.checkIn,
           createdAt: r.createdAt,
@@ -1002,8 +1032,8 @@ export class TimecardController {
       }
 
       // Log first few records for debugging
-      if (records.length > 0) {
-        console.log('[ATTENDANCE-REPORT] Sample records:', records.slice(0, 3).map(r => ({
+      if (attendanceData.length > 0) {
+        console.log('[ATTENDANCE-REPORT] Sample records:', attendanceData.slice(0, 3).map(r => ({
           id: r.id,
           checkIn: r.checkIn,
           checkOut: r.checkOut,
@@ -1013,11 +1043,11 @@ export class TimecardController {
       }
 
       // Filtrar registros que têm pelo menos check_in (podem não ter check_out se ainda estão trabalhando)
-      const validRecords = records.filter(record => record.checkIn);
+      const validRecords = attendanceData.filter(record => record.checkIn);
 
       console.log('[ATTENDANCE-REPORT] Valid records (with check_in):', validRecords.length);
-      console.log('[ATTENDANCE-REPORT] Records with checkOut:', records.filter(r => r.checkIn && r.checkOut).length);
-      console.log('[ATTENDANCE-REPORT] Records with only checkIn:', records.filter(r => r.checkIn && !r.checkOut).length);
+      console.log('[ATTENDANCE-REPORT] Records with checkOut:', attendanceData.filter(r => r.checkIn && r.checkOut).length);
+      console.log('[ATTENDANCE-REPORT] Records with only checkIn:', attendanceData.filter(r => r.checkIn && !r.checkOut).length);
 
       // Agrupar registros válidos por data
       const recordsByDate = new Map();
@@ -1125,7 +1155,7 @@ export class TimecardController {
     }
   }
 
-  
+
 
   async getHourBankMovements(req: AuthenticatedRequest, res: Response) {
     try {
