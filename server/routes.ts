@@ -3984,7 +3984,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/ticket-views/user/preferences', jwtAuth, ticketViewsController.getUserPreferences.bind(ticketViewsController));
   app.put('/api/ticket-views/user/settings', jwtAuth, ticketViewsController.updatePersonalSettings.bind(ticketViewsController));
 
-  // Users endpoint for team member selection
+  // Users endpoint for team member selection - Fixed to use public schema
   app.get('/api/users', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
@@ -3992,7 +3992,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
 
-      // Buscar usuários reais do banco de dados
+      console.log('[USERS-ENDPOINT] Fetching users for tenant:', tenantId);
+
+      // Buscar usuários do schema público filtrados por tenant_id
       const { users: usersTable } = await import('../shared/schema-master.js');
       const { db } = await import('./db.js');
       const { eq, and } = await import('drizzle-orm');
@@ -4023,7 +4025,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isActive: user.isActive
       }));
 
-      res.json({ success: true, users });
+      console.log('[USERS-ENDPOINT] Found', users.length, 'users for tenant');
+      res.json({ success: true, users: formattedUsers });
     } catch (error) {
       console.error('Error fetching users:', error);
       res.status(500).json({ message: 'Failed to fetch users' });
