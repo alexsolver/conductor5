@@ -22,6 +22,7 @@ export interface IUnifiedStorage {
   
   // Tenant operations
   getTenant(id: string): Promise<Tenant | undefined>;
+  getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined>;
   createTenant(tenant: InsertTenant): Promise<Tenant>;
   
   // Customer operations (tenant-specific)
@@ -84,6 +85,11 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
   
   async getTenant(id: string): Promise<Tenant | undefined> {
     const result = await db.select().from(tenants).where(eq(tenants.id, id));
+    return result[0];
+  }
+
+  async getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined> {
+    const result = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain));
     return result[0];
   }
 

@@ -107,7 +107,7 @@ export class DrizzleUserRepository implements IUserRepository {
     const userData = this.toPersistenceData(user);
 
     // Check if user exists
-    const existingUser = await this.findById(user.getId());
+    const existingUser = await this.findById(user.id);
 
     if (existingUser) {
       // Update existing user
@@ -117,7 +117,7 @@ export class DrizzleUserRepository implements IUserRepository {
           ...userData,
           updatedAt: new Date()
         })
-        .where(eq(users.id, user.getId()))
+        .where(eq(users.id, user.id))
         .returning();
 
       return this.toDomainEntity(updated);
@@ -209,20 +209,30 @@ export class DrizzleUserRepository implements IUserRepository {
   }
 
   private toDomainEntity(data: any): User {
-    return User.fromPersistence({
+    return {
       id: data.id,
+      tenantId: data.tenantId || data.tenant_id,
       email: data.email,
-      password: data.passwordHash || data.password_hash, // Handle both field names
       firstName: data.firstName || data.first_name,
       lastName: data.lastName || data.last_name,
       role: data.role,
-      tenantId: data.tenantId || data.tenant_id,
-      active: data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : data.active),
-      verified: data.verified || false,
-      lastLogin: data.lastLoginAt || data.last_login_at || data.lastLogin,
+      employmentType: data.employmentType || 'clt', // Default value
+      isActive: data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : data.active),
+      phoneNumber: data.phoneNumber || data.phone_number,
+      position: data.position,
+      department: data.department,
+      avatar: data.avatar,
+      passwordHash: data.passwordHash || data.password_hash,
+      lastLoginAt: data.lastLoginAt || data.last_login_at || data.lastLogin,
+      loginCount: data.loginCount || data.login_count || 0,
+      language: data.language || 'pt-BR',
+      timezone: data.timezone || 'America/Sao_Paulo',
+      theme: data.theme,
       createdAt: data.createdAt || data.created_at || new Date(),
-      updatedAt: data.updatedAt || data.updated_at || new Date()
-    });
+      updatedAt: data.updatedAt || data.updated_at || new Date(),
+      createdById: data.createdById || data.created_by_id,
+      updatedById: data.updatedById || data.updated_by_id
+    };
   }
 
   async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {
@@ -240,20 +250,23 @@ export class DrizzleUserRepository implements IUserRepository {
   }
 
   async create(userData: { email: string; passwordHash: string; firstName?: string; lastName?: string; role: string; tenantId?: string }): Promise<User> {
-    const user = User.fromPersistence({
+    const user: User = {
       id: crypto.randomUUID(),
+      tenantId: userData.tenantId || '',
       email: userData.email,
-      password: userData.passwordHash,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role,
-      tenantId: userData.tenantId,
-      active: true,
-      verified: false,
-      lastLogin: undefined,
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      role: userData.role as any,
+      employmentType: 'clt',
+      isActive: true,
+      passwordHash: userData.passwordHash,
+      lastLoginAt: undefined,
+      loginCount: 0,
+      language: 'pt-BR',
+      timezone: 'America/Sao_Paulo',
       createdAt: new Date(),
       updatedAt: new Date()
-    });
+    };
 
     return await this.save(user);
   }
@@ -269,18 +282,18 @@ export class DrizzleUserRepository implements IUserRepository {
 
   private toPersistenceData(user: User): any {
     return {
-      id: user.getId(),
-      email: user.getEmail(),
-      passwordHash: user.getPasswordHash(), // Correct field name
-      firstName: user.getFirstName(),
-      lastName: user.getLastName(),
-      role: user.getRole(),
-      tenantId: user.getTenantId(),
-      isActive: user.isActive(), // Correct field name
-      verified: user.isVerified(),
-      lastLoginAt: user.getLastLogin(), // Correct field name
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt()
+      id: user.id,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      tenantId: user.tenantId,
+      isActive: user.isActive,
+      verified: true, // Default value for new users
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
     };
   }
 }

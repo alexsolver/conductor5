@@ -3,7 +3,7 @@
  * Handles automatic tenant creation based on different triggers
  */
 
-import { storage } from "../storage-simple";
+// Removed direct storage import - using database directly for 1qa.md compliance
 import { DependencyContainer } from "../application/services/DependencyContainer";
 import crypto from "crypto";
 
@@ -61,14 +61,18 @@ class TenantAutoProvisioningService {
       const subdomain = request.subdomain || await this.generateSubdomain(request);
 
       // Check if subdomain already exists
-      const existingTenant = await storage.getTenantBySubdomain(subdomain);
-      if (existingTenant) {
+      const { db } = await import('../db');
+      const { tenants } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const existingTenant = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain)).limit(1);
+      if (existingTenant.length > 0) {
         return { tenant: null, success: false, message: `Subdomain '${subdomain}' already exists` };
       }
 
-      // Create tenant entity
-      const container = DependencyContainer.getInstance();
-      const tenantRepository = container.tenantRepository;
+      // Create tenant entity directly using database for 1qa.md compliance
+      const { v4: uuidv4 } = await import('uuid');
+      const tenantId = uuidv4();
       
       const { Tenant } = await import('../domain/entities/Tenant');
       const tenantEntity = new Tenant(
@@ -164,7 +168,11 @@ class TenantAutoProvisioningService {
     let subdomain = baseSubdomain;
     let counter = 1;
     
-    while (await storage.getTenantBySubdomain(subdomain)) {
+    const { db } = await import('../db');
+    const { tenants } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    while ((await db.select().from(tenants).where(eq(tenants.subdomain, subdomain)).limit(1)).length > 0) {
       subdomain = `${baseSubdomain}-${counter}`;
       counter++;
     }

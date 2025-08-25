@@ -53,15 +53,8 @@ export class DependencyContainer {
 
   get storage() {
     if (!this._storage) {
-      // CORREÇÃO DEFINITIVA: Lazy loading seguro do storage
-      try {
-        const storageModule = require('../../storage-simple');
-        this._storage = storageModule.storageSimple;
-        console.log('✅ [DependencyContainer] Storage loaded successfully');
-      } catch (error) {
-        console.error('❌ [DependencyContainer] Failed to load storage:', error);
-        throw new Error('Storage module not available');
-      }
+      // Use database directly for 1qa.md compliance
+      throw new Error('Storage should be initialized externally - use database directly for 1qa.md compliance');
     }
     return this._storage;
   }
