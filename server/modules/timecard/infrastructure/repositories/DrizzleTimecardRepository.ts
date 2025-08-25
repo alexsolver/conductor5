@@ -82,24 +82,14 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const tenantDb = await this.getTenantDb(data.tenantId);
       
-      // ✅ 1QA.MD: Use tenant-specific schema for all operations
+      // ✅ 1QA.MD: Use correct timecard_entries schema structure (event-based)
       const entryData = {
         tenantId: data.tenantId,
         userId: data.userId,
-        checkIn: data.checkIn || null,
-        checkOut: data.checkOut || null,
-        breakStart: data.breakStart || null,
-        breakEnd: data.breakEnd || null,
-        totalWorkedMinutes: data.totalWorkedMinutes || 0,
-        breakDurationMinutes: data.breakDurationMinutes || 0,
-        overtimeMinutes: data.overtimeMinutes || 0,
-        status: data.status || 'draft',
-        notes: data.notes || null,
+        entryType: data.checkIn ? 'clock_in' : (data.checkOut ? 'clock_out' : (data.breakStart ? 'break_start' : 'break_end')),
+        timestamp: data.checkIn || data.checkOut || data.breakStart || data.breakEnd || new Date(),
         location: data.location || null,
-        ipAddress: data.ipAddress || null,
-        device: data.device || null,
-        isManualEntry: data.isManualEntry || false,
-        isActive: data.isActive !== false,
+        notes: data.notes || null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -108,16 +98,10 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const result = await tenantDb.execute(sql`
         INSERT INTO timecard_entries (
-          tenant_id, user_id, check_in, check_out, break_start, break_end,
-          total_worked_minutes, break_duration_minutes, overtime_minutes,
-          status, notes, location, ip_address, device, is_manual_entry,
-          is_active, created_at, updated_at
+          tenant_id, user_id, entry_type, timestamp, location, notes, created_at, updated_at
         ) VALUES (
-          ${entryData.tenantId}, ${entryData.userId}, ${entryData.checkIn}, ${entryData.checkOut},
-          ${entryData.breakStart}, ${entryData.breakEnd}, ${entryData.totalWorkedMinutes},
-          ${entryData.breakDurationMinutes}, ${entryData.overtimeMinutes}, ${entryData.status},
-          ${entryData.notes}, ${entryData.location}, ${entryData.ipAddress}, ${entryData.device},
-          ${entryData.isManualEntry}, ${entryData.isActive}, ${entryData.createdAt}, ${entryData.updatedAt}
+          ${entryData.tenantId}, ${entryData.userId}, ${entryData.entryType}, ${entryData.timestamp},
+          ${entryData.location}, ${entryData.notes}, ${entryData.createdAt}, ${entryData.updatedAt}
         )
         RETURNING *
       `);
@@ -170,8 +154,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         FROM timecard_entries
         WHERE tenant_id = ${tenantId}
           AND user_id = ${userId}
-          AND (created_at >= ${startOfDay} AND created_at <= ${endOfDay})
-        ORDER BY created_at DESC
+          AND (timestamp >= ${startOfDay} AND timestamp <= ${endOfDay})
+        ORDER BY timestamp DESC
       `);
       
       const entries = result.rows;
@@ -207,7 +191,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       }
       
       const result = await tenantDb.execute(sql`
-        SELECT * FROM timecard_entries ${sql.raw(whereClause)} ORDER BY created_at DESC
+        SELECT * FROM timecard_entries ${sql.raw(whereClause)} ORDER BY timestamp DESC
       `);
       
       console.log('[DRIZZLE-QA] Found', result.rows.length, 'timecard entries');
@@ -232,7 +216,11 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const tenantDb = await this.getTenantDb(tenantId);
       
-      const setClause = Object.keys(data).map(key => `${key} = '${data[key]}'`).join(', ');
+      const allowedFields = ['entry_type', 'timestamp', 'location', 'notes'];
+      const setClause = Object.keys(data)
+        .filter(key => allowedFields.includes(key))
+        .map(key => `${key} = '${data[key]}'`)
+        .join(', ');
       
       const result = await tenantDb.execute(sql`
         UPDATE timecard_entries 
