@@ -13,14 +13,24 @@ import { detectEmploymentType } from '@/lib/employmentDetection';
 interface TimeRecord {
   id: string;
   userId: string;
+  user_id: string;
+  check_in?: string;
+  check_out?: string;
+  break_start?: string;
+  break_end?: string;
+  notes?: string;
+  location?: string;
+  is_manual_entry?: boolean;
+  status?: string;
+  total_hours?: string;
+  created_at?: string;
+  updated_at?: string;
+  // Legacy properties for backward compatibility
   checkIn?: string;
   checkOut?: string;
   breakStart?: string;
   breakEnd?: string;
-  notes?: string;
-  location?: string;
   isManualEntry?: boolean;
-  status?: string;
   totalHours?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -66,6 +76,7 @@ const transformTimecardData = (frontendData: any) => {
     notes: frontendData.notes || null
   };
 
+  // ✅ 1QA.MD: Usar nomes corretos das colunas do banco
   // Apenas entrada ou saída - pausas são calculadas automaticamente
   switch (frontendData.recordType) {
     case 'clock_in':
@@ -322,12 +333,16 @@ export default function Timecard() {
   // Calcular horas trabalhadas hoje
   const calculateTodayHours = (records: TimeRecord[]) => {
     let totalMinutes = 0;
-    const completedRecords = records.filter(r => r.checkIn && r.checkOut);
+    // ✅ 1QA.MD: Usar nomes corretos das colunas do banco
+    const completedRecords = records.filter(r => (r.check_in || r.checkIn) && (r.check_out || r.checkOut));
     
     completedRecords.forEach(record => {
-      if (record.checkIn && record.checkOut) {
-        const start = new Date(record.checkIn);
-        const end = new Date(record.checkOut);
+      const checkIn = record.check_in || record.checkIn;
+      const checkOut = record.check_out || record.checkOut;
+      
+      if (checkIn && checkOut) {
+        const start = new Date(checkIn);
+        const end = new Date(checkOut);
         const diff = end.getTime() - start.getTime();
         totalMinutes += Math.max(0, diff / (1000 * 60));
       }
@@ -457,7 +472,7 @@ export default function Timecard() {
                               {dayName.slice(0, 3)}
                             </td>
                             <td className="border border-gray-300 px-3 py-2 font-mono">
-                              {record.checkIn ? formatTime(record.checkIn) : '--:--'}
+                              {(record.check_in || record.checkIn) ? formatTime(record.check_in || record.checkIn) : '--:--'}
                             </td>
                             <td className="border border-gray-300 px-3 py-2 font-mono">
                               {record.breakStart ? formatTime(record.breakStart) : '--:--'}
@@ -466,7 +481,7 @@ export default function Timecard() {
                               {record.breakEnd ? formatTime(record.breakEnd) : '--:--'}
                             </td>
                             <td className="border border-gray-300 px-3 py-2 font-mono">
-                              {record.checkOut ? formatTime(record.checkOut) : '--:--'}
+                              {(record.check_out || record.checkOut) ? formatTime(record.check_out || record.checkOut) : '--:--'}
                             </td>
                             <td className="border border-gray-300 px-3 py-2 font-mono text-center">
                               {record.totalHours ? `${parseFloat(record.totalHours).toFixed(1)}h` : '0:00'}
@@ -645,36 +660,36 @@ export default function Timecard() {
               {(statusData?.todayRecords || currentStatus?.todayRecords || [])
                 .sort((a, b) => {
                   // Ordenar por data de criação, mais recente primeiro
-                  const dateA = new Date(a.createdAt || a.checkIn || a.checkOut || a.breakStart || a.breakEnd || '');
-                  const dateB = new Date(b.createdAt || b.checkIn || b.checkOut || b.breakStart || b.breakEnd || '');
+                  const dateA = new Date(a.created_at || a.createdAt || a.check_in || a.checkIn || a.check_out || a.checkOut || '');
+                  const dateB = new Date(b.created_at || b.createdAt || b.check_in || b.checkIn || b.check_out || b.checkOut || '');
                   return dateB.getTime() - dateA.getTime();
                 })
                 .map((record: TimeRecord) => (
                 <div key={record.id} className="flex justify-between items-center py-3 border-b">
                   <div>
                     <div className="font-medium">
-                      {record.checkIn && record.checkOut ? 'Entrada/Saída Completa' : 
-                       record.checkIn ? 'Entrada Registrada' :
-                       record.checkOut ? 'Saída Registrada' : 'Registro'}
+                      {(record.check_in || record.checkIn) && (record.check_out || record.checkOut) ? 'Entrada/Saída Completa' : 
+                       (record.check_in || record.checkIn) ? 'Entrada Registrada' :
+                       (record.check_out || record.checkOut) ? 'Saída Registrada' : 'Registro'}
                     </div>
                     <div className="text-sm text-gray-500 flex gap-2">
                       <span>Status: {record.status === 'pending' ? 'Aguardando aprovação' : record.status || 'pending'}</span>
-                      {record.totalHours && <span>• {record.totalHours}h</span>}
+                      {(record.total_hours || record.totalHours) && <span>• {record.total_hours || record.totalHours}h</span>}
                     </div>
                   </div>
                   <div className="text-right">
-                    {record.checkIn && record.checkOut ? (
+                    {(record.check_in || record.checkIn) && (record.check_out || record.checkOut) ? (
                       <div>
                         <div className="font-mono text-sm">
-                          Entrada: {formatTime(record.checkIn)}
+                          Entrada: {formatTime(record.check_in || record.checkIn)}
                         </div>
                         <div className="font-mono text-sm">
-                          Saída: {formatTime(record.checkOut)}
+                          Saída: {formatTime(record.check_out || record.checkOut)}
                         </div>
                       </div>
                     ) : (
                       <div className="font-mono">
-                        {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt || '')}
+                        {formatTime(record.check_in || record.checkIn || record.check_out || record.checkOut || record.created_at || record.createdAt || '')}
                       </div>
                     )}
                     {record.location && (
