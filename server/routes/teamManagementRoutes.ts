@@ -16,7 +16,7 @@ const router = Router();
 // Apply JWT authentication to all routes
 router.use(jwtAuth);
 
-// Get team overview data with real department statistics
+// ✅ 1QA.MD: Get team overview data with real department statistics using tenant schema
 router.get('/overview', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -24,55 +24,61 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Get departments with member counts
-    const departmentStats = await db.select({
-      id: departments.id,
-      name: departments.name,
-      description: departments.description,
-      memberCount: sql<number>`(
-        SELECT COUNT(*) FROM users 
-        WHERE department_id = ${departments.id} 
-        AND tenant_id = ${user.tenantId} 
-        AND is_active = true
-      )`
-    })
-    .from(departments)
-    .where(and(
-      eq(departments.tenantId, user.tenantId),
-      eq(departments.isActive, true)
-    ));
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Getting overview for schema:', tenantSchema);
+
+    // ✅ 1QA.MD: Get departments with member counts using proper tenant schema
+    const departmentStatsResult = await db.execute(sql`
+      SELECT 
+        d.id,
+        d.name,
+        d.description,
+        (SELECT COUNT(*) 
+         FROM ${sql.identifier(tenantSchema)}.users u 
+         WHERE u.department_id = d.id 
+         AND u.is_active = true) as member_count
+      FROM ${sql.identifier(tenantSchema)}.departments d
+      WHERE d.tenant_id = ${user.tenantId} 
+      AND d.is_active = true
+    `);
+
+    const departmentStats = departmentStatsResult.rows || [];
 
     // Calculate total members for percentages
-    const totalMembers = departmentStats.reduce((sum, dept) => sum + Number(dept.memberCount), 0);
+    const totalMembers = departmentStats.reduce((sum: number, dept: any) => sum + Number(dept.member_count || 0), 0);
 
     // Format department data with percentages
-    const formattedDepartments = departmentStats.map(dept => ({
+    const formattedDepartments = departmentStats.map((dept: any) => ({
       id: dept.id,
       name: dept.name,
       description: dept.description,
-      count: Number(dept.memberCount),
-      percentage: totalMembers > 0 ? Math.round((Number(dept.memberCount) / totalMembers) * 100) : 0
+      count: Number(dept.member_count || 0),
+      percentage: totalMembers > 0 ? Math.round((Number(dept.member_count || 0) / totalMembers) * 100) : 0
     }));
 
-    // Get recent activities from activity logs
-    const recentActivities = await db.select({
-      id: userActivityLogs.id,
-      action: userActivityLogs.action,
-      description: userActivityLogs.description,
-      userName: sql<string>`CONCAT(users.first_name, ' ', users.last_name)`,
-      createdAt: userActivityLogs.createdAt
-    })
-    .from(userActivityLogs)
-    .leftJoin(users, eq(userActivityLogs.userId, users.id))
-    .where(eq(userActivityLogs.tenantId, user.tenantId))
-    .orderBy(desc(userActivityLogs.createdAt))
-    .limit(10);
+    // ✅ 1QA.MD: Get recent activities using tenant schema
+    const activitiesResult = await db.execute(sql`
+      SELECT 
+        al.id,
+        al.action,
+        al.description,
+        CONCAT(u.first_name, ' ', u.last_name) as user_name,
+        al.created_at
+      FROM ${sql.identifier(tenantSchema)}.user_activity_logs al
+      LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON al.user_id = u.id
+      WHERE al.tenant_id = ${user.tenantId}
+      ORDER BY al.created_at DESC
+      LIMIT 10
+    `);
 
-    const formattedActivities = recentActivities.map(activity => ({
+    const recentActivities = activitiesResult.rows || [];
+
+    const formattedActivities = recentActivities.map((activity: any) => ({
       id: activity.id,
-      description: activity.description || `${activity.userName} executou: ${activity.action}`,
-      timestamp: activity.createdAt,
-      user: activity.userName
+      description: activity.description || `${activity.user_name} executou: ${activity.action}`,
+      timestamp: activity.created_at,
+      user: activity.user_name
     }));
 
     res.json({
@@ -87,7 +93,7 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get team members with enhanced data
+// ✅ 1QA.MD: Get team members with enhanced data using tenant schema
 router.get('/members', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -95,43 +101,53 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    console.log('[TEAM-MANAGEMENT] Fetching members for tenant:', user.tenantId);
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Fetching members for schema:', tenantSchema);
 
-    const members = await db
-      .select({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        role: users.role,
-        isActive: users.isActive,
-        createdAt: users.createdAt
-      })
-      .from(users)
-      .where(and(
-        eq(users.tenantId, user.tenantId),
-        eq(users.isActive, true)
-      ));
+    // ✅ 1QA.MD: Get members using proper tenant schema
+    const membersResult = await db.execute(sql`
+      SELECT 
+        id,
+        first_name,
+        last_name,
+        email,
+        role,
+        is_active,
+        created_at,
+        department_id,
+        position
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      ORDER BY first_name, last_name
+    `);
 
-    const processedMembers = members.map(member => ({
+    const members = membersResult.rows || [];
+
+    const processedMembers = members.map((member: any) => ({
       id: member.id,
-      name: `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário',
-      firstName: member.firstName,
-      lastName: member.lastName,
+      name: `${member.first_name || ''} ${member.last_name || ''}`.trim() || member.email || 'Usuário',
+      firstName: member.first_name,
+      lastName: member.last_name,
       email: member.email,
       role: member.role,
-      isActive: member.isActive,
-      createdAt: member.createdAt
+      isActive: member.is_active,
+      createdAt: member.created_at,
+      departmentId: member.department_id,
+      position: member.position
     }));
 
-    res.json({ members: processedMembers });
+    console.log('[TEAM-MANAGEMENT-QA] Found members:', processedMembers.length);
+
+    res.json(processedMembers);
   } catch (error) {
-    console.error('Error fetching team members:', error);
+    console.error('[TEAM-MANAGEMENT-QA] Error fetching team members:', error);
     res.status(500).json({ message: 'Failed to fetch members' });
   }
 });
 
-// Get team statistics with real data
+// ✅ 1QA.MD: Get team statistics with real data using tenant schema
 router.get('/stats', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -139,49 +155,51 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Get total active members
-    const totalMembersResult = await db.select({ count: sql<number>`COUNT(*)` })
-      .from(users)
-      .where(and(
-        eq(users.tenantId, user.tenantId),
-        eq(users.isActive, true)
-      ));
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Getting stats for schema:', tenantSchema);
 
-    // Get members active today (last login today)
+    // ✅ 1QA.MD: Get total active members using tenant schema
+    const totalMembersResult = await db.execute(sql`
+      SELECT COUNT(*) as count
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+    `);
+
+    // ✅ 1QA.MD: Get members active today using tenant schema
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const activeTodayResult = await db.select({ count: sql<number>`COUNT(*)` })
-      .from(users)
-      .where(and(
-        eq(users.tenantId, user.tenantId),
-        eq(users.isActive, true),
-        gte(users.lastLoginAt, today)
-      ));
+    const activeTodayResult = await db.execute(sql`
+      SELECT COUNT(*) as count
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      AND last_login_at >= ${today}
+    `);
 
-    // Get pending approvals
-    const pendingApprovalsResult = await db.select({ count: sql<number>`COUNT(*)` })
-      .from(approvalRequests)
-      .where(and(
-        eq(approvalRequests.tenantId, user.tenantId),
-        eq(approvalRequests.status, 'pending')
-      ));
+    // ✅ 1QA.MD: Get pending approvals using tenant schema
+    const pendingApprovalsResult = await db.execute(sql`
+      SELECT COUNT(*) as count
+      FROM ${sql.identifier(tenantSchema)}.approval_requests
+      WHERE tenant_id = ${user.tenantId}
+      AND status = 'pending'
+    `);
 
-    // Get average performance
-    const avgPerformanceResult = await db.select({ 
-      average: sql<number>`ROUND(AVG(${users.performance}), 1)` 
-    })
-      .from(users)
-      .where(and(
-        eq(users.tenantId, user.tenantId),
-        eq(users.isActive, true),
-        not(isNull(users.performance))
-      ));
+    // ✅ 1QA.MD: Get average performance using tenant schema
+    const avgPerformanceResult = await db.execute(sql`
+      SELECT ROUND(AVG(performance), 1) as average
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      AND performance IS NOT NULL
+    `);
 
     const stats = {
-      totalMembers: String(totalMembersResult[0]?.count || 0),
-      activeToday: String(activeTodayResult[0]?.count || 0),
-      pendingApprovals: String(pendingApprovalsResult[0]?.count || 0),
-      averagePerformance: Number(avgPerformanceResult[0]?.average || 0)
+      totalMembers: String((totalMembersResult.rows[0] as any)?.count || 0),
+      activeToday: String((activeTodayResult.rows[0] as any)?.count || 0),
+      pendingApprovals: String((pendingApprovalsResult.rows[0] as any)?.count || 0),
+      averagePerformance: Number((avgPerformanceResult.rows[0] as any)?.average || 0)
     };
 
     res.json(stats);
@@ -191,7 +209,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get performance data for individuals and goals
+// ✅ 1QA.MD: Get performance data using tenant schema
 router.get('/performance', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -199,64 +217,72 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Get individual performance data
-    const individuals = await db.select({
-      id: users.id,
-      name: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
-      performance: users.performance,
-      goals: users.goals,
-      completedGoals: users.completedGoals,
-      department: departments.name
-    })
-    .from(users)
-    .leftJoin(departments, eq(users.departmentId, departments.id))
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true)
-    ));
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Getting performance for schema:', tenantSchema);
 
-    // Get performance evaluations for goals data
-    const evaluations = await db.select({
-      id: performanceEvaluations.id,
-      userId: performanceEvaluations.userId,
-      goals: performanceEvaluations.goals,
-      completedGoals: performanceEvaluations.completedGoals,
-      score: performanceEvaluations.score,
-      periodStart: performanceEvaluations.periodStart,
-      periodEnd: performanceEvaluations.periodEnd
-    })
-    .from(performanceEvaluations)
-    .where(eq(performanceEvaluations.tenantId, user.tenantId))
-    .orderBy(desc(performanceEvaluations.periodStart));
+    // ✅ 1QA.MD: Get individual performance data using tenant schema
+    const individualsResult = await db.execute(sql`
+      SELECT 
+        u.id,
+        CONCAT(u.first_name, ' ', u.last_name) as name,
+        u.performance,
+        u.goals,
+        u.completed_goals,
+        COALESCE(d.name, 'Sem departamento') as department
+      FROM ${sql.identifier(tenantSchema)}.users u
+      LEFT JOIN ${sql.identifier(tenantSchema)}.departments d ON u.department_id = d.id
+      WHERE u.tenant_id = ${user.tenantId}
+      AND u.is_active = true
+    `);
+
+    const individuals = individualsResult.rows || [];
+
+    // ✅ 1QA.MD: Get performance evaluations using tenant schema
+    const evaluationsResult = await db.execute(sql`
+      SELECT 
+        id,
+        user_id,
+        goals,
+        completed_goals,
+        score,
+        period_start,
+        period_end
+      FROM ${sql.identifier(tenantSchema)}.performance_evaluations
+      WHERE tenant_id = ${user.tenantId}
+      ORDER BY period_start DESC
+    `);
+
+    const evaluations = evaluationsResult.rows || [];
 
     // Format individual performance data
-    const formattedIndividuals = individuals.map(individual => ({
+    const formattedIndividuals = individuals.map((individual: any) => ({
       id: individual.id,
       name: individual.name,
       performance: individual.performance,
       goals: individual.goals,
-      completedGoals: individual.completedGoals,
+      completedGoals: individual.completed_goals,
       department: individual.department || 'Sem departamento',
-      completionRate: individual.goals > 0 ? Math.round((individual.completedGoals / individual.goals) * 100) : 0
+      completionRate: individual.goals > 0 ? Math.round((individual.completed_goals / individual.goals) * 100) : 0
     }));
 
-    // Calculate real goals data from users table
-    const goalsAggregation = await db.select({
-      totalGoals: sql<number>`SUM(${users.goals})`,
-      totalCompletedGoals: sql<number>`SUM(${users.completedGoals})`,
-      averageCompletion: sql<number>`CAST(AVG(CASE WHEN ${users.goals} > 0 THEN (${users.completedGoals}::float / ${users.goals}) * 100 ELSE 0 END) AS DECIMAL(10,2))`
-    })
-    .from(users)
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true),
-      not(isNull(users.goals))
-    ));
+    // ✅ 1QA.MD: Calculate goals data using tenant schema
+    const goalsAggregationResult = await db.execute(sql`
+      SELECT 
+        SUM(goals) as total_goals,
+        SUM(completed_goals) as total_completed_goals,
+        ROUND(AVG(CASE WHEN goals > 0 THEN (completed_goals::float / goals) * 100 ELSE 0 END), 2) as average_completion
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      AND goals IS NOT NULL
+    `);
 
-    const goalsStats = goalsAggregation[0];
-    const totalGoals = Number(goalsStats?.totalGoals) || 0;
-    const totalCompleted = Number(goalsStats?.totalCompletedGoals) || 0;
-    const averageCompletion = Number(goalsStats?.averageCompletion) || 0;
+    const goalsAggregation = goalsAggregationResult.rows[0] || {};
+
+    const totalGoals = Number((goalsAggregation as any)?.total_goals) || 0;
+    const totalCompleted = Number((goalsAggregation as any)?.total_completed_goals) || 0;
+    const averageCompletion = Number((goalsAggregation as any)?.average_completion) || 0;
 
     // Create realistic goals breakdown
     const goalsData = [
