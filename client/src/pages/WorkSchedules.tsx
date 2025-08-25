@@ -459,7 +459,7 @@ function WorkSchedulesContent() {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
         title: 'Erro ao atribuir template',
-        description: error.message || 'Tente novamente em alguns instantes.',
+        description: error.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     },
@@ -765,57 +765,18 @@ function WorkSchedulesContent() {
     }
   };
 
-  const handleEdit = (schedule: WorkSchedule) => {
+  // ✅ 1QA.MD COMPLIANCE: Function to handle opening the dialog for new schedule
+  const handleNewSchedule = () => {
+    console.log('[WORK-SCHEDULES] Opening new schedule dialog');
+    setSelectedSchedule(null);
+    setIsDialogOpen(true);
+  };
+
+  // ✅ 1QA.MD COMPLIANCE: Function to handle editing existing schedule
+  const handleEditSchedule = (schedule: WorkSchedule) => {
+    console.log('[WORK-SCHEDULES] Opening edit schedule dialog for:', schedule.id);
     setSelectedSchedule(schedule);
-    setFormData({
-      userId: schedule.userId,
-      scheduleType: schedule.scheduleType,
-      startDate: schedule.startDate ? schedule.startDate.split('T')[0] : '',
-      endDate: schedule.endDate ? schedule.endDate.split('T')[0] : '',
-      workDays: schedule.workDays || [],
-      startTime: schedule.startTime || '08:00',
-      endTime: schedule.endTime || '17:00',
-      breakDurationMinutes: schedule.breakDurationMinutes || 60,
-      isActive: schedule.isActive,
-      useWeeklySchedule: schedule.useWeeklySchedule || false,
-      weeklySchedule: schedule.weeklySchedule || {},
-      saveAsTemplate: false,
-      templateName: '',
-      templateDescription: ''
-    });
     setIsDialogOpen(true);
-  };
-
-  const handleNew = () => {
-    resetForm();
-    setIsDialogOpen(true);
-  };
-
-  const handleNewTemplate = () => {
-    resetTemplateForm();
-    setSelectedTemplate(null);
-    setIsTemplateDialogOpen(true);
-  };
-
-  const handleEditTemplate = (template: ScheduleTemplate) => {
-    setSelectedTemplate(template);
-    setTemplateFormData({
-      id: template.id,
-      name: template.name,
-      description: template.description || '',
-      scheduleType: template.scheduleType,
-      workDays: template.workDays || [],
-      startTime: template.startTime || '08:00',
-      endTime: template.endTime || '17:00',
-      breakStart: template.breakStart || '',
-      breakEnd: template.breakEnd || '',
-      breakDurationMinutes: template.breakDurationMinutes || 60,
-      useWeeklySchedule: template.useWeeklySchedule || false,
-      weeklySchedule: template.weeklySchedule || {},
-      isActive: template.isActive,
-      category: template.category
-    });
-    setIsTemplateDialogOpen(true);
   };
 
 
@@ -1005,13 +966,13 @@ function WorkSchedulesContent() {
             <Users className="h-4 w-4" />
             Atribuição em Massa
           </Button>
-          <Button
-            onClick={handleNew}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Nova Escala
-          </Button>
+          <Button 
+              onClick={handleNewSchedule}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Escala
+            </Button>
         </div>
       </div>
 
@@ -1385,6 +1346,216 @@ function WorkSchedulesContent() {
         </DialogContent>
       </Dialog>
 
+      {/* ✅ 1QA.MD COMPLIANCE: Work Schedule Dialog with proper state management */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedSchedule ? 'Editar Escala de Trabalho' : 'Nova Escala de Trabalho'}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="userId">Funcionário *</Label>
+                <Select
+                  value={formData.userId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, userId: value }))}
+                  disabled={!!selectedSchedule} // Disable if editing an existing schedule
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um funcionário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user: User) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="scheduleType">Tipo de Escala *</Label>
+                <Select
+                  value={formData.scheduleType}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, scheduleType: value as any }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo de escala" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scheduleTypeOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="startDate">Data de Início *</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="endDate">Data de Fim (opcional)</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Toggle for weekly schedule */}
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="useWeeklySchedule"
+                checked={formData.useWeeklySchedule}
+                onCheckedChange={(checked) => {
+                  setFormData(prev => ({ ...prev, useWeeklySchedule: checked, workDays: checked ? [] : [1, 2, 3, 4, 5] }));
+                  if (!checked) {
+                    setFormData(prev => ({ ...prev, weeklySchedule: {} })); // Clear weekly schedule when toggled off
+                  }
+                }}
+              />
+              <Label htmlFor="useWeeklySchedule">Horários diferentes por dia da semana</Label>
+            </div>
+
+            {formData.useWeeklySchedule ? (
+              <div className="max-h-96 overflow-y-auto border rounded-md p-4 bg-gray-50">
+                <WeeklyScheduleForm
+                  weeklySchedule={formData.weeklySchedule}
+                  workDays={formData.workDays}
+                  onWeeklyScheduleChange={(schedule) => setFormData(prev => ({ ...prev, weeklySchedule: schedule }))}
+                  onWorkDaysChange={(days) => setFormData(prev => ({ ...prev, workDays: days }))}
+                />
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="startTime">Horário de Entrada</Label>
+                    <Input
+                      id="startTime"
+                      type="time"
+                      value={formData.startTime}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="endTime">Horário de Saída</Label>
+                    <Input
+                      id="endTime"
+                      type="time"
+                      value={formData.endTime}
+                      onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="breakDurationMinutes">Pausa (minutos)</Label>
+                  <Input
+                    id="breakDurationMinutes"
+                    type="number"
+                    value={formData.breakDurationMinutes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, breakDurationMinutes: parseInt(e.target.value) }))}
+                    min="0"
+                    max="480"
+                  />
+                </div>
+
+                <div>
+                  <Label>Dias da Semana</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {weekDays.map((day) => (
+                      <Button
+                        key={day.value}
+                        type="button"
+                        variant={formData.workDays.includes(day.value) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          const newWorkDays = formData.workDays.includes(day.value)
+                            ? formData.workDays.filter(d => d !== day.value)
+                            : [...formData.workDays, day.value];
+                          setFormData({ ...formData, workDays: newWorkDays });
+                        }}
+                      >
+                        {day.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Template saving option */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="saveAsTemplate"
+                  checked={formData.saveAsTemplate}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, saveAsTemplate: checked }))}
+                />
+                <Label htmlFor="saveAsTemplate">Salvar como novo template de escala</Label>
+              </div>
+              {formData.saveAsTemplate && (
+                <div className="mt-4 space-y-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-1">
+                      <Label htmlFor="templateName">Nome do Template</Label>
+                      <Input
+                        id="templateName"
+                        value={formData.templateName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
+                        placeholder="Ex: Escala Padrão Administrativo"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <Label htmlFor="templateDescription">Descrição do Template</Label>
+                      <Input
+                        id="templateDescription"
+                        value={formData.templateDescription}
+                        onChange={(e) => setFormData(prev => ({ ...prev, templateDescription: e.target.value }))}
+                        placeholder="Opcional"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => {
+                console.log('[WORK-SCHEDULES] Closing dialog');
+                setIsDialogOpen(false);
+                setSelectedSchedule(null);
+              }}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}
+              >
+                {selectedSchedule ? (createScheduleMutation.isPending || updateScheduleMutation.isPending) ? 'Atualizando...' : 'Atualizar Escala' : (createScheduleMutation.isPending || updateScheduleMutation.isPending) ? 'Salvando...' : 'Salvar Escala'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Main schedules list */}
       <div className="grid gap-4">
         {schedules.length > 0 ? (
@@ -1456,19 +1627,19 @@ function WorkSchedulesContent() {
                   {/* Action buttons */}
                   <div className="flex gap-2 ml-4">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(schedule)}
-                      className="hover:bg-blue-50"
+                      onClick={() => handleEditSchedule(schedule)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="ghost" 
                       size="sm"
-                      onClick={() => handleDelete(schedule.id)}
-                      disabled={deleteScheduleMutation.isPending}
-                      className="hover:bg-red-50 hover:text-red-600"
+                      onClick={() => {
+                        console.log('[WORK-SCHEDULES] Deleting schedule:', schedule.id);
+                        deleteScheduleMutation.mutate(schedule.id);
+                      }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -1485,7 +1656,7 @@ function WorkSchedulesContent() {
               <p className="text-gray-600 mb-4">
                 Configure escalas de trabalho para gerenciar jornadas dos funcionários
               </p>
-              <Button onClick={handleNew}>
+              <Button onClick={handleNewSchedule}>
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Primeira Escala
               </Button>
