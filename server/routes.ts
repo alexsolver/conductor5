@@ -3994,26 +3994,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('[USERS-ENDPOINT] Fetching users for tenant:', tenantId);
 
-      // Buscar usuários do schema público filtrados por tenant_id
-      const { users: usersTable } = await import('../shared/schema-master.js');
-      const { db } = await import('./db.js');
-      const { eq, and } = await import('drizzle-orm');
+      // Buscar usuários do schema da tenant usando SQL direto
+      const { schemaManager } = await import('./middleware/schemaManager.js');
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
+      const { sql } = await import('drizzle-orm');
 
-      const users = await db.select({
-        id: usersTable.id,
-        name: usersTable.firstName,
-        lastName: usersTable.lastName,
-        email: usersTable.email,
-        role: usersTable.role,
-        position: usersTable.cargo,
-        isActive: usersTable.isActive
-      })
-        .from(usersTable)
-        .where(and(
-          eq(usersTable.tenantId, tenantId),
-          eq(usersTable.isActive, true)
-        ))
-        .orderBy(usersTable.firstName);
+      const result = await tenantDb.execute(sql`
+        SELECT
+          id,
+          first_name as "firstName",
+          last_name as "lastName", 
+          email,
+          role,
+          cargo as position,
+          is_active as "isActive"
+        FROM ${sql.identifier(schemaName)}.users
+        WHERE is_active = true
+        ORDER BY first_name ASC
+      `);
+
+      const users = result.rows;
 
       // Format response with proper name concatenation
       const formattedUsers = users.map(user => ({
