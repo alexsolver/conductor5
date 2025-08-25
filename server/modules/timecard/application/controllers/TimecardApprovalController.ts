@@ -415,28 +415,36 @@ export class TimecardApprovalController {
         .from(timecardApprovalSettings)
         .where(eq(timecardApprovalSettings.tenantId, tenantId));
 
-      // Get pending timecard entries
-      const pendingEntries = await db
-        .select({
-          id: timecardEntries.id,
-          userId: timecardEntries.userId,
-          checkIn: timecardEntries.checkIn,
-          checkOut: timecardEntries.checkOut,
-          status: timecardEntries.status,
-          createdAt: timecardEntries.createdAt,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email
-        })
-        .from(timecardEntries)
-        .innerJoin(users, eq(users.id, timecardEntries.userId))
-        .where(and(
-          eq(timecardEntries.tenantId, tenantId),
-          eq(timecardEntries.status, 'pending')
-        ));
+      // ✅ 1QA.MD: Usar schema correto do tenant para multi-tenancy
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[PENDING-APPROVALS] Using tenant schema:', tenantSchema);
+      
+      // Get pending timecard entries usando o schema correto do tenant
+      const pendingEntries = await db.execute(sql`
+        SELECT 
+          te.id,
+          te.user_id,
+          te.check_in,
+          te.check_out,
+          te.status,
+          te.created_at,
+          COALESCE(u.first_name, '') as first_name,
+          COALESCE(u.last_name, '') as last_name,
+          u.email,
+          te.notes,
+          te.location,
+          te.is_manual_entry
+        FROM ${sql.identifier(tenantSchema)}.timecard_entries te
+        LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON te.user_id = u.id
+        WHERE te.tenant_id = ${tenantId}
+          AND te.status = 'pending'
+        ORDER BY te.created_at DESC
+      `);
+
+      const pendingApprovals = pendingEntries.rows || [];
 
       // Filter based on approval settings and user permissions
-      let filteredEntries = pendingEntries;
+      let filteredEntries = pendingApprovals;
 
       if (settings && userId) {
         // Check if user is a default approver

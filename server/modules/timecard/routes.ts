@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { TimecardController } from './application/controllers/TimecardController';
+import { TimecardApprovalController } from './application/controllers/TimecardApprovalController';
 
 const timecardRouter = Router();
 const timecardController = new TimecardController();
+// ✅ 1QA.MD: Instanciar controlador de aprovações para endpoints corretos
+const timecardApprovalController = new TimecardApprovalController();
 
 // Work Schedules routes - usando TimecardController unificado
 timecardRouter.get('/work-schedules', jwtAuth, timecardController.getAllWorkSchedules.bind(timecardController));
@@ -58,6 +61,13 @@ timecardRouter.get('/reports/compliance/:period', jwtAuth, timecardController.ge
 
 // Current status route
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
+
+// ✅ 1QA.MD: Endpoints de aprovação usando controlador correto
+// Approval routes
+timecardRouter.get('/approval/pending', jwtAuth, timecardApprovalController.getPendingApprovals.bind(timecardApprovalController));
+timecardRouter.post('/approval/approve/:id', jwtAuth, timecardApprovalController.approveTimecardEntry.bind(timecardApprovalController));
+timecardRouter.post('/approval/reject/:id', jwtAuth, timecardApprovalController.rejectTimecardEntry.bind(timecardApprovalController));
+timecardRouter.post('/approval/bulk', jwtAuth, timecardApprovalController.bulkApproveEntries.bind(timecardApprovalController));
 
 export { timecardRouter };
 export default timecardRouter;

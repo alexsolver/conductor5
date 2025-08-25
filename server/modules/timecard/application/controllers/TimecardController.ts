@@ -1013,6 +1013,10 @@ export class TimecardController {
       try {
         console.log('[ATTENDANCE-REPORT] Executing query for target user:', targetUserId, 'tenant:', tenantId);
 
+        // ✅ 1QA.MD: Usar schema correto do tenant para multi-tenancy
+        const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+        console.log('[ATTENDANCE-REPORT] Using tenant schema:', tenantSchema);
+        
         const queryResult = await db.execute(sql`
           SELECT 
             te.id,
@@ -1021,17 +1025,15 @@ export class TimecardController {
             te.check_out,
             te.break_start,
             te.break_end,
-            te.total_worked_minutes,
-            te.break_duration_minutes,
-            te.overtime_minutes,
-            te.status,
+            te.total_hours,
             te.notes,
+            te.status,
             te.created_at,
             te.updated_at,
             COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário') as user_name,
             u.email
-          FROM timecard_entries te
-          LEFT JOIN users u ON te.user_id = u.id
+          FROM ${sql.identifier(tenantSchema)}.timecard_entries te
+          LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON te.user_id = u.id
           WHERE te.tenant_id = ${tenantId}
             AND te.user_id = ${targetUserId}
             AND te.created_at >= ${startDate}
