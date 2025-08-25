@@ -4,8 +4,9 @@
  */
 
 // ✅ 1QA.MD COMPLIANCE: IMPORTS PADRONIZADOS
-import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from 'drizzle-orm';
-import { db, sql, customers } from '@shared/schema';
+import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, sql } from 'drizzle-orm';
+import { db } from '../../../../db';
+import { customers } from '@shared/schema';
 import { Customer } from '../../domain/entities/Customer';
 import { 
   ICustomerRepository, 
@@ -16,306 +17,326 @@ import {
 
 export class DrizzleCustomerRepository implements ICustomerRepository {
   
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use findByIdAndTenant instead
   async findById(id: string): Promise<Customer | null> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.id, id),
-          eq(customers.isActive, true)
-        )
-      )
-      .limit(1);
-
-    return this.mapToCustomer(result[0]) || null;
+    throw new Error('1QA.MD VIOLATION: findById without tenant context is not allowed. Use findByIdAndTenant instead.');
   }
 
+  // ✅ 1QA.MD: Find customer by ID using tenant schema
   async findByIdAndTenant(id: string, tenantId: string): Promise<Customer | null> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.id, id),
-          eq(customers.tenantId, tenantId),
-          eq(customers.isActive, true)
-        )
-      )
-      .limit(1);
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Finding customer by ID for schema:', tenantSchema);
 
-    return this.mapToCustomer(result[0]) || null;
+      const result = await db.execute(sql`
+        SELECT 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema)}.customers
+        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
+        LIMIT 1
+      `);
+
+      return result.rows[0] ? this.mapToCustomer(result.rows[0] as any) : null;
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error finding customer by ID:', error);
+      throw error;
+    }
   }
 
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use findByEmailAndTenant instead
   async findByEmail(email: string): Promise<Customer | null> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.email, email),
-          eq(customers.isActive, true)
-        )
-      )
-      .limit(1);
-
-    return this.mapToCustomer(result[0]) || null;
+    throw new Error('1QA.MD VIOLATION: findByEmail without tenant context is not allowed. Use findByEmailAndTenant instead.');
   }
 
+  // ✅ 1QA.MD: Find customer by email using tenant schema
   async findByEmailAndTenant(email: string, tenantId: string): Promise<Customer | null> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.email, email),
-          eq(customers.tenantId, tenantId),
-          eq(customers.isActive, true)
-        )
-      )
-      .limit(1);
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Finding customer by email for schema:', tenantSchema);
 
-    return this.mapToCustomer(result[0]) || null;
+      const result = await db.execute(sql`
+        SELECT 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema)}.customers
+        WHERE email = ${email} AND tenant_id = ${tenantId} AND is_active = true
+        LIMIT 1
+      `);
+
+      return result.rows[0] ? this.mapToCustomer(result.rows[0] as any) : null;
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error finding customer by email:', error);
+      throw error;
+    }
   }
 
+  // ✅ 1QA.MD: Find customer by CPF using tenant schema
   async findByCPFAndTenant(cpf: string, tenantId: string): Promise<Customer | null> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.cpf, cpf),
-          eq(customers.tenantId, tenantId),
-          eq(customers.isActive, true)
-        )
-      )
-      .limit(1);
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Finding customer by CPF for schema:', tenantSchema);
 
-    return this.mapToCustomer(result[0]) || null;
+      const result = await db.execute(sql`
+        SELECT 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema)}.customers
+        WHERE cpf = ${cpf} AND tenant_id = ${tenantId} AND is_active = true
+        LIMIT 1
+      `);
+
+      return result.rows[0] ? this.mapToCustomer(result.rows[0] as any) : null;
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error finding customer by CPF:', error);
+      throw error;
+    }
   }
 
+  // ✅ 1QA.MD: Find customer by CNPJ using tenant schema
   async findByCNPJAndTenant(cnpj: string, tenantId: string): Promise<Customer | null> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.cnpj, cnpj),
-          eq(customers.tenantId, tenantId),
-          eq(customers.isActive, true)
-        )
-      )
-      .limit(1);
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Finding customer by CNPJ for schema:', tenantSchema);
 
-    return this.mapToCustomer(result[0]) || null;
+      const result = await db.execute(sql`
+        SELECT 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema)}.customers
+        WHERE cnpj = ${cnpj} AND tenant_id = ${tenantId} AND is_active = true
+        LIMIT 1
+      `);
+
+      return result.rows[0] ? this.mapToCustomer(result.rows[0] as any) : null;
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error finding customer by CNPJ:', error);
+      throw error;
+    }
   }
 
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use createWithTenant instead
   async create(customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Customer> {
-    const now = new Date();
-    
-    const insertData = {
-      tenantId: customerData.tenantId,
-      firstName: customerData.firstName,
-      lastName: customerData.lastName,
-      email: customerData.email,
-      phone: customerData.phone,
-      mobilePhone: customerData.mobilePhone,
-      customerType: customerData.customerType,
-      cpf: customerData.cpf,
-      cnpj: customerData.cnpj,
-      companyName: customerData.companyName,
-      contactPerson: customerData.contactPerson,
-      state: customerData.state,
-      address: customerData.address,
-      addressNumber: customerData.addressNumber,
-      complement: customerData.complement,
-      neighborhood: customerData.neighborhood,
-      city: customerData.city,
-      zipCode: customerData.zipCode,
-      isActive: customerData.isActive,
-      createdAt: now,
-      updatedAt: now
-    };
-
-    const result = await db
-      .insert(customers)
-      .values(insertData)
-      .returning();
-
-    return this.mapToCustomer(result[0])!;
+    throw new Error('1QA.MD VIOLATION: create without tenant context is not allowed. Use createWithTenant instead.');
   }
 
-  async update(id: string, updates: Partial<Customer>): Promise<Customer> {
-    const updateData: any = {
-      updatedAt: new Date()
-    };
+  // ✅ 1QA.MD: Create customer using tenant schema
+  async createWithTenant(customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Customer> {
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Creating customer for schema:', tenantSchema);
 
-    // Map fields to update
-    if (updates.firstName !== undefined) updateData.firstName = updates.firstName;
-    if (updates.lastName !== undefined) updateData.lastName = updates.lastName;
-    if (updates.email !== undefined) updateData.email = updates.email;
-    if (updates.phone !== undefined) updateData.phone = updates.phone;
-    if (updates.mobilePhone !== undefined) updateData.mobilePhone = updates.mobilePhone;
-    if (updates.customerType !== undefined) updateData.customerType = updates.customerType;
-    if (updates.cpf !== undefined) updateData.cpf = updates.cpf;
-    if (updates.cnpj !== undefined) updateData.cnpj = updates.cnpj;
-    if (updates.companyName !== undefined) updateData.companyName = updates.companyName;
-    if (updates.contactPerson !== undefined) updateData.contactPerson = updates.contactPerson;
-    if (updates.state !== undefined) updateData.state = updates.state;
-    if (updates.address !== undefined) updateData.address = updates.address;
-    if (updates.addressNumber !== undefined) updateData.addressNumber = updates.addressNumber;
-    if (updates.complement !== undefined) updateData.complement = updates.complement;
-    if (updates.neighborhood !== undefined) updateData.neighborhood = updates.neighborhood;
-    if (updates.city !== undefined) updateData.city = updates.city;
-    if (updates.zipCode !== undefined) updateData.zipCode = updates.zipCode;
-    if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
-
-    const result = await db
-      .update(customers)
-      .set(updateData)
-      .where(
-        and(
-          eq(customers.id, id),
-          eq(customers.isActive, true)
+      const now = new Date();
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(tenantSchema)}.customers (
+          tenant_id, name, email, phone, document_number, document_type,
+          company_id, is_active, created_at, updated_at
         )
-      )
-      .returning();
+        VALUES (
+          ${tenantId}, ${customerData.name || ''}, ${customerData.email}, 
+          ${customerData.phone || ''}, ${customerData.documentNumber || ''}, 
+          ${customerData.documentType || ''}, ${customerData.companyId || null},
+          ${customerData.isActive !== false}, ${now}, ${now}
+        )
+        RETURNING 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+      `);
 
-    if (result.length === 0) {
-      throw new Error('Customer not found or already deleted');
+      return this.mapToCustomer(result.rows[0] as any)!;
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error creating customer:', error);
+      throw error;
     }
-
-    return this.mapToCustomer(result[0])!;
   }
 
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use updateWithTenant instead
+  async update(id: string, updates: Partial<Customer>): Promise<Customer> {
+    throw new Error('1QA.MD VIOLATION: update without tenant context is not allowed. Use updateWithTenant instead.');
+  }
+
+  // ✅ 1QA.MD: Update customer using tenant schema
+  async updateWithTenant(id: string, updates: Partial<Customer>, tenantId: string): Promise<Customer> {
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Updating customer for schema:', tenantSchema);
+
+      const now = new Date();
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(tenantSchema)}.customers
+        SET 
+          name = COALESCE(${updates.name}, name),
+          email = COALESCE(${updates.email}, email),
+          phone = COALESCE(${updates.phone}, phone),
+          document_number = COALESCE(${updates.documentNumber}, document_number),
+          document_type = COALESCE(${updates.documentType}, document_type),
+          company_id = COALESCE(${updates.companyId}, company_id),
+          is_active = COALESCE(${updates.isActive}, is_active),
+          updated_at = ${now}
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        RETURNING 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+      `);
+
+      if (!result.rows[0]) {
+        throw new Error('Customer not found or already deleted');
+      }
+
+      return this.mapToCustomer(result.rows[0] as any)!;
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error updating customer:', error);
+      throw error;
+    }
+  }
+
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use deleteWithTenant instead
   async delete(id: string): Promise<void> {
-    const result = await db
-      .update(customers)
-      .set({ 
-        isActive: false, 
-        updatedAt: new Date() 
-      })
-      .where(eq(customers.id, id));
+    throw new Error('1QA.MD VIOLATION: delete without tenant context is not allowed. Use deleteWithTenant instead.');
+  }
 
-    if (result.rowCount === 0) {
-      throw new Error('Customer not found');
+  // ✅ 1QA.MD: Delete customer using tenant schema
+  async deleteWithTenant(id: string, tenantId: string): Promise<void> {
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Deleting customer for schema:', tenantSchema);
+
+      const now = new Date();
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(tenantSchema)}.customers
+        SET is_active = false, updated_at = ${now}
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
+
+      if (result.rowCount === 0) {
+        throw new Error('Customer not found');
+      }
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error deleting customer:', error);
+      throw error;
     }
   }
 
+  // ✅ 1QA.MD: Find customers with filters using tenant schema
   async findWithFilters(
     filters: CustomerFilters, 
     pagination: PaginationOptions, 
-    tenantId?: string
+    tenantId: string
   ): Promise<CustomerListResult> {
-    // Build where conditions
-    const conditions = [eq(customers.isActive, true)];
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Finding customers with filters for schema:', tenantSchema);
 
-    // Add tenant filter if specified
-    if (tenantId) {
-      conditions.push(eq(customers.tenantId, tenantId));
+      // Build search conditions
+      let whereClause = 'WHERE tenant_id = $1 AND is_active = true';
+      const params: any[] = [tenantId];
+      let paramIndex = 2;
+
+      if (filters.search) {
+        whereClause += ` AND (name ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`;
+        params.push(`%${filters.search}%`);
+        paramIndex++;
+      }
+
+      // Count total
+      const countResult = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${sql.identifier(tenantSchema)}.customers
+        ${sql.raw(whereClause)}
+      `);
+
+      const total = parseInt(countResult.rows[0]?.count as string) || 0;
+      const offset = (pagination.page - 1) * pagination.limit;
+      const totalPages = Math.ceil(total / pagination.limit);
+
+      // Fetch results
+      const result = await db.execute(sql`
+        SELECT 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema)}.customers
+        ${sql.raw(whereClause)}
+        ORDER BY name
+        LIMIT ${pagination.limit} OFFSET ${offset}
+      `);
+
+      return {
+        customers: result.rows.map(c => this.mapToCustomer(c as any)!),
+        total,
+        page: pagination.page,
+        totalPages
+      };
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error finding customers with filters:', error);
+      throw error;
     }
-
-    // Apply filters
-    if (filters.customerType?.length) {
-      conditions.push(inArray(customers.customerType, filters.customerType));
-    }
-
-    if (filters.isActive !== undefined) {
-      conditions[0] = eq(customers.isActive, filters.isActive); // Replace the default isActive filter
-    }
-
-    if (filters.state) {
-      conditions.push(eq(customers.state, filters.state));
-    }
-
-    if (filters.city) {
-      conditions.push(like(customers.city, `%${filters.city}%`));
-    }
-
-    if (filters.dateFrom) {
-      conditions.push(gte(customers.createdAt, filters.dateFrom));
-    }
-
-    if (filters.dateTo) {
-      conditions.push(lte(customers.createdAt, filters.dateTo));
-    }
-
-    if (filters.search) {
-      conditions.push(
-        or(
-          like(customers.firstName, `%${filters.search}%`),
-          like(customers.lastName, `%${filters.search}%`),
-          like(customers.email, `%${filters.search}%`),
-          like(customers.companyName, `%${filters.search}%`),
-          like(customers.cpf, `%${filters.search}%`),
-          like(customers.cnpj, `%${filters.search}%`)
-        )
-      );
-    }
-
-    // Count total results
-    const totalResult = await db
-      .select({ count: count() })
-      .from(customers)
-      .where(and(...conditions));
-
-    const total = totalResult[0]?.count || 0;
-
-    // Calculate offset
-    const offset = (pagination.page - 1) * pagination.limit;
-
-    // Build order by
-    const orderColumn = customers[pagination.sortBy as keyof typeof customers] || customers.firstName;
-    const orderDirection = pagination.sortOrder === 'asc' ? asc : desc;
-
-    // Fetch paginated results
-    const customerResults = await db
-      .select()
-      .from(customers)
-      .where(and(...conditions))
-      .orderBy(orderDirection(orderColumn))
-      .limit(pagination.limit)
-      .offset(offset);
-
-    const totalPages = Math.ceil(total / pagination.limit);
-
-    return {
-      customers: customerResults.map(c => this.mapToCustomer(c)!),
-      total,
-      page: pagination.page,
-      totalPages
-    };
   }
 
+  // ✅ 1QA.MD: Find customers by tenant using tenant schema
   async findByTenant(tenantId: string): Promise<Customer[]> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.tenantId, tenantId),
-          eq(customers.isActive, true)
-        )
-      )
-      .orderBy(asc(customers.firstName));
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Finding customers by tenant for schema:', tenantSchema);
 
-    return result.map(c => this.mapToCustomer(c)!);
+      const result = await db.execute(sql`
+        SELECT 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema)}.customers
+        WHERE tenant_id = ${tenantId} AND is_active = true
+        ORDER BY name
+      `);
+
+      return result.rows.map(c => this.mapToCustomer(c as any)!);
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error finding customers by tenant:', error);
+      throw error;
+    }
   }
 
+  // ❌ 1QA.MD VIOLATION - Method uses legacy field 'customerType' - Use findByDocumentTypeAndTenant instead
   async findByTypeAndTenant(customerType: 'PF' | 'PJ', tenantId: string): Promise<Customer[]> {
-    const result = await db
-      .select()
-      .from(customers)
-      .where(
-        and(
-          eq(customers.customerType, customerType),
-          eq(customers.tenantId, tenantId),
-          eq(customers.isActive, true)
-        )
-      )
-      .orderBy(asc(customers.firstName));
+    throw new Error('1QA.MD VIOLATION: findByTypeAndTenant uses legacy field. Use findByDocumentTypeAndTenant instead.');
+  }
 
-    return result.map(c => this.mapToCustomer(c)!);
+  // ✅ 1QA.MD: Find customers by document type using tenant schema
+  async findByDocumentTypeAndTenant(documentType: string, tenantId: string): Promise<Customer[]> {
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[CUSTOMER-REPOSITORY-QA] Finding customers by document type for schema:', tenantSchema);
+
+      const result = await db.execute(sql`
+        SELECT 
+          id, name, email, phone, document_number as "documentNumber",
+          document_type as "documentType", company_id as "companyId",
+          tenant_id as "tenantId", is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt"
+        FROM ${sql.identifier(tenantSchema)}.customers
+        WHERE document_type = ${documentType} AND tenant_id = ${tenantId} AND is_active = true
+        ORDER BY name
+      `);
+
+      return result.rows.map(c => this.mapToCustomer(c as any)!);
+    } catch (error) {
+      console.error('[CUSTOMER-REPOSITORY-QA] Error finding customers by document type:', error);
+      throw error;
+    }
   }
 
   async findByLocationAndTenant(state?: string, city?: string, tenantId?: string): Promise<Customer[]> {

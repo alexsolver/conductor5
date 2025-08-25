@@ -1,67 +1,77 @@
 // ✅ 1QA.MD COMPLIANCE: DRIZZLE NOTIFICATION REPOSITORY
 // Infrastructure layer - Database implementation using Drizzle ORM
 
-import { db, sql } from '@shared/schema';
+import { db } from '../../../../db';
 import { notifications } from '@shared/schema-notifications';
-import { eq, and, desc, asc, count, isNull, inArray, gte, lte } from 'drizzle-orm';
+import { eq, and, desc, asc, count, isNull, inArray, gte, lte, sql } from 'drizzle-orm';
 import { INotificationRepository, NotificationStats } from '../../domain/repositories/INotificationRepository';
 import { Notification, NotificationEntity } from '../../domain/entities/Notification';
 
 export class DrizzleNotificationRepository implements INotificationRepository {
 
+  // ✅ 1QA.MD: Find notification by ID using tenant schema
   async findById(id: string, tenantId: string): Promise<Notification | null> {
     try {
-      const [result] = await db
-        .select()
-        .from(notifications)
-        .where(and(
-          eq(notifications.id, id),
-          eq(notifications.tenantId, tenantId),
-          eq(notifications.isActive, true)
-        ));
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[NOTIFICATION-REPOSITORY-QA] Finding notification by ID for schema:', tenantSchema);
 
-      return result ? this.mapToEntity(result) : null;
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(tenantSchema)}.notifications
+        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
+        LIMIT 1
+      `);
+
+      return result.rows[0] ? this.mapToEntity(result.rows[0] as any) : null;
     } catch (error) {
-      console.error('Error finding notification by ID:', error);
+      console.error('[NOTIFICATION-REPOSITORY-QA] Error finding notification by ID:', error);
       return null;
     }
   }
 
+  // ✅ 1QA.MD: Find notifications by user ID using tenant schema
   async findByUserId(userId: string, tenantId: string, limit = 50, offset = 0): Promise<Notification[]> {
     try {
-      const results = await db
-        .select()
-        .from(notifications)
-        .where(and(
-          eq(notifications.userId, userId),
-          eq(notifications.tenantId, tenantId),
-          eq(notifications.isActive, true)
-        ))
-        .orderBy(desc(notifications.createdAt))
-        .limit(limit)
-        .offset(offset);
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[NOTIFICATION-REPOSITORY-QA] Finding notifications by user ID for schema:', tenantSchema);
 
-      return results.map(result => this.mapToEntity(result));
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(tenantSchema)}.notifications
+        WHERE user_id = ${userId} AND tenant_id = ${tenantId} AND is_active = true
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `);
+
+      return result.rows.map(row => this.mapToEntity(row as any));
     } catch (error) {
-      console.error('Error finding notifications by user ID:', error);
+      console.error('[NOTIFICATION-REPOSITORY-QA] Error finding notifications by user ID:', error);
       return [];
     }
   }
 
+  // ✅ 1QA.MD: Create notification using tenant schema
   async create(notification: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>): Promise<Notification> {
     try {
-      const [result] = await db
-        .insert(notifications)
-        .values({
-          ...notification,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .returning();
+      const tenantSchema = `tenant_${notification.tenantId.replace(/-/g, '_')}`;
+      console.log('[NOTIFICATION-REPOSITORY-QA] Creating notification for schema:', tenantSchema);
 
-      return this.mapToEntity(result);
+      const now = new Date();
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(tenantSchema)}.notifications (
+          tenant_id, user_id, type, title, message, data, channel, 
+          priority, status, is_active, created_at, updated_at
+        )
+        VALUES (
+          ${notification.tenantId}, ${notification.userId}, ${notification.type}, 
+          ${notification.title}, ${notification.message}, ${JSON.stringify(notification.data || {})},
+          ${notification.channel}, ${notification.priority || 'medium'}, 
+          ${notification.status || 'pending'}, ${notification.isActive !== false}, ${now}, ${now}
+        )
+        RETURNING *
+      `);
+
+      return this.mapToEntity(result.rows[0] as any);
     } catch (error) {
-      console.error('Error creating notification:', error);
+      console.error('[NOTIFICATION-REPOSITORY-QA] Error creating notification:', error);
       throw new Error('Failed to create notification');
     }
   }

@@ -61,58 +61,104 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
+  // ✅ 1QA.MD: Create ticket using tenant schema
   async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Ticket> {
-    const now = new Date();
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[TICKET-REPOSITORY-QA] Creating ticket for schema:', tenantSchema);
 
-    const insertData = {
-      ...ticketData,
-      tenantId,
-      createdAt: now,
-      updatedAt: now
-    };
+      const now = new Date();
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(tenantSchema)}.tickets (
+          tenant_id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id, assigned_to_id, company_id, beneficiary_id,
+          is_active, created_at, updated_at
+        )
+        VALUES (
+          ${tenantId}, ${ticketData.number}, ${ticketData.subject}, ${ticketData.description},
+          ${ticketData.status}, ${ticketData.priority}, ${ticketData.urgency}, ${ticketData.impact},
+          ${ticketData.category}, ${ticketData.subcategory}, ${ticketData.callerId},
+          ${ticketData.assignedToId}, ${ticketData.companyId}, ${ticketData.beneficiaryId},
+          ${ticketData.isActive !== false}, ${now}, ${now}
+        )
+        RETURNING 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+      `);
 
-    const result = await db
-      .insert(tickets)
-      .values(insertData as any)
-      .returning();
-
-    return this.mapToTicket(result[0]);
+      return this.mapToTicket(result.rows[0] as any);
+    } catch (error) {
+      this.logger.error('Failed to create ticket', { error: (error as Error).message, tenantId });
+      throw error;
+    }
   }
 
+  // ✅ 1QA.MD: Update ticket using tenant schema
   async update(id: string, updateData: Partial<Ticket>, tenantId: string): Promise<Ticket> {
-    const cleanUpdateData: any = {};
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[TICKET-REPOSITORY-QA] Updating ticket for schema:', tenantSchema);
 
-    Object.keys(updateData).forEach(key => {
-      const value = (updateData as any)[key];
-      if (value !== undefined) {
-        cleanUpdateData[key] = value;
+      const now = new Date();
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(tenantSchema)}.tickets
+        SET 
+          number = COALESCE(${updateData.number}, number),
+          subject = COALESCE(${updateData.subject}, subject),
+          description = COALESCE(${updateData.description}, description),
+          status = COALESCE(${updateData.status}, status),
+          priority = COALESCE(${updateData.priority}, priority),
+          urgency = COALESCE(${updateData.urgency}, urgency),
+          impact = COALESCE(${updateData.impact}, impact),
+          category = COALESCE(${updateData.category}, category),
+          subcategory = COALESCE(${updateData.subcategory}, subcategory),
+          caller_id = COALESCE(${updateData.callerId}, caller_id),
+          assigned_to_id = COALESCE(${updateData.assignedToId}, assigned_to_id),
+          company_id = COALESCE(${updateData.companyId}, company_id),
+          beneficiary_id = COALESCE(${updateData.beneficiaryId}, beneficiary_id),
+          is_active = COALESCE(${updateData.isActive}, is_active),
+          updated_at = ${now}
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        RETURNING 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+      `);
+
+      if (!result.rows[0]) {
+        throw new Error('Ticket not found');
       }
-    });
 
-    cleanUpdateData.updatedAt = new Date();
-
-    const result = await db.update(tickets)
-      .set(cleanUpdateData)
-      .where(
-        and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId)
-        )
-      )
-      .returning();
-
-    return this.mapToTicket(result[0]);
+      return this.mapToTicket(result.rows[0] as any);
+    } catch (error) {
+      this.logger.error('Failed to update ticket', { error: (error as Error).message, id, tenantId });
+      throw error;
+    }
   }
 
+  // ✅ 1QA.MD: Delete ticket using tenant schema
   async delete(id: string, tenantId: string): Promise<void> {
-    await db
-      .delete(tickets)
-      .where(
-        and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId)
-        )
-      );
+    try {
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log('[TICKET-REPOSITORY-QA] Deleting ticket for schema:', tenantSchema);
+
+      const now = new Date();
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(tenantSchema)}.tickets
+        SET is_active = false, updated_at = ${now}
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
+
+      if (result.rowCount === 0) {
+        throw new Error('Ticket not found');
+      }
+    } catch (error) {
+      this.logger.error('Failed to delete ticket', { error: (error as Error).message, id, tenantId });
+      throw error;
+    }
   }
 
   // ✅ CLEAN ARCHITECTURE - Main implementation method with RAW SQL
