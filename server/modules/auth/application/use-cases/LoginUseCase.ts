@@ -32,8 +32,8 @@ export class LoginUseCase {
     // Validate input
     this.authDomainService.validateLoginCredentials(dto);
 
-    // Find user by email
-    const user = await this.userRepository.findByEmail(dto.email.toLowerCase().trim());
+    // Find user by email for authentication (1qa.md compliant)
+    const user = await this.userRepository.findByEmailForAuth(dto.email.toLowerCase().trim());
     if (!user) {
       throw new Error('Invalid email or password');
     }

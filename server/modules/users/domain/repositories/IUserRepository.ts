@@ -46,6 +46,11 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>;
   
   /**
+   * Find user by email for authentication (1qa.md compliant)
+   */
+  findByEmailForAuth(email: string): Promise<User | null>;
+  
+  /**
    * Find user by email within tenant scope
    */
   findByEmailAndTenant(email: string, tenantId: string): Promise<User | null>;

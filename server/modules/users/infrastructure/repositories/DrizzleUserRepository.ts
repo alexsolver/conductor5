@@ -49,6 +49,30 @@ export class DrizzleUserRepository implements IUserRepository {
     throw new Error('1QA.MD VIOLATION: findByEmail without tenant context is not allowed. Use findByEmailAndTenant instead.');
   }
 
+  // ✅ 1QA.MD: Special authentication method - Find user by email for login (searches across tenants)
+  async findByEmailForAuth(email: string): Promise<User | null> {
+    try {
+      console.log('[USER-REPOSITORY-AUTH] Finding user by email for authentication:', email);
+      
+      // Use the public users table for authentication lookups
+      const result = await db.execute(sql`
+        SELECT 
+          id, email, password_hash as "passwordHash", first_name as "firstName",
+          last_name as "lastName", role, tenant_id as "tenantId", is_active as "isActive",
+          employment_type as "employmentType", login_count as "loginCount",
+          last_login_at as "lastLoginAt", created_at as "createdAt", updated_at as "updatedAt"
+        FROM users
+        WHERE email = ${email.toLowerCase().trim()} AND is_active = true
+        LIMIT 1
+      `);
+
+      return result.rows[0] ? this.mapToUser(result.rows[0] as any) : null;
+    } catch (error) {
+      console.error('[USER-REPOSITORY-AUTH] Error finding user by email for auth:', error);
+      throw error;
+    }
+  }
+
   // ✅ 1QA.MD: Find user by email using tenant schema
   async findByEmailAndTenant(email: string, tenantId: string): Promise<User | null> {
     try {

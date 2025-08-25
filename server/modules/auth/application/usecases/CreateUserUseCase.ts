@@ -38,8 +38,8 @@ export class CreateUserUseCase {
 
   async execute(input: CreateUserInput): Promise<CreateUserOutput> {
     try {
-      // Check if user already exists
-      const existingUser = await this.userRepository.findByEmail(input.email);
+      // Check if user already exists (1qa.md compliant)
+      const existingUser = await this.userRepository.findByEmailForAuth(input.email);
       if (existingUser) {
         return {
           id: '',
