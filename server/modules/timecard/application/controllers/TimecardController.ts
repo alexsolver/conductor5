@@ -54,18 +54,18 @@ export class TimecardController {
       let lastRecord = null;
 
       if (todayRecords.length > 0) {
-        // Filtrar apenas registros válidos com checkIn ou checkOut
-        const validRecords = todayRecords.filter(record => record.checkIn || record.checkOut);
+        // ✅ 1QA.MD: Usar nomes corretos das colunas da base de dados
+        const validRecords = todayRecords.filter(record => record.check_in || record.check_out);
 
         if (validRecords.length > 0) {
           // Ordenar por data de criação
           const sortedRecords = validRecords.sort((a, b) =>
-            new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+            new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
           );
           lastRecord = sortedRecords[0];
 
           // Verificar se há entrada ativa (sem saída correspondente)
-          const hasActiveEntry = validRecords.some(record => record.checkIn && !record.checkOut);
+          const hasActiveEntry = validRecords.some(record => record.check_in && !record.check_out);
 
           if (hasActiveEntry) {
             status = 'working';
@@ -173,9 +173,9 @@ export class TimecardController {
       today.setHours(0, 0, 0, 0);
       const todayRecords = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today.toISOString(), tenantId);
 
-      // If this is a check-out, validate that there's an active check-in
+      // ✅ 1QA.MD: Usar nomes corretos das colunas da base de dados
       if (validatedData.checkOut && !validatedData.checkIn) {
-        const activeCheckIn = todayRecords.find(record => record.checkIn && !record.checkOut);
+        const activeCheckIn = todayRecords.find(record => record.check_in && !record.check_out);
         if (!activeCheckIn) {
           return res.status(400).json({
             message: 'Não é possível registrar saída sem uma entrada ativa'
@@ -186,7 +186,7 @@ export class TimecardController {
         const updatedEntry = await this.timecardRepository.updateTimecardEntry(
           activeCheckIn.id,
           tenantId,
-          { checkOut: new Date(validatedData.checkOut) }
+          { check_out: new Date(validatedData.checkOut) }
         );
 
         return res.status(201).json(updatedEntry);
