@@ -171,13 +171,17 @@ router.get('/check-subdomain/:subdomain', async (req, res) => {
       });
     }
 
-    const { storage } = await import('../storage');
-    const existingTenant = await storage.getTenantBySubdomain(subdomain);
+    const { db } = await import('../db');
+    const { tenants } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
     
+    const existingTenant = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain)).limit(1);
+    
+    const isAvailable = existingTenant.length === 0;
     res.json({
-      available: !existingTenant,
+      available: isAvailable,
       subdomain,
-      message: existingTenant ? 'Subdomain already taken' : 'Subdomain available'
+      message: isAvailable ? 'Subdomain available' : 'Subdomain already taken'
     });
 
   } catch (error) {

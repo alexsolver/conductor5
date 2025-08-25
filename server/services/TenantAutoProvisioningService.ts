@@ -76,17 +76,23 @@ class TenantAutoProvisioningService {
       
       const { Tenant } = await import('../domain/entities/Tenant');
       const tenantEntity = new Tenant(
-        crypto.randomUUID(),
+        tenantId,
         request.name,
         subdomain,
         { ...this.config.defaultTenantSettings, ...request.settings }
       );
 
+      // Get tenant repository from dependency container
+      const { DependencyContainer } = await import('../application/services/DependencyContainer');
+      const container = DependencyContainer.getInstance();
+      const tenantRepository = container.getTenantRepository();
+
       // Save tenant
       const savedTenant = await tenantRepository.save(tenantEntity);
 
-      // Initialize tenant schema
-      await container.storage.initializeTenantSchema(savedTenant.id);
+      // Initialize tenant schema using storage service
+      const { storage } = await import('../storage');
+      await storage.initializeTenantSchema(savedTenant.id);
 
       // Log provisioning activity
       console.log(`Auto-provisioned tenant: ${savedTenant.name} (${savedTenant.subdomain}) - Trigger: ${request.trigger}`);
@@ -116,6 +122,7 @@ class TenantAutoProvisioningService {
     }
 
     // Check if user already belongs to a tenant
+    const { storage } = await import('../storage');
     const existingUser = await storage.getUserByEmail?.(userEmail);
     if (existingUser?.tenantId) {
       return false;

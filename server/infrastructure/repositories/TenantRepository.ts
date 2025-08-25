@@ -7,7 +7,7 @@ import { ITenantRepository } from "../../domain/repositories/ITenantRepository";
 import { Tenant } from "../../domain/entities/Tenant";
 
 export class TenantRepository implements ITenantRepository {
-  
+
   async findById(id: string): Promise<Tenant | null> {
     try {
       const [tenantData] = await db
@@ -163,7 +163,7 @@ export class TenantRepository implements ITenantRepository {
       const result = await db
         .select({ count: sql<number>`count(*)` })
         .from(tenants);
-      
+
       return result[0]?.count || 0;
     } catch (error) {
       logError('Error counting tenants', error);

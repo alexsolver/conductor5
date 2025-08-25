@@ -8,14 +8,19 @@ import { RegisterUseCase } from "../use-cases/auth/RegisterUseCase";
 import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
 import { storageSimple } from "../../storage-simple";
 import { UserRepository } from "../../infrastructure/repositories/UserRepository";
-import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
+// Removed duplicate import: import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
+import { Logger } from "../services/Logger";
+import { DomainEventPublisher, IDomainEventPublisher } from "../services/DomainEventPublisher";
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
+  private logger: Logger;
+  private eventPublisher: IDomainEventPublisher;
+  private tenantRepository: any;
 
   // Repositories
   private _userRepository?: DrizzleUserRepository;
-  private _tenantRepository?: TenantRepository;
+  // Removed unused _tenantRepository?: TenantRepository;
 
   // Services
   private _passwordHasher?: PasswordHasher;
@@ -33,6 +38,26 @@ export class DependencyContainer {
     return DependencyContainer.instance;
   }
 
+  private constructor() {
+    // Initialize dependencies
+    this.logger = new Logger();
+    this.eventPublisher = new DomainEventPublisher();
+    this.initializeRepositories();
+  }
+
+  private async initializeRepositories() {
+    // Initialize tenant repository
+    const { TenantRepository } = await import('../infrastructure/repositories/TenantRepository');
+    this.tenantRepository = new TenantRepository();
+  }
+
+  getTenantRepository() {
+    if (!this.tenantRepository) {
+      throw new Error('TenantRepository not initialized');
+    }
+    return this.tenantRepository;
+  }
+
   // Repositories
   get userRepository(): DrizzleUserRepository {
     if (!this._userRepository) {
@@ -42,12 +67,7 @@ export class DependencyContainer {
     return this._userRepository;
   }
 
-  get tenantRepository(): TenantRepository {
-    if (!this._tenantRepository) {
-      this._tenantRepository = new TenantRepository();
-    }
-    return this._tenantRepository;
-  }
+  // Removed unused tenantRepository getter
 
   private _storage?: any;
 
@@ -106,7 +126,8 @@ export class DependencyContainer {
       this._registerUseCase = new RegisterUseCase(
         this.userRepository,
         this.passwordHasher,
-        this.tokenService
+        this.tokenService,
+        this.getTenantRepository() // Added tenantRepository here
       );
     }
     return this._registerUseCase;

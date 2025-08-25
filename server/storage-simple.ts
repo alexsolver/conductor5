@@ -170,7 +170,7 @@ export class DatabaseStorage implements IStorage {
         WHERE id = ${String(id)} AND is_active = true
         LIMIT 1
       `);
-      
+
       return result.rows[0] || undefined;
     } catch (error) {
       logError('Error fetching user', error, { userId: id });
