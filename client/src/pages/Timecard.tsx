@@ -161,15 +161,11 @@ export default function Timecard() {
     if (statusData) {
       console.log('[TIMECARD-DEBUG] Status data received:', statusData);
       
-      // Calcular status baseado em lógica binária simples
-      const validRecords = statusData.todayRecords?.filter(record => record.checkIn || record.checkOut) || [];
-      const hasActiveEntry = validRecords.some(record => record.checkIn && !record.checkOut);
-      
-      const simplifiedStatus = hasActiveEntry ? 'working' : 'not_started';
-      
+      // ✅ 1QA.MD: Usar o status correto que vem do backend, não recalcular
+      // O backend já calcula o status corretamente usando os nomes corretos das colunas
       setCurrentStatus({
         ...statusData,
-        status: simplifiedStatus
+        status: statusData.status // Usar o status que vem do backend
       });
     }
   }, [statusData]);
@@ -288,9 +284,9 @@ export default function Timecard() {
     
     const actions = [];
     
-    // Analisar registros para determinar estado atual
-    const validRecords = todayRecords.filter(record => record.checkIn || record.checkOut);
-    const hasActiveEntry = validRecords.some(record => record.checkIn && !record.checkOut);
+    // ✅ 1QA.MD: Usar nomes corretos das colunas do banco (check_in, check_out)
+    const validRecords = todayRecords.filter(record => record.check_in || record.check_out);
+    const hasActiveEntry = validRecords.some(record => record.check_in && !record.check_out);
     
     if (hasActiveEntry) {
       // Há uma entrada ativa sem saída - mostrar botão de saída
