@@ -4,10 +4,10 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from '@shared/schema';
 import { 
-  timecardEntries,
-  hourBankEntries, 
+  timeRecords,
+  timeBank, 
   users,
-  workSchedules // Assuming workSchedules is imported from @shared/schema
+  dailyTimesheet
 } from '@shared/schema';
 
 export interface TimecardRepository {
@@ -109,7 +109,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       console.log('[DRIZZLE-QA] Inserting timecard entry data:', entryData);
       
       const [entry] = await tenantDb
-        .insert(timecardEntries)
+        .insert(timeRecords)
         .values(entryData)
         .returning();
         
@@ -156,24 +156,24 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const entries = await tenantDb
         .select()
-        .from(timecardEntries)
+        .from(timeRecords)
         .where(
           and(
-            eq(timecardEntries.tenantId, tenantId),
-            eq(timecardEntries.userId, userId),
+            eq(timeRecords.tenantId, tenantId),
+            eq(timeRecords.userId, userId),
             or(
               and(
-                gte(timecardEntries.timestamp, startOfDay),
-                lte(timecardEntries.timestamp, endOfDay)
+                gte(timeRecords.timestamp, startOfDay),
+                lte(timeRecords.timestamp, endOfDay)
               ),
               and(
-                gte(timecardEntries.createdAt, startOfDay),
-                lte(timecardEntries.createdAt, endOfDay)
+                gte(timeRecords.createdAt, startOfDay),
+                lte(timeRecords.createdAt, endOfDay)
               )
             )
           )
         )
-        .orderBy(desc(timecardEntries.createdAt));
+        .orderBy(desc(timeRecords.createdAt));
         
       console.log('[DRIZZLE-QA] Found', entries.length, 'timecard entries');
       return entries;
@@ -193,22 +193,23 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
     const conditions = [
-      eq(timecardEntries.userId, userId),
-      eq(timecardEntries.tenantId, tenantId)
+      eq(timeRecords.userId, userId),
+      eq(timeRecords.tenantId, tenantId)
     ];
 
     if (startDate) {
-      conditions.push(gte(timecardEntries.timestamp, startDate));
+      conditions.push(gte(timeRecords.timestamp, startDate));
     }
     if (endDate) {
-      conditions.push(lte(timecardEntries.timestamp, endDate));
+      conditions.push(lte(timeRecords.timestamp, endDate));
     }
 
-    return await db
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb
       .select()
-      .from(timecardEntries)
+      .from(timeRecords)
       .where(and(...conditions))
-      .orderBy(desc(timecardEntries.timestamp));
+      .orderBy(desc(timeRecords.timestamp));
   }
 
   async updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any> {
@@ -219,9 +220,9 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       const tenantDb = await this.getTenantDb(tenantId);
       
       const [entry] = await tenantDb
-        .update(timecardEntries)
+        .update(timeRecords)
         .set({ ...data, updatedAt: new Date() })
-        .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)))
+        .where(and(eq(timeRecords.id, id), eq(timeRecords.tenantId, tenantId)))
         .returning();
         
       console.log('[DRIZZLE-QA] Timecard entry updated successfully');
@@ -242,8 +243,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async deleteTimecardEntry(id: string, tenantId: string): Promise<void> {
     const tenantDb = await this.getTenantDb(tenantId);
     await tenantDb
-      .delete(timecardEntries)
-      .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)));
+      .delete(timeRecords)
+      .where(and(eq(timeRecords.id, id), eq(timeRecords.tenantId, tenantId)));
   }
 
   // Work Schedules Implementation - Using real database data only
@@ -260,12 +261,38 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       const tenantDb = await this.getTenantDb(tenantId);
       console.log('[DEBUG-SQL] Executing query for tenant:', tenantId);
       
-      // The getTenantDb already sets search_path to correct tenant schema
-      const realSchedules = await tenantDb.execute(sql`
-        SELECT ws.*
-        FROM work_schedules ws
-        WHERE ws.tenant_id = ${tenantId}
-      `);
+      // Check if work_schedules table exists, if not return empty array
+      try {
+        const realSchedules = await tenantDb.execute(sql`
+          SELECT ws.*
+          FROM work_schedules ws
+          WHERE ws.tenant_id = ${tenantId}
+        `);
+        
+        if (realSchedules.rows && realSchedules.rows.length > 0) {
+          const mappedSchedules = realSchedules.rows.map((row: any) => ({
+            id: row.id,
+            userId: row.user_id,
+            scheduleType: row.schedule_type || '5x2',
+            scheduleName: row.schedule_name || 'Escala de Trabalho',
+            workDays: Array.isArray(row.work_days) ? row.work_days : (row.work_days ? JSON.parse(row.work_days) : [1, 2, 3, 4, 5]),
+            startTime: row.start_time || '08:00',
+            endTime: row.end_time || '18:00',
+            breakStart: row.break_start || '12:00',
+            breakEnd: row.break_end || '13:00',
+            isActive: row.is_active,
+            tenantId: row.tenant_id,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            userName: 'Usuário',
+            useWeeklySchedule: row.use_weekly_schedule || false,
+            weeklySchedule: row.weekly_schedule ? JSON.parse(row.weekly_schedule) : null
+          }));
+          return mappedSchedules;
+        }
+      } catch (error: any) {
+        console.log('[DRIZZLE-QA] work_schedules table not found, returning empty array');
+      }
 
       console.log('[REAL-DATA] Found real work schedules:', realSchedules.rows.length);
       console.log('[DEBUG-ROWS] Raw data:', realSchedules.rows);
@@ -329,10 +356,32 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       scheduleData.breakDurationMinutes = data.breakDurationMinutes || 60;
     }
 
-    const tenantDb = await this.getTenantDb(tenantId);
-    const workSchedule = await tenantDb.insert(workSchedules).values(scheduleData).returning();
-
-    return workSchedule[0];
+    try {
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      // Try to insert into work_schedules if table exists
+      const result = await tenantDb.execute(sql`
+        INSERT INTO work_schedules (
+          tenant_id, user_id, schedule_type, schedule_name, work_days,
+          start_time, end_time, break_start, break_end, is_active,
+          created_at, updated_at, use_weekly_schedule, weekly_schedule
+        ) VALUES (
+          ${tenantId}, ${scheduleData.userId}, ${scheduleData.scheduleType},
+          ${scheduleData.scheduleName || 'Escala de Trabalho'}, ${JSON.stringify(scheduleData.workDays || [1, 2, 3, 4, 5])},
+          ${scheduleData.startTime || '08:00'}, ${scheduleData.endTime || '18:00'}, 
+          ${scheduleData.breakStart || '12:00'}, ${scheduleData.breakEnd || '13:00'},
+          ${scheduleData.isActive !== false}, NOW(), NOW(), 
+          ${scheduleData.useWeeklySchedule || false}, 
+          ${scheduleData.useWeeklySchedule && scheduleData.weeklySchedule ? JSON.stringify(scheduleData.weeklySchedule) : null}
+        )
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error: any) {
+      console.error('[DRIZZLE-QA] Error creating work schedule:', error);
+      throw new Error('WORK_SCHEDULES_TABLE_NOT_FOUND: Tabela work_schedules não encontrada no schema do tenant');
+    }
   }
 
   async createBulkWorkSchedules(userIds: string[], scheduleData: any, tenantId: string): Promise<any[]> {

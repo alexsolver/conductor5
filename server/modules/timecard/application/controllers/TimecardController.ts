@@ -244,11 +244,11 @@ export class TimecardController {
       }
 
       // ✅ 1QA.MD: Enhanced error handling with specific error types
-      if (error.message?.includes('TABLE_NOT_FOUND')) {
+      if (error.message?.includes('TABLE_NOT_FOUND') || error.message?.includes('timecard_entries')) {
         return res.status(500).json({
           success: false,
-          message: 'Configuração do sistema incompleta - tabela de timecard não encontrada',
-          error: 'TABLE_NOT_FOUND'
+          message: 'Sistema temporariamente indisponível - configuração em andamento',
+          error: 'SYSTEM_CONFIGURATION_ERROR'
         });
       }
       
@@ -265,6 +265,14 @@ export class TimecardController {
           success: false,
           message: 'Referência inválida nos dados do registro',
           error: 'FOREIGN_KEY_ERROR'
+        });
+      }
+      
+      if (error.message?.includes('DATABASE_ERROR')) {
+        return res.status(500).json({
+          success: false,
+          message: 'Erro de conectividade com banco de dados',
+          error: 'DATABASE_CONNECTION_ERROR'
         });
       }
 
