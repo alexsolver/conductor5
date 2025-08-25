@@ -325,32 +325,37 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Get real skills data from user competencies and positions
-    const userCompetencies = await db.select({
-      userId: users.id,
-      position: users.position,
-      department: departments.name,
-      experienceLevel: sql<string>`CASE 
-        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.created_at)) >= 5 THEN 'Avançado'
-        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.created_at)) >= 2 THEN 'Intermediário'
-        ELSE 'Básico'
-      END`,
-      performance: users.performance
-    })
-    .from(users)
-    .leftJoin(departments, eq(users.departmentId, departments.id))
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true),
-      not(sql`${users.position} IS NULL`)
-    ));
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Getting skills matrix for schema:', tenantSchema);
+
+    // ✅ 1QA.MD: Get user competencies using tenant schema
+    const userCompetenciesResult = await db.execute(sql`
+      SELECT 
+        u.id as user_id,
+        u.position,
+        COALESCE(d.name, 'Departamento Geral') as department,
+        CASE 
+          WHEN EXTRACT(YEAR FROM AGE(NOW(), u.created_at)) >= 5 THEN 'Avançado'
+          WHEN EXTRACT(YEAR FROM AGE(NOW(), u.created_at)) >= 2 THEN 'Intermediário'
+          ELSE 'Básico'
+        END as experience_level,
+        u.performance
+      FROM ${sql.identifier(tenantSchema)}.users u
+      LEFT JOIN ${sql.identifier(tenantSchema)}.departments d ON u.department_id = d.id
+      WHERE u.tenant_id = ${user.tenantId}
+      AND u.is_active = true
+      AND u.position IS NOT NULL
+    `);
+
+    const userCompetencies = userCompetenciesResult.rows || [];
 
     if (userCompetencies.length > 0) {
       // Aggregate skills by position
       const skillsMap = new Map();
       const categoriesMap = new Map();
 
-      userCompetencies.forEach(comp => {
+      userCompetencies.forEach((comp: any) => {
         const skillName = comp.position || 'Posição Geral';
         const category = comp.department || 'Departamento Geral';
 
@@ -359,7 +364,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
             name: skillName,
             count: 0,
             totalPerformance: 0,
-            level: comp.experienceLevel
+            level: comp.experience_level
           });
         }
 
@@ -369,8 +374,8 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
 
         // Calculate level based on actual performance and experience
         const avgPerformance = skill.totalPerformance / skill.count;
-        if (avgPerformance >= 85 && comp.experienceLevel === 'Avançado') skill.level = 'Avançado';
-        else if (avgPerformance >= 70 && comp.experienceLevel === 'Intermediário') skill.level = 'Intermediário';
+        if (avgPerformance >= 85 && comp.experience_level === 'Avançado') skill.level = 'Avançado';
+        else if (avgPerformance >= 70 && comp.experience_level === 'Intermediário') skill.level = 'Intermediário';
         else if (avgPerformance > 0) skill.level = 'Básico';
         else skill.level = 'Não avaliado';
 
@@ -395,33 +400,32 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // If no specific competencies found, use general user distribution data
-    const userDistribution = await db.select({
-      role: users.role,
-      status: users.status,
-      userCount: sql<number>`COUNT(*)`
-    })
-    .from(users)
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true)
-    ))
-    .groupBy(users.role, users.status);
+    // ✅ 1QA.MD: If no specific competencies found, use general user distribution using tenant schema
+    const userDistributionResult = await db.execute(sql`
+      SELECT 
+        role,
+        status,
+        COUNT(*) as user_count
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      GROUP BY role, status
+    `);
 
-    const roleSkills = await Promise.all(userDistribution.map(async (dist) => {
-      // Calculate actual skill level based on user performance in this role
-      const rolePerformance = await db.select({
-        avgPerformance: sql<number>`ROUND(AVG(${users.performance}), 2)`
-      })
-      .from(users)
-      .where(and(
-        eq(users.tenantId, user.tenantId),
-        eq(users.role, dist.role),
-        eq(users.status, dist.status),
-        not(isNull(users.performance))
-      ));
+    const userDistribution = userDistributionResult.rows || [];
 
-      const avgPerf = rolePerformance[0]?.avgPerformance || 0;
+    const roleSkills = await Promise.all(userDistribution.map(async (dist: any) => {
+      // ✅ 1QA.MD: Calculate actual skill level using tenant schema
+      const rolePerformanceResult = await db.execute(sql`
+        SELECT ROUND(AVG(performance), 2) as avg_performance
+        FROM ${sql.identifier(tenantSchema)}.users
+        WHERE tenant_id = ${user.tenantId}
+        AND role = ${dist.role}
+        AND status = ${dist.status}
+        AND performance IS NOT NULL
+      `);
+
+      const avgPerf = Number((rolePerformanceResult.rows[0] as any)?.avg_performance) || 0;
       let level = 'Não avaliado';
       if (avgPerf >= 85) level = 'Avançado';
       else if (avgPerf >= 70) level = 'Intermediário'; 
@@ -429,26 +433,27 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
 
       return {
         name: `${dist.role || 'Função Geral'} (${dist.status})`,
-        count: Number(dist.userCount),
+        count: Number(dist.user_count),
         level
       };
     }));
 
-    const departmentCategories = await db.select({
-      department: departments.name,
-      userCount: sql<number>`COUNT(users.id)`
-    })
-    .from(departments)
-    .leftJoin(users, and(
-      eq(users.departmentId, departments.id),
-      eq(users.isActive, true)
-    ))
-    .where(eq(departments.tenantId, user.tenantId))
-    .groupBy(departments.name);
+    // ✅ 1QA.MD: Get department categories using tenant schema
+    const departmentCategoriesResult = await db.execute(sql`
+      SELECT 
+        COALESCE(d.name, 'Sem Departamento') as department,
+        COUNT(u.id) as user_count
+      FROM ${sql.identifier(tenantSchema)}.departments d
+      LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON u.department_id = d.id AND u.is_active = true
+      WHERE d.tenant_id = ${user.tenantId}
+      GROUP BY d.name
+    `);
 
-    const skillCategories = departmentCategories.map(dept => ({
+    const departmentCategories = departmentCategoriesResult.rows || [];
+
+    const skillCategories = departmentCategories.map((dept: any) => ({
       category: dept.department || 'Sem Departamento',
-      count: Number(dept.userCount) || 0
+      count: Number(dept.user_count) || 0
     }));
 
     res.json({
@@ -462,7 +467,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get departments list
+// ✅ 1QA.MD: Get departments list using tenant schema
 router.get('/departments', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -470,28 +475,35 @@ router.get('/departments', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const departmentsList = await db.select({
-      id: departments.id,
-      name: departments.name,
-      description: departments.description,
-      managerId: departments.managerId,
-      isActive: departments.isActive,
-      createdAt: departments.createdAt
-    })
-    .from(departments)
-    .where(and(
-      eq(departments.tenantId, user.tenantId),
-      eq(departments.isActive, true)
-    ));
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Getting departments for schema:', tenantSchema);
+
+    // ✅ 1QA.MD: Get departments using tenant schema
+    const departmentsResult = await db.execute(sql`
+      SELECT 
+        id,
+        name,
+        description,
+        manager_id,
+        is_active,
+        created_at
+      FROM ${sql.identifier(tenantSchema)}.departments
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      ORDER BY name
+    `);
+
+    const departmentsList = departmentsResult.rows || [];
 
     res.json({ departments: departmentsList });
   } catch (error) {
-    console.error('Error fetching departments:', error);
+    console.error('[TEAM-MANAGEMENT-QA] Error fetching departments:', error);
     res.status(500).json({ message: 'Failed to fetch departments' });
   }
 });
 
-// Update member status
+// ✅ 1QA.MD: Update member status using tenant schema
 router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -517,20 +529,21 @@ router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    // Update user status
-    await db.update(users)
-      .set({ 
-        status,
-        updatedAt: new Date()
-      })
-      .where(and(
-        eq(users.id, id),
-        eq(users.tenantId, user.tenantId)
-      ));
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Updating member status for schema:', tenantSchema);
+
+    // ✅ 1QA.MD: Update user status using tenant schema
+    await db.execute(sql`
+      UPDATE ${sql.identifier(tenantSchema)}.users 
+      SET status = ${status}, updated_at = NOW()
+      WHERE id = ${id} 
+      AND tenant_id = ${user.tenantId}
+    `);
 
     res.json({ success: true, message: 'Status updated successfully' });
   } catch (error) {
-    console.error('Error updating member status:', error);
+    console.error('[TEAM-MANAGEMENT-QA] Error updating member status:', error);
     res.status(500).json({ message: 'Failed to update status' });
   }
 });
@@ -624,7 +637,7 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get roles list
+// ✅ 1QA.MD: Get roles list using tenant schema
 router.get('/roles', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -632,40 +645,43 @@ router.get('/roles', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Get distinct roles from users table
-    const rolesFromUsers = await db.select({
-      role: users.role
-    })
-    .from(users)
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true),
-      not(sql`${users.role} IS NULL`)
-    ))
-    .groupBy(users.role);
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+    console.log('[TEAM-MANAGEMENT-QA] Getting roles for schema:', tenantSchema);
 
-    // Get distinct positions as additional roles
-    const positionsFromUsers = await db.select({
-      position: users.position
-    })
-    .from(users)
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true),
-      not(sql`${users.position} IS NULL`)
-    ))
-    .groupBy(users.position);
+    // ✅ 1QA.MD: Get distinct roles using tenant schema
+    const rolesFromUsersResult = await db.execute(sql`
+      SELECT DISTINCT role
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      AND role IS NOT NULL
+      ORDER BY role
+    `);
+
+    // ✅ 1QA.MD: Get distinct positions using tenant schema
+    const positionsFromUsersResult = await db.execute(sql`
+      SELECT DISTINCT position
+      FROM ${sql.identifier(tenantSchema)}.users
+      WHERE tenant_id = ${user.tenantId}
+      AND is_active = true
+      AND position IS NOT NULL
+      ORDER BY position
+    `);
+
+    const rolesFromUsers = rolesFromUsersResult.rows || [];
+    const positionsFromUsers = positionsFromUsersResult.rows || [];
 
     const roles = [
-      ...rolesFromUsers.map(r => ({ id: r.role, name: r.role, type: 'role' })),
-      ...positionsFromUsers.map(p => ({ id: p.position, name: p.position, type: 'position' }))
+      ...rolesFromUsers.map((r: any) => ({ id: r.role, name: r.role, type: 'role' })),
+      ...positionsFromUsers.map((p: any) => ({ id: p.position, name: p.position, type: 'position' }))
     ].filter((role, index, self) => 
       role.id && self.findIndex(r => r.id === role.id) === index
     );
 
     res.json({ roles });
   } catch (error) {
-    console.error('Error fetching roles:', error);
+    console.error('[TEAM-MANAGEMENT-QA] Error fetching roles:', error);
     res.status(500).json({ message: 'Failed to fetch roles' });
   }
 });
