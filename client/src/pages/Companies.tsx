@@ -92,7 +92,7 @@ export default function Companies() {
 
   // Query para buscar empresas - usando endpoint correto
   const { data: companiesData, isLoading, error } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -123,9 +123,9 @@ export default function Companies() {
   // Mutation para criar empresa
   const createCompanyMutation = useMutation({
     mutationFn: (data: z.infer<typeof companySchema>) =>
-      apiRequest('POST', '/api/customers/companies', data),
+      apiRequest('POST', '/api/companies', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
       setIsCreateDialogOpen(false);
       companyForm.reset();
       toast({
@@ -145,9 +145,9 @@ export default function Companies() {
   // Mutation para editar empresa
   const editCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: z.infer<typeof companySchema> }) =>
-      apiRequest('PUT', `/api/customers/companies/${id}`, data),
+      apiRequest('PUT', `/api/companies/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
       setIsEditDialogOpen(false);
       setSelectedCompany(null);
       companyForm.reset();
@@ -168,9 +168,9 @@ export default function Companies() {
   // Mutation para deletar empresa
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) =>
-      apiRequest('DELETE', `/api/customers/companies/${id}`),
+      apiRequest('DELETE', `/api/companies/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
       toast({
         title: "Empresa removida",
         description: "A empresa foi removida com sucesso.",
@@ -784,7 +784,7 @@ export default function Companies() {
         onClose={() => setIsAssociateModalOpen(false)}
         company={selectedCompany}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
           setIsAssociateModalOpen(false);
         }}
       />
