@@ -262,14 +262,23 @@ function WorkSchedulesContent() {
 
   // Fetching users/employees via the admin endpoint
   // ✅ 1QA.MD COMPLIANCE: Fetch users from tenant admin team management
-  const { data: usersData, error: usersError } = useQuery({
+  const { data: usersData, error: usersError, isLoading: usersLoading } = useQuery({
     queryKey: ['/api/tenant-admin/team/users'],
     queryFn: async () => {
       console.log('[FRONTEND-QA] Fetching users from tenant admin team...');
-      const response = await apiRequest('GET', '/api/tenant-admin/team/users');
-      const data = await response.json();
-      console.log('[USERS-DEBUG] Users data received from tenant admin team:', data);
-      return data;
+      try {
+        const response = await apiRequest('GET', '/api/tenant-admin/team/users');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        console.log('[USERS-DEBUG] Users data received from tenant admin team:', data);
+        console.log('[USERS-DEBUG] Data structure keys:', Object.keys(data || {}));
+        return data;
+      } catch (error) {
+        console.error('[USERS-DEBUG] Error fetching users:', error);
+        throw error;
+      }
     },
     retry: 3,
     retryDelay: 1000
@@ -582,20 +591,24 @@ function WorkSchedulesContent() {
 
     // Prioritize 'members' if available, otherwise fall back to 'users'
     const userList = usersData.members || usersData.users || [];
-    return userList.map((user: any) => ({
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email || '',
-      role: user.role, // Assuming role is available and needed for display
-      name: user.name // Include name field if present
-    }));
+    return userList
+      .filter((user: any) => user && user.id && user.id.trim() !== '') // Filter out users with empty or invalid IDs
+      .map((user: any) => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email || '',
+        role: user.role, // Assuming role is available and needed for display
+        name: user.name // Include name field if present
+      }));
   }, [usersData]);
 
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
     console.log('Users available:', users.length);
+    console.log('Users data structure:', usersData);
+    console.log('Users loading state:', usersLoading);
     console.log('Schedule templates data:', scheduleTemplatesData);
     console.log('Custom templates (excluding defaults):', customTemplates);
   }
@@ -606,6 +619,10 @@ function WorkSchedulesContent() {
 
   if (usersError) {
     console.error('Users fetch error:', usersError);
+    console.error('Users error details:', {
+      message: usersError.message,
+      stack: usersError.stack
+    });
   }
 
   // Add error state handling
@@ -954,11 +971,16 @@ function WorkSchedulesContent() {
     );
   };
 
-  if (schedulesLoading || templatesLoading) {
+  if (schedulesLoading || templatesLoading || usersLoading) {
     return (
       <div className="p-4">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-gray-600">Carregando dados...</div>
+          <div className="text-lg text-gray-600">
+            Carregando dados...
+            {schedulesLoading && <div className="text-sm">• Escalas</div>}
+            {templatesLoading && <div className="text-sm">• Templates</div>}
+            {usersLoading && <div className="text-sm">• Funcionários</div>}
+          </div>
         </div>
       </div>
     );
@@ -1437,10 +1459,10 @@ function WorkSchedulesContent() {
                         }
                       </SelectItem>
                     ))}
-                    {/* ✅ 1QA.MD COMPLIANCE: Show debug info if no users */}
+                    {/* ✅ 1QA.MD COMPLIANCE: Show debug info if no users - using valid value */}
                     {(!usersData?.members && !usersData?.users) && (
-                      <SelectItem value="" disabled>
-                        Debug: {JSON.stringify(usersData)}
+                      <SelectItem value="debug-no-users" disabled>
+                        Nenhum usuário encontrado - Debug: {JSON.stringify(usersData)}
                       </SelectItem>
                     )}
                   </SelectContent>
