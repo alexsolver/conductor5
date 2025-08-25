@@ -779,6 +779,37 @@ function WorkSchedulesContent() {
     setIsDialogOpen(true);
   };
 
+  // ✅ 1QA.MD COMPLIANCE: Function to handle opening new template dialog
+  const handleNewTemplate = () => {
+    console.log('[WORK-SCHEDULES] Opening new template dialog');
+    setSelectedTemplate(null);
+    resetTemplateForm();
+    setIsTemplateDialogOpen(true);
+  };
+
+  // ✅ 1QA.MD COMPLIANCE: Function to handle editing existing template
+  const handleEditTemplate = (template: ScheduleTemplate) => {
+    console.log('[WORK-SCHEDULES] Opening edit template dialog for:', template.id);
+    setSelectedTemplate(template);
+    setTemplateFormData({
+      id: template.id,
+      name: template.name,
+      description: template.description || '',
+      scheduleType: template.scheduleType,
+      workDays: template.workDays,
+      startTime: template.startTime || '08:00',
+      endTime: template.endTime || '17:00',
+      breakStart: template.breakStart || '',
+      breakEnd: template.breakEnd || '',
+      breakDurationMinutes: template.breakDurationMinutes || 60,
+      useWeeklySchedule: template.useWeeklySchedule || false,
+      weeklySchedule: template.weeklySchedule || {},
+      isActive: template.isActive,
+      category: template.category || 'custom'
+    });
+    setIsTemplateDialogOpen(true);
+  };
+
 
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta escala?')) {
