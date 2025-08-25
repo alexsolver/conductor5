@@ -1,112 +1,86 @@
-import { db } from './server/db.ts';
-import { sql } from 'drizzle-orm';
+const { Pool } = require('pg');
 
-// Migration script to create missing timecard tables
-async function migrateTimecardTables() {
+async function createTimecardTables() {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: false
+  });
+
   const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
-  
-  console.log('🔧 Starting timecard tables migration...');
-  
+  const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
   try {
-    // Create timecard_entries table if not exists
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS timecard_entries (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id VARCHAR(36) NOT NULL,
-        user_id UUID NOT NULL,
-        check_in TIMESTAMP NOT NULL,
-        check_out TIMESTAMP,
-        break_start TIMESTAMP,
-        break_end TIMESTAMP,
-        total_hours DECIMAL(4,2),
-        notes TEXT,
-        location TEXT,
-        is_manual_entry BOOLEAN DEFAULT false,
-        approved_by UUID,
-        status VARCHAR(20) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-    console.log('✅ Created timecard_entries table');
-    
-    // Create work_schedules table if not exists  
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS work_schedules (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL,
-        user_id UUID NOT NULL,
-        schedule_name VARCHAR(255),
-        work_days JSONB,
-        start_time TIME,
-        end_time TIME,
-        break_start TIME,
-        break_end TIME,
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-    console.log('✅ Created work_schedules table');
-    
-    // Create absence_requests table if not exists
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS absence_requests (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL,
-        user_id UUID NOT NULL,
-        absence_type VARCHAR(50) NOT NULL,
-        start_date DATE NOT NULL,
-        end_date DATE NOT NULL,
-        reason TEXT,
-        status VARCHAR(20) DEFAULT 'pending',
-        medical_certificate TEXT,
-        cover_user_id UUID,
-        approved_by UUID,
-        approved_at TIMESTAMP,
-        rejection_reason TEXT,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-    console.log('✅ Created absence_requests table');
-    
-    // Create schedule_templates table if not exists
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS schedule_templates (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        schedule_type VARCHAR(50) NOT NULL,
-        work_days JSONB,
-        start_time TIME,
-        end_time TIME,
-        break_start TIME,
-        break_end TIME,
-        flexibility_window INTEGER DEFAULT 0,
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-    console.log('✅ Created schedule_templates table');
-    
-    console.log('🎉 Timecard tables migration completed successfully!');
+    // Verificar se time_records existe e criar timecard_entries como view ou migrar dados
+    const checkTimeRecords = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = $1 AND table_name = 'time_records'
+      )
+    `, [schemaName]);
+
+    if (checkTimeRecords.rows[0].exists) {
+      console.log('✅ time_records table exists, creating timecard_entries view...');
+      
+      await pool.query(`
+        SET search_path TO ${schemaName};
+        
+        -- Create timecard_entries as a view of time_records for compatibility
+        CREATE OR REPLACE VIEW timecard_entries AS 
+        SELECT 
+          id,
+          tenant_id as "tenantId",
+          user_id as "userId", 
+          check_in as "checkIn",
+          check_out as "checkOut",
+          break_start as "breakStart", 
+          break_end as "breakEnd",
+          total_worked_minutes as "totalWorkedMinutes",
+          break_duration_minutes as "breakDurationMinutes",
+          overtime_minutes as "overtimeMinutes",
+          status,
+          notes,
+          location,
+          ip_address as "ipAddress",
+          device,
+          is_manual_entry as "isManualEntry",
+          is_active as "isActive",
+          timestamp,
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM time_records;
+        
+        -- Create work_schedules table if not exists
+        CREATE TABLE IF NOT EXISTS work_schedules (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          user_id UUID NOT NULL,
+          schedule_type VARCHAR(50) DEFAULT '5x2',
+          schedule_name VARCHAR(255) DEFAULT 'Escala de Trabalho',
+          work_days JSONB DEFAULT '[1,2,3,4,5]',
+          start_time TIME DEFAULT '08:00',
+          end_time TIME DEFAULT '18:00', 
+          break_start TIME DEFAULT '12:00',
+          break_end TIME DEFAULT '13:00',
+          break_duration_minutes INTEGER DEFAULT 60,
+          is_active BOOLEAN DEFAULT true,
+          use_weekly_schedule BOOLEAN DEFAULT false,
+          weekly_schedule JSONB,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(tenant_id, user_id)
+        );
+      `);
+      
+      console.log('✅ Timecard compatibility tables created successfully!');
+    } else {
+      console.log('❌ time_records table not found in tenant schema');
+    }
     
   } catch (error) {
     console.error('❌ Migration failed:', error);
-    throw error;
+  } finally {
+    await pool.end();
   }
 }
 
-// Run migration
-migrateTimecardTables()
-  .then(() => {
-    console.log('✅ Migration script completed');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('❌ Migration script failed:', error);
-    process.exit(1);
-  });
+createTimecardTables();
