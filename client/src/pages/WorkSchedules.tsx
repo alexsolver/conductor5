@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -260,12 +260,14 @@ function WorkSchedulesContent() {
   });
 
   // Fetching users/employees via the admin endpoint
+  // ✅ 1QA.MD COMPLIANCE: Fetch users from tenant admin team management
   const { data: usersData, error: usersError } = useQuery({
-    queryKey: ['/api/tenant-admin/users'],
+    queryKey: ['/api/tenant-admin/team/users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/tenant-admin/users');
+      console.log('[FRONTEND-QA] Fetching users from tenant admin team...');
+      const response = await apiRequest('GET', '/api/tenant-admin/team/users');
       const data = await response.json();
-      console.log('[USERS-DEBUG] Users data received:', data);
+      console.log('[USERS-DEBUG] Users data received from tenant admin team:', data);
       return data;
     },
     retry: 3,
@@ -561,13 +563,30 @@ function WorkSchedulesContent() {
   }
 
   // Filter custom templates (excluding default ones like 5x2, 6x1, 12x36)
-  const customTemplates = Array.isArray(scheduleTemplatesData?.templates)
-    ? scheduleTemplatesData.templates.filter((t: ScheduleTemplate) => 
-        !['5x2', '6x1', '12x36', '4x3', 'flexible', 'part-time'].includes(t.id)
-      )
-    : [];
+  const customTemplates = React.useMemo(() => {
+    if (!scheduleTemplatesData || !Array.isArray(scheduleTemplatesData.templates)) {
+      return [];
+    }
+    return scheduleTemplatesData.templates.filter((t: ScheduleTemplate) =>
+      !['5x2', '6x1', '12x36', '4x3', 'flexible', 'part-time'].includes(t.id)
+    );
+  }, [scheduleTemplatesData]);
 
-  const users = Array.isArray(usersData) ? usersData : (usersData?.users || usersData?.members || []);
+  // ✅ 1QA.MD COMPLIANCE: Map users correctly from tenant admin team response
+  const users = useMemo(() => {
+    if (!usersData || !Array.isArray(usersData.users)) {
+      console.warn('[WORK-SCHEDULES] Users data is not in expected format:', usersData);
+      return [];
+    }
+
+    return usersData.users.map((user: any) => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email || '',
+      role: user.role, // Assuming role is available and needed for display
+    }));
+  }, [usersData]);
 
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
@@ -649,7 +668,7 @@ function WorkSchedulesContent() {
       toast({ title: 'Erro de validação', description: 'Horário de saída deve ser posterior ao de entrada.', variant: 'destructive' });
       return;
     }
-    if (formData.workDays.length === 0) {
+    if (!formData.useWeeklySchedule && formData.workDays.length === 0) {
       toast({ title: 'Erro de validação', description: 'Selecione pelo menos um dia da semana.', variant: 'destructive' });
       return;
     }
@@ -997,7 +1016,7 @@ function WorkSchedulesContent() {
             <Users className="h-4 w-4" />
             Atribuição em Massa
           </Button>
-          <Button 
+          <Button
               onClick={handleNewSchedule}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
@@ -1665,7 +1684,7 @@ function WorkSchedulesContent() {
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="ghost" 
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         console.log('[WORK-SCHEDULES] Deleting schedule:', schedule.id);

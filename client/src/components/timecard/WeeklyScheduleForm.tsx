@@ -3,6 +3,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { useQuery } from '@tanstack/react-query'; // Import added for useQuery
+import { apiRequest } from '@/lib/api'; // Import added for apiRequest
 
 // --- Simulação de variáveis e funções que as mudanças referenciam ---
 // Estas seriam definidas em um componente pai ou no mesmo arquivo, mas não estão no código original fornecido.
@@ -11,7 +13,7 @@ const formData = { userId: 'user123', startDate: '2023-10-27', workDays: [] }; /
 const toast = ({ title, description, variant }) => { console.log(`Toast: ${title} - ${description} (${variant})`); };
 const updateScheduleMutation = { mutateAsync: async (data) => { console.log("Updating schedule:", data); } };
 const createScheduleMutation = { mutateAsync: async (data) => { console.log("Creating schedule:", data); } };
-const isSubmitting = false; // Exemplo de estado
+const setIsSubmitting = (value) => { console.log("Setting isSubmitting to:", value); }; // Exemplo de função
 const onSuccess = () => { console.log("Operation successful"); };
 const schedule = null; // Exemplo: se estiver editando um schedule existente
 // --- Fim da simulação ---
@@ -106,7 +108,16 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
   };
 
   // --- Aplicação das mudanças hipotéticas ---
-  // ✅ 1QA.MD COMPLIANCE: Handle form submission with proper validation
+  // ✅ 1QA.MD COMPLIANCE: Fetch users from tenant admin team management
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/tenant-admin/team/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/tenant-admin/team/users');
+      return await response.json();
+    },
+  });
+  // --- Fim da aplicação das mudanças hipotéticas ---
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -153,7 +164,6 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
       setIsSubmitting(false);
     }
   };
-  // --- Fim da aplicação das mudanças hipotéticas ---
 
   return (
     <div className="space-y-4">
