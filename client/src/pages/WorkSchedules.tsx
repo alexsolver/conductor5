@@ -48,6 +48,7 @@ interface User {
   lastName: string;
   email: string;
   role?: string;
+  name?: string; // Added for potential name field if first/last name are not available
 }
 
 // Interface for Schedule Template
@@ -574,17 +575,20 @@ function WorkSchedulesContent() {
 
   // ✅ 1QA.MD COMPLIANCE: Map users correctly from tenant admin team response
   const users = useMemo(() => {
-    if (!usersData || !Array.isArray(usersData.users)) {
+    if (!usersData || (!Array.isArray(usersData.members) && !Array.isArray(usersData.users))) {
       console.warn('[WORK-SCHEDULES] Users data is not in expected format:', usersData);
       return [];
     }
 
-    return usersData.users.map((user: any) => ({
+    // Prioritize 'members' if available, otherwise fall back to 'users'
+    const userList = usersData.members || usersData.users || [];
+    return userList.map((user: any) => ({
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email || '',
       role: user.role, // Assuming role is available and needed for display
+      name: user.name // Include name field if present
     }));
   }, [usersData]);
 
@@ -1414,14 +1418,31 @@ function WorkSchedulesContent() {
                   disabled={!!selectedSchedule} // Disable if editing an existing schedule
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um funcionário" />
+                    <SelectValue placeholder={
+                      usersData === undefined
+                        ? "Carregando funcionários..."
+                        : (usersData?.members?.length || usersData?.users?.length) > 0
+                          ? "Selecione um funcionário"
+                          : "Nenhum funcionário encontrado"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
-                    {users.map((user: User) => (
+                    {/* ✅ 1QA.MD COMPLIANCE: Debug users data structure */}
+                    {console.log('[USERS-SELECT-DEBUG] usersData structure:', usersData)}
+                    {(usersData?.members || usersData?.users || []).map((user: User) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.firstName} {user.lastName}
+                        {user.firstName && user.lastName
+                          ? `${user.firstName} ${user.lastName} (${user.email})`
+                          : user.name || user.email
+                        }
                       </SelectItem>
                     ))}
+                    {/* ✅ 1QA.MD COMPLIANCE: Show debug info if no users */}
+                    {(!usersData?.members && !usersData?.users) && (
+                      <SelectItem value="" disabled>
+                        Debug: {JSON.stringify(usersData)}
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
