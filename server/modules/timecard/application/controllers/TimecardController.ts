@@ -243,6 +243,31 @@ export class TimecardController {
         });
       }
 
+      // ✅ 1QA.MD: Enhanced error handling with specific error types
+      if (error.message?.includes('TABLE_NOT_FOUND')) {
+        return res.status(500).json({
+          success: false,
+          message: 'Configuração do sistema incompleta - tabela de timecard não encontrada',
+          error: 'TABLE_NOT_FOUND'
+        });
+      }
+      
+      if (error.message?.includes('DUPLICATE_ENTRY')) {
+        return res.status(409).json({
+          success: false,
+          message: 'Registro de ponto duplicado detectado',
+          error: 'DUPLICATE_ENTRY'
+        });
+      }
+      
+      if (error.message?.includes('FOREIGN_KEY_ERROR')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Referência inválida nos dados do registro',
+          error: 'FOREIGN_KEY_ERROR'
+        });
+      }
+
       return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor ao registrar ponto',

@@ -78,10 +78,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   // Timecard Entries Implementation
   async createTimecardEntry(data: any): Promise<any> {
-    const tenantDb = await this.getTenantDb(data.tenantId);
-    const [entry] = await tenantDb
-      .insert(timecardEntries)
-      .values({
+    try {
+      console.log('[DRIZZLE-QA] Creating timecard entry for tenant:', data.tenantId);
+      
+      const tenantDb = await this.getTenantDb(data.tenantId);
+      
+      // ✅ 1QA.MD: Use tenant-specific schema for all operations
+      const entryData = {
         tenantId: data.tenantId,
         userId: data.userId,
         checkIn: data.checkIn || null,
@@ -97,38 +100,95 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         ipAddress: data.ipAddress || null,
         device: data.device || null,
         isManualEntry: data.isManualEntry || false,
-        isActive: data.isActive !== false
-      })
-      .returning();
-    return entry;
+        isActive: data.isActive !== false,
+        timestamp: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      console.log('[DRIZZLE-QA] Inserting timecard entry data:', entryData);
+      
+      const [entry] = await tenantDb
+        .insert(timecardEntries)
+        .values(entryData)
+        .returning();
+        
+      console.log('[DRIZZLE-QA] Timecard entry created successfully:', entry?.id);
+      return entry;
+      
+    } catch (error: any) {
+      console.error('[DRIZZLE-QA] Error creating timecard entry:', error);
+      console.error('[DRIZZLE-QA] Error details:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        constraint: error.constraint
+      });
+      
+      // ✅ 1QA.MD: Proper error handling with specific error types
+      if (error.code === '23505') {
+        throw new Error('DUPLICATE_ENTRY: Registro de ponto duplicado');
+      }
+      
+      if (error.code === '23503') {
+        throw new Error('FOREIGN_KEY_ERROR: Referência inválida no registro');
+      }
+      
+      if (error.code === '42P01') {
+        throw new Error('TABLE_NOT_FOUND: Tabela timecard_entries não encontrada no schema do tenant');
+      }
+      
+      throw new Error(`DATABASE_ERROR: ${error.message}`);
+    }
   }
 
   async getTimecardEntriesByUserAndDate(userId: string, date: string, tenantId: string): Promise<any[]> {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    try {
+      console.log('[DRIZZLE-QA] Getting timecard entries for user:', userId, 'date:', date, 'tenant:', tenantId);
+      
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
 
-    return await db
-      .select()
-      .from(timecardEntries)
-      .where(
-        and(
-          eq(timecardEntries.tenantId, tenantId),
-          eq(timecardEntries.userId, userId),
-          or(
-            and(
-              gte(timecardEntries.timestamp, startOfDay),
-              lte(timecardEntries.timestamp, endOfDay)
-            ),
-            and(
-              gte(timecardEntries.createdAt, startOfDay),
-              lte(timecardEntries.createdAt, endOfDay)
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      const entries = await tenantDb
+        .select()
+        .from(timecardEntries)
+        .where(
+          and(
+            eq(timecardEntries.tenantId, tenantId),
+            eq(timecardEntries.userId, userId),
+            or(
+              and(
+                gte(timecardEntries.timestamp, startOfDay),
+                lte(timecardEntries.timestamp, endOfDay)
+              ),
+              and(
+                gte(timecardEntries.createdAt, startOfDay),
+                lte(timecardEntries.createdAt, endOfDay)
+              )
             )
           )
         )
-      )
-      .orderBy(desc(timecardEntries.createdAt));
+        .orderBy(desc(timecardEntries.createdAt));
+        
+      console.log('[DRIZZLE-QA] Found', entries.length, 'timecard entries');
+      return entries;
+      
+    } catch (error: any) {
+      console.error('[DRIZZLE-QA] Error getting timecard entries:', error);
+      
+      // ✅ 1QA.MD: Proper error handling
+      if (error.code === '42P01') {
+        console.error('[DRIZZLE-QA] Table timecard_entries not found in tenant schema');
+        return [];
+      }
+      
+      throw new Error(`DATABASE_ERROR: ${error.message}`);
+    }
   }
 
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
@@ -152,12 +212,31 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any> {
-    const [entry] = await db
-      .update(timecardEntries)
-      .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)))
-      .returning();
-    return entry;
+    try {
+      console.log('[DRIZZLE-QA] Updating timecard entry:', id, 'for tenant:', tenantId);
+      
+      // ✅ 1QA.MD: Use tenant-specific database instance
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      const [entry] = await tenantDb
+        .update(timecardEntries)
+        .set({ ...data, updatedAt: new Date() })
+        .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)))
+        .returning();
+        
+      console.log('[DRIZZLE-QA] Timecard entry updated successfully');
+      return entry;
+      
+    } catch (error: any) {
+      console.error('[DRIZZLE-QA] Error updating timecard entry:', error);
+      
+      // ✅ 1QA.MD: Proper error handling
+      if (error.code === '42P01') {
+        throw new Error('TABLE_NOT_FOUND: Tabela timecard_entries não encontrada no schema do tenant');
+      }
+      
+      throw new Error(`DATABASE_ERROR: ${error.message}`);
+    }
   }
 
   async deleteTimecardEntry(id: string, tenantId: string): Promise<void> {
