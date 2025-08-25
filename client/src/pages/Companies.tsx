@@ -93,6 +93,10 @@ export default function Companies() {
   // Query para buscar empresas - usando endpoint correto
   const { data: companiesData, isLoading, error } = useQuery({
     queryKey: ['/api/companies'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/companies');
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
