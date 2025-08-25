@@ -44,19 +44,9 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use findByIdAndTenant instead
   async findById(id: string): Promise<Company | null> {
-    try {
-      const result = await db
-        .select()
-        .from(companies)
-        .where(eq(companies.id, id))
-        .limit(1);
-
-      return result.length > 0 ? this.mapToEntity(result[0]) : null;
-    } catch (error: any) {
-      console.error('❌ [DrizzleCompanyRepository] findById error:', error);
-      throw error;
-    }
+    throw new Error('1QA.MD VIOLATION: findById without tenant context is not allowed. Use findByIdAndTenant instead.');
   }
 
   async findByIdAndTenant(id: string, tenantId: string): Promise<Company | null> {
@@ -95,41 +85,114 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     }
   }
 
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use createWithTenant instead
   async create(companyData: Omit<Company, 'id' | 'createdAt' | 'updatedAt'>): Promise<Company> {
-    const [result] = await db
-      .insert(companies)
-      .values({
-        ...companyData,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-      .returning();
-
-    return this.mapToEntity(result);
+    throw new Error('1QA.MD VIOLATION: create without tenant context is not allowed. Use createWithTenant instead.');
   }
 
+  // ✅ 1QA.MD: Create company using tenant schema
+  async createWithTenant(companyData: Omit<Company, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Company> {
+    try {
+      console.log('🏭 [DrizzleCompanyRepository] Creating company for tenant:', tenantId);
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
+      
+      const result = await tenantDb.execute(sql.raw(`
+        INSERT INTO "${schemaName}".companies (
+          tenant_id, name, display_name, description, industry, size, email, phone, website,
+          address, tax_id, registration_number, subscription_tier, contract_type, max_users,
+          max_tickets, settings, tags, metadata, status, is_active, is_primary, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING *
+      `, [
+        tenantId, companyData.name, companyData.displayName, companyData.description, 
+        companyData.industry, companyData.size, companyData.email, companyData.phone,
+        companyData.website, companyData.address, companyData.taxId, companyData.registrationNumber,
+        companyData.subscriptionTier, companyData.contractType, companyData.maxUsers,
+        companyData.maxTickets, JSON.stringify(companyData.settings || {}), 
+        JSON.stringify(companyData.tags || []), JSON.stringify(companyData.metadata || {}),
+        companyData.status, companyData.isActive !== false, companyData.isPrimary || false,
+        new Date(), new Date()
+      ]));
+
+      return this.mapToEntity(result.rows[0]);
+    } catch (error: any) {
+      console.error('❌ [DrizzleCompanyRepository] createWithTenant error:', error);
+      throw error;
+    }
+  }
+
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use updateWithTenant instead
   async update(id: string, updates: Partial<Company>): Promise<Company> {
-    const [result] = await db
-      .update(companies)
-      .set({
-        ...updates,
-        updatedAt: new Date()
-      })
-      .where(eq(companies.id, id))
-      .returning();
-
-    return this.mapToEntity(result);
+    throw new Error('1QA.MD VIOLATION: update without tenant context is not allowed. Use updateWithTenant instead.');
   }
 
+  // ✅ 1QA.MD: Update company using tenant schema
+  async updateWithTenant(id: string, updates: Partial<Company>, tenantId: string): Promise<Company> {
+    try {
+      console.log('🏭 [DrizzleCompanyRepository] Updating company for tenant:', tenantId);
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
+      
+      const result = await tenantDb.execute(sql.raw(`
+        UPDATE "${schemaName}".companies
+        SET 
+          name = COALESCE(?, name),
+          display_name = COALESCE(?, display_name),
+          description = COALESCE(?, description),
+          industry = COALESCE(?, industry),
+          size = COALESCE(?, size),
+          email = COALESCE(?, email),
+          phone = COALESCE(?, phone),
+          website = COALESCE(?, website),
+          address = COALESCE(?, address),
+          status = COALESCE(?, status),
+          is_active = COALESCE(?, is_active),
+          updated_at = ?
+        WHERE id = ? AND tenant_id = ?
+        RETURNING *
+      `, [
+        updates.name, updates.displayName, updates.description, updates.industry,
+        updates.size, updates.email, updates.phone, updates.website, updates.address,
+        updates.status, updates.isActive, new Date(), id, tenantId
+      ]));
+
+      if (result.rows.length === 0) {
+        throw new Error('Company not found or already deleted');
+      }
+
+      return this.mapToEntity(result.rows[0]);
+    } catch (error: any) {
+      console.error('❌ [DrizzleCompanyRepository] updateWithTenant error:', error);
+      throw error;
+    }
+  }
+
+  // ❌ 1QA.MD VIOLATION - Method without tenant context - Use deleteWithTenant instead
   async delete(id: string): Promise<void> {
-    await db
-      .update(companies)
-      .set({
-        isActive: false,
-        status: 'inactive' as CompanyStatus,
-        updatedAt: new Date()
-      })
-      .where(eq(companies.id, id));
+    throw new Error('1QA.MD VIOLATION: delete without tenant context is not allowed. Use deleteWithTenant instead.');
+  }
+
+  // ✅ 1QA.MD: Delete company using tenant schema
+  async deleteWithTenant(id: string, tenantId: string): Promise<void> {
+    try {
+      console.log('🏭 [DrizzleCompanyRepository] Deleting company for tenant:', tenantId);
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
+      
+      await tenantDb.execute(sql.raw(`
+        UPDATE "${schemaName}".companies
+        SET is_active = false, status = 'inactive', updated_at = ?
+        WHERE id = ? AND tenant_id = ?
+      `, [new Date(), id, tenantId]));
+    } catch (error: any) {
+      console.error('❌ [DrizzleCompanyRepository] deleteWithTenant error:', error);
+      throw error;
+    }
   }
 
   async findByCNPJ(cnpj: string): Promise<Company | null> {
