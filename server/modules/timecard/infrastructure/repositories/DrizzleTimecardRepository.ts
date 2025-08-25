@@ -264,11 +264,95 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   // Simplified implementations for other methods to avoid errors
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
-    return [];
+    try {
+      // ✅ 1QA.MD: Usar schema correto do tenant para multi-tenancy
+      const tenantSchema = this.getSchemaName(tenantId);
+      console.log('[REPOSITORY-QA] Fetching work schedules from schema:', tenantSchema);
+      
+      const result = await db.execute(sql`
+        SELECT 
+          ws.id,
+          ws.tenant_id,
+          ws.user_id,
+          ws.schedule_type,
+          ws.start_date,
+          ws.end_date,
+          ws.work_days,
+          ws.start_time,
+          ws.end_time,
+          ws.break_duration_minutes,
+          ws.is_active,
+          ws.created_at,
+          ws.updated_at,
+          COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário') as user_name,
+          u.email as user_email
+        FROM ${sql.identifier(tenantSchema)}.work_schedules ws
+        LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON ws.user_id = u.id  
+        WHERE ws.tenant_id = ${tenantId}
+          AND ws.is_active = true
+        ORDER BY ws.created_at DESC
+      `);
+
+      const schedules = result.rows || [];
+      console.log('[REPOSITORY-QA] Found work schedules:', schedules.length);
+      return schedules;
+      
+    } catch (error: any) {
+      console.error('[REPOSITORY-QA] Error fetching work schedules:', error);
+      // Return empty array instead of throwing to prevent breaking the system
+      return [];
+    }
   }
 
   async createWorkSchedule(data: any, tenantId: string): Promise<any> {
-    return {};
+    try {
+      // ✅ 1QA.MD: Usar schema correto do tenant para multi-tenancy
+      const tenantSchema = this.getSchemaName(tenantId);
+      console.log('[REPOSITORY-QA] Creating work schedule in schema:', tenantSchema, 'Data:', data);
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(tenantSchema)}.work_schedules (
+          tenant_id,
+          user_id,
+          schedule_type,
+          start_date,
+          end_date,
+          work_days,
+          start_time,
+          end_time,
+          break_duration_minutes,
+          is_active
+        ) VALUES (
+          ${tenantId},
+          ${data.userId},
+          ${data.scheduleType},
+          ${data.startDate},
+          ${data.endDate || null},
+          ${JSON.stringify(data.workDays)},
+          ${data.startTime},
+          ${data.endTime},
+          ${data.breakDurationMinutes || 60},
+          ${data.isActive !== undefined ? data.isActive : true}
+        ) RETURNING *
+      `);
+
+      const schedule = result.rows[0];
+      console.log('[REPOSITORY-QA] Work schedule created successfully:', schedule?.id);
+      return schedule;
+      
+    } catch (error: any) {
+      console.error('[REPOSITORY-QA] Error creating work schedule:', error);
+      
+      if (error.code === '42P01') {
+        throw new Error('TABLE_NOT_FOUND: Tabela work_schedules não encontrada no schema do tenant');
+      }
+      
+      if (error.code === '23505') {
+        throw new Error('DUPLICATE_ENTRY: Já existe uma escala com os mesmos dados');
+      }
+      
+      throw new Error(`DATABASE_ERROR: ${error.message}`);
+    }
   }
 
   async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
