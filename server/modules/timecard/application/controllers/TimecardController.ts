@@ -182,25 +182,27 @@ export class TimecardController {
           });
         }
 
+        // ✅ 1QA.MD: Usar timestamp ISO diretamente para PostgreSQL
         // Update the existing check-in record with check-out time
         const updatedEntry = await this.timecardRepository.updateTimecardEntry(
           activeCheckIn.id,
           tenantId,
-          { check_out: new Date(validatedData.checkOut) }
+          { check_out: validatedData.checkOut }
         );
 
         return res.status(201).json(updatedEntry);
       }
 
+      // ✅ 1QA.MD: Manter timestamps em formato ISO string para PostgreSQL
       // Use authenticated user ID instead of body userId
       const entryData = {
         ...validatedData,
         userId: userId || validatedData.userId,
         tenantId,
-        checkIn: validatedData.checkIn ? new Date(validatedData.checkIn) : null,
-        checkOut: validatedData.checkOut ? new Date(validatedData.checkOut) : null,
-        breakStart: validatedData.breakStart ? new Date(validatedData.breakStart) : null,
-        breakEnd: validatedData.breakEnd ? new Date(validatedData.breakEnd) : null,
+        checkIn: validatedData.checkIn || null,
+        checkOut: validatedData.checkOut || null,
+        breakStart: validatedData.breakStart || null,
+        breakEnd: validatedData.breakEnd || null,
       };
 
       console.log('[TIMECARD-CREATE] Creating entry with data:', entryData);
