@@ -99,7 +99,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         device: data.device || null,
         isManualEntry: data.isManualEntry || false,
         isActive: data.isActive !== false,
-        timestamp: new Date(),
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -111,14 +110,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           tenant_id, user_id, check_in, check_out, break_start, break_end,
           total_worked_minutes, break_duration_minutes, overtime_minutes,
           status, notes, location, ip_address, device, is_manual_entry,
-          is_active, timestamp, created_at, updated_at
+          is_active, created_at, updated_at
         ) VALUES (
           ${entryData.tenantId}, ${entryData.userId}, ${entryData.checkIn}, ${entryData.checkOut},
           ${entryData.breakStart}, ${entryData.breakEnd}, ${entryData.totalWorkedMinutes},
           ${entryData.breakDurationMinutes}, ${entryData.overtimeMinutes}, ${entryData.status},
           ${entryData.notes}, ${entryData.location}, ${entryData.ipAddress}, ${entryData.device},
-          ${entryData.isManualEntry}, ${entryData.isActive}, ${entryData.timestamp},
-          ${entryData.createdAt}, ${entryData.updatedAt}
+          ${entryData.isManualEntry}, ${entryData.isActive}, ${entryData.createdAt}, ${entryData.updatedAt}
         )
         RETURNING *
       `);
@@ -171,11 +169,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         FROM time_records
         WHERE tenant_id = ${tenantId}
           AND user_id = ${userId}
-          AND (
-            (timestamp >= ${startOfDay} AND timestamp <= ${endOfDay})
-            OR
-            (created_at >= ${startOfDay} AND created_at <= ${endOfDay})
-          )
+          AND (created_at >= ${startOfDay} AND created_at <= ${endOfDay})
         ORDER BY created_at DESC
       `);
       
@@ -198,33 +192,37 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
-    const conditions = [
-      eq(timeRecords.userId, userId),
-      eq(timeRecords.tenantId, tenantId)
-    ];
-
-    if (startDate) {
-      conditions.push(gte(timeRecords.timestamp, startDate));
+    try {
+      console.log('[DRIZZLE-QA] Getting timecard entries for user:', userId, 'tenant:', tenantId);
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      let whereClause = `WHERE user_id = '${userId}' AND tenant_id = '${tenantId}'`;
+      if (startDate) {
+        whereClause += ` AND created_at >= '${startDate.toISOString()}'`;
+      }
+      if (endDate) {
+        whereClause += ` AND created_at <= '${endDate.toISOString()}'`;
+      }
+      
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM time_records ${sql.raw(whereClause)} ORDER BY created_at DESC
+      `);
+      
+      console.log('[DRIZZLE-QA] Found', result.rows.length, 'timecard entries');
+      return result.rows;
+      
+    } catch (error: any) {
+      console.error('[DRIZZLE-QA] Error getting timecard entries:', error);
+      
+      // ✅ 1QA.MD: Proper error handling
+      if (error.code === '42P01') {
+        console.error('[DRIZZLE-QA] Table time_records not found in tenant schema');
+        return [];
+      }
+      
+      throw new Error(`DATABASE_ERROR: ${error.message}`);
     }
-    if (endDate) {
-      conditions.push(lte(timeRecords.timestamp, endDate));
-    }
-
-    const tenantDb = await this.getTenantDb(tenantId);
-    
-    let whereClause = `WHERE user_id = ${userId} AND tenant_id = ${tenantId}`;
-    if (startDate) {
-      whereClause += ` AND timestamp >= '${startDate.toISOString()}'`;
-    }
-    if (endDate) {
-      whereClause += ` AND timestamp <= '${endDate.toISOString()}'`;
-    }
-    
-    const result = await tenantDb.execute(sql`
-      SELECT * FROM time_records ${sql.raw(whereClause)} ORDER BY timestamp DESC
-    `);
-    
-    return result.rows;
   }
 
   async updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any> {
@@ -237,12 +235,15 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       const updateData = { ...data, updatedAt: new Date() };
       const setPairs = Object.keys(updateData).map(key => `${key} = $${key}`).join(', ');
       
+      // Build SET clause dynamically
+      const setClause = Object.keys(data).map(key => `${key} = '${data[key]}'`).join(', ');
+      
       const result = await tenantDb.execute(sql`
         UPDATE time_records 
-        SET updated_at = NOW(), ${sql.raw(Object.keys(data).map(key => `${key} = ${sql.placeholder(key)}`).join(', '))}
+        SET updated_at = NOW(), ${sql.raw(setClause)}
         WHERE id = ${id} AND tenant_id = ${tenantId}
         RETURNING *
-      `, { ...data });
+      `);
       
       const entry = result.rows[0];
         
