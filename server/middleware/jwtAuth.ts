@@ -125,7 +125,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     const user = await userRepository.findById(userId);
 
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive()) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
       return res.status(401).json({ 
@@ -140,7 +140,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const permissions = rbacInstance.getRolePermissions(user.role);
 
     // Enhanced tenant validation for customers module
-    if (!user.tenantId && req.path.includes('/customers')) {
+    if (!user.getTenantId() && req.path.includes('/customers')) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
       return res.status(403).json({
@@ -151,24 +151,22 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     }
 
     req.user = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      tenantId: user.tenantId,
+      id: user.getId(),
+      email: user.getEmail(),
+      role: user.getRole(),
+      tenantId: user.getTenantId(),
       permissions: permissions || [],
-      attributes: {},
-      // Add customer-specific permissions
-      hasCustomerAccess: Array.isArray(permissions) ? permissions.some(p => typeof p === 'string' && p.includes('customer')) : false
+      attributes: {}
     };
 
     // Log successful authentication for materials-services endpoints per 1qa.md compliance
     if (req.path.includes('/materials-services')) {
-      console.log(`✅ [AUTH] Materials-Services access granted for user: ${req.user.id}, tenant: ${req.user.tenantId}`);
+      console.log(`✅ [AUTH] Materials-Services access granted for user: ${req.user?.id}, tenant: ${req.user?.tenantId}`);
     }
 
     // Log successful authentication for parts-services endpoints (legacy)
     if (req.path.includes('/parts-services')) {
-      console.log(`✅ [AUTH] Parts-Services access granted for tenant: ${req.user.tenantId}`);
+      console.log(`✅ [AUTH] Parts-Services access granted for tenant: ${req.user?.tenantId}`);
     }
 
     // Debug: Token payload and user authentication (production mode disabled)
@@ -247,12 +245,12 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
       const userRepository = container.userRepository;
       const user = await userRepository.findById(payload.userId);
 
-      if (user && user.isActive) {
+      if (user && user.isActive()) {
         req.user = {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          tenantId: user.tenantId,
+          id: user.getId(),
+          email: user.getEmail(),
+          role: user.getRole(),
+          tenantId: user.getTenantId(),
           permissions: [], // Permissions might need to be fetched here as well if required by optional auth
           attributes: {}
         };
