@@ -1,0 +1,26 @@
+❌ [DEBUG-CRITICAL] Auth import FAILED: Error [TransformError]: Transform failed with 1 error:
+/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:243:6: ERROR: Unexpected "catch"
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)
+❌ [DEBUG-CRITICAL] Error message: Transform failed with 1 error:
+/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:243:6: ERROR: Unexpected "catch"
+❌ [DEBUG-CRITICAL] Stack trace: TransformError: Transform failed with 1 error:
+/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:243:6: ERROR: Unexpected "catch"
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)

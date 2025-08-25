@@ -232,8 +232,18 @@ export class DrizzleUserRepository implements IUserRepository {
         users: result.rows.map(u => this.mapToUser(u as any)!),
         total,
         page: pagination.page,
-      totalPages
-    };
+        totalPages
+      };
+    } catch (error) {
+      console.error('[USER-REPOSITORY] Error in findByFilters:', error);
+      throw error;
+    }
+  }
+
+    } catch (error) {
+      console.error('[USER-REPOSITORY] Error in findAll:', error);
+      throw error;
+    }
   }
 
   async findByTenant(tenantId: string): Promise<User[]> {
