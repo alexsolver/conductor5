@@ -4,8 +4,6 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from '@shared/schema';
 import { 
-  timeRecords,
-  timeBank, 
   users,
   dailyTimesheet
 } from '@shared/schema';
@@ -108,10 +106,24 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
       console.log('[DRIZZLE-QA] Inserting timecard entry data:', entryData);
       
-      const [entry] = await tenantDb
-        .insert(timeRecords)
-        .values(entryData)
-        .returning();
+      const result = await tenantDb.execute(sql`
+        INSERT INTO time_records (
+          tenant_id, user_id, check_in, check_out, break_start, break_end,
+          total_worked_minutes, break_duration_minutes, overtime_minutes,
+          status, notes, location, ip_address, device, is_manual_entry,
+          is_active, timestamp, created_at, updated_at
+        ) VALUES (
+          ${entryData.tenantId}, ${entryData.userId}, ${entryData.checkIn}, ${entryData.checkOut},
+          ${entryData.breakStart}, ${entryData.breakEnd}, ${entryData.totalWorkedMinutes},
+          ${entryData.breakDurationMinutes}, ${entryData.overtimeMinutes}, ${entryData.status},
+          ${entryData.notes}, ${entryData.location}, ${entryData.ipAddress}, ${entryData.device},
+          ${entryData.isManualEntry}, ${entryData.isActive}, ${entryData.timestamp},
+          ${entryData.createdAt}, ${entryData.updatedAt}
+        )
+        RETURNING *
+      `);
+      
+      const entry = result.rows[0];
         
       console.log('[DRIZZLE-QA] Timecard entry created successfully:', entry?.id);
       return entry;
@@ -154,26 +166,20 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       // ✅ 1QA.MD: Use tenant-specific database instance
       const tenantDb = await this.getTenantDb(tenantId);
       
-      const entries = await tenantDb
-        .select()
-        .from(timeRecords)
-        .where(
-          and(
-            eq(timeRecords.tenantId, tenantId),
-            eq(timeRecords.userId, userId),
-            or(
-              and(
-                gte(timeRecords.timestamp, startOfDay),
-                lte(timeRecords.timestamp, endOfDay)
-              ),
-              and(
-                gte(timeRecords.createdAt, startOfDay),
-                lte(timeRecords.createdAt, endOfDay)
-              )
-            )
+      const result = await tenantDb.execute(sql`
+        SELECT *
+        FROM time_records
+        WHERE tenant_id = ${tenantId}
+          AND user_id = ${userId}
+          AND (
+            (timestamp >= ${startOfDay} AND timestamp <= ${endOfDay})
+            OR
+            (created_at >= ${startOfDay} AND created_at <= ${endOfDay})
           )
-        )
-        .orderBy(desc(timeRecords.createdAt));
+        ORDER BY created_at DESC
+      `);
+      
+      const entries = result.rows;
         
       console.log('[DRIZZLE-QA] Found', entries.length, 'timecard entries');
       return entries;
@@ -205,11 +211,20 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
 
     const tenantDb = await this.getTenantDb(tenantId);
-    return await tenantDb
-      .select()
-      .from(timeRecords)
-      .where(and(...conditions))
-      .orderBy(desc(timeRecords.timestamp));
+    
+    let whereClause = `WHERE user_id = ${userId} AND tenant_id = ${tenantId}`;
+    if (startDate) {
+      whereClause += ` AND timestamp >= '${startDate.toISOString()}'`;
+    }
+    if (endDate) {
+      whereClause += ` AND timestamp <= '${endDate.toISOString()}'`;
+    }
+    
+    const result = await tenantDb.execute(sql`
+      SELECT * FROM time_records ${sql.raw(whereClause)} ORDER BY timestamp DESC
+    `);
+    
+    return result.rows;
   }
 
   async updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any> {
@@ -219,11 +234,17 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       // ✅ 1QA.MD: Use tenant-specific database instance
       const tenantDb = await this.getTenantDb(tenantId);
       
-      const [entry] = await tenantDb
-        .update(timeRecords)
-        .set({ ...data, updatedAt: new Date() })
-        .where(and(eq(timeRecords.id, id), eq(timeRecords.tenantId, tenantId)))
-        .returning();
+      const updateData = { ...data, updatedAt: new Date() };
+      const setPairs = Object.keys(updateData).map(key => `${key} = $${key}`).join(', ');
+      
+      const result = await tenantDb.execute(sql`
+        UPDATE time_records 
+        SET updated_at = NOW(), ${sql.raw(Object.keys(data).map(key => `${key} = ${sql.placeholder(key)}`).join(', '))}
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        RETURNING *
+      `, { ...data });
+      
+      const entry = result.rows[0];
         
       console.log('[DRIZZLE-QA] Timecard entry updated successfully');
       return entry;
@@ -242,9 +263,10 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async deleteTimecardEntry(id: string, tenantId: string): Promise<void> {
     const tenantDb = await this.getTenantDb(tenantId);
-    await tenantDb
-      .delete(timeRecords)
-      .where(and(eq(timeRecords.id, id), eq(timeRecords.tenantId, tenantId)));
+    await tenantDb.execute(sql`
+      DELETE FROM time_records 
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+    `);
   }
 
   // Work Schedules Implementation - Using real database data only
