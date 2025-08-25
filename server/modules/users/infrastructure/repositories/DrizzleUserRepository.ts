@@ -240,12 +240,6 @@ export class DrizzleUserRepository implements IUserRepository {
     }
   }
 
-    } catch (error) {
-      console.error('[USER-REPOSITORY] Error in findAll:', error);
-      throw error;
-    }
-  }
-
   async findByTenant(tenantId: string): Promise<User[]> {
     const result = await db
       .select()
