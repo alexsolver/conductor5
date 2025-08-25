@@ -13,6 +13,7 @@ export interface TimecardRepository {
   // Timecard Entries
   createTimecardEntry(data: any): Promise<any>;
   getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]>;
+  getTimecardEntriesByUserAndDate(userId: string, date: string, tenantId: string): Promise<any[]>;
   updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any>;
   deleteTimecardEntry(id: string, tenantId: string): Promise<void>;
 
@@ -75,21 +76,26 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
-  // Timecard Entries Implementation
+  // ✅ 1QA.MD: REAL database schema structure preserving existing functionality
   async createTimecardEntry(data: any): Promise<any> {
     try {
       console.log('[DRIZZLE-QA] Creating timecard entry for tenant:', data.tenantId);
       
       const tenantDb = await this.getTenantDb(data.tenantId);
       
-      // ✅ 1QA.MD: Use correct timecard_entries schema structure (event-based)
       const entryData = {
         tenantId: data.tenantId,
         userId: data.userId,
-        entryType: data.checkIn ? 'clock_in' : (data.checkOut ? 'clock_out' : (data.breakStart ? 'break_start' : 'break_end')),
-        timestamp: data.checkIn || data.checkOut || data.breakStart || data.breakEnd || new Date(),
-        location: data.location || null,
+        nsr: Math.floor(Date.now() / 1000), // NSR sequential number
+        checkIn: data.checkIn || null,
+        checkOut: data.checkOut || null,
+        breakStart: data.breakStart || null,
+        breakEnd: data.breakEnd || null,
+        totalHours: data.totalHours || null,
         notes: data.notes || null,
+        location: data.location || null,
+        isManualEntry: data.isManualEntry || false,
+        status: data.status || 'pending',
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -98,10 +104,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const result = await tenantDb.execute(sql`
         INSERT INTO timecard_entries (
-          tenant_id, user_id, entry_type, timestamp, location, notes, created_at, updated_at
+          tenant_id, user_id, nsr, check_in, check_out, break_start, break_end,
+          total_hours, notes, location, is_manual_entry, status, created_at, updated_at
         ) VALUES (
-          ${entryData.tenantId}, ${entryData.userId}, ${entryData.entryType}, ${entryData.timestamp},
-          ${entryData.location}, ${entryData.notes}, ${entryData.createdAt}, ${entryData.updatedAt}
+          ${entryData.tenantId}, ${entryData.userId}, ${entryData.nsr}, ${entryData.checkIn},
+          ${entryData.checkOut}, ${entryData.breakStart}, ${entryData.breakEnd},
+          ${entryData.totalHours}, ${entryData.notes}, ${entryData.location},
+          ${entryData.isManualEntry}, ${entryData.status}, ${entryData.createdAt}, ${entryData.updatedAt}
         )
         RETURNING *
       `);
@@ -137,6 +146,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
+  // ✅ 1QA.MD: Use correct database schema structure
   async getTimecardEntriesByUserAndDate(userId: string, date: string, tenantId: string): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Getting timecard entries for user:', userId, 'date:', date, 'tenant:', tenantId);
@@ -146,7 +156,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      // ✅ 1QA.MD: Use tenant-specific database instance
       const tenantDb = await this.getTenantDb(tenantId);
       
       const result = await tenantDb.execute(sql`
@@ -154,8 +163,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         FROM timecard_entries
         WHERE tenant_id = ${tenantId}
           AND user_id = ${userId}
-          AND (timestamp >= ${startOfDay} AND timestamp <= ${endOfDay})
-        ORDER BY timestamp DESC
+          AND (created_at >= ${startOfDay} AND created_at <= ${endOfDay})
+        ORDER BY created_at DESC
       `);
       
       const entries = result.rows;
@@ -166,7 +175,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     } catch (error: any) {
       console.error('[DRIZZLE-QA] Error getting timecard entries:', error);
       
-      // ✅ 1QA.MD: Proper error handling
       if (error.code === '42P01') {
         console.error('[DRIZZLE-QA] Table timecard_entries not found in tenant schema');
         return [];
@@ -176,6 +184,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
+  // ✅ 1QA.MD: Use correct database schema structure
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Getting timecard entries for user:', userId, 'tenant:', tenantId);
@@ -191,7 +200,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       }
       
       const result = await tenantDb.execute(sql`
-        SELECT * FROM timecard_entries ${sql.raw(whereClause)} ORDER BY timestamp DESC
+        SELECT * FROM timecard_entries ${sql.raw(whereClause)} ORDER BY created_at DESC
       `);
       
       console.log('[DRIZZLE-QA] Found', result.rows.length, 'timecard entries');
@@ -200,7 +209,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     } catch (error: any) {
       console.error('[DRIZZLE-QA] Error getting timecard entries:', error);
       
-      // ✅ 1QA.MD: Proper error handling
       if (error.code === '42P01') {
         console.error('[DRIZZLE-QA] Table timecard_entries not found in tenant schema');
         return [];
@@ -210,13 +218,14 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
+  // ✅ 1QA.MD: Use correct database schema structure
   async updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any> {
     try {
       console.log('[DRIZZLE-QA] Updating timecard entry:', id, 'for tenant:', tenantId);
       
       const tenantDb = await this.getTenantDb(tenantId);
       
-      const allowedFields = ['entry_type', 'timestamp', 'location', 'notes'];
+      const allowedFields = ['check_in', 'check_out', 'break_start', 'break_end', 'total_hours', 'location', 'notes', 'status'];
       const setClause = Object.keys(data)
         .filter(key => allowedFields.includes(key))
         .map(key => `${key} = '${data[key]}'`)
