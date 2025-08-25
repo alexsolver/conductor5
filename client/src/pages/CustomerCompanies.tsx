@@ -108,7 +108,7 @@ export default function Companies() {
 
   // Mutation para criar company
   const createCompanyMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/customers/companies', data),
+    mutationFn: (data: any) => apiRequest('POST', '/api/companies', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
       setIsCreateDialogOpen(false);
@@ -130,7 +130,7 @@ export default function Companies() {
   // Mutation para atualizar company
   const updateCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest('PUT', `/api/customers/companies/${id}`, data),
+      apiRequest('PUT', `/api/companies/${id}`, data),
     onSuccess: (result, variables) => {
       // Only invalidate cache for non-optimistic updates (when not called from Default button)
       const isOptimisticUpdate = variables.data.isOptimisticUpdate;
@@ -158,7 +158,7 @@ export default function Companies() {
 
   // Mutation para deletar company
   const deleteCompanyMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id}`),
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/companies/${id}`),
     onSuccess: async (data, deletedId) => {
       console.log('Company deleted successfully:', { deletedId, response: data });
 
@@ -176,7 +176,7 @@ export default function Companies() {
       // Invalidate and refetch only necessary queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
-        queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
         // Invalidate any customer-specific queries that might reference this company
         queryClient.invalidateQueries({ 
           queryKey: ['/api/customers'], 
@@ -772,7 +772,7 @@ export default function Companies() {
                               
                               // Only invalidate secondary queries, not the main companies query since we already updated optimistically
                               await Promise.all([
-                                queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] }),
+                                queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
                                 queryClient.invalidateQueries({ queryKey: ['fieldOptions'] }),
                                 queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] })
                               ]);

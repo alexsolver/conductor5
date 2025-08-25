@@ -130,7 +130,7 @@ export default function Tickets() {
 
   // Fetch companies for filtering
   const { data: companiesData } = useQuery({
-    queryKey: ["/api/customers/companies"],
+    queryKey: ["/api/companies"],
     retry: false,
   });
 

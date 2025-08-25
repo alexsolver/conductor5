@@ -1404,7 +1404,7 @@ function PriceListForm({
 
   // Fetch customer companies
   const { data: customerCompaniesResponse, isLoading: companiesLoading } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     retry: 3,
     staleTime: 30000,
   });

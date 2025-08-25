@@ -416,8 +416,8 @@ export default function ItemCatalog() {
 
   // Queries
   const { data: availableCustomers, isLoading: isLoadingCustomers } = useQuery({
-    queryKey: ["/api/customers/companies"],
-    queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
+    queryKey: ["/api/companies"],
+    queryFn: () => apiRequest('GET', '/api/companies').then(res => res.json()),
   });
 
   const { data: availableSuppliers, isLoading: isLoadingSuppliers } = useQuery({

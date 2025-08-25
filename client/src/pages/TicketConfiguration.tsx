@@ -241,9 +241,9 @@ const TicketConfiguration: React.FC = () => {
 
   // Queries
   const { data: companiesData } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/customers/companies');
+      const response = await apiRequest('GET', '/api/companies');
       return response.json();
     }
   });
