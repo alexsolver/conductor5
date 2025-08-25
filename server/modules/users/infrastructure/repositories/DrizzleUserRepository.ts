@@ -59,7 +59,7 @@ export class DrizzleUserRepository implements IUserRepository {
         SELECT 
           id, email, password_hash as "passwordHash", first_name as "firstName",
           last_name as "lastName", role, tenant_id as "tenantId", is_active as "isActive",
-          employment_type as "employmentType", login_count as "loginCount",
+          employment_type as "employmentType", 
           last_login_at as "lastLoginAt", created_at as "createdAt", updated_at as "updatedAt"
         FROM users
         WHERE email = ${email.toLowerCase().trim()} AND is_active = true
@@ -612,7 +612,7 @@ export class DrizzleUserRepository implements IUserRepository {
       // Authentication
       passwordHash: dbUser.passwordHash,
       lastLoginAt: dbUser.lastLoginAt,
-      loginCount: dbUser.loginCount || 0,
+      loginCount: 0, // Login count not tracked in current schema
       
       // Audit fields
       createdAt: dbUser.createdAt,
