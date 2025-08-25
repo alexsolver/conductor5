@@ -1,6 +1,6 @@
 // Dependency Injection Container - Clean Architecture
 import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
-import { TenantRepository } from "../../infrastructure/repositories/TenantRepository";
+// Removed unused TenantRepository import
 import { PasswordHasher } from "../../infrastructure/services/PasswordHasher";
 import { SimpleTokenService } from "../../infrastructure/services/SimpleTokenService";
 import { LoginUseCase } from "../use-cases/auth/LoginUseCase";
@@ -9,13 +9,11 @@ import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
 import { storageSimple } from "../../storage-simple";
 import { UserRepository } from "../../infrastructure/repositories/UserRepository";
 // Removed duplicate import: import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
-import { Logger } from "../services/Logger";
-import { DomainEventPublisher, IDomainEventPublisher } from "../services/DomainEventPublisher";
+import logger from "../../utils/logger";
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
-  private logger: Logger;
-  private eventPublisher: IDomainEventPublisher;
+  private logger: any;
   private tenantRepository: any;
 
   // Repositories
@@ -40,23 +38,15 @@ export class DependencyContainer {
 
   private constructor() {
     // Initialize dependencies
-    this.logger = new Logger();
-    this.eventPublisher = new DomainEventPublisher();
+    this.logger = logger;
     this.initializeRepositories();
   }
 
   private async initializeRepositories() {
-    // Initialize tenant repository
-    const { TenantRepository } = await import('../infrastructure/repositories/TenantRepository');
-    this.tenantRepository = new TenantRepository();
+    // Repositories initialized directly when needed for 1qa.md compliance
   }
 
-  getTenantRepository() {
-    if (!this.tenantRepository) {
-      throw new Error('TenantRepository not initialized');
-    }
-    return this.tenantRepository;
-  }
+  // Removed getTenantRepository() - use database directly for 1qa.md compliance
 
   // Repositories
   get userRepository(): DrizzleUserRepository {
@@ -127,7 +117,7 @@ export class DependencyContainer {
         this.userRepository,
         this.passwordHasher,
         this.tokenService,
-        this.getTenantRepository() // Added tenantRepository here
+        null // Removed tenantRepository dependency for 1qa.md compliance
       );
     }
     return this._registerUseCase;

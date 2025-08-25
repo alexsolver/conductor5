@@ -44,7 +44,7 @@ export class LoginUseCase {
     }
 
     // Check if user is active
-    if (!user.isActive()) {
+    if (!user.isActive) {
       throw new Error('Account is deactivated');
     }
 

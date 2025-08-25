@@ -125,7 +125,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     const user = await userRepository.findById(userId);
 
-    if (!user || !user.isActive()) {
+    if (!user || !user.isActive) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
       return res.status(401).json({ 
@@ -245,7 +245,7 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
       const userRepository = container.userRepository;
       const user = await userRepository.findById(payload.userId);
 
-      if (user && user.isActive()) {
+      if (user && user.isActive) {
         req.user = {
           id: user.getId(),
           email: user.getEmail(),
