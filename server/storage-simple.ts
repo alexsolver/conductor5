@@ -2544,9 +2544,9 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(`
-        SELECT id, name, address, city, state, country, postal_code, latitude, longitude, active, is_active, created_at, updated_at
+        SELECT id, tenant_id, name, description, location_type, geometry_type, coordinates, address_data, business_hours, access_requirements, sla_config, status, created_at, updated_at, tags, attachments, parent_location_id, is_favorite
         FROM "${schemaName}".locations
-        WHERE (active IS NULL OR active = true) AND (is_active IS NULL OR is_active = true)
+        WHERE status = 'active' OR status IS NULL
         ORDER BY created_at DESC
       `);
 
