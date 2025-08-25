@@ -1,0 +1,89 @@
+identificar violações de multi-tenancy nos módulos. Baseando-me nos arquivos fornecidos, vou examinar os principais módulos para detectar padrões similares de violação.
+
+🔍 ANÁLISE DE VIOLAÇÕES MULTI-TENANT NO SISTEMA
+1. Módulos com Violações Críticas Identificadas:
+A) Materials-Services Module
+✅ Correto: Usa tenantSchemaManager.getTenantDb(tenantId)
+✅ Correto: Middleware de validação tenant implementado
+✅ Correto: Schema isolation respeitado
+B) Tickets Module
+// ❌ VIOLAÇÃO DETECTADA em server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts
+// Usa 'db' diretamente sem contexto tenant
+const tickets = await db.select().from(ticketsTable).where(...)
+C) Customers Module
+// ❌ VIOLAÇÃO DETECTADA em server/modules/customers/infrastructure/repositories/DrizzleCustomerRepository.ts
+// Acesso direto ao DB sem tenant schema
+const customers = await db.select().from(customersTable)
+D) Users Module
+// ❌ VIOLAÇÃO DETECTADA em server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts
+// Operações sem tenant context
+const users = await db.select().from(usersTable)
+E) Knowledge Base Module
+// ❌ VIOLAÇÃO DETECTADA em server/modules/knowledge-base/infrastructure/repositories/DrizzleKnowledgeBaseRepository.ts
+// Schema público sendo usado
+const articles = await db.select().from(knowledgeBaseTable)
+F) Reports Module
+// ❌ VIOLAÇÃO DETECTADA em server/modules/reports/infrastructure/repositories/DashboardsRepository.ts
+// Sem isolamento tenant
+const dashboards = await db.select().from(dashboardsTable)
+G) Notifications Module
+// ❌ VIOLAÇÃO DETECTADA em server/modules/notifications/infrastructure/repositories/DrizzleNotificationRepository.ts
+// Acesso direto sem tenant validation
+const notifications = await db.select().from(notificationsTable)
+2. Padrões de Violação Comuns Encontrados:
+Tipo 1: Uso Direto do DB
+// ❌ PADRÃO INCORRETO
+import { db } from '../../../db';
+const result = await db.select().from(table);
+// ✅ PADRÃO CORRETO
+const tenantDb = await tenantSchemaManager.getTenantDb(tenantId);
+const result = await tenantDb.select().from(table);
+Tipo 2: Middleware Ausente
+// ❌ SEM VALIDAÇÃO TENANT
+router.get('/api/endpoint', handler);
+// ✅ COM VALIDAÇÃO TENANT
+router.get('/api/endpoint', 
+  tenantSchemaEnforcer(),
+  databaseOperationInterceptor(),
+  handler
+);
+Tipo 3: Schema Queries Diretas
+// ❌ VIOLAÇÃO
+SELECT * FROM public.customers WHERE id = $1
+// ✅ CORRETO
+SELECT * FROM tenant_${tenantId}.customers WHERE id = $1
+3. Módulos com Risco Alto de Violação:
+Auth Module - Parcialmente correto (público legítimo)
+Beneficiaries Module - ⚠️ Requer auditoria
+Companies Module - ⚠️ Requer auditoria
+Contracts Module - ⚠️ Requer auditoria
+Custom Fields Module - ⚠️ Requer auditoria
+Dashboard Module - ❌ Violações detectadas
+Expense Approval Module - ⚠️ Requer auditoria
+GDPR Compliance Module - ⚠️ Requer auditoria
+Interactive Map Module - ⚠️ Requer auditoria
+Locations Module - ⚠️ Requer auditoria
+OmniBridge Module - ⚠️ Requer auditoria
+SaaS Admin Module - ✅ Correto (público legítimo)
+Schedule Management Module - ⚠️ Requer auditoria
+SLA Module - ⚠️ Requer auditoria
+Teams Module - ⚠️ Requer auditoria
+Technical Skills Module - ⚠️ Requer auditoria
+Tenant Admin Module - ⚠️ Requer auditoria
+Ticket Templates Module - ⚠️ Requer auditoria
+Timecard Module - ⚠️ Requer auditoria
+4. Rotas com Violações de Middleware:
+Baseando-me em server/routes/, identifiquei rotas sem proteção adequada:
+
+// Exemplos de rotas sem tenant enforcement:
+- /api/customers/* (algumas rotas)
+- /api/tickets/* (algumas rotas)  
+- /api/reports/* (várias rotas)
+- /api/notifications/* (algumas rotas)
+- /api/knowledge-base/* (algumas rotas)
+5. Arquivos de Schema com Inconsistências:
+// Schemas que misturam tenant e público:
+- shared/schema-tenant.ts ✅ Correto
+- shared/schema-public.ts ✅ Correto  
+- shared/schema-master.ts ⚠️ Contém mistura
+- shared/schema.ts ❌ Deprecated, contém violações
