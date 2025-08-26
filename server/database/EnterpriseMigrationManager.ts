@@ -95,6 +95,359 @@ export class EnterpriseMigrationManager {
   }
 
   // ===========================
+  // CREATE COMPLETE TENANT SCHEMA
+  // ===========================
+  async createCompleteTenantSchema(tenantId: string): Promise<void> {
+    console.log(`[MigrationManager] Creating complete schema for tenant: ${tenantId}`);
+    
+    const migrations = this.getAllTenantTableMigrations(tenantId);
+    await this.migrateTenantSchema(tenantId, migrations);
+    
+    // Add indexes after tables are created
+    await this.createTenantIndexes(tenantId);
+    
+    console.log(`[MigrationManager] ✅ Complete schema created for tenant: ${tenantId}`);
+  }
+
+  // ===========================
+  // GET ALL TENANT TABLE MIGRATIONS
+  // ===========================
+  private getAllTenantTableMigrations(tenantId: string) {
+    return [
+      {
+        name: 'create_customers_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.customers (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            phone VARCHAR(50),
+            active BOOLEAN DEFAULT true,
+            verified BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT customers_tenant_email_unique UNIQUE (tenant_id, email),
+            CONSTRAINT customers_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'customers'
+        `
+      },
+      {
+        name: 'create_companies_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.companies (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            name VARCHAR(255) NOT NULL,
+            document VARCHAR(50),
+            email VARCHAR(255),
+            phone VARCHAR(50),
+            address TEXT,
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT companies_tenant_document_unique UNIQUE (tenant_id, document),
+            CONSTRAINT companies_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'companies'
+        `
+      },
+      {
+        name: 'create_tickets_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.tickets (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            title VARCHAR(500) NOT NULL,
+            description TEXT,
+            status VARCHAR(50) DEFAULT 'open',
+            priority VARCHAR(50) DEFAULT 'medium',
+            customer_id UUID,
+            assigned_to UUID,
+            created_by UUID,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT tickets_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT tickets_customer_fkey FOREIGN KEY (customer_id) REFERENCES {schemaName}.customers(id)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'tickets'
+        `
+      },
+      {
+        name: 'create_ticket_messages_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.ticket_messages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            ticket_id UUID NOT NULL,
+            sender_id UUID,
+            message TEXT NOT NULL,
+            message_type VARCHAR(50) DEFAULT 'user',
+            created_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT ticket_messages_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT ticket_messages_ticket_fkey FOREIGN KEY (ticket_id) REFERENCES {schemaName}.tickets(id) ON DELETE CASCADE
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'ticket_messages'
+        `
+      },
+      {
+        name: 'create_activity_logs_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.activity_logs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            entity_type VARCHAR(100) NOT NULL,
+            entity_id UUID NOT NULL,
+            action VARCHAR(100) NOT NULL,
+            changes JSONB,
+            user_id UUID,
+            created_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT activity_logs_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'activity_logs'
+        `
+      },
+      {
+        name: 'create_locations_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.locations (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            name VARCHAR(255) NOT NULL,
+            address TEXT,
+            city VARCHAR(100),
+            state VARCHAR(100),
+            country VARCHAR(100),
+            postal_code VARCHAR(20),
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT locations_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'locations'
+        `
+      },
+      {
+        name: 'create_skills_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.skills (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            name VARCHAR(255) NOT NULL,
+            category VARCHAR(100) NOT NULL,
+            description TEXT,
+            level_min INTEGER DEFAULT 1,
+            level_max INTEGER DEFAULT 5,
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT skills_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT skills_tenant_name_unique UNIQUE (tenant_id, name)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'skills'
+        `
+      },
+      {
+        name: 'create_items_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.items (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            category VARCHAR(100),
+            unit VARCHAR(50),
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT items_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'items'
+        `
+      },
+      {
+        name: 'create_suppliers_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.suppliers (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            name VARCHAR(255) NOT NULL,
+            document VARCHAR(50),
+            email VARCHAR(255),
+            phone VARCHAR(50),
+            address TEXT,
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT suppliers_tenant_id_format CHECK (LENGTH(tenant_id) = 36)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'suppliers'
+        `
+      },
+      {
+        name: 'create_price_lists_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.price_lists (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            item_id UUID NOT NULL,
+            supplier_id UUID,
+            price DECIMAL(12,2) NOT NULL,
+            currency VARCHAR(3) DEFAULT 'BRL',
+            valid_from DATE,
+            valid_until DATE,
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT price_lists_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT price_lists_item_fkey FOREIGN KEY (item_id) REFERENCES {schemaName}.items(id),
+            CONSTRAINT price_lists_supplier_fkey FOREIGN KEY (supplier_id) REFERENCES {schemaName}.suppliers(id)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'price_lists'
+        `
+      },
+      {
+        name: 'create_ticket_field_configurations_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.ticket_field_configurations (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            field_name VARCHAR(100) NOT NULL,
+            field_type VARCHAR(50) NOT NULL,
+            is_required BOOLEAN DEFAULT false,
+            display_order INTEGER,
+            options JSONB,
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT ticket_field_configurations_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT ticket_field_configurations_tenant_field_unique UNIQUE (tenant_id, field_name)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'ticket_field_configurations'
+        `
+      },
+      {
+        name: 'create_ticket_field_options_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.ticket_field_options (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            field_configuration_id UUID NOT NULL,
+            option_value VARCHAR(255) NOT NULL,
+            option_label VARCHAR(255) NOT NULL,
+            display_order INTEGER,
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT ticket_field_options_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT ticket_field_options_config_fkey FOREIGN KEY (field_configuration_id) REFERENCES {schemaName}.ticket_field_configurations(id) ON DELETE CASCADE
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'ticket_field_options'
+        `
+      },
+      {
+        name: 'create_ticket_categories_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.ticket_categories (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            color VARCHAR(7),
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT ticket_categories_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT ticket_categories_tenant_name_unique UNIQUE (tenant_id, name)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'ticket_categories'
+        `
+      },
+      {
+        name: 'create_ticket_subcategories_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.ticket_subcategories (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            category_id UUID NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT ticket_subcategories_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT ticket_subcategories_category_fkey FOREIGN KEY (category_id) REFERENCES {schemaName}.ticket_categories(id) ON DELETE CASCADE,
+            CONSTRAINT ticket_subcategories_tenant_name_unique UNIQUE (tenant_id, category_id, name)
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'ticket_subcategories'
+        `
+      },
+      {
+        name: 'create_ticket_actions_table',
+        sql: `
+          CREATE TABLE IF NOT EXISTS {schemaName}.ticket_actions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL DEFAULT '${tenantId}',
+            ticket_id UUID NOT NULL,
+            action_type VARCHAR(100) NOT NULL,
+            action_data JSONB,
+            performed_by UUID,
+            performed_at TIMESTAMP DEFAULT NOW(),
+            CONSTRAINT ticket_actions_tenant_id_format CHECK (LENGTH(tenant_id) = 36),
+            CONSTRAINT ticket_actions_ticket_fkey FOREIGN KEY (ticket_id) REFERENCES {schemaName}.tickets(id) ON DELETE CASCADE
+          )
+        `,
+        validationQuery: `
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = '{schemaName}' AND table_name = 'ticket_actions'
+        `
+      }
+    ];
+  }
+
+  // ===========================
   // REPAIR MISSING TENANT TABLES
   // ===========================
   async repairMissingTables(tenantId: string): Promise<void> {
