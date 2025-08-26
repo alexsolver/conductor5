@@ -695,7 +695,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         AND active = true
         ORDER BY sort_order, name
       `);
-      
+
       // Sincronização automática: garantir que cores existam na ticket_field_options
       for (const row of result.rows) {
         await db.execute(sql`
@@ -730,7 +730,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           ORDER BY s.sort_order, s.name
         `);
         console.log(`🏷️ Subcategories found for category '${dependsOn}': ${result.rows.length} records`);
-        
+
         // Sincronização automática: garantir que cores existam na ticket_field_options
         for (const row of result.rows) {
           await db.execute(sql`
@@ -770,7 +770,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           ORDER BY a.sort_order, a.name
         `);
         console.log(`🏷️ Actions found for subcategory '${dependsOn}': ${result.rows.length} records`);
-        
+
         // Sincronização automática: garantir que cores existam na ticket_field_options
         for (const row of result.rows) {
           await db.execute(sql`
