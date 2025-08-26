@@ -18,7 +18,7 @@ export class DependencyContainer {
 
   // Repositories
   private _userRepository?: DrizzleUserRepository;
-  // Removed unused _tenantRepository?: TenantRepository;
+  private _tenantRepository?: any;
 
   // Services
   private _passwordHasher?: PasswordHasher;
@@ -50,9 +50,9 @@ export class DependencyContainer {
    * Get Tenant Repository - Restored for system functionality
    * Uses the existing TenantRepository implementation
    */
-  getTenantRepository() {
+  async getTenantRepository() {
     if (!this._tenantRepository) {
-      const { TenantRepository } = require('../../infrastructure/repositories/TenantRepository');
+      const { TenantRepository } = await import('../../infrastructure/repositories/TenantRepository');
       this._tenantRepository = new TenantRepository();
     }
     return this._tenantRepository;
