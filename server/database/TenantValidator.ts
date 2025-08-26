@@ -151,6 +151,36 @@ export class TenantValidator {
   }
 
   // ===========================
+  // TENANT SCHEMA VALIDATION
+  // Validates complete tenant schema structure
+  // ===========================
+  static async validateTenantSchema(tenantId: string): Promise<boolean> {
+    try {
+      const validatedId = this.validateTenantId(tenantId);
+      
+      // Check tenant exists and is active
+      const tenantExists = await this.validateTenantExists(validatedId);
+      if (!tenantExists) {
+        console.log(`❌ Tenant ${validatedId} does not exist or is inactive`);
+        return false;
+      }
+
+      // Check schema exists
+      const schemaExists = await this.validateSchemaExists(validatedId);
+      if (!schemaExists) {
+        console.log(`❌ Schema for tenant ${validatedId} does not exist`);
+        return false;
+      }
+
+      console.log(`✅ Tenant schema validation passed for: ${validatedId}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Tenant schema validation failed for ${tenantId}:`, error);
+      return false;
+    }
+  }
+
+  // ===========================
   // MONITORING METHODS
   // ===========================
   static getCacheStats() {

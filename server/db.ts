@@ -236,13 +236,19 @@ export const schemaManager = {
       console.log(`✅ [SCHEMA-MANAGER] Schema created successfully: ${schemaName}`);
 
       // Initialize tables using storage-simple
-      const { storageSimple } = await import('./storage-simple');
-      await storageSimple.initializeTenantSchema(tenantId);
+      try {
+        const { storageSimple } = await import('./storage-simple');
+        await storageSimple.initializeTenantSchema(tenantId);
+        console.log(`✅ [SCHEMA-MANAGER] Tables initialized for schema: ${schemaName}`);
+      } catch (tableError) {
+        console.error(`❌ [SCHEMA-MANAGER] Failed to initialize tables for ${schemaName}:`, tableError);
+        throw new Error(`Failed to initialize tables for tenant schema: ${tableError.message}`);
+      }
 
       return true;
     } catch (error) {
       console.error(`❌ [SCHEMA-MANAGER] Error creating tenant schema ${schemaName}:`, error);
-      return false;
+      throw error;
     }
   },
 };

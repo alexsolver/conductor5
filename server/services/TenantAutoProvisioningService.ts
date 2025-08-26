@@ -107,6 +107,7 @@ class TenantAutoProvisioningService {
         const isValid = await TenantValidator.validateTenantSchema(savedTenant.id);
         
         if (!isValid) {
+          console.error(`❌ [TENANT-PROVISIONING] Schema validation failed for tenant ${savedTenant.id}`);
           throw new Error(`Schema validation failed for tenant ${savedTenant.id}`);
         }
       } catch (schemaError) {
