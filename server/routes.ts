@@ -1549,20 +1549,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      const container = (await import('./application/services/DependencyContainer')).DependencyContainer.getInstance();
-      const tenantRepository = container.tenantRepository;
+      // Get tenant information from database
+      const { db } = await import('./db');
+      const { tenants } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
 
-      const tenant = await tenantRepository.findById(tenantId);
-      if (!tenant) {
+      const tenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+
+      if (tenant.length === 0) {
         return res.status(404).json({ message: 'Tenant not found' });
       }
 
+      const tenantData = tenant[0];
+
       res.json({
-        id: tenant.id,
-        name: tenant.name,
-        subdomain: tenant.subdomain,
-        isActive: tenant.isActive,
-        createdAt: tenant.createdAt
+        id: tenantData.id,
+        name: tenantData.name,
+        subdomain: tenantData.subdomain,
+        isActive: tenantData.isActive,
+        createdAt: tenantData.createdAt,
+        settings: tenantData.settings || {}
       });
     } catch (error) {
       console.error('Error fetching tenant:', error);
@@ -3994,8 +4000,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await tenantDb.execute(sql`
         SELECT
           id,
-          first_name as "firstName",
-          last_name as "lastName", 
+          first_name,
+          last_name,
           email,
           role,
           cargo as position,
@@ -4010,7 +4016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Format response with proper name concatenation
       const formattedUsers = users.map(user => ({
         id: user.id,
-        name: `${user.name || ''} ${user.lastName || ''}`.trim() || user.email,
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
         email: user.email,
         role: user.role,
         position: user.position,
