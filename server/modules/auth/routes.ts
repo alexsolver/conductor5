@@ -299,8 +299,7 @@ authRouter.post('/logout', async (req, res) => {
   }
 });
 
-// Get current user endpoint (both /user and /me for compatibility)
-authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
+function getUserInfo() {
   try {
     if (!req.user) {
       return res.status(401).json({ message: 'User not authenticated' });
@@ -332,69 +331,16 @@ authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
     logError('Get user error', error, { userId: req.user?.id });
     res.status(500).json({ message: 'Failed to get user' });
   }
+}
+
+// Get current user endpoint (both /user and /me for compatibility)
+authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  return getUserInfo(req, res);
 });
 
 // Alias for /me endpoint (compatibility)
 authRouter.get('/me', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
-
-    // Direct SQL query to ensure employmentType is correctly retrieved
-    const { db } = await import('../../db');
-    const { users } = await import('@shared/schema');
-    const { eq } = await import('drizzle-orm');
-
-    console.log('🔍 [AUTH-ME] Making direct DB query for user:', req.user.id);
-
-    const [userData] = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        role: users.role,
-        tenantId: users.tenantId,
-        profileImageUrl: users.profileImageUrl,
-        isActive: users.isActive,
-        lastLoginAt: users.lastLoginAt,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        employmentType: users.employmentType
-      })
-      .from(users)
-      .where(eq(users.id, req.user.id));
-
-    if (!userData) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    console.log('🔍 [AUTH-ME] Direct DB query result:', {
-      id: userData.id,
-      email: userData.email,
-      employmentType: userData.employmentType,
-      employmentTypeType: typeof userData.employmentType
-    });
-
-    res.json({
-      id: userData.id,
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role,
-      tenantId: userData.tenantId,
-      profileImageUrl: userData.profileImageUrl,
-      isActive: userData.isActive,
-      lastLoginAt: userData.lastLoginAt,
-      createdAt: userData.createdAt,
-      employmentType: userData.employmentType || 'clt' // Direct from DB
-    });
-  } catch (error) {
-    const { logError } = await import('../../utils/logger');
-    logError('Get user error', error, { userId: req.user?.id });
-    res.status(500).json({ message: 'Failed to get user' });
-  }
+  return getUserInfo(req, res);
 });
 
 // Update user profile endpoint
