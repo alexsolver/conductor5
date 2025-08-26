@@ -64,7 +64,7 @@ class TenantAutoProvisioningService {
       const { db } = await import('../db');
       const { tenants } = await import('@shared/schema');
       const { eq } = await import('drizzle-orm');
-      
+
       const existingTenant = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain)).limit(1);
       if (existingTenant.length > 0) {
         return { tenant: null, success: false, message: `Subdomain '${subdomain}' already exists` };
@@ -73,7 +73,7 @@ class TenantAutoProvisioningService {
       // Create tenant entity directly using database for 1qa.md compliance
       const { v4: uuidv4 } = await import('uuid');
       const tenantId = uuidv4();
-      
+
       const { Tenant } = await import('../domain/entities/Tenant');
       const tenantEntity = new Tenant(
         tenantId,
@@ -85,7 +85,7 @@ class TenantAutoProvisioningService {
       // Get tenant repository from dependency container
       const { DependencyContainer } = await import('../application/services/DependencyContainer');
       const container = DependencyContainer.getInstance();
-      const tenantRepository = container.getTenantRepository();
+      const tenantRepository = await container.getTenantRepository();
 
       // Save tenant
       const savedTenant = await tenantRepository.save(tenantEntity);
@@ -137,13 +137,13 @@ class TenantAutoProvisioningService {
    */
   async provisionOnUserRegistration(userEmail: string, userName: string, companyName?: string): Promise<{ tenant: any; success: boolean; message: string }> {
     const shouldProvision = await this.shouldAutoProvisionForUser(userEmail, companyName);
-    
+
     if (!shouldProvision) {
       return { tenant: null, success: false, message: 'Auto-provisioning not applicable for this user' };
     }
 
     const tenantName = companyName || `${userName}'s Organization`;
-    
+
     return await this.provisionTenant({
       name: tenantName,
       companyName,
@@ -174,11 +174,11 @@ class TenantAutoProvisioningService {
     // Ensure uniqueness
     let subdomain = baseSubdomain;
     let counter = 1;
-    
+
     const { db } = await import('../db');
     const { tenants } = await import('@shared/schema');
     const { eq } = await import('drizzle-orm');
-    
+
     while ((await db.select().from(tenants).where(eq(tenants.subdomain, subdomain)).limit(1)).length > 0) {
       subdomain = `${baseSubdomain}-${counter}`;
       counter++;
