@@ -60,7 +60,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "nix-env -iA nixpkgs.nodejs_20 nixpkgs.nodePackages.npm"
+args = "nix-env -iA nixpkgs.nodejs nixpkgs.nodePackages.npm"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
