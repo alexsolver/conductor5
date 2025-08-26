@@ -107,9 +107,9 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: Authent
       });
       return res.status(500).json({ message: 'Failed to generate authentication tokens' });
     }
-    
+
     console.log('✅ [LOGIN-ROUTE] Login successful, sending tokens');
-    
+
     // ✅ 1QA.MD: Resposta padronizada para login
     res.json({
       success: true,
@@ -153,26 +153,33 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
 
     // If company name and workspace are provided, create tenant first
     if (userData.companyName && userData.workspaceName) {
-      const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
+      try {
+        const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
 
-      // Create tenant
-      const tenantResult = await tenantAutoProvisioningService.provisionTenant({
-        name: userData.companyName,
-        subdomain: userData.workspaceName.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
-        companyName: userData.companyName,
-        userEmail: userData.email,
-        trigger: 'registration'
-      });
+        // Create tenant
+        const tenantResult = await tenantAutoProvisioningService.provisionTenant({
+          name: userData.companyName,
+          subdomain: userData.workspaceName.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+          companyName: userData.companyName,
+          userEmail: userData.email,
+          trigger: 'registration'
+        });
 
-      if (!tenantResult.success) {
-        return res.status(400).json({ 
-          message: `Erro ao criar workspace: ${tenantResult.message}` 
+        if (!tenantResult.success) {
+          return res.status(400).json({ 
+            message: `Erro ao criar workspace: ${tenantResult.message}` 
+          });
+        }
+
+        // Set tenant ID and role for the user
+        userData.tenantId = tenantResult.tenant!.id;
+        userData.role = 'tenant_admin'; // First user becomes tenant admin
+      } catch (error) {
+        console.error('❌ [REGISTER] Tenant auto-provisioning error:', error);
+        return res.status(500).json({ 
+          message: 'Erro interno ao criar workspace. Tente novamente.' 
         });
       }
-
-      // Set tenant ID and role for the user
-      userData.tenantId = tenantResult.tenant!.id;
-      userData.role = 'tenant_admin'; // First user becomes tenant admin
     } else {
       // If no tenant provided, assign to a default tenant or create one
       if (!userData.tenantId) {

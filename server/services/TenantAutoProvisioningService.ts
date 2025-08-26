@@ -6,6 +6,7 @@
 // Removed direct storage import - using database directly for 1qa.md compliance
 import { DependencyContainer } from "../application/services/DependencyContainer";
 import crypto from "crypto";
+import { storageSimple } from '../storage-simple';
 
 export interface AutoProvisioningConfig {
   enabled: boolean;
@@ -91,8 +92,8 @@ class TenantAutoProvisioningService {
       const savedTenant = await tenantRepository.save(tenantEntity);
 
       // Initialize tenant schema using storage service
-      const { storage } = await import('../storage');
-      await storage.initializeTenantSchema(savedTenant.id);
+      // This line was corrected to use storageSimple instead of storage
+      await storageSimple.initializeTenantSchema(savedTenant.id);
 
       // Log provisioning activity
       console.log(`Auto-provisioned tenant: ${savedTenant.name} (${savedTenant.subdomain}) - Trigger: ${request.trigger}`);
@@ -122,8 +123,8 @@ class TenantAutoProvisioningService {
     }
 
     // Check if user already belongs to a tenant
-    const { storage } = await import('../storage');
-    const existingUser = await storage.getUserByEmail?.(userEmail);
+    // This line was corrected to use storageSimple instead of storage
+    const existingUser = await storageSimple.getUserByEmail?.(userEmail);
     if (existingUser?.tenantId) {
       return false;
     }
