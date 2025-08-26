@@ -92,8 +92,18 @@ class TenantAutoProvisioningService {
       const savedTenant = await tenantRepository.save(tenantEntity);
 
       // Initialize tenant schema using storage service
-      const { initializeTenantSchema } = await import('../storage-simple');
-      await initializeTenantSchema(savedTenant.id);
+      console.log(`🏗️ [TENANT-PROVISIONING] Initializing schema for tenant: ${savedTenant.id}`);
+      await storageSimple.initializeTenantSchema(savedTenant.id);
+
+      // Validate schema was created successfully
+      const { TenantValidator } = await import('../database/TenantValidator');
+      const isValid = await TenantValidator.validateTenantSchema(savedTenant.id);
+      
+      if (!isValid) {
+        throw new Error(`Schema validation failed for tenant ${savedTenant.id}`);
+      }
+
+      console.log(`✅ [TENANT-PROVISIONING] Schema validated successfully for tenant: ${savedTenant.id}`);
 
       // Log provisioning activity
       console.log(`Auto-provisioned tenant: ${savedTenant.name} (${savedTenant.subdomain}) - Trigger: ${request.trigger}`);

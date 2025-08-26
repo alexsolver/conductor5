@@ -157,8 +157,6 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
         const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
         const provisioningService = tenantAutoProvisioningService;
 
-        console.log(`🏗️ [REGISTER] Creating tenant for company: ${userData.companyName}`);
-        
         // Create tenant
         const tenantResult = await provisioningService.provisionTenant({
           name: userData.companyName,
@@ -188,8 +186,30 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
         console.log('✅ [REGISTER] Tenant created successfully:', {
           tenantId: userData.tenantId,
           subdomain: tenantResult.tenant.subdomain,
-          userEmail: userData.email
+          userEmail: userData.email,
+          tenantName: tenantResult.tenant.name
         });
+
+        // Verify schema exists after creation
+        try {
+          const { sql } = await import('drizzle-orm');
+          const { db } = await import('../../db');
+          const schemaName = `tenant_${userData.tenantId.replace(/-/g, '_')}`;
+          
+          const schemaCheck = await db.execute(sql.raw(`
+            SELECT schema_name 
+            FROM information_schema.schemata 
+            WHERE schema_name = '${schemaName}'
+          `));
+          
+          if (schemaCheck.rows && schemaCheck.rows.length > 0) {
+            console.log(`✅ [REGISTER] Schema verified: ${schemaName}`);
+          } else {
+            console.error(`❌ [REGISTER] Schema not found: ${schemaName}`);
+          }
+        } catch (verifyError) {
+          console.error('❌ [REGISTER] Schema verification failed:', verifyError);
+        }
       } catch (error) {
         console.error('❌ [REGISTER] Tenant auto-provisioning error:', error);
         return res.status(500).json({ 

@@ -86,7 +86,6 @@ export interface IStorage {
   markEmailAsRead(tenantId: string, messageId: string): Promise<void>;
   archiveEmail(tenantId: string, messageId: string): Promise<void>;
   deleteEmail(tenantId: string, messageId: string): Promise<void>;
-  saveEmailToInbox(tenantId: string, messageData: any): Promise<void>;
   getClientesCount(tenantId: string): Promise<number>;
 
 
@@ -2606,9 +2605,23 @@ export class DatabaseStorage implements IStorage {
   // Implement the missing initializeTenantSchema method
   async initializeTenantSchema(tenantId: string): Promise<void> {
     try {
-      await schemaManager.createTenantSchema(tenantId);
+      if (!tenantId) {
+        throw new Error('Tenant ID is required');
+      }
+
+      console.log(`🏗️ [SCHEMA-INIT] Starting schema initialization for tenant: ${tenantId}`);
+
+      // Use EnterpriseMigrationManager for robust schema creation
+      const { EnterpriseMigrationManager } = await import('./database/EnterpriseMigrationManager');
+      const migrationManager = EnterpriseMigrationManager.getInstance();
+
+      // Create complete tenant schema with all tables
+      await migrationManager.createCompleteTenantSchema(tenantId);
+
+      console.log(`✅ [SCHEMA-INIT] Schema created successfully for tenant: ${tenantId}`);
       logInfo('Tenant schema initialized successfully', { tenantId });
     } catch (error) {
+      console.error(`❌ [SCHEMA-INIT] Failed to initialize schema for tenant ${tenantId}:`, error);
       logError('Error initializing tenant schema', error, { tenantId });
       throw error;
     }
@@ -2790,27 +2803,7 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Initialize tenant schema function
-export async function initializeTenantSchema(tenantId: string): Promise<void> {
-  try {
-    console.log(`🔧 [TENANT-SCHEMA] Initializing schema for tenant: ${tenantId}`);
-
-    // Import enterprise migration manager
-    const { EnterpriseMigrationManager } = await import('./database/EnterpriseMigrationManager');
-    const migrationManager = EnterpriseMigrationManager.getInstance();
-
-    // Initialize the tenant schema with all required tables
-    await migrationManager.initializeTenantSchema(tenantId);
-
-    console.log(`✅ [TENANT-SCHEMA] Schema initialized successfully for tenant: ${tenantId}`);
-  } catch (error) {
-    console.error(`❌ [TENANT-SCHEMA] Failed to initialize schema for tenant ${tenantId}:`, error);
-    throw error;
-  }
-}
-
-// Export the database instance
-export { db };
+// Export singleton instance
 export const storage = new DatabaseStorage();
 export const storageSimple = storage;
 export const unifiedStorage = storage;

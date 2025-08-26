@@ -213,10 +213,24 @@ export const schemaManager = {
     return true;
   },
 
-  async createTenantSchema(tenantId: string) {
-    // Stub implementation - schemas already exist
-    console.log(`✅ Tenant schema creation for ${tenantId} - using existing schema`);
-    return true;
+  async createTenantSchema(tenantId: string): Promise<void> {
+    try {
+      console.log(`🏗️ [SCHEMA-MANAGER] Creating schema for tenant: ${tenantId}`);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Create schema
+      await db.execute(sql.raw(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`));
+
+      // Create all tenant tables using EnterpriseMigrationManager
+      const { EnterpriseMigrationManager } = await import('./database/EnterpriseMigrationManager');
+      const migrationManager = EnterpriseMigrationManager.getInstance();
+      await migrationManager.createCompleteTenantSchema(tenantId);
+
+      console.log(`✅ [SCHEMA-MANAGER] Complete schema created: ${schemaName}`);
+    } catch (error) {
+      console.error(`❌ [SCHEMA-MANAGER] Error creating tenant schema for ${tenantId}:`, error);
+      throw error;
+    }
   }
 };
 
