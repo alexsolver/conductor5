@@ -24,7 +24,7 @@ exposeLocalhost = true
 PORT = "5000"
 
 [workflows]
-runButton = "Install Dependencies and Start"
+runButton = "Start application"
 
 [[workflows.workflow]]
 name = "Project"
