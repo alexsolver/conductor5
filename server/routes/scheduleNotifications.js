@@ -23,6 +23,28 @@ router.get('/list', jwtAuth, async (req, res) => {
 
     const { pool } = await import('../db.js');
 
+    // Ensure table exists
+    const checkTableQuery = `
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'schedule_notifications'
+      );
+    `;
+
+    const tableExists = await pool.query(checkTableQuery);
+    
+    if (!tableExists.rows[0].exists) {
+      console.log('🔔 [SCHEDULE-NOTIFICATIONS] Table does not exist, returning empty list');
+      return res.json({
+        success: true,
+        data: {
+          notifications: [],
+          totalCount: 0
+        }
+      });
+    }
+
     const query = `
       SELECT 
         id,
@@ -95,6 +117,27 @@ router.get('/unread', jwtAuth, async (req, res) => {
     // Query usando o pool do banco - usando o módulo db correto
     const { pool } = await import('../db.js');
 
+    // Check if table exists
+    const checkTableQuery = `
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'schedule_notifications'
+      );
+    `;
+
+    const tableExists = await pool.query(checkTableQuery);
+    
+    if (!tableExists.rows[0].exists) {
+      return res.json({
+        success: true,
+        data: {
+          notifications: [],
+          unreadCount: 0
+        }
+      });
+    }
+
     const query = `
       SELECT 
         id,
@@ -153,6 +196,44 @@ router.get('/count', jwtAuth, async (req, res) => {
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Schema:', schemaName, 'User:', userId);
 
     const { pool } = await import('../db.js');
+
+    // First, check if table exists and create if needed
+    const checkTableQuery = `
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'schedule_notifications'
+      );
+    `;
+
+    const tableExists = await pool.query(checkTableQuery);
+    
+    if (!tableExists.rows[0].exists) {
+      console.log('🔔 [SCHEDULE-NOTIFICATIONS] Creating schedule_notifications table');
+      const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS ${schemaName}.schedule_notifications (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          user_id UUID NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          message TEXT,
+          notification_type VARCHAR(50) DEFAULT 'info',
+          priority VARCHAR(20) DEFAULT 'normal',
+          status VARCHAR(20) DEFAULT 'pending',
+          scheduled_for TIMESTAMP,
+          sent_at TIMESTAMP,
+          read_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          delivery_method VARCHAR(50) DEFAULT 'in_app',
+          related_entity_type VARCHAR(50),
+          related_entity_id UUID
+        );
+      `;
+      
+      await pool.query(createTableQuery);
+      console.log('🔔 [SCHEDULE-NOTIFICATIONS] Table created successfully');
+    }
 
     const query = `
       SELECT COUNT(*) as count
