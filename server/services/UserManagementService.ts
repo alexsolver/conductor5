@@ -37,11 +37,18 @@ export class UserManagementService {
   // Basic user operations only
   async getUsers(tenantId: string, options: UserManagementOptions = {}): Promise<EnhancedUser[]> {
     try {
+      console.log(`[USER-MANAGEMENT-SERVICE] Fetching users for tenant: ${tenantId}`);
+      
       const userList = await db
         .select()
         .from(users)
-        .where(eq(users.tenantId, tenantId))
+        .where(and(
+          eq(users.tenantId, tenantId),
+          eq(users.isActive, true)
+        ))
         .orderBy(desc(users.createdAt));
+        
+      console.log(`[USER-MANAGEMENT-SERVICE] Found ${userList.length} active users for tenant ${tenantId}`);
 
       return userList.map(user => ({
         id: user.id,
@@ -65,7 +72,11 @@ export class UserManagementService {
       const [user] = await db
         .select()
         .from(users)
-        .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
+        .where(and(
+          eq(users.id, userId), 
+          eq(users.tenantId, tenantId),
+          eq(users.isActive, true)
+        ));
 
       if (!user) return null;
 
