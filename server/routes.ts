@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
-  console.log('🚨 [DEBUG] About to start route registration sequence...');
+  console.log('🚨 [DEBUG] Reached after JWT/Tenant middleware - about to start route registration sequence...');
 
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
@@ -410,14 +410,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/saas-admin', saasAdminRoutes);
   console.log('✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully');
   console.log('🚨 [DEBUG] Reached after SaaS Admin - about to register TICKET-TEMPLATES...');
-
-  // ✅ REMOVED: Duplicate ticket-templates registration - moved to high priority section above
-
-  // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md
-  console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
-  const ticketsRoutes = (await import('./modules/tickets/routes')).default;
-  app.use('/api/tickets', ticketsRoutes);
-  console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
 
   // ✅ NOTIFICATIONS & ALERTS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
@@ -1054,7 +1046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM "${schemaName}"."customers" c
         INNER JOIN "${schemaName}"."companies_relationships" cr ON c.id = cr.customer_id
         WHERE c.tenant_id = $1 AND cr.company_id = $2 AND cr.is_active = true
-        ORDER BY c.first_name ASC, c.last_name ASC
+        ORDER BY c.first_name, c.last_name
       `;
 
       const result = await pool.query(query, [req.user.tenantId, companyId]);
@@ -1612,7 +1604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Hierarchical ticket metadata routes
   try {
     // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
-    // ✅ LEGACY technical-skills eliminated per 1qa.md
+    // ✅ LEGACY technical-skills routes eliminated per 1qa.md
     // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
     // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
     // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
@@ -3888,7 +3880,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // HIERARCHICAL TICKET METADATAROUTES - HANDLED ABOVE
   // ========================================
-  // Note: Hierarchical routes are now registered above with proper error handling
 
   // ========================================
   // SLA SYSTEMROUTES - INTEGRATED WITH TICKET METADATA
