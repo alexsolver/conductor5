@@ -110,9 +110,9 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
   // --- Aplicação das mudanças hipotéticas ---
   // ✅ 1QA.MD COMPLIANCE: Fetch users from tenant admin team management
   const { data: usersData } = useQuery({
-    queryKey: ['/api/tenant-admin/team/users'],
+    queryKey: ['/api/tenant-admin/users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/tenant-admin/team/users');
+      const response = await apiRequest('GET', '/api/tenant-admin/users');
       return await response.json();
     },
   });

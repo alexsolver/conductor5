@@ -263,11 +263,11 @@ function WorkSchedulesContent() {
   // Fetching users/employees via the admin endpoint
   // ✅ 1QA.MD COMPLIANCE: Fetch users from tenant admin team management
   const { data: usersData, error: usersError, isLoading: usersLoading } = useQuery({
-    queryKey: ['/api/tenant-admin/team/users'],
+    queryKey: ['/api/tenant-admin/users'],
     queryFn: async () => {
-      console.log('[FRONTEND-QA] Fetching users from tenant admin team...');
+      console.log('[FRONTEND-QA] Fetching users from tenant admin...');
       try {
-        const response = await apiRequest('GET', '/api/tenant-admin/team/users');
+        const response = await apiRequest('GET', '/api/tenant-admin/users');
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }

@@ -79,7 +79,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
   const [showUserDetails, setShowUserDetails] = useState(false);
 
   // Fetch users (different endpoint for tenant admin vs saas admin)
-  const apiEndpoint = tenantAdmin ? "/api/tenant-admin/team/users" : "/api/user-management/users";
+  const apiEndpoint = tenantAdmin ? "/api/tenant-admin/users" : "/api/user-management/users";
   const { data: usersData, isLoading } = useQuery<{ users: EnhancedUser[] }>({
     queryKey: [apiEndpoint],
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -99,7 +99,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
 
   const toggleUserStatus = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      const endpoint = tenantAdmin ? `/api/tenant-admin/team/users/${userId}` : `/api/user-management/users/${userId}`;
+      const endpoint = tenantAdmin ? `/api/tenant-admin/users/${userId}` : `/api/user-management/users/${userId}`;
       return apiRequest(endpoint, {
         method: "PUT",
         body: { isActive: !isActive }
