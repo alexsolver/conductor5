@@ -79,6 +79,8 @@ export default function Companies() {
   // Query para buscar companies
   const { data: companiesData, isLoading } = useQuery({
     queryKey: ['/api/companies'],
+    queryFn: () => apiRequest('GET', '/api/companies'),
+    enabled: !!user, // Only fetch when user is authenticated
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
