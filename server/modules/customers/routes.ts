@@ -310,44 +310,109 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
 // POST /api/customers - Create new customer
 customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    // Temporary simple implementation while Clean Architecture is being integrated
+    console.log('[CREATE-CUSTOMER] Starting customer creation for tenant:', req.user.tenantId);
+    console.log('[CREATE-CUSTOMER] Request body:', req.body);
+
+    // Validate tenant ID
+    if (!req.user.tenantId) {
+      console.error('[CREATE-CUSTOMER] Missing tenant ID');
+      return res.status(400).json({
+        success: false,
+        error: 'Tenant ID is required',
+        code: 'MISSING_TENANT_ID'
+      });
+    }
+
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
+    // Validate required fields
     const {
       firstName, lastName, email, phone, mobilePhone, customerType,
       cpf, cnpj, companyName, contactPerson, state, city, address,
       addressNumber, complement, neighborhood, zipCode
     } = req.body;
 
+    if (!firstName || !lastName || !email) {
+      console.error('[CREATE-CUSTOMER] Missing required fields');
+      return res.status(400).json({
+        success: false,
+        error: 'First name, last name and email are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Check if table exists first
+    const tableCheck = await pool.query(`
+      SELECT 1 FROM information_schema.tables 
+      WHERE table_schema = $1 AND table_name = 'customers'
+    `, [schemaName]);
+
+    if (tableCheck.rows.length === 0) {
+      console.error('[CREATE-CUSTOMER] Customers table does not exist in schema:', schemaName);
+      return res.status(500).json({
+        success: false,
+        error: 'Customers table not found',
+        code: 'TABLE_NOT_FOUND'
+      });
+    }
+
+    // Generate unique ID
+    const { v4: uuidv4 } = await import('uuid');
+    const customerId = uuidv4();
+
+    console.log('[CREATE-CUSTOMER] Inserting customer with ID:', customerId);
+
     const result = await pool.query(`
       INSERT INTO "${schemaName}".customers (
-        tenant_id, first_name, last_name, email, phone, mobile_phone,
+        id, tenant_id, first_name, last_name, email, phone, mobile_phone,
         customer_type, cpf, cnpj, company_name, contact_person,
         state, city, address, address_number, complement, 
         neighborhood, zip_code, is_active, created_at, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-        $15, $16, $17, $18, true, NOW(), NOW()
+        $15, $16, $17, $18, $19, true, NOW(), NOW()
       ) RETURNING *
     `, [
-      req.user.tenantId, firstName, lastName, email, phone, mobilePhone,
-      customerType, cpf, cnpj, companyName, contactPerson, state, city,
+      customerId, req.user.tenantId, firstName, lastName, email, phone, mobilePhone,
+      customerType || 'PF', cpf, cnpj, companyName, contactPerson, state, city,
       address, addressNumber, complement, neighborhood, zipCode
     ]);
+
+    console.log('[CREATE-CUSTOMER] Customer created successfully:', result.rows[0]);
 
     res.status(201).json({
       success: true,
       data: result.rows[0],
       message: 'Customer created successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[CREATE-CUSTOMER] Error:', error);
+    
+    // Handle specific database errors
+    if (error.code === '23505') {
+      return res.status(409).json({
+        success: false,
+        error: 'Customer with this email already exists',
+        code: 'DUPLICATE_EMAIL'
+      });
+    }
+
+    if (error.code === '42703') {
+      console.error('[CREATE-CUSTOMER] Column does not exist:', error.message);
+      return res.status(500).json({
+        success: false,
+        error: 'Database schema issue - missing columns',
+        code: 'SCHEMA_ERROR'
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to create customer',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error.message || 'Unknown error',
+      code: 'CREATION_FAILED'
     });
   }
 });
