@@ -154,8 +154,8 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
     // If company name and workspace are provided, create tenant first
     if (userData.companyName && userData.workspaceName) {
       try {
-        const { TenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
-        const provisioningService = new TenantAutoProvisioningService();
+        const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
+        const provisioningService = tenantAutoProvisioningService;
 
         // Create tenant
         const tenantResult = await provisioningService.provisionTenant({
