@@ -46,7 +46,35 @@ export class DependencyContainer {
     // Repositories initialized directly when needed for 1qa.md compliance
   }
 
-  // Removed getTenantRepository() - use database directly for 1qa.md compliance
+  /**
+   * Get Tenant Repository - Restored for system functionality
+   * Uses the existing TenantRepository implementation
+   */
+  getTenantRepository() {
+    if (!this._tenantRepository) {
+      const { TenantRepository } = require('../../infrastructure/repositories/TenantRepository');
+      this._tenantRepository = new TenantRepository();
+    }
+    return this._tenantRepository;
+  }
+
+  /**
+   * Helper method for direct tenant access - 1qa.md compliant alternative
+   * Use this pattern for new implementations
+   */
+  static async getTenantDirect(tenantId: string) {
+    const { db } = await import('../../db');
+    const { tenants } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+
+    const result = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .limit(1);
+
+    return result[0] || null;
+  }
 
   // Repositories
   get userRepository(): DrizzleUserRepository {
