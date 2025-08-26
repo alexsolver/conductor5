@@ -5,19 +5,22 @@ import { ICustomerRepository } from "../../domain/repositories/ICustomerReposito
 import { db, sql, customers } from '@shared/schema';
 import { eq, desc, count, and, ilike } from "drizzle-orm";
 import { logError } from "../../utils/logger";
+import { schemaManager } from "../../database/EnterpriseConnectionManager";
 
 export class CustomerRepository implements ICustomerRepository {
   
   async findById(id: string, tenantId: string): Promise<Customer | null> {
     try {
-      // ✅ 1QA.MD COMPLIANCE: Direct db usage with tenant isolation
-      const [customerData] = await db
+      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
+      const { customers: tenantCustomers } = tenantSchema;
+      
+      const [customerData] = await tenantDb
         .select()
-        .from(customers)
+        .from(tenantCustomers)
         .where(and(
-          eq(customers.id, id),
-          eq(customers.tenantId, tenantId),
-          eq(customers.isActive, true)
+          eq(tenantCustomers.id, id),
+          eq(tenantCustomers.tenantId, tenantId),
+          eq(tenantCustomers.isActive, true)
         ));
 
       if (!customerData) return null;
