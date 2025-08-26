@@ -154,10 +154,11 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
     // If company name and workspace are provided, create tenant first
     if (userData.companyName && userData.workspaceName) {
       try {
-        const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
+        const { TenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
+        const provisioningService = new TenantAutoProvisioningService();
 
         // Create tenant
-        const tenantResult = await tenantAutoProvisioningService.provisionTenant({
+        const tenantResult = await provisioningService.provisionTenant({
           name: userData.companyName,
           subdomain: userData.workspaceName.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
           companyName: userData.companyName,
@@ -171,9 +172,22 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
           });
         }
 
+        // Validate tenant creation
+        if (!tenantResult.tenant || !tenantResult.tenant.id) {
+          return res.status(500).json({ 
+            message: 'Erro interno: Tenant criado mas ID não encontrado.' 
+          });
+        }
+
         // Set tenant ID and role for the user
-        userData.tenantId = tenantResult.tenant!.id;
+        userData.tenantId = tenantResult.tenant.id;
         userData.role = 'tenant_admin'; // First user becomes tenant admin
+
+        console.log('✅ [REGISTER] Tenant created successfully:', {
+          tenantId: userData.tenantId,
+          subdomain: tenantResult.tenant.subdomain,
+          userEmail: userData.email
+        });
       } catch (error) {
         console.error('❌ [REGISTER] Tenant auto-provisioning error:', error);
         return res.status(500).json({ 
