@@ -700,9 +700,9 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       for (const row of result.rows) {
         await db.execute(sql`
           INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
-          (tenant_id, customer_id, field_name, value, label, color, sort_order, is_active, is_default)
+          (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
           VALUES (${tenantId}, ${companyId}, 'category', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
-          ON CONFLICT (tenant_id, customer_id, field_name, value) 
+          ON CONFLICT (tenant_id, company_id, field_name, value) 
           DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
         `);
       }
@@ -735,9 +735,9 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         for (const row of result.rows) {
           await db.execute(sql`
             INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
-            (tenant_id, customer_id, field_name, value, label, color, sort_order, is_active, is_default)
+            (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
             VALUES (${tenantId}, ${companyId}, 'subcategory', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
-            ON CONFLICT (tenant_id, customer_id, field_name, value) 
+            ON CONFLICT (tenant_id, company_id, field_name, value) 
             DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
           `);
         }
@@ -775,9 +775,9 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         for (const row of result.rows) {
           await db.execute(sql`
             INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
-            (tenant_id, customer_id, field_name, value, label, color, sort_order, is_active, is_default)
+            (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
             VALUES (${tenantId}, ${companyId}, 'action', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
-            ON CONFLICT (tenant_id, customer_id, field_name, value) 
+            ON CONFLICT (tenant_id, company_id, field_name, value) 
             DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
           `);
         }

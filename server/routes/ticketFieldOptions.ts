@@ -113,6 +113,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
     // Usar a empresa padrão se nenhuma for especificada
     const effectiveCustomerId = customerId || '00000000-0000-0000-0000-000000000001';
+    const effectiveCompanyId = effectiveCustomerId; // Alias for clarity in queries
 
     console.log(`🎯 ${customerId ? 'Company specific' : 'No company selected'}, using ${effectiveCustomerId === '00000000-0000-0000-0000-000000000001' ? 'Default' : 'Selected'} company for field options`);
 
@@ -134,19 +135,19 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
           tso.icon_name,
           tso.sort_order,
           tso.is_default,
-          tso.customer_id,
+          tso.company_id,
           tso.created_at
         FROM ${schemaName}.ticket_field_options tso
         INNER JOIN ${schemaName}.ticket_subcategories ts ON ts.code = tso.option_value
         INNER JOIN ${schemaName}.ticket_categories tc ON tc.id = ts.category_id
         WHERE tso.tenant_id = $1 
-        AND tso.customer_id = $2 
+        AND tso.company_id = $2 
         AND tso.field_name = $3 
         AND tc.code = $4
         AND tso.is_active = true
         ORDER BY tso.sort_order ASC, tso.display_label ASC
       `;
-      queryParams = [tenantId, effectiveCustomerId, fieldName, dependsOn];
+      queryParams = [tenantId, effectiveCompanyId, fieldName, dependsOn];
     } else if (fieldName === 'action' && dependsOn) {
       // Buscar ações baseadas na subcategoria selecionada
       query = `
@@ -159,19 +160,19 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
           tso.icon_name,
           tso.sort_order,
           tso.is_default,
-          tso.customer_id,
+          tso.company_id,
           tso.created_at
         FROM ${schemaName}.ticket_field_options tso
         INNER JOIN ${schemaName}.ticket_actions ta ON ta.code = tso.option_value
         INNER JOIN ${schemaName}.ticket_subcategories ts ON ts.id = ta.subcategory_id
         WHERE tso.tenant_id = $1 
-        AND tso.customer_id = $2 
+        AND tso.company_id = $2 
         AND tso.field_name = $3 
         AND ts.code = $4
         AND tso.is_active = true
         ORDER BY tso.sort_order ASC, tso.display_label ASC
       `;
-      queryParams = [tenantId, effectiveCustomerId, fieldName, dependsOn];
+      queryParams = [tenantId, effectiveCompanyId, fieldName, dependsOn];
     } else {
       // Query padrão para campos não hierárquicos ou categoria (nível raiz)
       query = `
@@ -184,16 +185,16 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
           icon_name,
           sort_order,
           is_default,
-          customer_id,
+          company_id,
           created_at
         FROM ${schemaName}.ticket_field_options 
         WHERE tenant_id = $1 
-        AND customer_id = $2 
+        AND company_id = $2 
         AND field_name = $3 
         AND is_active = true
         ORDER BY sort_order ASC, display_label ASC
       `;
-      queryParams = [tenantId, effectiveCustomerId, fieldName];
+      queryParams = [tenantId, effectiveCompanyId, fieldName];
     }
 
     // Assuming 'pool' is available in this scope and is a valid database connection pool object
@@ -204,7 +205,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
     // const result = await pool.query(query, queryParams);
 
 
-    console.log(`🔍 Field options query result for company: ${effectiveCustomerId}`, {
+    console.log(`🔍 Field options query result for company: ${effectiveCompanyId}`, {
       totalRows: result.rows.length,
       hierarchical: !!dependsOn,
       dependsOn,
@@ -219,7 +220,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
       success: true,
       data: result.rows,
       fieldName,
-      customerId: effectiveCustomerId,
+      companyId: effectiveCompanyId, // Changed from customerId to companyId for consistency
       tenantId,
       dependsOn
     });
