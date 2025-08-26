@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["redis", "nodejs-slim", "postgresql_16", "jq", "postgresql"]
+packages = ["jq", "nodejs-slim", "postgresql", "postgresql_16", "redis"]
 
 [deployment]
 deploymentTarget = "autoscale"
