@@ -51,6 +51,41 @@ export const schemaManager = {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   },
 
+  async runMigrations() {
+    try {
+      console.log('🔄 [SCHEMA-MANAGER] Running database migrations...');
+      const { MigrationManager } = await import('./migrations/pg-migrations/config/migration-manager');
+      const migrationManager = new MigrationManager();
+      
+      await migrationManager.createMigrationTable();
+      await migrationManager.runPublicMigrations();
+      await migrationManager.close();
+      
+      console.log('✅ [SCHEMA-MANAGER] Database migrations completed');
+      return true;
+    } catch (error) {
+      console.error('❌ [SCHEMA-MANAGER] Migration error:', error);
+      return false;
+    }
+  },
+
+  async runTenantMigrations(tenantId: string) {
+    try {
+      console.log(`🔄 [SCHEMA-MANAGER] Running tenant migrations for: ${tenantId}`);
+      const { MigrationManager } = await import('./migrations/pg-migrations/config/migration-manager');
+      const migrationManager = new MigrationManager();
+      
+      await migrationManager.runTenantMigrations(tenantId);
+      await migrationManager.close();
+      
+      console.log(`✅ [SCHEMA-MANAGER] Tenant migrations completed for: ${tenantId}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ [SCHEMA-MANAGER] Tenant migration error for ${tenantId}:`, error);
+      return false;
+    }
+  },
+
   async getTenantDb(tenantId: string) {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     // Create a new database connection with the tenant schema as search path
