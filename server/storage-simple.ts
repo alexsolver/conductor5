@@ -86,6 +86,7 @@ export interface IStorage {
   markEmailAsRead(tenantId: string, messageId: string): Promise<void>;
   archiveEmail(tenantId: string, messageId: string): Promise<void>;
   deleteEmail(tenantId: string, messageId: string): Promise<void>;
+  saveEmailToInbox(tenantId: string, messageData: any): Promise<void>;
   getClientesCount(tenantId: string): Promise<number>;
 
 
@@ -2789,7 +2790,27 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Export singleton instance
+// Initialize tenant schema function
+export async function initializeTenantSchema(tenantId: string): Promise<void> {
+  try {
+    console.log(`🔧 [TENANT-SCHEMA] Initializing schema for tenant: ${tenantId}`);
+
+    // Import enterprise migration manager
+    const { EnterpriseMigrationManager } = await import('./database/EnterpriseMigrationManager');
+    const migrationManager = EnterpriseMigrationManager.getInstance();
+
+    // Initialize the tenant schema with all required tables
+    await migrationManager.initializeTenantSchema(tenantId);
+
+    console.log(`✅ [TENANT-SCHEMA] Schema initialized successfully for tenant: ${tenantId}`);
+  } catch (error) {
+    console.error(`❌ [TENANT-SCHEMA] Failed to initialize schema for tenant ${tenantId}:`, error);
+    throw error;
+  }
+}
+
+// Export the database instance
+export { db };
 export const storage = new DatabaseStorage();
 export const storageSimple = storage;
 export const unifiedStorage = storage;

@@ -92,8 +92,8 @@ class TenantAutoProvisioningService {
       const savedTenant = await tenantRepository.save(tenantEntity);
 
       // Initialize tenant schema using storage service
-      // This line was corrected to use storageSimple instead of storage
-      await storageSimple.initializeTenantSchema(savedTenant.id);
+      const { initializeTenantSchema } = await import('../storage-simple');
+      await initializeTenantSchema(savedTenant.id);
 
       // Log provisioning activity
       console.log(`Auto-provisioned tenant: ${savedTenant.name} (${savedTenant.subdomain}) - Trigger: ${request.trigger}`);

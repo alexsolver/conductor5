@@ -157,6 +157,8 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
         const { tenantAutoProvisioningService } = await import('../../services/TenantAutoProvisioningService');
         const provisioningService = tenantAutoProvisioningService;
 
+        console.log(`🏗️ [REGISTER] Creating tenant for company: ${userData.companyName}`);
+        
         // Create tenant
         const tenantResult = await provisioningService.provisionTenant({
           name: userData.companyName,
