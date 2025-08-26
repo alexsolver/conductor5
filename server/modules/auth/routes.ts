@@ -299,7 +299,7 @@ authRouter.post('/logout', async (req, res) => {
   }
 });
 
-function getUserInfo() {
+async function getUserInfo(req, res) {
   try {
     if (!req.user) {
       return res.status(401).json({ message: 'User not authenticated' });
