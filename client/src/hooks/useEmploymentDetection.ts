@@ -8,9 +8,9 @@ import { detectEmploymentType, getEmploymentTerminology, type EmploymentType, ty
 export function useEmploymentDetection() {
   // Fetch current user data
   const { data: currentUser, isLoading } = useQuery({
-    queryKey: ['/api/auth/me'],
+    queryKey: ['/api/auth/user'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/auth/me');
+      const response = await apiRequest('GET', '/api/auth/user');
       return response.json();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
