@@ -234,9 +234,9 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
           // Ensure associated_companies is always included
           associated_companies: customer.associated_companies || null
       };
-      
+
       const dto = transformToCustomerDTO(normalizedCustomer);
-      
+
       // Add associated_companies to the final response object
       return {
         ...dto,
@@ -314,13 +314,13 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
-    
+
     const {
       firstName, lastName, email, phone, mobilePhone, customerType,
       cpf, cnpj, companyName, contactPerson, state, city, address,
       addressNumber, complement, neighborhood, zipCode
     } = req.body;
-    
+
     const result = await pool.query(`
       INSERT INTO "${schemaName}".customers (
         tenant_id, first_name, last_name, email, phone, mobile_phone,
@@ -336,7 +336,7 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       customerType, cpf, cnpj, companyName, contactPerson, state, city,
       address, addressNumber, complement, neighborhood, zipCode
     ]);
-    
+
     res.status(201).json({
       success: true,
       data: result.rows[0],
@@ -360,12 +360,12 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
-    
+
     const updates = req.body;
     const updateFields = [];
     const updateValues = [];
     let paramIndex = 1;
-    
+
     // Dynamic update query building
     Object.keys(updates).forEach(key => {
       if (updates[key] !== undefined) {
@@ -375,17 +375,17 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
         paramIndex++;
       }
     });
-    
+
     updateFields.push(`updated_at = NOW()`);
     updateValues.push(id, req.user.tenantId);
-    
+
     const result = await pool.query(`
       UPDATE "${schemaName}".customers 
       SET ${updateFields.join(', ')}
       WHERE id = $${paramIndex} AND tenant_id = $${paramIndex + 1}
       RETURNING *
     `, updateValues);
-    
+
     res.json({
       success: true,
       data: result.rows[0],
@@ -409,13 +409,13 @@ customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) =
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
-    
+
     await pool.query(`
       UPDATE "${schemaName}".customers 
       SET is_active = false, updated_at = NOW()
       WHERE id = $1 AND tenant_id = $2
     `, [id, req.user.tenantId]);
-    
+
     res.json({
       success: true,
       message: 'Customer deleted successfully'
