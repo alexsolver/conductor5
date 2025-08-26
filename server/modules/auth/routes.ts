@@ -190,11 +190,17 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
           tenantName: tenantResult.tenant.name
         });
 
-        // Verify schema exists after creation
+        // Ensure tenant schema exists
         try {
+          const { schemaManager } = await import('../../db');
+          const schemaName = `tenant_${userData.tenantId.replace(/-/g, '_')}`;
+          
+          // Force schema creation
+          await schemaManager.createTenantSchema(userData.tenantId);
+          
+          // Verify schema was created
           const { sql } = await import('drizzle-orm');
           const { db } = await import('../../db');
-          const schemaName = `tenant_${userData.tenantId.replace(/-/g, '_')}`;
           
           const schemaCheck = await db.execute(sql.raw(`
             SELECT schema_name 
@@ -205,10 +211,14 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
           if (schemaCheck.rows && schemaCheck.rows.length > 0) {
             console.log(`✅ [REGISTER] Schema verified: ${schemaName}`);
           } else {
-            console.error(`❌ [REGISTER] Schema not found: ${schemaName}`);
+            console.error(`❌ [REGISTER] Schema not found after creation: ${schemaName}`);
+            throw new Error(`Failed to create tenant schema: ${schemaName}`);
           }
         } catch (verifyError) {
-          console.error('❌ [REGISTER] Schema verification failed:', verifyError);
+          console.error('❌ [REGISTER] Schema creation/verification failed:', verifyError);
+          return res.status(500).json({ 
+            message: 'Erro ao criar workspace. Tente novamente.' 
+          });
         }
       } catch (error) {
         console.error('❌ [REGISTER] Tenant auto-provisioning error:', error);

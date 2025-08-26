@@ -93,14 +93,25 @@ class TenantAutoProvisioningService {
 
       // Initialize tenant schema using storage service
       console.log(`🏗️ [TENANT-PROVISIONING] Initializing schema for tenant: ${savedTenant.id}`);
-      await storageSimple.initializeTenantSchema(savedTenant.id);
-
-      // Validate schema was created successfully
-      const { TenantValidator } = await import('../database/TenantValidator');
-      const isValid = await TenantValidator.validateTenantSchema(savedTenant.id);
       
-      if (!isValid) {
-        throw new Error(`Schema validation failed for tenant ${savedTenant.id}`);
+      try {
+        // First create the schema
+        const { schemaManager } = await import('../db');
+        await schemaManager.createTenantSchema(savedTenant.id);
+        
+        // Then initialize it with tables
+        await storageSimple.initializeTenantSchema(savedTenant.id);
+
+        // Validate schema was created successfully
+        const { TenantValidator } = await import('../database/TenantValidator');
+        const isValid = await TenantValidator.validateTenantSchema(savedTenant.id);
+        
+        if (!isValid) {
+          throw new Error(`Schema validation failed for tenant ${savedTenant.id}`);
+        }
+      } catch (schemaError) {
+        console.error(`❌ [TENANT-PROVISIONING] Schema initialization failed for tenant ${savedTenant.id}:`, schemaError);
+        throw new Error(`Failed to initialize tenant schema: ${schemaError.message}`);
       }
 
       console.log(`✅ [TENANT-PROVISIONING] Schema validated successfully for tenant: ${savedTenant.id}`);

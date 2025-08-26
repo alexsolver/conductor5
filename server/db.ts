@@ -213,25 +213,38 @@ export const schemaManager = {
     return true;
   },
 
-  async createTenantSchema(tenantId: string): Promise<void> {
+  async createTenantSchema(tenantId: string): Promise<boolean> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
     try {
-      console.log(`🏗️ [SCHEMA-MANAGER] Creating schema for tenant: ${tenantId}`);
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log(`🏗️ [SCHEMA-MANAGER] Creating schema: ${schemaName}`);
 
-      // Create schema
-      await db.execute(sql.raw(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`));
+      // Create the schema
+      await pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
 
-      // Create all tenant tables using EnterpriseMigrationManager
-      const { EnterpriseMigrationManager } = await import('./database/EnterpriseMigrationManager');
-      const migrationManager = EnterpriseMigrationManager.getInstance();
-      await migrationManager.createCompleteTenantSchema(tenantId);
+      // Verify schema was created
+      const schemaCheck = await pool.query(`
+        SELECT schema_name
+        FROM information_schema.schemata
+        WHERE schema_name = $1
+      `, [schemaName]);
 
-      console.log(`✅ [SCHEMA-MANAGER] Complete schema created: ${schemaName}`);
+      if (schemaCheck.rows.length === 0) {
+        throw new Error(`Schema ${schemaName} was not created`);
+      }
+
+      console.log(`✅ [SCHEMA-MANAGER] Schema created successfully: ${schemaName}`);
+
+      // Initialize tables using storage-simple
+      const { storageSimple } = await import('./storage-simple');
+      await storageSimple.initializeTenantSchema(tenantId);
+
+      return true;
     } catch (error) {
-      console.error(`❌ [SCHEMA-MANAGER] Error creating tenant schema for ${tenantId}:`, error);
-      throw error;
+      console.error(`❌ [SCHEMA-MANAGER] Error creating tenant schema ${schemaName}:`, error);
+      return false;
     }
-  }
+  },
 };
 
 export default { pool, db, sql, schema, schemaManager };
