@@ -1,13 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
 import { eq } from 'drizzle-orm';
 import { users } from '@shared/schema';
 import { jwtAuth as authenticateToken } from '../middleware/jwtAuth';
+import { db } from '../db';
 
 const router = Router();
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
 
 /**
  * GET /api/employment/me
