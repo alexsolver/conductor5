@@ -71,79 +71,79 @@ export class MigrationManager {
     }
   }
 
-  async runTenantMigrations(tenantId: string) {
+  async runTenantMigrations(tenantId: string): Promise<void> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    console.log(`🔄 [MIGRATION-MANAGER] Running tenant migrations for schema: ${schemaName}`);
 
     try {
+      console.log(`🔧 [MIGRATION-MANAGER] Running tenant migrations for schema: ${schemaName}`);
+
       // Create schema if not exists
       await this.pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
 
       // Set search path to tenant schema
       await this.pool.query(`SET search_path TO "${schemaName}", public`);
 
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = dirname(__filename);
-      const tenantMigrationsPath = path.join(__dirname, '..', 'tenant');
-      const migrationFiles = fs.readdirSync(tenantMigrationsPath)
-        .filter(file => file.endsWith('.sql'))
-        .sort();
+      // Get migration files
+      const migrationFiles = await this.getTenantMigrationFiles();
 
       for (const file of migrationFiles) {
-        const migrationName = `${schemaName}_${file.replace('.sql', '')}`;
-
-        // Check if migration already executed
-        const existing = await this.pool.query(
-          'SELECT id FROM public.pg_migrations WHERE name = $1',
-          [migrationName]
-        );
-
-        if (existing.rows.length === 0) {
-          console.log(`📝 [MIGRATION-MANAGER] Running tenant migration: ${migrationName}`);
-
-          let migrationSQL = fs.readFileSync(
-            path.join(tenantMigrationsPath, file),
-            'utf-8'
-          );
-
-          // Replace table names to include schema prefix where needed
-          migrationSQL = migrationSQL.replace(/public\.users/g, 'public.users');
-
-          try {
-            await this.pool.query(migrationSQL);
-          } catch (error: any) {
-            // Handle foreign key constraint errors gracefully
-            if (error.message.includes('referenced in foreign key constraint does not exist')) {
-              console.warn(`⚠️ [MIGRATION-MANAGER] Foreign key constraint issue in ${migrationName}, attempting fix...`);
-              
-              // Try to run a simplified version without problematic constraints
-              const simplifiedSQL = migrationSQL.replace(/ADD CONSTRAINT.*FOREIGN KEY.*REFERENCES.*\);/gi, '-- Foreign key constraint removed due to dependency issue');
-              await this.pool.query(simplifiedSQL);
-            } else {
-              throw error;
-            }
-          }
-
-          await this.pool.query(
-            'INSERT INTO public.pg_migrations (name, executed_at) VALUES ($1, $2)',
-            [migrationName, new Date()]
-          );
-
-          console.log(`✅ [MIGRATION-MANAGER] Completed tenant migration: ${migrationName}`);
-        } else {
-          console.log(`⏭️ [MIGRATION-MANAGER] Skipping tenant migration: ${migrationName} (already executed)`);
-        }
+        await this.executeTenantMigration(file, schemaName);
       }
 
-      // Reset search path
-      await this.pool.query('SET search_path TO public');
-
-      console.log(`✅ [MIGRATION-MANAGER] Tenant migrations completed for: ${schemaName}`);
+      console.log(`✅ [MIGRATION-MANAGER] All tenant migrations completed for: ${schemaName}`);
     } catch (error) {
-      console.error(`❌ [MIGRATION-MANAGER] Tenant migration error for ${schemaName}:`, error);
-      // Reset search path on error
-      await this.pool.query('SET search_path TO public');
+      console.error(`❌ [MIGRATION-MANAGER] Tenant migration failed for ${schemaName}:`, error);
       throw error;
+    }
+  }
+
+  private async getTenantMigrationFiles(): Promise<string[]> {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const tenantMigrationsPath = path.join(__dirname, '..', 'tenant');
+    const migrationFiles = fs.readdirSync(tenantMigrationsPath)
+      .filter(file => file.endsWith('.sql'))
+      .sort();
+    return migrationFiles;
+  }
+
+  private async executeTenantMigration(filename: string, schemaName: string): Promise<void> {
+    try {
+      const migrationPath = path.join(__dirname, '..', 'tenant', filename);
+      let migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+
+      // Replace any schema placeholders
+      migrationSQL = migrationSQL.replace(/\{schemaName\}/g, schemaName);
+
+      console.log(`📝 [MIGRATION-MANAGER] Executing migration: ${filename} for schema: ${schemaName}`);
+
+      // Execute the migration
+      await this.pool.query(migrationSQL);
+
+      // Record the migration
+      await this.recordMigration(filename, schemaName);
+
+      console.log(`✅ [MIGRATION-MANAGER] Migration ${filename} completed for ${schemaName}`);
+    } catch (error) {
+      console.error(`❌ [MIGRATION-MANAGER] Migration ${filename} failed for ${schemaName}:`, error);
+      throw error;
+    }
+  }
+
+  private async recordMigration(filename: string, schemaName: string): Promise<void> {
+    const migrationName = `${schemaName}_${filename.replace('.sql', '')}`;
+
+    // Check if migration already executed
+    const existing = await this.pool.query(
+      'SELECT id FROM public.pg_migrations WHERE name = $1',
+      [migrationName]
+    );
+
+    if (existing.rows.length === 0) {
+      await this.pool.query(
+        'INSERT INTO public.pg_migrations (name, executed_at) VALUES ($1, $2)',
+        [migrationName, new Date()]
+      );
     }
   }
 
