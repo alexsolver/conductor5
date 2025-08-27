@@ -16,69 +16,136 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
 
-  // Tenant Management  
+  // Tenant Management
   createTenant(tenantData: any): Promise<any>;
-  getTenantUsers(tenantId: string, options?: { limit?: number; offset?: number }): Promise<User[]>;
+  getTenantUsers(
+    tenantId: string,
+    options?: { limit?: number; offset?: number },
+  ): Promise<User[]>;
   initializeTenantSchema(tenantId: string): Promise<void>;
 
   // Customer Management
-  getCustomers(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
-  getCustomerById(tenantId: string, customerId: string): Promise<any | undefined>;
+  getCustomers(
+    tenantId: string,
+    options?: { limit?: number; offset?: number; search?: string },
+  ): Promise<any[]>;
+  getCustomerById(
+    tenantId: string,
+    customerId: string,
+  ): Promise<any | undefined>;
   createCustomer(tenantId: string, customerData: any): Promise<any>;
-  updateCustomer(tenantId: string, customerId: string, customerData: any): Promise<any>;
+  updateCustomer(
+    tenantId: string,
+    customerId: string,
+    customerData: any,
+  ): Promise<any>;
   deleteCustomer(tenantId: string, customerId: string): Promise<boolean>;
 
   // Ticket Management
-  getTickets(tenantId: string, options?: { limit?: number; offset?: number; status?: string }): Promise<any[]>;
+  getTickets(
+    tenantId: string,
+    options?: { limit?: number; offset?: number; status?: string },
+  ): Promise<any[]>;
   getTicketById(tenantId: string, ticketId: string): Promise<any | undefined>;
   createTicket(tenantId: string, ticketData: any): Promise<any>;
-  updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any>;
+  updateTicket(
+    tenantId: string,
+    ticketId: string,
+    ticketData: any,
+  ): Promise<any>;
   deleteTicket(tenantId: string, ticketId: string): Promise<boolean>;
   searchTickets(tenantId: string, query: string): Promise<any[]>;
   getTicketsCount(tenantId: string): Promise<number>;
 
   // Ticket Relationships Management
   getTicketRelationships(tenantId: string, ticketId: string): Promise<any[]>;
-  createTicketRelationship(tenantId: string, ticketId: string, relationshipData: any): Promise<any>;
+  createTicketRelationship(
+    tenantId: string,
+    ticketId: string,
+    relationshipData: any,
+  ): Promise<any>;
   deleteTicketRelationship(relationshipId: string): Promise<boolean>;
   getTicketHierarchy(tenantId: string, ticketId: string): Promise<any[]>;
 
   // Dashboard & Analytics
   getDashboardStats(tenantId: string): Promise<any>;
-  getRecentActivity(tenantId: string, options?: { limit?: number }): Promise<any[]>;
-
-
+  getRecentActivity(
+    tenantId: string,
+    options?: { limit?: number },
+  ): Promise<any[]>;
 
   // External Contacts
-  getClientes(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
-  getBeneficiaries(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
+  getClientes(
+    tenantId: string,
+    options?: { limit?: number; offset?: number; search?: string },
+  ): Promise<any[]>;
+  getBeneficiaries(
+    tenantId: string,
+    options?: { limit?: number; offset?: number; search?: string },
+  ): Promise<any[]>;
   createCliente(tenantId: string, data: any): Promise<any>;
   createBeneficiary(tenantId: string, data: any): Promise<any>;
   getBeneficiary(id: string, tenantId: string): Promise<any | null>;
 
   // Ticket Templates Management
-  getTicketTemplates(tenantId: string, options?: { limit?: number; offset?: number; search?: string; category?: string }): Promise<any[]>;
-  getTicketTemplateById(tenantId: string, templateId: string): Promise<any | undefined>;
+  getTicketTemplates(
+    tenantId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+      category?: string;
+    },
+  ): Promise<any[]>;
+  getTicketTemplateById(
+    tenantId: string,
+    templateId: string,
+  ): Promise<any | undefined>;
   createTicketTemplate(tenantId: string, templateData: any): Promise<any>;
-  updateTicketTemplate(tenantId: string, templateId: string, templateData: any): Promise<any>;
+  updateTicketTemplate(
+    tenantId: string,
+    templateId: string,
+    templateData: any,
+  ): Promise<any>;
   deleteTicketTemplate(tenantId: string, templateId: string): Promise<boolean>;
   duplicateTicketTemplate(tenantId: string, templateId: string): Promise<any>;
 
   // Tenant Integrations Management
   getTenantIntegrations(tenantId: string): Promise<any[]>;
-  getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined>;
-  saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any>;
-  updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void>;
-  getIntegrationByType(tenantId: string, typeName: string): Promise<any | undefined>;
+  getTenantIntegrationConfig(
+    tenantId: string,
+    integrationId: string,
+  ): Promise<any | undefined>;
+  saveTenantIntegrationConfig(
+    tenantId: string,
+    integrationId: string,
+    config: any,
+  ): Promise<any>;
+  updateTenantIntegrationStatus(
+    tenantId: string,
+    integrationId: string,
+    status: string,
+  ): Promise<void>;
+  getIntegrationByType(
+    tenantId: string,
+    typeName: string,
+  ): Promise<any | undefined>;
   initializeTenantIntegrations(tenantId: string): Promise<void>;
 
   // Template Bulk Operations
-  bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean>;
+  bulkDeleteTicketTemplates(
+    tenantId: string,
+    templateIds: string[],
+  ): Promise<boolean>;
 
   // Email Templates Management
   getEmailTemplates(tenantId: string): Promise<any[]>;
   createEmailTemplate(tenantId: string, templateData: any): Promise<any>;
-  updateEmailTemplate(tenantId: string, templateId: string, templateData: any): Promise<any | undefined>;
+  updateEmailTemplate(
+    tenantId: string,
+    templateId: string,
+    templateData: any,
+  ): Promise<any | undefined>;
   deleteEmailTemplate(tenantId: string, templateId: string): Promise<boolean>;
 
   // Email Management
@@ -88,26 +155,55 @@ export interface IStorage {
   deleteEmail(tenantId: string, messageId: string): Promise<void>;
   getClientesCount(tenantId: string): Promise<number>;
 
-
   // Project Management - COMPLETELY REMOVED
   // All project-related functionality has been eliminated from the system
 
   // Locations Management
   getLocations(tenantId: string): Promise<any[]>;
   createLocation(tenantId: string, locationData: any): Promise<any>;
-  getBeneficiaryLocations(beneficiaryId: string, tenantId: string): Promise<any[]>;
-  addBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string, isPrimary?: boolean): Promise<any>;
-  removeBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string): Promise<boolean>;
-  updateBeneficiaryLocationPrimary(beneficiaryId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean>;
+  getBeneficiaryLocations(
+    beneficiaryId: string,
+    tenantId: string,
+  ): Promise<any[]>;
+  addBeneficiaryLocation(
+    beneficiaryId: string,
+    locationId: string,
+    tenantId: string,
+    isPrimary?: boolean,
+  ): Promise<any>;
+  removeBeneficiaryLocation(
+    beneficiaryId: string,
+    locationId: string,
+    tenantId: string,
+  ): Promise<boolean>;
+  updateBeneficiaryLocationPrimary(
+    beneficiaryId: string,
+    locationId: string,
+    tenantId: string,
+    isPrimary: boolean,
+  ): Promise<boolean>;
 
-
-    // Beneficiary Management
-    getCustomerBeneficiaries(tenantId: string, customerId: string): Promise<any[]>;
-    updateBeneficiary(tenantId: string, id: string, data: any): Promise<any>;
-    deleteBeneficiary(tenantId: string, id: string): Promise<boolean>;
-    getBeneficiaryCustomers(tenantId: string, beneficiaryId: string): Promise<any[]>;
-    addBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<any>;
-    removeBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<boolean>;
+  // Beneficiary Management
+  getCustomerBeneficiaries(
+    tenantId: string,
+    customerId: string,
+  ): Promise<any[]>;
+  updateBeneficiary(tenantId: string, id: string, data: any): Promise<any>;
+  deleteBeneficiary(tenantId: string, id: string): Promise<boolean>;
+  getBeneficiaryCustomers(
+    tenantId: string,
+    beneficiaryId: string,
+  ): Promise<any[]>;
+  addBeneficiaryCustomer(
+    tenantId: string,
+    beneficiaryId: string,
+    customerId: string,
+  ): Promise<any>;
+  removeBeneficiaryCustomer(
+    tenantId: string,
+    beneficiaryId: string,
+    customerId: string,
+  ): Promise<boolean>;
 }
 
 // ===========================
@@ -137,27 +233,38 @@ export class DatabaseStorage implements IStorage {
     // In a real scenario, this would interact with your database
     console.log("Mock Neon DB call:", { query, params });
     // Simulate finding the Telegram integration for testing
-    if (query.includes("tenant_integrations") && query.includes("telegram") && params[1] === 'telegram') {
-      return [{
-        id: 'telegram',
-        tenant_id: params[0],
-        name: 'Telegram',
-        description: 'Envio de notificações e alertas via Telegram para grupos ou usuários',
-        category: 'Comunicação',
-        icon: 'Send',
-        status: 'connected', // Default to connected for testing
-        config: JSON.stringify({ botToken: '12345:ABCDEF' }),
-        features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API'],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_currently_monitoring: false
-      }];
+    if (
+      query.includes("tenant_integrations") &&
+      query.includes("telegram") &&
+      params[1] === "telegram"
+    ) {
+      return [
+        {
+          id: "telegram",
+          tenant_id: params[0],
+          name: "Telegram",
+          description:
+            "Envio de notificações e alertas via Telegram para grupos ou usuários",
+          category: "Comunicação",
+          icon: "Send",
+          status: "connected", // Default to connected for testing
+          config: JSON.stringify({ botToken: "12345:ABCDEF" }),
+          features: [
+            "Notificações em tempo real",
+            "Mensagens personalizadas",
+            "Integração com Bot API",
+          ],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_currently_monitoring: false,
+        },
+      ];
     }
     return [];
   };
 
   // ===========================
-  // USER MANAGEMENT  
+  // USER MANAGEMENT
   // ===========================
 
   async getUser(id: number): Promise<User | undefined> {
@@ -173,7 +280,7 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows[0] || undefined;
     } catch (error) {
-      logError('Error fetching user', error, { userId: id });
+      logError("Error fetching user", error, { userId: id });
       throw error;
     }
   }
@@ -181,7 +288,7 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
       if (!username) {
-        throw new Error('Username is required');
+        throw new Error("Username is required");
       }
 
       // ✅ SECURITY FIX: Use public schema connection explicitly for user authentication
@@ -195,7 +302,7 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows[0] || undefined;
     } catch (error) {
-      logError('Error fetching user by username', error, { username });
+      logError("Error fetching user by username", error, { username });
       throw error;
     }
   }
@@ -203,21 +310,24 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
       if (!insertUser.email || !insertUser.passwordHash) {
-        throw new Error('Email and password hash are required');
+        throw new Error("Email and password hash are required");
       }
 
       const [user] = await db
         .insert(users)
         .values({
           id: crypto.randomUUID(),
-          ...insertUser
+          ...insertUser,
         })
         .returning();
 
-      logInfo('User created successfully', { userId: user.id, email: user.email });
+      logInfo("User created successfully", {
+        userId: user.id,
+        email: user.email,
+      });
       return user;
     } catch (error) {
-      logError('Error creating user', error, { email: insertUser.email });
+      logError("Error creating user", error, { email: insertUser.email });
       throw error;
     }
   }
@@ -229,27 +339,30 @@ export class DatabaseStorage implements IStorage {
   async createTenant(tenantData: any): Promise<any> {
     try {
       if (!tenantData.name || !tenantData.subdomain) {
-        throw new Error('Tenant name and subdomain are required');
+        throw new Error("Tenant name and subdomain are required");
       }
 
       // Create tenant record
-      const [tenant] = await db
-        .insert(tenants)
-        .values(tenantData)
-        .returning();
+      const [tenant] = await db.insert(tenants).values(tenantData).returning();
 
       // Create tenant-specific schema
       await schemaManager.createTenantSchema(tenant.id);
 
-      logInfo('Tenant created successfully', { tenantId: tenant.id, name: tenant.name });
+      logInfo("Tenant created successfully", {
+        tenantId: tenant.id,
+        name: tenant.name,
+      });
       return tenant;
     } catch (error) {
-      logError('Error creating tenant', error, { tenantData });
+      logError("Error creating tenant", error, { tenantData });
       throw error;
     }
   }
 
-  async getTenantUsers(tenantId: string, options: { limit?: number; offset?: number } = {}): Promise<User[]> {
+  async getTenantUsers(
+    tenantId: string,
+    options: { limit?: number; offset?: number } = {},
+  ): Promise<User[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0 } = options;
@@ -264,7 +377,7 @@ export class DatabaseStorage implements IStorage {
 
       return tenantUsers;
     } catch (error) {
-      logError('Error fetching tenant users', error, { tenantId, options });
+      logError("Error fetching tenant users", error, { tenantId, options });
       throw error;
     }
   }
@@ -274,14 +387,17 @@ export class DatabaseStorage implements IStorage {
   // Fixes: N+1 queries, performance issues
   // ===========================
 
-  async getCustomers(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+  async getCustomers(
+    tenantId: string,
+    options: { limit?: number; offset?: number; search?: string } = {},
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, search } = options;
 
       // Use connection pool for better performance
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // OPTIMIZED: Single query with proper parameterization
       let baseQuery = sql`
@@ -311,16 +427,19 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(finalQuery);
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching customers', error, { tenantId, options });
+      logError("Error fetching customers", error, { tenantId, options });
       throw error;
     }
   }
 
-  async getCustomerById(tenantId: string, customerId: string): Promise<any | undefined> {
+  async getCustomerById(
+    tenantId: string,
+    customerId: string,
+  ): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.customers
@@ -330,7 +449,7 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0] || undefined;
     } catch (error) {
-      logError('Error fetching customer', error, { tenantId, customerId });
+      logError("Error fetching customer", error, { tenantId, customerId });
       throw error;
     }
   }
@@ -339,10 +458,10 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       if (!customerData.email) {
-        throw new Error('Customer email is required');
+        throw new Error("Customer email is required");
       }
 
       const result = await tenantDb.execute(sql`
@@ -363,21 +482,28 @@ export class DatabaseStorage implements IStorage {
 
       const customer = result.rows?.[0];
       if (customer) {
-        logInfo('Customer created successfully', { tenantId, customerId: customer.id });
+        logInfo("Customer created successfully", {
+          tenantId,
+          customerId: customer.id,
+        });
       }
 
       return customer;
     } catch (error) {
-      logError('Error creating customer', error, { tenantId, customerData });
+      logError("Error creating customer", error, { tenantId, customerData });
       throw error;
     }
   }
 
-  async updateCustomer(tenantId: string, customerId: string, customerData: any): Promise<any> {
+  async updateCustomer(
+    tenantId: string,
+    customerId: string,
+    customerData: any,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.customers 
@@ -394,7 +520,11 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error updating customer', error, { tenantId, customerId, customerData });
+      logError("Error updating customer", error, {
+        tenantId,
+        customerId,
+        customerData,
+      });
       throw error;
     }
   }
@@ -403,7 +533,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.customers
@@ -412,7 +542,7 @@ export class DatabaseStorage implements IStorage {
 
       return Number(result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error deleting customer', error, { tenantId, customerId });
+      logError("Error deleting customer", error, { tenantId, customerId });
       throw error;
     }
   }
@@ -422,14 +552,17 @@ export class DatabaseStorage implements IStorage {
   // Fixes: N+1 queries, complex joins
   // ===========================
 
-  async getTickets(tenantId: string, options: { limit?: number; offset?: number; status?: string } = {}): Promise<any[]> {
+  async getTickets(
+    tenantId: string,
+    options: { limit?: number; offset?: number; status?: string } = {},
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, status } = options;
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
-      // OPTIMIZED: Single JOIN query instead of N+1  
+      // OPTIMIZED: Single JOIN query instead of N+1
       let baseQuery = sql`
         SELECT 
           tickets.*,
@@ -460,16 +593,19 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(finalQuery);
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching tickets', error, { tenantId, options });
+      logError("Error fetching tickets", error, { tenantId, options });
       throw error;
     }
   }
 
-  async getTicketById(tenantId: string, ticketId: string): Promise<any | undefined> {
+  async getTicketById(
+    tenantId: string,
+    ticketId: string,
+  ): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT 
@@ -491,7 +627,7 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0] || undefined;
     } catch (error) {
-      logError('Error fetching ticket', error, { tenantId, ticketId });
+      logError("Error fetching ticket", error, { tenantId, ticketId });
       throw error;
     }
   }
@@ -500,36 +636,46 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // Debug: Log all ticket data fields for debugging
-      console.log('🔍 All ticket data fields:', Object.keys(ticketData));
-      console.log('🔍 Ticket data values:', {
+      console.log("🔍 All ticket data fields:", Object.keys(ticketData));
+      console.log("🔍 Ticket data values:", {
         subject: ticketData.subject,
         customerId: ticketData.customerId,
         caller_id: ticketData.caller_id,
-        customer_id: ticketData.customer_id
+        customer_id: ticketData.customer_id,
       });
 
-      const customerId = ticketData.customerId || ticketData.caller_id || ticketData.customer_id;
+      const customerId =
+        ticketData.customerId || ticketData.caller_id || ticketData.customer_id;
 
       if (!ticketData.subject || !customerId) {
-        console.log('🐛 Validation failed:', { 
-          subject: ticketData.subject, 
+        console.log("🐛 Validation failed:", {
+          subject: ticketData.subject,
           finalCustomerId: customerId,
-          allFields: Object.keys(ticketData)
+          allFields: Object.keys(ticketData),
         });
-        throw new Error('Ticket subject and customer ID are required');
+        throw new Error("Ticket subject and customer ID are required");
       }
 
       // Get company ID for numbering configuration
-      const companyId = ticketData.company_id || '00000000-0000-0000-0000-000000000001'; // Default company
+      const companyId =
+        ticketData.company_id || "00000000-0000-0000-0000-000000000001"; // Default company
 
       // Generate ticket number using configuration
-      const { ticketNumberGenerator } = await import('./utils/ticketNumberGenerator');
-      const ticketNumber = await ticketNumberGenerator.generateTicketNumber(validatedTenantId, companyId);
+      const { ticketNumberGenerator } = await import(
+        "./utils/ticketNumberGenerator"
+      );
+      const ticketNumber = await ticketNumberGenerator.generateTicketNumber(
+        validatedTenantId,
+        companyId,
+      );
 
-      console.log('🎯 Generated ticket number:', ticketNumber, { companyId, tenantId: validatedTenantId });
+      console.log("🎯 Generated ticket number:", ticketNumber, {
+        companyId,
+        tenantId: validatedTenantId,
+      });
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets 
@@ -538,8 +684,8 @@ export class DatabaseStorage implements IStorage {
           ${ticketNumber},
           ${ticketData.subject},
           ${ticketData.description || null},
-          ${ticketData.status || 'new'},
-          ${ticketData.priority || 'medium'},
+          ${ticketData.status || "new"},
+          ${ticketData.priority || "medium"},
           ${customerId},
           ${customerId},
           ${validatedTenantId},
@@ -551,24 +697,32 @@ export class DatabaseStorage implements IStorage {
 
       const ticket = result.rows?.[0];
       if (ticket) {
-        logInfo('Ticket created successfully', { tenantId, ticketId: ticket.id, ticketNumber });
+        logInfo("Ticket created successfully", {
+          tenantId,
+          ticketId: ticket.id,
+          ticketNumber,
+        });
       }
 
       return ticket;
     } catch (error) {
-      logError('Error creating ticket', error, { tenantId, ticketData });
+      logError("Error creating ticket", error, { tenantId, ticketData });
       throw error;
     }
   }
 
-  async updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any> {
+  async updateTicket(
+    tenantId: string,
+    ticketId: string,
+    ticketData: any,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // DEBUG: Log ticket data before SQL update
-      console.log('🎫 STORAGE DEBUG - About to update ticket:', {
+      console.log("🎫 STORAGE DEBUG - About to update ticket:", {
         ticketId,
         followersRaw: ticketData.followers,
         followersType: typeof ticketData.followers,
@@ -576,7 +730,7 @@ export class DatabaseStorage implements IStorage {
         assignedToIdRaw: ticketData.responsible_id || ticketData.assigned_to_id,
         companyIdRaw: ticketData.company_id,
         companyIdType: typeof ticketData.company_id,
-        allKeys: Object.keys(ticketData)
+        allKeys: Object.keys(ticketData),
       });
 
       // PROBLEMA 2,3,7 RESOLVIDOS: Campos reais do banco, mapping correto, SQL injection safe
@@ -585,11 +739,11 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets
         SET 
-          subject = ${ticketData.subject || ''},
+          subject = ${ticketData.subject || ""},
           description = ${ticketData.description || null},
-          priority = ${ticketData.priority || 'medium'},
-          state = ${ticketData.status || 'open'},
-          status = ${ticketData.status || 'open'},
+          priority = ${ticketData.priority || "medium"},
+          state = ${ticketData.status || "open"},
+          status = ${ticketData.status || "open"},
           category = ${ticketData.category || null},
           subcategory = ${ticketData.subcategory || null},
           action = ${ticketData.action || null},
@@ -599,36 +753,44 @@ export class DatabaseStorage implements IStorage {
           beneficiary_id = ${ticketData.beneficiary_id || null},
           assigned_to_id = ${ticketData.responsible_id || ticketData.assigned_to_id || null},
           assignment_group = ${ticketData.assignment_group || null},
-          location = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
+          location = ${ticketData.location && ticketData.location !== "unspecified" ? ticketData.location : null},
           contact_type = ${ticketData.contact_type || null},
           business_impact = ${ticketData.business_impact || null},
           symptoms = ${ticketData.symptoms || null},
           workaround = ${ticketData.workaround || null},
           resolution_notes = ${ticketData.resolution || null},
           environment = ${ticketData.environment || null},
-          caller_type = ${ticketData.caller_type || 'customer'},
-          beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
+          caller_type = ${ticketData.caller_type || "customer"},
+          beneficiary_type = ${ticketData.beneficiary_type || "customer"},
           customer_id = ${ticketData.customer_id || null},
           company_id = ${ticketData.company_id || null},
 
-          followers = ${ticketData.followers && Array.isArray(ticketData.followers) && ticketData.followers.length > 0 
-            ? ticketData.followers 
-            : null},
+          followers = ${
+            ticketData.followers &&
+            Array.isArray(ticketData.followers) &&
+            ticketData.followers.length > 0
+              ? ticketData.followers
+              : null
+          },
 
           updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *
       `);
 
-      console.log('🎫 STORAGE DEBUG - SQL update completed:', {
+      console.log("🎫 STORAGE DEBUG - SQL update completed:", {
         ticketId,
         rowsAffected: result.rowCount,
-        returnedData: result.rows?.[0] ? 'Yes' : 'No'
+        returnedData: result.rows?.[0] ? "Yes" : "No",
       });
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error updating ticket', error, { tenantId, ticketId, ticketData });
+      logError("Error updating ticket", error, {
+        tenantId,
+        ticketId,
+        ticketData,
+      });
       throw error;
     }
   }
@@ -637,16 +799,16 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName), "tickets"}
+        DELETE FROM ${(sql.identifier(schemaName), "tickets")}
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
       `);
 
       return Number(result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error deleting ticket', error, { tenantId, ticketId });
+      logError("Error deleting ticket", error, { tenantId, ticketId });
       throw error;
     }
   }
@@ -656,7 +818,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT COUNT(*) as count
@@ -664,9 +826,9 @@ export class DatabaseStorage implements IStorage {
         WHERE tenant_id = ${validatedTenantId}
       `);
 
-      return parseInt((result.rows?.[0]?.count as string) || '0');
+      return parseInt((result.rows?.[0]?.count as string) || "0");
     } catch (error) {
-      logError('Error getting tickets count', error, { tenantId });
+      logError("Error getting tickets count", error, { tenantId });
       return 0;
     }
   }
@@ -680,7 +842,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // OPTIMIZED: Single query with multiple aggregations
       const result = await tenantDb.execute(sql`
@@ -696,26 +858,29 @@ export class DatabaseStorage implements IStorage {
         totalCustomers: Number(stats.total_customers || 0),
         totalTickets: Number(stats.total_tickets || 0),
         openTickets: Number(stats.open_tickets || 0),
-        resolvedTickets: Number(stats.resolved_tickets || 0)
+        resolvedTickets: Number(stats.resolved_tickets || 0),
       };
     } catch (error) {
-      logError('Error fetching dashboard stats', error, { tenantId });
+      logError("Error fetching dashboard stats", error, { tenantId });
       // Return empty stats on error instead of failing
       return {
         totalCustomers: 0,
         totalTickets: 0,
         openTickets: 0,
-        resolvedTickets: 0
+        resolvedTickets: 0,
       };
     }
   }
 
-  async getRecentActivity(tenantId: string, options: { limit?: number } = {}): Promise<any[]> {
+  async getRecentActivity(
+    tenantId: string,
+    options: { limit?: number } = {},
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 10 } = options;
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // OPTIMIZED: Single query with JOIN for activity
       const result = await tenantDb.execute(sql`
@@ -735,19 +900,20 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching recent activity', error, { tenantId, options });
+      logError("Error fetching recent activity", error, { tenantId, options });
       return [];
     }
   }
-
-
 
   // ===========================
   // EXTERNAL CONTACTS (SOLICITANTES/FAVORECIDOS)
   // ===========================
 
   // Interface compatibility methods
-  async getSolicitantes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+  async getSolicitantes(
+    tenantId: string,
+    options: { limit?: number; offset?: number; search?: string } = {},
+  ): Promise<any[]> {
     return this.getCustomers(tenantId, options);
   }
 
@@ -755,12 +921,15 @@ export class DatabaseStorage implements IStorage {
     return this.createCustomer(tenantId, data);
   }
 
-  async getClientes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
+  async getClientes(
+    tenantId: string,
+    options: { limit?: number; offset?: number; search?: string } = {},
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { limit = 50, offset = 0, search } = options;
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       let baseQuery = sql`
         SELECT * FROM ${sql.identifier(schemaName)}.customers
@@ -769,9 +938,9 @@ export class DatabaseStorage implements IStorage {
 
       if (search) {
         baseQuery = sql`${baseQuery} AND (
-          first_name ILIKE ${'%' + search + '%'} OR 
-          last_name ILIKE ${'%' + search + '%'} OR
-          email ILIKE ${'%' + search + '%'}
+          first_name ILIKE ${"%" + search + "%"} OR 
+          last_name ILIKE ${"%" + search + "%"} OR
+          email ILIKE ${"%" + search + "%"}
         )`;
       }
 
@@ -784,14 +953,17 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(finalQuery);
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching clientes', error, { tenantId, options });
+      logError("Error fetching clientes", error, { tenantId, options });
       return [];
     }
   }
 
-  async getBeneficiaries(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}) {
+  async getBeneficiaries(
+    tenantId: string,
+    options: { limit?: number; offset?: number; search?: string } = {},
+  ) {
     const { limit = 20, offset = 0, search } = options;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
     try {
       // First check if table exists
@@ -855,12 +1027,13 @@ export class DatabaseStorage implements IStorage {
       console.log(`Found ${result.rows.length} beneficiaries in ${schemaName}`);
 
       // Padronizar mapeamento de dados para interfaceconsistente
-      const beneficiaries = (result.rows || []).map(favorecido => ({
+      const beneficiaries = (result.rows || []).map((favorecido) => ({
         id: favorecido.id,
         tenantId: favorecido.tenant_id,
         firstName: favorecido.first_name,
         lastName: favorecido.last_name,
-        fullName: `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim(),
+        fullName:
+          `${favorecido.first_name || ""} ${favorecido.last_name || ""}`.trim(),
         email: favorecido.email,
         birthDate: favorecido.birth_date,
         rg: favorecido.rg,
@@ -873,13 +1046,15 @@ export class DatabaseStorage implements IStorage {
         contactPerson: favorecido.contact_person,
         contactPhone: favorecido.contact_phone,
         createdAt: favorecido.created_at,
-        updatedAt: favorecido.updated_at
+        updatedAt: favorecido.updated_at,
       }));
 
-      console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`);
+      console.log(
+        `Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`,
+      );
       return beneficiaries;
     } catch (error) {
-      console.error('Error fetching beneficiaries:', error);
+      console.error("Error fetching beneficiaries:", error);
       return []; // Return empty array instead of throwing
     }
   }
@@ -888,7 +1063,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT 
@@ -918,12 +1093,13 @@ export class DatabaseStorage implements IStorage {
 
       // Adicionar fullName computed field para compatibilidade frontend
       if (favorecido) {
-        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
+        favorecido.fullName =
+          `${favorecido.first_name || ""} ${favorecido.last_name || ""}`.trim();
       }
 
       return favorecido;
     } catch (error) {
-      logError('Error fetching favorecido', error, { id, tenantId });
+      logError("Error fetching favorecido", error, { id, tenantId });
       throw error;
     }
   }
@@ -932,7 +1108,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.customers
@@ -952,16 +1128,20 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error creating cliente', error, { tenantId, data });
+      logError("Error creating cliente", error, { tenantId, data });
       throw error;
     }
   }
 
-  async updateCliente(tenantId: string, clienteId: string, data: any): Promise<any> {
+  async updateCliente(
+    tenantId: string,
+    clienteId: string,
+    data: any,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.customers
@@ -978,7 +1158,7 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error updating cliente', error, { tenantId, clienteId, data });
+      logError("Error updating cliente", error, { tenantId, clienteId, data });
       throw error;
     }
   }
@@ -987,7 +1167,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.customers
@@ -996,7 +1176,7 @@ export class DatabaseStorage implements IStorage {
 
       return Number(result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error deleting cliente', error, { tenantId, clienteId });
+      logError("Error deleting cliente", error, { tenantId, clienteId });
       throw error;
     }
   }
@@ -1005,7 +1185,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // ✅ CORREÇÃO CRÍTICA: Inserindo na tabela correta (beneficiaries)
       const result = await tenantDb.execute(sql`
@@ -1055,31 +1235,44 @@ export class DatabaseStorage implements IStorage {
 
       // Adicionar fullName computed field para compatibilidade frontend
       if (favorecido) {
-        favorecido.fullName = `${favorecido.first_name} ${favorecido.last_name || ''}`.trim();
+        favorecido.fullName =
+          `${favorecido.first_name} ${favorecido.last_name || ""}`.trim();
       }
 
       return favorecido;
     } catch (error) {
-      logError('Error creating favorecido', error, { tenantId, data });
+      logError("Error creating favorecido", error, { tenantId, data });
       throw error;
     }
   }
 
-  async updateBeneficiary(tenantId: string, id: string, data: any): Promise<any> {
+  async updateBeneficiary(
+    tenantId: string,
+    id: string,
+    data: any,
+  ): Promise<any> {
     try {
-      console.log('UPDATE DEBUG:', { tenantId, id, data });
+      console.log("UPDATE DEBUG:", { tenantId, id, data });
 
       // CRITICAL FIX: Validate that tenantId looks like UUID and id looks like UUID
-      if (!tenantId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+      if (
+        !tenantId.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+        )
+      ) {
         throw new Error(`Invalid tenantId format: ${tenantId}`);
       }
-      if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+      if (
+        !id.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+        )
+      ) {
         throw new Error(`Invalid favorecido ID format: ${id}`);
       }
 
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.beneficiaries
@@ -1106,20 +1299,21 @@ export class DatabaseStorage implements IStorage {
 
       // Adicionar fullName computed field para compatibilidade frontend
       if (favorecido) {
-        favorecido.fullName = `${favorecido.first_name} ${favorecido.last_name || ''}`.trim();
+        favorecido.fullName =
+          `${favorecido.first_name} ${favorecido.last_name || ""}`.trim();
       }
 
       return favorecido;
     } catch (error) {
-      logError('Error updating favorecido', error, { 
-        id, 
-        tenantId, 
+      logError("Error updating favorecido", error, {
+        id,
+        tenantId,
         data,
         context: {
           id: tenantId, // This shows that parameters are swapped in error context
           tenantId: id, // This confirms the parameter swap issue
-          data
-        }
+          data,
+        },
       });
       throw error;
     }
@@ -1129,7 +1323,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.beneficiaries
@@ -1138,12 +1332,15 @@ export class DatabaseStorage implements IStorage {
 
       const deleted = Number(result.rowCount || 0) > 0;
       if (deleted) {
-        logInfo('Beneficiary deleted successfully', { tenantId: validatedTenantId, beneficiaryId: id });
+        logInfo("Beneficiary deleted successfully", {
+          tenantId: validatedTenantId,
+          beneficiaryId: id,
+        });
       }
 
       return deleted;
     } catch (error) {
-      logError('Error deleting beneficiary', error, { id, tenantId });
+      logError("Error deleting beneficiary", error, { id, tenantId });
       throw error;
     }
   }
@@ -1152,11 +1349,19 @@ export class DatabaseStorage implements IStorage {
   // TICKET TEMPLATES MANAGEMENT
   // ===========================
 
-  async getTicketTemplates(tenantId: string, options?: { limit?: number; offset?: number; search?: string; category?: string }): Promise<any[]> {
+  async getTicketTemplates(
+    tenantId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+      category?: string;
+    },
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const limit = options?.limit || 50;
       const offset = options?.offset || 0;
@@ -1185,16 +1390,19 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching ticket templates', error, { tenantId, options });
+      logError("Error fetching ticket templates", error, { tenantId, options });
       throw error;
     }
   }
 
-  async getTicketTemplateById(tenantId: string, templateId: string): Promise<any | undefined> {
+  async getTicketTemplateById(
+    tenantId: string,
+    templateId: string,
+  ): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT id, name, description, category, priority, urgency, impact,
@@ -1208,16 +1416,22 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error fetching ticket template by ID', error, { tenantId, templateId });
+      logError("Error fetching ticket template by ID", error, {
+        tenantId,
+        templateId,
+      });
       throw error;
     }
   }
 
-  async createTicketTemplate(tenantId: string, templateData: any): Promise<any> {
+  async createTicketTemplate(
+    tenantId: string,
+    templateData: any,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const id = crypto.randomUUID();
       const result = await tenantDb.execute(sql`
@@ -1229,10 +1443,10 @@ export class DatabaseStorage implements IStorage {
           ${id},
           ${templateData.name},
           ${templateData.description || null},
-          ${templateData.category || 'Geral'},
-          ${templateData.priority || 'medium'},
-          ${templateData.urgency || 'medium'},
-          ${templateData.impact || 'medium'},
+          ${templateData.category || "Geral"},
+          ${templateData.priority || "medium"},
+          ${templateData.urgency || "medium"},
+          ${templateData.impact || "medium"},
           ${templateData.default_title || null},
           ${templateData.default_description || null},
           ${templateData.default_tags || null},
@@ -1249,28 +1463,38 @@ export class DatabaseStorage implements IStorage {
         RETURNING *
       `);
 
-      logInfo('Ticket template created successfully', { tenantId: validatedTenantId, templateId: id });
+      logInfo("Ticket template created successfully", {
+        tenantId: validatedTenantId,
+        templateId: id,
+      });
       return result.rows?.[0];
     } catch (error) {
-      logError('Error creating ticket template', error, { tenantId, templateData });
+      logError("Error creating ticket template", error, {
+        tenantId,
+        templateData,
+      });
       throw error;
     }
   }
 
-  async updateTicketTemplate(tenantId: string, templateId: string, templateData: any): Promise<any> {
+  async updateTicketTemplate(
+    tenantId: string,
+    templateId: string,
+    templateData: any,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.ticket_templates
         SET name = ${templateData.name},
             description = ${templateData.description || null},
-            category = ${templateData.category || 'Geral'},
-            priority = ${templateData.priority || 'medium'},
-            urgency = ${templateData.urgency || 'medium'},
-            impact = ${templateData.impact || 'medium'},
+            category = ${templateData.category || "Geral"},
+            priority = ${templateData.priority || "medium"},
+            urgency = ${templateData.urgency || "medium"},
+            impact = ${templateData.impact || "medium"},
             default_title = ${templateData.default_title || null},
             default_description = ${templateData.default_description || null},
             default_tags = ${templateData.default_tags || null},
@@ -1285,22 +1509,32 @@ export class DatabaseStorage implements IStorage {
       `);
 
       if (!result.rows?.[0]) {
-        throw new Error('Template not found or access denied');
+        throw new Error("Template not found or access denied");
       }
 
-      logInfo('Ticket template updated successfully', { tenantId: validatedTenantId, templateId });
+      logInfo("Ticket template updated successfully", {
+        tenantId: validatedTenantId,
+        templateId,
+      });
       return result.rows[0];
     } catch (error) {
-      logError('Error updating ticket template', error, { tenantId, templateId, templateData });
+      logError("Error updating ticket template", error, {
+        tenantId,
+        templateId,
+        templateData,
+      });
       throw error;
     }
   }
 
-  async deleteTicketTemplate(tenantId: string, templateId: string): Promise<boolean> {
+  async deleteTicketTemplate(
+    tenantId: string,
+    templateId: string,
+  ): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.ticket_templates
@@ -1309,24 +1543,36 @@ export class DatabaseStorage implements IStorage {
 
       const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
-        logInfo('Ticket template deleted successfully', { tenantId: validatedTenantId, templateId });
+        logInfo("Ticket template deleted successfully", {
+          tenantId: validatedTenantId,
+          templateId,
+        });
       }
 
       return deleted;
     } catch (error) {
-      logError('Error deleting ticket template', error, { tenantId, templateId });
+      logError("Error deleting ticket template", error, {
+        tenantId,
+        templateId,
+      });
       throw error;
     }
   }
 
-  async duplicateTicketTemplate(tenantId: string, templateId: string): Promise<any> {
+  async duplicateTicketTemplate(
+    tenantId: string,
+    templateId: string,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
 
       // First get the original template
-      const original = await this.getTicketTemplateById(validatedTenantId, templateId);
+      const original = await this.getTicketTemplateById(
+        validatedTenantId,
+        templateId,
+      );
       if (!original) {
-        throw new Error('Template not found');
+        throw new Error("Template not found");
       }
 
       // Create a copy with modified name
@@ -1335,27 +1581,35 @@ export class DatabaseStorage implements IStorage {
         name: `${original.name} (Cópia)`,
         id: undefined, // Will be generated
         created_at: undefined,
-        updated_at: undefined
+        updated_at: undefined,
       };
 
       return await this.createTicketTemplate(validatedTenantId, copyData);
     } catch (error) {
-      logError('Error duplicating ticket template', error, { tenantId, templateId });
+      logError("Error duplicating ticket template", error, {
+        tenantId,
+        templateId,
+      });
       throw error;
     }
   }
 
-  async bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean> {
+  async bulkDeleteTicketTemplates(
+    tenantId: string,
+    templateIds: string[],
+  ): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       if (!templateIds || templateIds.length === 0) {
         return true;
       }
 
-      const placeholders = templateIds.map((_, index) => `$${index + 2}`).join(', ');
+      const placeholders = templateIds
+        .map((_, index) => `$${index + 2}`)
+        .join(", ");
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.ticket_templates
         WHERE tenant_id = ${validatedTenantId} AND id IN (${sql.raw(placeholders)})
@@ -1363,25 +1617,32 @@ export class DatabaseStorage implements IStorage {
 
       const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
-        logInfo('Ticket templates bulk deleted successfully', { 
-          tenantId: validatedTenantId, 
+        logInfo("Ticket templates bulk deleted successfully", {
+          tenantId: validatedTenantId,
           count: result.rowCount,
-          templateIds 
+          templateIds,
         });
       }
 
       return deleted;
     } catch (error) {
-      logError('Error bulk deleting ticket templates', error, { tenantId, templateIds });
+      logError("Error bulk deleting ticket templates", error, {
+        tenantId,
+        templateIds,
+      });
       throw error;
     }
   }
 
-  async updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void> {
+  async updateTenantIntegrationStatus(
+    tenantId: string,
+    integrationId: string,
+    status: string,
+  ): Promise<void> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.integrations
@@ -1389,13 +1650,17 @@ export class DatabaseStorage implements IStorage {
         WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
       `);
 
-      logInfo('Integration status updated successfully', { 
-        tenantId: validatedTenantId, 
-        integrationId, 
-        status 
+      logInfo("Integration status updated successfully", {
+        tenantId: validatedTenantId,
+        integrationId,
+        status,
       });
     } catch (error) {
-      logError('Error updating integration status', error, { tenantId, integrationId, status });
+      logError("Error updating integration status", error, {
+        tenantId,
+        integrationId,
+        status,
+      });
       throw error;
     }
   }
@@ -1404,19 +1669,26 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
 
-      console.log(`🔧 [INIT-INTEGRATIONS] Initializing integrations for tenant: ${validatedTenantId}`);
+      console.log(
+        `🔧 [INIT-INTEGRATIONS] Initializing integrations for tenant: ${validatedTenantId}`,
+      );
 
       // Create default integrations if they don't exist
       await this.createDefaultIntegrations(validatedTenantId);
 
-      console.log(`✅ [INIT-INTEGRATIONS] Integrations initialized for tenant: ${validatedTenantId}`);
+      console.log(
+        `✅ [INIT-INTEGRATIONS] Integrations initialized for tenant: ${validatedTenantId}`,
+      );
     } catch (error) {
-      console.error(`❌ [INIT-INTEGRATIONS] Error initializing integrations:`, error);
+      console.error(
+        `❌ [INIT-INTEGRATIONS] Error initializing integrations:`,
+        error,
+      );
       throw error;
     }
   }
 
-  // ===========================  
+  // ===========================
   // TENANT INTEGRATIONS
   // ===========================
 
@@ -1426,7 +1698,7 @@ export class DatabaseStorage implements IStorage {
 
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // Use the standard integrations table (not service_integrations)
       const tableExists = await tenantDb.execute(sql`
@@ -1437,7 +1709,9 @@ export class DatabaseStorage implements IStorage {
       `);
 
       if (!tableExists.rows?.[0]?.exists) {
-        console.log(`🔧 Creating integrations table for tenant ${validatedTenantId}`);
+        console.log(
+          `🔧 Creating integrations table for tenant ${validatedTenantId}`,
+        );
         await this.createDefaultIntegrations(validatedTenantId);
       }
 
@@ -1447,11 +1721,15 @@ export class DatabaseStorage implements IStorage {
         ORDER BY created_at DESC
       `);
 
-      console.log(`📊 [STORAGE] Found ${result.rows.length} integrations for tenant: ${validatedTenantId}`);
+      console.log(
+        `📊 [STORAGE] Found ${result.rows.length} integrations for tenant: ${validatedTenantId}`,
+      );
 
       // If no integrations are found, create default ones
       if (!result.rows || result.rows.length === 0) {
-        console.log(`🔧 No integrations found for tenant ${validatedTenantId}, creating defaults.`);
+        console.log(
+          `🔧 No integrations found for tenant ${validatedTenantId}, creating defaults.`,
+        );
         await this.createDefaultIntegrations(validatedTenantId);
 
         // Re-fetch after creation
@@ -1470,27 +1748,31 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-
-
-
-  async getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined> {
+  async getTenantIntegrationConfig(
+    tenantId: string,
+    integrationId: string,
+  ): Promise<any | undefined> {
     try {
-      console.log(`🔍 [GET-CONFIG] Buscando configuração: tenant=${tenantId}, integration=${integrationId}`);
+      console.log(
+        `🔍 [GET-CONFIG] Buscando configuração: tenant=${tenantId}, integration=${integrationId}`,
+      );
 
       // ✅ VALIDATION: Input validation
-      if (!tenantId || typeof tenantId !== 'string') {
+      if (!tenantId || typeof tenantId !== "string") {
         console.error(`❌ [GET-CONFIG] Invalid tenantId: ${tenantId}`);
         return { configured: false, config: {} };
       }
 
-      if (!integrationId || typeof integrationId !== 'string') {
-        console.error(`❌ [GET-CONFIG] Invalid integrationId: ${integrationId}`);
+      if (!integrationId || typeof integrationId !== "string") {
+        console.error(
+          `❌ [GET-CONFIG] Invalid integrationId: ${integrationId}`,
+        );
         return { configured: false, config: {} };
       }
 
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // ✅ SAFETY: Check if integrations table exists
       let tableExists;
@@ -1503,12 +1785,17 @@ export class DatabaseStorage implements IStorage {
         `);
         tableExists = tableExistsResult.rows?.[0]?.exists;
       } catch (tableCheckError) {
-        console.error(`❌ [GET-CONFIG] Error checking table existence:`, tableCheckError);
+        console.error(
+          `❌ [GET-CONFIG] Error checking table existence:`,
+          tableCheckError,
+        );
         return { configured: false, config: {} };
       }
 
       if (!tableExists) {
-        console.log(`❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`);
+        console.log(
+          `❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`,
+        );
         // ✅ CRITICAL FIX: Create default integrations if table doesn't exist
         await this.createDefaultIntegrations(validatedTenantId);
       }
@@ -1527,25 +1814,35 @@ export class DatabaseStorage implements IStorage {
         return { configured: false, config: {} };
       }
 
-      console.log(`🔍 [GET-CONFIG] Query result:`, { rowsFound: result.rows?.length || 0 });
+      console.log(`🔍 [GET-CONFIG] Query result:`, {
+        rowsFound: result.rows?.length || 0,
+      });
 
       if (!result.rows || result.rows.length === 0) {
-        console.log(`❌ [GET-CONFIG] Nenhuma configuração encontrada para ${integrationId}, criando integração default...`);
+        console.log(
+          `❌ [GET-CONFIG] Nenhuma configuração encontrada para ${integrationId}, criando integração default...`,
+        );
         // ✅ CRITICAL FIX: Create integration if it doesn't exist
         await this.createTenantIntegration(validatedTenantId, {
           id: integrationId,
-          name: integrationId === 'telegram' ? 'Telegram' : integrationId,
-          description: integrationId === 'telegram' ? 'Envio de notificações via Telegram' : `Integration ${integrationId}`,
-          category: 'Comunicação',
-          icon: integrationId === 'telegram' ? 'Send' : 'Settings',
-          features: integrationId === 'telegram' ? ['Notificações em tempo real', 'Mensagens personalizadas'] : []
+          name: integrationId === "telegram" ? "Telegram" : integrationId,
+          description:
+            integrationId === "telegram"
+              ? "Envio de notificações via Telegram"
+              : `Integration ${integrationId}`,
+          category: "Comunicação",
+          icon: integrationId === "telegram" ? "Send" : "Settings",
+          features:
+            integrationId === "telegram"
+              ? ["Notificações em tempo real", "Mensagens personalizadas"]
+              : [],
         });
-        return { 
+        return {
           id: integrationId,
-          name: integrationId === 'telegram' ? 'Telegram' : integrationId,
-          configured: false, 
+          name: integrationId === "telegram" ? "Telegram" : integrationId,
+          configured: false,
           config: {},
-          status: 'disconnected'
+          status: "disconnected",
         };
       }
 
@@ -1553,31 +1850,38 @@ export class DatabaseStorage implements IStorage {
 
       // ✅ SAFETY: Parse config if it's a string with proper error handling
       let parsedConfig = integration.config;
-      if (typeof integration.config === 'string') {
+      if (typeof integration.config === "string") {
         try {
           parsedConfig = JSON.parse(integration.config);
         } catch (parseError) {
-          console.error(`❌ [GET-CONFIG] Erro ao fazer parse do config:`, parseError);
+          console.error(
+            `❌ [GET-CONFIG] Erro ao fazer parse do config:`,
+            parseError,
+          );
           parsedConfig = {}; // Default to empty object on parse error
         }
       }
 
       // ✅ VALIDATION: Ensure config is an object
-      if (parsedConfig === null || typeof parsedConfig !== 'object') {
+      if (parsedConfig === null || typeof parsedConfig !== "object") {
         parsedConfig = {};
       }
 
       // ✅ CRITICAL FIX: Return structured response with configured flag
-      const isConfigured = integration.configured === true || (parsedConfig && Object.keys(parsedConfig).length > 0);
+      const isConfigured =
+        integration.configured === true ||
+        (parsedConfig && Object.keys(parsedConfig).length > 0);
 
       // ✅ TELEGRAM SPECIFIC: Log configuração do Telegram
-      if (integration.id === 'telegram') {
+      if (integration.id === "telegram") {
         console.log(`📱 [TELEGRAM-CONFIG] Dados carregados:`, {
           configured: isConfigured,
           hasConfig: !!parsedConfig,
           configKeys: parsedConfig ? Object.keys(parsedConfig) : [],
-          botToken: parsedConfig?.telegramBotToken ? '***' + parsedConfig.telegramBotToken.slice(-4) : 'VAZIO',
-          chatId: parsedConfig?.telegramChatId || 'VAZIO'
+          botToken: parsedConfig?.telegramBotToken
+            ? "***" + parsedConfig.telegramBotToken.slice(-4)
+            : "VAZIO",
+          chatId: parsedConfig?.telegramChatId || "VAZIO",
         });
       }
 
@@ -1592,42 +1896,55 @@ export class DatabaseStorage implements IStorage {
         config: parsedConfig || {},
         features: integration.features,
         created_at: integration.created_at,
-        updated_at: integration.updated_at
+        updated_at: integration.updated_at,
       };
 
       console.log(`✅ [GET-CONFIG] Configuração retornada:`, {
         id: finalResult.id,
         configured: finalResult.configured,
         hasConfig: !!finalResult.config,
-        configKeys: Object.keys(finalResult.config || {})
+        configKeys: Object.keys(finalResult.config || {}),
       });
 
       return finalResult;
     } catch (error) {
-      console.error('❌ [GET-CONFIG] Critical error in getTenantIntegrationConfig:', error);
+      console.error(
+        "❌ [GET-CONFIG] Critical error in getTenantIntegrationConfig:",
+        error,
+      );
       return { configured: false, config: {} };
     }
   }
 
-
-  async saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any> {
+  async saveTenantIntegrationConfig(
+    tenantId: string,
+    integrationId: string,
+    config: any,
+  ): Promise<any> {
     try {
-      console.log(`💾 [SAVE-CONFIG] Salvando configuração: tenant=${tenantId}, integration=${integrationId}`);
-      console.log(`💾 [SAVE-CONFIG] Config data keys:`, Object.keys(config || {}));
+      console.log(
+        `💾 [SAVE-CONFIG] Salvando configuração: tenant=${tenantId}, integration=${integrationId}`,
+      );
+      console.log(
+        `💾 [SAVE-CONFIG] Config data keys:`,
+        Object.keys(config || {}),
+      );
 
       // ✅ TELEGRAM SPECIFIC: Log específico para Telegram
-      if (integrationId === 'telegram') {
+      if (integrationId === "telegram") {
         console.log(`📱 [TELEGRAM-SAVE] Campos Telegram:`, {
           enabled: config.enabled,
           hasBotToken: !!config.telegramBotToken,
-          botTokenStart: config.telegramBotToken ? config.telegramBotToken.substring(0, 10) + '...' : 'VAZIO',
-          chatId: config.telegramChatId
+          botTokenStart: config.telegramBotToken
+            ? config.telegramBotToken.substring(0, 10) + "..."
+            : "VAZIO",
+          chatId: config.telegramChatId,
         });
       }
 
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // ✅ SAFETY: Check if integrations table exists
       const tableExists = await tenantDb.execute(sql`
@@ -1638,12 +1955,16 @@ export class DatabaseStorage implements IStorage {
       `);
 
       if (!tableExists.rows?.[0]?.exists) {
-        console.log(`🔧 Creating integrations table for tenant ${validatedTenantId}`);
+        console.log(
+          `🔧 Creating integrations table for tenant ${validatedTenantId}`,
+        );
         await this.createDefaultIntegrations(validatedTenantId);
       }
 
       // Verificar se a integração existe
-      console.log(`🔍 [SAVE-CONFIG] Verificando se integração ${integrationId} existe...`);
+      console.log(
+        `🔍 [SAVE-CONFIG] Verificando se integração ${integrationId} existe...`,
+      );
       const existingResult = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.integrations 
         WHERE tenant_id = ${validatedTenantId} 
@@ -1652,28 +1973,38 @@ export class DatabaseStorage implements IStorage {
       `);
 
       if (!existingResult.rows || existingResult.rows.length === 0) {
-        console.log(`⚠️ [SAVE-CONFIG] Integração ${integrationId} não encontrada, criando...`);
+        console.log(
+          `⚠️ [SAVE-CONFIG] Integração ${integrationId} não encontrada, criando...`,
+        );
         // Create the integration first
         await this.createTenantIntegration(validatedTenantId, {
           id: integrationId,
-          name: integrationId === 'telegram' ? 'Telegram' : integrationId,
-          description: integrationId === 'telegram' ? 'Envio de notificações via Telegram' : `Integration ${integrationId}`,
-          category: 'Comunicação',
-          icon: integrationId === 'telegram' ? 'Send' : 'Settings',
-          features: integrationId === 'telegram' ? ['Notificações em tempo real', 'Mensagens personalizadas'] : []
+          name: integrationId === "telegram" ? "Telegram" : integrationId,
+          description:
+            integrationId === "telegram"
+              ? "Envio de notificações via Telegram"
+              : `Integration ${integrationId}`,
+          category: "Comunicação",
+          icon: integrationId === "telegram" ? "Send" : "Settings",
+          features:
+            integrationId === "telegram"
+              ? ["Notificações em tempo real", "Mensagens personalizadas"]
+              : [],
         });
       } else {
         console.log(`✅ [SAVE-CONFIG] Integração ${integrationId} já existe`);
       }
 
       // Update the integration configuration
-      console.log(`💾 [SAVE-CONFIG] Atualizando configuração na base de dados...`);
+      console.log(
+        `💾 [SAVE-CONFIG] Atualizando configuração na base de dados...`,
+      );
       const updateResult = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.integrations 
         SET 
           config = ${JSON.stringify(config)},
           configured = true,
-          status = ${config.enabled ? 'connected' : 'disconnected'},
+          status = ${config.enabled ? "connected" : "disconnected"},
           updated_at = CURRENT_TIMESTAMP
         WHERE tenant_id = ${validatedTenantId} 
         AND id = ${integrationId}
@@ -1682,11 +2013,15 @@ export class DatabaseStorage implements IStorage {
 
       if (updateResult.rows && updateResult.rows.length > 0) {
         const updatedIntegration = updateResult.rows[0] as any;
-        console.log(`✅ [SAVE-CONFIG] Configuração salva com sucesso para ${integrationId}`);
+        console.log(
+          `✅ [SAVE-CONFIG] Configuração salva com sucesso para ${integrationId}`,
+        );
         console.log(`📊 [SAVE-CONFIG] Status final:`, {
           configured: updatedIntegration.configured,
           status: updatedIntegration.status,
-          configKeys: updatedIntegration.config ? Object.keys(updatedIntegration.config) : []
+          configKeys: updatedIntegration.config
+            ? Object.keys(updatedIntegration.config)
+            : [],
         });
 
         return {
@@ -1695,10 +2030,10 @@ export class DatabaseStorage implements IStorage {
           configured: updatedIntegration.configured,
           config: updatedIntegration.config,
           status: updatedIntegration.status,
-          updatedAt: updatedIntegration.updated_at
+          updatedAt: updatedIntegration.updated_at,
         };
       } else {
-        throw new Error('Failed to save integration configuration');
+        throw new Error("Failed to save integration configuration");
       }
     } catch (error) {
       console.error(`❌ [SAVE-CONFIG] Erro ao salvar configuração:`, error);
@@ -1706,12 +2041,14 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-
-  async getIntegrationByType(tenantId: string, typeName: string): Promise<any | undefined> {
+  async getIntegrationByType(
+    tenantId: string,
+    typeName: string,
+  ): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.integrations
@@ -1721,7 +2058,10 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0] || undefined;
     } catch (error) {
-      logError('Error fetching integration by type', error, { tenantId, typeName });
+      logError("Error fetching integration by type", error, {
+        tenantId,
+        typeName,
+      });
       return undefined;
     }
   }
@@ -1729,7 +2069,7 @@ export class DatabaseStorage implements IStorage {
   private async createDefaultIntegrations(tenantId: string): Promise<void> {
     try {
       const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
         CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.integrations (
@@ -1772,7 +2112,6 @@ export class DatabaseStorage implements IStorage {
       `;
 
       await tenantDb.execute(sql.raw(insertQuery));
-
     } catch (error) {
       throw error;
     }
@@ -1784,8 +2123,9 @@ export class DatabaseStorage implements IStorage {
 
   // Validates if a string is a valid UUID
   private validateUUID(uuid: string): string | null {
-    if (!uuid || typeof uuid !== 'string') return null;
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuid || typeof uuid !== "string") return null;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     return uuidRegex.test(uuid) ? uuid : null;
   }
 
@@ -1803,25 +2143,33 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.integrations
         WHERE tenant_id = ${validatedTenantId}
       `);
 
-      console.log(`🗑️ [DELETE-INTEGRATIONS] Limpeza de integrações para tenant ${validatedTenantId} concluída`);
+      console.log(
+        `🗑️ [DELETE-INTEGRATIONS] Limpeza de integrações para tenant ${validatedTenantId} concluída`,
+      );
     } catch (error) {
-      console.error(`❌ [DELETE-INTEGRATIONS] Erro ao limpar integrações:`, error);
+      console.error(
+        `❌ [DELETE-INTEGRATIONS] Erro ao limpar integrações:`,
+        error,
+      );
       throw error;
     }
   }
 
   // Creates a new integration entry for a tenant
-  private async createTenantIntegration(tenantId: string, integrationData: any): Promise<void> {
+  private async createTenantIntegration(
+    tenantId: string,
+    integrationData: any,
+  ): Promise<void> {
     try {
       const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
       // Use raw SQL since Drizzle has issues with TEXT[] arrays
       const insertQuery = `
@@ -1830,13 +2178,15 @@ export class DatabaseStorage implements IStorage {
         VALUES 
         ('${integrationData.id}', '${tenantId}', '${integrationData.name}', '${integrationData.description}', 
          '${integrationData.category}', '${integrationData.icon}', 'disconnected', false, '{}', 
-         ARRAY[${integrationData.features.map((f: string) => `'${f}'`).join(', ')}], 
+         ARRAY[${integrationData.features.map((f: string) => `'${f}'`).join(", ")}], 
          CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ON CONFLICT (id) DO NOTHING
       `;
 
       await tenantDb.execute(sql.raw(insertQuery));
-      console.log(`✅ [CREATE-INTEGRATION] Integração ${integrationData.id} criada para tenant ${tenantId}`);
+      console.log(
+        `✅ [CREATE-INTEGRATION] Integração ${integrationData.id} criada para tenant ${tenantId}`,
+      );
     } catch (error) {
       console.error(`❌ [CREATE-INTEGRATION] Erro ao criar integração:`, error);
       throw error;
@@ -1847,11 +2197,14 @@ export class DatabaseStorage implements IStorage {
   // BENEFICIARY-CUSTOMER RELATIONSHIPS METHODS
   // ==============================
 
-  async getBeneficiaryCustomers(tenantId: string, beneficiaryId: string): Promise<any[]> {
+  async getBeneficiaryCustomers(
+    tenantId: string,
+    beneficiaryId: string,
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT 
@@ -1868,16 +2221,23 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching beneficiary customers', error, { tenantId, beneficiaryId });
+      logError("Error fetching beneficiary customers", error, {
+        tenantId,
+        beneficiaryId,
+      });
       return [];
     }
   }
 
-  async addBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<any> {
+  async addBeneficiaryCustomer(
+    tenantId: string,
+    beneficiaryId: string,
+    customerId: string,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.beneficiary_customer_relationships (
@@ -1889,16 +2249,24 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error adding beneficiary customer relationship', error, { tenantId, beneficiaryId, customerId });
+      logError("Error adding beneficiary customer relationship", error, {
+        tenantId,
+        beneficiaryId,
+        customerId,
+      });
       throw error;
     }
   }
 
-  async removeBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<boolean> {
+  async removeBeneficiaryCustomer(
+    tenantId: string,
+    beneficiaryId: string,
+    customerId: string,
+  ): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships
@@ -1908,20 +2276,24 @@ export class DatabaseStorage implements IStorage {
 
       return (result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error removing beneficiary customer relationship', error, { tenantId, beneficiaryId, customerId });
+      logError("Error removing beneficiary customer relationship", error, {
+        tenantId,
+        beneficiaryId,
+        customerId,
+      });
       throw error;
     }
   }
 
   // ==============================
-  // TICKET RELATIONSHIPS METHODS  
+  // TICKET RELATIONSHIPS METHODS
   // ==============================
 
   async getTicketsWithRelationships(tenantId: string): Promise<string[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT DISTINCT 
@@ -1937,7 +2309,9 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.map((row: any) => row.ticket_id as string) || [];
     } catch (error) {
-      logError('Error fetching tickets with relationships', error, { tenantId });
+      logError("Error fetching tickets with relationships", error, {
+        tenantId,
+      });
       return [];
     }
   }
@@ -1946,16 +2320,16 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT id, short_description as subject, state as status, priority, COALESCE(number, CONCAT('T-', SUBSTRING(id::text, 1, 8))) as number, created_at
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE tenant_id = ${validatedTenantId}
         AND (
-          short_description ILIKE ${'%' + query + '%'} OR
-          description ILIKE ${'%' + query + '%'} OR
-          number ILIKE ${'%' + query + '%'} OR
+          short_description ILIKE ${"%" + query + "%"} OR
+          description ILIKE ${"%" + query + "%"} OR
+          number ILIKE ${"%" + query + "%"} OR
           id::text = ${query}
         )
         ORDER BY created_at DESC
@@ -1964,16 +2338,19 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows || [];
     } catch (error) {
-      logError('Error searching tickets', error, { tenantId, query });
+      logError("Error searching tickets", error, { tenantId, query });
       throw error;
     }
   }
 
-  async getTicketRelationships(tenantId: string, ticketId: string): Promise<any[]> {
+  async getTicketRelationships(
+    tenantId: string,
+    ticketId: string,
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT 
@@ -2019,27 +2396,34 @@ export class DatabaseStorage implements IStorage {
         description: row.description,
         createdAt: row.createdAt,
         targetTicket: {
-          id: row['targetTicket.id'],
-          subject: row['targetTicket.subject'],
-          status: row['targetTicket.status'],
-          priority: row['targetTicket.priority'],
-          number: row['targetTicket.number'],
-          createdAt: row['targetTicket.createdAt']
-        }
+          id: row["targetTicket.id"],
+          subject: row["targetTicket.subject"],
+          status: row["targetTicket.status"],
+          priority: row["targetTicket.priority"],
+          number: row["targetTicket.number"],
+          createdAt: row["targetTicket.createdAt"],
+        },
       }));
 
       return relationships || [];
     } catch (error) {
-      logError('Error fetching ticket relationships', error, { tenantId, ticketId });
+      logError("Error fetching ticket relationships", error, {
+        tenantId,
+        ticketId,
+      });
       throw error;
     }
   }
 
-  async createTicketRelationship(tenantId: string, ticketId: string, relationshipData: any): Promise<any> {
+  async createTicketRelationship(
+    tenantId: string,
+    ticketId: string,
+    relationshipData: any,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const id = crypto.randomUUID();
       const result = await tenantDb.execute(sql`
@@ -2059,10 +2443,17 @@ export class DatabaseStorage implements IStorage {
         RETURNING *
       `);
 
-      logInfo('Ticket relationship created successfully', { tenantId: validatedTenantId, relationshipId: id });
+      logInfo("Ticket relationship created successfully", {
+        tenantId: validatedTenantId,
+        relationshipId: id,
+      });
       return result.rows?.[0];
     } catch (error) {
-      logError('Error creating ticket relationship', error, { tenantId, ticketId, relationshipData });
+      logError("Error creating ticket relationship", error, {
+        tenantId,
+        ticketId,
+        relationshipData,
+      });
       throw error;
     }
   }
@@ -2071,18 +2462,28 @@ export class DatabaseStorage implements IStorage {
     try {
       // ⚠️ CRITICAL SECURITY FIX: This method needs tenant context!
       // Cannot safely delete without knowing which tenant this relationship belongs to
-      throw new Error('SECURITY: deleteTicketRelationship requires explicit tenant context. Use deleteTicketRelationshipWithTenant(tenantId, relationshipId) instead.');
+      throw new Error(
+        "SECURITY: deleteTicketRelationship requires explicit tenant context. Use deleteTicketRelationshipWithTenant(tenantId, relationshipId) instead.",
+      );
     } catch (error) {
-      logError('Error deleting ticket relationship - security violation prevented', error, { relationshipId });
+      logError(
+        "Error deleting ticket relationship - security violation prevented",
+        error,
+        { relationshipId },
+      );
       throw error;
     }
   }
 
   // ✅ SECURITY FIX: New safe method with explicit tenant context
-  async deleteTicketRelationshipWithTenant(tenantId: string, relationshipId: string): Promise<boolean> {
+  async deleteTicketRelationshipWithTenant(
+    tenantId: string,
+    relationshipId: string,
+  ): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const { db: tenantDb } = await schemaManager.getTenantDb(validatedTenantId);
+      const { db: tenantDb } =
+        await schemaManager.getTenantDb(validatedTenantId);
       const schemaName = schemaManager.getSchemaName(validatedTenantId);
 
       const result = await tenantDb.execute(sql`
@@ -2092,12 +2493,18 @@ export class DatabaseStorage implements IStorage {
 
       const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
-        logInfo('Ticket relationship deleted successfully', { tenantId: validatedTenantId, relationshipId });
+        logInfo("Ticket relationship deleted successfully", {
+          tenantId: validatedTenantId,
+          relationshipId,
+        });
       }
 
       return deleted;
     } catch (error) {
-      logError('Error deleting ticket relationship', error, { tenantId, relationshipId });
+      logError("Error deleting ticket relationship", error, {
+        tenantId,
+        relationshipId,
+      });
       throw error;
     }
   }
@@ -2106,7 +2513,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // Build hierarchy using recursive CTE
       const result = await tenantDb.execute(sql`
@@ -2146,7 +2553,10 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching ticket hierarchy', error, { tenantId, ticketId });
+      logError("Error fetching ticket hierarchy", error, {
+        tenantId,
+        ticketId,
+      });
       throw error;
     }
   }
@@ -2159,7 +2569,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { db } = await schemaManager.getTenantDb(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await db.execute(sql`
         SELECT 
@@ -2176,7 +2586,7 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching email templates', error, { tenantId });
+      logError("Error fetching email templates", error, { tenantId });
       throw error;
     }
   }
@@ -2185,7 +2595,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { db } = await schemaManager.getTenantDb(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const templateId = randomUUID();
       const now = new Date().toISOString();
@@ -2201,21 +2611,31 @@ export class DatabaseStorage implements IStorage {
 
       const template = result.rows?.[0];
       if (template) {
-        logInfo('Email template created successfully', { tenantId: validatedTenantId, templateId });
+        logInfo("Email template created successfully", {
+          tenantId: validatedTenantId,
+          templateId,
+        });
       }
 
       return template;
     } catch (error) {
-      logError('Error creating email template', error, { tenantId, templateData });
+      logError("Error creating email template", error, {
+        tenantId,
+        templateData,
+      });
       throw error;
     }
   }
 
-  async updateEmailTemplate(tenantId: string, templateId: string, templateData: any): Promise<any | undefined> {
+  async updateEmailTemplate(
+    tenantId: string,
+    templateId: string,
+    templateData: any,
+  ): Promise<any | undefined> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { db } = await schemaManager.getTenantDb(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const now = new Date().toISOString();
 
@@ -2232,21 +2652,31 @@ export class DatabaseStorage implements IStorage {
 
       const template = result.rows?.[0];
       if (template) {
-        logInfo('Email template updated successfully', { tenantId: validatedTenantId, templateId });
+        logInfo("Email template updated successfully", {
+          tenantId: validatedTenantId,
+          templateId,
+        });
       }
 
       return template;
     } catch (error) {
-      logError('Error updating email template', error, { tenantId, templateId, templateData });
+      logError("Error updating email template", error, {
+        tenantId,
+        templateId,
+        templateData,
+      });
       throw error;
     }
   }
 
-  async deleteEmailTemplate(tenantId: string, templateId: string): Promise<boolean> {
+  async deleteEmailTemplate(
+    tenantId: string,
+    templateId: string,
+  ): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const { db } = await schemaManager.getTenantDb(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.email_templates
@@ -2255,12 +2685,18 @@ export class DatabaseStorage implements IStorage {
 
       const deleted = !!(result.rowCount && result.rowCount > 0);
       if (deleted) {
-        logInfo('Email template deleted successfully', { tenantId: validatedTenantId, templateId });
+        logInfo("Email template deleted successfully", {
+          tenantId: validatedTenantId,
+          templateId,
+        });
       }
 
       return deleted;
     } catch (error) {
-      logError('Error deleting email template', error, { tenantId, templateId });
+      logError("Error deleting email template", error, {
+        tenantId,
+        templateId,
+      });
       throw error;
     }
   }
@@ -2269,7 +2705,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // Check if emails table exists, if not create it
       const tableExists = await tenantDb.execute(sql`
@@ -2322,7 +2758,9 @@ export class DatabaseStorage implements IStorage {
           ON ${sql.identifier(schemaName)}.emails (message_id)
         `);
 
-        logInfo('Emails table created for tenant', { tenantId: validatedTenantId });
+        logInfo("Emails table created for tenant", {
+          tenantId: validatedTenantId,
+        });
       }
 
       const result = await tenantDb.execute(sql`
@@ -2341,9 +2779,9 @@ export class DatabaseStorage implements IStorage {
         LIMIT 100
       `);
 
-       return result.rows || [];
+      return result.rows || [];
     } catch (error) {
-      logError('Error fetching email inbox messages', error, { tenantId });
+      logError("Error fetching email inbox messages", error, { tenantId });
       return [];
     }
   }
@@ -2353,7 +2791,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.emails 
@@ -2361,9 +2799,12 @@ export class DatabaseStorage implements IStorage {
         WHERE message_id = ${messageId} AND tenant_id = ${validatedTenantId}
       `);
 
-      logInfo('Email marked as read', { tenantId: validatedTenantId, messageId });
+      logInfo("Email marked as read", {
+        tenantId: validatedTenantId,
+        messageId,
+      });
     } catch (error) {
-      logError('Error marking email as read', error, { tenantId, messageId });
+      logError("Error marking email as read", error, { tenantId, messageId });
       throw error;
     }
   }
@@ -2372,7 +2813,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.emails 
@@ -2380,9 +2821,9 @@ export class DatabaseStorage implements IStorage {
         WHERE message_id = ${messageId} AND tenant_id = ${validatedTenantId}
       `);
 
-      logInfo('Email archived', { tenantId: validatedTenantId, messageId });
+      logInfo("Email archived", { tenantId: validatedTenantId, messageId });
     } catch (error) {
-      logError('Error archiving email', error, { tenantId, messageId });
+      logError("Error archiving email", error, { tenantId, messageId });
       throw error;
     }
   }
@@ -2391,16 +2832,16 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.emails 
         WHERE message_id = ${messageId} AND tenant_id = ${validatedTenantId}
       `);
 
-      logInfo('Email deleted', { tenantId: validatedTenantId, messageId });
+      logInfo("Email deleted", { tenantId: validatedTenantId, messageId });
     } catch (error) {
-      logError('Error deleting email', error, { tenantId, messageId });
+      logError("Error deleting email", error, { tenantId, messageId });
       throw error;
     }
   }
@@ -2409,7 +2850,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // Check if emails table exists, if not create it
       const tableExists = await tenantDb.execute(sql`
@@ -2462,7 +2903,9 @@ export class DatabaseStorage implements IStorage {
           ON ${sql.identifier(schemaName)}.emails (message_id)
         `);
 
-        logInfo('Emails table created for tenant', { tenantId: validatedTenantId });
+        logInfo("Emails table created for tenant", {
+          tenantId: validatedTenantId,
+        });
       }
 
       // Insert message into emails table
@@ -2480,16 +2923,16 @@ export class DatabaseStorage implements IStorage {
           ${messageData.from_email},
           ${messageData.from_name || null},
           ${messageData.to_email},
-          ${messageData.cc_emails || '[]'},
-          ${messageData.bcc_emails || '[]'},
+          ${messageData.cc_emails || "[]"},
+          ${messageData.bcc_emails || "[]"},
           ${messageData.subject || null},
           ${messageData.body_text || null},
           ${messageData.body_html || null},
           ${messageData.has_attachments || false},
           ${messageData.attachment_count || 0},
-          ${messageData.attachment_details || '[]'},
-          ${messageData.email_headers || '{}'},
-          ${messageData.priority || 'medium'},
+          ${messageData.attachment_details || "[]"},
+          ${messageData.email_headers || "{}"},
+          ${messageData.priority || "medium"},
           ${messageData.is_read || false},
           ${messageData.is_processed || false},
           ${messageData.email_date || new Date().toISOString()},
@@ -2498,13 +2941,18 @@ export class DatabaseStorage implements IStorage {
         ON CONFLICT (message_id) DO NOTHING
       `);
 
-      logInfo('Message saved to inbox', { 
-        tenantId: validatedTenantId, 
+      logInfo("Message saved to inbox", {
+        tenantId: validatedTenantId,
         messageId: messageData.message_id,
-        source: messageData.from_email.includes('telegram:') ? 'Telegram' : 'Email'
+        source: messageData.from_email.includes("telegram:")
+          ? "Telegram"
+          : "Email",
       });
     } catch (error) {
-      logError('Error saving message to inbox', error, { tenantId, messageData });
+      logError("Error saving message to inbox", error, {
+        tenantId,
+        messageData,
+      });
       throw error;
     }
   }
@@ -2513,7 +2961,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT COUNT(*) as count 
@@ -2521,9 +2969,9 @@ export class DatabaseStorage implements IStorage {
         WHERE tenant_id = ${validatedTenantId} AND type = 'cliente'
       `);
 
-      return parseInt((result.rows?.[0]?.count as string) || '0');
+      return parseInt((result.rows?.[0]?.count as string) || "0");
     } catch (error) {
-      logError('Error counting clientes', error, { tenantId });
+      logError("Error counting clientes", error, { tenantId });
       return 0;
     }
   }
@@ -2541,7 +2989,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(`
         SELECT id, tenant_id, name, description, location_type, geometry_type, coordinates, address_data, business_hours, access_requirements, sla_config, status, created_at, updated_at, tags, attachments, parent_location_id, is_favorite
@@ -2550,10 +2998,13 @@ export class DatabaseStorage implements IStorage {
         ORDER BY created_at DESC
       `);
 
-      logInfo('Locations fetched successfully', { tenantId: validatedTenantId, count: result.rows?.length });
+      logInfo("Locations fetched successfully", {
+        tenantId: validatedTenantId,
+        count: result.rows?.length,
+      });
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching locations', error, { tenantId });
+      logError("Error fetching locations", error, { tenantId });
       return [];
     }
   }
@@ -2562,7 +3013,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const locationId = randomUUID();
       const now = new Date().toISOString();
@@ -2571,17 +3022,17 @@ export class DatabaseStorage implements IStorage {
         id: locationId,
         tenant_id: validatedTenantId,
         name: locationData.name,
-        address: locationData.address || '',
-        city: locationData.city || '',
-        state: locationData.state || '',
-        country: locationData.country || 'Brasil',
-        postal_code: locationData.postal_code || locationData.zipCode || '',
-        latitude: locationData.latitude || '',
-        longitude: locationData.longitude || '',
+        address: locationData.address || "",
+        city: locationData.city || "",
+        state: locationData.state || "",
+        country: locationData.country || "Brasil",
+        postal_code: locationData.postal_code || locationData.zipCode || "",
+        latitude: locationData.latitude || "",
+        longitude: locationData.longitude || "",
         active: true,
         is_active: true,
         created_at: now,
-        updated_at: now
+        updated_at: now,
       };
 
       await tenantDb.execute(`
@@ -2594,10 +3045,13 @@ export class DatabaseStorage implements IStorage {
                 '${location.created_at}', '${location.updated_at}')
       `);
 
-      logInfo('Location created successfully', { tenantId: validatedTenantId, locationId });
+      logInfo("Location created successfully", {
+        tenantId: validatedTenantId,
+        locationId,
+      });
       return location;
     } catch (error) {
-      logError('Error creating location', error, { tenantId, locationData });
+      logError("Error creating location", error, { tenantId, locationData });
       throw error;
     }
   }
@@ -2606,33 +3060,45 @@ export class DatabaseStorage implements IStorage {
   async initializeTenantSchema(tenantId: string): Promise<void> {
     try {
       if (!tenantId) {
-        throw new Error('Tenant ID is required');
+        throw new Error("Tenant ID is required");
       }
 
-      console.log(`🏗️ [SCHEMA-INIT] Starting schema initialization for tenant: ${tenantId}`);
+      console.log(
+        `🏗️ [SCHEMA-INIT] Starting schema initialization for tenant: ${tenantId}`,
+      );
 
       // Use EnterpriseMigrationManager for robust schema creation
-      const { EnterpriseMigrationManager } = await import('./database/EnterpriseMigrationManager');
+      const { EnterpriseMigrationManager } = await import(
+        "./database/EnterpriseMigrationManager"
+      );
       const migrationManager = EnterpriseMigrationManager.getInstance();
 
       // Create complete tenant schema with all tables
       await migrationManager.createCompleteTenantSchema(tenantId);
 
-      console.log(`✅ [SCHEMA-INIT] Schema created successfully for tenant: ${tenantId}`);
-      logInfo('Tenant schema initialized successfully', { tenantId });
+      console.log(
+        `✅ [SCHEMA-INIT] Schema created successfully for tenant: ${tenantId}`,
+      );
+      logInfo("Tenant schema initialized successfully", { tenantId });
     } catch (error) {
-      console.error(`❌ [SCHEMA-INIT] Failed to initialize schema for tenant ${tenantId}:`, error);
-      logError('Error initializing tenant schema', error, { tenantId });
+      console.error(
+        `❌ [SCHEMA-INIT] Failed to initialize schema for tenant ${tenantId}:`,
+        error,
+      );
+      logError("Error initializing tenant schema", error, { tenantId });
       throw error;
     }
   }
 
-   // Get beneficiary locations
-   async getBeneficiaryLocations(beneficiaryId: string, tenantId: string): Promise<any[]> {
+  // Get beneficiary locations
+  async getBeneficiaryLocations(
+    beneficiaryId: string,
+    tenantId: string,
+  ): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         SELECT 
@@ -2653,7 +3119,7 @@ export class DatabaseStorage implements IStorage {
         ORDER BY fl.is_primary DESC, l.name ASC
       `);
 
-      return (result.rows || []).map(row => ({
+      return (result.rows || []).map((row) => ({
         locationId: row.location_id,
         isPrimary: row.is_primary,
         location: {
@@ -2665,21 +3131,29 @@ export class DatabaseStorage implements IStorage {
           country: row.country,
           postalCode: row.postal_code,
           latitude: row.latitude,
-          longitude: row.longitude
-        }
+          longitude: row.longitude,
+        },
       }));
     } catch (error) {
-      logError('Error fetching beneficiary locations', error, { beneficiaryId, tenantId });
+      logError("Error fetching beneficiary locations", error, {
+        beneficiaryId,
+        tenantId,
+      });
       throw error;
     }
   }
 
   // Add location to beneficiary
-  async addBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string, isPrimary: boolean = false): Promise<any> {
+  async addBeneficiaryLocation(
+    beneficiaryId: string,
+    locationId: string,
+    tenantId: string,
+    isPrimary: boolean = false,
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // If setting as primary, remove primary from others
       if (isPrimary) {
@@ -2700,17 +3174,26 @@ export class DatabaseStorage implements IStorage {
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error adding beneficiary location', error, { beneficiaryId, locationId, tenantId, isPrimary });
+      logError("Error adding beneficiary location", error, {
+        beneficiaryId,
+        locationId,
+        tenantId,
+        isPrimary,
+      });
       throw error;
     }
   }
 
   // Remove location from beneficiary
-  async removeBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string): Promise<boolean> {
+  async removeBeneficiaryLocation(
+    beneficiaryId: string,
+    locationId: string,
+    tenantId: string,
+  ): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.beneficiaries_locations 
@@ -2721,17 +3204,26 @@ export class DatabaseStorage implements IStorage {
 
       return Number(result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error removing beneficiary location', error, { beneficiaryId, locationId, tenantId });
+      logError("Error removing beneficiary location", error, {
+        beneficiaryId,
+        locationId,
+        tenantId,
+      });
       return false;
     }
   }
 
   // Update primary status of beneficiary location
-  async updateBeneficiaryLocationPrimary(beneficiaryId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean> {
+  async updateBeneficiaryLocationPrimary(
+    beneficiaryId: string,
+    locationId: string,
+    tenantId: string,
+    isPrimary: boolean,
+  ): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       // If setting as primary, remove primary from others
       if (isPrimary) {
@@ -2752,20 +3244,25 @@ export class DatabaseStorage implements IStorage {
 
       return Number(result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error updating beneficiary location primary status', error, { beneficiaryId, locationId, tenantId, isPrimary });
+      logError("Error updating beneficiary location primary status", error, {
+        beneficiaryId,
+        locationId,
+        tenantId,
+        isPrimary,
+      });
       return false;
     }
   }
-
-
 
   // Get beneficiaries for a specific customer
   async getCustomerBeneficiaries(tenantId: string, customerId: string) {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
-      console.log(`Fetching beneficiaries for customer ${customerId} in tenant ${tenantId}`);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+      console.log(
+        `Fetching beneficiaries for customer ${customerId} in tenant ${tenantId}`,
+      );
 
       const result = await tenantDb.execute(sql`
         SELECT 
@@ -2794,10 +3291,12 @@ export class DatabaseStorage implements IStorage {
 
       const beneficiaries = result.rows || [];
 
-      console.log(`Found ${beneficiaries.length} beneficiaries for customer ${customerId}`);
+      console.log(
+        `Found ${beneficiaries.length} beneficiaries for customer ${customerId}`,
+      );
       return beneficiaries;
     } catch (error) {
-      console.error('Error fetching customer beneficiaries:', error);
+      console.error("Error fetching customer beneficiaries:", error);
       throw error;
     }
   }

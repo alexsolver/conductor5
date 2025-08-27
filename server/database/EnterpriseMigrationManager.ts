@@ -104,7 +104,8 @@ export class EnterpriseMigrationManager {
     await this.migrateTenantSchema(tenantId, migrations);
 
     // Add indexes after tables are created
-    await this.createTenantIndexes(tenantId);
+    // futuramente eu tiro, não precisamos de index atualmente
+    // await this.createTenantIndexes(tenantId);
 
     console.log(`[MigrationManager] ✅ Complete schema created for tenant: ${tenantId}`);
   }

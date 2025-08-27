@@ -1,140 +1,99 @@
--- Migration: Create tenant schema tables
--- Description: Creates all business tables for tenant isolation
-
 -- Enable UUID extension if not exists
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create ENUMS for the schema
+-- ==============================
+-- ENUM DEFINITIONS
+-- ==============================
+
 DO $$ BEGIN
     CREATE TYPE customer_type_enum AS ENUM ('PF', 'PJ');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
     CREATE TYPE ticket_status_enum AS ENUM ('open', 'in_progress', 'resolved', 'closed', 'cancelled');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
     CREATE TYPE ticket_priority_enum AS ENUM ('low', 'medium', 'high', 'urgent');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE item_type_enum AS ENUM ('material', 'service', 'tool', 'equipment');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE measurement_unit_enum AS ENUM ('unit', 'meter', 'kilogram', 'liter', 'hour', 'day', 'piece');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
     CREATE TYPE location_type_enum AS ENUM ('warehouse', 'office', 'field', 'customer_site', 'other');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE approval_entity_type_enum AS ENUM ('ticket', 'purchase', 'expense', 'contract', 'custom');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+    CREATE TYPE item_type_enum AS ENUM ('material', 'service', 'tool', 'equipment');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE approver_type_enum AS ENUM ('user', 'role', 'group', 'custom');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE query_operator_enum AS ENUM ('equals', 'not_equals', 'greater_than', 'less_than', 'contains', 'starts_with', 'ends_with', 'in', 'not_in');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE knowledge_base_category_enum AS ENUM ('general', 'technical', 'troubleshooting', 'procedures', 'policies', 'faq');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE knowledge_base_status_enum AS ENUM ('draft', 'review', 'published', 'archived');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE knowledge_base_visibility_enum AS ENUM ('public', 'internal', 'restricted');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE knowledge_base_approval_status_enum AS ENUM ('pending', 'approved', 'rejected', 'needs_review');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE notification_type_enum AS ENUM ('info', 'warning', 'error', 'success', 'reminder');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE notification_priority_enum AS ENUM ('low', 'normal', 'high', 'urgent');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE notification_channel_enum AS ENUM ('email', 'sms', 'push', 'in_app');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE notification_status_enum AS ENUM ('pending', 'sent', 'delivered', 'failed', 'cancelled');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+    CREATE TYPE measurement_unit_enum AS ENUM ('unit', 'meter', 'kilogram', 'liter', 'hour');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
     CREATE TYPE movement_type_enum AS ENUM ('in', 'out', 'transfer', 'adjustment', 'return');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE gdpr_request_type_enum AS ENUM ('access', 'rectification', 'erasure', 'portability', 'restriction');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+    CREATE TYPE approver_type_enum AS ENUM ('user', 'role', 'group', 'custom');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE gdpr_status_enum AS ENUM ('pending', 'processing', 'completed', 'rejected');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+    CREATE TYPE operator_enum AS ENUM ('equals', 'not_equals', 'greater_than', 'less_than', 'like');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
--- Create customers table
+DO $$ BEGIN
+    CREATE TYPE kb_category_enum AS ENUM ('general', 'technical');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE kb_status_enum AS ENUM ('draft', 'review', 'published', 'archived');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE kb_visibility_enum AS ENUM ('public', 'internal', 'restricted');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE kb_approval_enum AS ENUM ('pending', 'approved', 'rejected');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE notification_type_enum AS ENUM ('info', 'warning', 'error', 'success');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE notification_priority_enum AS ENUM ('low', 'normal', 'high', 'urgent');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE notification_channel_enum AS ENUM ('email', 'sms', 'push', 'in_app');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE notification_status_enum AS ENUM ('pending', 'sent', 'delivered', 'failed');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE gdpr_request_enum AS ENUM ('access', 'rectification', 'erasure', 'restriction', 'portability');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE gdpr_status_enum AS ENUM ('pending', 'processing', 'completed');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- ==============================
+-- CORE BUSINESS TABLES
+-- ==============================
+
 CREATE TABLE IF NOT EXISTS customers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    email VARCHAR(255),
     phone VARCHAR(20),
     mobile_phone VARCHAR(20),
-    customer_type customer_type_enum DEFAULT 'PF',
+    customer_type customer_type_enum,
     cpf VARCHAR(14),
     cnpj VARCHAR(18),
     company_name VARCHAR(255),
@@ -149,17 +108,16 @@ CREATE TABLE IF NOT EXISTS customers (
     address_country VARCHAR(100) DEFAULT 'Brasil',
     is_active BOOLEAN DEFAULT true,
     verified BOOLEAN DEFAULT false,
-    tags JSONB DEFAULT '[]',
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tags JSONB DEFAULT '[]'::jsonb,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
     created_by_id UUID,
     updated_by_id UUID
 );
 
--- Create companies table
 CREATE TABLE IF NOT EXISTS companies (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     cnpj VARCHAR(18),
@@ -172,15 +130,15 @@ CREATE TABLE IF NOT EXISTS companies (
     address_city VARCHAR(100),
     address_state VARCHAR(2),
     address_zip_code VARCHAR(10),
+    address_country VARCHAR(100) DEFAULT 'Brasil',
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB DEFAULT '{}'
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    metadata JSONB DEFAULT '{}'::jsonb
 );
 
--- Create beneficiaries table
 CREATE TABLE IF NOT EXISTS beneficiaries (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     cpf VARCHAR(14),
@@ -188,17 +146,52 @@ CREATE TABLE IF NOT EXISTS beneficiaries (
     email VARCHAR(255),
     phone VARCHAR(20),
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB DEFAULT '{}'
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    metadata JSONB DEFAULT '{}'::jsonb
 );
 
--- Create locations table with proper structure
+CREATE TABLE IF NOT EXISTS tickets (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    ticket_number VARCHAR(50),
+    title VARCHAR(255),
+    description TEXT,
+    status ticket_status_enum,
+    priority ticket_priority_enum,
+    category VARCHAR(100),
+    subcategory VARCHAR(100),
+    customer_id UUID REFERENCES customers(id),
+    assigned_to UUID,
+    company_id UUID REFERENCES companies(id),
+    location_id UUID,
+    estimated_hours DECIMAL(5,2),
+    actual_hours DECIMAL(5,2),
+    due_date TIMESTAMP,
+    resolution_date TIMESTAMP,
+    satisfaction_rating INTEGER,
+    satisfaction_comment TEXT,
+    tags JSONB DEFAULT '[]'::jsonb,
+    custom_fields JSONB DEFAULT '{}'::jsonb,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    created_by_id UUID,
+    updated_by_id UUID,
+    template_name VARCHAR(255),
+    template_alternative VARCHAR(255),
+    is_active BOOLEAN DEFAULT true
+);
+
+-- ==============================
+-- LOCATIONS & GEOGRAPHY
+-- ==============================
+
 CREATE TABLE IF NOT EXISTS locations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
-    type location_type_enum DEFAULT 'office',
+    type location_type_enum,
     code VARCHAR(50),
     description TEXT,
     address_street VARCHAR(255),
@@ -208,256 +201,309 @@ CREATE TABLE IF NOT EXISTS locations (
     address_city VARCHAR(100),
     address_state VARCHAR(2),
     address_zip_code VARCHAR(10),
-    latitude DECIMAL(10, 7),
-    longitude DECIMAL(10, 7),
-    parent_location_id UUID,
+    address_country VARCHAR(100) DEFAULT 'Brasil',
+    latitude DECIMAL(10,7),
+    longitude DECIMAL(10,7),
+    parent_location_id UUID REFERENCES locations(id),
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB DEFAULT '{}'
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    metadata JSONB DEFAULT '{}'::jsonb
 );
 
--- Create items table
+-- ==============================
+-- MATERIALS & SERVICES
+-- ==============================
+
 CREATE TABLE IF NOT EXISTS items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    code VARCHAR(50) NOT NULL,
+    code VARCHAR(50),
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    type item_type_enum DEFAULT 'material',
+    type item_type_enum,
     category VARCHAR(100),
     subcategory VARCHAR(100),
-    unit_of_measurement measurement_unit_enum DEFAULT 'unit',
-    unit_cost DECIMAL(10, 2),
-    stock_quantity DECIMAL(10, 2),
-    minimum_stock DECIMAL(10, 2),
-    maximum_stock DECIMAL(10, 2),
-    supplier_id UUID,
+    unit_of_measurement measurement_unit_enum,
+    unit_cost DECIMAL(10,2),
+    stock_quantity DECIMAL(10,2) DEFAULT 0,
+    minimum_stock DECIMAL(10,2) DEFAULT 0,
+    maximum_stock DECIMAL(10,2),
+    supplier_id UUID REFERENCES suppliers(id),
     brand VARCHAR(100),
     model VARCHAR(100),
-    specifications JSONB DEFAULT '{}',
+    specifications JSONB DEFAULT '{}'::jsonb,
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB DEFAULT '{}'
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    metadata JSONB DEFAULT '{}'::jsonb
 );
 
--- Create tickets table
-CREATE TABLE IF NOT EXISTS tickets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE IF NOT EXISTS suppliers (
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    ticket_number VARCHAR(50) NOT NULL,
-    title VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    cnpj VARCHAR(18),
+    contact_person VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    address JSONB DEFAULT '{}'::jsonb,
+    is_active BOOLEAN DEFAULT true,
+    rating DECIMAL(3,2),
+    payment_terms VARCHAR(100),
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS price_lists (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
-    status ticket_status_enum DEFAULT 'open',
-    priority ticket_priority_enum DEFAULT 'medium',
-    category VARCHAR(100),
-    subcategory VARCHAR(100),
-    customer_id UUID,
-    assigned_to UUID,
-    company_id UUID,
-    location_id UUID,
-    estimated_hours DECIMAL(5, 2),
-    actual_hours DECIMAL(5, 2),
-    due_date TIMESTAMP,
-    resolution_date TIMESTAMP,
-    satisfaction_rating INTEGER,
-    satisfaction_comment TEXT,
-    tags JSONB DEFAULT '[]',
-    custom_fields JSONB DEFAULT '{}',
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    currency VARCHAR(3) DEFAULT 'BRL',
+    is_active BOOLEAN DEFAULT true,
+    valid_from TIMESTAMP,
+    valid_until TIMESTAMP,
     created_by_id UUID,
-    updated_by_id UUID,
-    template_name VARCHAR(255),
-    template_alternative VARCHAR(255),
-    is_active BOOLEAN DEFAULT true
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create ticket_planned_items table
-CREATE TABLE IF NOT EXISTS ticket_planned_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE IF NOT EXISTS price_list_items (
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    ticket_id UUID NOT NULL,
-    item_id UUID NOT NULL,
-    quantity_planned DECIMAL(10, 2) NOT NULL,
-    unit_cost DECIMAL(10, 2),
-    total_cost DECIMAL(10, 2),
+    price_list_id UUID NOT NULL REFERENCES price_lists(id),
+    item_id UUID NOT NULL REFERENCES items(id),
+    unit_price DECIMAL(10,2),
+    minimum_quantity DECIMAL(10,2) DEFAULT 1,
+    discount_percentage DECIMAL(5,2) DEFAULT 0,
+    markup_percentage DECIMAL(5,2) DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+-- ==============================
+-- STOCK MANAGEMENT
+-- ==============================
+
+CREATE TABLE IF NOT EXISTS stock_locations (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(50),
+    type VARCHAR(50),
+    parent_location_id UUID REFERENCES stock_locations(id),
+    address JSONB DEFAULT '{}'::jsonb,
+    is_active BOOLEAN DEFAULT true,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS stock_levels (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    item_id UUID NOT NULL REFERENCES items(id),
+    location_id UUID NOT NULL REFERENCES stock_locations(id),
+    quantity_available DECIMAL(10,2) DEFAULT 0,
+    quantity_reserved DECIMAL(10,2) DEFAULT 0,
+    quantity_on_order DECIMAL(10,2) DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT now(),
+    created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    item_id UUID NOT NULL REFERENCES items(id),
+    location_id UUID NOT NULL REFERENCES stock_locations(id),
+    movement_type movement_type_enum NOT NULL,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit_cost DECIMAL(10,2),
+    reference_id UUID,
+    reference_type VARCHAR(50),
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    performed_by UUID,
+    performed_at TIMESTAMP DEFAULT now(),
+    created_at TIMESTAMP DEFAULT now()
+);
+-- ==============================
+-- TICKET MATERIALS & PLANNING
+-- ==============================
+
+CREATE TABLE IF NOT EXISTS ticket_planned_items (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    ticket_id UUID NOT NULL REFERENCES tickets(id),
+    item_id UUID NOT NULL REFERENCES items(id),
+    quantity_planned DECIMAL(10,2) NOT NULL,
+    unit_cost DECIMAL(10,2),
+    total_cost DECIMAL(10,2),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create ticket_consumed_items table
 CREATE TABLE IF NOT EXISTS ticket_consumed_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    ticket_id UUID NOT NULL,
-    item_id UUID NOT NULL,
-    quantity_consumed DECIMAL(10, 2) NOT NULL,
-    unit_cost DECIMAL(10, 2),
-    total_cost DECIMAL(10, 2),
-    consumed_at TIMESTAMP,
+    ticket_id UUID NOT NULL REFERENCES tickets(id),
+    item_id UUID NOT NULL REFERENCES items(id),
+    quantity_consumed DECIMAL(10,2) NOT NULL,
+    unit_cost DECIMAL(10,2),
+    total_cost DECIMAL(10,2),
+    consumed_at TIMESTAMP DEFAULT now(),
     consumed_by UUID,
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create customer_item_mappings table
+-- ==============================
+-- CUSTOMER MAPPINGS
+-- ==============================
+
 CREATE TABLE IF NOT EXISTS customer_item_mappings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    customer_id UUID NOT NULL,
-    item_id UUID NOT NULL,
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    item_id UUID NOT NULL REFERENCES items(id),
     customer_item_code VARCHAR(100),
     customer_item_name VARCHAR(255),
     customer_item_description TEXT,
-    unit_price DECIMAL(10, 2),
+    unit_price DECIMAL(10,2),
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB DEFAULT '{}'
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    metadata JSONB DEFAULT '{}'::jsonb
 );
 
--- Create user_groups table
+-- ==============================
+-- USER MANAGEMENT
+-- ==============================
+
 CREATE TABLE IF NOT EXISTS user_groups (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    permissions JSONB DEFAULT '{}',
+    permissions JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create activity_logs table
-CREATE TABLE IF NOT EXISTS activity_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    user_id UUID,
-    action VARCHAR(100) NOT NULL,
-    entity_type VARCHAR(50) NOT NULL,
-    entity_id UUID NOT NULL,
-    old_values JSONB,
-    new_values JSONB,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB DEFAULT '{}'
-);
+-- ==============================
+-- APPROVAL SYSTEM
+-- ==============================
 
--- Create approval_rules table
 CREATE TABLE IF NOT EXISTS approval_rules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    module_type approval_entity_type_enum NOT NULL,
-    entity_type VARCHAR(100) NOT NULL,
-    query_conditions JSONB DEFAULT '{}',
-    approval_steps JSONB DEFAULT '[]',
-    sla_hours INTEGER DEFAULT 24,
-    business_hours_only BOOLEAN DEFAULT true,
-    auto_approval_conditions JSONB DEFAULT '{}',
-    escalation_settings JSONB DEFAULT '{}',
-    company_id UUID,
+    module_type VARCHAR(50), -- ticket, purchase, expense, etc.
+    entity_type VARCHAR(100),
+    query_conditions JSONB DEFAULT '{}'::jsonb,
+    approval_steps JSONB DEFAULT '[]'::jsonb,
+    sla_hours INTEGER,
+    business_hours_only BOOLEAN DEFAULT false,
+    auto_approval_conditions JSONB DEFAULT '{}'::jsonb,
+    escalation_settings JSONB DEFAULT '{}'::jsonb,
+    company_id UUID REFERENCES companies(id),
     is_active BOOLEAN DEFAULT true,
     priority INTEGER DEFAULT 0,
     created_by_id UUID,
     updated_by_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create approval_instances table
 CREATE TABLE IF NOT EXISTS approval_instances (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    rule_id UUID NOT NULL,
+    rule_id UUID NOT NULL REFERENCES approval_rules(id),
     entity_id UUID NOT NULL,
-    entity_type VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(100),
     current_step_index INTEGER DEFAULT 0,
     status VARCHAR(20) DEFAULT 'pending',
     requested_by_id UUID,
     sla_deadline TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
     completed_at TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create approval_decisions table
 CREATE TABLE IF NOT EXISTS approval_decisions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    instance_id UUID NOT NULL,
-    step_index INTEGER NOT NULL,
-    approver_id UUID,
-    decision VARCHAR(20) NOT NULL,
+    instance_id UUID NOT NULL REFERENCES approval_instances(id),
+    step_index INTEGER,
+    approver_id UUID NOT NULL,
+    decision VARCHAR(20), -- approved, rejected, etc.
     comments TEXT,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create approval_steps table
 CREATE TABLE IF NOT EXISTS approval_steps (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    rule_id UUID NOT NULL,
+    rule_id UUID NOT NULL REFERENCES approval_rules(id),
     step_index INTEGER NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    approver_type approver_type_enum NOT NULL,
-    approvers JSONB DEFAULT '[]',
+    name VARCHAR(255),
+    approver_type approver_type_enum,
+    approvers JSONB DEFAULT '[]'::jsonb,
     required_approvals INTEGER DEFAULT 1,
-    timeout_hours INTEGER DEFAULT 24,
-    escalation_rules JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    timeout_hours INTEGER,
+    escalation_rules JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create approval_conditions table
 CREATE TABLE IF NOT EXISTS approval_conditions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    rule_id UUID NOT NULL,
-    field_name VARCHAR(100) NOT NULL,
-    operator query_operator_enum NOT NULL,
-    value JSONB NOT NULL,
-    logical_operator VARCHAR(10) DEFAULT 'AND',
+    rule_id UUID NOT NULL REFERENCES approval_rules(id),
+    field_name VARCHAR(100),
+    operator operator_enum,
+    value JSONB,
+    logical_operator VARCHAR(10),
     group_index INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create approval_workflows table
 CREATE TABLE IF NOT EXISTS approval_workflows (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    module_type approval_entity_type_enum NOT NULL,
-    workflow_steps JSONB DEFAULT '[]',
+    module_type VARCHAR(50),
+    workflow_steps JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
     created_by_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
+-- ==============================
+-- KNOWLEDGE BASE
+-- ==============================
 
--- Create knowledge_base_articles table
 CREATE TABLE IF NOT EXISTS knowledge_base_articles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     title VARCHAR(500) NOT NULL,
     content TEXT,
     excerpt TEXT,
     author_id UUID,
-    category knowledge_base_category_enum DEFAULT 'general',
-    status knowledge_base_status_enum DEFAULT 'draft',
-    visibility knowledge_base_visibility_enum DEFAULT 'internal',
-    approval_status knowledge_base_approval_status_enum DEFAULT 'pending',
-    tags JSONB DEFAULT '[]',
+    category kb_category_enum,
+    status kb_status_enum,
+    visibility kb_visibility_enum,
+    approval_status kb_approval_enum,
+    tags JSONB DEFAULT '[]'::jsonb,
     view_count INTEGER DEFAULT 0,
     helpful_count INTEGER DEFAULT 0,
     not_helpful_count INTEGER DEFAULT 0,
@@ -467,112 +513,95 @@ CREATE TABLE IF NOT EXISTS knowledge_base_articles (
     slug VARCHAR(500),
     published_at TIMESTAMP,
     archived_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create knowledge_base_article_versions table
 CREATE TABLE IF NOT EXISTS knowledge_base_article_versions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    article_id UUID NOT NULL,
+    article_id UUID NOT NULL REFERENCES knowledge_base_articles(id),
     version_number INTEGER NOT NULL,
-    title VARCHAR(500) NOT NULL,
     content TEXT,
-    author_id UUID,
-    change_summary TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_by_id UUID,
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create knowledge_base_attachments table
 CREATE TABLE IF NOT EXISTS knowledge_base_attachments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    article_id UUID NOT NULL,
-    filename VARCHAR(255) NOT NULL,
-    original_filename VARCHAR(255) NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
-    file_size INTEGER,
-    mime_type VARCHAR(100),
-    alt_text VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    article_id UUID NOT NULL REFERENCES knowledge_base_articles(id),
+    file_name VARCHAR(255),
+    file_path VARCHAR(500),
+    file_type VARCHAR(100),
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create knowledge_base_ratings table
 CREATE TABLE IF NOT EXISTS knowledge_base_ratings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    article_id UUID NOT NULL,
-    user_id UUID,
-    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-    is_helpful BOOLEAN,
-    feedback TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create knowledge_base_approvals table
-CREATE TABLE IF NOT EXISTS knowledge_base_approvals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    article_id UUID NOT NULL,
-    approver_id UUID,
-    status VARCHAR(20) DEFAULT 'pending',
+    article_id UUID NOT NULL REFERENCES knowledge_base_articles(id),
+    user_id UUID NOT NULL,
+    rating INTEGER CHECK (rating BETWEEN 1 AND 5),
     comments TEXT,
-    approved_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create knowledge_base_comments table
-CREATE TABLE IF NOT EXISTS knowledge_base_comments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE IF NOT EXISTS knowledge_base_approvals (
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    article_id UUID NOT NULL,
-    author_id UUID,
-    content TEXT NOT NULL,
-    parent_comment_id UUID,
-    is_internal BOOLEAN DEFAULT false,
-    status VARCHAR(20) DEFAULT 'published',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    article_id UUID NOT NULL REFERENCES knowledge_base_articles(id),
+    approver_id UUID NOT NULL,
+    status kb_approval_enum,
+    comments TEXT,
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create knowledge_base_templates table
+CREATE TABLE IF NOT EXISTS knowledge_base_comments (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    article_id UUID NOT NULL REFERENCES knowledge_base_articles(id),
+    user_id UUID NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS knowledge_base_templates (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
-    description TEXT,
-    template_content TEXT,
-    fields JSONB DEFAULT '{}',
-    category knowledge_base_category_enum DEFAULT 'general',
+    content TEXT,
+    variables JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
-    created_by_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create notifications table
+-- ==============================
+-- NOTIFICATIONS
+-- ==============================
+
 CREATE TABLE IF NOT EXISTS notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    user_id UUID,
+    user_id UUID NOT NULL,
     title VARCHAR(255) NOT NULL,
-    message TEXT,
-    type notification_type_enum DEFAULT 'info',
-    priority notification_priority_enum DEFAULT 'normal',
-    channel notification_channel_enum DEFAULT 'in_app',
+    message TEXT NOT NULL,
+    type notification_type_enum,
+    priority notification_priority_enum,
+    channel notification_channel_enum,
     status notification_status_enum DEFAULT 'pending',
     scheduled_for TIMESTAMP,
     sent_at TIMESTAMP,
     read_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create user_notification_preferences table
 CREATE TABLE IF NOT EXISTS user_notification_preferences (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     user_id UUID NOT NULL,
     email_enabled BOOLEAN DEFAULT true,
@@ -582,249 +611,513 @@ CREATE TABLE IF NOT EXISTS user_notification_preferences (
     frequency VARCHAR(20) DEFAULT 'immediate',
     quiet_hours_start TIME,
     quiet_hours_end TIME,
-    categories JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    categories JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create notification_templates table
 CREATE TABLE IF NOT EXISTS notification_templates (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     subject_template VARCHAR(255),
     body_template TEXT,
-    type notification_type_enum DEFAULT 'info',
-    channel notification_channel_enum DEFAULT 'email',
-    variables JSONB DEFAULT '{}',
+    type notification_type_enum,
+    channel notification_channel_enum,
+    variables JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create schedule_notifications table
 CREATE TABLE IF NOT EXISTS schedule_notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    user_id UUID,
-    title VARCHAR(255) NOT NULL,
+    user_id UUID NOT NULL,
+    title VARCHAR(255),
     description TEXT,
     scheduled_date TIMESTAMP,
     type VARCHAR(50),
-    status VARCHAR(20) DEFAULT 'scheduled',
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status VARCHAR(20) DEFAULT 'pending',
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create reports table
+-- ==============================
+-- REPORTS & DASHBOARDS
+-- ==============================
+
 CREATE TABLE IF NOT EXISTS reports (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    query_definition JSONB DEFAULT '{}',
-    visualization_config JSONB DEFAULT '{}',
-    parameters JSONB DEFAULT '{}',
-    schedule JSONB,
+    query_definition JSONB DEFAULT '{}'::jsonb,
+    visualization_config JSONB DEFAULT '{}'::jsonb,
+    parameters JSONB DEFAULT '{}'::jsonb,
+    schedule JSONB DEFAULT '{}'::jsonb,
     is_public BOOLEAN DEFAULT false,
     created_by_id UUID,
     updated_by_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create dashboards table
 CREATE TABLE IF NOT EXISTS dashboards (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    layout_config JSONB DEFAULT '{}',
-    widgets JSONB DEFAULT '[]',
-    permissions JSONB DEFAULT '{}',
+    layout_config JSONB DEFAULT '{}'::jsonb,
+    widgets JSONB DEFAULT '[]'::jsonb,
+    permissions JSONB DEFAULT '{}'::jsonb,
     is_public BOOLEAN DEFAULT false,
     created_by_id UUID,
     updated_by_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create dashboard_widgets table
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    dashboard_id UUID NOT NULL,
-    widget_type VARCHAR(50) NOT NULL,
+    dashboard_id UUID NOT NULL REFERENCES dashboards(id),
+    widget_type VARCHAR(50),
     title VARCHAR(255),
-    configuration JSONB DEFAULT '{}',
-    data_source JSONB DEFAULT '{}',
-    position JSONB DEFAULT '{}',
-    size JSONB DEFAULT '{}',
+    configuration JSONB DEFAULT '{}'::jsonb,
+    data_source JSONB DEFAULT '{}'::jsonb,
+    position JSONB DEFAULT '{}'::jsonb,
+    size JSONB DEFAULT '{}'::jsonb,
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create suppliers table
-CREATE TABLE IF NOT EXISTS suppliers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    cnpj VARCHAR(18),
-    contact_person VARCHAR(255),
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    address JSONB DEFAULT '{}',
-    is_active BOOLEAN DEFAULT true,
-    rating DECIMAL(3, 2),
-    payment_terms VARCHAR(100),
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- ==============================
+-- GDPR COMPLIANCE
+-- ==============================
 
--- Create stock_locations table
-CREATE TABLE IF NOT EXISTS stock_locations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    code VARCHAR(50),
-    type VARCHAR(50),
-    parent_location_id UUID,
-    address JSONB DEFAULT '{}',
-    is_active BOOLEAN DEFAULT true,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create stock_levels table
-CREATE TABLE IF NOT EXISTS stock_levels (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    item_id UUID NOT NULL,
-    location_id UUID NOT NULL,
-    quantity_available DECIMAL(10, 2) DEFAULT 0,
-    quantity_reserved DECIMAL(10, 2) DEFAULT 0,
-    quantity_on_order DECIMAL(10, 2) DEFAULT 0,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create stock_movements table
-CREATE TABLE IF NOT EXISTS stock_movements (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    item_id UUID NOT NULL,
-    location_id UUID NOT NULL,
-    movement_type movement_type_enum NOT NULL,
-    quantity DECIMAL(10, 2) NOT NULL,
-    unit_cost DECIMAL(10, 2),
-    reference_id UUID,
-    reference_type VARCHAR(50),
-    notes TEXT,
-    performed_by UUID,
-    performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create price_lists table
-CREATE TABLE IF NOT EXISTS price_lists (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    currency VARCHAR(3) DEFAULT 'BRL',
-    is_active BOOLEAN DEFAULT true,
-    valid_from TIMESTAMP,
-    valid_until TIMESTAMP,
-    created_by_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create price_list_items table
-CREATE TABLE IF NOT EXISTS price_list_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    price_list_id UUID NOT NULL,
-    item_id UUID NOT NULL,
-    unit_price DECIMAL(10, 2) NOT NULL,
-    minimum_quantity DECIMAL(10, 2),
-    discount_percentage DECIMAL(5, 2),
-    markup_percentage DECIMAL(5, 2),
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create gdpr_data_requests table
 CREATE TABLE IF NOT EXISTS gdpr_data_requests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    request_type gdpr_request_type_enum NOT NULL,
+    request_type gdpr_request_enum NOT NULL,
     subject_email VARCHAR(255) NOT NULL,
     subject_name VARCHAR(255),
     description TEXT,
     status gdpr_status_enum DEFAULT 'pending',
-    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP DEFAULT now(),
     processed_at TIMESTAMP,
     processed_by_id UUID,
-    response_data JSONB,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    response_data JSONB DEFAULT '{}'::jsonb,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
 
--- Create gdpr_consent_records table
 CREATE TABLE IF NOT EXISTS gdpr_consent_records (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    user_id UUID,
-    consent_type VARCHAR(100) NOT NULL,
+    user_id UUID NOT NULL,
+    consent_type VARCHAR(100),
     purpose TEXT,
     legal_basis VARCHAR(100),
-    granted BOOLEAN NOT NULL,
-    granted_at TIMESTAMP,
+    granted BOOLEAN DEFAULT true,
+    granted_at TIMESTAMP DEFAULT now(),
     withdrawn_at TIMESTAMP,
     ip_address VARCHAR(45),
     user_agent TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create gdpr_audit_logs table
 CREATE TABLE IF NOT EXISTS gdpr_audit_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     user_id UUID,
-    action VARCHAR(100) NOT NULL,
+    action VARCHAR(100),
     entity_type VARCHAR(50),
     entity_id UUID,
     details TEXT,
     ip_address VARCHAR(45),
     user_agent TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT now()
 );
 
--- Create triggers for updated_at timestamps
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- ==============================
+-- ACTIVITY TRACKING
+-- ==============================
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    user_id UUID,
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id UUID,
+    old_values JSONB DEFAULT '{}'::jsonb,
+    new_values JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+-- ==============================
+-- OMNIBRIDGE (Communication)
+-- ==============================
+
+CREATE TABLE IF NOT EXISTS omnibridge_channels (
+    id VARCHAR(36) PRIMARY KEY,
+    tenant_id VARCHAR(36) NOT NULL,
+    integration_id VARCHAR(100),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'active',
+    config JSONB DEFAULT '{}'::jsonb,
+    features JSONB DEFAULT '{}'::jsonb,
+    description TEXT,
+    icon VARCHAR(50),
+    last_sync TIMESTAMP,
+    metrics JSONB DEFAULT '{}'::jsonb,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS omnibridge_messages (
+    id VARCHAR(36) PRIMARY KEY,
+    tenant_id VARCHAR(36) NOT NULL,
+    channel_id VARCHAR(36) NOT NULL REFERENCES omnibridge_channels(id),
+    channel_type VARCHAR(50),
+    from_address TEXT,
+    to_address TEXT,
+    subject TEXT,
+    content TEXT,
+    timestamp TIMESTAMP DEFAULT now(),
+    status VARCHAR(20) DEFAULT 'pending',
+    priority VARCHAR(20) DEFAULT 'normal',
+    tags JSONB DEFAULT '[]'::jsonb,
+    attachments INTEGER DEFAULT 0,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS omnibridge_chatbots (
+    id VARCHAR(36) PRIMARY KEY,
+    tenant_id VARCHAR(36) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    configuration JSONB DEFAULT '{}'::jsonb,
+    is_enabled BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    created_by VARCHAR(36),
+    updated_by VARCHAR(36)
+);
+
+
+-- ==============================
+-- TICKET MESSAGES
+-- ==============================
+CREATE TABLE IF NOT EXISTS ticket_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    ticket_id UUID NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+    sender_id UUID,
+    message TEXT NOT NULL,
+    message_type VARCHAR(50) DEFAULT 'user', -- user/system/bot
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- ==============================
+-- SKILLS
+-- ==============================
+CREATE TABLE IF NOT EXISTS skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    description TEXT,
+    level_min INTEGER DEFAULT 1,
+    level_max INTEGER DEFAULT 5,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    CONSTRAINT skills_tenant_name_unique UNIQUE (tenant_id, name)
+);
+
+-- ==============================
+-- TICKET FIELD CONFIGURATIONS
+-- ==============================
+CREATE TABLE IF NOT EXISTS ticket_field_configurations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    field_name VARCHAR(100) NOT NULL,
+    field_type VARCHAR(50) NOT NULL, -- text, number, select, checkbox...
+    is_required BOOLEAN DEFAULT false,
+    display_order INTEGER,
+    options JSONB DEFAULT '[]'::jsonb,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    CONSTRAINT ticket_field_unique UNIQUE (tenant_id, field_name)
+);
+
+-- ==============================
+-- TICKET FIELD OPTIONS
+-- ==============================
+CREATE TABLE IF NOT EXISTS ticket_field_options (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    field_configuration_id UUID NOT NULL REFERENCES ticket_field_configurations(id) ON DELETE CASCADE,
+    option_value VARCHAR(255) NOT NULL,
+    option_label VARCHAR(255) NOT NULL,
+    display_order INTEGER,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- ==============================
+-- TICKET CATEGORIES
+-- ==============================
+CREATE TABLE IF NOT EXISTS ticket_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    color VARCHAR(7), -- ex: #FF0000
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    CONSTRAINT ticket_categories_tenant_name_unique UNIQUE (tenant_id, name)
+);
+
+-- ==============================
+-- TICKET SUBCATEGORIES
+-- ==============================
+CREATE TABLE IF NOT EXISTS ticket_subcategories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    category_id UUID NOT NULL REFERENCES ticket_categories(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    CONSTRAINT ticket_subcategories_tenant_name_unique UNIQUE (tenant_id, category_id, name)
+);
+
+-- ==============================
+-- TICKET ACTIONS
+-- ==============================
+CREATE TABLE IF NOT EXISTS ticket_actions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    ticket_id UUID NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+    action_type VARCHAR(100) NOT NULL, -- status_change, note_added, file_uploaded...
+    action_data JSONB DEFAULT '{}'::jsonb,
+    performed_by UUID,
+    performed_at TIMESTAMP DEFAULT now()
+);
+
+
+-- ==============================
+-- Função genérica para atualizar updated_at
+-- ==============================
+CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
+    NEW.updated_at = now();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON companies FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_beneficiaries_updated_at BEFORE UPDATE ON beneficiaries FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_tickets_updated_at BEFORE UPDATE ON tickets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_locations_updated_at BEFORE UPDATE ON locations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_items_updated_at BEFORE UPDATE ON items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_user_groups_updated_at BEFORE UPDATE ON user_groups FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_approval_rules_updated_at BEFORE UPDATE ON approval_rules FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_approval_instances_updated_at BEFORE UPDATE ON approval_instances FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_knowledge_base_articles_updated_at BEFORE UPDATE ON knowledge_base_articles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_reports_updated_at BEFORE UPDATE ON reports FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_dashboards_updated_at BEFORE UPDATE ON dashboards FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- ==============================
+-- Triggers para cada tabela
+-- ==============================
+
+-- Core business
+CREATE TRIGGER trg_customers_updated
+BEFORE UPDATE ON customers
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_companies_updated
+BEFORE UPDATE ON companies
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_beneficiaries_updated
+BEFORE UPDATE ON beneficiaries
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_tickets_updated
+BEFORE UPDATE ON tickets
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Locations
+CREATE TRIGGER trg_locations_updated
+BEFORE UPDATE ON locations
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Items & suppliers
+CREATE TRIGGER trg_items_updated
+BEFORE UPDATE ON items
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_suppliers_updated
+BEFORE UPDATE ON suppliers
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_price_lists_updated
+BEFORE UPDATE ON price_lists
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_price_list_items_updated
+BEFORE UPDATE ON price_list_items
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Stock
+CREATE TRIGGER trg_stock_locations_updated
+BEFORE UPDATE ON stock_locations
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_stock_levels_updated
+BEFORE UPDATE ON stock_levels
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_stock_movements_updated
+BEFORE UPDATE ON stock_movements
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Tickets x items
+CREATE TRIGGER trg_ticket_planned_items_updated
+BEFORE UPDATE ON ticket_planned_items
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_ticket_consumed_items_updated
+BEFORE UPDATE ON ticket_consumed_items
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Customer mapping
+CREATE TRIGGER trg_customer_item_mappings_updated
+BEFORE UPDATE ON customer_item_mappings
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- User groups
+CREATE TRIGGER trg_user_groups_updated
+BEFORE UPDATE ON user_groups
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Approval system
+CREATE TRIGGER trg_approval_rules_updated
+BEFORE UPDATE ON approval_rules
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_approval_instances_updated
+BEFORE UPDATE ON approval_instances
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_approval_decisions_updated
+BEFORE UPDATE ON approval_decisions
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_approval_steps_updated
+BEFORE UPDATE ON approval_steps
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_approval_conditions_updated
+BEFORE UPDATE ON approval_conditions
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_approval_workflows_updated
+BEFORE UPDATE ON approval_workflows
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Knowledge base
+CREATE TRIGGER trg_kb_articles_updated
+BEFORE UPDATE ON knowledge_base_articles
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_kb_article_versions_updated
+BEFORE UPDATE ON knowledge_base_article_versions
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_kb_attachments_updated
+BEFORE UPDATE ON knowledge_base_attachments
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_kb_ratings_updated
+BEFORE UPDATE ON knowledge_base_ratings
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_kb_approvals_updated
+BEFORE UPDATE ON knowledge_base_approvals
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_kb_comments_updated
+BEFORE UPDATE ON knowledge_base_comments
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_kb_templates_updated
+BEFORE UPDATE ON knowledge_base_templates
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Notifications
+CREATE TRIGGER trg_notifications_updated
+BEFORE UPDATE ON notifications
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_user_notif_prefs_updated
+BEFORE UPDATE ON user_notification_preferences
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_notification_templates_updated
+BEFORE UPDATE ON notification_templates
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_schedule_notifications_updated
+BEFORE UPDATE ON schedule_notifications
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Reports & dashboards
+CREATE TRIGGER trg_reports_updated
+BEFORE UPDATE ON reports
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_dashboards_updated
+BEFORE UPDATE ON dashboards
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_dashboard_widgets_updated
+BEFORE UPDATE ON dashboard_widgets
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- GDPR
+CREATE TRIGGER trg_gdpr_requests_updated
+BEFORE UPDATE ON gdpr_data_requests
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_gdpr_consent_updated
+BEFORE UPDATE ON gdpr_consent_records
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_gdpr_audit_logs_updated
+BEFORE UPDATE ON gdpr_audit_logs
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Activity
+CREATE TRIGGER trg_activity_logs_updated
+BEFORE UPDATE ON activity_logs
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Omnibridge
+CREATE TRIGGER trg_omni_channels_updated
+BEFORE UPDATE ON omnibridge_channels
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_omni_messages_updated
+BEFORE UPDATE ON omnibridge_messages
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_omni_chatbots_updated
+BEFORE UPDATE ON omnibridge_chatbots
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
