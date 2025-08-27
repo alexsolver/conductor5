@@ -190,10 +190,13 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
           tenantName: tenantResult.tenant.name
         });
 
-        // Ensure tenant schema exists
+        // Ensure tenant schema exists and run migrations
         try {
           const { schemaManager } = await import('../../db');
+          const { MigrationManager } = await import('../../migrations/pg-migrations/config/migration-manager');
           const schemaName = `tenant_${userData.tenantId.replace(/-/g, '_')}`;
+          
+          console.log(`🏗️ [REGISTER] Creating tenant schema: ${schemaName}`);
           
           // Force schema creation
           await schemaManager.createTenantSchema(userData.tenantId);
@@ -210,12 +213,28 @@ authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res)
           
           if (schemaCheck.rows && schemaCheck.rows.length > 0) {
             console.log(`✅ [REGISTER] Schema verified: ${schemaName}`);
+            
+            // Run tenant migrations automatically
+            console.log(`🔧 [REGISTER] Starting tenant migrations for: ${userData.tenantId}`);
+            const migrationManager = new MigrationManager();
+            
+            try {
+              await migrationManager.createMigrationTable();
+              await migrationManager.runTenantMigrations(userData.tenantId);
+              console.log(`✅ [REGISTER] Tenant migrations completed successfully for: ${userData.tenantId}`);
+            } catch (migrationError) {
+              console.error(`❌ [REGISTER] Tenant migration failed for ${userData.tenantId}:`, migrationError);
+              throw new Error(`Failed to run tenant migrations: ${migrationError.message}`);
+            } finally {
+              await migrationManager.close();
+            }
+            
           } else {
             console.error(`❌ [REGISTER] Schema not found after creation: ${schemaName}`);
             throw new Error(`Failed to create tenant schema: ${schemaName}`);
           }
         } catch (verifyError) {
-          console.error('❌ [REGISTER] Schema creation/verification failed:', verifyError);
+          console.error('❌ [REGISTER] Schema creation/migration failed:', verifyError);
           return res.status(500).json({ 
             message: 'Erro ao criar workspace. Tente novamente.' 
           });

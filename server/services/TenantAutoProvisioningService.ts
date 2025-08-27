@@ -91,7 +91,7 @@ class TenantAutoProvisioningService {
       // Save tenant
       const savedTenant = await tenantRepository.save(tenantEntity);
 
-      // Initialize tenant schema using storage service
+      // Initialize tenant schema and run migrations
       console.log(`🏗️ [TENANT-PROVISIONING] Initializing schema for tenant: ${savedTenant.id}`);
       
       try {
@@ -99,7 +99,23 @@ class TenantAutoProvisioningService {
         const { schemaManager } = await import('../db');
         await schemaManager.createTenantSchema(savedTenant.id);
         
-        // Then initialize it with tables
+        // Run tenant migrations automatically
+        console.log(`🔧 [TENANT-PROVISIONING] Starting tenant migrations for: ${savedTenant.id}`);
+        const { MigrationManager } = await import('../migrations/pg-migrations/config/migration-manager');
+        const migrationManager = new MigrationManager();
+        
+        try {
+          await migrationManager.createMigrationTable();
+          await migrationManager.runTenantMigrations(savedTenant.id);
+          console.log(`✅ [TENANT-PROVISIONING] Tenant migrations completed for: ${savedTenant.id}`);
+        } catch (migrationError) {
+          console.error(`❌ [TENANT-PROVISIONING] Migration failed for ${savedTenant.id}:`, migrationError);
+          throw new Error(`Failed to run tenant migrations: ${migrationError.message}`);
+        } finally {
+          await migrationManager.close();
+        }
+        
+        // Then initialize it with tables (legacy support)
         await storageSimple.initializeTenantSchema(savedTenant.id);
 
         // Validate schema was created successfully
