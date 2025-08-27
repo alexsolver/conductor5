@@ -464,6 +464,8 @@ export const userGroupMemberships = pgTable("user_group_memberships", {
   userId: uuid("user_id").notNull(),
   groupId: uuid("group_id").notNull(),
   role: varchar("role", { length: 50 }).default("member"),
+  addedAt: timestamp("added_at").defaultNow(),
+  addedById: uuid("added_by_id"),
   joinedAt: timestamp("joined_at").defaultNow(),
   leftAt: timestamp("left_at"),
   isActive: boolean("is_active").default(true),
@@ -471,6 +473,10 @@ export const userGroupMemberships = pgTable("user_group_memberships", {
   index("user_group_memberships_tenant_user_idx").on(table.tenantId, table.userId),
   unique("user_group_memberships_unique").on(table.tenantId, table.userId, table.groupId),
 ]);
+
+// Validation schemas for user groups
+export const insertUserGroupSchema = createInsertSchema(userGroups);
+export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships);
 
 // Departments table
 export const departments = pgTable("departments", {

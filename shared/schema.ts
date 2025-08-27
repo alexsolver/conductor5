@@ -10,6 +10,14 @@ import { Pool } from 'pg';
 // Re-export all schema definitions - avoiding conflicts
 export * from "./schema-master";
 
+// Export tenant-specific schemas and validation
+export { 
+  userGroups, 
+  userGroupMemberships, 
+  insertUserGroupSchema, 
+  insertUserGroupMembershipSchema 
+} from "./schema-tenant";
+
 // Reports & Dashboards Module Schema
 export * from "./schema-reports";
 
