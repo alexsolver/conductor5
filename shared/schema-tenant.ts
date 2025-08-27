@@ -476,7 +476,6 @@ export const userGroupMemberships = pgTable("user_group_memberships", {
 
 // Validation schemas for user groups
 export const insertUserGroupSchema = createInsertSchema(userGroups);
-export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships);
 
 // Departments table
 export const departments = pgTable("departments", {
