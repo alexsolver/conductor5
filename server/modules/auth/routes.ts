@@ -9,6 +9,7 @@ import {
 import { authSecurityService } from "../../services/authSecurityService";
 import { tokenManager } from "../../utils/tokenManager";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 const authRouter = Router();
 const container = DependencyContainer.getInstance();
@@ -180,7 +181,46 @@ authRouter.post(
             userData.tenantId = randomUUID();
           }
 
-          // Ensure tenant schema exists and run migrations
+          console.log(`🏗️ [REGISTER] Creating tenant for workspace: ${userData.workspaceName}`);
+          console.log(`🏗️ [REGISTER] Tenant ID: ${userData.tenantId}`);
+
+          // First create the tenant record in the public database
+          const { db } = await import("../../db");
+          const { tenants } = await import("@shared/schema");
+
+          // Check if tenant already exists
+          const existingTenant = await db
+            .select()
+            .from(tenants)
+            .where(eq(tenants.id, userData.tenantId))
+            .limit(1);
+
+          let tenantRecord;
+          if (existingTenant.length === 0) {
+            // Create tenant record
+            [tenantRecord] = await db
+              .insert(tenants)
+              .values({
+                id: userData.tenantId,
+                name: userData.companyName,
+                subdomain: userData.workspaceName.toLowerCase().replace(/[^a-z0-9]/g, ''),
+                settings: {
+                  maxUsers: 50,
+                  maxTickets: 1000,
+                  features: ["tickets", "customers", "analytics"],
+                  theme: "default",
+                },
+                isActive: true,
+              })
+              .returning();
+
+            console.log(`✅ [REGISTER] Tenant record created: ${tenantRecord.id}`);
+          } else {
+            tenantRecord = existingTenant[0];
+            console.log(`ℹ️ [REGISTER] Using existing tenant: ${tenantRecord.id}`);
+          }
+
+          // Now ensure tenant schema exists and run migrations
           try {
             const { schemaManager } = await import("../../db");
             const { MigrationManager } = await import(
@@ -189,59 +229,43 @@ authRouter.post(
             const schemaName = `tenant_${userData.tenantId.replace(/-/g, "_")}`;
 
             console.log(`🏗️ [REGISTER] Creating tenant schema: ${schemaName}`);
-            console.log(`🏗️ [USER DATA ] ${JSON.stringify(userData)}`);
+            
             // Force schema creation
             await schemaManager.createTenantSchema(userData.tenantId);
 
             // Verify schema was created
             const { sql } = await import("drizzle-orm");
-            const { db } = await import("../../db");
-
             const schemaCheck = await db.execute(
               sql.raw(`
-            SELECT schema_name 
-            FROM information_schema.schemata 
-            WHERE schema_name = '${schemaName}'
-          `),
+                SELECT schema_name 
+                FROM information_schema.schemata 
+                WHERE schema_name = '${schemaName}'
+              `),
             );
 
             if (schemaCheck.rows && schemaCheck.rows.length > 0) {
               console.log(`✅ [REGISTER] Schema verified: ${schemaName}`);
 
               // Run tenant migrations automatically
-              console.log(
-                `🔧 [REGISTER] Starting tenant migrations for: ${userData.tenantId}`,
-              );
+              console.log(`🔧 [REGISTER] Starting tenant migrations for: ${userData.tenantId}`);
               const migrationManager = new MigrationManager();
 
               try {
                 await migrationManager.createMigrationTable();
                 await migrationManager.runTenantMigrations(userData.tenantId);
-                console.log(
-                  `✅ [REGISTER] Tenant migrations completed successfully for: ${userData.tenantId}`,
-                );
+                console.log(`✅ [REGISTER] Tenant migrations completed successfully for: ${userData.tenantId}`);
               } catch (migrationError) {
-                console.error(
-                  `❌ [REGISTER] Tenant migration failed for ${userData.tenantId}:`,
-                  migrationError,
-                );
-                throw new Error(
-                  `Failed to run tenant migrations: ${migrationError.message}`,
-                );
+                console.error(`❌ [REGISTER] Tenant migration failed for ${userData.tenantId}:`, migrationError);
+                throw new Error(`Failed to run tenant migrations: ${migrationError.message}`);
               } finally {
                 await migrationManager.close();
               }
             } else {
-              console.error(
-                `❌ [REGISTER] Schema not found after creation: ${schemaName}`,
-              );
+              console.error(`❌ [REGISTER] Schema not found after creation: ${schemaName}`);
               throw new Error(`Failed to create tenant schema: ${schemaName}`);
             }
           } catch (verifyError) {
-            console.error(
-              "❌ [REGISTER] Schema creation/migration failed:",
-              verifyError,
-            );
+            console.error("❌ [REGISTER] Schema creation/migration failed:", verifyError);
             return res.status(500).json({
               message: "Erro ao criar workspace. Tente novamente.",
             });
