@@ -353,6 +353,8 @@ export const schemaManager = {
       );
 
       // Initialize tables using storage-simple
+      /*
+      isso daqui morre, beleza, agora vai usar os arquivos sql e somente isso
       try {
         const { storageSimple } = await import("./storage-simple");
         await storageSimple.initializeTenantSchema(tenantId);
@@ -368,6 +370,7 @@ export const schemaManager = {
           `Failed to initialize tables for tenant schema: ${tableError.message}`,
         );
       }
+      */
 
       return true;
     } catch (error) {
