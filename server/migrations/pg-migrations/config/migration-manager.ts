@@ -109,6 +109,8 @@ export class MigrationManager {
 
   private async executeTenantMigration(filename: string, schemaName: string): Promise<void> {
     try {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
       const migrationPath = path.join(__dirname, '..', 'tenant', filename);
       let migrationSQL = fs.readFileSync(migrationPath, 'utf8');
 
