@@ -1,4 +1,3 @@
-
 -- Migration: Create tenant schema tables
 -- Description: Creates all business tables for tenant isolation
 
@@ -809,91 +808,91 @@ CREATE TABLE IF NOT EXISTS gdpr_audit_logs (
 );
 
 -- Add Foreign Key Constraints
-ALTER TABLE locations ADD CONSTRAINT fk_locations_parent 
+ALTER TABLE locations ADD CONSTRAINT fk_locations_parent
     FOREIGN KEY (parent_location_id) REFERENCES locations(id);
 
-ALTER TABLE tickets ADD CONSTRAINT fk_tickets_customer 
+ALTER TABLE tickets ADD CONSTRAINT fk_tickets_customer
     FOREIGN KEY (customer_id) REFERENCES customers(id);
 
-ALTER TABLE tickets ADD CONSTRAINT fk_tickets_company 
+ALTER TABLE tickets ADD CONSTRAINT fk_tickets_company
     FOREIGN KEY (company_id) REFERENCES companies(id);
 
-ALTER TABLE tickets ADD CONSTRAINT fk_tickets_location 
+ALTER TABLE tickets ADD CONSTRAINT fk_tickets_location
     FOREIGN KEY (location_id) REFERENCES locations(id);
 
-ALTER TABLE ticket_planned_items ADD CONSTRAINT fk_ticket_planned_ticket 
+ALTER TABLE ticket_planned_items ADD CONSTRAINT fk_ticket_planned_ticket
     FOREIGN KEY (ticket_id) REFERENCES tickets(id);
 
-ALTER TABLE ticket_planned_items ADD CONSTRAINT fk_ticket_planned_item 
+ALTER TABLE ticket_planned_items ADD CONSTRAINT fk_ticket_planned_item
     FOREIGN KEY (item_id) REFERENCES items(id);
 
-ALTER TABLE ticket_consumed_items ADD CONSTRAINT fk_ticket_consumed_ticket 
+ALTER TABLE ticket_consumed_items ADD CONSTRAINT fk_ticket_consumed_ticket
     FOREIGN KEY (ticket_id) REFERENCES tickets(id);
 
-ALTER TABLE ticket_consumed_items ADD CONSTRAINT fk_ticket_consumed_item 
+ALTER TABLE ticket_consumed_items ADD CONSTRAINT fk_ticket_consumed_item
     FOREIGN KEY (item_id) REFERENCES items(id);
 
-ALTER TABLE customer_item_mappings ADD CONSTRAINT fk_customer_item_customer 
+ALTER TABLE customer_item_mappings ADD CONSTRAINT fk_customer_item_customer
     FOREIGN KEY (customer_id) REFERENCES customers(id);
 
-ALTER TABLE customer_item_mappings ADD CONSTRAINT fk_customer_item_item 
+ALTER TABLE customer_item_mappings ADD CONSTRAINT fk_customer_item_item
     FOREIGN KEY (item_id) REFERENCES items(id);
 
-ALTER TABLE approval_instances ADD CONSTRAINT fk_approval_instances_rule 
+ALTER TABLE approval_instances ADD CONSTRAINT fk_approval_instances_rule
     FOREIGN KEY (rule_id) REFERENCES approval_rules(id);
 
-ALTER TABLE approval_decisions ADD CONSTRAINT fk_approval_decisions_instance 
+ALTER TABLE approval_decisions ADD CONSTRAINT fk_approval_decisions_instance
     FOREIGN KEY (instance_id) REFERENCES approval_instances(id);
 
-ALTER TABLE approval_steps ADD CONSTRAINT fk_approval_steps_rule 
+ALTER TABLE approval_steps ADD CONSTRAINT fk_approval_steps_rule
     FOREIGN KEY (rule_id) REFERENCES approval_rules(id);
 
-ALTER TABLE approval_conditions ADD CONSTRAINT fk_approval_conditions_rule 
+ALTER TABLE approval_conditions ADD CONSTRAINT fk_approval_conditions_rule
     FOREIGN KEY (rule_id) REFERENCES approval_rules(id);
 
-ALTER TABLE knowledge_base_article_versions ADD CONSTRAINT fk_kb_versions_article 
+ALTER TABLE knowledge_base_article_versions ADD CONSTRAINT fk_kb_versions_article
     FOREIGN KEY (article_id) REFERENCES knowledge_base_articles(id);
 
-ALTER TABLE knowledge_base_attachments ADD CONSTRAINT fk_kb_attachments_article 
+ALTER TABLE knowledge_base_attachments ADD CONSTRAINT fk_kb_attachments_article
     FOREIGN KEY (article_id) REFERENCES knowledge_base_articles(id);
 
-ALTER TABLE knowledge_base_ratings ADD CONSTRAINT fk_kb_ratings_article 
+ALTER TABLE knowledge_base_ratings ADD CONSTRAINT fk_kb_ratings_article
     FOREIGN KEY (article_id) REFERENCES knowledge_base_articles(id);
 
-ALTER TABLE knowledge_base_approvals ADD CONSTRAINT fk_kb_approvals_article 
+ALTER TABLE knowledge_base_approvals ADD CONSTRAINT fk_kb_approvals_article
     FOREIGN KEY (article_id) REFERENCES knowledge_base_articles(id);
 
-ALTER TABLE knowledge_base_comments ADD CONSTRAINT fk_kb_comments_article 
+ALTER TABLE knowledge_base_comments ADD CONSTRAINT fk_kb_comments_article
     FOREIGN KEY (article_id) REFERENCES knowledge_base_articles(id);
 
-ALTER TABLE knowledge_base_comments ADD CONSTRAINT fk_kb_comments_parent 
+ALTER TABLE knowledge_base_comments ADD CONSTRAINT fk_kb_comments_parent
     FOREIGN KEY (parent_comment_id) REFERENCES knowledge_base_comments(id);
 
-ALTER TABLE user_notification_preferences ADD CONSTRAINT fk_user_notification_prefs_user 
+ALTER TABLE user_notification_preferences ADD CONSTRAINT fk_user_notification_prefs_user
     FOREIGN KEY (user_id) REFERENCES public.users(id);
 
-ALTER TABLE dashboard_widgets ADD CONSTRAINT fk_dashboard_widgets_dashboard 
+ALTER TABLE dashboard_widgets ADD CONSTRAINT fk_dashboard_widgets_dashboard
     FOREIGN KEY (dashboard_id) REFERENCES dashboards(id);
 
-ALTER TABLE stock_locations ADD CONSTRAINT fk_stock_locations_parent 
+ALTER TABLE stock_locations ADD CONSTRAINT fk_stock_locations_parent
     FOREIGN KEY (parent_location_id) REFERENCES stock_locations(id);
 
-ALTER TABLE stock_levels ADD CONSTRAINT fk_stock_levels_item 
+ALTER TABLE stock_levels ADD CONSTRAINT fk_stock_levels_item
     FOREIGN KEY (item_id) REFERENCES items(id);
 
-ALTER TABLE stock_levels ADD CONSTRAINT fk_stock_levels_location 
+ALTER TABLE stock_levels ADD CONSTRAINT fk_stock_levels_location
     FOREIGN KEY (location_id) REFERENCES stock_locations(id);
 
-ALTER TABLE stock_movements ADD CONSTRAINT fk_stock_movements_item 
+ALTER TABLE stock_movements ADD CONSTRAINT fk_stock_movements_item
     FOREIGN KEY (item_id) REFERENCES items(id);
 
-ALTER TABLE stock_movements ADD CONSTRAINT fk_stock_movements_location 
+ALTER TABLE stock_movements ADD CONSTRAINT fk_stock_movements_location
     FOREIGN KEY (location_id) REFERENCES stock_locations(id);
 
-ALTER TABLE price_list_items ADD CONSTRAINT fk_price_list_items_list 
+ALTER TABLE price_list_items ADD CONSTRAINT fk_price_list_items_list
     FOREIGN KEY (price_list_id) REFERENCES price_lists(id);
 
-ALTER TABLE price_list_items ADD CONSTRAINT fk_price_list_items_item 
+ALTER TABLE price_list_items ADD CONSTRAINT fk_price_list_items_item
     FOREIGN KEY (item_id) REFERENCES items(id);
 
 -- Create Indexes for Performance
