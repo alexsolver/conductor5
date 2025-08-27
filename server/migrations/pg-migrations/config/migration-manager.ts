@@ -1,4 +1,3 @@
-
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
@@ -23,67 +22,108 @@ export class MigrationManager {
   }
 
   async runPublicMigrations() {
-    console.log('🔄 Running public schema migrations...');
-    
+    console.log('🔄 [MIGRATION-MANAGER] Running public migrations...');
+
     try {
-      const publicMigrationsPath = path.join(__dirname, '../public');
-      const migrationFiles = await fs.readdir(publicMigrationsPath);
-      
-      // Sort migration files
-      const sqlFiles = migrationFiles
+      const publicMigrationsPath = path.join(__dirname, '..', 'public');
+      const migrationFiles = fs.readdirSync(publicMigrationsPath)
         .filter(file => file.endsWith('.sql'))
         .sort();
 
-      for (const file of sqlFiles) {
-        console.log(`📄 Executing migration: ${file}`);
-        const filePath = path.join(publicMigrationsPath, file);
-        const sql = await fs.readFile(filePath, 'utf-8');
-        
-        await this.pool.query(sql);
-        console.log(`✅ Migration ${file} executed successfully`);
+      for (const file of migrationFiles) {
+        const migrationName = file.replace('.sql', '');
+
+        // Check if migration already executed
+        const existing = await this.pool.query(
+          'SELECT id FROM pg_migrations WHERE name = $1',
+          [migrationName]
+        );
+
+        if (existing.rows.length === 0) {
+          console.log(`📝 [MIGRATION-MANAGER] Running migration: ${migrationName}`);
+
+          const migrationSQL = fs.readFileSync(
+            path.join(publicMigrationsPath, file),
+            'utf-8'
+          );
+
+          await this.pool.query(migrationSQL);
+
+          await this.pool.query(
+            'INSERT INTO pg_migrations (name, executed_at) VALUES ($1, $2)',
+            [migrationName, new Date()]
+          );
+
+          console.log(`✅ [MIGRATION-MANAGER] Completed migration: ${migrationName}`);
+        } else {
+          console.log(`⏭️ [MIGRATION-MANAGER] Skipping migration: ${migrationName} (already executed)`);
+        }
       }
 
-      console.log('✅ All public migrations completed successfully');
-      return true;
+      console.log('✅ [MIGRATION-MANAGER] Public migrations completed');
     } catch (error) {
-      console.error('❌ Public migration error:', error);
+      console.error('❌ [MIGRATION-MANAGER] Public migration error:', error);
       throw error;
     }
   }
 
   async runTenantMigrations(tenantId: string) {
-    console.log(`🔄 Running tenant migrations for: ${tenantId}`);
-    
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    console.log(`🔄 [MIGRATION-MANAGER] Running tenant migrations for schema: ${schemaName}`);
+
     try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      // Create tenant schema if it doesn't exist
+      // Create schema if not exists
       await this.pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
-      
-      const tenantMigrationsPath = path.join(__dirname, '../tenant');
-      const migrationFiles = await fs.readdir(tenantMigrationsPath);
-      
-      // Sort migration files
-      const sqlFiles = migrationFiles
+
+      // Set search path to tenant schema
+      await this.pool.query(`SET search_path TO "${schemaName}", public`);
+
+      const tenantMigrationsPath = path.join(__dirname, '..', 'tenant');
+      const migrationFiles = fs.readdirSync(tenantMigrationsPath)
         .filter(file => file.endsWith('.sql'))
         .sort();
 
-      for (const file of sqlFiles) {
-        console.log(`📄 Executing tenant migration: ${file} for schema: ${schemaName}`);
-        const filePath = path.join(tenantMigrationsPath, file);
-        let sql = await fs.readFile(filePath, 'utf-8');
-        
-        // Replace placeholder schema name
-        sql = sql.replace(/\{TENANT_SCHEMA\}/g, schemaName);
-        
-        await this.pool.query(sql);
-        console.log(`✅ Tenant migration ${file} executed successfully for ${schemaName}`);
+      for (const file of migrationFiles) {
+        const migrationName = `${schemaName}_${file.replace('.sql', '')}`;
+
+        // Check if migration already executed
+        const existing = await this.pool.query(
+          'SELECT id FROM public.pg_migrations WHERE name = $1',
+          [migrationName]
+        );
+
+        if (existing.rows.length === 0) {
+          console.log(`📝 [MIGRATION-MANAGER] Running tenant migration: ${migrationName}`);
+
+          let migrationSQL = fs.readFileSync(
+            path.join(tenantMigrationsPath, file),
+            'utf-8'
+          );
+
+          // Replace table names to include schema prefix where needed
+          migrationSQL = migrationSQL.replace(/public\.users/g, 'public.users');
+
+          await this.pool.query(migrationSQL);
+
+          await this.pool.query(
+            'INSERT INTO public.pg_migrations (name, executed_at) VALUES ($1, $2)',
+            [migrationName, new Date()]
+          );
+
+          console.log(`✅ [MIGRATION-MANAGER] Completed tenant migration: ${migrationName}`);
+        } else {
+          console.log(`⏭️ [MIGRATION-MANAGER] Skipping tenant migration: ${migrationName} (already executed)`);
+        }
       }
 
-      console.log(`✅ All tenant migrations completed successfully for: ${tenantId}`);
-      return true;
+      // Reset search path
+      await this.pool.query('SET search_path TO public');
+
+      console.log(`✅ [MIGRATION-MANAGER] Tenant migrations completed for: ${schemaName}`);
     } catch (error) {
-      console.error(`❌ Tenant migration error for ${tenantId}:`, error);
+      console.error(`❌ [MIGRATION-MANAGER] Tenant migration error for ${schemaName}:`, error);
+      // Reset search path on error
+      await this.pool.query('SET search_path TO public');
       throw error;
     }
   }
@@ -96,7 +136,7 @@ export class MigrationManager {
         executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
-    
+
     await this.pool.query(createMigrationTableSQL);
   }
 
@@ -108,7 +148,7 @@ export class MigrationManager {
 // CLI runner
 if (require.main === module) {
   const migrationManager = new MigrationManager();
-  
+
   const command = process.argv[2];
   const tenantId = process.argv[3];
 

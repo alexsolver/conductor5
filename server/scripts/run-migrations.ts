@@ -1,4 +1,3 @@
-
 #!/usr/bin/env tsx
 
 import { MigrationManager } from '../migrations/pg-migrations/config/migration-manager';

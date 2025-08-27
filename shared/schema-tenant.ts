@@ -16,15 +16,37 @@ import {
   unique,
   time,
   bigint,
-  serial, // Import serial for nsr
-  pgEnum, // Import pgEnum for approval enums
+  serial,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
 
-// Import public schema for references (commented out to avoid circular deps)
-// import { tenants, users } from "./schema-public";
+// ========================================
+// ENUMS DEFINITION
+// ========================================
+
+export const customerTypeEnum = pgEnum("customer_type_enum", ["PF", "PJ"]);
+export const ticketStatusEnum = pgEnum("ticket_status_enum", ["open", "in_progress", "resolved", "closed", "cancelled"]);
+export const ticketPriorityEnum = pgEnum("ticket_priority_enum", ["low", "medium", "high", "urgent"]);
+export const itemTypeEnum = pgEnum("item_type_enum", ["material", "service", "tool", "equipment"]);
+export const measurementUnitEnum = pgEnum("measurement_unit_enum", ["unit", "meter", "kilogram", "liter", "hour", "day", "piece"]);
+export const locationTypeEnum = pgEnum("location_type_enum", ["warehouse", "office", "field", "customer_site", "other"]);
+export const approvalEntityTypeEnum = pgEnum("approval_entity_type_enum", ["ticket", "purchase", "expense", "contract", "custom"]);
+export const approverTypeEnum = pgEnum("approver_type_enum", ["user", "role", "group", "custom"]);
+export const queryOperatorEnum = pgEnum("query_operator_enum", ["equals", "not_equals", "greater_than", "less_than", "contains", "starts_with", "ends_with", "in", "not_in"]);
+export const knowledgeBaseCategoryEnum = pgEnum("knowledge_base_category_enum", ["general", "technical", "troubleshooting", "procedures", "policies", "faq"]);
+export const knowledgeBaseStatusEnum = pgEnum("knowledge_base_status_enum", ["draft", "review", "published", "archived"]);
+export const knowledgeBaseVisibilityEnum = pgEnum("knowledge_base_visibility_enum", ["public", "internal", "restricted"]);
+export const knowledgeBaseApprovalStatusEnum = pgEnum("knowledge_base_approval_status_enum", ["pending", "approved", "rejected", "needs_review"]);
+export const notificationTypeEnum = pgEnum("notification_type_enum", ["info", "warning", "error", "success", "reminder"]);
+export const notificationPriorityEnum = pgEnum("notification_priority_enum", ["low", "normal", "high", "urgent"]);
+export const notificationChannelEnum = pgEnum("notification_channel_enum", ["email", "sms", "push", "in_app"]);
+export const notificationStatusEnum = pgEnum("notification_status_enum", ["pending", "sent", "delivered", "failed", "cancelled"]);
+export const movementTypeEnum = pgEnum("movement_type_enum", ["in", "out", "transfer", "adjustment", "return"]);
+export const gdprRequestTypeEnum = pgEnum("gdpr_request_type_enum", ["access", "rectification", "erasure", "portability", "restriction"]);
+export const gdprStatusEnum = pgEnum("gdpr_status_enum", ["pending", "processing", "completed", "rejected"]);
 
 // ========================================
 // TENANT BUSINESS TABLES (Static definitions)
@@ -40,21 +62,27 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }),
   mobilePhone: varchar("mobile_phone", { length: 20 }),
-  customerType: varchar("customer_type", { length: 10 }).default("PF").notNull(),
+  customerType: customerTypeEnum("customer_type").default("PF"),
   cpf: varchar("cpf", { length: 14 }),
   cnpj: varchar("cnpj", { length: 18 }),
   companyName: varchar("company_name", { length: 255 }),
   contactPerson: varchar("contact_person", { length: 255 }),
-  state: varchar("state", { length: 2 }),
-  address: text("address"),
+  addressStreet: varchar("address_street", { length: 255 }),
   addressNumber: varchar("address_number", { length: 20 }),
-  complement: varchar("complement", { length: 100 }),
-  neighborhood: varchar("neighborhood", { length: 100 }),
-  city: varchar("city", { length: 100 }),
-  zipCode: varchar("zip_code", { length: 10 }),
+  addressComplement: varchar("address_complement", { length: 100 }),
+  addressNeighborhood: varchar("address_neighborhood", { length: 100 }),
+  addressCity: varchar("address_city", { length: 100 }),
+  addressState: varchar("address_state", { length: 2 }),
+  addressZipCode: varchar("address_zip_code", { length: 10 }),
+  addressCountry: varchar("address_country", { length: 100 }).default("Brasil"),
   isActive: boolean("is_active").default(true).notNull(),
+  verified: boolean("verified").default(false),
+  tags: jsonb("tags").default([]),
+  metadata: jsonb("metadata").default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdById: uuid("created_by_id"),
+  updatedById: uuid("updated_by_id"),
 }, (table) => ({
   uniqueTenantEmail: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
   tenantEmailIdx: index("customers_tenant_email_idx").on(table.tenantId, table.email),
@@ -67,26 +95,268 @@ export const companies = pgTable("companies", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  displayName: varchar("display_name", { length: 255 }),
-  description: text("description"),
+  cnpj: varchar("cnpj", { length: 18 }),
   email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 50 }),
-  address: text("address"),
-  taxId: varchar("tax_id", { length: 50 }),
-  registrationNumber: varchar("registration_number", { length: 50 }),
-  size: varchar("size", { length: 50 }),
-  subscriptionTier: varchar("subscription_tier", { length: 50 }),
-  status: varchar("status", { length: 50 }).default("active"),
+
+// Items table
+export const items = pgTable("items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  code: varchar("code", { length: 50 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  type: itemTypeEnum("type").default("material"),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  unitOfMeasurement: measurementUnitEnum("unit_of_measurement").default("unit"),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  stockQuantity: decimal("stock_quantity", { precision: 10, scale: 2 }),
+  minimumStock: decimal("minimum_stock", { precision: 10, scale: 2 }),
+  maximumStock: decimal("maximum_stock", { precision: 10, scale: 2 }),
+  supplierId: uuid("supplier_id"),
+  brand: varchar("brand", { length: 100 }),
+  model: varchar("model", { length: 100 }),
+  specifications: jsonb("specifications").default({}),
   isActive: boolean("is_active").default(true),
-  createdBy: varchar("created_by", { length: 255 }),
-  updatedBy: varchar("updated_by", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  metadata: jsonb("metadata").default({}),
+}, (table) => [
+  index("items_tenant_id_idx").on(table.tenantId),
+  index("items_tenant_code_idx").on(table.tenantId, table.code),
+  index("items_tenant_active_idx").on(table.tenantId, table.isActive),
+  unique("items_tenant_code_unique").on(table.tenantId, table.code),
+]);
+
+// Tickets table
+export const tickets = pgTable("tickets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketNumber: varchar("ticket_number", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: ticketStatusEnum("status").default("open"),
+  priority: ticketPriorityEnum("priority").default("medium"),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  customerId: uuid("customer_id"),
+  assignedTo: uuid("assigned_to"),
+  companyId: uuid("company_id"),
+  locationId: uuid("location_id"),
+  estimatedHours: decimal("estimated_hours", { precision: 5, scale: 2 }),
+  actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
+  dueDate: timestamp("due_date"),
+  resolutionDate: timestamp("resolution_date"),
+  satisfactionRating: integer("satisfaction_rating"),
+  satisfactionComment: text("satisfaction_comment"),
+  tags: jsonb("tags").default([]),
+  customFields: jsonb("custom_fields").default({}),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id"),
+  updatedById: uuid("updated_by_id"),
+  templateName: varchar("template_name", { length: 255 }),
+  templateAlternative: varchar("template_alternative", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("tickets_tenant_id_idx").on(table.tenantId),
+  index("tickets_tenant_status_idx").on(table.tenantId, table.status),
+  index("tickets_tenant_priority_idx").on(table.tenantId, table.priority),
+  index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedTo),
+  index("tickets_tenant_active_idx").on(table.tenantId, table.isActive),
+  unique("tickets_tenant_number_unique").on(table.tenantId, table.ticketNumber),
+]);
+
+// Locations table
+export const locations = pgTable("locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: locationTypeEnum("type").default("office"),
+  code: varchar("code", { length: 50 }),
+  description: text("description"),
+  addressStreet: varchar("address_street", { length: 255 }),
+  addressNumber: varchar("address_number", { length: 20 }),
+  addressComplement: varchar("address_complement", { length: 100 }),
+  addressNeighborhood: varchar("address_neighborhood", { length: 100 }),
+  addressCity: varchar("address_city", { length: 100 }),
+  addressState: varchar("address_state", { length: 2 }),
+  addressZipCode: varchar("address_zip_code", { length: 10 }),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
+  parentLocationId: uuid("parent_location_id"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  metadata: jsonb("metadata").default({}),
+}, (table) => [
+  index("locations_tenant_id_idx").on(table.tenantId),
+  index("locations_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// User Groups table
+export const userGroups = pgTable("user_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  permissions: jsonb("permissions").default({}),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
+  index("user_groups_tenant_id_idx").on(table.tenantId),
+  index("user_groups_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Activity Logs table
+export const activityLogs = pgTable("activity_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id"),
+  action: varchar("action", { length: 100 }).notNull(),
+  entityType: varchar("entity_type", { length: 50 }).notNull(),
+  entityId: uuid("entity_id").notNull(),
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+  metadata: jsonb("metadata").default({}),
+}, (table) => [
+  index("activity_logs_tenant_id_idx").on(table.tenantId),
+  index("activity_logs_tenant_user_idx").on(table.tenantId, table.userId),
+  index("activity_logs_tenant_entity_idx").on(table.tenantId, table.entityType, table.entityId),
+]);
+
+// Knowledge Base Articles table
+export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  title: varchar("title", { length: 500 }).notNull(),
+  content: text("content"),
+  excerpt: text("excerpt"),
+  authorId: uuid("author_id"),
+  category: knowledgeBaseCategoryEnum("category").default("general"),
+  status: knowledgeBaseStatusEnum("status").default("draft"),
+  visibility: knowledgeBaseVisibilityEnum("visibility").default("internal"),
+  approvalStatus: knowledgeBaseApprovalStatusEnum("approval_status").default("pending"),
+  tags: jsonb("tags").default([]),
+  viewCount: integer("view_count").default(0),
+  helpfulCount: integer("helpful_count").default(0),
+  notHelpfulCount: integer("not_helpful_count").default(0),
+  featured: boolean("featured").default(false),
+  seoTitle: varchar("seo_title", { length: 255 }),
+  seoDescription: varchar("seo_description", { length: 500 }),
+  slug: varchar("slug", { length: 500 }),
+  publishedAt: timestamp("published_at"),
+  archivedAt: timestamp("archived_at"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("knowledge_base_articles_tenant_id_idx").on(table.tenantId),
+  index("knowledge_base_articles_tenant_status_idx").on(table.tenantId, table.status),
+  index("knowledge_base_articles_tenant_category_idx").on(table.tenantId, table.category),
+  unique("knowledge_base_articles_tenant_slug_unique").on(table.tenantId, table.slug),
+]);
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id"),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message"),
+  type: notificationTypeEnum("type").default("info"),
+  priority: notificationPriorityEnum("priority").default("normal"),
+  channel: notificationChannelEnum("channel").default("in_app"),
+  status: notificationStatusEnum("status").default("pending"),
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  readAt: timestamp("read_at"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("notifications_tenant_id_idx").on(table.tenantId),
+  index("notifications_tenant_user_idx").on(table.tenantId, table.userId),
+  index("notifications_tenant_status_idx").on(table.tenantId, table.status),
+]);
+
+// Reports table
+export const reports = pgTable("reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  queryDefinition: jsonb("query_definition").default({}),
+  visualizationConfig: jsonb("visualization_config").default({}),
+  parameters: jsonb("parameters").default({}),
+  schedule: jsonb("schedule"),
+  isPublic: boolean("is_public").default(false),
+  createdById: uuid("created_by_id"),
+  updatedById: uuid("updated_by_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("reports_tenant_id_idx").on(table.tenantId),
+]);
+
+// Dashboards table
+export const dashboards = pgTable("dashboards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  layoutConfig: jsonb("layout_config").default({}),
+  widgets: jsonb("widgets").default([]),
+  permissions: jsonb("permissions").default({}),
+  isPublic: boolean("is_public").default(false),
+  createdById: uuid("created_by_id"),
+  updatedById: uuid("updated_by_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("dashboards_tenant_id_idx").on(table.tenantId),
+]);
+
+// GDPR Data Requests table
+export const gdprDataRequests = pgTable("gdpr_data_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  requestType: gdprRequestTypeEnum("request_type").notNull(),
+  subjectEmail: varchar("subject_email", { length: 255 }).notNull(),
+  subjectName: varchar("subject_name", { length: 255 }),
+  description: text("description"),
+  status: gdprStatusEnum("status").default("pending"),
+  requestedAt: timestamp("requested_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+  processedById: uuid("processed_by_id"),
+  responseData: jsonb("response_data"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("gdpr_data_requests_tenant_id_idx").on(table.tenantId),
+]);
+
+  phone: varchar("phone", { length: 20 }),
+  addressStreet: varchar("address_street", { length: 255 }),
+  addressNumber: varchar("address_number", { length: 20 }),
+  addressComplement: varchar("address_complement", { length: 100 }),
+  addressNeighborhood: varchar("address_neighborhood", { length: 100 }),
+  addressCity: varchar("address_city", { length: 100 }),
+  addressState: varchar("address_state", { length: 2 }),
+  addressZipCode: varchar("address_zip_code", { length: 10 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  metadata: jsonb("metadata").default({}),
+}, (table) => [
   index("companies_tenant_name_idx").on(table.tenantId, table.name),
-  index("companies_tenant_status_idx").on(table.tenantId, table.status),
-  index("companies_tenant_tier_idx").on(table.tenantId, table.subscriptionTier),
-  index("companies_tenant_size_idx").on(table.tenantId, table.size),
+  index("companies_tenant_active_idx").on(table.tenantId, table.isActive),
 ]);
 
 // Beneficiaries table
@@ -127,6 +397,56 @@ export const beneficiaries = pgTable("beneficiaries", {
 }));
 
 // Tickets table - Complete with all fields
+
+// ========================================
+// ZOD VALIDATION SCHEMAS
+// ========================================
+
+export const insertCustomerSchema = createInsertSchema(customers);
+export const insertCompanySchema = createInsertSchema(companies);
+export const insertBeneficiarySchema = createInsertSchema(beneficiaries);
+export const insertTicketSchema = createInsertSchema(tickets);
+export const insertItemSchema = createInsertSchema(items);
+export const insertLocationSchema = createInsertSchema(locations);
+export const insertUserGroupSchema = createInsertSchema(userGroups);
+export const insertActivityLogSchema = createInsertSchema(activityLogs);
+export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBaseArticles);
+export const insertNotificationSchema = createInsertSchema(notifications);
+export const insertReportSchema = createInsertSchema(reports);
+export const insertDashboardSchema = createInsertSchema(dashboards);
+export const insertGdprDataRequestSchema = createInsertSchema(gdprDataRequests);
+
+// ========================================
+// TYPES EXPORT
+// ========================================
+
+export type Customer = typeof customers.$inferSelect;
+export type NewCustomer = typeof customers.$inferInsert;
+export type Company = typeof companies.$inferSelect;
+export type NewCompany = typeof companies.$inferInsert;
+export type Beneficiary = typeof beneficiaries.$inferSelect;
+export type NewBeneficiary = typeof beneficiaries.$inferInsert;
+export type Ticket = typeof tickets.$inferSelect;
+export type NewTicket = typeof tickets.$inferInsert;
+export type Item = typeof items.$inferSelect;
+export type NewItem = typeof items.$inferInsert;
+export type Location = typeof locations.$inferSelect;
+export type NewLocation = typeof locations.$inferInsert;
+export type UserGroup = typeof userGroups.$inferSelect;
+export type NewUserGroup = typeof userGroups.$inferInsert;
+export type ActivityLog = typeof activityLogs.$inferSelect;
+export type NewActivityLog = typeof activityLogs.$inferInsert;
+export type KnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferSelect;
+export type NewKnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+export type Report = typeof reports.$inferSelect;
+export type NewReport = typeof reports.$inferInsert;
+export type Dashboard = typeof dashboards.$inferSelect;
+export type NewDashboard = typeof dashboards.$inferInsert;
+export type GdprDataRequest = typeof gdprDataRequests.$inferSelect;
+export type NewGdprDataRequest = typeof gdprDataRequests.$inferInsert;
+
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: varchar("tenant_id", { length: 36 }).notNull(),

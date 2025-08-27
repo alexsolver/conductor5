@@ -1,3 +1,4 @@
+
 import { defineConfig } from "drizzle-kit";
 
 if (!process.env.DATABASE_URL) {
@@ -6,11 +7,12 @@ if (!process.env.DATABASE_URL) {
 
 export default defineConfig({
   out: "./server/migrations/pg-migrations/drizzle",
-  schema: "./shared/schema.ts",
+  schema: ["./shared/schema.ts", "./shared/schema-tenant.ts"],
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL,
   },
   verbose: true,
   strict: true,
+  schemaFilter: ["public", "tenant_*"],
 });
