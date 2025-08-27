@@ -174,6 +174,12 @@ authRouter.post(
       // If company name and workspace are provided, create tenant first
       if (userData.companyName && userData.workspaceName) {
         try {
+          // Generate tenantId if not provided
+          if (!userData.tenantId) {
+            const { randomUUID } = await import("crypto");
+            userData.tenantId = randomUUID();
+          }
+
           // Ensure tenant schema exists and run migrations
           try {
             const { schemaManager } = await import("../../db");
