@@ -193,7 +193,7 @@ CREATE TABLE IF NOT EXISTS beneficiaries (
     metadata JSONB DEFAULT '{}'
 );
 
--- Create locations table
+-- Create locations table WITHOUT parent_location_id initially
 CREATE TABLE IF NOT EXISTS locations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
@@ -210,12 +210,28 @@ CREATE TABLE IF NOT EXISTS locations (
     address_zip_code VARCHAR(10),
     latitude DECIMAL(10, 7),
     longitude DECIMAL(10, 7),
-    parent_location_id UUID,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     metadata JSONB DEFAULT '{}'
 );
+
+-- Add parent_location_id column AFTER table is created
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS parent_location_id UUID;
+
+-- Add foreign key constraint for parent_location_id
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'fk_locations_parent' 
+        AND table_name = 'locations'
+    ) THEN
+        ALTER TABLE locations 
+        ADD CONSTRAINT fk_locations_parent 
+        FOREIGN KEY (parent_location_id) REFERENCES locations(id);
+    END IF;
+END $$;
 
 -- Create items table
 CREATE TABLE IF NOT EXISTS items (
@@ -808,9 +824,6 @@ CREATE TABLE IF NOT EXISTS gdpr_audit_logs (
 );
 
 -- Add Foreign Key Constraints
-ALTER TABLE locations ADD CONSTRAINT fk_locations_parent
-    FOREIGN KEY (parent_location_id) REFERENCES locations(id);
-
 ALTER TABLE tickets ADD CONSTRAINT fk_tickets_customer
     FOREIGN KEY (customer_id) REFERENCES customers(id);
 

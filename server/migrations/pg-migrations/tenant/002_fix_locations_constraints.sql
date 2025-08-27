@@ -1,26 +1,8 @@
-
--- Fix missing parent_location_id foreign key constraint for existing tenants
+-- This migration is no longer needed as the constraint is properly handled in 001_create_tenant_tables.sql
+-- Keeping this file to maintain migration history but making it a no-op
 
 DO $$
 BEGIN
-    -- Check if parent_location_id column exists without foreign key constraint
-    IF EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'locations' 
-        AND column_name = 'parent_location_id'
-        AND table_schema = current_schema()
-    ) AND NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints tc
-        JOIN information_schema.key_column_usage kcu 
-        ON tc.constraint_name = kcu.constraint_name
-        WHERE tc.table_name = 'locations' 
-        AND kcu.column_name = 'parent_location_id'
-        AND tc.constraint_type = 'FOREIGN KEY'
-        AND tc.table_schema = current_schema()
-    ) THEN
-        -- Add the foreign key constraint
-        ALTER TABLE locations 
-        ADD CONSTRAINT fk_locations_parent 
-        FOREIGN KEY (parent_location_id) REFERENCES locations(id);
-    END IF;
+    -- No operation needed - constraint is properly handled in main migration
+    NULL;
 END $$;
