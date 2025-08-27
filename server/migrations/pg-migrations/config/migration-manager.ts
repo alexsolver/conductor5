@@ -1,8 +1,10 @@
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from 'fs';
 import path from 'path';
-import fs from 'fs/promises';
 
 export class MigrationManager {
   private pool: Pool;
@@ -25,6 +27,8 @@ export class MigrationManager {
     console.log('🔄 [MIGRATION-MANAGER] Running public migrations...');
 
     try {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
       const publicMigrationsPath = path.join(__dirname, '..', 'public');
       const migrationFiles = fs.readdirSync(publicMigrationsPath)
         .filter(file => file.endsWith('.sql'))
@@ -78,6 +82,8 @@ export class MigrationManager {
       // Set search path to tenant schema
       await this.pool.query(`SET search_path TO "${schemaName}", public`);
 
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
       const tenantMigrationsPath = path.join(__dirname, '..', 'tenant');
       const migrationFiles = fs.readdirSync(tenantMigrationsPath)
         .filter(file => file.endsWith('.sql'))
@@ -146,7 +152,7 @@ export class MigrationManager {
 }
 
 // CLI runner
-if (require.main === module) {
+if (import.meta.url.startsWith('file://') && process.argv[1] === fileURLToPath(import.meta.url)) {
   const migrationManager = new MigrationManager();
 
   const command = process.argv[2];

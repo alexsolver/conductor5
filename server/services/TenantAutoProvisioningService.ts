@@ -101,8 +101,8 @@ class TenantAutoProvisioningService {
         
         // Run tenant migrations automatically
         console.log(`🔧 [TENANT-PROVISIONING] Starting tenant migrations for: ${savedTenant.id}`);
-        const { MigrationManager } = await import('../migrations/pg-migrations/config/migration-manager');
-        const migrationManager = new MigrationManager();
+        const migrationModule = await import('../migrations/pg-migrations/config/migration-manager.js');
+        const migrationManager = new migrationModule.MigrationManager();
         
         try {
           await migrationManager.createMigrationTable();
