@@ -1,136 +1,83 @@
-
 const fs = require("fs");
 const { Client } = require("pg");
 
-// Função simples para parsear CREATE TABLE do SQL
-function parseCreateTable(sql) {
-  const schemaMap = {};
-  
-  // Remove comentários
-  const cleanSql = sql.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-  
-  // Regex para encontrar CREATE TABLE
-  const tableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["`]?(\w+)["`]?\s*\(\s*([\s\S]*?)\s*\);/gi;
-  
-  let match;
-  while ((match = tableRegex.exec(cleanSql)) !== null) {
-    const tableName = match[1];
-    const columnsSection = match[2];
-    
-    schemaMap[tableName] = {};
-    
-    // Parse colunas - regex simplificada
-    const columnLines = columnsSection.split(',').map(line => line.trim());
-    
-    for (const line of columnLines) {
-      // Pula constraints e outras linhas que não são colunas
-      if (line.toUpperCase().includes('CONSTRAINT') || 
-          line.toUpperCase().includes('PRIMARY KEY') ||
-          line.toUpperCase().includes('FOREIGN KEY') ||
-          line.toUpperCase().includes('UNIQUE') ||
-          line.toUpperCase().includes('CHECK') ||
-          line.trim() === '') {
-        continue;
-      }
-      
-      // Extrai nome da coluna e tipo
-      const columnMatch = line.match(/^["`]?(\w+)["`]?\s+(\w+(?:\([^)]*\))?)/);
-      if (columnMatch) {
-        const columnName = columnMatch[1];
-        let columnDef = columnMatch[2];
-        
-        // Adiciona NOT NULL se presente
-        if (line.toUpperCase().includes('NOT NULL')) {
-          columnDef += ' NOT NULL';
-        }
-        
-        // Adiciona DEFAULT se presente
-        const defaultMatch = line.match(/DEFAULT\s+([^,\s]+(?:\([^)]*\))?)/i);
-        if (defaultMatch) {
-          columnDef += ` DEFAULT ${defaultMatch[1]}`;
-        }
-        
-        schemaMap[tableName][columnName] = columnDef;
-      }
-    }
+console.log("🔧 [GENERATE-SQL-ALTERAR] Iniciando script simples...");
+
+// Verificar se o arquivo existe
+const schemaFile = "./migrations/pg-migrations/tenant/001_create_tenant_tables.sql";
+
+if (!fs.existsSync(schemaFile)) {
+  console.error("❌ Arquivo não encontrado:", schemaFile);
+  console.log("📁 Conteúdo do diretório migrations:");
+  try {
+    const files = fs.readdirSync("./migrations/pg-migrations/tenant/");
+    console.log(files);
+  } catch (err) {
+    console.error("Erro ao listar diretório:", err.message);
   }
-  
-  return schemaMap;
-}
-
-// ==============================
-// 1. Ler e parsear o arquivo SQL
-// ==============================
-console.log("🔧 [GENERATE-SQL-ALTERAR] Iniciando script...");
-
-let sql;
-try {
-  sql = fs.readFileSync("./migrations/pg-migrations/tenant/001_create_tenant_tables.sql", "utf8");
-  console.log("✅ [GENERATE-SQL-ALTERAR] Arquivo SQL lido com sucesso");
-} catch (error) {
-  console.error("❌ [GENERATE-SQL-ALTERAR] Erro ao ler arquivo SQL:", error.message);
   process.exit(1);
 }
 
-const schemaMap = parseCreateTable(sql);
-console.log("✅ [GENERATE-SQL-ALTERAR] Schema parseado:", Object.keys(schemaMap));
+console.log("✅ Arquivo encontrado:", schemaFile);
 
-// ==============================
-// 2. Conectar no banco
-// ==============================
+// Ler arquivo
+let sql;
+try {
+  sql = fs.readFileSync(schemaFile, "utf8");
+  console.log("✅ Arquivo lido com sucesso");
+  console.log("📄 Primeiras 200 chars:", sql.substring(0, 200));
+} catch (error) {
+  console.error("❌ Erro ao ler arquivo:", error.message);
+  process.exit(1);
+}
+
+// Parser simples para extrair CREATE TABLE
+function extractTables(sqlContent) {
+  const tables = {};
+
+  // Regex para encontrar CREATE TABLE
+  const tableMatches = sqlContent.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)\s*\(([\s\S]*?)\);/gi);
+
+  if (!tableMatches) {
+    console.log("⚠️ Nenhuma tabela CREATE TABLE encontrada");
+    return tables;
+  }
+
+  console.log(`📊 Encontradas ${tableMatches.length} tabelas`);
+
+  tableMatches.forEach(match => {
+    const nameMatch = match.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)/i);
+    if (nameMatch) {
+      const tableName = nameMatch[1];
+      tables[tableName] = { found: true };
+      console.log(`🔍 Tabela encontrada: ${tableName}`);
+    }
+  });
+
+  return tables;
+}
+
+const schemaMap = extractTables(sql);
+console.log("✅ Schema parseado:", Object.keys(schemaMap));
+
+// Conectar no banco se houver variável de ambiente
+if (!process.env.DATABASE_URL) {
+  console.log("⚠️ DATABASE_URL não configurada, apenas validando arquivo");
+  console.log("🎉 Validação do arquivo SQL concluída com sucesso!");
+  process.exit(0);
+}
+
+// Se chegou aqui, tenta conectar no banco
 const client = new Client({ 
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-async function syncSchema(schemaName) {
-  console.log(`\n🔹 Processando schema: ${schemaName}`);
-  
-  for (const [table, cols] of Object.entries(schemaMap)) {
-    try {
-      // Checar se tabela existe nesse schema
-      const tblCheck = await client.query(
-        `SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2`,
-        [schemaName, table]
-      );
-      
-      if (tblCheck.rowCount === 0) {
-        console.log(`⚠️ Tabela ${table} não existe no schema ${schemaName}, pulando...`);
-        continue;
-      }
-
-      // Obter colunas existentes
-      const existingColsRes = await client.query(
-        `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`,
-        [schemaName, table]
-      );
-      const existingCols = existingColsRes.rows.map(r => r.column_name);
-
-      // Adicionar colunas faltantes
-      for (const [col, def] of Object.entries(cols)) {
-        if (!existingCols.includes(col)) {
-          const alter = `ALTER TABLE "${schemaName}"."${table}" ADD COLUMN "${col}" ${def};`;
-          console.log("▶", alter);
-          
-          try {
-            await client.query(alter);
-            console.log(`✅ Coluna ${col} adicionada em ${schemaName}.${table}`);
-          } catch (alterError) {
-            console.log(`❌ Erro ao adicionar coluna ${col}: ${alterError.message}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.log(`❌ Erro ao processar tabela ${table}: ${error.message}`);
-    }
-  }
-}
-
 async function run() {
   try {
-    console.log("🔄 [GENERATE-SQL-ALTERAR] Conectando ao banco...");
+    console.log("🔄 Conectando ao banco...");
     await client.connect();
-    console.log("✅ [GENERATE-SQL-ALTERAR] Conectado ao banco");
+    console.log("✅ Conectado ao banco");
 
     // Buscar schemas tenant
     const schemasRes = await client.query(
@@ -139,24 +86,35 @@ async function run() {
        WHERE schema_name LIKE 'tenant_%'`
     );
 
-    console.log(`🔍 [GENERATE-SQL-ALTERAR] Encontrados ${schemasRes.rows.length} schemas tenant`);
+    console.log(`🔍 Encontrados ${schemasRes.rows.length} schemas tenant`);
 
     if (schemasRes.rows.length === 0) {
       console.log("⚠️ Nenhum schema tenant encontrado");
       return;
     }
 
+    // Para cada schema, mostrar as tabelas existentes
     for (const row of schemasRes.rows) {
-      await syncSchema(row.schema_name);
+      const schemaName = row.schema_name;
+      console.log(`\n🔹 Schema: ${schemaName}`);
+
+      const tablesRes = await client.query(
+        `SELECT table_name 
+         FROM information_schema.tables 
+         WHERE table_schema = $1`,
+        [schemaName]
+      );
+
+      console.log(`  📋 Tabelas existentes: ${tablesRes.rows.map(r => r.table_name).join(', ')}`);
     }
 
-    console.log("\n🎉 Sincronização concluída!");
+    console.log("\n🎉 Análise concluída!");
   } catch (error) {
-    console.error("❌ [GENERATE-SQL-ALTERAR] Erro durante execução:", error.message);
+    console.error("❌ Erro durante execução:", error.message);
   } finally {
     try {
       await client.end();
-      console.log("✅ [GENERATE-SQL-ALTERAR] Conexão fechada");
+      console.log("✅ Conexão fechada");
     } catch (error) {
       console.log("⚠️ Erro ao fechar conexão:", error.message);
     }
