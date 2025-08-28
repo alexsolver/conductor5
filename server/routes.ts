@@ -110,8 +110,6 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
   next();
 };
 
-// Token refresh middleware removed
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
@@ -449,11 +447,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   });
-
-  // Apply tenant validator to all routes (it will handle tenant-specific routes)
-  app.use(enhancedTenantValidator);
-
-  // Token refresh middleware removed - basic authentication only
 
   // ✅ CRITICAL ORDER - Apply JSON middleware BEFORE routes per 1qa.md
   app.use(ensureJSONResponse);
@@ -3811,7 +3804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `📡 [TENANT-INTEGRATIONS] Found ${communicationIntegrations.length} communication integrations`,
         );
 
-        // Ensure we have at least the basic communication channels
+        // Always ensure we have at least the basic communication channels
         const ensureBasicChannels = (channels: any[]) => {
           const basicChannels = [
             {

@@ -1,4 +1,3 @@
-
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Route, Switch } from "wouter";
 
@@ -11,7 +10,6 @@ import { SidebarProvider } from "./contexts/SidebarContext";
 // UI Components
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect } from 'react'
 
 // Pages
 import AuthPage from "./pages/AuthPage";
@@ -126,6 +124,17 @@ import { initReactI18next } from 'react-i18next';
 import Backend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import React from 'react'; // Ensure React is imported
+
+// Placeholder for Router and AppRoutes if they are not defined in this file
+// If they are defined elsewhere, ensure they are correctly imported.
+// For this example, assuming they are available in the scope.
+// import { Router } from "your-router-library"; // e.g., wouter's <Router> or react-router-dom's <BrowserRouter>
+// import AppRoutes from "./AppRoutes"; // Assuming AppRoutes is a component that handles routing
+
+// Mock Router and AppRoutes for demonstration if not provided
+const Router = ({ children }) => <Switch>{children}</Switch>;
+const AppRoutes = ({ children }) => <>{children}</>; // Placeholder, replace with actual routing component
+
 
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -284,14 +293,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
+        <SidebarProvider>
           <SimpleTimerProvider>
-            <SidebarProvider>
+            <TooltipProvider>
               <AppRouter />
               <Toaster />
-            </SidebarProvider>
+            </TooltipProvider>
           </SimpleTimerProvider>
-        </TooltipProvider>
+        </SidebarProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
