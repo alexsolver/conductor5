@@ -4354,12 +4354,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return await timecardController.getAttendanceReport(req, res);
       } catch (error) {
         console.error("[ATTENDANCE-REPORT] Error:", error);
-        res
-          .status(500)
-          .json({
-            success: false,
-            error: "Erro ao gerar relatório de espelho de ponto",
-          });
+        res.status(500).json({
+          success: false,
+          error: "Erro ao gerar relatório de espelho de ponto",
+        });
       }
     },
   );
@@ -4892,8 +4890,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // API COMPANIES CORRETA
-  app.use("/api/companies", jwtAuth, companiesCleanRoutes);
+  app.post(
+    "/api/companies",
+    jwtAuth,
+    async (req: AuthenticatedRequest, res) => {
+      console.log("🚀 [POST /api/companies] Route called with body:", req.body);
+      console.log(
+        "🚀 [POST /api/companies] User context:",
+        req.user?.email,
+        req.user?.tenantId,
+      );
+
+      try {
+        const tenantId = req.user?.tenantId;
+
+        if (!tenantId) {
+          return res.status(401).json({
+            success: false,
+            message: "Tenant ID required",
+          });
+        }
+
+        const {
+          name,
+          displayName,
+          description,
+          cnpj,
+          industry,
+          size,
+          status,
+          subscriptionTier,
+          email,
+          phone,
+          website,
+          address,
+          addressNumber,
+          complement,
+          neighborhood,
+          city,
+          state,
+          zipCode,
+        } = req.body;
+
+        if (!name) {
+          return res.status(400).json({
+            success: false,
+            message: "Company name is required",
+          });
+        }
+
+        const { pool } = await import("./db");
+        const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
+        const companyId = crypto.randomUUID();
+
+        const insertQuery = `
+                   INSERT INTO "${schemaName}"."companies" 
+                   (id, tenant_id, name, display_name, description, cnpj, industry, size, status, subscription_tier, email, phone, website, address, address_number, complement, neighborhood, city, state, zip_code, is_active, created_by, created_at, updated_at)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW(), NOW())
+                   RETURNING *
+                 `;
+
+        const result = await pool.query(insertQuery, [
+          companyId,
+          tenantId,
+          name.trim(),
+          displayName?.trim() || null,
+          description?.trim() || null,
+          cnpj || null,
+          industry || null,
+          size || "small",
+          status || "active",
+          subscriptionTier || "basic",
+          email || null,
+          phone || null,
+          website || null,
+          address || null,
+          addressNumber || null,
+          complement || null,
+          neighborhood || null,
+          city || null,
+          state || null,
+          zipCode || null,
+          true,
+          req.user.id,
+        ]);
+
+        const company = result.rows[0];
+
+        res.status(201).json({
+          success: true,
+          message: "Company created successfully",
+          data: {
+            id: company.id,
+            tenantId: company.tenant_id,
+            name: company.name,
+            displayName: company.display_name,
+            description: company.description,
+            cnpj: company.cnpj,
+            industry: company.industry,
+            size: company.size,
+            status: company.status,
+            subscriptionTier: company.subscription_tier,
+            email: company.email,
+            phone: company.phone,
+            website: company.website,
+            address: company.address,
+            addressNumber: company.address_number,
+            complement: company.complement,
+            neighborhood: company.neighborhood,
+            city: company.city,
+            state: company.state,
+            zipCode: company.zip_code,
+            isActive: company.is_active,
+            createdAt: company.created_at,
+            updatedAt: company.updated_at,
+          },
+        });
+      } catch (error) {
+        console.error(
+          "❌ [POST /api/companies] Error creating company:",
+          error,
+        );
+        console.error("❌ [POST /api/companies] Request body:", req.body);
+        console.error("❌ [POST /api/companies] User context:", req.user);
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to create company",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
 
   // Remove customer from company
   app.delete(
@@ -6214,12 +6342,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             error?.stack,
           );
           if (!res.headersSent) {
-            res
-              .status(500)
-              .json({
-                success: false,
-                error: error?.message || "Unknown error",
-              });
+            res.status(500).json({
+              success: false,
+              error: error?.message || "Unknown error",
+            });
           }
         }
       },

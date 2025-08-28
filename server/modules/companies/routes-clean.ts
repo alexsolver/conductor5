@@ -84,7 +84,6 @@ cleanCompaniesRouter.get(
 cleanCompaniesRouter.post(
   "/",
   jwtAuth,
-  tenantValidator,
   async (req: AuthenticatedRequest, res) => {
     console.log('🚀 [POST /api/companies] Route called with body:', req.body);
     console.log('🚀 [POST /api/companies] User context:', req.user?.email, req.user?.tenantId);
