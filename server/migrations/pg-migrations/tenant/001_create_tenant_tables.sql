@@ -641,6 +641,7 @@ CREATE TABLE IF NOT EXISTS schedule_notifications (
     type VARCHAR(50),
     status VARCHAR(20) DEFAULT 'pending',
     metadata JSONB DEFAULT '{}'::jsonb,
+    read_at TIMESTAMP, 
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
