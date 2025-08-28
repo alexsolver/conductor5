@@ -13,6 +13,9 @@ import { UpdateCompanyUseCase } from './application/use-cases/UpdateCompanyUseCa
 import { FindCompanyUseCase } from './application/use-cases/FindCompanyUseCase';
 import { DeleteCompanyUseCase } from './application/use-cases/DeleteCompanyUseCase';
 import { DrizzleCompanyRepository } from './infrastructure/repositories/DrizzleCompanyRepository';
+import { Response } from 'express';
+import { schemaManager } from '../../core/schemaManager';
+import { and, eq, desc } from 'drizzle-orm';
 
 const cleanCompaniesRouter = Router();
 
@@ -318,4 +321,44 @@ cleanCompaniesRouter.get('/health', async (req, res) => {
   });
 });
 
-export default cleanCompaniesRouter;
+// GET /api/companies - Get all companies for tenant
+const router = Router(); // Assuming 'router' is intended to be used here based on the provided change.
+router.get('/', jwtAuth, async (req: any, res: Response) => {
+  try {
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
+    const { companies } = tenantSchema;
+
+    const allCompanies = await tenantDb
+      .select()
+      .from(companies)
+      .where(and(
+        eq(companies.tenantId, tenantId),
+        eq(companies.isActive, true)
+      ))
+      .orderBy(desc(companies.createdAt));
+
+    res.json({
+      success: true,
+      data: allCompanies
+    });
+
+  } catch (error) {
+    console.error('Error fetching companies:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch companies',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+export default router;

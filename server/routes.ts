@@ -491,6 +491,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('🏗️ [USERS-CLEAN-ARCH] Users routes temporarily disabled for Clean Architecture fix');
 
   // ✅ Priority 6: Companies routes - CLEAN ARCHITECTURE per 1qa.md
+  // Import route modules
+  import customersRoutes from './modules/customers/routes.js';
+  import companiesRoutes from './modules/companies/routes-clean.js';
   console.log('🏗️ [COMPANIES-CLEAN-ARCH] Companies routes temporarily disabled for Clean Architecture fix');
 
   // ✅ Priority 7: Materials-Services routes - CLEAN ARCHITECTURE per 1qa.md
@@ -2598,6 +2601,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('Locations module not available:', error);
   }
 
+  // ✅ LEGACY LOCATIONS ROUTES REMOVED - Clean Architecture only per 1qa.md
+  console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy locations routes eliminated');
+
   // ✅ LOCATIONS NEW MODULE per 1qa.md Clean Architecture
   try {
     const { default: locationsNewRouter } = await import('./modules/locations/routes-new');
@@ -2696,9 +2702,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Erro ao criar localização' });
     }
   });
-
-  // ✅ LEGACY LOCATIONS ROUTES ELIMINATED - Clean Architecture only per 1qa.md
-  console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy locations routes eliminated');
 
   // === Field Layout Clean Architecture Integration ===
   try {

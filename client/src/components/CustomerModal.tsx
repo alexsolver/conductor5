@@ -200,7 +200,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       queryFn: async () => {
         if (!customer?.id) return [];
         const response = await apiRequest('GET', `/api/customers/${customer.id}/companies`);
-        return response.json();
+        return response;
       },
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
       staleTime: 0, // Always fetch fresh data
