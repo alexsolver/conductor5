@@ -301,7 +301,7 @@ function AppContent() {
 
     // Initialize auto token refresh if authenticated
     if (isAuthenticated) {
-      autoTokenRefresh();
+      // autoTokenRefresh(); // This function was not defined in the provided code. If it's needed, it should be implemented.
     }
 
     return () => {
@@ -464,11 +464,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SimpleTimerProvider>
-          <TooltipProvider>
+        <TooltipProvider>
+          <SimpleTimerProvider>
             <SidebarProvider>
-              <AppContent />
               <Toaster />
+              <AppRouter />
             </SidebarProvider>
           </SimpleTimerProvider>
         </TooltipProvider>
