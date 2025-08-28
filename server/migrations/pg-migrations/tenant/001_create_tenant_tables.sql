@@ -121,6 +121,7 @@ CREATE TABLE IF NOT EXISTS companies (
     id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255),
     cnpj VARCHAR(18),
     email VARCHAR(255),
     phone VARCHAR(20),
