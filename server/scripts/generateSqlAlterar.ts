@@ -9,7 +9,7 @@ interface SchemaMap {
 }
 
 // ==============================
-// 1. Ler scriptzão e parsear
+// 1. Ler script e parsear
 // ==============================
 
 let schemaMap: SchemaMap = {};
@@ -72,7 +72,7 @@ async function syncSchema(schemaName: string) {
         `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`,
         [schemaName, table]
       );
-      const existingCols = existingColsRes.rows.map(r => r.column_name);
+      const existingCols = existingColsRes.rows.map((r: any) => r.column_name);
 
       for (const [col, def] of Object.entries(cols)) {
         if (!existingCols.includes(col)) {
