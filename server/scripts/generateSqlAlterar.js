@@ -1,19 +1,14 @@
-import fs from "fs";
-import { Client } from "pg";
-import { parse } from "pgsql-ast-parser";
 
-interface SchemaMap {
-  [table: string]: {
-    [column: string]: string;
-  };
-}
+const fs = require("fs");
+const { Client } = require("pg");
+const { parse } = require("pgsql-ast-parser");
 
 // ==============================
 // 1. Ler scriptzão e parsear
 // ==============================
 const sql = fs.readFileSync("./migrations/pg-migrations/tenant/001_create_tenant_tables.sql", "utf8");
 const ast = parse(sql);
-const schemaMap: SchemaMap = {};
+const schemaMap = {};
 
 for (const stmt of ast) {
   if (stmt.type === "create table") {
@@ -23,7 +18,7 @@ for (const stmt of ast) {
     for (const col of stmt.columns ?? []) {
       const colName = col.name.name;
 
-      let defParts: string[] = [];
+      let defParts = [];
 
       if (col.dataType) {
         defParts.push(col.dataType.name);
@@ -57,7 +52,7 @@ for (const stmt of ast) {
 // ==============================
 // 2. Função para formatar DEFAULT
 // ==============================
-function formatDefault(def: any): string {
+function formatDefault(def) {
   if (def.kind === "string") return `'${def.value}'`;
   if (def.kind === "numeric") return def.value;
   if (def.kind === "identifier") return def.name;
@@ -71,7 +66,7 @@ function formatDefault(def: any): string {
 // ==============================
 const client = new Client({ connectionString: process.env.DATABASE_URL });
 
-async function syncSchema(schemaName: string) {
+async function syncSchema(schemaName) {
   for (const [table, cols] of Object.entries(schemaMap)) {
     // checar se tabela existe nesse schema
     const tblCheck = await client.query(
