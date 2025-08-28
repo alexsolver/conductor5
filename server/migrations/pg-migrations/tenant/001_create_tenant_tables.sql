@@ -870,13 +870,19 @@ CREATE TABLE IF NOT EXISTS ticket_field_configurations (
 CREATE TABLE IF NOT EXISTS ticket_field_options (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
-    field_configuration_id UUID NOT NULL REFERENCES ticket_field_configurations(id) ON DELETE CASCADE,
-    option_value VARCHAR(255) NOT NULL,
-    option_label VARCHAR(255) NOT NULL,
-    display_order INTEGER,
-    active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT now()
+    customer_id UUID NOT NULL, -- referência ao cliente/empresa dono da opção
+    field_name VARCHAR(255) NOT NULL, -- nome do campo configurado
+    value VARCHAR(255) NOT NULL,      -- valor armazenado (ex: chave)
+    label VARCHAR(255) NOT NULL,      -- rótulo exibido ao usuário
+    color VARCHAR(50),                -- cor opcional para exibição
+    sort_order INTEGER,               -- ordem de exibição
+    is_active BOOLEAN DEFAULT true,   -- ativo ou não
+    is_default BOOLEAN DEFAULT false, -- se é a opção padrão
+    status_type VARCHAR(50),          -- categoria/tipo de status
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
 );
+
 
 -- ==============================
 -- TICKET CATEGORIES
