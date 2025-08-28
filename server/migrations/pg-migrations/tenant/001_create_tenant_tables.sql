@@ -98,13 +98,13 @@ CREATE TABLE IF NOT EXISTS customers (
     cnpj VARCHAR(18),
     company_name VARCHAR(255),
     contact_person VARCHAR(255),
-    address_street VARCHAR(255),
+    state VARCHAR(5),
+    city VARCHAR(100),
+    address VARCHAR(255),
     address_number VARCHAR(20),
-    address_complement VARCHAR(100),
-    address_neighborhood VARCHAR(100),
-    address_city VARCHAR(100),
-    address_state VARCHAR(2),
-    address_zip_code VARCHAR(10),
+    complement VARCHAR(100),
+    neighborhood VARCHAR(100),
+    zip_code VARCHAR(10),
     address_country VARCHAR(100) DEFAULT 'Brasil',
     is_active BOOLEAN DEFAULT true,
     verified BOOLEAN DEFAULT false,
@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS customers (
     created_by_id UUID,
     updated_by_id UUID
 );
+
 
 CREATE TABLE IF NOT EXISTS companies (
     id UUID PRIMARY KEY,

@@ -363,22 +363,18 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const customerId = uuidv4();
 
     console.log('[CREATE-CUSTOMER] Inserting customer with ID:', customerId);
-
-    // Create full name by concatenating firstName and lastName
-      const fullName = `${firstName} ${lastName}`.trim();
-
       const result = await pool.query(`
         INSERT INTO "${schemaName}".customers (
-          id, tenant_id, name, first_name, last_name, email, phone, mobile_phone,
+          id, tenant_id, first_name, last_name, email, phone, mobile_phone,
           customer_type, cpf, cnpj, company_name, contact_person,
           state, city, address, address_number, complement, 
           neighborhood, zip_code, is_active, created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, true, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+          $15, $16, $17, $18, $19, true, NOW(), NOW()
         ) RETURNING *
       `, [
-        customerId, req.user.tenantId, fullName, firstName, lastName, email, phone, mobilePhone,
+        customerId, req.user.tenantId, firstName, lastName, email, phone, mobilePhone,
         customerType || 'PF', cpf, cnpj, companyName, contactPerson, state, city,
         address, addressNumber, complement, neighborhood, zipCode
       ]);
