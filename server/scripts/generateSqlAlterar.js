@@ -1,114 +1,166 @@
 
 const fs = require("fs");
 const { Client } = require("pg");
-const { parse } = require("pgsql-ast-parser");
 
-// ==============================
-// 1. Ler scriptzão e parsear
-// ==============================
-const sql = fs.readFileSync("./migrations/pg-migrations/tenant/001_create_tenant_tables.sql", "utf8");
-const ast = parse(sql);
-const schemaMap = {};
-
-for (const stmt of ast) {
-  if (stmt.type === "create table") {
-    const table = stmt.name.name;
-    schemaMap[table] = {};
-
-    for (const col of stmt.columns ?? []) {
-      const colName = col.name.name;
-
-      let defParts = [];
-
-      if (col.dataType) {
-        defParts.push(col.dataType.name);
+// Função simples para parsear CREATE TABLE do SQL
+function parseCreateTable(sql) {
+  const schemaMap = {};
+  
+  // Remove comentários
+  const cleanSql = sql.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  
+  // Regex para encontrar CREATE TABLE
+  const tableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["`]?(\w+)["`]?\s*\(\s*([\s\S]*?)\s*\);/gi;
+  
+  let match;
+  while ((match = tableRegex.exec(cleanSql)) !== null) {
+    const tableName = match[1];
+    const columnsSection = match[2];
+    
+    schemaMap[tableName] = {};
+    
+    // Parse colunas - regex simplificada
+    const columnLines = columnsSection.split(',').map(line => line.trim());
+    
+    for (const line of columnLines) {
+      // Pula constraints e outras linhas que não são colunas
+      if (line.toUpperCase().includes('CONSTRAINT') || 
+          line.toUpperCase().includes('PRIMARY KEY') ||
+          line.toUpperCase().includes('FOREIGN KEY') ||
+          line.toUpperCase().includes('UNIQUE') ||
+          line.toUpperCase().includes('CHECK') ||
+          line.trim() === '') {
+        continue;
       }
-      if (col.constraints?.some(c => c.type === "not null")) {
-        defParts.push("NOT NULL");
-      }
-
-      const defConstraint = col.constraints?.find(c => c.type === "default");
-      if (defConstraint && defConstraint.default) {
-        defParts.push("DEFAULT " + formatDefault(defConstraint.default));
-      }
-
-      const refConstraint = col.constraints?.find(c => c.type === "references");
-      if (refConstraint) {
-        defParts.push(
-          `REFERENCES ${refConstraint.foreignTable.name}(${refConstraint.foreignColumns
-            .map(c => c.name)
-            .join(",")})`
-        );
-        if (refConstraint.onDelete) {
-          defParts.push("ON DELETE " + refConstraint.onDelete.toUpperCase());
+      
+      // Extrai nome da coluna e tipo
+      const columnMatch = line.match(/^["`]?(\w+)["`]?\s+(\w+(?:\([^)]*\))?)/);
+      if (columnMatch) {
+        const columnName = columnMatch[1];
+        let columnDef = columnMatch[2];
+        
+        // Adiciona NOT NULL se presente
+        if (line.toUpperCase().includes('NOT NULL')) {
+          columnDef += ' NOT NULL';
         }
+        
+        // Adiciona DEFAULT se presente
+        const defaultMatch = line.match(/DEFAULT\s+([^,\s]+(?:\([^)]*\))?)/i);
+        if (defaultMatch) {
+          columnDef += ` DEFAULT ${defaultMatch[1]}`;
+        }
+        
+        schemaMap[tableName][columnName] = columnDef;
       }
-
-      schemaMap[table][colName] = defParts.join(" ");
     }
   }
+  
+  return schemaMap;
 }
 
 // ==============================
-// 2. Função para formatar DEFAULT
+// 1. Ler e parsear o arquivo SQL
 // ==============================
-function formatDefault(def) {
-  if (def.kind === "string") return `'${def.value}'`;
-  if (def.kind === "numeric") return def.value;
-  if (def.kind === "identifier") return def.name;
-  if (def.kind === "call") return `${def.function.name}(${def.args.map(formatDefault).join(",")})`;
-  if (def.kind === "binary") return `${formatDefault(def.left)} ${def.op} ${formatDefault(def.right)}`;
-  return JSON.stringify(def);
+console.log("🔧 [GENERATE-SQL-ALTERAR] Iniciando script...");
+
+let sql;
+try {
+  sql = fs.readFileSync("./migrations/pg-migrations/tenant/001_create_tenant_tables.sql", "utf8");
+  console.log("✅ [GENERATE-SQL-ALTERAR] Arquivo SQL lido com sucesso");
+} catch (error) {
+  console.error("❌ [GENERATE-SQL-ALTERAR] Erro ao ler arquivo SQL:", error.message);
+  process.exit(1);
 }
 
+const schemaMap = parseCreateTable(sql);
+console.log("✅ [GENERATE-SQL-ALTERAR] Schema parseado:", Object.keys(schemaMap));
+
 // ==============================
-// 3. Conectar no banco
+// 2. Conectar no banco
 // ==============================
-const client = new Client({ connectionString: process.env.DATABASE_URL });
+const client = new Client({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 async function syncSchema(schemaName) {
+  console.log(`\n🔹 Processando schema: ${schemaName}`);
+  
   for (const [table, cols] of Object.entries(schemaMap)) {
-    // checar se tabela existe nesse schema
-    const tblCheck = await client.query(
-      `SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2`,
-      [schemaName, table]
-    );
-    if (tblCheck.rowCount === 0) continue;
-
-    // colunas existentes
-    const existingColsRes = await client.query(
-      `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`,
-      [schemaName, table]
-    );
-    const existingCols = existingColsRes.rows.map(r => r.column_name);
-
-    for (const [col, def] of Object.entries(cols)) {
-      if (!existingCols.includes(col)) {
-        const alter = `ALTER TABLE "${schemaName}"."${table}" ADD COLUMN "${col}" ${def};`;
-        console.log("▶", alter);
-        await client.query(alter);
-        console.log("✅ Executado em", schemaName, table, col);
+    try {
+      // Checar se tabela existe nesse schema
+      const tblCheck = await client.query(
+        `SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2`,
+        [schemaName, table]
+      );
+      
+      if (tblCheck.rowCount === 0) {
+        console.log(`⚠️ Tabela ${table} não existe no schema ${schemaName}, pulando...`);
+        continue;
       }
+
+      // Obter colunas existentes
+      const existingColsRes = await client.query(
+        `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`,
+        [schemaName, table]
+      );
+      const existingCols = existingColsRes.rows.map(r => r.column_name);
+
+      // Adicionar colunas faltantes
+      for (const [col, def] of Object.entries(cols)) {
+        if (!existingCols.includes(col)) {
+          const alter = `ALTER TABLE "${schemaName}"."${table}" ADD COLUMN "${col}" ${def};`;
+          console.log("▶", alter);
+          
+          try {
+            await client.query(alter);
+            console.log(`✅ Coluna ${col} adicionada em ${schemaName}.${table}`);
+          } catch (alterError) {
+            console.log(`❌ Erro ao adicionar coluna ${col}: ${alterError.message}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.log(`❌ Erro ao processar tabela ${table}: ${error.message}`);
     }
   }
 }
 
 async function run() {
-  await client.connect();
+  try {
+    console.log("🔄 [GENERATE-SQL-ALTERAR] Conectando ao banco...");
+    await client.connect();
+    console.log("✅ [GENERATE-SQL-ALTERAR] Conectado ao banco");
 
-  const schemasRes = await client.query(
-    `SELECT schema_name 
-     FROM information_schema.schemata 
-     WHERE schema_name LIKE 'tenant_%'`
-  );
+    // Buscar schemas tenant
+    const schemasRes = await client.query(
+      `SELECT schema_name 
+       FROM information_schema.schemata 
+       WHERE schema_name LIKE 'tenant_%'`
+    );
 
-  for (const row of schemasRes.rows) {
-    console.log("\n🔹 Processando schema:", row.schema_name);
-    await syncSchema(row.schema_name);
+    console.log(`🔍 [GENERATE-SQL-ALTERAR] Encontrados ${schemasRes.rows.length} schemas tenant`);
+
+    if (schemasRes.rows.length === 0) {
+      console.log("⚠️ Nenhum schema tenant encontrado");
+      return;
+    }
+
+    for (const row of schemasRes.rows) {
+      await syncSchema(row.schema_name);
+    }
+
+    console.log("\n🎉 Sincronização concluída!");
+  } catch (error) {
+    console.error("❌ [GENERATE-SQL-ALTERAR] Erro durante execução:", error.message);
+  } finally {
+    try {
+      await client.end();
+      console.log("✅ [GENERATE-SQL-ALTERAR] Conexão fechada");
+    } catch (error) {
+      console.log("⚠️ Erro ao fechar conexão:", error.message);
+    }
   }
-
-  await client.end();
-  console.log("\n🎉 Sincronização concluída!");
 }
 
-run().catch(console.error);
+run();
