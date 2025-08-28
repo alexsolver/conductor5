@@ -21,65 +21,46 @@ const authRateLimit = createRateLimitMiddleware({
   blockDurationMs: 1 * 60 * 1000, // 1 minute
 });
 
-// Refresh Token Endpoint
+// Refresh Token Endpoint - Simplified
 authRouter.post(
   "/refresh",
   authRateLimit,
   async (req: Request, res: Response) => {
     try {
       const { refreshToken } = req.body;
-      const cookieRefreshToken = req.cookies?.refreshToken;
 
-      const tokenToUse = refreshToken || cookieRefreshToken;
-
-      if (!tokenToUse) {
+      if (!refreshToken) {
         return res.status(400).json({ message: "Refresh token required" });
       }
 
       const userRepository = container.userRepository;
 
-      // Verify refresh token using enhanced token manager
-      const payload = tokenManager.verifyRefreshToken(tokenToUse);
+      // Simple token verification
+      const payload = tokenManager.verifyRefreshToken(refreshToken);
       if (!payload) {
         return res.status(401).json({ message: "Invalid refresh token" });
       }
 
-      // Check if user exists and is active
       const user = await userRepository.findById(payload.userId);
       if (!user || !user.active) {
         return res.status(401).json({ message: "User not found or inactive" });
       }
 
-      // Generate new tokens with enhanced manager
       const accessToken = tokenManager.generateAccessToken({
         id: user.id,
         email: user.email,
         role: user.role,
         tenantId: user.tenantId,
       });
-      const newRefreshToken = tokenManager.generateRefreshToken({
-        id: user.id,
-      });
 
-      // Set new refresh token as httpOnly cookie
-      res.cookie("refreshToken", newRefreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
-      });
-
-      // ✅ 1QA.MD: Resposta padronizada para refresh
       res.json({
         success: true,
         message: "Token refreshed successfully",
         data: {
           tokens: {
             accessToken,
-            refreshToken: newRefreshToken,
           },
         },
-        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error("Token refresh error:", error);

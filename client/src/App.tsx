@@ -11,7 +11,6 @@ import { SidebarProvider } from "./contexts/SidebarContext";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from 'react'
-import autoTokenRefresh from '@/utils/autoTokenRefresh'
 
 // Pages
 import AuthPage from "./pages/AuthPage";

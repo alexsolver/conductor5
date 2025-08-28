@@ -110,8 +110,7 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
   next();
 };
 
-// Import token refresh middleware
-import { tokenRefreshMiddleware } from './middleware/tokenRefreshMiddleware';
+// Token refresh middleware removed
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
