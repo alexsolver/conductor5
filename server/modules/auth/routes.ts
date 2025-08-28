@@ -229,7 +229,7 @@ authRouter.post(
             const schemaName = `tenant_${userData.tenantId.replace(/-/g, "_")}`;
 
             console.log(`🏗️ [REGISTER] Creating tenant schema: ${schemaName}`);
-            
+
             // Force schema creation
             await schemaManager.createTenantSchema(userData.tenantId);
 

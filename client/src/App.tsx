@@ -10,6 +10,8 @@ import { SidebarProvider } from "./contexts/SidebarContext";
 // UI Components
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect } from 'react'
+import autoTokenRefresh from '@/utils/autoTokenRefresh'
 
 // Pages
 import AuthPage from "./pages/AuthPage";
@@ -282,6 +284,33 @@ function AppRouter() {
 }
 
 function App() {
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // Listen for token refresh events
+    const handleTokenRefreshed = (event: CustomEvent) => {
+      console.log('✅ [APP] Token refreshed:', event.detail);
+    };
+
+    const handleAuthExpired = (event: CustomEvent) => {
+      console.log('🔒 [APP] Auth expired:', event.detail);
+      // Could trigger a logout or redirect to login
+    };
+
+    window.addEventListener('tokenRefreshed', handleTokenRefreshed as EventListener);
+    window.addEventListener('authExpired', handleAuthExpired as EventListener);
+
+    // Initialize auto token refresh if authenticated
+    if (isAuthenticated) {
+      autoTokenRefresh();
+    }
+
+    return () => {
+      window.removeEventListener('tokenRefreshed', handleTokenRefreshed as EventListener);
+      window.removeEventListener('authExpired', handleAuthExpired as EventListener);
+    };
+  }, [isAuthenticated]); // Re-run effect if isAuthenticated changes
+
   // Initialize language on app start
   React.useEffect(() => {
     const savedLanguage = localStorage.getItem('preferred-language') || 'pt-BR';
