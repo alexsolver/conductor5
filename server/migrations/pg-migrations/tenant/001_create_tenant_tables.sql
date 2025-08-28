@@ -154,6 +154,21 @@ CREATE TABLE IF NOT EXISTS companies (
     metadata JSONB DEFAULT '{}'::jsonb
 );
 
+
+CREATE TABLE IF NOT EXISTS companies_relationships (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL,
+    company_id UUID NOT NULL,
+    relationship_type VARCHAR(50) DEFAULT 'member',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    created_by UUID,
+    is_active BOOLEAN DEFAULT true,
+);
+
+
+
 CREATE TABLE IF NOT EXISTS beneficiaries (
     id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
