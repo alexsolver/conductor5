@@ -61,13 +61,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
         token === 'null' || 
         token === 'undefined' || 
         token.trim() === '' ||
-        token.length < 20 ||
-        token.split('.').length !== 3) {
+        token.length < 20) {
       
       console.log('❌ [JWT-AUTH] Invalid token format:', {
         hasToken: !!token,
-        length: token?.length,
-        parts: token?.split('.').length
+        length: token?.length
       });
       
       // ✅ CRITICAL FIX - JSON response
@@ -76,6 +74,19 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
         success: false,
         message: 'Invalid token format',
         code: 'INVALID_TOKEN_FORMAT',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Verify JWT structure
+    const tokenParts = token.split('.');
+    if (tokenParts.length !== 3) {
+      console.log('❌ [JWT-AUTH] Invalid JWT structure');
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token structure',
+        code: 'INVALID_TOKEN_STRUCTURE',
         timestamp: new Date().toISOString()
       });
     }
