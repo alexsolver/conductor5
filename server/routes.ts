@@ -453,8 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply tenant validator to all routes (it will handle tenant-specific routes)
   app.use(enhancedTenantValidator);
 
-  // Apply token refresh middleware to automatically refresh expiring tokens
-  app.use(tokenRefreshMiddleware);
+  // Token refresh middleware removed - basic authentication only
 
   // ✅ CRITICAL ORDER - Apply JSON middleware BEFORE routes per 1qa.md
   app.use(ensureJSONResponse);
