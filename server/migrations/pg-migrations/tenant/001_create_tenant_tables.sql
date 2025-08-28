@@ -129,6 +129,12 @@ CREATE TABLE IF NOT EXISTS companies (
     address_street VARCHAR(255),
     address_number VARCHAR(20),
     address_complement VARCHAR(100),
+    complement VARCHAR(100),
+    neighborhood VARCHAR(100),
+    city VARCHAR(100),
+    state VARCHAR(10),
+    zip_code VARCHAR(100),
+    country VARCHAR(100) DEFAULT 'Brasil',
     address_neighborhood VARCHAR(100),
     address_city VARCHAR(100),
     address_state VARCHAR(2),
@@ -143,6 +149,8 @@ CREATE TABLE IF NOT EXISTS companies (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now(),
+    created_by UUID,
+    updated_by UUID,
     metadata JSONB DEFAULT '{}'::jsonb
 );
 
