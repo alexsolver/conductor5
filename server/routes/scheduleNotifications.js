@@ -11,9 +11,11 @@ router.get('/list', jwtAuth, async (req, res) => {
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] List endpoint called for user:', user.id);
 
     if (!user || !user.tenantId || (!user.id && !user.userId)) {
+      console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', { user });
       return res.status(400).json({
         success: false,
-        error: 'User information required'
+        error: 'User information required',
+        details: 'Missing user, tenantId, or userId'
       });
     }
 
@@ -21,7 +23,7 @@ router.get('/list', jwtAuth, async (req, res) => {
     const userId = user.id || user.userId;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    const { pool } = await import('../db.js');
+    const { pool } = await import('../db.ts');
 
     // Ensure table exists
     const checkTableQuery = `
@@ -33,7 +35,7 @@ router.get('/list', jwtAuth, async (req, res) => {
     `;
 
     const tableExists = await pool.query(checkTableQuery);
-    
+
     if (!tableExists.rows[0].exists) {
       console.log('🔔 [SCHEDULE-NOTIFICATIONS] Table does not exist, returning empty list');
       return res.json({
@@ -104,9 +106,11 @@ router.get('/unread', jwtAuth, async (req, res) => {
     const user = req.user;
 
     if (!user || !user.tenantId || (!user.id && !user.userId)) {
+      console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', { user });
       return res.status(400).json({
         success: false,
-        error: 'User information required'
+        error: 'User information required',
+        details: 'Missing user, tenantId, or userId'
       });
     }
 
@@ -115,7 +119,7 @@ router.get('/unread', jwtAuth, async (req, res) => {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Query usando o pool do banco - usando o módulo db correto
-    const { pool } = await import('../db.js');
+    const { pool } = await import('../db.ts');
 
     // Check if table exists
     const checkTableQuery = `
@@ -127,7 +131,7 @@ router.get('/unread', jwtAuth, async (req, res) => {
     `;
 
     const tableExists = await pool.query(checkTableQuery);
-    
+
     if (!tableExists.rows[0].exists) {
       return res.json({
         success: true,
@@ -186,7 +190,8 @@ router.get('/count', jwtAuth, async (req, res) => {
       console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', {user});
       return res.status(400).json({
         success: false,
-        error: 'User information required'
+        error: 'User information required',
+        details: 'Missing user, tenantId, or userId'
       });
     }
 
@@ -195,7 +200,7 @@ router.get('/count', jwtAuth, async (req, res) => {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Schema:', schemaName, 'User:', userId);
 
-    const { pool } = await import('../db.js');
+    const { pool } = await import('../db.ts');
 
     // First, check if table exists and create if needed
     const checkTableQuery = `
@@ -207,7 +212,7 @@ router.get('/count', jwtAuth, async (req, res) => {
     `;
 
     const tableExists = await pool.query(checkTableQuery);
-    
+
     if (!tableExists.rows[0].exists) {
       console.log('🔔 [SCHEDULE-NOTIFICATIONS] Creating schedule_notifications table');
       const createTableQuery = `
@@ -230,7 +235,7 @@ router.get('/count', jwtAuth, async (req, res) => {
           related_entity_id UUID
         );
       `;
-      
+
       await pool.query(createTableQuery);
       console.log('🔔 [SCHEDULE-NOTIFICATIONS] Table created successfully');
     }
@@ -278,9 +283,11 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
     });
 
     if (!user || !user.tenantId || (!user.id && !user.userId)) {
+      console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', { user });
       return res.status(400).json({
         success: false,
-        error: 'User information required'
+        error: 'User information required',
+        details: 'Missing user, tenantId, or userId'
       });
     }
 
@@ -295,7 +302,7 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
     const userId = user.id || user.userId;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    const { pool } = await import('../db.js');
+    const { pool } = await import('../db.ts');
 
     // Update notifications to mark as read for the specific user
     const query = `
