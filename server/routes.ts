@@ -800,27 +800,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/customers/companies", jwtAuth, async (req: AuthenticatedRequest, res) => {
+  // POST /api/customers/companies - Create new customer company
+  app.post('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      if (!req.user?.tenantId) {
-        return res.status(401).json({ message: 'Tenant context required' });
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        console.error('❌ [POST /api/customers/companies] No tenant ID found');
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant required'
+        });
       }
+
+      console.log('🔍 [POST /api/customers/companies] Request body:', req.body);
+      console.log('🔍 [POST /api/customers/companies] Tenant ID:', tenantId);
 
       const { name, displayName, description, size, subscriptionTier } = req.body;
 
       if (!name) {
-        return res.status(400).json({ message: 'Name is required' });
+        console.error('❌ [POST /api/customers/companies] Missing company name');
+        return res.status(400).json({
+          success: false,
+          message: 'Name is required'
+        });
       }
 
       const { pool } = await import('./db');
-      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      console.log('🔍 [POST /api/customers/companies] About to insert company with data:', {
+        tenantId,
+        name: name.trim(),
+        displayName: displayName?.trim() || null,
+        description: description?.trim() || null,
+        size: size || null,
+        subscriptionTier: subscriptionTier || 'basic'
+      });
 
       const result = await pool.query(
         `INSERT INTO "${schemaName}"."companies"
          (tenant_id, name, display_name, description, size, subscription_tier, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [req.user.tenantId, name, displayName, description, size, subscriptionTier, req.user.id]
+        [tenantId, name.trim(), displayName?.trim() || null, description?.trim() || null, size || null, subscriptionTier || 'basic', req.user.id]
       );
 
       const company = result.rows[0];
@@ -836,13 +859,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: company.updated_at
       };
 
+      console.log('✅ [POST /api/customers/companies] Successfully created company:', formattedCompany);
+
       res.status(201).json({
         success: true,
         data: formattedCompany
       });
     } catch (error) {
-      console.error('Error creating customer company:', error);
-      res.status(500).json({ message: 'Failed to create customer company' });
+      console.error('❌ [POST /api/customers/companies] Error creating customer company:', error);
+      console.error('❌ [POST /api/customers/companies] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create customer company',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -2769,7 +2799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Removed: External Contacts routes - functionality eliminated
 
-  // Location routes
+  // Locations routes
 
   // Project routes temporarily removed due to syntax issues
 
