@@ -161,13 +161,14 @@ CREATE TABLE IF NOT EXISTS companies_relationships (
     customer_id UUID NOT NULL,
     company_id UUID NOT NULL,
     relationship_type VARCHAR(50) DEFAULT 'member',
+    start_date DATE,
+    end_date DATE,
+    is_primary BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     created_by UUID,
-    is_active BOOLEAN DEFAULT true,
+    is_active BOOLEAN DEFAULT true
 );
-
-
 
 CREATE TABLE IF NOT EXISTS beneficiaries (
     id UUID PRIMARY KEY,
