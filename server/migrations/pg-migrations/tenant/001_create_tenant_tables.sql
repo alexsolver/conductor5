@@ -166,6 +166,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     assigned_to UUID,
     company_id UUID REFERENCES companies(id),
     location_id UUID,
+    caller_id UUID,
     estimated_hours DECIMAL(5,2),
     actual_hours DECIMAL(5,2),
     due_date TIMESTAMP,
