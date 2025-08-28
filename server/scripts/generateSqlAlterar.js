@@ -11,7 +11,7 @@ interface SchemaMap {
 // ==============================
 // 1. Ler e parsear scriptzão
 // ==============================
-const sql = fs.readFileSync("./schema.sql", "utf8");
+const sql = fs.readFileSync("./migrations/pg-migrations/tenant/001_create_tenant_tables.sql", "utf8");
 const ast = parse(sql);
 const schemaMap: SchemaMap = {};
 
