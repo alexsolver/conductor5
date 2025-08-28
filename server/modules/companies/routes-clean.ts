@@ -80,11 +80,15 @@ cleanCompaniesRouter.get(
   },
 );
 
-// POST /api/companies/v2/ - Create new company (Direct SQL Insert)
+// POST /api/companies - Create new company (Direct SQL Insert)
 cleanCompaniesRouter.post(
   "/",
   jwtAuth,
+  tenantValidator,
   async (req: AuthenticatedRequest, res) => {
+    console.log('🚀 [POST /api/companies] Route called with body:', req.body);
+    console.log('🚀 [POST /api/companies] User context:', req.user?.email, req.user?.tenantId);
+    
     try {
       const tenantId = req.user?.tenantId;
 
@@ -173,7 +177,10 @@ cleanCompaniesRouter.post(
       });
 
     } catch (error) {
-      console.error('❌ [POST /api/companies/v2/] Error creating company:', error);
+      console.error('❌ [POST /api/companies] Error creating company:', error);
+      console.error('❌ [POST /api/companies] Request body:', req.body);
+      console.error('❌ [POST /api/companies] User context:', req.user);
+      
       res.status(500).json({
         success: false,
         message: 'Failed to create company',
