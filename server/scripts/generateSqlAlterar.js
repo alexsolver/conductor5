@@ -9,9 +9,9 @@ interface SchemaMap {
 }
 
 // ==============================
-// 1. Ler e parsear scriptzão
+// 1. Ler scriptzão e parsear
 // ==============================
-const sql = fs.readFileSync("./migrations/pg-migrations/tenant/001_create_tenant_tables.sql", "utf8");
+const sql = fs.readFileSync("./schema.sql", "utf8");
 const ast = parse(sql);
 const schemaMap: SchemaMap = {};
 
@@ -55,7 +55,7 @@ for (const stmt of ast) {
 }
 
 // ==============================
-// 2. Formatar DEFAULT
+// 2. Função para formatar DEFAULT
 // ==============================
 function formatDefault(def: any): string {
   if (def.kind === "string") return `'${def.value}'`;
@@ -67,18 +67,20 @@ function formatDefault(def: any): string {
 }
 
 // ==============================
-// 3. Gerar ALTER TABLE em texto
+// 3. Conectar no banco
 // ==============================
 const client = new Client({ connectionString: process.env.DATABASE_URL });
 
-async function syncSchema(schemaName: string, output: string[]) {
+async function syncSchema(schemaName: string) {
   for (const [table, cols] of Object.entries(schemaMap)) {
+    // checar se tabela existe nesse schema
     const tblCheck = await client.query(
       `SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2`,
       [schemaName, table]
     );
     if (tblCheck.rowCount === 0) continue;
 
+    // colunas existentes
     const existingColsRes = await client.query(
       `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2`,
       [schemaName, table]
@@ -88,7 +90,9 @@ async function syncSchema(schemaName: string, output: string[]) {
     for (const [col, def] of Object.entries(cols)) {
       if (!existingCols.includes(col)) {
         const alter = `ALTER TABLE "${schemaName}"."${table}" ADD COLUMN "${col}" ${def};`;
-        output.push(alter);
+        console.log("▶", alter);
+        await client.query(alter);
+        console.log("✅ Executado em", schemaName, table, col);
       }
     }
   }
@@ -97,24 +101,19 @@ async function syncSchema(schemaName: string, output: string[]) {
 async function run() {
   await client.connect();
 
-  const output: string[] = [];
-
   const schemasRes = await client.query(
-    `SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('pg_catalog','information_schema','public')`
+    `SELECT schema_name 
+     FROM information_schema.schemata 
+     WHERE schema_name LIKE 'tenant_%'`
   );
 
   for (const row of schemasRes.rows) {
-    output.push(`-- ========================`);
-    output.push(`-- Schema: ${row.schema_name}`);
-    output.push(`-- ========================\n`);
-    await syncSchema(row.schema_name, output);
-    output.push("");
+    console.log("\n🔹 Processando schema:", row.schema_name);
+    await syncSchema(row.schema_name);
   }
 
-  fs.writeFileSync("schema_diff.sql", output.join("\n"), "utf8");
-  console.log("✅ Arquivo schema_diff.sql gerado com sucesso!");
-
   await client.end();
+  console.log("\n🎉 Sincronização concluída!");
 }
 
 run().catch(console.error);
