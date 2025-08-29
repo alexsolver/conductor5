@@ -1481,7 +1481,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/customers/companies/:companyId/associated",
     jwtAuth,
     async (req: AuthenticatedRequest, res) => {
-      console.log("ENTREI NO ROUTES MESMO E SÓ NELE :D");
       try {
         const { companyId } = req.params;
 
@@ -1504,7 +1503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `[ASSOCIATED-CUSTOMERS] Getting associated customers for company ${companyId}`,
         );
 
-        // Get customers that ARE already associated with this company
+        // Get customers that ARE already associated with this company using customer_company_memberships table
         const query = `
         SELECT DISTINCT
           c.id,
@@ -1512,14 +1511,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.last_name as "lastName",
           c.email,
           c.phone,
-          'PF' as "customerType",
-          'Ativo' as "status",
-          cr.relationship_type as role,
-          cr.is_active as "isActive",
-          cr.created_at as "associatedAt"
+          c.customer_type as "customerType",
+          c.is_active as "isActive",
+          ccm.role,
+          ccm.is_active as "isActive",
+          ccm.created_at as "associatedAt"
         FROM "${schemaName}"."customers" c
-        INNER JOIN "${schemaName}"."companies_relationships" cr ON c.id = cr.customer_id
-        WHERE c.tenant_id = $1 AND cr.company_id = $2 AND cr.is_active = true
+        INNER JOIN "${schemaName}"."customer_company_memberships" ccm ON c.id = ccm.customer_id
+        WHERE c.tenant_id = $1 AND ccm.company_id = $2 AND ccm.is_active = true
         ORDER BY c.first_name, c.last_name
       `;
 
@@ -1529,16 +1528,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `[ASSOCIATED-CUSTOMERS] Found ${result.rows.length} associated customers for company ${companyId}`,
         );
 
-        res.status(200).json({
-          success: true,
-          data: result.rows,
-          message: `Found ${result.rows.length} associated customers`,
-        });
-      } catch (error) {
-        console.error("Error fetching associated customers:", error);
+        res.status(200).json(result.rows);
+      } catch (error: any) {
+        console.error(
+          `[ASSOCIATED-CUSTOMERS] Error getting associated customers for company ${req.params.companyId}:`,
+          error,
+        );
         res.status(500).json({
           success: false,
-          message: "Failed to fetch associated customers",
+          message: "Failed to get associated customers",
+          error: error.message,
         });
       }
     },
