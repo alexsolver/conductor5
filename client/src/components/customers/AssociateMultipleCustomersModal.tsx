@@ -112,10 +112,11 @@ const AssociateMultipleCustomersModal: React.FC<
       // Fetch associated customers for this company
       let associatedCustomers = [];
       try {
-        const associatedData = await apiRequest(
+        let associatedData = await apiRequest(
           "GET",
           `/api/companies/${company.id}/associated`,
         );
+        associatedData = await associatedData.json();
         associatedCustomers = Array.isArray(associatedData)
           ? associatedData
           : associatedData?.data || [];
