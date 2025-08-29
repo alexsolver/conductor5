@@ -526,7 +526,6 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
 
 // GET /api/customers/companies/:companyId/associated - Get customers associated with a company
 customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  return res.status(500).json("MANO, SÓ PODE SER AQUI!")
   try {
     const { companyId } = req.params;
     const { schemaManager } = await import('../../db');
