@@ -93,6 +93,7 @@ const AssociateMultipleCustomersModal: React.FC<
       );
 
       // Attempt to fetch all customers using the working endpoint
+      let allCustomers = [];
       try {
         let allCustomersData = await apiRequest("GET", "/api/customers");
         allCustomersData = await allCustomersData.json();
@@ -100,7 +101,7 @@ const AssociateMultipleCustomersModal: React.FC<
         if (!allCustomersData || !Array.isArray(allCustomersData.customers)) {
           throw new Error("Failed to fetch customers: no data returned");
         }
-        const allCustomers = allCustomersData.customers;
+        allCustomers = allCustomersData.customers;
         console.log("All customers:", allCustomers);
       } catch (customerFetchError) {
         console.error("Error fetching all customers:", customerFetchError);
@@ -108,6 +109,8 @@ const AssociateMultipleCustomersModal: React.FC<
         return;
       }
 
+      // Fetch associated customers for this company
+      let associatedCustomers = [];
       try {
         const associatedData = await apiRequest(
           "GET",
