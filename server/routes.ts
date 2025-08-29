@@ -4870,8 +4870,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create new customer-company relationship
         const relationship = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.companies_relationships
-        (customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
-        VALUES (${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        (tenant_id, customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
+        VALUES (${tenantId},${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
       `);
 

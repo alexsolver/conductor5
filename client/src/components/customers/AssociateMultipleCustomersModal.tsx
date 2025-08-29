@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,16 +6,31 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Checkbox } from '../ui/checkbox';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { ScrollArea } from '../ui/scroll-area';
-import { Search, Users, Building2, AlertCircle, CheckCircle2, Check, UserCheck } from 'lucide-react';
-import { Alert, AlertDescription } from '../ui/alert';
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { ScrollArea } from "../ui/scroll-area";
+import {
+  Search,
+  Users,
+  Building2,
+  AlertCircle,
+  CheckCircle2,
+  Check,
+  UserCheck,
+} from "lucide-react";
+import { Alert, AlertDescription } from "../ui/alert";
+import { apiRequest } from "@/lib/queryClient";
 
 // Assume apiRequest is defined elsewhere and handles token, errors, and JSON parsing
 // Example signature: const apiRequest = async (method: string, url: string, body?: any) => Promise<any>;
@@ -25,7 +40,7 @@ interface Customer {
   firstName: string;
   lastName: string;
   email: string;
-  customerType: 'PF' | 'PJ';
+  customerType: "PF" | "PJ";
   companyName?: string;
   status: string;
   isAssociated?: boolean;
@@ -44,15 +59,12 @@ interface AssociateMultipleCustomersModalProps {
   onSuccess: () => void;
 }
 
-const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalProps> = ({
-  isOpen,
-  onClose,
-  company,
-  onSuccess,
-}) => {
+const AssociateMultipleCustomersModal: React.FC<
+  AssociateMultipleCustomersModalProps
+> = ({ isOpen, onClose, company, onSuccess }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,36 +84,58 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
     try {
       if (!company?.id) {
-        throw new Error('ID da empresa não encontrado');
+        throw new Error("ID da empresa não encontrado");
       }
 
-      console.log('Fetching all customers and association status for company:', company.id);
+      console.log(
+        "Fetching all customers and association status for company:",
+        company.id,
+      );
 
-      // Fetch all customers first using the working endpoint
-      const allCustomersData = await apiRequest('GET', '/api/customers');
-      const allCustomers = allCustomersData?.customers || [];
-
-      // Fetch associated customers for this company using the working endpoint
-      let associatedCustomers = [];
+      // Attempt to fetch all customers using the working endpoint
+      try {
+        let allCustomersData = await apiRequest("GET", "/api/customers");
+        allCustomersData = await allCustomersData.json();
+        console.log("[!!!!] All customers data:", allCustomersData);
+        if (!allCustomersData || !Array.isArray(allCustomersData.customers)) {
+          throw new Error("Failed to fetch customers: no data returned");
+        }
+        const allCustomers = allCustomersData.customers;
+        console.log("All customers:", allCustomers);
+      } catch (customerFetchError) {
+        console.error("Error fetching all customers:", customerFetchError);
+        setError("Erro ao carregar todos os clientes");
+        return;
+      }
 
       try {
-        const associatedData = await apiRequest('GET', `/api/companies/${company.id}/associated`);
-        associatedCustomers = Array.isArray(associatedData) ? associatedData : (associatedData?.data || []);
+        const associatedData = await apiRequest(
+          "GET",
+          `/api/companies/${company.id}/associated`,
+        );
+        associatedCustomers = Array.isArray(associatedData)
+          ? associatedData
+          : associatedData?.data || [];
       } catch (associatedError) {
-        console.warn('Could not fetch associated customers, assuming none:', associatedError);
+        console.warn(
+          "Could not fetch associated customers, assuming none:",
+          associatedError,
+        );
         associatedCustomers = [];
       }
 
       // Mark customers as associated or not
       const customersWithStatus = allCustomers.map((customer: Customer) => ({
         ...customer,
-        isAssociated: associatedCustomers.some((associated: any) => associated.id === customer.id)
+        isAssociated: associatedCustomers.some(
+          (associated: any) => associated.id === customer.id,
+        ),
       }));
 
       setCustomers(customersWithStatus);
     } catch (error: any) {
-      console.error('Error fetching customers:', error);
-      setError(error.message || 'Erro ao carregar clientes');
+      console.error("Error fetching customers:", error);
+      setError(error.message || "Erro ao carregar clientes");
     } finally {
       setIsLoading(false);
     }
@@ -113,40 +147,47 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       return;
     }
 
-    setSelectedCustomerIds(prev => 
-      prev.includes(customerId) 
-        ? prev.filter(id => id !== customerId)
-        : [...prev, customerId]
+    setSelectedCustomerIds((prev) =>
+      prev.includes(customerId)
+        ? prev.filter((id) => id !== customerId)
+        : [...prev, customerId],
     );
   };
 
   const handleSelectAll = () => {
     const filteredCustomers = getFilteredCustomers();
     // Only include customers that are not already associated
-    const availableCustomers = filteredCustomers.filter(customer => !customer.isAssociated);
-    const allAvailableSelected = availableCustomers.length > 0 && 
-      availableCustomers.every(customer => 
-      selectedCustomerIds.includes(customer.id)
+    const availableCustomers = filteredCustomers.filter(
+      (customer) => !customer.isAssociated,
     );
+    const allAvailableSelected =
+      availableCustomers.length > 0 &&
+      availableCustomers.every((customer) =>
+        selectedCustomerIds.includes(customer.id),
+      );
 
     if (allAvailableSelected) {
       // Deselect all available filtered customers
-      const availableIds = availableCustomers.map(c => c.id);
-      setSelectedCustomerIds(prev => prev.filter(id => !availableIds.includes(id)));
+      const availableIds = availableCustomers.map((c) => c.id);
+      setSelectedCustomerIds((prev) =>
+        prev.filter((id) => !availableIds.includes(id)),
+      );
     } else {
       // Select all available filtered customers
       const newSelections = availableCustomers
-        .filter(customer => !selectedCustomerIds.includes(customer.id))
-        .map(customer => customer.id);
-      setSelectedCustomerIds(prev => [...prev, ...newSelections]);
+        .filter((customer) => !selectedCustomerIds.includes(customer.id))
+        .map((customer) => customer.id);
+      setSelectedCustomerIds((prev) => [...prev, ...newSelections]);
     }
   };
 
   const getFilteredCustomers = () => {
-    return customers.filter(customer => {
+    return customers.filter((customer) => {
       const searchLower = searchTerm.toLowerCase();
-      const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
-      const displayName = customer.customerType === 'PJ' ? customer.companyName : fullName;
+      const fullName =
+        `${customer.firstName || ""} ${customer.lastName || ""}`.trim();
+      const displayName =
+        customer.customerType === "PJ" ? customer.companyName : fullName;
 
       return (
         displayName?.toLowerCase().includes(searchLower) ||
@@ -157,7 +198,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
   const handleSubmit = async () => {
     if (selectedCustomerIds.length === 0) {
-      setError('Selecione pelo menos um cliente');
+      setError("Selecione pelo menos um cliente");
       return;
     }
 
@@ -173,13 +214,17 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       // Process customers sequentially to avoid overwhelming the server
       for (const customerId of selectedCustomerIds) {
         try {
-          const response = await apiRequest('POST', `/api/customers/${customerId}/companies`, {
+          const response = await apiRequest(
+            "POST",
+            `/api/customers/${customerId}/companies`,
+            {
               companyId: company?.id,
-              role: 'member',
-            });
+              role: "member",
+            },
+          );
 
           if (!response.success) {
-            throw new Error(response.message || 'Falha ao associar cliente');
+            throw new Error(response.message || "Falha ao associar cliente");
           }
 
           successCount++;
@@ -190,19 +235,23 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
         }
 
         // Small delay between requests to prevent rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       // Prepare result summary
       if (successCount > 0 && errorCount === 0) {
         setSuccess(`${successCount} clientes associados com sucesso!`);
       } else if (successCount > 0 && errorCount > 0) {
-        setSuccess(`${successCount} clientes associados com sucesso. ${errorCount} falharam.`);
+        setSuccess(
+          `${successCount} clientes associados com sucesso. ${errorCount} falharam.`,
+        );
         if (errors.length > 0) {
-          console.warn('Association errors:', errors);
+          console.warn("Association errors:", errors);
         }
       } else {
-        throw new Error(`Falha ao associar todos os clientes. Erros: ${errors.join('; ')}`);
+        throw new Error(
+          `Falha ao associar todos os clientes. Erros: ${errors.join("; ")}`,
+        );
       }
 
       // Create a summary data structure for backward compatibility
@@ -211,11 +260,11 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
         data: {
           associatedCustomers: successCount,
           skippedExisting: errorCount,
-          totalRequested: selectedCustomerIds.length
-        }
+          totalRequested: selectedCustomerIds.length,
+        },
       };
 
-      console.log('Association completed:', data);
+      console.log("Association completed:", data);
 
       // Reset form
       setSelectedCustomerIds([]);
@@ -225,10 +274,9 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
         onSuccess();
         onClose();
       }, 1500);
-
     } catch (error: any) {
-      console.error('Error associating customers:', error);
-      setError(error.message || 'Erro ao associar clientes');
+      console.error("Error associating customers:", error);
+      setError(error.message || "Erro ao associar clientes");
     } finally {
       setIsSubmitting(false);
     }
@@ -236,16 +284,21 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
   const handleClose = () => {
     setSelectedCustomerIds([]);
-    setSearchTerm('');
+    setSearchTerm("");
     setError(null);
     setSuccess(null);
     onClose();
   };
 
   const filteredCustomers = getFilteredCustomers();
-  const availableCustomers = filteredCustomers.filter(customer => !customer.isAssociated);
-  const allAvailableSelected = availableCustomers.length > 0 && 
-    availableCustomers.every(customer => selectedCustomerIds.includes(customer.id));
+  const availableCustomers = filteredCustomers.filter(
+    (customer) => !customer.isAssociated,
+  );
+  const allAvailableSelected =
+    availableCustomers.length > 0 &&
+    availableCustomers.every((customer) =>
+      selectedCustomerIds.includes(customer.id),
+    );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -256,7 +309,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             Associar Múltiplos Clientes
           </DialogTitle>
           <DialogDescription>
-            Associe múltiplos clientes à empresa{' '}
+            Associe múltiplos clientes à empresa{" "}
             <strong>{company?.displayName || company?.name}</strong>
           </DialogDescription>
         </DialogHeader>
@@ -273,8 +326,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                 className="pl-10"
               />
             </div>
-
-
           </div>
 
           {/* Customer selection */}
@@ -286,7 +337,8 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                   onCheckedChange={handleSelectAll}
                 />
                 <Label className="text-sm font-medium">
-                  Selecionar todos disponíveis ({availableCustomers.length} de {filteredCustomers.length})
+                  Selecionar todos disponíveis ({availableCustomers.length} de{" "}
+                  {filteredCustomers.length})
                 </Label>
               </div>
               <Badge variant="outline">
@@ -307,22 +359,30 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
               ) : (
                 <div className="space-y-1 p-2">
                   {filteredCustomers.map((customer) => {
-                    const isSelected = selectedCustomerIds.includes(customer.id);
-                    const displayName = customer.customerType === 'PJ' 
-                      ? customer.companyName 
-                      : `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+                    const isSelected = selectedCustomerIds.includes(
+                      customer.id,
+                    );
+                    const displayName =
+                      customer.customerType === "PJ"
+                        ? customer.companyName
+                        : `${customer.firstName || ""} ${customer.lastName || ""}`.trim();
 
                     return (
                       <div
                         key={customer.id}
                         className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
-                          customer.isAssociated 
-                            ? 'bg-green-50 border-green-200 cursor-not-allowed opacity-75' 
-                            : isSelected 
-                              ? 'bg-blue-50 border-blue-200 cursor-pointer'
-                              : 'hover:bg-gray-50 border-gray-200 cursor-pointer'
+                          customer.isAssociated
+                            ? "bg-green-50 border-green-200 cursor-not-allowed opacity-75"
+                            : isSelected
+                              ? "bg-blue-50 border-blue-200 cursor-pointer"
+                              : "hover:bg-gray-50 border-gray-200 cursor-pointer"
                         }`}
-                        onClick={() => handleCustomerToggle(customer.id, customer.isAssociated || false)}
+                        onClick={() =>
+                          handleCustomerToggle(
+                            customer.id,
+                            customer.isAssociated || false,
+                          )
+                        }
                       >
                         {customer.isAssociated ? (
                           <div className="flex items-center justify-center w-4 h-4 rounded bg-green-500 text-white">
@@ -336,35 +396,48 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className={`font-medium text-sm truncate ${
-                              customer.isAssociated ? 'text-green-700' : ''
-                            }`}>
+                            <p
+                              className={`font-medium text-sm truncate ${
+                                customer.isAssociated ? "text-green-700" : ""
+                              }`}
+                            >
                               {displayName || customer.email}
                             </p>
 
                             {customer.isAssociated && (
-                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-green-100 text-green-700 border-green-300"
+                              >
                                 <UserCheck className="w-3 h-3 mr-1" />
                                 Associado
                               </Badge>
                             )}
 
-                            <Badge 
-                              variant={customer.customerType === 'PJ' ? 'default' : 'secondary'}
+                            <Badge
+                              variant={
+                                customer.customerType === "PJ"
+                                  ? "default"
+                                  : "secondary"
+                              }
                               className="text-xs"
                             >
                               {customer.customerType}
                             </Badge>
 
-                            {customer.status !== 'Ativo' && (
+                            {customer.status !== "Ativo" && (
                               <Badge variant="destructive" className="text-xs">
                                 {customer.status}
                               </Badge>
                             )}
                           </div>
-                          <p className={`text-xs truncate ${
-                            customer.isAssociated ? 'text-green-600' : 'text-gray-500'
-                          }`}>
+                          <p
+                            className={`text-xs truncate ${
+                              customer.isAssociated
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }`}
+                          >
                             {customer.email}
                           </p>
                           {customer.isAssociated && (
@@ -392,17 +465,23 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           {success && (
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">{success}</AlertDescription>
+              <AlertDescription className="text-green-800">
+                {success}
+              </AlertDescription>
             </Alert>
           )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
             Cancelar
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={selectedCustomerIds.length === 0 || isSubmitting}
             className="min-w-[120px]"
           >

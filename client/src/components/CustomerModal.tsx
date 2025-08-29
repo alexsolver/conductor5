@@ -179,7 +179,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Parse available companies and filter Default if inactive
     const rawCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
     const { filteredCompanies } = useCompanyFilter(rawCompanies);
-    
+
     // Sort filtered companies to put Default first (if it's active)
     const availableCompanies = filteredCompanies.sort((a: any, b: any) => {
       const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
@@ -200,7 +200,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       queryFn: async () => {
         if (!customer?.id) return [];
         const response = await apiRequest('GET', `/api/customers/${customer.id}/companies`);
-        return response;
+        return response.json();
       },
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
       staleTime: 0, // Always fetch fresh data
@@ -212,6 +212,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   useEffect(() => {
     // Handle both direct array and wrapped response formats
     let companies = [];
+    console.log("COMPANIES DATA: ", companiesData);
     if (Array.isArray(companiesData)) {
       companies = companiesData;
     } else if (companiesData?.success && Array.isArray(companiesData.data)) {
@@ -219,7 +220,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     } else if (companiesData?.data && Array.isArray(companiesData.data)) {
       companies = companiesData.data;
     }
-
+    console.log("COMPANIES AQUI: ", companies);
     setCompanies(companies);
   }, [companiesData, customer?.id]);
 
@@ -754,7 +755,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  
+
                 </TabsContent>
 
                 <TabsContent value="hierarquia" className="space-y-4">
