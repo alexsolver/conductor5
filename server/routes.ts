@@ -1481,6 +1481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/customers/companies/:companyId/associated",
     jwtAuth,
     async (req: AuthenticatedRequest, res) => {
+      console.log("ENTREI NO ROUTES MESMO E SÓ NELE :D");
       try {
         const { companyId } = req.params;
 

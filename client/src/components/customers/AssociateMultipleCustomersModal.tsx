@@ -116,7 +116,7 @@ const AssociateMultipleCustomersModal: React.FC<
           "GET",
           `/api/companies/${company.id}/associated`,
         );
-        associatedData = await associatedData.json();
+        console.log("ASSOCIATED DATA: ", associatedData);
         associatedCustomers = Array.isArray(associatedData)
           ? associatedData
           : associatedData?.data || [];
