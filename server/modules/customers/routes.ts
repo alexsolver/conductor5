@@ -547,9 +547,22 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
 
     // Corrected table name: companies_relationships instead of company_memberships
     const query = `
-      SELECT c.*, cr.role
-      FROM "${schemaName}".customers c
-      JOIN "${schemaName}".companies_relationships cr ON c.id = cr.customer_id
+      SELECT DISTINCT 
+        c.id,
+        c.first_name,
+        c.last_name,
+        c.email,
+        c.customer_type,
+        c.cpf,
+        c.cnpj,
+        c.company_name,
+        cr.relationship_type,
+        cr.is_primary,
+        cr.start_date,
+        cr.end_date,
+        cr.created_at as association_date
+      FROM "${schemaName}".companies_relationships cr
+      JOIN "${schemaName}".customers c ON cr.customer_id = c.id
       WHERE cr.company_id = $1 AND cr.tenant_id = $2 
       ${customerActiveFilter}
       ORDER BY c.first_name, c.last_name
