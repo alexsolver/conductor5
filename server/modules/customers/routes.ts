@@ -545,11 +545,12 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
       customerActiveFilter = 'AND COALESCE(c.is_active, true) = true';
     }
 
+    // Corrected table name: companies_relationships instead of company_memberships
     const query = `
-      SELECT c.*, ccm.role
+      SELECT c.*, cr.role
       FROM "${schemaName}".customers c
-      JOIN "${schemaName}".company_memberships ccm ON c.id = ccm.customer_id
-      WHERE ccm.company_id = $1 AND ccm.tenant_id = $2 
+      JOIN "${schemaName}".companies_relationships cr ON c.id = cr.customer_id
+      WHERE cr.company_id = $1 AND cr.tenant_id = $2 
       ${customerActiveFilter}
       ORDER BY c.first_name, c.last_name
     `;
@@ -588,9 +589,9 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       FROM "${schemaName}".customers c
       WHERE c.tenant_id = $1 
       AND c.id NOT IN (
-        SELECT ccm.customer_id 
-        FROM "${schemaName}".company_memberships ccm 
-        WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
+        SELECT cr.customer_id 
+        FROM "${schemaName}".companies_relationships cr 
+        WHERE cr.company_id = $2 AND cr.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
     `;
@@ -663,7 +664,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Check for existing memberships
     const existingQuery = `
-      SELECT customer_id FROM "${schemaName}"."company_memberships" 
+      SELECT customer_id FROM "${schemaName}"."companies_relationships" 
       WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
     `;
 
@@ -688,7 +689,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
     const results = [];
     for (const customerId of newCustomerIds) {
       const insertQuery = `
-        INSERT INTO "${schemaName}"."company_memberships" 
+        INSERT INTO "${schemaName}"."companies_relationships" 
         (customer_id, company_id, role, is_primary, tenant_id, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING *
