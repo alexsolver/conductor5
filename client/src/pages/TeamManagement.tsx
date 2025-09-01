@@ -100,15 +100,6 @@ export default function TeamManagement() {
     });
   };
 
-  // Create team overview from available data
-  const teamOverview = {
-    totalMembers: Array.isArray(teamMembers) ? teamMembers.length : 0,
-    activeMembers: Array.isArray(teamMembers) ? teamMembers.filter(m => m.isActive).length : 0,
-    departments: Array.isArray(teamMembers) ? [...new Set(teamMembers.map(m => m.department).filter(Boolean))].length : 0,
-    recentActivity: []
-  };
-  const overviewLoading = membersLoading;
-
   // Fetch team members - using working endpoint
   const { data: userManagementData, isLoading: membersLoading } = useQuery({
     queryKey: ["/api/user-management/users"],
@@ -118,6 +109,15 @@ export default function TeamManagement() {
 
   // Extract users from the returned object
   const teamMembers = userManagementData?.users || [];
+
+  // Create team overview from available data
+  const teamOverview = {
+    totalMembers: Array.isArray(teamMembers) ? teamMembers.length : 0,
+    activeMembers: Array.isArray(teamMembers) ? teamMembers.filter(m => m.isActive).length : 0,
+    departments: Array.isArray(teamMembers) ? [...new Set(teamMembers.map(m => m.department).filter(Boolean))].length : 0,
+    recentActivity: []
+  };
+  const overviewLoading = membersLoading;
 
   // Fetch team stats - using working endpoint  
   const { data: tenantStats, isLoading: statsLoading } = useQuery({
