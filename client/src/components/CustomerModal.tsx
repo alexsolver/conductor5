@@ -970,6 +970,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                           <div className="mt-2 space-y-2">
                             {Array.isArray(companies) && companies.length > 0 ? (
                               companies.map((membership: any, index: number) => {
+                                console.log("[!!!!] AS COMPANIES AQUI: ", companies);
                                 // Garantir ID único e válido para cada empresa
                                 const companyId = membership.company_id || membership.id;
                                 const membershipId = membership.membership_id || membership.id || index;

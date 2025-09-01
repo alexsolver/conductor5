@@ -218,7 +218,7 @@ const AssociateMultipleCustomersModal: React.FC<
       // Process customers sequentially to avoid overwhelming the server
       for (const customerId of selectedCustomerIds) {
         try {
-          const response = await apiRequest(
+          let response = await apiRequest(
             "POST",
             `/api/customers/${customerId}/companies`,
             {
@@ -226,7 +226,7 @@ const AssociateMultipleCustomersModal: React.FC<
               role: "member",
             },
           );
-
+          response = await response.json();
           if (!response.success) {
             throw new Error(response.message || "Falha ao associar cliente");
           }

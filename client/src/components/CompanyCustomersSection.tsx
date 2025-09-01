@@ -8,12 +8,17 @@ interface CompanyCustomersSectionProps {
   onAssociateCustomers: () => void;
 }
 
-export default function CompanyCustomersSection({ 
-  companyId, 
-  onAssociateCustomers 
+export default function CompanyCustomersSection({
+  companyId,
+  onAssociateCustomers,
+  customersData,
 }: CompanyCustomersSectionProps) {
   // 🎯 [1QA-COMPLIANCE] Properly destructure from useQuery result
-  const { data: allCustomers, isLoading, error } = useCompanyCustomers(companyId);
+  const {
+    data: allCustomers,
+    isLoading,
+    error,
+  } = useCompanyCustomers(companyId);
 
   if (isLoading) {
     return (
@@ -28,13 +33,18 @@ export default function CompanyCustomersSection({
   }
 
   if (error) {
-    console.warn('CompanyCustomersSection error:', error);
+    console.warn("CompanyCustomersSection error:", error);
   }
 
   // 🎯 [1QA-COMPLIANCE] Defensive programming - proteger contra undefined
   const safeCustomers = Array.isArray(allCustomers) ? allCustomers : [];
-  const associatedCount = safeCustomers.filter((c: any) => c.isAssociated).length;
-  const availableCount = safeCustomers.filter((c: any) => !c.isAssociated).length;
+  const associatedCount = safeCustomers.filter(
+    (c: any) => c.isAssociated,
+  ).length;
+  let availableCount = 0;
+  if (customersData?.customers && Array.isArray(customersData.customers)) {
+    availableCount = customersData.customers.length - associatedCount;
+  }
 
   return (
     <div className="space-y-3 pt-3 border-t">
@@ -47,10 +57,16 @@ export default function CompanyCustomersSection({
           </span>
         </div>
         <div className="flex gap-1">
-          <Badge variant="outline" className="text-xs px-2 py-0 text-green-700 border-green-300">
+          <Badge
+            variant="outline"
+            className="text-xs px-2 py-0 text-green-700 border-green-300"
+          >
             {associatedCount} associados
           </Badge>
-          <Badge variant="outline" className="text-xs px-2 py-0 text-blue-700 border-blue-300">
+          <Badge
+            variant="outline"
+            className="text-xs px-2 py-0 text-blue-700 border-blue-300"
+          >
             {availableCount} disponíveis
           </Badge>
         </div>
@@ -61,12 +77,11 @@ export default function CompanyCustomersSection({
         <div className="text-sm text-gray-600">
           {associatedCount > 0 ? (
             <span className="font-medium text-green-700">
-              {associatedCount} cliente{associatedCount !== 1 ? 's' : ''} associado{associatedCount !== 1 ? 's' : ''}
+              {associatedCount} cliente{associatedCount !== 1 ? "s" : ""}{" "}
+              associado{associatedCount !== 1 ? "s" : ""}
             </span>
           ) : (
-            <span className="text-gray-500">
-              Nenhum cliente associado
-            </span>
+            <span className="text-gray-500">Nenhum cliente associado</span>
           )}
         </div>
       </div>

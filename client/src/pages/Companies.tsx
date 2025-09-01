@@ -7,26 +7,45 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
-  Plus, 
-  Search, 
-  Building2, 
-  Mail, 
-  Phone, 
-  Globe, 
-  MapPin, 
-  Edit, 
+import {
+  Plus,
+  Search,
+  Building2,
+  Mail,
+  Phone,
+  Globe,
+  MapPin,
+  Edit,
   Trash2,
   Users,
   Star,
   Calendar,
-  UserPlus
+  UserPlus,
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -38,14 +57,24 @@ const companySchema = z.object({
   displayName: z.string().optional(),
   description: z.string().optional(),
   industry: z.string().optional(),
-  size: z.enum(["startup", "small", "medium", "large", "enterprise"]).optional(),
+  size: z
+    .enum(["startup", "small", "medium", "large", "enterprise"])
+    .optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
-  website: z.string().optional().refine((val) => !val || val === "" || z.string().url().safeParse(val).success, {
-    message: "URL inválida"
-  }),
-  subscriptionTier: z.enum(["basic", "professional", "enterprise"]).default("basic"),
-  status: z.enum(["active", "inactive", "suspended"]).default("active")
+  website: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || val === "" || z.string().url().safeParse(val).success,
+      {
+        message: "URL inválida",
+      },
+    ),
+  subscriptionTier: z
+    .enum(["basic", "professional", "enterprise"])
+    .default("basic"),
+  status: z.enum(["active", "inactive", "suspended"]).default("active"),
 });
 
 interface Company {
@@ -86,50 +115,90 @@ export default function Companies() {
       phone: "",
       website: "",
       subscriptionTier: "basic",
-      status: "active"
+      status: "active",
     },
   });
 
   // Query para buscar empresas - usando endpoint correto
-  const { data: companiesData, isLoading, error } = useQuery({
-    queryKey: ['/api/companies'],
+  const {
+    data: companiesData,
+    isLoading,
+    error,
+    refetch: refetchCompanies
+  } = useQuery({
+    queryKey: ["/api/companies"],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/companies');
+      const response = await apiRequest("GET", "/api/companies");
       return response.json();
     },
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
+  // Query para buscar customers
+  const {
+    data: customersData,
+    isLoadingCustomers,
+    errorCustomers,
+  } = useQuery({
+    queryKey: ["/api/customers"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/customers");
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  
+
   // Handle different response formats from the API
   const companies = (() => {
-    console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
+    console.log("🔍 [COMPANIES-DEBUG] Raw API response:", companiesData);
     if (!companiesData) {
-      console.log('❌ [COMPANIES-DEBUG] No data received');
+      console.log("❌ [COMPANIES-DEBUG] No data received");
       return [];
     }
     if (Array.isArray(companiesData)) {
-      console.log('✅ [COMPANIES-DEBUG] Array format:', companiesData.length, 'companies');
+      console.log(
+        "✅ [COMPANIES-DEBUG] Array format:",
+        companiesData.length,
+        "companies",
+      );
       return companiesData;
     }
-    if ((companiesData as any).success && Array.isArray((companiesData as any).data)) {
-      console.log('✅ [COMPANIES-DEBUG] Success wrapper format:', (companiesData as any).data.length, 'companies');
+    if (
+      (companiesData as any).success &&
+      Array.isArray((companiesData as any).data)
+    ) {
+      console.log(
+        "✅ [COMPANIES-DEBUG] Success wrapper format:",
+        (companiesData as any).data.length,
+        "companies",
+      );
       return (companiesData as any).data;
     }
-    if ((companiesData as any).data && Array.isArray((companiesData as any).data)) {
-      console.log('✅ [COMPANIES-DEBUG] Data wrapper format:', (companiesData as any).data.length, 'companies');
+    if (
+      (companiesData as any).data &&
+      Array.isArray((companiesData as any).data)
+    ) {
+      console.log(
+        "✅ [COMPANIES-DEBUG] Data wrapper format:",
+        (companiesData as any).data.length,
+        "companies",
+      );
       return (companiesData as any).data;
     }
-    console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
+    console.log("❌ [COMPANIES-DEBUG] Unknown format, returning empty array");
     return [];
   })();
 
   // Mutation para criar empresa
   const createCompanyMutation = useMutation({
     mutationFn: (data: z.infer<typeof companySchema>) =>
-      apiRequest('POST', '/api/companies', data),
+      apiRequest("POST", "/api/companies", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       setIsCreateDialogOpen(false);
       companyForm.reset();
       toast({
@@ -143,18 +212,24 @@ export default function Companies() {
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   // Mutation para editar empresa
   const editCompanyMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: z.infer<typeof companySchema> }) =>
-      apiRequest('PUT', `/api/companies/${id}`, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: z.infer<typeof companySchema>;
+    }) => apiRequest("PUT", `/api/customers/companies/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+      //queryClient.invalidateQueries({ queryKey: ["/api/customers/companies"] });
       setIsEditDialogOpen(false);
       setSelectedCompany(null);
       companyForm.reset();
+      refetchCompanies();
       toast({
         title: "Empresa atualizada",
         description: "A empresa foi atualizada com sucesso.",
@@ -166,15 +241,14 @@ export default function Companies() {
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   // Mutation para deletar empresa
   const deleteCompanyMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiRequest('DELETE', `/api/companies/${id}`),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/companies/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       toast({
         title: "Empresa removida",
         description: "A empresa foi removida com sucesso.",
@@ -186,7 +260,7 @@ export default function Companies() {
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   const handleCreateCompany = (data: z.infer<typeof companySchema>) => {
@@ -211,16 +285,21 @@ export default function Companies() {
       phone: company.phone || "",
       website: company.website || "",
       subscriptionTier: (company.subscriptionTier as any) || "basic",
-      status: (company.status as any) || "active"
+      status: (company.status as any) || "active",
     });
     setIsEditDialogOpen(true);
   };
 
   // Filtrar empresas com base no termo de busca
-  const filteredCompanies = (Array.isArray(companies) ? companies : []).filter((company: Company) =>
-    company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (company.displayName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-    (company.industry?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+  const filteredCompanies = (Array.isArray(companies) ? companies : []).filter(
+    (company: Company) =>
+      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (company.displayName?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase(),
+      ) ||
+      (company.industry?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase(),
+      ),
   );
 
   if (isLoading) {
@@ -254,7 +333,10 @@ export default function Companies() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
@@ -266,7 +348,10 @@ export default function Companies() {
                 <DialogTitle>Criar Nova Empresa</DialogTitle>
               </DialogHeader>
               <Form {...companyForm}>
-                <form onSubmit={companyForm.handleSubmit(handleCreateCompany)} className="space-y-6">
+                <form
+                  onSubmit={companyForm.handleSubmit(handleCreateCompany)}
+                  className="space-y-6"
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={companyForm.control}
@@ -303,7 +388,10 @@ export default function Companies() {
                         <FormItem>
                           <FormLabel>Setor</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Tecnologia, Saúde, Educação" {...field} />
+                            <Input
+                              placeholder="Ex: Tecnologia, Saúde, Educação"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -316,7 +404,10 @@ export default function Companies() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Porte</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Selecione o porte" />
@@ -327,7 +418,9 @@ export default function Companies() {
                               <SelectItem value="small">Pequena</SelectItem>
                               <SelectItem value="medium">Média</SelectItem>
                               <SelectItem value="large">Grande</SelectItem>
-                              <SelectItem value="enterprise">Corporação</SelectItem>
+                              <SelectItem value="enterprise">
+                                Corporação
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -342,7 +435,11 @@ export default function Companies() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="contato@empresa.com" {...field} />
+                            <Input
+                              type="email"
+                              placeholder="contato@empresa.com"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -370,7 +467,10 @@ export default function Companies() {
                         <FormItem>
                           <FormLabel>Website</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://empresa.com" {...field} />
+                            <Input
+                              placeholder="https://empresa.com"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -383,7 +483,10 @@ export default function Companies() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Plano</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
@@ -391,8 +494,12 @@ export default function Companies() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="basic">Básico</SelectItem>
-                              <SelectItem value="professional">Profissional</SelectItem>
-                              <SelectItem value="enterprise">Empresarial</SelectItem>
+                              <SelectItem value="professional">
+                                Profissional
+                              </SelectItem>
+                              <SelectItem value="enterprise">
+                                Empresarial
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -408,10 +515,10 @@ export default function Companies() {
                       <FormItem>
                         <FormLabel>Descrição</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Descrição da empresa..."
                             className="min-h-[100px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -431,7 +538,9 @@ export default function Companies() {
                       type="submit"
                       disabled={createCompanyMutation.isPending}
                     >
-                      {createCompanyMutation.isPending ? "Criando..." : "Criar Empresa"}
+                      {createCompanyMutation.isPending
+                        ? "Criando..."
+                        : "Criar Empresa"}
                     </Button>
                   </div>
                 </form>
@@ -459,13 +568,14 @@ export default function Companies() {
         <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {searchTerm ? "Nenhuma empresa encontrada" : "Nenhuma empresa cadastrada"}
+            {searchTerm
+              ? "Nenhuma empresa encontrada"
+              : "Nenhuma empresa cadastrada"}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {searchTerm 
-              ? "Tente ajustar o termo de busca." 
-              : "Comece criando sua primeira empresa para organizar seus clientes."
-            }
+            {searchTerm
+              ? "Tente ajustar o termo de busca."
+              : "Comece criando sua primeira empresa para organizar seus clientes."}
           </p>
           {!searchTerm && (
             <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -477,7 +587,10 @@ export default function Companies() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.map((company: Company) => (
-            <Card key={company.id} className="group hover:shadow-lg transition-all duration-200">
+            <Card
+              key={company.id}
+              className="group hover:shadow-lg transition-all duration-200"
+            >
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -485,18 +598,28 @@ export default function Companies() {
                       {company.displayName || company.name}
                     </CardTitle>
                     {company.displayName && (
-                      <p className="text-sm text-gray-500 mb-2">{company.name}</p>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {company.name}
+                      </p>
                     )}
                     <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={company.status === 'active' ? 'default' : 'secondary'}
+                      <Badge
+                        variant={
+                          company.status === "active" ? "default" : "secondary"
+                        }
                       >
-                        {company.status === 'active' ? 'Ativa' : 
-                         company.status === 'inactive' ? 'Inativa' : 'Suspensa'}
+                        {company.status === "active"
+                          ? "Ativa"
+                          : company.status === "inactive"
+                            ? "Inativa"
+                            : "Suspensa"}
                       </Badge>
                       <Badge variant="outline">
-                        {company.subscriptionTier === 'basic' ? 'Básico' :
-                         company.subscriptionTier === 'professional' ? 'Profissional' : 'Empresarial'}
+                        {company.subscriptionTier === "basic"
+                          ? "Básico"
+                          : company.subscriptionTier === "professional"
+                            ? "Profissional"
+                            : "Empresarial"}
                       </Badge>
                     </div>
                   </div>
@@ -513,7 +636,11 @@ export default function Companies() {
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        if (confirm('Tem certeza que deseja remover esta empresa?')) {
+                        if (
+                          confirm(
+                            "Tem certeza que deseja remover esta empresa?",
+                          )
+                        ) {
                           deleteCompanyMutation.mutate(company.id);
                         }
                       }}
@@ -553,9 +680,9 @@ export default function Companies() {
                   {company.website && (
                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <Globe className="w-4 h-4" />
-                      <a 
-                        href={company.website} 
-                        target="_blank" 
+                      <a
+                        href={company.website}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-blue-600 truncate"
                       >
@@ -566,12 +693,13 @@ export default function Companies() {
                 </div>
 
                 {/* Company Customers Section */}
-                <CompanyCustomersSection 
-                  companyId={company.id} 
+                <CompanyCustomersSection
+                  companyId={company.id}
+                  customersData={customersData}
                   onAssociateCustomers={() => {
                     setSelectedCompany(company);
                     setIsAssociateModalOpen(true);
-                  }} 
+                  }}
                 />
               </CardContent>
             </Card>
@@ -586,7 +714,10 @@ export default function Companies() {
             <DialogTitle>Editar Empresa</DialogTitle>
           </DialogHeader>
           <Form {...companyForm}>
-            <form onSubmit={companyForm.handleSubmit(handleEditCompany)} className="space-y-6">
+            <form
+              onSubmit={companyForm.handleSubmit(handleEditCompany)}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={companyForm.control}
@@ -623,7 +754,10 @@ export default function Companies() {
                     <FormItem>
                       <FormLabel>Setor</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Tecnologia, Saúde, Educação" {...field} />
+                        <Input
+                          placeholder="Ex: Tecnologia, Saúde, Educação"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -636,7 +770,10 @@ export default function Companies() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Porte</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o porte" />
@@ -662,7 +799,11 @@ export default function Companies() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="contato@empresa.com" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="contato@empresa.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -703,7 +844,10 @@ export default function Companies() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Plano</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -711,8 +855,12 @@ export default function Companies() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="basic">Básico</SelectItem>
-                          <SelectItem value="professional">Profissional</SelectItem>
-                          <SelectItem value="enterprise">Empresarial</SelectItem>
+                          <SelectItem value="professional">
+                            Profissional
+                          </SelectItem>
+                          <SelectItem value="enterprise">
+                            Empresarial
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -726,7 +874,10 @@ export default function Companies() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -751,10 +902,10 @@ export default function Companies() {
                   <FormItem>
                     <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder="Descrição da empresa..."
                         className="min-h-[100px]"
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -770,11 +921,10 @@ export default function Companies() {
                 >
                   Cancelar
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={editCompanyMutation.isPending}
-                >
-                  {editCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                <Button type="submit" disabled={editCompanyMutation.isPending}>
+                  {editCompanyMutation.isPending
+                    ? "Salvando..."
+                    : "Salvar Alterações"}
                 </Button>
               </div>
             </form>
@@ -788,7 +938,7 @@ export default function Companies() {
         onClose={() => setIsAssociateModalOpen(false)}
         company={selectedCompany}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+          queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
           setIsAssociateModalOpen(false);
         }}
       />

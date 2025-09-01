@@ -1056,7 +1056,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const pool = schemaManager.getPool();
         const schemaName = schemaManager.getSchemaName(tenantId);
 
-        // ✅ Fix: Use tickets table to find customers associated with a company
         const result = await pool.query(
           `
         SELECT DISTINCT
@@ -1070,9 +1069,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.created_at,
           c.updated_at
         FROM "${schemaName}".customers c
-        INNER JOIN "${schemaName}".tickets t ON c.id = t.caller_id
-        WHERE t.company_id = $1
+        INNER JOIN "${schemaName}".companies_relationships cr ON c.id = cr.customer_id
+        WHERE cr.company_id = $1
           AND c.tenant_id = $2
+          AND cr.is_active = true
           AND c.is_active = true
         ORDER BY c.first_name, c.last_name
       `,
@@ -4700,11 +4700,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`[CUSTOMER-COMPANIES] Using schema: ${schemaName}`);
 
-        // Get companies associated with this specific customer through the customer_companies relationship table
         const companies = await tenantDb.execute(sql`
         SELECT
-          c.id as company_id,
-          c.name as company_name,
+          c.id AS company_id,
+          c.name AS company_name,
           c.display_name,
           c.cnpj,
           c.industry,
@@ -4715,7 +4714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.subscription_tier,
           c.created_at,
           c.updated_at,
-          cr.relationship_type as role,
+          cr.relationship_type AS role,
           cr.start_date,
           cr.end_date,
           cr.is_primary
@@ -4724,6 +4723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE cr.customer_id = ${customerId}
           AND cr.is_active = true
           AND c.is_active = true
+        GROUP BY c.id, cr.relationship_type, cr.start_date, cr.end_date, cr.is_primary
         ORDER BY c.name
       `);
 
