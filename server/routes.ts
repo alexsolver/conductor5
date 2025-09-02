@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { unifiedStorage } from "./storage-simple";
-import { schemaManager } from "./db";
+import { schemaManager } from "./storage-simple";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { enhancedTenantValidator } from "./middleware/tenantValidator";
 import {
@@ -42,6 +42,7 @@ import { eq, and, sql, asc } from "drizzle-orm";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
 import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
+import teamMembersRoutes from "./routes/teamMembersRoutes";
 
 import { integrityRouter as integrityRoutes } from "./routes/integrityRoutes";
 import systemScanRoutes from "./routes/systemScanRoutes";
@@ -2140,7 +2141,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/team-management", teamManagementRoutes);
   console.log('[ROUTES] Registering /api/tenant-admin/team routes...');
   app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
-  console.log('[ROUTES] Registering /api/user-management routes...');
+  app.use('/api/team', teamMembersRoutes);
+
+  // Auth routes
   app.use('/api/user-management', userManagementRoutes);
 
   // Hierarchical ticket metadata routes
@@ -3495,137 +3498,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue
 
   // app.use('/api/internal-forms', internalFormsRoutes); // Temporarily removed
-
-  // Locations API routes
-  app.get("/api/locations", jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: "Tenant ID required" });
-      }
-
-      const locations = (await unifiedStorage.getLocations)
-        ? await unifiedStorage.getLocations(tenantId)
-        : [];
-      res.json({
-        success: true,
-        data: locations,
-        message: `Encontradas ${locations.length} localizações`,
-      });
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Erro ao buscar localizações" });
-    }
-  });
-
-  app.post(
-    "/api/locations",
-    jwtAuth,
-    async (req: AuthenticatedRequest, res) => {
-      try {
-        const tenantId = req.user?.tenantId;
-        if (!tenantId) {
-          return res.status(401).json({ message: "Tenant ID required" });
-        }
-
-        const location = (await unifiedStorage.createLocation)
-          ? await unifiedStorage.createLocation(tenantId, req.body)
-          : {
-              id: Date.now(),
-              ...req.body,
-              tenantId,
-              createdAt: new Date().toISOString(),
-            };
-
-        res.status(201).json({
-          success: true,
-          data: location,
-          message: "Localização criada com sucesso",
-        });
-      } catch (error) {
-        console.error("Error creating location:", error);
-        res
-          .status(500)
-          .json({ success: false, message: "Erro ao criar localização" });
-      }
-    },
-  );
-
-  // === Field Layout Clean Architecture Integration ===
-  try {
-    // ✅ LEGACY field-layout routes-integration eliminated per 1qa.md
-    console.log("✅ Field Layout Clean Architecture routes eliminated");
-  } catch (error) {
-    console.warn("⚠️ Field Layout integration routes not available:", error);
-  }
-
-  // === Tenant Admin Clean Architecture Integration ===
-  try {
-    // ✅ LEGACY TENANT ADMIN ROUTES ELIMINATED - Clean Architecture only per 1qa.md
-    console.log(
-      "✅ Tenant Admin Clean Architecture routes registered at /api/tenant-admin-integration",
-    );
-  } catch (error) {
-    console.warn("⚠️ Tenant Admin integration routes not available:", error);
-  }
-
-  // === Template Audit Clean Architecture Integration ===
-  try {
-    // ✅ LEGACY template-audit routes-integration eliminated per 1qa.md
-    console.log("✅ Template Audit Clean Architecture routes eliminated");
-  } catch (error) {
-    console.warn("⚠️ Template Audit integration routes not available:", error);
-  }
-
-  // === Template Versions Clean Architecture Integration ===
-  try {
-    // ✅ LEGACY template-versions routes-integration eliminated per 1qa.md
-    console.log("✅ Template Versions Clean Architecture routes eliminated");
-  } catch (error) {
-    console.warn(
-      "⚠️ Template Versions integration routes not available:",
-      error,
-    );
-  }
-
-  // === Final Integration Clean Architecture Integration ===
-  try {
-    // ✅ LEGACY final-integration routes-integration eliminated per 1qa.md
-    console.log("✅ Final Integration Clean Architecture routes eliminated");
-  } catch (error) {
-    console.warn("⚠️ Final Integration routes not available:", error);
-  }
-
-  // === Auth Clean Architecture Integration ===
-  try {
-    // ✅ LEGACY auth routes-integration eliminated per 1qa.md
-    console.log("✅ Auth Clean Architecture routes eliminated");
-  } catch (error) {
-    console.warn("⚠️ Auth integration routes not available:", error);
-  }
-
-  // === Tickets Clean Architecture Integration - REMOVED ===
-  // Already registered above at /api/tickets
-
-  // === Users Clean Architecture Integration ===
-  try {
-    // ✅ LEGACY users routes-integration eliminated per 1qa.md
-    console.log("✅ Users Clean Architecture routes eliminated");
-  } catch (error) {
-    console.warn("⚠️ Users integration routes not available:", error);
-  }
-  // ✅ LEGACY holidayRoutes eliminated per 1qa.md
-
-  // Ticket Templates routes are now integrated directly above
-  // Auth routes already mounted above, removing duplicate
-
-  // Email Templates routes
-  const { emailTemplatesRouter } = await import("./routes/emailTemplates");
-  app.use("/api/email-templates", emailTemplatesRouter);
-
-  // Removed: External Contacts routes - functionality eliminated
 
   // Locations routes
 

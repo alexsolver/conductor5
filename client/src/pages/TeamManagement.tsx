@@ -100,28 +100,39 @@ export default function TeamManagement() {
     });
   };
 
-  // Fetch team members - using working endpoint
-  const { data: userManagementData, isLoading: membersLoading, error: membersError } = useQuery({
-    queryKey: ["/api/user-management/users"],
-    enabled: !!user,
-    refetchInterval: 60000,
+  // Fetch team members data
+  const { data: teamMembersData, isLoading: teamMembersLoading, error: teamMembersError } = useQuery({
+    queryKey: ["/api/team/members"],
+    enabled: !!user?.tenantId,
   });
 
-  console.log('TeamManagement - userManagementData:', userManagementData);
-  console.log('TeamManagement - membersLoading:', membersLoading);
-  console.log('TeamManagement - membersError:', membersError);
+  // Fetch user management data
+  const { data: userManagementData, isLoading: membersLoading, error: membersError } = useQuery({
+    queryKey: ["/api/user-management/users"],
+    enabled: !!user?.tenantId,
+  });
 
-  // Extract users from the returned object
-  const teamMembers = userManagementData?.users || [];
+  console.log("TeamManagement - userManagementData:", userManagementData);
+  console.log("TeamManagement - membersLoading:", membersLoading);
+  console.log("TeamManagement - membersError:", membersError);
+  console.log("TeamManagement - teamMembersData:", teamMembersData);
+  console.log("TeamManagement - teamMembersLoading:", teamMembersLoading);
+
+  // Get members data from team API first, fallback to user management API
+  const membersData = teamMembersData?.members || userManagementData?.users || [];
+  const isLoadingMembers = teamMembersLoading || membersLoading;
+
+  console.log("TeamManagement - Final membersData:", membersData);
+  console.log("TeamManagement - Final isLoadingMembers:", isLoadingMembers);
 
   // Create team overview from available data
   const teamOverview = {
-    totalMembers: Array.isArray(teamMembers) ? teamMembers.length : 0,
-    activeMembers: Array.isArray(teamMembers) ? teamMembers.filter(m => m.isActive).length : 0,
-    departments: Array.isArray(teamMembers) ? [...new Set(teamMembers.map(m => m.department).filter(Boolean))].length : 0,
+    totalMembers: Array.isArray(membersData) ? membersData.length : 0,
+    activeMembers: Array.isArray(membersData) ? membersData.filter(m => m.isActive).length : 0,
+    departments: Array.isArray(membersData) ? [...new Set(membersData.map(m => m.department).filter(Boolean))].length : 0,
     recentActivity: []
   };
-  const overviewLoading = membersLoading;
+  const overviewLoading = isLoadingMembers;
 
   // Fetch team stats - using working endpoint  
   const { data: tenantStats, isLoading: statsLoading } = useQuery({
@@ -130,20 +141,10 @@ export default function TeamManagement() {
     refetchInterval: 30000,
   });
 
-  // Also try the team management members endpoint
-  const { data: teamMembersData, isLoading: teamMembersLoading } = useQuery({
-    queryKey: ["/api/team-management/members"],
-    enabled: !!user,
-    refetchInterval: 60000,
-  });
-
-  console.log('TeamManagement - teamMembersData:', teamMembersData);
-  console.log('TeamManagement - teamMembersLoading:', teamMembersLoading);
-
   // Use tenant stats as team stats
   const teamStats = {
-    totalMembers: Array.isArray(teamMembers) ? teamMembers.length : 0,
-    activeToday: Array.isArray(teamMembers) ? teamMembers.filter(m => m.isActive).length : 0,
+    totalMembers: Array.isArray(membersData) ? membersData.length : 0,
+    activeToday: Array.isArray(membersData) ? membersData.filter(m => m.isActive).length : 0,
     pendingApprovals: 0,
     averagePerformance: 85
   };
@@ -161,7 +162,7 @@ export default function TeamManagement() {
   });
 
   // For backward compatibility
-  const tenantMembers = teamMembers;
+  const tenantMembers = membersData;
 
   // Fetch groups for filter
   const { data: groupsData } = useQuery({
@@ -181,10 +182,8 @@ export default function TeamManagement() {
     enabled: !!user,
   });
 
-  // Filter team members - using teamMembers that works
-  const membersArray = Array.isArray(teamMembers) ? teamMembers : [];
-
-  const filteredMembers = membersArray.filter((member: any) => {
+  // Filter team members - using membersData that works
+  const filteredMembers = membersData.filter((member: any) => {
     // Build full name for search
     const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
     const displayName = member.name || fullName || member.email || 'Unknown User';
@@ -278,7 +277,7 @@ export default function TeamManagement() {
 
   // Handle export team data
   const handleExportTeamData = () => {
-    if (!teamMembers || teamMembers.length === 0) {
+    if (!membersData || membersData.length === 0) {
       toast({
         title: "Nenhum dado para exportar",
         description: "Não há membros da equipe para exportar.",
@@ -333,7 +332,7 @@ export default function TeamManagement() {
     }
   };
 
-  if (membersLoading) {
+  if (isLoadingMembers) {
     return (
       <div className="p-4 space-y-4">
         <div className="animate-pulse">
@@ -375,7 +374,7 @@ export default function TeamManagement() {
           <Button 
             variant="outline"
             onClick={handleExportTeamData}
-            disabled={!teamMembers || teamMembers.length === 0}
+            disabled={!membersData || membersData.length === 0}
           >
             <Download className="h-4 w-4 mr-2" />
             Exportar
@@ -391,7 +390,7 @@ export default function TeamManagement() {
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Membros</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {Array.isArray(teamMembers) ? teamMembers.length : 0}
+                  {Array.isArray(membersData) ? membersData.length : 0}
                 </p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />
@@ -405,7 +404,7 @@ export default function TeamManagement() {
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ativos Hoje</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {Array.isArray(teamMembers) ? teamMembers.filter(m => m.isActive).length : 0}
+                  {Array.isArray(membersData) ? membersData.filter(m => m.isActive).length : 0}
                 </p>
               </div>
               <UserCheck className="h-8 w-8 text-green-600" />
@@ -879,7 +878,7 @@ export default function TeamManagement() {
                         Nenhum membro encontrado
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {teamMembers && teamMembers.length === 0 
+                        {membersData && membersData.length === 0 
                           ? "Nenhum membro foi adicionado à equipe ainda."
                           : "Ajuste os filtros para encontrar membros da equipe."
                         }
