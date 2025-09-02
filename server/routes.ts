@@ -41,6 +41,7 @@ import {
 import { eq, and, sql, asc } from "drizzle-orm";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
+import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
 
 import { integrityRouter as integrityRoutes } from "./routes/integrityRoutes";
 import systemScanRoutes from "./routes/systemScanRoutes";
