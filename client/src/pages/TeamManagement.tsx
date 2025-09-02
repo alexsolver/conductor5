@@ -110,7 +110,7 @@ export default function TeamManagement() {
   const { data: userManagementData, isLoading: membersLoading, error: membersError } = useQuery({
     queryKey: ["/api/user-management/users"],
     queryFn: async () => {
-      const res = await apiRequest("/api/user-management/users");
+      const res = await apiRequest("GET", "/api/user-management/users");
       if (!res.ok) throw new Error("Erro ao buscar usuários");
       return res.json();
     },
