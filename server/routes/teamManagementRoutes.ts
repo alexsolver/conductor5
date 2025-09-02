@@ -101,11 +101,9 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
-    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
-    console.log('[TEAM-MANAGEMENT-QA] Fetching members for schema:', tenantSchema);
+    console.log('[TEAM-MANAGEMENT] Fetching members from public schema for tenant:', user.tenantId);
 
-    // ✅ 1QA.MD: Get members using proper tenant schema
+    // Buscar membros do schema público filtrando por tenant_id
     const membersResult = await db.execute(sql`
       SELECT 
         id,
@@ -115,9 +113,8 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
         role,
         is_active,
         created_at,
-        department_id,
-        position
-      FROM ${sql.identifier(tenantSchema)}.users
+        cargo as position
+      FROM users
       WHERE tenant_id = ${user.tenantId}
       AND is_active = true
       ORDER BY first_name, last_name
@@ -134,8 +131,8 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       role: member.role,
       isActive: member.is_active,
       createdAt: member.created_at,
-      departmentId: member.department_id,
-      position: member.position
+      position: member.position || '',
+      department: member.cargo || ''
     }));
 
     console.log('[TEAM-MANAGEMENT-QA] Found members:', processedMembers.length);

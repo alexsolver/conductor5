@@ -169,27 +169,27 @@ export default function TeamManagement() {
 
   // Filter team members - using teamMembers that works
   const membersArray = Array.isArray(teamMembers) ? teamMembers : [];
-  
+
   const filteredMembers = membersArray.filter((member: any) => {
     // Build full name for search
     const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
     const displayName = member.name || fullName || member.email || 'Unknown User';
-    
+
     const matchesSearch = searchTerm === "" || 
                          displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase());
-                         
+
     const matchesDepartment = filterDepartment === "all" || 
                              member.department === filterDepartment ||
                              member.departmentName === filterDepartment;
-                             
+
     const matchesStatus = filterStatus === "all" || 
                          member.status === filterStatus || 
                          (member.isActive && filterStatus === "active") ||
                          (!member.isActive && filterStatus === "inactive");
-                         
+
     const matchesRole = filterRole === "all" || member.role === filterRole;
-    
+
     // Group filter - handle different group data structures
     const matchesGroup = filterGroup === "all" || 
                         (Array.isArray(member.groupIds) && member.groupIds.some(groupId => 
@@ -248,7 +248,7 @@ export default function TeamManagement() {
       });
       return;
     }
-    
+
     const newStatus = member.status === 'active' ? 'inactive' : 'active';
     try {
       toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
