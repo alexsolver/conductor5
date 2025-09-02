@@ -961,6 +961,88 @@ CREATE TABLE IF NOT EXISTS ticket_actions (
     performed_at TIMESTAMP DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR NOT NULL,
+  password_hash VARCHAR NOT NULL,
+  first_name VARCHAR,
+  last_name VARCHAR,
+  role VARCHAR(50) NOT NULL DEFAULT 'agent',
+  tenant_id UUID NOT NULL,
+  profile_image_url VARCHAR,
+
+  -- Dados Básicos
+  integration_code VARCHAR(100),
+  alternative_email VARCHAR,
+  cell_phone VARCHAR(20),
+  phone VARCHAR(20),
+  ramal VARCHAR(20),
+  time_zone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
+  vehicle_type VARCHAR(50),
+  cpf_cnpj VARCHAR(20),
+  supervisor_ids TEXT[],
+
+  -- Endereço
+  cep VARCHAR(10),
+  country VARCHAR(100) DEFAULT 'Brasil',
+  state VARCHAR(100),
+  city VARCHAR(100),
+  street_address VARCHAR,
+  house_type VARCHAR(50),
+  house_number VARCHAR(20),
+  complement VARCHAR,
+  neighborhood VARCHAR(100),
+
+  -- Dados RH
+  employee_code VARCHAR(50),
+  pis VARCHAR(20),
+  cargo VARCHAR(100),
+  ctps VARCHAR(50),
+  serie_number VARCHAR(20),
+  admission_date TIMESTAMP,
+  cost_center VARCHAR(100),
+
+  -- HR Extension
+  position VARCHAR(100),
+  department_id UUID,
+  performance INTEGER DEFAULT 75,
+  last_active_at TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'active',
+  goals INTEGER DEFAULT 0,
+  completed_goals INTEGER DEFAULT 0,
+
+  -- Employment Type
+  employment_type VARCHAR(20) DEFAULT 'clt',
+
+  -- System fields
+  is_active BOOLEAN DEFAULT true,
+  last_login_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+
+  CONSTRAINT users_tenant_email_unique UNIQUE (tenant_id, email)
+);
+
+
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  session_token VARCHAR(255) NOT NULL,
+  device_type VARCHAR(50),
+  browser VARCHAR(100),
+  operating_system VARCHAR(100),
+  ip_address VARCHAR(45),
+  location JSONB,
+  user_agent TEXT,
+  is_active BOOLEAN DEFAULT true,
+  last_activity TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+
+  CONSTRAINT user_sessions_tenant_token_unique UNIQUE (tenant_id, session_token)
+);
+
 
 -- ==============================
 -- Função genérica para atualizar updated_at
