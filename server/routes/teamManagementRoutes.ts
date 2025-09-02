@@ -96,14 +96,18 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
 // ✅ 1QA.MD: Get team members with enhanced data using tenant schema
 router.get('/members', async (req: AuthenticatedRequest, res) => {
   try {
+    console.log('[TEAM-MANAGEMENT] Members endpoint called');
     const { user } = req;
     if (!user) {
+      console.log('[TEAM-MANAGEMENT] No user authenticated');
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
     console.log('[TEAM-MANAGEMENT] Fetching members from public schema for tenant:', user.tenantId);
+    console.log('[TEAM-MANAGEMENT] User details:', { id: user.id, email: user.email, role: user.role });
 
     // Buscar membros do schema público filtrando por tenant_id
+    console.log('[TEAM-MANAGEMENT] Executing SQL query...');
     const membersResult = await db.execute(sql`
       SELECT 
         id,
@@ -120,6 +124,7 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       ORDER BY first_name, last_name
     `);
 
+    console.log('[TEAM-MANAGEMENT] SQL query executed, rows found:', membersResult.rows?.length || 0);
     const members = membersResult.rows || [];
 
     const processedMembers = members.map((member: any) => ({
@@ -135,11 +140,12 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       department: member.cargo || ''
     }));
 
-    console.log('[TEAM-MANAGEMENT-QA] Found members:', processedMembers.length);
+    console.log('[TEAM-MANAGEMENT] Found members:', processedMembers.length);
+    console.log('[TEAM-MANAGEMENT] Processed members sample:', processedMembers.slice(0, 2));
 
     res.json(processedMembers);
   } catch (error) {
-    console.error('[TEAM-MANAGEMENT-QA] Error fetching team members:', error);
+    console.error('[TEAM-MANAGEMENT] Error fetching team members:', error);
     res.status(500).json({ message: 'Failed to fetch members' });
   }
 });

@@ -101,11 +101,15 @@ export default function TeamManagement() {
   };
 
   // Fetch team members - using working endpoint
-  const { data: userManagementData, isLoading: membersLoading } = useQuery({
+  const { data: userManagementData, isLoading: membersLoading, error: membersError } = useQuery({
     queryKey: ["/api/user-management/users"],
     enabled: !!user,
     refetchInterval: 60000,
   });
+
+  console.log('TeamManagement - userManagementData:', userManagementData);
+  console.log('TeamManagement - membersLoading:', membersLoading);
+  console.log('TeamManagement - membersError:', membersError);
 
   // Extract users from the returned object
   const teamMembers = userManagementData?.users || [];
@@ -125,6 +129,16 @@ export default function TeamManagement() {
     enabled: !!user,
     refetchInterval: 30000,
   });
+
+  // Also try the team management members endpoint
+  const { data: teamMembersData, isLoading: teamMembersLoading } = useQuery({
+    queryKey: ["/api/team-management/members"],
+    enabled: !!user,
+    refetchInterval: 60000,
+  });
+
+  console.log('TeamManagement - teamMembersData:', teamMembersData);
+  console.log('TeamManagement - teamMembersLoading:', teamMembersLoading);
 
   // Use tenant stats as team stats
   const teamStats = {

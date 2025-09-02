@@ -2135,7 +2135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // app.use('/api/user', jwtAuth, userProfileRoutes);
 
   // Team management routes
-  app.use("/api/team-management", jwtAuth, teamManagementRoutes);
+  console.log('[ROUTES] Registering /api/team-management routes...');
+  app.use("/api/team-management", teamManagementRoutes);
+  console.log('[ROUTES] Registering /api/tenant-admin/team routes...');
+  app.use('/api/tenant-admin/team', tenantAdminTeamRoutes);
+  console.log('[ROUTES] Registering /api/user-management routes...');
+  app.use('/api/user-management', userManagementRoutes);
 
   // Hierarchical ticket metadata routes
   try {
@@ -5215,7 +5220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tenantId,
             optionValue: "high",
             displayLabel: "Alta",
-            colorHex: "#F97316",
+            colorHex: "#F59E0B",
             sortOrder: 3,
           },
           {
@@ -5277,7 +5282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
-  // ✅ LEGACY technical-skills eliminated per 1qa.md
+  // ✅ LEGACY technical-skills routes eliminated per 1qa.md
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
   // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
@@ -5352,7 +5357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
-  // ✅ LEGACY technical-skills eliminated per 1qa.md
+  // ✅ LEGACY technical-skills routes eliminated per 1qa.md
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
   // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
