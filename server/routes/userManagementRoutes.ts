@@ -1,11 +1,9 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddleware';
+import { requirePermission } from '../middleware/rbacMiddleware';
 import { userManagementService } from '../services/UserManagementService';
 import { db } from '../db';
-import { userGroups, userGroupMemberships, insertUserGroupSchema, insertUserGroupMembershipSchema, users as usersTable } from '@shared/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
 // Add missing validation schema
@@ -214,185 +212,368 @@ router.get('/users/:userId',
 
 // ============= USER GROUPS ROUTES =============
 
-// Get all groups for tenant
+// Get tenant-specific user groups
 router.get('/groups', 
   jwtAuth, 
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Buscar grupos com contagem de membros
-      const groups = await db.select({
-        id: userGroups.id,
-        name: userGroups.name,
-        description: userGroups.description,
-        isActive: userGroups.isActive,
-        createdAt: userGroups.createdAt,
-        updatedAt: userGroups.updatedAt
-      }).from(userGroups)
-        .where(and(
-          eq(userGroups.tenantId, tenantId),
-          eq(userGroups.isActive, true)
-        ))
-        .orderBy(userGroups.createdAt);
+      console.log(`🔍 [USER-GROUPS] Fetching groups from schema: ${schemaName}`);
 
-      // Para cada grupo, buscar a contagem de membros ativos
-      const groupsWithMemberCount = await Promise.all(
-        groups.map(async (group) => {
-          const memberCount = await db.select({ count: sql<number>`count(*)` })
-            .from(userGroupMemberships)
-            .where(and(
-              eq(userGroupMemberships.groupId, group.id),
-              eq(userGroupMemberships.tenantId, tenantId),
-              eq(userGroupMemberships.isActive, true)
-            ));
+      // Get groups with member count using tenant schema
+      const groupsQuery = `
+        SELECT 
+          ug.id,
+          ug.name,
+          ug.description,
+          ug.is_active,
+          ug.created_at,
+          COALESCE(COUNT(ugm.id), 0) as member_count
+        FROM "${schemaName}".user_groups ug
+        LEFT JOIN "${schemaName}".user_group_memberships ugm 
+          ON ug.id = ugm.group_id AND ugm.is_active = true
+        WHERE ug.tenant_id = $1 AND ug.is_active = true
+        GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
+        ORDER BY ug.name
+      `;
+
+      const groupsResult = await db.execute(sql.raw(groupsQuery, [tenantId]));
+
+      // Get detailed memberships for each group
+      const groupsWithMemberships = await Promise.all(
+        groupsResult.rows.map(async (group: any) => {
+          const membershipsQuery = `
+            SELECT 
+              ugm.id,
+              ugm.user_id,
+              ugm.role
+            FROM "${schemaName}".user_group_memberships ugm
+            WHERE ugm.group_id = $1 AND ugm.is_active = true
+          `;
+
+          const membershipsResult = await db.execute(sql.raw(membershipsQuery, [group.id]));
 
           return {
-            ...group,
-            memberCount: Number(memberCount[0]?.count || 0)
+            id: group.id,
+            name: group.name,
+            description: group.description,
+            isActive: group.is_active,
+            createdAt: group.created_at,
+            memberships: membershipsResult.rows,
+            memberCount: Number(group.member_count)
           };
         })
       );
 
-      res.json({ 
+      console.log(`✅ [USER-GROUPS] Found ${groupsWithMemberships.length} groups in tenant schema`);
+
+      res.json({
         success: true,
-        groups: groupsWithMemberCount 
+        groups: groupsWithMemberships,
+        count: groupsWithMemberships.length
       });
     } catch (error) {
-      console.error('Error fetching user groups:', error);
+      console.error('❌ [USER-GROUPS] Error fetching user groups:', error);
       res.status(500).json({ 
-        success: false,
-        message: 'Failed to fetch user groups',
-        error: error.message 
+        success: false, 
+        error: 'Failed to fetch user groups' 
       });
     }
   }
 );
 
-// Create new group
+// Create user group in tenant schema
 router.post('/groups', 
   jwtAuth, 
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
+      const { name, description } = req.body;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
 
-      if (!tenantId) {
-        return res.status(400).json({ message: 'Tenant ID is required' });
+      if (!tenantId || !userId) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Tenant ID and user ID required' 
+        });
       }
 
-      // Create group data with tenantId
-      const groupData = {
-        ...req.body,
+      if (!name || !name.trim()) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Group name is required' 
+        });
+      }
+
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      console.log(`🆕 [USER-GROUPS] Creating group "${name}" in schema: ${schemaName}`);
+
+      // Check if group name already exists for this tenant
+      const existingGroupQuery = `
+        SELECT id FROM "${schemaName}".user_groups 
+        WHERE tenant_id = $1 AND name = $2 AND is_active = true
+      `;
+      const existingResult = await db.execute(sql.raw(existingGroupQuery, [tenantId, name.trim()]));
+
+      if (existingResult.rows.length > 0) {
+        return res.status(409).json({ 
+          success: false,
+          message: 'A group with this name already exists' 
+        });
+      }
+
+      // Create new group
+      const groupId = crypto.randomUUID();
+      const now = new Date();
+
+      const insertQuery = `
+        INSERT INTO "${schemaName}".user_groups 
+        (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id, name, description, permissions, is_active, created_at
+      `;
+
+      const result = await db.execute(sql.raw(insertQuery, [
+        groupId,
         tenantId,
-        id: crypto.randomUUID(),
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+        name.trim(),
+        description?.trim() || null,
+        req.body.permissions || [],
+        true,
+        userId,
+        now,
+        now
+      ]));
 
-      // Validate the complete data
-      const validatedData = insertUserGroupSchema.parse(groupData);
+      if (result.rows.length === 0) {
+        return res.status(500).json({ 
+          success: false,
+          message: 'Failed to create group' 
+        });
+      }
 
-      const [newGroup] = await db.insert(userGroups)
-        .values(validatedData)
-        .returning();
+      const newGroup = result.rows[0];
 
-      res.status(201).json({ 
+      console.log(`✅ [USER-GROUPS] Created group "${name}" with ID: ${groupId}`);
+
+      res.status(201).json({
         success: true,
-        group: newGroup,
-        message: 'Grupo criado com sucesso'
+        message: 'Group created successfully',
+        group: {
+          id: newGroup.id,
+          name: newGroup.name,
+          description: newGroup.description,
+          permissions: newGroup.permissions || [],
+          isActive: newGroup.is_active,
+          createdAt: newGroup.created_at,
+          memberCount: 0,
+          memberships: []
+        }
       });
     } catch (error: any) {
-      console.error('Error creating user group:', error);
-      if (error?.code === '23505') { // Unique constraint violation
-        res.status(409).json({ 
-          success: false,
-          message: 'Um grupo com esse nome já existe neste tenant' 
-        });
-      } else if (error.name === 'ZodError') {
-        res.status(400).json({ 
-          success: false,
-          message: 'Dados inválidos fornecidos',
-          errors: error.errors 
-        });
-      } else {
-        res.status(500).json({ 
-          success: false,
-          message: 'Failed to create user group' 
-        });
-      }
+      console.error('❌ [USER-GROUPS] Error creating group:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to create group',
+        error: error?.message || 'Unknown error occurred' 
+      });
     }
   }
 );
 
-// Update group
+// Update user group in tenant schema
 router.put('/groups/:groupId', 
   jwtAuth, 
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
-      const tenantId = req.user!.tenantId;
-      const validatedData = updateUserGroupSchema.parse(req.body);
+      const { name, description, permissions } = req.body;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
 
-      const [updatedGroup] = await db.update(userGroups)
-        .set({
-          ...validatedData,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(userGroups.id, groupId),
-          eq(userGroups.tenantId, tenantId)
-        ))
-        .returning();
-
-      if (!updatedGroup) {
-        return res.status(404).json({ message: 'Group not found' });
+      if (!tenantId || !userId) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Tenant ID and user ID required' 
+        });
       }
 
-      res.json({ group: updatedGroup });
-    } catch (error) {
-      console.error('Error updating user group:', error);
-      res.status(500).json({ message: 'Failed to update user group' });
+      if (!name || !name.trim()) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Group name is required' 
+        });
+      }
+
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      console.log(`✏️ [USER-GROUPS] Updating group ${groupId} in schema: ${schemaName}`);
+
+      // Check if group exists and belongs to tenant
+      const groupQuery = `
+        SELECT id FROM "${schemaName}".user_groups 
+        WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      `;
+      const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
+
+      if (!groupResult.rows.length) {
+        console.log(`Group ${groupId} not found for tenant ${tenantId}`);
+        return res.status(404).json({ 
+          success: false,
+          message: 'Group not found' 
+        });
+      }
+
+      // Check if name conflicts with existing group (excluding current group)
+      const conflictQuery = `
+        SELECT id FROM "${schemaName}".user_groups 
+        WHERE tenant_id = $1 AND name = $2 AND id != $3 AND is_active = true
+      `;
+      const conflictResult = await db.execute(sql.raw(conflictQuery, [tenantId, name.trim(), groupId]));
+
+      if (conflictResult.rows.length > 0) {
+        return res.status(409).json({ 
+          success: false,
+          message: 'A group with this name already exists' 
+        });
+      }
+
+      // Update group
+      const updateQuery = `
+        UPDATE "${schemaName}".user_groups 
+        SET name = $1, description = $2, permissions = $3, updated_at = $4
+        WHERE id = $5 AND tenant_id = $6
+        RETURNING id, name, description, permissions, is_active, created_at, updated_at
+      `;
+
+      const result = await db.execute(sql.raw(updateQuery, [
+        name.trim(),
+        description?.trim() || null,
+        permissions || [],
+        new Date(),
+        groupId,
+        tenantId
+      ]));
+
+      if (result.rows.length === 0) {
+        return res.status(500).json({ 
+          success: false,
+          message: 'Failed to update group' 
+        });
+      }
+
+      const updatedGroup = result.rows[0];
+
+      console.log(`✅ [USER-GROUPS] Updated group ${groupId}`);
+
+      res.json({
+        success: true,
+        message: 'Group updated successfully',
+        group: {
+          id: updatedGroup.id,
+          name: updatedGroup.name,
+          description: updatedGroup.description,
+          permissions: updatedGroup.permissions || [],
+          isActive: updatedGroup.is_active,
+          createdAt: updatedGroup.created_at,
+          updatedAt: updatedGroup.updated_at
+        }
+      });
+    } catch (error: any) {
+      console.error('❌ [USER-GROUPS] Error updating group:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to update group',
+        error: error?.message || 'Unknown error occurred' 
+      });
     }
   }
 );
 
-// Delete group
+// Delete user group in tenant schema
 router.delete('/groups/:groupId', 
   jwtAuth, 
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
-      const tenantId = req.user!.tenantId;
+      const tenantId = req.user?.tenantId;
 
-      const [deletedGroup] = await db.update(userGroups)
-        .set({
-          isActive: false,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(userGroups.id, groupId),
-          eq(userGroups.tenantId, tenantId)
-        ))
-        .returning();
-
-      if (!deletedGroup) {
-        return res.status(404).json({ message: 'Group not found' });
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Tenant ID required' 
+        });
       }
 
-      res.json({ message: 'Group deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting user group:', error);
-      res.status(500).json({ message: 'Failed to delete user group' });
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      console.log(`🗑️ [USER-GROUPS] Deleting group ${groupId} in schema: ${schemaName}`);
+
+      // Check if group exists and belongs to tenant
+      const groupQuery = `
+        SELECT id FROM "${schemaName}".user_groups 
+        WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      `;
+      const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
+
+      if (!groupResult.rows.length) {
+        console.log(`Group ${groupId} not found for tenant ${tenantId}`);
+        return res.status(404).json({ 
+          success: false,
+          message: 'Group not found' 
+        });
+      }
+
+      // First, remove all memberships for this group
+      const deleteMembershipsQuery = `
+        DELETE FROM "${schemaName}".user_group_memberships 
+        WHERE group_id = $1
+      `;
+      await db.execute(sql.raw(deleteMembershipsQuery, [groupId]));
+
+      // Then, delete the group (soft delete by setting is_active to false)
+      const deleteGroupQuery = `
+        UPDATE "${schemaName}".user_groups 
+        SET is_active = false, updated_at = $1
+        WHERE id = $2 AND tenant_id = $3
+      `;
+
+      const result = await db.execute(sql.raw(deleteGroupQuery, [
+        new Date(),
+        groupId,
+        tenantId
+      ]));
+
+      if (result.rowCount === 0) {
+        return res.status(500).json({ 
+          success: false,
+          message: 'Failed to delete group' 
+        });
+      }
+
+      console.log(`✅ [USER-GROUPS] Deleted group ${groupId}`);
+
+      res.json({
+        success: true,
+        message: 'Group deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('❌ [USER-GROUPS] Error deleting group:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to delete group',
+        error: error?.message || 'Unknown error occurred' 
+      });
     }
   }
 );
-
-// Duplicate route removed - using the primary /users route above
 
 // ============= GROUP MEMBERS ROUTES =============
 
