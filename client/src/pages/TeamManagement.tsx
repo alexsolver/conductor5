@@ -103,6 +103,11 @@ export default function TeamManagement() {
   // Fetch team members data
   const { data: teamMembersData, isLoading: teamMembersLoading, error: teamMembersError } = useQuery({
     queryKey: ["/api/team/members"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/team/members");
+      if (!res.ok) throw new Error("Erro ao buscar membros da equipe");
+      return res.json();
+    },
     enabled: !!user?.tenantId,
   });
 
@@ -142,6 +147,11 @@ export default function TeamManagement() {
   // Fetch team stats - using working endpoint  
   const { data: tenantStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/team/stats"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/tenant-admin/team/stats");
+      if (!res.ok) throw new Error("Erro ao buscar estatísticas do tenant");
+      return res.json();
+    },
     enabled: !!user,
     refetchInterval: 30000,
   });
@@ -157,12 +167,22 @@ export default function TeamManagement() {
   // Fetch performance data
   const { data: performanceData } = useQuery({
     queryKey: ['/api/team-management/performance'],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/team-management/performance");
+      if (!res.ok) throw new Error("Erro ao buscar performance");
+      return res.json();
+    },
     enabled: false, // Disable until endpoint is implemented
   });
 
   // Fetch skills matrix
   const { data: skillsMatrix, isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/team-management/skills-matrix'],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/team-management/skills-matrix");
+      if (!res.ok) throw new Error("Erro ao buscar matriz de habilidades");
+      return res.json();
+    },
     enabled: false, // Disable until endpoint is implemented
   });
 
@@ -172,18 +192,33 @@ export default function TeamManagement() {
   // Fetch groups for filter
   const { data: groupsData } = useQuery({
     queryKey: ['/api/user-management/groups'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/user-management/groups');
+      if (!res.ok) throw new Error('Erro ao buscar grupos');
+      return res.json(); // esperado: { groups: [...] }
+    },
     enabled: !!user,
   });
 
   // Fetch departments for filter
   const { data: departmentsData } = useQuery({
     queryKey: ['/api/team-management/departments'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/team-management/departments');
+      if (!res.ok) throw new Error('Erro ao buscar departamentos');
+      return res.json(); // esperado: { departments: [...] }
+    },
     enabled: !!user,
   });
 
   // Fetch roles for filter
   const { data: rolesData } = useQuery({
     queryKey: ['/api/team-management/roles'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/team-management/roles');
+      if (!res.ok) throw new Error('Erro ao buscar papéis');
+      return res.json(); // esperado: { roles: [...] }
+    },
     enabled: !!user,
   });
 
