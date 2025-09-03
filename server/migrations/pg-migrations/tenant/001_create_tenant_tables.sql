@@ -426,7 +426,9 @@ CREATE TABLE IF NOT EXISTS user_groups (
     permissions JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now()
+    updated_at TIMESTAMP DEFAULT now(),
+    created_by_id UUID,
+    updated_by_id UUID
 );
 
 -- ==============================

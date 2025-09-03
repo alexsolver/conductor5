@@ -288,9 +288,10 @@ router.get('/groups',
 );
 
 // Create user group in tenant schema
-router.post('/groups', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.post(
+  '/groups',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { name, description } = req.body;
@@ -298,54 +299,66 @@ router.post('/groups',
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Tenant ID and user ID required' 
+          message: 'Tenant ID and user ID required',
         });
       }
 
       if (!name || !name.trim()) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Group name is required' 
+          message: 'Group name is required',
         });
       }
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const tableIdent = sql.raw(`"${schemaName}".user_groups`);
 
       console.log(`🆕 [USER-GROUPS] Creating group "${name}" in schema: ${schemaName}`);
 
-      // Check if group name already exists for this tenant
-      const existingGroupQuery = `
-        SELECT id FROM "${schemaName}".user_groups 
-        WHERE tenant_id = $1 AND name = $2 AND is_active = true
+      // Checagem de existência (parametrizada)
+      const existingGroupQuery = sql`
+        SELECT id
+        FROM ${tableIdent}
+        WHERE tenant_id = ${tenantId}
+          AND name = ${name.trim()}
+          AND is_active = true
       `;
-      const existingResult = await db.execute(sql.raw(existingGroupQuery, [tenantId, name.trim()]));
+      const existingResult = await db.execute(existingGroupQuery);
 
       if (existingResult.rows.length > 0) {
-        return res.status(409).json({ 
+        return res.status(409).json({
           success: false,
-          message: 'A group with this name already exists' 
+          message: 'A group with this name already exists',
         });
       }
 
-      // Create new group
+      // Criação
       const groupId = crypto.randomUUID();
-      const now = new Date();
+      const nowIso = new Date().toISOString();
 
-      const insertQuery = sql.raw(`
-        INSERT INTO "${schemaName}".user_groups 
-        (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
-        VALUES ('${groupId}', '${tenantId}', '${name.trim()}', ${description ? `'${description.trim()}'` : 'NULL'}, '${JSON.stringify(req.body.permissions || [])}', true, '${userId}', '${now.toISOString()}', '${now.toISOString()}')
+      const descOrNull =
+        description && String(description).trim() ? String(description).trim() : null;
+
+      const permissions = Array.isArray(req.body.permissions) ? req.body.permissions : [];
+
+      // ⬇️ CAST explícito para jsonb elimina erro de sintaxe no VALUES
+      const permissionsExpr = sql`${JSON.stringify(permissions)}::jsonb`;
+
+      const insertQuery = sql`
+        INSERT INTO ${tableIdent}
+          (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
+        VALUES
+          (${groupId}, ${tenantId}, ${name.trim()}, ${descOrNull}, ${permissionsExpr}, true, ${userId}, ${nowIso}::timestamptz, ${nowIso}::timestamptz)
         RETURNING id, name, description, permissions, is_active, created_at
-      `);
-
+      `;
       const result = await db.execute(insertQuery);
 
       if (result.rows.length === 0) {
-        return res.status(500).json({ 
+        return res.status(500).json({
           success: false,
-          message: 'Failed to create group' 
+          message: 'Failed to create group',
         });
       }
 
@@ -353,7 +366,7 @@ router.post('/groups',
 
       console.log(`✅ [USER-GROUPS] Created group "${name}" with ID: ${groupId}`);
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: 'Group created successfully',
         group: {
@@ -364,19 +377,21 @@ router.post('/groups',
           isActive: newGroup.is_active,
           createdAt: newGroup.created_at,
           memberCount: 0,
-          memberships: []
-        }
+          memberships: [],
+        },
       });
     } catch (error: any) {
       console.error('❌ [USER-GROUPS] Error creating group:', error);
-      res.status(500).json({ 
+      return res.status(500).json({
         success: false,
         message: 'Failed to create group',
-        error: error?.message || 'Unknown error occurred' 
+        error: error?.message || 'Unknown error occurred',
       });
     }
   }
 );
+
+
 
 // Update user group in tenant schema
 router.put('/groups/:groupId', 
