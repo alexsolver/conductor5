@@ -5,6 +5,9 @@ import { userManagementService } from '../services/UserManagementService';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import crypto from 'crypto';
+import { z } from 'zod';
+import { usersTable, userGroups, userGroupMemberships } from '../db';
+import { eq, and } from 'drizzle-orm';
 
 // Add missing validation schema
 const updateUserGroupSchema = z.object({
