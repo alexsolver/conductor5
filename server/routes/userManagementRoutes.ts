@@ -333,24 +333,14 @@ router.post('/groups',
       const groupId = crypto.randomUUID();
       const now = new Date();
 
-      const insertQuery = `
+      const insertQuery = sql.raw(`
         INSERT INTO "${schemaName}".user_groups 
         (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        VALUES ('${groupId}', '${tenantId}', '${name.trim()}', ${description ? `'${description.trim()}'` : 'NULL'}, '${JSON.stringify(req.body.permissions || [])}', true, '${userId}', '${now.toISOString()}', '${now.toISOString()}')
         RETURNING id, name, description, permissions, is_active, created_at
-      `;
+      `);
 
-      const result = await db.execute(sql.raw(insertQuery, [
-        groupId,
-        tenantId,
-        name.trim(),
-        description?.trim() || null,
-        req.body.permissions || [],
-        true,
-        userId,
-        now,
-        now
-      ]));
+      const result = await db.execute(insertQuery);
 
       if (result.rows.length === 0) {
         return res.status(500).json({ 
