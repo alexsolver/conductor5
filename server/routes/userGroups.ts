@@ -233,4 +233,99 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
     }
 });
 
+// Create user group
+userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { name, description } = req.body;
+    const tenantId = req.user?.tenantId;
+    const userId = req.user?.id;
+
+    if (!tenantId || !userId) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Tenant ID and user ID required' 
+      });
+    }
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Group name is required' 
+      });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log(`🆕 [USER-GROUPS] Creating group "${name}" in schema: ${schemaName}`);
+
+    // Check if group name already exists for this tenant
+    const existingGroupQuery = `
+      SELECT id FROM "${schemaName}".user_groups 
+      WHERE tenant_id = $1 AND name = $2 AND is_active = true
+    `;
+    const existingResult = await db.execute(sql.raw(existingGroupQuery, [tenantId, name.trim()]));
+
+    if (existingResult.rows.length > 0) {
+      return res.status(409).json({ 
+        success: false,
+        message: 'A group with this name already exists' 
+      });
+    }
+
+    // Create new group
+    const groupId = crypto.randomUUID();
+    const now = new Date();
+    
+    const insertQuery = `
+      INSERT INTO "${schemaName}".user_groups 
+      (id, tenant_id, name, description, is_active, created_by_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, name, description, is_active, created_at
+    `;
+    
+    const result = await db.execute(sql.raw(insertQuery, [
+      groupId,
+      tenantId,
+      name.trim(),
+      description?.trim() || null,
+      true,
+      userId,
+      now,
+      now
+    ]));
+
+    if (result.rows.length === 0) {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to create group' 
+      });
+    }
+
+    const newGroup = result.rows[0];
+
+    console.log(`✅ [USER-GROUPS] Created group "${name}" with ID: ${groupId}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Group created successfully',
+      group: {
+        id: newGroup.id,
+        name: newGroup.name,
+        description: newGroup.description,
+        isActive: newGroup.is_active,
+        createdAt: newGroup.created_at,
+        memberCount: 0,
+        memberships: []
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ [USER-GROUPS] Error creating group:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create group',
+      error: error?.message || 'Unknown error occurred' 
+    });
+  }
+});
+
 export { userGroupsRouter };

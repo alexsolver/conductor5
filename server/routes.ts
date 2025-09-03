@@ -49,7 +49,7 @@ import systemScanRoutes from "./routes/systemScanRoutes";
 import beneficiariesRoutes from "./modules/beneficiaries/routes";
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
-// ✅ LEGACY LOCATIONS ROUTES REMOVED - Clean Architecture only per 1qa.md
+// ✅ LEGACY LOCATIONSROUTES REMOVED - Clean Architecture only per 1qa.md
 // ✅ LEGACYROUTES REMOVED - Clean Architecture only per 1qa.md
 // import { omniBridgeRoutes } from './modules/omni-bridge/routes'; // Temporarily removed
 // ✅ LEGACY MODULE ROUTES REMOVED - Using Clean Architecture exclusively
@@ -2489,7 +2489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("✅ Tenant deployment template routes registered");
 
-  // 🔐 USER PROFILE ROUTES - Following 1qa.md Clean Architecture patterns
+  // 🔐 USER PROFILE ROUTES - Following 1qa.md authentication patterns
   app.get(
     "/api/user/profile",
     jwtAuth,
@@ -2624,7 +2624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tenantId,
         });
 
-        // ✅ CORRETO - Tenant isolation obrigatório seguindo 1qa.md
+        // ✅ CORRETO - Tenant isolation isolation obrigatório seguindo 1qa.md
         // First verify user exists
         const existingUser = await db
           .select({
@@ -2873,7 +2873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tenantId,
         });
 
-        // Update avatar_url in user record following 1qa.md database patterns
+        // Update user avatar in database following 1qa.md patterns
         // Users table is in public schema, not tenant schema
         console.log("[PROFILE-PHOTO] Using public schema for users table");
         await pool.query(
