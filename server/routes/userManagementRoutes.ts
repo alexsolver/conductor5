@@ -3,11 +3,10 @@ import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission } from '../middleware/rbacMiddleware';
 import { userManagementService } from '../services/UserManagementService';
 import { db } from '../db';
-import { sql } from 'drizzle-orm';
+import { sql, eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 import { z } from 'zod';
-import { usersTable, userGroups, userGroupMemberships } from '../db';
-import { eq, and } from 'drizzle-orm';
+import { users as usersTable, userGroups, userGroupMemberships } from '@shared/schema';
 
 // Add missing validation schema
 const updateUserGroupSchema = z.object({

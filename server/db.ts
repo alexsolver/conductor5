@@ -56,11 +56,11 @@ export const schemaManager = {
       console.log('🔄 [SCHEMA-MANAGER] Running database migrations...');
       const { MigrationManager } = await import('./migrations/pg-migrations/config/migration-manager');
       const migrationManager = new MigrationManager();
-      
+
       await migrationManager.createMigrationTable();
       await migrationManager.runPublicMigrations();
       await migrationManager.close();
-      
+
       console.log('✅ [SCHEMA-MANAGER] Database migrations completed');
       return true;
     } catch (error) {
@@ -74,10 +74,10 @@ export const schemaManager = {
       console.log(`🔄 [SCHEMA-MANAGER] Running tenant migrations for: ${tenantId}`);
       const { MigrationManager } = await import('./migrations/pg-migrations/config/migration-manager');
       const migrationManager = new MigrationManager();
-      
+
       await migrationManager.runTenantMigrations(tenantId);
       await migrationManager.close();
-      
+
       console.log(`✅ [SCHEMA-MANAGER] Tenant migrations completed for: ${tenantId}`);
       return true;
     } catch (error) {
@@ -132,7 +132,7 @@ export const schemaManager = {
         WHERE table_schema = $1
         AND table_name IN (
           'customers', 'beneficiaries', 'companies', 'customer_company_memberships',
-          'customer_item_mappings', 'tickets', 'locations', 'user_groups', 'activity_logs'
+          'tickets', 'locations', 'user_groups', 'activity_logs'
         )
         ORDER BY table_name
       `, [schemaName]);
