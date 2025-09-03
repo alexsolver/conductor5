@@ -278,9 +278,9 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     
     const insertQuery = `
       INSERT INTO "${schemaName}".user_groups 
-      (id, tenant_id, name, description, is_active, created_by_id, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id, name, description, is_active, created_at
+      (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id, name, description, permissions, is_active, created_at
     `;
     
     const result = await db.execute(sql.raw(insertQuery, [
@@ -288,6 +288,7 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       tenantId,
       name.trim(),
       description?.trim() || null,
+      req.body.permissions || [],
       true,
       userId,
       now,
@@ -312,6 +313,7 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
         id: newGroup.id,
         name: newGroup.name,
         description: newGroup.description,
+        permissions: newGroup.permissions || [],
         isActive: newGroup.is_active,
         createdAt: newGroup.created_at,
         memberCount: 0,
