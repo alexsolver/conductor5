@@ -81,43 +81,40 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
 
   // Query para buscar grupos
-  const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
+  const { data: groupsData, isLoading: groupsLoading } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
     refetchInterval: 30000,
     staleTime: 5000,
-    select: (data) => {
-      // Garantir que a resposta tenha a estrutura correta
-      if (data?.groups && Array.isArray(data.groups)) {
-        return {
-          groups: data.groups.map(group => ({
-            ...group,
-            memberCount: group.memberCount || 0,
-            isActive: group.isActive !== false
-          }))
-        };
-      }
-      return { groups: [] };
-    }
+    keepPreviousData: true,
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/user-management/groups");
+      if (!res.ok) throw new Error("Erro ao buscar grupos");
+      const json = await res.json();
+      return {
+        groups: Array.isArray(json.groups)
+          ? json.groups.map((group: any) => ({
+              ...group,
+              memberCount: group.memberCount || 0,
+              isActive: group.isActive !== false,
+            }))
+          : [],
+      };
+    },
   });
+
 
   // Query para buscar membros da equipe - usando API que funciona
   const { data: teamMembersData, isLoading: teamMembersLoading } = useQuery<TeamMember[]>({
     queryKey: ["/api/user-management/users"],
     enabled: !!editingGroup,
-    select: (data: any) => {
-      if (data && Array.isArray(data.users)) {
-        return data.users.map((member: any) => ({
-          id: member.id,
-          name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Sem nome',
-          firstName: member.firstName,
-          lastName: member.lastName,
-          email: member.email,
-          role: member.role,
-          position: member.position
-        }));
-      }
-      return [];
-    }
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/user-management/groups");
+      if (!res.ok) throw new Error("Erro ao buscar grupos");
+      const json = await res.json();
+      return {
+        groups: Array.isArray(json.groups) ? json.groups : [],
+      };
+    },
   });
 
   // Query para buscar membros do grupo atual
@@ -137,10 +134,18 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para criar grupo
   const createGroupMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
-      return apiRequest('POST', '/api/user-management/groups', data);
+      const res = await apiRequest('POST', '/api/user-management/groups', data);
+      const json = await res.json();
+      return json;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+    onSuccess: (data) => {
+      queryClient.setQueryData<{ groups: UserGroup[] }>(
+        ["/api/user-management/groups"],
+        (old) => {
+          if (!old) return { groups: [data.group] }; // se não existe cache, cria
+          return { groups: [...old.groups, data.group] }; // adiciona novo grupo
+        }
+      );
       setShowCreateDialog(false);
       setFormData({ name: "", description: "" });
       toast({
@@ -160,25 +165,30 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para atualizar grupo
   const updateGroupMutation = useMutation({
     mutationFn: async (data: { id: string; name: string; description?: string }) => {
-      return apiRequest('PUT', `/api/user-management/groups/${data.id}`, {
+      const res = await apiRequest('PUT', `/api/user-management/groups/${data.id}`, {
         name: data.name,
         description: data.description
       });
+      const json = await res.json();
+      return json;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+    onSuccess: (data) => {
+      queryClient.setQueryData<{ groups: UserGroup[] }>(
+        ["/api/user-management/groups"],
+        (old) => {
+          if (!old) return { groups: [data.group] };
+          return {
+            groups: old.groups.map((g) =>
+              g.id === data.group.id ? { ...g, ...data.group } : g
+            ),
+          };
+        }
+      );
       setEditingGroup(null);
       setFormData({ name: "", description: "" });
       toast({
         title: "Grupo atualizado",
         description: "Grupo atualizado com sucesso!",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar grupo",
-        description: error?.message || "Falha ao atualizar grupo",
-        variant: "destructive",
       });
     },
   });
@@ -316,7 +326,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     setEditingGroup(null);
     setFormData({ name: "", description: "" });
     setSelectedUsers([]);
-    setActiveTab("info");
   };
 
   // Função para criar grupo
@@ -347,7 +356,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     updateGroupMutation.mutate({
       id: editingGroup.id,
       name: formData.name,
-      description: formData.description
+      description: formData.description,
     });
   };
 

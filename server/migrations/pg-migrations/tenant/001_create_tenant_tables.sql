@@ -431,6 +431,20 @@ CREATE TABLE IF NOT EXISTS user_groups (
     updated_by_id UUID
 );
 
+CREATE TABLE IF NOT EXISTS user_group_memberships (
+  id            uuid        PRIMARY KEY,        -- gere o UUID na aplicação
+  tenant_id     uuid        NOT NULL,
+  user_id       uuid        NOT NULL,
+  group_id      uuid        NOT NULL,
+  role          varchar(50) NOT NULL DEFAULT 'member',
+  is_active     boolean     NOT NULL DEFAULT true,
+  created_at    timestamp   NOT NULL DEFAULT now(),
+  updated_at    timestamp   NULL,
+  created_by_id uuid        NULL,
+  updated_by_id uuid        NULL,
+);
+
+
 -- ==============================
 -- APPROVAL SYSTEM
 -- ==============================
@@ -1043,6 +1057,28 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   created_at TIMESTAMP DEFAULT NOW(),
 
   CONSTRAINT user_sessions_tenant_token_unique UNIQUE (tenant_id, session_token)
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL, -- redundância saudável pra garantir
+  name TEXT NOT NULL,
+  description TEXT,
+  permissions TEXT[] NOT NULL DEFAULT '{}', -- array de strings (ids das permissões)
+  is_system BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  user_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT now(),
+  UNIQUE (tenant_id, user_id, role_id)
 );
 
 

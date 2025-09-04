@@ -111,19 +111,46 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   // Queries
-  const { data: rolesData, isLoading } = useQuery({
-    queryKey: ['/api/user-management/roles'],
-    select: (data: any) => data?.roles || []
+  // Roles
+  const { data: rolesData, isLoading: rolesLoading } = useQuery({
+    queryKey: ["/api/user-management/roles"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/user-management/roles");
+      if (!res.ok) throw new Error("Erro ao buscar roles");
+      const json = await res.json();
+      return {
+        roles: Array.isArray(json.roles) ? json.roles : [],
+      };
+    },
+    select: (data) => data.roles,
   });
 
-  const { data: permissionsData } = useQuery({
-    queryKey: ['/api/user-management/permissions'],
-    select: (data: any) => data?.permissions || []
+  // Permissions
+  const { data: permissionsData, isLoading: permissionsLoading } = useQuery({
+    queryKey: ["/api/user-management/permissions"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/user-management/permissions");
+      if (!res.ok) throw new Error("Erro ao buscar permissões");
+      const json = await res.json();
+      return {
+        permissions: Array.isArray(json.permissions) ? json.permissions : [],
+      };
+    },
+    select: (data) => data.permissions,
   });
 
-  const { data: usersData } = useQuery({
-    queryKey: ['/api/user-management/users'],
-    select: (data: any) => data?.users || []
+  // Users
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ["/api/user-management/users"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/user-management/users");
+      if (!res.ok) throw new Error("Erro ao buscar usuários");
+      const json = await res.json();
+      return {
+        users: Array.isArray(json.users) ? json.users : [],
+      };
+    },
+    select: (data) => data.users,
   });
 
   // Mutations
@@ -609,7 +636,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
         </Dialog>
       </div>
 
-      {isLoading ? (
+      {rolesLoading ? (
         <div className="text-center py-8">
           Carregando papéis...
         </div>

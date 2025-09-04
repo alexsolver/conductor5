@@ -640,55 +640,6 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// ✅ 1QA.MD: Get roles list using tenant schema
-router.get('/roles', async (req: AuthenticatedRequest, res) => {
-  try {
-    const { user } = req;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
-
-    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
-    const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
-    console.log('[TEAM-MANAGEMENT-QA] Getting roles for schema:', tenantSchema);
-
-    // ✅ 1QA.MD: Get distinct roles using tenant schema
-    const rolesFromUsersResult = await db.execute(sql`
-      SELECT DISTINCT role
-      FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}
-      AND is_active = true
-      AND role IS NOT NULL
-      ORDER BY role
-    `);
-
-    // ✅ 1QA.MD: Get distinct positions using tenant schema
-    const positionsFromUsersResult = await db.execute(sql`
-      SELECT DISTINCT position
-      FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}
-      AND is_active = true
-      AND position IS NOT NULL
-      ORDER BY position
-    `);
-
-    const rolesFromUsers = rolesFromUsersResult.rows || [];
-    const positionsFromUsers = positionsFromUsersResult.rows || [];
-
-    const roles = [
-      ...rolesFromUsers.map((r: any) => ({ id: r.role, name: r.role, type: 'role' })),
-      ...positionsFromUsers.map((p: any) => ({ id: p.position, name: p.position, type: 'position' }))
-    ].filter((role, index, self) => 
-      role.id && self.findIndex(r => r.id === role.id) === index
-    );
-
-    res.json({ roles });
-  } catch (error) {
-    console.error('[TEAM-MANAGEMENT-QA] Error fetching roles:', error);
-    res.status(500).json({ message: 'Failed to fetch roles' });
-  }
-});
-
 // Sync team data and ensure consistency
 router.post('/members/sync', async (req: AuthenticatedRequest, res) => {
   try {

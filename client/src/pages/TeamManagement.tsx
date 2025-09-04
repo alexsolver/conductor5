@@ -213,7 +213,7 @@ export default function TeamManagement() {
 
   // Fetch roles for filter
   const { data: rolesData } = useQuery({
-    queryKey: ['/api/team-management/roles'],
+    queryKey: ['/api/user-management/roles'],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/team-management/roles');
       if (!res.ok) throw new Error('Erro ao buscar papéis');

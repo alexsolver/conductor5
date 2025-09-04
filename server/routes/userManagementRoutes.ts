@@ -215,9 +215,10 @@ router.get('/users/:userId',
 // ============= USER GROUPS ROUTES =============
 
 // Get tenant-specific user groups
-router.get('/groups', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get(
+  '/groups',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
@@ -225,8 +226,12 @@ router.get('/groups',
 
       console.log(`🔍 [USER-GROUPS] Fetching groups from schema: ${schemaName}`);
 
-      // Get groups with member count using tenant schema
-      const groupsQuery = `
+      // Identificadores de tabela com sql.raw
+      const groupsTable = sql.raw(`"${schemaName}".user_groups`);
+      const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
+
+      // Query principal com parâmetros
+      const groupsQuery = sql`
         SELECT 
           ug.id,
           ug.name,
@@ -234,29 +239,29 @@ router.get('/groups',
           ug.is_active,
           ug.created_at,
           COALESCE(COUNT(ugm.id), 0) as member_count
-        FROM "${schemaName}".user_groups ug
-        LEFT JOIN "${schemaName}".user_group_memberships ugm 
+        FROM ${groupsTable} ug
+        LEFT JOIN ${membershipsTable} ugm 
           ON ug.id = ugm.group_id AND ugm.is_active = true
-        WHERE ug.tenant_id = $1 AND ug.is_active = true
+        WHERE ug.tenant_id = ${tenantId} AND ug.is_active = true
         GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
         ORDER BY ug.name
       `;
 
-      const groupsResult = await db.execute(sql.raw(groupsQuery, [tenantId]));
+      const groupsResult = await db.execute(groupsQuery);
 
-      // Get detailed memberships for each group
+      // Buscar memberships detalhados
       const groupsWithMemberships = await Promise.all(
         groupsResult.rows.map(async (group: any) => {
-          const membershipsQuery = `
+          const membershipsQuery = sql`
             SELECT 
               ugm.id,
               ugm.user_id,
               ugm.role
-            FROM "${schemaName}".user_group_memberships ugm
-            WHERE ugm.group_id = $1 AND ugm.is_active = true
+            FROM ${membershipsTable} ugm
+            WHERE ugm.group_id = ${group.id} AND ugm.is_active = true
           `;
 
-          const membershipsResult = await db.execute(sql.raw(membershipsQuery, [group.id]));
+          const membershipsResult = await db.execute(membershipsQuery);
 
           return {
             id: group.id,
@@ -265,7 +270,7 @@ router.get('/groups',
             isActive: group.is_active,
             createdAt: group.created_at,
             memberships: membershipsResult.rows,
-            memberCount: Number(group.member_count)
+            memberCount: Number(group.member_count),
           };
         })
       );
@@ -275,17 +280,18 @@ router.get('/groups',
       res.json({
         success: true,
         groups: groupsWithMemberships,
-        count: groupsWithMemberships.length
+        count: groupsWithMemberships.length,
       });
     } catch (error) {
       console.error('❌ [USER-GROUPS] Error fetching user groups:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to fetch user groups' 
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch user groups',
       });
     }
   }
 );
+
 
 // Create user group in tenant schema
 router.post(
@@ -394,9 +400,10 @@ router.post(
 
 
 // Update user group in tenant schema
-router.put('/groups/:groupId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.put(
+  '/groups/:groupId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
@@ -405,73 +412,81 @@ router.put('/groups/:groupId',
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Tenant ID and user ID required' 
+          message: 'Tenant ID and user ID required',
         });
       }
 
       if (!name || !name.trim()) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Group name is required' 
+          message: 'Group name is required',
         });
       }
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const groupsTable = sql.raw(`"${schemaName}".user_groups`);
 
       console.log(`✏️ [USER-GROUPS] Updating group ${groupId} in schema: ${schemaName}`);
 
-      // Check if group exists and belongs to tenant
-      const groupQuery = `
-        SELECT id FROM "${schemaName}".user_groups 
-        WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      // 🔎 Check if group exists
+      const groupQuery = sql`
+        SELECT id
+        FROM ${groupsTable}
+        WHERE id = ${groupId} AND tenant_id = ${tenantId} AND is_active = true
       `;
-      const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
+      const groupResult = await db.execute(groupQuery);
 
       if (!groupResult.rows.length) {
         console.log(`Group ${groupId} not found for tenant ${tenantId}`);
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: 'Group not found' 
+          message: 'Group not found',
         });
       }
 
-      // Check if name conflicts with existing group (excluding current group)
-      const conflictQuery = `
-        SELECT id FROM "${schemaName}".user_groups 
-        WHERE tenant_id = $1 AND name = $2 AND id != $3 AND is_active = true
+      // 🔎 Check for name conflict
+      const conflictQuery = sql`
+        SELECT id
+        FROM ${groupsTable}
+        WHERE tenant_id = ${tenantId}
+          AND name = ${name.trim()}
+          AND id != ${groupId}
+          AND is_active = true
       `;
-      const conflictResult = await db.execute(sql.raw(conflictQuery, [tenantId, name.trim(), groupId]));
+      const conflictResult = await db.execute(conflictQuery);
 
       if (conflictResult.rows.length > 0) {
-        return res.status(409).json({ 
+        return res.status(409).json({
           success: false,
-          message: 'A group with this name already exists' 
+          message: 'A group with this name already exists',
         });
       }
 
-      // Update group
-      const updateQuery = `
-        UPDATE "${schemaName}".user_groups 
-        SET name = $1, description = $2, permissions = $3, updated_at = $4
-        WHERE id = $5 AND tenant_id = $6
+      // ✏️ Update group
+      const nowIso = new Date().toISOString();
+      const descOrNull = description?.trim() || null;
+
+      // garante jsonb válido
+      const permissionsExpr = sql`${JSON.stringify(permissions || [])}::jsonb`;
+
+      const updateQuery = sql`
+        UPDATE ${groupsTable}
+        SET
+          name = ${name.trim()},
+          description = ${descOrNull},
+          permissions = ${permissionsExpr},
+          updated_at = ${nowIso}::timestamptz
+        WHERE id = ${groupId} AND tenant_id = ${tenantId}
         RETURNING id, name, description, permissions, is_active, created_at, updated_at
       `;
-
-      const result = await db.execute(sql.raw(updateQuery, [
-        name.trim(),
-        description?.trim() || null,
-        permissions || [],
-        new Date(),
-        groupId,
-        tenantId
-      ]));
+      const result = await db.execute(updateQuery);
 
       if (result.rows.length === 0) {
-        return res.status(500).json({ 
+        return res.status(500).json({
           success: false,
-          message: 'Failed to update group' 
+          message: 'Failed to update group',
         });
       }
 
@@ -489,19 +504,20 @@ router.put('/groups/:groupId',
           permissions: updatedGroup.permissions || [],
           isActive: updatedGroup.is_active,
           createdAt: updatedGroup.created_at,
-          updatedAt: updatedGroup.updated_at
-        }
+          updatedAt: updatedGroup.updated_at,
+        },
       });
     } catch (error: any) {
       console.error('❌ [USER-GROUPS] Error updating group:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: 'Failed to update group',
-        error: error?.message || 'Unknown error occurred' 
+        error: error?.message || 'Unknown error occurred',
       });
     }
   }
 );
+
 
 // Delete user group in tenant schema
 router.delete('/groups/:groupId', 
@@ -838,37 +854,59 @@ router.get('/roles',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const rolesTable = sql.raw(`"${schemaName}".roles`);
+      const userRolesTable = sql.raw(`"${schemaName}".user_roles`);
 
-      // Mock roles data - TODO: implement real database query
-      const roles = [
-        {
-          id: '1',
-          name: 'Administrador de Workspace',
-          description: 'Controle total sobre o workspace',
-          permissions: ['workspace.manage', 'user.create', 'user.edit', 'user.delete', 'tickets.manage'],
-          isActive: true,
-          isSystem: true,
-          userCount: 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: 'Agente de Suporte',
-          description: 'Acesso para atendimento ao cliente',
-          permissions: ['tickets.view', 'tickets.create', 'tickets.edit', 'customers.view'],
-          isActive: true,
-          isSystem: false,
-          userCount: 3,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
+      console.log(`🔍 [ROLES] Fetching roles from schema: ${schemaName}`);
 
-      res.json({ roles });
-    } catch (error) {
-      console.error('Error fetching roles:', error);
-      res.status(500).json({ message: 'Failed to fetch roles' });
+      // Buscar roles com count de usuários associados
+      const rolesQuery = sql`
+        SELECT 
+          r.id,
+          r.name,
+          r.description,
+          r.permissions,
+          r.is_active,
+          r.is_system,
+          r.created_at,
+          r.updated_at,
+          COUNT(ur.user_id) AS user_count
+        FROM ${rolesTable} r
+        LEFT JOIN ${userRolesTable} ur ON r.id = ur.role_id
+        WHERE r.tenant_id = ${tenantId} AND r.is_active = true
+        GROUP BY r.id, r.name, r.description, r.permissions, r.is_active, r.is_system, r.created_at, r.updated_at
+        ORDER BY r.name
+      `;
+
+      const result = await db.execute(rolesQuery);
+
+      const roles = result.rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        permissions: row.permissions || [],
+        isActive: row.is_active,
+        isSystem: row.is_system,
+        userCount: Number(row.user_count) || 0,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      console.log(`✅ [ROLES] Found ${roles.length} roles for tenant ${tenantId}`);
+
+      res.json({ 
+        success: true,
+        roles,
+        count: roles.length
+      });
+    } catch (error: any) {
+      console.error('❌ [ROLES] Error fetching roles:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch roles',
+        error: error?.message || 'Unknown error'
+      });
     }
   }
 );
@@ -946,9 +984,9 @@ router.get('/permissions',
 );
 
 // Create role
-router.post('/roles', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.post('/roles',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { name, description, permissions } = req.body;
@@ -958,22 +996,23 @@ router.post('/roles',
         return res.status(400).json({ message: 'Name and permissions are required' });
       }
 
-      // Mock creation - TODO: implement real database insert
-      const newRole = {
-        id: Date.now().toString(),
-        name,
-        description: description || '',
-        permissions,
-        isActive: true,
-        isSystem: false,
-        userCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const tableIdent = sql.raw(`"${schemaName}".roles`);
 
-      console.log(`Creating role "${name}" with ${permissions.length} permissions for tenant ${tenantId}`);
+      const descOrNull = description ? description : null;
+      const permsExpr = sql`${sql.raw('ARRAY[' + (permissions.map(p => `'${p}'`).join(',')) + ']::text[]')}`;
 
-      res.status(201).json({ role: newRole });
+      
+      const query = sql`
+        INSERT INTO ${tableIdent}
+          (tenant_id, name, description, permissions, is_active, is_system)
+        VALUES (${tenantId}, ${name}, ${descOrNull}, ${permsExpr}, true, false)
+        RETURNING *
+      `;
+
+      const result = await db.execute(query);
+
+      res.status(201).json({ role: result.rows[0] });
     } catch (error) {
       console.error('Error creating role:', error);
       res.status(500).json({ message: 'Failed to create role' });
@@ -982,31 +1021,34 @@ router.post('/roles',
 );
 
 // Update role
-router.put('/roles/:roleId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.put('/roles/:roleId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId } = req.params;
       const { name, description, permissions } = req.body;
       const tenantId = req.user!.tenantId;
 
-      // Mock update - TODO: implement real database update
-      const updatedRole = {
-        id: roleId,
-        name: name || 'Updated Role',
-        description: description || '',
-        permissions: permissions || [],
-        isActive: true,
-        isSystem: false,
-        userCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const tableIdent = sql.raw(`"${schemaName}".roles`);
+      const descOrNull = description ? description : null;
+      const permsExpr = sql`${sql.raw('ARRAY[' + (permissions.map(p => `'${p}'`).join(',')) + ']::text[]')}`;
 
-      console.log(`Updating role ${roleId} for tenant ${tenantId}`);
+      const query = sql`
+        UPDATE ${tableIdent}
+        SET name = ${name}, description = ${descOrNull}, permissions = ${permsExpr}, updated_at = now()
+        WHERE id = ${roleId} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
 
-      res.json({ role: updatedRole });
+      const result = await db.execute(query);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Role not found' });
+      }
+
+      res.json({ role: result.rows[0] });
     } catch (error) {
       console.error('Error updating role:', error);
       res.status(500).json({ message: 'Failed to update role' });
@@ -1014,17 +1056,30 @@ router.put('/roles/:roleId',
   }
 );
 
-// Delete role
-router.delete('/roles/:roleId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+// Delete role (soft delete)
+router.delete('/roles/:roleId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId } = req.params;
       const tenantId = req.user!.tenantId;
 
-      // Mock deletion - TODO: implement real database soft delete
-      console.log(`Deleting role ${roleId} for tenant ${tenantId}`);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const tableIdent = sql.raw(`"${schemaName}".roles`);
+
+      const query = sql`
+        UPDATE ${tableIdent}
+        SET is_active = false, updated_at = now()
+        WHERE id = ${roleId} AND tenant_id = ${tenantId}
+        RETURNING id
+      `;
+
+      const result = await db.execute(query);
+
+      if (!result.rows.length) {
+        return res.status(404).json({ message: 'Role not found' });
+      }
 
       res.json({ message: 'Role deleted successfully' });
     } catch (error) {
@@ -1035,9 +1090,9 @@ router.delete('/roles/:roleId',
 );
 
 // Assign user to role
-router.post('/roles/:roleId/users', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.post('/roles/:roleId/users',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId } = req.params;
@@ -1048,14 +1103,19 @@ router.post('/roles/:roleId/users',
         return res.status(400).json({ message: 'userId is required' });
       }
 
-      // Mock assignment - TODO: implement real database insert
-      console.log(`Assigning user ${userId} to role ${roleId} for tenant ${tenantId}`);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const tableIdent = sql.raw(`"${schemaName}".user_roles`);
 
-      res.status(201).json({ 
-        message: 'User assigned to role successfully',
-        roleId,
-        userId 
-      });
+      const query = sql`
+        INSERT INTO ${tableIdent} (user_id, role_id, assigned_at)
+        VALUES (${userId}, ${roleId}, now())
+        ON CONFLICT (user_id, role_id) DO NOTHING
+        RETURNING *
+      `;
+
+      await db.execute(query);
+
+      res.status(201).json({ message: 'User assigned to role successfully' });
     } catch (error) {
       console.error('Error assigning user to role:', error);
       res.status(500).json({ message: 'Failed to assign user to role' });
@@ -1064,22 +1124,25 @@ router.post('/roles/:roleId/users',
 );
 
 // Remove user from role
-router.delete('/roles/:roleId/users/:userId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.delete('/roles/:roleId/users/:userId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId, userId } = req.params;
       const tenantId = req.user!.tenantId;
 
-      // Mock removal - TODO: implement real database delete
-      console.log(`Removing user ${userId} from role ${roleId} for tenant ${tenantId}`);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const tableIdent = sql.raw(`"${schemaName}".user_roles`);
 
-      res.json({ 
-        message: 'User removed from role successfully',
-        roleId,
-        userId 
-      });
+      const query = sql`
+        DELETE FROM ${tableIdent}
+        WHERE role_id = ${roleId} AND user_id = ${userId}
+      `;
+
+      await db.execute(query);
+
+      res.json({ message: 'User removed from role successfully' });
     } catch (error) {
       console.error('Error removing user from role:', error);
       res.status(500).json({ message: 'Failed to remove user from role' });
