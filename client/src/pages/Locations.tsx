@@ -63,7 +63,7 @@ export default function Locations() {
 
   // Fetch locations data with Sprint 2 filters
   const { data: locationsData, isLoading } = useQuery({
-    queryKey: ["/api/locations", { 
+    queryKey: ["/api/locations-new/local", { 
       search: searchTerm, 
       locationType: locationTypeFilter, 
       status: statusFilter,
@@ -71,25 +71,65 @@ export default function Locations() {
       tag: tagFilter 
     }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (locationTypeFilter !== 'all') params.append('locationType', locationTypeFilter);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (favoritesFilter) params.append('favorites', 'true');
-      if (tagFilter) params.append('tag', tagFilter);
-      
-      const url = `/api/locations${params.toString() ? `?${params.toString()}` : ''}`;
-      const response = await apiRequest("GET", url);
-      return response.json();
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (locationTypeFilter !== 'all') params.append('locationType', locationTypeFilter);
+        if (statusFilter !== 'all') params.append('status', statusFilter);
+        if (favoritesFilter) params.append('favorites', 'true');
+        if (tagFilter) params.append('tag', tagFilter);
+        
+        // Use the new locations API endpoint
+        const url = `/api/locations-new/local${params.toString() ? `?${params.toString()}` : ''}`;
+        const response = await apiRequest("GET", url);
+        const result = await response.json();
+        
+        console.log('🔍 [LOCATIONS] API Response:', result);
+        
+        // Handle both old and new response formats
+        if (result.success && result.data) {
+          return {
+            data: {
+              locations: Array.isArray(result.data) ? result.data : [result.data]
+            }
+          };
+        } else if (result.locations) {
+          return { data: { locations: result.locations } };
+        } else if (Array.isArray(result)) {
+          return { data: { locations: result } };
+        } else {
+          return { data: { locations: [] } };
+        }
+      } catch (error) {
+        console.error('❌ [LOCATIONS] Error fetching locations:', error);
+        return { data: { locations: [] } };
+      }
     }
   });
 
   // Fetch location statistics
   const { data: statsData } = useQuery({
-    queryKey: ["/api/locations/stats"],
+    queryKey: ["/api/locations-new/stats"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/locations/stats");
-      return response.json();
+      try {
+        const response = await apiRequest("GET", "/api/locations-new/local");
+        const result = await response.json();
+        
+        // Calculate stats from the locations data
+        const locations = result.success && result.data ? 
+          (Array.isArray(result.data) ? result.data : [result.data]) : [];
+          
+        const stats = {
+          total: locations.length,
+          active: locations.filter((l: any) => l.ativo === true).length,
+          inactive: locations.filter((l: any) => l.ativo === false).length,
+        };
+        
+        return { data: stats };
+      } catch (error) {
+        console.error('❌ [LOCATIONS] Error fetching stats:', error);
+        return { data: { total: 0, active: 0, inactive: 0 } };
+      }
     }
   });
 
@@ -108,10 +148,37 @@ export default function Locations() {
 
   // Create location mutation
   const createLocationMutation = useMutation({
-    mutationFn: (data: LocationFormData) => apiRequest("POST", "/api/locations", data),
+    mutationFn: async (data: LocationFormData) => {
+      // Transform frontend data to backend format
+      const backendData = {
+        nome: data.name,
+        descricao: data.description,
+        ativo: data.status === 'active',
+        latitude: data.coordinates.lat.toString(),
+        longitude: data.coordinates.lng.toString(),
+        codigoIntegracao: `LOC_${Date.now()}`,
+        tipoClienteFavorecido: 'cliente',
+        email: '',
+        ddd: '',
+        telefone: '',
+        cep: '',
+        pais: 'Brasil',
+        estado: '',
+        municipio: '',
+        bairro: '',
+        tipoLogradouro: 'Rua',
+        logradouro: '',
+        numero: '',
+        complemento: '',
+        fusoHorario: 'America/Sao_Paulo',
+      };
+      
+      const response = await apiRequest("POST", "/api/locations-new/local", backendData);
+      return response.json();
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations-new/local"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations-new/stats"] });
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
@@ -130,10 +197,10 @@ export default function Locations() {
 
   // Delete location mutation
   const deleteLocationMutation = useMutation({
-    mutationFn: (locationId: string) => apiRequest("DELETE", `/api/locations/${locationId}`),
+    mutationFn: (locationId: string) => apiRequest("DELETE", `/api/locations-new/local/${locationId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations-new/local"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations-new/stats"] });
       toast({
         title: "Sucesso", 
         description: "Local excluído com sucesso",
@@ -160,9 +227,9 @@ export default function Locations() {
 
   // Sprint 2 - Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('POST', `/api/locations/${id}/favorite`),
+    mutationFn: (id: string) => apiRequest('POST', `/api/locations-new/local/${id}/favorite`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations-new/local"] });
       toast({
         title: "Favorito atualizado",
         description: "Status de favorito alterado com sucesso.",
@@ -184,9 +251,9 @@ export default function Locations() {
   // Sprint 2 - File attachments
   const addAttachmentMutation = useMutation({
     mutationFn: ({ id, filename, filepath, filesize }: { id: string; filename: string; filepath: string; filesize: number }) => 
-      apiRequest('POST', `/api/locations/${id}/attachments`, { filename, filepath, filesize }),
+      apiRequest('POST', `/api/locations-new/local/${id}/attachments`, { filename, filepath, filesize }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/locations-new/local"] });
       toast({
         title: "Anexo adicionado",
         description: "Arquivo foi anexado com sucesso.",

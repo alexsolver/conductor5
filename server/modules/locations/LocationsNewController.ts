@@ -697,6 +697,84 @@ export class LocationsNewController {
       } else {
         // For other record types, assume snake_case or direct mapping is handled
         dbData = { ...recordData, tenant_id: req.user.tenantId, created_at: new Date(), updated_at: new Date() };
+
+
+  /**
+   * Get locals (locais) - specific endpoint for listing locations
+   */
+  async getLocals(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user?.tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID required' });
+        return;
+      }
+
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      console.log(`🔍 [GET-LOCALS] Fetching locais for tenant: ${req.user.tenantId}`);
+      console.log(`🔍 [GET-LOCALS] Using schema: ${schemaName}`);
+
+      // Check if locais table exists first
+      const tableExists = await pool.query(`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = $1 AND table_name = 'locais'
+        ) as exists
+      `, [schemaName]);
+
+      if (!tableExists.rows[0]?.exists) {
+        console.log(`⚠️ [GET-LOCALS] Table locais does not exist in schema ${schemaName}`);
+        res.json({
+          success: true,
+          data: [],
+          total: 0,
+          message: `Table locais not yet created for this tenant`
+        });
+        return;
+      }
+
+      // Fetch locais with all fields
+      const result = await pool.query(`
+        SELECT 
+          id, 
+          nome, 
+          descricao, 
+          codigo_integracao,
+          ativo,
+          latitude,
+          longitude,
+          email,
+          telefone,
+          cep,
+          estado,
+          municipio,
+          bairro,
+          logradouro,
+          numero,
+          complemento,
+          created_at, 
+          updated_at
+        FROM "${schemaName}".locais 
+        WHERE tenant_id = $1 
+        ORDER BY nome ASC
+        LIMIT 100
+      `, [req.user.tenantId]);
+
+      console.log(`✅ [GET-LOCALS] Found ${result.rows.length} locais`);
+
+      res.json({
+        success: true,
+        data: result.rows,
+        total: result.rows.length
+      });
+    } catch (error) {
+      console.error('❌ [GET-LOCALS] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor ao buscar locais' 
+      });
+    }
+  }
+
         delete dbData.tenantId; // tenantId is already handled
       }
 
