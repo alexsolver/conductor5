@@ -358,6 +358,41 @@ function LocationsNewContent() {
   const currentStats = getCurrentStats();
   const currentRecordType = RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES];
 
+  // ViaCEP API integration
+  const buscarCEP = useCallback(async (cep: string) => {
+    const cleanedCep = cep.replace(/\D/g, '');
+    if (cleanedCep.length !== 8) {
+      toast({ title: "Erro", description: "CEP inválido. Por favor, insira um CEP com 8 dígitos.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      if (data.erro) {
+        toast({ title: "Erro", description: "CEP não encontrado. Verifique o número e tente novamente.", variant: "destructive" });
+        return;
+      }
+
+      form.setValue("logradouro", data.logradouro);
+      form.setValue("complemento", data.complemento);
+      form.setValue("bairro", data.bairro);
+      form.setValue("municipio", data.localidade);
+      form.setValue("estado", data.uf);
+      form.setValue("pais", "Brasil"); // Assume Brasil for ViaCEP lookups
+
+      toast({ title: "Sucesso", description: "Endereço encontrado com sucesso!" });
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+      toast({ title: "Erro", description: "Falha ao buscar informações do CEP. Tente novamente.", variant: "destructive" });
+    }
+  }, [form, toast]);
+
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header with stats */}
@@ -674,18 +709,23 @@ function LocationsNewContent() {
                       <h3 className="text-lg font-semibold">Endereço</h3>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="cep"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>CEP</FormLabel>
-                            <div className="flex space-x-2">
+                            <div className="flex gap-2">
                               <FormControl>
                                 <Input placeholder="00000-000" {...field} />
                               </FormControl>
-                              <Button type="button" variant="outline" size="sm">
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => buscarCEP(field.value)}
+                                disabled={!field.value || field.value.length < 8}
+                              >
                                 Buscar
                               </Button>
                             </div>
@@ -701,35 +741,7 @@ function LocationsNewContent() {
                           <FormItem>
                             <FormLabel>País</FormLabel>
                             <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="estado"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estado</FormLabel>
-                            <FormControl>
-                              <Input placeholder="SP" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="municipio"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Município</FormLabel>
-                            <FormControl>
-                              <Input placeholder="São Paulo" {...field} />
+                              <Input placeholder="Brasil" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
