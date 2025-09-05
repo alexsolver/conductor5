@@ -545,7 +545,7 @@ export class LocationsNewController {
             LIMIT 100
           `;
           break;
-        
+
         case 'area':
           selectQuery = `
             SELECT 
@@ -666,9 +666,37 @@ export class LocationsNewController {
 
       console.log(`🔍 [CREATE-RECORD] Data:`, recordData);
 
+      // Prepare data for insertion, mapping camelCase to snake_case where necessary
+      let dbData: any = {};
+      if (recordType === 'local' || recordType === 'regiao' || recordType === 'area' || recordType === 'agrupamento') {
+        // Convert camelCase to snake_case for database
+        dbData = {
+          ...recordData,
+          tenant_id: req.user.tenantId,
+          created_at: new Date(),
+          updated_at: new Date(),
+          codigo_integracao: recordData.codigoIntegracao,
+          tipo_cliente_favorecido: recordData.tipoClienteFavorecido,
+          tecnico_principal_id: recordData.tecnicoPrincipalId,
+          fuso_horario: recordData.fusoHorario,
+          feriados_incluidos: recordData.feriadosIncluidos
+        };
+        // Remove camelCase fields that are now properly mapped
+        delete dbData.codigoIntegracao;
+        delete dbData.tipoClienteFavorecido;
+        delete dbData.tecnicoPrincipalId;
+        delete dbData.fusoHorario;
+        delete dbData.feriadosIncluidos;
+        delete dbData.tenantId; // tenantId is already handled
+      } else {
+        // For other record types, assume snake_case or direct mapping is handled
+        dbData = { ...recordData, tenant_id: req.user.tenantId, created_at: new Date(), updated_at: new Date() };
+        delete dbData.tenantId; // tenantId is already handled
+      }
+
       // Create record using raw SQL with proper column mapping
-      const columns = Object.keys(recordData);
-      const values = Object.values(recordData);
+      const columns = Object.keys(dbData);
+      const values = Object.values(dbData);
       const placeholders = values.map((_, index) => `$${index + 1}`).join(', ');
 
       const insertQuery = `
