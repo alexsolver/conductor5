@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,9 @@ const locationSchema = z.object({
   // Access and security
   accessInstructions: z.string().optional(),
   requiresAuthorization: z.boolean().default(false),
+
+  // Técnico Principal
+  primaryTechnicianId: z.string().optional(),
 });
 
 type LocationFormData = z.infer<typeof locationSchema>;
@@ -57,6 +60,19 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
   const [showMap, setShowMap] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Buscar técnicos ativos
+  const { data: techniciansData, isLoading: isLoadingTechnicians, error: techniciansError } = useQuery({
+    queryKey: ['technicians-active'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/user-management/users');
+      return response;
+    },
+    enabled: isOpen, // Só busca quando o modal está aberto
+  });
+
+  // Filtrar apenas técnicos ativos
+  const activeTechnicians = techniciansData?.users?.filter(user => user.isActive === true) || [];
 
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationSchema),
@@ -77,6 +93,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
       timezone: location?.timezone || 'America/Sao_Paulo',
       accessInstructions: location?.accessInstructions || "",
       requiresAuthorization: location?.requiresAuthorization || false,
+      primaryTechnicianId: location?.primaryTechnicianId || "",
     }
   });
 
@@ -216,29 +233,68 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                     />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="ativo">Ativo</SelectItem>
-                            <SelectItem value="inativo">Inativo</SelectItem>
-                            <SelectItem value="manutencao">Manutenção</SelectItem>
-                            <SelectItem value="suspenso">Suspenso</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="ativo">Ativo</SelectItem>
+                              <SelectItem value="inativo">Inativo</SelectItem>
+                              <SelectItem value="manutencao">Manutenção</SelectItem>
+                              <SelectItem value="suspenso">Suspenso</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="primaryTechnicianId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Técnico Principal</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={
+                                  isLoadingTechnicians 
+                                    ? "Carregando técnicos..." 
+                                    : techniciansError 
+                                    ? "Erro ao carregar técnicos" 
+                                    : "Selecione um técnico"
+                                } />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Nenhum técnico</SelectItem>
+                              {activeTechnicians.length === 0 && !isLoadingTechnicians && (
+                                <SelectItem value="" disabled>
+                                  Nenhum técnico ativo encontrado
+                                </SelectItem>
+                              )}
+                              {activeTechnicians.map((technician) => (
+                                <SelectItem key={technician.id} value={technician.id}>
+                                  {technician.firstName} {technician.lastName} - {technician.email}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="address" className="space-y-4">
