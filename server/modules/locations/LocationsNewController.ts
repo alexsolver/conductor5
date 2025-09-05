@@ -512,6 +512,74 @@ export class LocationsNewController {
           `;
           break;
 
+        case 'local':
+          selectQuery = `
+            SELECT 
+              id, 
+              nome, 
+              descricao, 
+              codigo_integracao,
+              ativo,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY nome ASC
+            LIMIT 100
+          `;
+          break;
+
+        case 'regiao':
+          selectQuery = `
+            SELECT 
+              id, 
+              nome, 
+              descricao, 
+              codigo_integracao,
+              ativo,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY nome ASC
+            LIMIT 100
+          `;
+          break;
+        
+        case 'area':
+          selectQuery = `
+            SELECT 
+              id, 
+              nome, 
+              descricao, 
+              codigo_integracao,
+              ativo,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY nome ASC
+            LIMIT 100
+          `;
+          break;
+
+        case 'agrupamento':
+          selectQuery = `
+            SELECT 
+              id, 
+              nome, 
+              descricao, 
+              codigo_integracao,
+              ativo,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY nome ASC
+            LIMIT 100
+          `;
+          break;
+
         default:
           // For tables with standard 'nome' column
           selectQuery = `
