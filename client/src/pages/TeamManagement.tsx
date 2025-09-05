@@ -24,6 +24,9 @@ import { UserSessions } from "@/components/user-management/UserSessions";
 import { CreateUserDialog } from "@/components/user-management/CreateUserDialog";
 import { InviteUserDialog } from "@/components/user-management/InviteUserDialog";
 import { EditMemberDialog } from "@/components/user-management/EditMemberDialog";
+import { CreateSkillDialog } from "@/components/skills/CreateSkillDialog";
+import { EditSkillDialog } from "@/components/skills/EditSkillDialog";
+
 import { 
   Users, 
   UserCheck, 
@@ -55,7 +58,13 @@ import {
   AlertCircle,
   User,
   Globe,
-  Monitor
+  Monitor,
+  Brain,
+  BookOpen,
+  Wrench,
+  Code,
+  Database,
+  Cpu
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -69,6 +78,13 @@ export default function TeamManagement() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [filterGroup, setFilterGroup] = useState("all");
+
+  // State for skills tab
+  const [skillsSearchTerm, setSkillsSearchTerm] = useState("");
+  const [selectedSkillCategory, setSelectedSkillCategory] = useState("all");
+  const [isCreateSkillDialogOpen, setIsCreateSkillDialogOpen] = useState(false);
+  const [isEditSkillDialogOpen, setIsEditSkillDialogOpen] = useState(false);
+  const [editingSkill, setEditingSkill] = useState<any>(null);
 
   // Dialog states for user management
   const [showCreateUser, setShowCreateUser] = useState(false);
@@ -184,6 +200,58 @@ export default function TeamManagement() {
       return res.json();
     },
     enabled: false, // Disable until endpoint is implemented
+  });
+
+  // Fetch all skills for the skills tab
+  const { data: skillsData, isLoading: skillsMatrixLoading } = useQuery({
+    queryKey: ['/api/skills'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/skills');
+      if (!res.ok) throw new Error('Erro ao buscar habilidades');
+      return res.json(); // Esperado: { skills: [...] }
+    },
+    enabled: !!user,
+  });
+
+  // Fetch skill categories
+  const { data: skillsCategoriesData } = useQuery({
+    queryKey: ['/api/skills/categories'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/skills/categories');
+      if (!res.ok) throw new Error('Erro ao buscar categorias de habilidades');
+      return res.json(); // Esperado: { categories: [...] }
+    },
+    enabled: !!user,
+  });
+
+  // Fetch user skills data
+  const { data: userSkillsData } = useQuery({
+    queryKey: ['/api/user-skills'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/user-skills');
+      if (!res.ok) throw new Error('Erro ao buscar habilidades de usuários');
+      return res.json(); // Esperado: { userSkills: [...] }
+    },
+    enabled: !!user,
+  });
+
+  const skills = skillsData?.skills || [];
+  const skillsCategories = skillsCategoriesData?.categories || [];
+  const userSkills = userSkillsData?.userSkills || [];
+
+  // Calculate skills statistics
+  const skillsStats = {
+    totalSkills: skills.length,
+    totalCategories: skillsCategories.length,
+    totalUserSkills: userSkills.length,
+    averageProficiency: userSkills.reduce((acc, skill) => acc + (skill.proficiencyLevel === 'beginner' ? 1 : skill.proficiencyLevel === 'intermediate' ? 2 : skill.proficiencyLevel === 'advanced' ? 3 : skill.proficiencyLevel === 'expert' ? 4 : 0), 0) / (userSkills.length || 1) * 25 || 0,
+  };
+
+  // Filter skills for the skills tab
+  const filteredSkills = skills.filter((skill: any) => {
+    const matchesSearch = skillsSearchTerm === "" || skill.name.toLowerCase().includes(skillsSearchTerm.toLowerCase());
+    const matchesCategory = selectedSkillCategory === "all" || skill.category === selectedSkillCategory;
+    return matchesSearch && matchesCategory;
   });
 
   // For backward compatibility
@@ -500,18 +568,6 @@ export default function TeamManagement() {
             <Shield className="h-3 w-3" />
             <span className="text-xs">Papéis</span>
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center space-x-1">
-            <Mail className="h-3 w-3" />
-            <span className="text-xs">Convites</span>
-          </TabsTrigger>
-          <TabsTrigger value="sessions" className="flex items-center space-x-1">
-            <Monitor className="h-3 w-3" />
-            <span className="text-xs">Sessões</span>
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center space-x-1">
-            <Activity className="h-3 w-3" />
-            <span className="text-xs">Atividade</span>
-          </TabsTrigger>
           <TabsTrigger value="performance" className="flex items-center space-x-1">
             <Target className="h-3 w-3" />
             <span className="text-xs">Performance</span>
@@ -519,6 +575,18 @@ export default function TeamManagement() {
           <TabsTrigger value="skills" className="flex items-center space-x-1">
             <Award className="h-3 w-3" />
             <span className="text-xs">Habilidades</span>
+          </TabsTrigger>
+          <TabsTrigger value="invitations" className="flex items-center space-x-1">
+            <Mail className="h-3 w-3" />
+            <span className="text-xs">Convites</span>
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center space-x-1">
+            <Activity className="h-3 w-3" />
+            <span className="text-xs">Atividade</span>
+          </TabsTrigger>
+          <TabsTrigger value="sessions" className="flex items-center space-x-1">
+            <Monitor className="h-3 w-3" />
+            <span className="text-xs">Sessões</span>
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center space-x-1">
             <TrendingUp className="h-3 w-3" />
@@ -1018,27 +1086,247 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Skills Tab */}
-        <TabsContent value="skills">
+        <TabsContent value="skills" className="space-y-6">
+          {/* Skills Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="flex items-center p-6">
+                <div className="flex items-center">
+                  <Brain className="h-8 w-8 text-blue-600 mr-3" />
+                  <div>
+                    <p className="text-2xl font-bold">{skillsStats.totalSkills}</p>
+                    <p className="text-xs text-muted-foreground">Habilidades Cadastradas</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="flex items-center p-6">
+                <div className="flex items-center">
+                  <BookOpen className="h-8 w-8 text-green-600 mr-3" />
+                  <div>
+                    <p className="text-2xl font-bold">{skillsStats.totalCategories}</p>
+                    <p className="text-xs text-muted-foreground">Categorias</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="flex items-center p-6">
+                <div className="flex items-center">
+                  <Users className="h-8 w-8 text-purple-600 mr-3" />
+                  <div>
+                    <p className="text-2xl font-bold">{skillsStats.totalUserSkills}</p>
+                    <p className="text-xs text-muted-foreground">Associações Usuário-Habilidade</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="flex items-center p-6">
+                <div className="flex items-center">
+                  <Star className="h-8 w-8 text-yellow-600 mr-3" />
+                  <div>
+                    <p className="text-2xl font-bold">{skillsStats.averageProficiency.toFixed(1)}</p>
+                    <p className="text-xs text-muted-foreground">Proficiência Média</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Skills Filters and Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+            <div className="flex flex-col sm:flex-row gap-2 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Buscar habilidades..."
+                  value={skillsSearchTerm}
+                  onChange={(e) => setSkillsSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <Select value={selectedSkillCategory} onValueChange={setSelectedSkillCategory}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
+                  {skillsCategories.map((category: string) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={() => setIsCreateSkillDialogOpen(true)}>
+                <Brain className="mr-2 h-4 w-4" />
+                Nova Habilidade
+              </Button>
+            </div>
+          </div>
+
+          {/* Skills List */}
           <Card>
             <CardHeader>
-              <CardTitle>Matriz de Habilidades da Equipe</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="h-5 w-5" />
+                Habilidades Técnicas ({filteredSkills.length})
+              </CardTitle>
               <CardDescription>
-                Visualização completa das competências técnicas
+                Gerencie as habilidades técnicas disponíveis no sistema
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">
-                  Integração com o módulo de Habilidades Técnicas
-                </p>
-                <Link href="/technical-skills">
-                  <Button>
-                    <Award className="h-4 w-4 mr-2" />
-                    Acessar Habilidades Técnicas
-                  </Button>
-                </Link>
-              </div>
+              {skillsMatrixLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+              ) : filteredSkills.length === 0 ? (
+                <div className="text-center py-8">
+                  <Brain className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma habilidade encontrada</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {skillsSearchTerm || selectedSkillCategory !== "all" 
+                      ? "Tente ajustar os filtros de busca"
+                      : "Comece criando uma nova habilidade técnica"
+                    }
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredSkills.map((skill: any) => (
+                    <Card key={skill.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              {skill.category === 'Programming Languages' && <Code className="h-4 w-4 text-blue-500" />}
+                              {skill.category === 'Frontend Frameworks' && <Monitor className="h-4 w-4 text-green-500" />}
+                              {skill.category === 'Backend Technologies' && <Database className="h-4 w-4 text-purple-500" />}
+                              {skill.category === 'DevOps' && <Cpu className="h-4 w-4 text-orange-500" />}
+                              {!['Programming Languages', 'Frontend Frameworks', 'Backend Technologies', 'DevOps'].includes(skill.category) && 
+                                <Wrench className="h-4 w-4 text-gray-500" />}
+                              <h4 className="font-medium text-sm">{skill.name}</h4>
+                            </div>
+
+                            <Badge variant="secondary" className="text-xs mb-2">
+                              {skill.category}
+                            </Badge>
+
+                            {skill.description && (
+                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                                {skill.description}
+                              </p>
+                            )}
+
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>Nível: {skill.level || 'N/A'}</span>
+                              {skill.isActive ? (
+                                <Badge variant="outline" className="text-xs">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Ativo
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-xs">
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Inativo
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingSkill(skill);
+                              setIsEditSkillDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* User Skills Overview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Habilidades dos Membros
+              </CardTitle>
+              <CardDescription>
+                Visão geral das habilidades dos membros da equipe
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userSkills.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma habilidade associada</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Os membros ainda não têm habilidades associadas
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userSkills.slice(0, 5).map((userSkill: any) => (
+                    <div key={userSkill.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium text-sm">
+                            {userSkill.user?.firstName} {userSkill.user?.lastName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Brain className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm">{userSkill.skill?.name}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={
+                          userSkill.proficiencyLevel === 'expert' || userSkill.proficiencyLevel === 'master' 
+                            ? 'default' 
+                            : userSkill.proficiencyLevel === 'advanced' 
+                            ? 'secondary' 
+                            : 'outline'
+                        }>
+                          {userSkill.proficiencyLevel}
+                        </Badge>
+                        {userSkill.yearsOfExperience && (
+                          <span className="text-xs text-gray-500">
+                            {userSkill.yearsOfExperience} anos
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {userSkills.length > 5 && (
+                    <div className="text-center">
+                      <Button variant="outline" size="sm">
+                        Ver mais {userSkills.length - 5} habilidades
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1210,6 +1498,23 @@ export default function TeamManagement() {
         onOpenChange={setShowEditDialog}
         member={editingMember}
       />
+
+      {/* Create Skill Dialog */}
+      <CreateSkillDialog
+        open={isCreateSkillDialogOpen}
+        onOpenChange={setIsCreateSkillDialogOpen}
+        categories={skillsCategories}
+      />
+
+      {/* Edit Skill Dialog */}
+      {isEditSkillDialogOpen && editingSkill && (
+        <EditSkillDialog
+          open={isEditSkillDialogOpen}
+          onOpenChange={setIsEditSkillDialogOpen}
+          skill={editingSkill}
+          categories={skillsCategories}
+        />
+      )}
     </div>
   );
 }

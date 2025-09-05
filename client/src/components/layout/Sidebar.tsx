@@ -208,12 +208,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       // Check if it's already a full translation key (contains namespace)
       if (name.includes('.')) {
         translated = t(name);
-        
+
         // If translation still returns the key, try without namespace
         if (translated === name) {
           const shortName = name.split('.').pop() || name;
           translated = t(`navigation.${shortName}`);
-          
+
           // Final fallback to just the short name
           if (translated === `navigation.${shortName}`) {
             translated = t(shortName);
