@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware/jwtAuth';
 import { pool } from '../../db';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid here
 
 /**
  * LocationsNewController - Simplified controller for locations endpoints
@@ -23,7 +24,7 @@ export class LocationsNewController {
       }
 
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(`
         SELECT id, first_name as nome, last_name as sobrenome, email, phone as telefone
         FROM "${schemaName}".customers 
@@ -54,7 +55,7 @@ export class LocationsNewController {
       }
 
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+
       const result = await pool.query(`
         SELECT id, first_name as nome, last_name as sobrenome, email
         FROM "${schemaName}".users 
@@ -104,7 +105,7 @@ export class LocationsNewController {
       }
 
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+
       // Check if locais table exists first
       const tableExists = await pool.query(`
         SELECT EXISTS (
@@ -148,9 +149,9 @@ export class LocationsNewController {
   async lookupCep(req: Request, res: Response): Promise<void> {
     try {
       const { cep } = req.params;
-      
+
       console.log('🔍 [CEP-LOOKUP] Request received for CEP:', cep);
-      
+
       // Validate CEP format
       const cleanCep = cep.replace(/\D/g, '');
       if (!cleanCep || cleanCep.length !== 8 || !/^\d{8}$/.test(cleanCep)) {
@@ -164,7 +165,7 @@ export class LocationsNewController {
       }
 
       console.log('🔍 [CEP-LOOKUP] Clean CEP:', cleanCep);
-      
+
       // ViaCEP API call with timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -177,7 +178,7 @@ export class LocationsNewController {
             'Accept': 'application/json'
           }
         });
-        
+
         clearTimeout(timeoutId);
 
         if (!response.ok) {
@@ -221,7 +222,7 @@ export class LocationsNewController {
 
       } catch (fetchError) {
         clearTimeout(timeoutId);
-        
+
         if (fetchError.name === 'AbortError') {
           console.error('❌ [CEP-LOOKUP] Timeout error');
           res.status(408).json({ 
@@ -251,7 +252,7 @@ export class LocationsNewController {
     try {
       const { municipio, estado, ano } = req.query;
       const currentYear = parseInt(ano as string) || new Date().getFullYear();
-      
+
       console.log('🔍 [HOLIDAYS-LOOKUP] Request received:', { municipio, estado, ano: currentYear });
 
       if (!municipio || !estado) {
@@ -277,7 +278,7 @@ export class LocationsNewController {
       // Feriados Estaduais (baseado no estado)
       let feriadosEstaduais: any[] = [];
       const estadoUpper = (estado as string).toUpperCase();
-      
+
       if (estadoUpper === 'SP' || estadoUpper === 'SÃO PAULO') {
         feriadosEstaduais = [
           { data: `${currentYear}-07-09`, nome: 'Revolução Constitucionalista', incluir: true }
@@ -296,7 +297,7 @@ export class LocationsNewController {
       // Feriados Municipais (exemplos baseados em algumas capitais)
       let feriadosMunicipais: any[] = [];
       const municipioUpper = (municipio as string).toUpperCase();
-      
+
       if (municipioUpper.includes('SÃO PAULO')) {
         feriadosMunicipais = [
           { data: `${currentYear}-01-25`, nome: 'Aniversário de São Paulo', incluir: true }
@@ -345,9 +346,9 @@ export class LocationsNewController {
   async geocodeAddress(req: Request, res: Response): Promise<void> {
     try {
       const { address } = req.body;
-      
+
       console.log('🗺️ [GEOCODING] Request received for address:', address);
-      
+
       if (!address) {
         res.status(400).json({ success: false, message: 'Endereço é obrigatório' });
         return;
@@ -370,7 +371,7 @@ export class LocationsNewController {
               formatted_address: nominatimData[0].display_name
             }
           };
-          
+
           console.log('✅ [GEOCODING] Nominatim success:', result);
           res.json(result);
           return;
@@ -389,7 +390,7 @@ export class LocationsNewController {
           formatted_address: address
         }
       };
-      
+
       console.log('🔄 [GEOCODING] Using fallback coordinates:', fallbackResult);
       res.json(fallbackResult);
     } catch (error) {
@@ -404,7 +405,7 @@ export class LocationsNewController {
   async getRecordsByType(req: any, res: Response): Promise<void> {
     try {
       const { recordType } = req.params;
-      
+
       if (!req.user?.tenantId) {
         res.status(400).json({ success: false, message: 'Tenant ID required' });
         return;
@@ -475,7 +476,7 @@ export class LocationsNewController {
             LIMIT 100
           `;
           break;
-        
+
         case 'trecho':
           selectQuery = `
             SELECT 
@@ -553,10 +554,9 @@ export class LocationsNewController {
   /**
    * Create record by type - ✅ 1qa.md compliant implementation
    */
-  async createRecord(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async createRecord(req: any, res: Response): Promise<void> {
     try {
       const { recordType } = req.params;
-      const data = req.body;
 
       if (!req.user?.tenantId) {
         res.status(400).json({ success: false, message: 'Tenant ID required' });
@@ -564,14 +564,14 @@ export class LocationsNewController {
       }
 
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
-      // Table mapping following 1qa.md schema structure
+
+      // Map record types to table names following Clean Architecture
       const tableMap: Record<string, string> = {
         'local': 'locais',
         'regiao': 'regioes', 
         'rota-dinamica': 'rotas_dinamicas',
         'trecho': 'trechos',
-        'rota-trecho': 'rotas_trecho',
+        'rota-trecho': 'rotas_trechos',
         'area': 'areas',
         'agrupamento': 'agrupamentos'
       };
@@ -585,79 +585,46 @@ export class LocationsNewController {
         return;
       }
 
-      let insertQuery;
-      let queryParams;
-
-      // Define table-specific insert queries following schema structure
-      switch (recordType) {
-        case 'rota-dinamica':
-          insertQuery = `
-            INSERT INTO "${schemaName}"."${tableName}" 
-            (tenant_id, nome_rota, id_rota, previsao_dias, ativo, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-            RETURNING id, nome_rota as nome, id_rota as codigo_integracao, previsao_dias, ativo, created_at, updated_at
-          `;
-          queryParams = [
-            req.user.tenantId,
-            data.nomeRota || data.nome || '',
-            data.idRota || data.codigoIntegracao || '',
-            data.previsaoDias || 1,
-            data.ativo !== false
-          ];
-          break;
-
-        case 'local':
-          insertQuery = `
-            INSERT INTO "${schemaName}"."${tableName}" 
-            (tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
-          `;
-          queryParams = [
-            req.user.tenantId,
-            data.nome || '',
-            data.descricao || '',
-            data.codigoIntegracao || '',
-            data.ativo !== false
-          ];
-          break;
-
-        default:
-          // For tables with standard structure
-          insertQuery = `
-            INSERT INTO "${schemaName}"."${tableName}" 
-            (tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
-          `;
-          queryParams = [
-            req.user.tenantId,
-            data.nome || '',
-            data.descricao || '',
-            data.codigoIntegracao || '',
-            data.ativo !== false
-          ];
-          break;
-      }
-
       console.log(`🔍 [CREATE-RECORD] Creating ${recordType} in table ${tableName}`);
-      console.log(`🔍 [CREATE-RECORD] Data:`, data);
 
-      const result = await pool.query(insertQuery, queryParams);
+      // Generate UUID and add tenantId to the data
+      const recordData = {
+        id: uuidv4(), // Generate UUID for the record
+        ...req.body,
+        tenantId: req.user.tenantId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      console.log(`✅ [CREATE-RECORD] Successfully created ${recordType} with ID: ${result.rows[0]?.id}`);
+      console.log(`🔍 [CREATE-RECORD] Data:`, recordData);
+
+      // Create record using raw SQL with proper column mapping
+      const columns = Object.keys(recordData);
+      const values = Object.values(recordData);
+      const placeholders = values.map((_, index) => `$${index + 1}`).join(', ');
+
+      const insertQuery = `
+        INSERT INTO "${schemaName}"."${tableName}" (${columns.map(col => `"${col}"`).join(', ')})
+        VALUES (${placeholders})
+        RETURNING *
+      `;
+
+      const result = await pool.query(insertQuery, values);
+
+      console.log(`✅ [CREATE-RECORD] Successfully created ${recordType}:`, result.rows[0]);
 
       res.status(201).json({
         success: true,
-        data: result.rows[0],
-        message: `${recordType} created successfully`
+        message: `${recordType} created successfully`,
+        data: result.rows[0]
       });
+
     } catch (error) {
-      console.error(`❌ [CREATE-RECORD] Error creating ${req.params?.recordType}:`, error);
+      console.error(`❌ [CREATE-RECORD] Error creating ${req.params.recordType}:`, error);
       res.status(500).json({ 
         success: false, 
         message: 'Error creating record',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? error.message : 'INTERNAL_ERROR'
       });
     }
   }
@@ -668,7 +635,7 @@ export class LocationsNewController {
   async getStatsByType(req: Request, res: Response): Promise<void> {
     try {
       const { recordType } = req.params;
-      
+
       res.json({
         success: true,
         data: {
