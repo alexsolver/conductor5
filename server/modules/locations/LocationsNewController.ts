@@ -679,7 +679,9 @@ export class LocationsNewController {
           tipo_cliente_favorecido: recordData.tipoClienteFavorecido,
           tecnico_principal_id: recordData.tecnicoPrincipalId,
           fuso_horario: recordData.fusoHorario,
-          feriados_incluidos: recordData.feriadosIncluidos
+          feriados_incluidos: recordData.feriadosIncluidos,
+          tipo_logradouro: recordData.tipoLogradouro,
+          geo_coordenadas: recordData.geoCoordenadas
         };
         // Remove camelCase fields that are now properly mapped
         delete dbData.codigoIntegracao;
@@ -688,6 +690,10 @@ export class LocationsNewController {
         delete dbData.fusoHorario;
         delete dbData.feriadosIncluidos;
         delete dbData.tenantId; // tenantId is already handled
+        delete dbData.tipoLogradouro;
+        delete dbData.geoCoordenadas;
+        delete dbData.createdAt;
+        delete dbData.updatedAt;
       } else {
         // For other record types, assume snake_case or direct mapping is handled
         dbData = { ...recordData, tenant_id: req.user.tenantId, created_at: new Date(), updated_at: new Date() };
