@@ -29,6 +29,58 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
+// Define a type for the Technician data
+interface Technician {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+// Mock data for team members (replace with actual API call)
+// const teamMembers: Technician[] = [
+//   { id: "tecnico1", name: "João Silva", email: "joao.silva@example.com", role: "Engenheiro" },
+//   { id: "tecnico2", name: "Maria Santos", email: "maria.santos@example.com", role: "Técnica Sênior" },
+//   { id: "tecnico3", name: "Carlos Pereira", email: "carlos.pereira@example.com", role: "Técnico Júnior" },
+// ];
+
+// Component to fetch and display technicians
+const TecnicoSelect = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
+  const { data: technicians, isLoading, error } = useQuery<Technician[], Error>({
+    queryKey: ['/api/user-management/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user-management/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch technicians');
+      }
+      const data = await response.json();
+      // Assuming the API returns an array of technicians directly
+      return data.data || data; 
+    },
+  });
+
+  if (isLoading) return <Select><SelectTrigger><SelectValue placeholder="Carregando técnicos..." /></SelectTrigger></Select>;
+  if (error) return <Select><SelectTrigger><SelectValue placeholder="Erro ao carregar técnicos" /></SelectTrigger></Select>;
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="mt-1">
+        <SelectValue placeholder="Selecione o técnico principal" />
+      </SelectTrigger>
+      <SelectContent>
+        {technicians?.map((technician) => (
+          <SelectItem key={technician.id} value={technician.id}>
+            <div className="flex flex-col">
+              <span>{technician.name}</span>
+              <span className="text-sm text-gray-500">{technician.role} - {technician.email}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
+
 // Record type definitions
 const RECORD_TYPES = {
   local: {
@@ -122,7 +174,7 @@ function LocationsNewContent() {
         return {
           ...baseDefaults,
           clienteFavorecido: "",
-          tecnicoPrincipal: "",
+          tecnicoPrincipalId: undefined, // Initialize as undefined
           email: "",
           ddd: "",
           telefone: "",
@@ -280,7 +332,7 @@ function LocationsNewContent() {
     console.log('🔍 [FORM-SUBMIT] Record type:', activeRecordType);
     console.log('🔍 [FORM-SUBMIT] Form errors:', form.formState.errors);
     console.log('🔍 [FORM-SUBMIT] Form isValid:', form.formState.isValid);
-    
+
     // Force validation and submit regardless for testing
     console.log('🔍 [FORM-SUBMIT] Proceeding with mutation...');
     createMutation.mutate(data);
@@ -332,13 +384,13 @@ function LocationsNewContent() {
                     Configure padrões de horários que podem ser associados a múltiplos locais, regiões e rotas.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <Tabs defaultValue="padroes" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="padroes">Padrões de Horários</TabsTrigger>
                     <TabsTrigger value="associacoes">Associações</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="padroes" className="space-y-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -348,7 +400,7 @@ function LocationsNewContent() {
                           Novo Padrão
                         </Button>
                       </div>
-                      
+
                       <div className="grid gap-4">
                         {[
                           { id: 1, nome: "Comercial Padrão", horario: "08:00-18:00", dias: "Seg-Sex", entidades: 15 },
@@ -379,11 +431,11 @@ function LocationsNewContent() {
                       </div>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="associacoes" className="space-y-4">
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Associar Horários às Entidades</h3>
-                      
+
                       <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-3">
                           <h4 className="font-medium">Selecionar Padrão de Horário</h4>
@@ -398,7 +450,7 @@ function LocationsNewContent() {
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         <div className="space-y-3">
                           <h4 className="font-medium">Aplicar a Entidades</h4>
                           <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -419,7 +471,7 @@ function LocationsNewContent() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <Button className="w-full">
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Aplicar Horários às Entidades Selecionadas
@@ -455,7 +507,7 @@ function LocationsNewContent() {
                           <MapPin className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-                    
+
                     <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
@@ -478,7 +530,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="nome"
@@ -493,7 +545,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="descricao"
@@ -507,7 +559,7 @@ function LocationsNewContent() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -522,7 +574,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="tipoClienteFavorecido"
@@ -545,24 +597,17 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="tecnicoPrincipalId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Técnico Principal</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione um técnico" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="tecnico1">João Silva</SelectItem>
-                              <SelectItem value="tecnico2">Maria Santos</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <TecnicoSelect 
+                            value={field.value || ''} 
+                            onChange={(value) => field.onChange(value)}
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
@@ -575,7 +620,7 @@ function LocationsNewContent() {
                       <Phone className="h-5 w-5 text-green-500" />
                       <h3 className="text-lg font-semibold">Contato</h3>
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="email"
@@ -589,7 +634,7 @@ function LocationsNewContent() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
@@ -604,7 +649,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="telefone"
@@ -627,7 +672,7 @@ function LocationsNewContent() {
                       <MapPin className="h-5 w-5 text-purple-500" />
                       <h3 className="text-lg font-semibold">Endereço</h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-4 gap-4">
                       <FormField
                         control={form.control}
@@ -647,7 +692,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="pais"
@@ -661,7 +706,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="estado"
@@ -675,7 +720,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="municipio"
@@ -690,7 +735,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -705,7 +750,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="tipoLogradouro"
@@ -732,7 +777,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
@@ -747,7 +792,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="numero"
@@ -762,7 +807,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="complemento"
@@ -784,7 +829,7 @@ function LocationsNewContent() {
                       <Map className="h-5 w-5 text-red-500" />
                       <h3 className="text-lg font-semibold">Georreferenciamento</h3>
                     </div>
-                    
+
                     <Alert>
                       <MapPin className="h-4 w-4" />
                       <AlertDescription>
@@ -792,7 +837,7 @@ function LocationsNewContent() {
                         Você pode clicar no mapa para ajustar a localização exata.
                       </AlertDescription>
                     </Alert>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -807,7 +852,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="longitude"
@@ -822,7 +867,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-                    
+
                     <div className="flex justify-center">
                       <Button type="button" variant="outline">
                         <Map className="h-4 w-4 mr-2" />
@@ -837,7 +882,7 @@ function LocationsNewContent() {
                       <Clock className="h-5 w-5 text-orange-500" />
                       <h3 className="text-lg font-semibold">Tempo e Disponibilidade</h3>
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="fusoHorario"
@@ -860,7 +905,7 @@ function LocationsNewContent() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="space-y-3">
                       <h4 className="font-medium">Feriados</h4>
                       <div className="flex space-x-2">
@@ -888,7 +933,7 @@ function LocationsNewContent() {
                           <MapPin className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -911,7 +956,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="nome"
@@ -926,7 +971,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <FormField
                           control={form.control}
                           name="descricao"
@@ -940,7 +985,7 @@ function LocationsNewContent() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
                           name="codigoIntegracao"
@@ -962,7 +1007,7 @@ function LocationsNewContent() {
                           <Users className="h-5 w-5 text-green-500" />
                           <h3 className="text-lg font-semibold">Relacionamentos</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -977,7 +1022,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="tecnicoPrincipal"
@@ -1008,7 +1053,7 @@ function LocationsNewContent() {
                           <MapPin className="h-5 w-5 text-red-500" />
                           <h3 className="text-lg font-semibold">Geolocalização</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1023,7 +1068,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="longitude"
@@ -1038,7 +1083,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <FormField
                           control={form.control}
                           name="cepsAbrangidos"
@@ -1060,7 +1105,7 @@ function LocationsNewContent() {
                           <Home className="h-5 w-5 text-orange-500" />
                           <h3 className="text-lg font-semibold">Endereço Base</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1075,7 +1120,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="pais"
@@ -1090,7 +1135,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1105,7 +1150,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="municipio"
@@ -1120,7 +1165,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1135,7 +1180,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="tipoLogradouro"
@@ -1162,7 +1207,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1177,7 +1222,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="numero"
@@ -1191,7 +1236,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="complemento"
@@ -1219,7 +1264,7 @@ function LocationsNewContent() {
                           <Route className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1242,7 +1287,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="nomeRota"
@@ -1256,7 +1301,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="idRota"
@@ -1279,7 +1324,7 @@ function LocationsNewContent() {
                           <Calendar className="h-5 w-5 text-purple-500" />
                           <h3 className="text-lg font-semibold">Planejamento da Rota</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-7 gap-2">
                           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, index) => (
                             <div key={index} className="flex items-center space-x-2">
@@ -1288,7 +1333,7 @@ function LocationsNewContent() {
                             </div>
                           ))}
                         </div>
-                        
+
                         <FormField
                           control={form.control}
                           name="previsaoDias"
@@ -1320,7 +1365,7 @@ function LocationsNewContent() {
                           <ArrowRight className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação do Trecho</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1343,7 +1388,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1358,7 +1403,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1381,7 +1426,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="localBId"
@@ -1416,7 +1461,7 @@ function LocationsNewContent() {
                           <Network className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Definição da Rota</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1439,7 +1484,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1454,7 +1499,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="space-y-3">
                           <h4 className="font-medium">Definição do Trecho - Múltiplos Registros</h4>
                           <div className="border rounded-lg">
@@ -1518,7 +1563,7 @@ function LocationsNewContent() {
                           <Layers className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1541,7 +1586,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="nome"
@@ -1556,7 +1601,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1571,7 +1616,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1594,7 +1639,7 @@ function LocationsNewContent() {
                           <Grid3X3 className="h-5 w-5 text-teal-500" />
                           <h3 className="text-lg font-semibold">Classificação</h3>
                         </div>
-                        
+
                         <FormField
                           control={form.control}
                           name="tipoArea"
@@ -1620,7 +1665,7 @@ function LocationsNewContent() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
                           name="corMapa"
@@ -1639,7 +1684,7 @@ function LocationsNewContent() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <div className="bg-blue-50 p-4 rounded-lg">
                           <p className="text-sm text-blue-700">
                             A configuração específica dos parâmetros da área será baseada no tipo selecionado acima.
@@ -1657,7 +1702,7 @@ function LocationsNewContent() {
                           <Folder className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1680,7 +1725,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="nome"
@@ -1695,7 +1740,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1710,7 +1755,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1733,7 +1778,7 @@ function LocationsNewContent() {
                           <Map className="h-5 w-5 text-indigo-500" />
                           <h3 className="text-lg font-semibold">Seleção de Áreas</h3>
                         </div>
-                        
+
                         <div className="space-y-3">
                           <h4 className="font-medium">Áreas Disponíveis</h4>
                           <div className="grid grid-cols-2 gap-2">
@@ -1766,7 +1811,7 @@ function LocationsNewContent() {
                                 </FormItem>
                               )}
                             />
-                            
+
                             <FormField
                               control={form.control}
                               name="cepFim"
@@ -1821,7 +1866,7 @@ function LocationsNewContent() {
               <p className="text-xs text-muted-foreground">registros cadastrados</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ativos</CardTitle>
@@ -1832,7 +1877,7 @@ function LocationsNewContent() {
               <p className="text-xs text-muted-foreground">em funcionamento</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Inativos</CardTitle>
