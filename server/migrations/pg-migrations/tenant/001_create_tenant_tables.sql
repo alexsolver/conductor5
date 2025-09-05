@@ -1082,6 +1082,38 @@ CREATE TABLE IF NOT EXISTS user_roles (
 );
 
 
+CREATE TABLE IF NOT EXISTS locais (
+    id uuid PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE,
+    nome TEXT NOT NULL,
+    descricao TEXT,
+    codigo_integracao TEXT,
+    tipo_cliente_favorecido TEXT,
+    tecnico_principal_id UUID,
+    email TEXT,
+    ddd TEXT,
+    telefone TEXT,
+    cep TEXT,
+    pais TEXT DEFAULT 'Brasil',
+    estado TEXT,
+    municipio TEXT,
+    bairro TEXT,
+    tipo_logradouro TEXT,
+    logradouro TEXT,
+    numero TEXT,
+    complemento TEXT,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    geo_coordenadas JSONB,
+    fuso_horario TEXT DEFAULT 'America/Sao_Paulo',
+    feriados_incluidos JSONB,
+    indisponibilidades JSONB,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+
 -- ==============================
 -- Função genérica para atualizar updated_at
 -- ==============================
