@@ -216,6 +216,76 @@ async function ensureSchemaAndTables(schemaName: string): Promise<void> {
   }
 }
 
+
+// Get all locations - specific endpoint for listing all locations
+router.get('/locais/all', async (req: LocationsRequest, res: Response) => {
+  try {
+    console.log('🔍 [GET-ALL-LOCATIONS] Fetching all locations');
+
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+
+    // Check if locais table exists first
+    const tableExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = $1 AND table_name = 'locais'
+      ) as exists
+    `, [schemaName]);
+
+    if (!tableExists.rows[0]?.exists) {
+      console.log(`⚠️ [GET-ALL-LOCATIONS] Table locais does not exist in schema ${schemaName}`);
+      return res.json({
+        success: true,
+        data: [],
+        total: 0,
+        message: 'Table locais not yet created for this tenant'
+      });
+    }
+
+    // Fetch all locations
+    const result = await pool.query(`
+      SELECT 
+        id, 
+        nome, 
+        endereco, 
+        cidade, 
+        estado, 
+        cep,
+        codigo_integracao,
+        tipo_cliente_favorecido,
+        tecnico_principal_id,
+        fuso_horario,
+        feriados_incluidos,
+        ativo,
+        created_at, 
+        updated_at
+      FROM "${schemaName}".locais 
+      WHERE tenant_id = $1 AND ativo = true
+      ORDER BY nome ASC
+    `, [req.user.tenantId]);
+
+    console.log(`✅ [GET-ALL-LOCATIONS] Found ${result.rows.length} locations`);
+
+    return res.json({
+      success: true,
+      data: result.rows,
+      total: result.rows.length
+    });
+
+  } catch (error) {
+    console.error('❌ [GET-ALL-LOCATIONS] Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching all locations',
+      error: error.message
+    });
+  }
+});
+
 // Integration endpoints FIRST (most specific)
 router.get("/integration/clientes", async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -289,75 +359,6 @@ router.post('/:recordType', async (req: AuthenticatedRequest, res: Response) => 
 // Get statistics by type
 router.get('/:recordType/stats', async (req: LocationsRequest, res: Response) => {
   return controller.getStatsByType(req, res);
-});
-
-// Get all locations - specific endpoint for listing all locations
-router.get('/locais/all', async (req: LocationsRequest, res: Response) => {
-  try {
-    console.log('🔍 [GET-ALL-LOCATIONS] Fetching all locations');
-    
-    if (!req.user?.tenantId) {
-      return res.status(400).json({ success: false, message: 'Tenant ID required' });
-    }
-
-    const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-    
-    // Check if locais table exists first
-    const tableExists = await pool.query(`
-      SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_schema = $1 AND table_name = 'locais'
-      ) as exists
-    `, [schemaName]);
-
-    if (!tableExists.rows[0]?.exists) {
-      console.log(`⚠️ [GET-ALL-LOCATIONS] Table locais does not exist in schema ${schemaName}`);
-      return res.json({
-        success: true,
-        data: [],
-        total: 0,
-        message: 'Table locais not yet created for this tenant'
-      });
-    }
-
-    // Fetch all locations
-    const result = await pool.query(`
-      SELECT 
-        id, 
-        nome, 
-        endereco, 
-        cidade, 
-        estado, 
-        cep,
-        codigo_integracao,
-        tipo_cliente_favorecido,
-        tecnico_principal_id,
-        fuso_horario,
-        feriados_incluidos,
-        ativo,
-        created_at, 
-        updated_at
-      FROM "${schemaName}".locais 
-      WHERE tenant_id = $1 AND ativo = true
-      ORDER BY nome ASC
-    `, [req.user.tenantId]);
-
-    console.log(`✅ [GET-ALL-LOCATIONS] Found ${result.rows.length} locations`);
-    
-    return res.json({
-      success: true,
-      data: result.rows,
-      total: result.rows.length
-    });
-
-  } catch (error) {
-    console.error('❌ [GET-ALL-LOCATIONS] Error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Error fetching all locations',
-      error: error.message
-    });
-  }
 });
 
 // Get records by type (most generic - should be LAST)
