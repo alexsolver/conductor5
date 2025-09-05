@@ -210,7 +210,15 @@ function LocationsNewContent() {
 
   // Data queries for each record type - using proper authentication from queryClient
   const localQuery = useQuery({
-    queryKey: [`/api/locations-new/local`]
+    queryKey: [`/api/locations-new/local`],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/locations-new/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch locais');
+      }
+      return response.json();
+    },
+
   });
 
   const regiaoQuery = useQuery({
