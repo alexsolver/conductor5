@@ -46,21 +46,22 @@ interface Technician {
 
 // Component to fetch and display technicians
 const TecnicoSelect = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
-  const { data: technicians, isLoading, error } = useQuery<Technician[], Error>({
+  const { data: techniciansResponse, isLoading, error } = useQuery({
     queryKey: ['/api/user-management/users'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/user-management/users');
       if (!response.ok) {
         throw new Error('Failed to fetch technicians');
       }
-      const data = await response.json();
-      // Assuming the API returns an array of technicians directly
-      return data.data || data; 
+      return response.json();
     },
   });
 
   if (isLoading) return <Select><SelectTrigger><SelectValue placeholder="Carregando técnicos..." /></SelectTrigger></Select>;
   if (error) return <Select><SelectTrigger><SelectValue placeholder="Erro ao carregar técnicos" /></SelectTrigger></Select>;
+
+  // Extract the users array from the response
+  const technicians = techniciansResponse?.users || [];
 
   return (
     <Select value={value} onValueChange={onChange}>
@@ -68,10 +69,10 @@ const TecnicoSelect = ({ value, onChange }: { value: string, onChange: (value: s
         <SelectValue placeholder="Selecione o técnico principal" />
       </SelectTrigger>
       <SelectContent>
-        {technicians?.map((technician) => (
+        {Array.isArray(technicians) && technicians.map((technician: any) => (
           <SelectItem key={technician.id} value={technician.id}>
             <div className="flex flex-col">
-              <span>{technician.name}</span>
+              <span>{technician.firstName} {technician.lastName}</span>
               <span className="text-sm text-gray-500">{technician.role} - {technician.email}</span>
             </div>
           </SelectItem>
