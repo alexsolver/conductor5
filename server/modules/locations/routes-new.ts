@@ -195,6 +195,10 @@ async function ensureSchemaAndTables(schemaName: string): Promise<void> {
 
 // Get all locations - specific endpoint for listing all locations
 router.get('/locais', async (req: LocationsRequest, res: Response) => {
+  console.log('[LOCATIONS-NEW] GET /locais endpoint hit');
+  console.log('[LOCATIONS-NEW] Request headers:', req.headers);
+  console.log('[LOCATIONS-NEW] Request method:', req.method);
+  console.log('[LOCATIONS-NEW] Request path:', req.path);
   try {
     console.log('🔍 [GET-ALL-LOCATIONS] Fetching all locations');
 

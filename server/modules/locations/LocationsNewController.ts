@@ -275,7 +275,7 @@ export class LocationsNewController {
         { data: `${currentYear}-12-25`, nome: 'Natal', incluir: true }
       ];
 
-      // Feriados Estaduais (baseado no estado)
+      // Feriados Estaduos (baseado no estado)
       let feriadosEstaduais: any[] = [];
       const estadoUpper = (estado as string).toUpperCase();
 
@@ -702,7 +702,11 @@ export class LocationsNewController {
   /**
    * Get locals (locais) - specific endpoint for listing locations
    */
-  async getLocals(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getLocals(req: Request, res: Response): Promise<void> {
+    console.log('[LOCATIONS-CONTROLLER] getLocais method called');
+    console.log('[LOCATIONS-CONTROLLER] Request URL:', req.url);
+    console.log('[LOCATIONS-CONTROLLER] Request method:', req.method);
+
     try {
       if (!req.user?.tenantId) {
         res.status(400).json({ success: false, message: 'Tenant ID required' });

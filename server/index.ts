@@ -469,21 +469,21 @@ app.use((req, res, next) => {
   try {
     console.log('✅ [APPROVAL-MANAGEMENT] Registering approval routes...');
     const approvalRoutes = (await import('./modules/approvals/routes')).default;
-    
+
     // ✅ 1QA.MD: Validate router before using it
     if (!approvalRoutes) {
       console.error('❌ [APPROVAL-MANAGEMENT] Approval routes returned undefined');
       throw new Error('Approval routes module returned undefined');
     }
-    
+
     if (typeof approvalRoutes !== 'function') {
       console.error('❌ [APPROVAL-MANAGEMENT] Approval routes is not a function:', typeof approvalRoutes);
       throw new Error('Approval routes is not a valid Express Router');
     }
-    
+
     app.use('/api/approvals', approvalRoutes);
     console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
-    
+
   } catch (approvalError) {
     console.error('❌ [APPROVAL-MANAGEMENT] Failed to load approval routes:', approvalError);
     console.log('⚠️ [APPROVAL-MANAGEMENT] Continuing without approval routes for now');
@@ -502,9 +502,24 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    console.log('[SERVER] Setting up API routes before Vite middleware');
+    // Vite middleware after all API routes
+    console.log('[SERVER] Adding Vite middleware after API routes');
+    const { viteDevMiddleware } = await import('./vite');
+    app.use(viteDevMiddleware);
   } else {
     serveStatic(app);
+  }
+
+  // Add a catch-all route for development that serves the index.html
+  if (app.get("env") === "development") {
+    app.get('*', (req, res, next) => {
+      // Skip if it's an API route
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
+      res.sendFile(path.join(__dirname, '../client/index.html'));
+    });
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
