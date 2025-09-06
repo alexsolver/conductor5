@@ -37,13 +37,6 @@ interface Technician {
   role: string;
 }
 
-// Mock data for team members (replace with actual API call)
-// const teamMembers: Technician[] = [
-//   { id: "tecnico1", name: "João Silva", email: "joao.silva@example.com", role: "Engenheiro" },
-//   { id: "tecnico2", name: "Maria Santos", email: "maria.santos@example.com", role: "Técnica Sênior" },
-//   { id: "tecnico3", name: "Carlos Pereira", email: "carlos.pereira@example.com", role: "Técnico Júnior" },
-// ];
-
 // Component to fetch and display technicians
 const TecnicoSelect = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
   const { data: techniciansResponse, isLoading, error } = useQuery({
@@ -135,6 +128,8 @@ function LocationsNewContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
   const queryClient = useQueryClient();
 
   // Dynamic schema selection per 1qa.md Clean Architecture
@@ -336,6 +331,35 @@ function LocationsNewContent() {
     }
   });
 
+  // Update mutation using apiRequest
+  const editMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('PUT', `/api/locations-new/${activeRecordType}/${editingRecord?.id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} atualizado com sucesso!`
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/locations-new/locais'] });
+      setIsEditDialogOpen(false);
+      setEditingRecord(null);
+      form.reset();
+    },
+    onError: (error) => {
+      console.error('Error updating record:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar registro. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  });
+
+
   // Submit handler with debug logging per 1qa.md
   const onSubmit = useCallback((data: any) => {
     console.log('🔍 [FORM-SUBMIT] Form data:', data);
@@ -345,8 +369,12 @@ function LocationsNewContent() {
 
     // Force validation and submit regardless for testing
     console.log('🔍 [FORM-SUBMIT] Proceeding with mutation...');
-    createMutation.mutate(data);
-  }, [createMutation, activeRecordType, form]);
+    if (isEditDialogOpen && editingRecord) {
+      editMutation.mutate(data);
+    } else {
+      createMutation.mutate(data);
+    }
+  }, [createMutation, editMutation, activeRecordType, form, isEditDialogOpen, editingRecord]);
 
   // Filtered data
   const filteredData = useMemo(() => {
@@ -401,6 +429,25 @@ function LocationsNewContent() {
     }
   }, [form, toast]);
 
+  // Handle edit button click
+  const handleEditRecord = useCallback((record: any) => {
+    setEditingRecord(record);
+    setIsEditDialogOpen(true);
+    // Populate form with existing data
+    const recordTypeSchema = getSchemaForType(activeRecordType);
+    const recordData = Object.keys(recordTypeSchema.shape).reduce((acc, key) => {
+      acc[key] = record[key] !== undefined ? record[key] : getDefaultValues(activeRecordType)[key];
+      return acc;
+    }, {} as any);
+    form.reset(recordData);
+  }, [form, activeRecordType, getSchemaForType, getDefaultValues]);
+
+  // Handle closing the edit modal
+  const handleCloseEditModal = useCallback(() => {
+    setIsEditDialogOpen(false);
+    setEditingRecord(null);
+    form.reset(); // Reset form on close
+  }, [form]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -1873,6 +1920,1217 @@ function LocationsNewContent() {
               </Form>
               </DialogContent>
             </Dialog>
+
+            {/* Edit Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={handleCloseEditModal}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center">
+                    <currentRecordType.icon className="h-5 w-5 mr-2" />
+                    Editar {currentRecordType.label}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Modifique as informações do {currentRecordType.label.toLowerCase()} selecionado.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Render form sections based on record type and section name */}
+                    {currentRecordType.sections.map((section) => {
+                      // Determine which fields to render based on the section and activeRecordType
+                      let fieldsToRender: React.ReactNode = null;
+
+                      if (activeRecordType === 'local') {
+                        if (section === "Identificação") {
+                          fieldsToRender = (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="nome"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Nome *</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Digite o nome" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="codigoIntegracao"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Código de Integração *</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Digite o código" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <div className="md:col-span-2">
+                                <FormField
+                                  control={form.control}
+                                  name="descricao"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Descrição</FormLabel>
+                                      <FormControl>
+                                        <Textarea 
+                                          placeholder="Digite a descrição"
+                                          className="min-h-[80px]"
+                                          {...field} 
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          );
+                        } else if (section === "Contato") {
+                          fieldsToRender = (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Email</FormLabel>
+                                    <FormControl>
+                                      <Input type="email" placeholder="email@exemplo.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <FormField
+                                  control={form.control}
+                                  name="ddd"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>DDD</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="11" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="telefone"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Telefone</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="999999999" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          );
+                        } else if (section === "Endereço") {
+                          fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="cep"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>CEP</FormLabel>
+                                      <FormControl>
+                                        <div className="flex gap-2">
+                                          <Input 
+                                            placeholder="00000-000" 
+                                            {...field} 
+                                            onChange={(e) => {
+                                              field.onChange(e);
+                                              if (e.target.value.replace(/\D/g, '').length === 8) {
+                                                buscarCEP(e.target.value);
+                                              }
+                                            }}
+                                          />
+                                          <Button 
+                                            type="button" 
+                                            variant="outline"
+                                            onClick={() => field.value && buscarCEP(field.value)}
+                                            disabled={!field.value || field.value.replace(/\D/g, '').length !== 8}
+                                          >
+                                            Buscar
+                                          </Button>
+                                        </div>
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="pais"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>País</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Brasil" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="estado"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Estado</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="SP" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="municipio"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Município</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="São Paulo" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="bairro"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Bairro</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Centro" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="tipoLogradouro"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Tipo</FormLabel>
+                                      <FormControl>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Tipo" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="Rua">Rua</SelectItem>
+                                            <SelectItem value="Avenida">Avenida</SelectItem>
+                                            <SelectItem value="Alameda">Alameda</SelectItem>
+                                            <SelectItem value="Praça">Praça</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="logradouro"
+                                  render={({ field }) => (
+                                    <FormItem className="md:col-span-2">
+                                      <FormLabel>Logradouro</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Nome da rua/avenida" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="numero"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Número</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="123" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <FormField
+                                control={form.control}
+                                name="complemento"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Complemento</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Apto 123, Bloco A, etc." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          );
+                        } else if (section === "Georreferenciamento") {
+                          fieldsToRender = (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="latitude"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Latitude</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="-23.550520" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="longitude"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Longitude</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="-46.633308" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          );
+                        } else if (section === "Tempo") {
+                          fieldsToRender = (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="fusoHorario"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Fuso Horário</FormLabel>
+                                    <FormControl>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Selecione o fuso horário" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="America/Sao_Paulo">America/Sao_Paulo (Brasília)</SelectItem>
+                                          <SelectItem value="America/Manaus">America/Manaus (Amazonas)</SelectItem>
+                                          <SelectItem value="America/Rio_Branco">America/Rio_Branco (Acre)</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="tecnicoPrincipalId"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Técnico Principal</FormLabel>
+                                    <FormControl>
+                                      <TecnicoSelect 
+                                        value={field.value || ""} 
+                                        onChange={field.onChange} 
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          );
+                        }
+                      } else if (activeRecordType === 'regiao') {
+                        // Add specific fields for 'regiao' type if any
+                        if (section === "Identificação") {
+                          fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-3 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="ativo"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Ativo</FormLabel>
+                                      <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="true">Sim</SelectItem>
+                                          <SelectItem value="false">Não</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="nome"
+                                  render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                      <FormLabel>Nome *</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Digite o nome da região" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <FormField
+                                control={form.control}
+                                name="descricao"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Descrição</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder="Descrição da região" rows={3} {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="codigoIntegracao"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Código de Integração</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Código único da região" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          );
+                        } else if (section === "Relacionamentos") {
+                          fieldsToRender = (
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="nome" // Assuming 'nome' is used for clients here
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Clientes Vinculados</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Multi-seleção de clientes" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="tecnicoPrincipal" // Assuming this maps to a technician field
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Técnico Principal</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="tecnico1">João Silva</SelectItem>
+                                        <SelectItem value="tecnico2">Maria Santos</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          );
+                        } else if (section === "Geolocalização") {
+                          fieldsToRender = (
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="latitude"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Latitude</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="-23.55052000" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="longitude"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Longitude</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="-46.63331000" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          );
+                        } else if (section === "Endereço Base") {
+                          fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="cep"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>CEP</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="00000-000" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="pais"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>País</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Brasil" defaultValue="Brasil" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="estado"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Estado</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Estado" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="municipio"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Município</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Município" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="bairro"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Bairro</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Bairro" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="tipoLogradouro"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Tipo de Logradouro</FormLabel>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="Rua">Rua</SelectItem>
+                                          <SelectItem value="Avenida">Avenida</SelectItem>
+                                          <SelectItem value="Travessa">Travessa</SelectItem>
+                                          <SelectItem value="Alameda">Alameda</SelectItem>
+                                          <SelectItem value="Rodovia">Rodovia</SelectItem>
+                                          <SelectItem value="Estrada">Estrada</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="logradouro"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Logradouro</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Nome da rua/avenida" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="numero"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Número</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="123" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="complemento"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Complemento</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Sala, apto, etc" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          );
+                        }
+                      } else if (activeRecordType === 'rota-dinamica') {
+                        // Add specific fields for 'rota-dinamica' type
+                        if (section === "Identificação") {
+                           fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-3 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="ativo"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Ativo</FormLabel>
+                                      <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="true">Sim</SelectItem>
+                                          <SelectItem value="false">Não</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="nomeRota"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Nome da Rota *</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Nome da rota" maxLength={100} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="idRota"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>ID da Rota *</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="ID único" maxLength={100} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                           )
+                        } else if (section === "Planejamento") {
+                          fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-7 gap-2">
+                                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, index) => (
+                                  <div key={index} className="flex items-center space-x-2">
+                                    <Checkbox id={`dia-${index}`} />
+                                    <label htmlFor={`dia-${index}`} className="text-sm">{dia}</label>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <FormField
+                                control={form.control}
+                                name="previsaoDias"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Previsão de Dias (1-30)</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        min={1} 
+                                        max={30} 
+                                        {...field}
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )
+                        }
+                      } else if (activeRecordType === 'trecho') {
+                        if (section === "Identificação do Trecho") {
+                          fieldsToRender = (
+                            <>
+                              <div className="grid grid-cols-3 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="ativo"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Ativo</FormLabel>
+                                      <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="true">Sim</SelectItem>
+                                          <SelectItem value="false">Não</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="codigoIntegracao"
+                                  render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                      <FormLabel>Código de Integração</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Código do trecho" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="localAId"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Local A (Origem)</FormLabel>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione origem" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="local1">Local 1</SelectItem>
+                                          <SelectItem value="local2">Local 2</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="localBId"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Local B (Destino)</FormLabel>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione destino" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="local3">Local 3</SelectItem>
+                                          <SelectItem value="local4">Local 4</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </>
+                          )
+                        }
+                      } else if (activeRecordType === 'rota-trecho') {
+                        if (section === "Identificação") {
+                          fieldsToRender = (
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="ativo"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Ativo</FormLabel>
+                                    <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="true">Sim</SelectItem>
+                                        <SelectItem value="false">Não</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="codigoIntegracao"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>ID da Rota</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Identificador da rota" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )
+                        } else if (section === "Definição do Trecho") {
+                          fieldsToRender = (
+                            <div className="space-y-3">
+                              <h4 className="font-medium">Definição do Trecho - Múltiplos Registros</h4>
+                              <div className="border rounded-lg">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>DE</TableHead>
+                                      <TableHead>TRECHO</TableHead>
+                                      <TableHead>PARA</TableHead>
+                                      <TableHead>AÇÃO</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {/* Example rows - would typically come from form state or API */}
+                                    {(editingRecord?.trechos || []).map((trecho: any, index: number) => (
+                                      <TableRow key={index}>
+                                        <TableCell>{trecho.origem?.nome || 'N/A'}</TableCell>
+                                        <TableCell>{trecho.nome}</TableCell>
+                                        <TableCell>{trecho.destino?.nome || 'N/A'}</TableCell>
+                                        <TableCell>
+                                          <div className="flex space-x-1">
+                                            <Button variant="outline" size="sm">
+                                              <Edit className="h-3 w-3" />
+                                            </Button>
+                                            <Button variant="outline" size="sm">
+                                              <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                          </div>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                              <Button type="button" variant="outline">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Adicionar Trecho
+                              </Button>
+                            </div>
+                          )
+                        }
+                      } else if (activeRecordType === 'area') {
+                        if (section === "Identificação") {
+                          fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-3 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="ativo"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Ativo</FormLabel>
+                                      <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="true">Sim</SelectItem>
+                                          <SelectItem value="false">Não</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="nome"
+                                  render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                      <FormLabel>Nome *</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Nome da área" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="descricao"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Descrição</FormLabel>
+                                      <FormControl>
+                                        <Textarea placeholder="Descrição detalhada da área" rows={3} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="codigoIntegracao"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Código de Integração</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Código único do sistema" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          );
+                        } else if (section === "Classificação") {
+                          fieldsToRender = (
+                            <div className="space-y-4">
+                              <FormField
+                                control={form.control}
+                                name="tipoArea"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Tipo de Área</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Selecione o tipo" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="faixa-cep">Faixa CEP</SelectItem>
+                                        <SelectItem value="shape">Shape</SelectItem>
+                                        <SelectItem value="coordenadas">Coordenadas</SelectItem>
+                                        <SelectItem value="raio">Raio</SelectItem>
+                                        <SelectItem value="linha">Linha</SelectItem>
+                                        <SelectItem value="importar">Importar Área</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="corMapa"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Cor no Mapa</FormLabel>
+                                    <div className="flex space-x-2">
+                                      <FormControl>
+                                        <Input type="color" defaultValue="#3b82f6" {...field} />
+                                      </FormControl>
+                                      <FormControl>
+                                        <Input placeholder="#3b82f6" {...field} />
+                                      </FormControl>
+                                    </div>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <div className="bg-blue-50 p-4 rounded-lg">
+                                <p className="text-sm text-blue-700">
+                                  A configuração específica dos parâmetros da área será baseada no tipo selecionado acima.
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        }
+                      } else if (activeRecordType === 'agrupamento') {
+                        if (section === "Identificação") {
+                           fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-3 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="ativo"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Ativo</FormLabel>
+                                      <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="true">Sim</SelectItem>
+                                          <SelectItem value="false">Não</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="nome"
+                                  render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                      <FormLabel>Nome *</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Nome do agrupamento" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name="descricao"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Descrição</FormLabel>
+                                      <FormControl>
+                                        <Textarea placeholder="Descrição detalhada do agrupamento" rows={3} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="codigoIntegracao"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Código de Integração</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Código único do sistema" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                           )
+                        } else if (section === "Seleção de Áreas") {
+                          fieldsToRender = (
+                            <div className="space-y-4">
+                              <div className="space-y-3">
+                                <h4 className="font-medium">Áreas Disponíveis</h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
+                                    <div key={index} className="flex items-center space-x-2">
+                                      <Checkbox id={`area-${index}`} />
+                                      <label htmlFor={`area-${index}`} className="text-sm flex items-center space-x-2">
+                                        <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                                        <span>{area}</span>
+                                        <Badge variant="outline" className="text-xs">Faixa CEP</Badge>
+                                      </label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="space-y-3">
+                                <h4 className="font-medium">Adicionar Faixas de CEP</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name="cepInicio"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>CEP Início</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder="01000-000" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+
+                                  <FormField
+                                    control={form.control}
+                                    name="cepFim"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>CEP Fim</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder="01999-999" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                                <Button type="button" variant="outline">
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Adicionar Faixa CEP
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        }
+                      }
+
+                      return fieldsToRender ? (
+                        <div key={section} className="space-y-4">
+                          <h3 className="text-lg font-medium border-b pb-2">{section}</h3>
+                          {fieldsToRender}
+                        </div>
+                      ) : null;
+                    })}
+
+                    <div className="flex justify-end space-x-2 pt-4 border-t">
+                      <Button type="button" variant="outline" onClick={handleCloseEditModal}>
+                        Cancelar
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={editMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {editMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -1978,8 +3236,13 @@ function LocationsNewContent() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm">
-                              Editar
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Editar"
+                              onClick={() => handleEditRecord(item)}
+                            >
+                              <Edit className="h-4 w-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
