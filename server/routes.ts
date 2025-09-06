@@ -3434,22 +3434,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ LOCATIONS NEW MODULE per 1qa.md Clean Architecture
   try {
-    const { default: locationsNewRouter } = await import(
-      "./modules/locations/routes-new"
-    );
-    console.log(
-      "✅ [LOCATIONS-NEW-MODULE] Successfully imported locations-new module",
-    );
-    app.use("/api/locations-new", locationsNewRouter);
-    console.log(
-      "✅ [LOCATIONS-NEW-MODULE] Locations-new routes registered at /api/locations-new",
-    );
+    const { LocationsNewController } = await import('./modules/locations/LocationsNewController');
+    const locationsNewController = new LocationsNewController();
+
+    // Register locations-new routes
+    app.get('/api/locations-new/clientes', jwtAuth, locationsNewController.getClientes.bind(locationsNewController));
+    app.get('/api/locations-new/tecnicos-equipe', jwtAuth, locationsNewController.getTecnicosEquipe.bind(locationsNewController));
+    app.get('/api/locations-new/grupos-equipe', jwtAuth, locationsNewController.getGruposEquipe.bind(locationsNewController));
+    app.get('/api/locations-new/locais', jwtAuth, locationsNewController.getLocaisAtendimento.bind(locationsNewController));
+    app.get('/api/locations-new/cep/:cep', locationsNewController.lookupCep.bind(locationsNewController));
+    app.get('/api/locations-new/holidays', locationsNewController.lookupHolidays.bind(locationsNewController));
+    app.post('/api/locations-new/geocode', locationsNewController.geocodeAddress.bind(locationsNewController));
+    app.get('/api/locations-new/:recordType', jwtAuth, locationsNewController.getRecordsByType.bind(locationsNewController));
+
+    console.log('✅ [LOCATIONS-NEW] Routes registered successfully at /api/locations-new');
   } catch (error) {
-    console.error(
-      "❌ [LOCATIONS-NEW-MODULE] Failed to load locations-new module:",
-      error,
-    );
-    console.error("❌ [LOCATIONS-NEW-MODULE] Error details:", error.message);
+    console.error('❌ [LOCATIONS-NEW] Failed to load routes:', error);
   }
 
   // Helper functions for channel transformation
@@ -4754,7 +4754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const companyId = crypto.randomUUID();
 
         const insertQuery = `
-                   INSERT INTO "${schemaName}"."companies" 
+                   INSERT INTO "${schemaName}"."companies"
                    (id, tenant_id, name, display_name, description, cnpj, industry, size, status, subscription_tier, email, phone, website, address, address_number, complement, neighborhood, city, state, zip_code, is_active, created_by, created_at, updated_at)
                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW(), NOW())
                    RETURNING *
