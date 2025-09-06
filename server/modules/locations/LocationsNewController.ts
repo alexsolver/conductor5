@@ -673,21 +673,127 @@ export class LocationsNewController {
         case 'local':
           insertQuery = `
             INSERT INTO "${schemaName}".locais
-              (id, tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
+              (
+                id,
+                tenant_id,
+                ativo,
+                nome,
+                descricao,
+                codigo_integracao,
+                tipo_cliente_favorecido,
+                tecnico_principal_id,
+                email,
+                ddd,
+                telefone,
+                cep,
+                pais,
+                estado,
+                municipio,
+                bairro,
+                tipo_logradouro,
+                logradouro,
+                numero,
+                complemento,
+                latitude,
+                longitude,
+                geo_coordenadas,
+                fuso_horario,
+                feriados_incluidos,
+                indisponibilidades,
+                created_at,
+                updated_at
+              )
             VALUES
-              ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+              (
+                $1,  -- id
+                $2,  -- tenant_id
+                $3,  -- ativo
+                $4,  -- nome
+                $5,  -- descricao
+                $6,  -- codigo_integracao
+                $7,  -- tipo_cliente_favorecido
+                $8,  -- tecnico_principal_id
+                $9,  -- email
+                $10, -- ddd
+                $11, -- telefone
+                $12, -- cep
+                $13, -- pais
+                $14, -- estado
+                $15, -- municipio
+                $16, -- bairro
+                $17, -- tipo_logradouro
+                $18, -- logradouro
+                $19, -- numero
+                $20, -- complemento
+                $21, -- latitude
+                $22, -- longitude
+                $23, -- geo_coordenadas
+                $24, -- fuso_horario
+                $25, -- feriados_incluidos
+                $26, -- indisponibilidades
+                NOW(),
+                NOW()
+              )
             RETURNING
-              id, tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
+              id,
+              tenant_id,
+              ativo,
+              nome,
+              descricao,
+              codigo_integracao,
+              tipo_cliente_favorecido,
+              tecnico_principal_id,
+              email,
+              ddd,
+              telefone,
+              cep,
+              pais,
+              estado,
+              municipio,
+              bairro,
+              tipo_logradouro,
+              logradouro,
+              numero,
+              complemento,
+              latitude,
+              longitude,
+              geo_coordenadas,
+              fuso_horario,
+              feriados_incluidos,
+              indisponibilidades,
+              created_at,
+              updated_at
           `;
 
           queryParams = [
-            uuidv4(),               // $1 → id
-            req.user.tenantId,      // $2 → tenant_id
-            data.nome || "",        // $3 → nome
-            data.descricao || "",   // $4 → descricao
-            data.codigoIntegracao || "", // $5 → codigo_integracao
-            data.ativo !== false    // $6 → ativo (true por padrão)
+            uuidv4(),              // $1 → id
+            req.user.tenantId,     // $2 → tenant_id
+            data.ativo !== false,  // $3 → ativo (true por padrão)
+            data.nome || "",       // $4 → nome
+            data.descricao || "",  // $5 → descricao
+            data.codigo_integracao || "",       // $6
+            data.tipo_cliente_favorecido || "",  // $7
+            data.tecnico_principal_id || null,   // $8
+            data.email || "",                  // $9
+            data.ddd || "",                    // $10
+            data.telefone || "",               // $11
+            data.cep || "",                    // $12
+            data.pais || "Brasil",             // $13
+            data.estado || "",                 // $14
+            data.municipio || "",              // $15
+            data.bairro || "",                 // $16
+            data.tipo_logradouro || "",         // $17
+            data.logradouro || "",             // $18
+            data.numero || "",                 // $19
+            data.complemento || "",            // $20
+            data.latitude || null,             // $21
+            data.longitude || null,            // $22
+            data.geo_coordenadas || null,       // $23 (JSONB)
+            data.fuso_horario || "America/Sao_Paulo", // $24
+            data.feriados_incluidos || null,    // $25 (JSONB)
+            data.indisponibilidades || null    // $26 (JSONB)
           ];
+
           break;
 
         default:
