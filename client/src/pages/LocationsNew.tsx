@@ -17,15 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { 
-  localSchema, 
-  regiaoSchema, 
-  rotaDinamicaSchema, 
-  trechoSchema, 
-  rotaTrechoSchema, 
-  areaSchema, 
-  agrupamentoSchema 
-} from "../../../shared/schema-locations-new";
+import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -132,64 +124,64 @@ function LocationsNewContent() {
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  // Dynamic schema selection per 1qa.md Clean Architecture
+  // Simplified schema validation - use basic z.object
   const getSchemaForType = useCallback((recordType: string) => {
-    switch (recordType) {
-      case 'local': return localSchema;
-      case 'regiao': return regiaoSchema;
-      case 'rota-dinamica': return rotaDinamicaSchema;
-      case 'trecho': return trechoSchema;
-      case 'rota-trecho': return rotaTrechoSchema;
-      case 'area': return areaSchema;
-      case 'agrupamento': return agrupamentoSchema;
-      default: return localSchema;
-    }
+    return z.object({
+      ativo: z.boolean().default(true),
+      nome: z.string().min(1, "Nome é obrigatório"),
+      descricao: z.string().optional(),
+      codigoIntegracao: z.string().optional(),
+      tipoClienteFavorecido: z.string().optional(),
+      tecnicoPrincipalId: z.string().optional(),
+      email: z.string().optional(),
+      ddd: z.string().optional(),
+      telefone: z.string().optional(),
+      cep: z.string().optional(),
+      pais: z.string().optional(),
+      estado: z.string().optional(),
+      municipio: z.string().optional(),
+      bairro: z.string().optional(),
+      tipoLogradouro: z.string().optional(),
+      logradouro: z.string().optional(),
+      numero: z.string().optional(),
+      complemento: z.string().optional(),
+      latitude: z.string().optional(),
+      longitude: z.string().optional(),
+      fusoHorario: z.string().optional(),
+      geoCoordenadas: z.any().optional(),
+      feriadosIncluidos: z.any().optional(),
+      indisponibilidades: z.any().optional()
+    });
   }, []);
 
-  // Dynamic default values per record type following 1qa.md
+  // Default values for local record type
   const getDefaultValues = useCallback((recordType: string) => {
-    const baseDefaults = {
+    return {
       ativo: true,
       nome: "",
       descricao: "",
-      codigoIntegracao: ""
+      codigoIntegracao: "",
+      tipoClienteFavorecido: "",
+      tecnicoPrincipalId: "",
+      email: "",
+      ddd: "",
+      telefone: "",
+      cep: "",
+      pais: "Brasil",
+      estado: "",
+      municipio: "",
+      bairro: "",
+      tipoLogradouro: "",
+      logradouro: "",
+      numero: "",
+      complemento: "",
+      latitude: "",
+      longitude: "",
+      fusoHorario: "America/Sao_Paulo",
+      geoCoordenadas: null,
+      feriadosIncluidos: null,
+      indisponibilidades: null
     };
-
-    switch (recordType) {
-      case 'rota-dinamica':
-        return {
-          ...baseDefaults,
-          nomeRota: "",
-          idRota: "",
-          previsaoDias: 1,
-          clientesFavorecidos: [],
-          tecnicosPrincipais: [],
-          diasSemana: []
-        };
-      case 'local':
-        return {
-          ...baseDefaults,
-          clienteFavorecido: "",
-          tecnicoPrincipalId: undefined, // Initialize as undefined
-          email: "",
-          ddd: "",
-          telefone: "",
-          cep: "",
-          pais: "Brasil",
-          estado: "",
-          municipio: "",
-          bairro: "",
-          tipoLogradouro: "",
-          logradouro: "",
-          numero: "",
-          complemento: "",
-          latitude: "",
-          longitude: "",
-          fusoHorario: "America/Sao_Paulo"
-        };
-      default:
-        return baseDefaults;
-    }
   }, []);
 
   // Form setup with dynamic schema per 1qa.md
@@ -307,7 +299,38 @@ function LocationsNewContent() {
   // Create mutation using apiRequest
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', `/api/locations-new/${activeRecordType}`, data);
+      console.log('🔍 [CREATE-MUTATION] Sending data:', data);
+      
+      // Map form fields to database fields
+      const dbData = {
+        ativo: data.ativo,
+        nome: data.nome,
+        descricao: data.descricao,
+        codigo_integracao: data.codigoIntegracao,
+        tipo_cliente_favorecido: data.tipoClienteFavorecido,
+        tecnico_principal_id: data.tecnicoPrincipalId,
+        email: data.email,
+        ddd: data.ddd,
+        telefone: data.telefone,
+        cep: data.cep,
+        pais: data.pais,
+        estado: data.estado,
+        municipio: data.municipio,
+        bairro: data.bairro,
+        tipo_logradouro: data.tipoLogradouro,
+        logradouro: data.logradouro,
+        numero: data.numero,
+        complemento: data.complemento,
+        latitude: data.latitude ? parseFloat(data.latitude) : null,
+        longitude: data.longitude ? parseFloat(data.longitude) : null,
+        fuso_horario: data.fusoHorario,
+        geo_coordenadas: data.geoCoordenadas,
+        feriados_incluidos: data.feriadosIncluidos,
+        indisponibilidades: data.indisponibilidades
+      };
+      
+      console.log('🔍 [CREATE-MUTATION] Mapped DB data:', dbData);
+      const response = await apiRequest('POST', `/api/locations-new/${activeRecordType}`, dbData);
       return response.json();
     },
     onSuccess: () => {
@@ -334,7 +357,39 @@ function LocationsNewContent() {
   // Update mutation using apiRequest
   const editMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('PUT', `/api/locations-new/${activeRecordType}/${editingRecord?.id}`, data);
+      console.log('🔍 [EDIT-MUTATION] Sending data:', data);
+      console.log('🔍 [EDIT-MUTATION] Editing record ID:', editingRecord?.id);
+      
+      // Map form fields back to database fields
+      const dbData = {
+        ativo: data.ativo,
+        nome: data.nome,
+        descricao: data.descricao,
+        codigo_integracao: data.codigoIntegracao,
+        tipo_cliente_favorecido: data.tipoClienteFavorecido,
+        tecnico_principal_id: data.tecnicoPrincipalId,
+        email: data.email,
+        ddd: data.ddd,
+        telefone: data.telefone,
+        cep: data.cep,
+        pais: data.pais,
+        estado: data.estado,
+        municipio: data.municipio,
+        bairro: data.bairro,
+        tipo_logradouro: data.tipoLogradouro,
+        logradouro: data.logradouro,
+        numero: data.numero,
+        complemento: data.complemento,
+        latitude: data.latitude ? parseFloat(data.latitude) : null,
+        longitude: data.longitude ? parseFloat(data.longitude) : null,
+        fuso_horario: data.fusoHorario,
+        geo_coordenadas: data.geoCoordenadas,
+        feriados_incluidos: data.feriadosIncluidos,
+        indisponibilidades: data.indisponibilidades
+      };
+      
+      console.log('🔍 [EDIT-MUTATION] Mapped DB data:', dbData);
+      const response = await apiRequest('PUT', `/api/locations-new/${activeRecordType}/${editingRecord?.id}`, dbData);
       return response.json();
     },
     onSuccess: () => {
@@ -431,16 +486,43 @@ function LocationsNewContent() {
 
   // Handle edit button click
   const handleEditRecord = useCallback((record: any) => {
+    console.log('🔍 [EDIT-RECORD] Starting edit for record:', record);
+    console.log('🔍 [EDIT-RECORD] Active record type:', activeRecordType);
+    
     setEditingRecord(record);
     setIsEditDialogOpen(true);
-    // Populate form with existing data
-    const recordTypeSchema = getSchemaForType(activeRecordType);
-    const recordData = Object.keys(recordTypeSchema.shape).reduce((acc, key) => {
-      acc[key] = record[key] !== undefined ? record[key] : getDefaultValues(activeRecordType)[key];
-      return acc;
-    }, {} as any);
-    form.reset(recordData);
-  }, [form, activeRecordType, getSchemaForType, getDefaultValues]);
+    
+    // Map database fields to form fields
+    const formData = {
+      ativo: record.ativo ?? true,
+      nome: record.nome || '',
+      descricao: record.descricao || '',
+      codigoIntegracao: record.codigo_integracao || '',
+      tipoClienteFavorecido: record.tipo_cliente_favorecido || '',
+      tecnicoPrincipalId: record.tecnico_principal_id || '',
+      email: record.email || '',
+      ddd: record.ddd || '',
+      telefone: record.telefone || '',
+      cep: record.cep || '',
+      pais: record.pais || 'Brasil',
+      estado: record.estado || '',
+      municipio: record.municipio || '',
+      bairro: record.bairro || '',
+      tipoLogradouro: record.tipo_logradouro || '',
+      logradouro: record.logradouro || '',
+      numero: record.numero || '',
+      complemento: record.complemento || '',
+      latitude: record.latitude?.toString() || '',
+      longitude: record.longitude?.toString() || '',
+      fusoHorario: record.fuso_horario || 'America/Sao_Paulo',
+      geoCoordenadas: record.geo_coordenadas || null,
+      feriadosIncluidos: record.feriados_incluidos || null,
+      indisponibilidades: record.indisponibilidades || null
+    };
+    
+    console.log('🔍 [EDIT-RECORD] Form data prepared:', formData);
+    form.reset(formData);
+  }, [form, activeRecordType]);
 
   // Handle closing the edit modal
   const handleCloseEditModal = useCallback(() => {
