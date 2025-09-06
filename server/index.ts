@@ -503,10 +503,9 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     console.log('[SERVER] Setting up API routes before Vite middleware');
-    // Vite middleware after all API routes
+    // Setup Vite middleware after all API routes
     console.log('[SERVER] Adding Vite middleware after API routes');
-    const { viteDevMiddleware } = await import('./vite');
-    app.use(viteDevMiddleware);
+    await setupVite(app, server);
   } else {
     serveStatic(app);
   }
