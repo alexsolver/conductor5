@@ -622,9 +622,11 @@ export class LocationsNewController {
   /**
    * Create record by type - ✅ 1qa.md compliant implementation
    */
-  async createRecord(req: any, res: Response): Promise<void> {
+
+  async createRecord(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { recordType } = req.params;
+      const data = req.body;
 
       if (!req.user?.tenantId) {
         res.status(400).json({ success: false, message: 'Tenant ID required' });
@@ -633,13 +635,13 @@ export class LocationsNewController {
 
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
 
-      // Map record types to table names following Clean Architecture
+      // Table mapping following 1qa.md schema structure
       const tableMap: Record<string, string> = {
         'local': 'locais',
         'regiao': 'regioes', 
         'rota-dinamica': 'rotas_dinamicas',
         'trecho': 'trechos',
-        'rota-trecho': 'rotas_trechos',
+        'rota-trecho': 'rotas_trecho',
         'area': 'areas',
         'agrupamento': 'agrupamentos'
       };
@@ -653,52 +655,82 @@ export class LocationsNewController {
         return;
       }
 
+      let insertQuery;
+      let queryParams;
+
+      // Define table-specific insert queries following schema structure
+      switch (recordType) {
+        case 'rota-dinamica':
+          insertQuery = `
+            INSERT INTO "${schemaName}"."${tableName}" 
+            (tenant_id, nome_rota, id_rota, previsao_dias, ativo, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+            RETURNING id, nome_rota as nome, id_rota as codigo_integracao, previsao_dias, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            req.user.tenantId,
+            data.nomeRota || data.nome || '',
+            data.idRota || data.codigoIntegracao || '',
+            data.previsaoDias || 1,
+            data.ativo !== false
+          ];
+          break;
+
+        case 'local':
+          insertQuery = `
+            INSERT INTO "${schemaName}"."${tableName}" 
+            (tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            req.user.tenantId,
+            data.nome || '',
+            data.descricao || '',
+            data.codigoIntegracao || '',
+            data.ativo !== false
+          ];
+          break;
+
+        default:
+          // For tables with standard structure
+          insertQuery = `
+            INSERT INTO "${schemaName}"."${tableName}" 
+            (tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            req.user.tenantId,
+            data.nome || '',
+            data.descricao || '',
+            data.codigoIntegracao || '',
+            data.ativo !== false
+          ];
+          break;
+      }
+
       console.log(`🔍 [CREATE-RECORD] Creating ${recordType} in table ${tableName}`);
+      console.log(`🔍 [CREATE-RECORD] Data:`, data);
 
-      // Generate UUID and add tenantId to the data
-      const recordData = {
-        id: uuidv4(), // Generate UUID for the record
-        ...req.body,
-        tenantId: req.user.tenantId,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      const result = await pool.query(insertQuery, queryParams);
 
-      console.log(`🔍 [CREATE-RECORD] Data:`, recordData);
+      console.log(`✅ [CREATE-RECORD] Successfully created ${recordType} with ID: ${result.rows[0]?.id}`);
 
-      // Prepare data for insertion, mapping camelCase to snake_case where necessary
-      let dbData: any = {};
-      if (recordType === 'local' || recordType === 'regiao' || recordType === 'area' || recordType === 'agrupamento') {
-        // Convert camelCase to snake_case for database
-        dbData = {
-          ...recordData,
-          tenant_id: req.user.tenantId,
-          created_at: new Date(),
-          updated_at: new Date(),
-          codigo_integracao: recordData.codigoIntegracao,
-          tipo_cliente_favorecido: recordData.tipoClienteFavorecido,
-          tecnico_principal_id: recordData.tecnicoPrincipalId,
-          fuso_horario: recordData.fusoHorario,
-          feriados_incluidos: recordData.feriadosIncluidos,
-          tipo_logradouro: recordData.tipoLogradouro,
-          geo_coordenadas: recordData.geoCoordenadas
-        };
-        // Remove camelCase fields that are now properly mapped
-        delete dbData.codigoIntegracao;
-        delete dbData.tipoClienteFavorecido;
-        delete dbData.tecnicoPrincipalId;
-        delete dbData.fusoHorario;
-        delete dbData.feriadosIncluidos;
-        delete dbData.tenantId; // tenantId is already handled
-        delete dbData.tipoLogradouro;
-        delete dbData.geoCoordenadas;
-        delete dbData.createdAt;
-        delete dbData.updatedAt;
-      } else {
-        // For other record types, assume snake_case or direct mapping is handled
-        dbData = { ...recordData, tenant_id: req.user.tenantId, created_at: new Date(), updated_at: new Date() };
-
-
+      res.status(201).json({
+        success: true,
+        data: result.rows[0],
+        message: `${recordType} created successfully`
+      });
+    } catch (error) {
+      console.error(`❌ [CREATE-RECORD] Error creating ${req.params?.recordType}:`, error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error creating record',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
   /**
    * Get locals (locais) - specific endpoint for listing locations
    */
@@ -778,41 +810,6 @@ export class LocationsNewController {
       });
     }
   }
-
-        delete dbData.tenantId; // tenantId is already handled
-      }
-
-      // Create record using raw SQL with proper column mapping
-      const columns = Object.keys(dbData);
-      const values = Object.values(dbData);
-      const placeholders = values.map((_, index) => `$${index + 1}`).join(', ');
-
-      const insertQuery = `
-        INSERT INTO "${schemaName}"."${tableName}" (${columns.map(col => `"${col}"`).join(', ')})
-        VALUES (${placeholders})
-        RETURNING *
-      `;
-
-      const result = await pool.query(insertQuery, values);
-
-      console.log(`✅ [CREATE-RECORD] Successfully created ${recordType}:`, result.rows[0]);
-
-      res.status(201).json({
-        success: true,
-        message: `${recordType} created successfully`,
-        data: result.rows[0]
-      });
-
-    } catch (error) {
-      console.error(`❌ [CREATE-RECORD] Error creating ${req.params.recordType}:`, error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error creating record',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'INTERNAL_ERROR'
-      });
-    }
-  }
-
   /**
    * Get stats by type
    */
