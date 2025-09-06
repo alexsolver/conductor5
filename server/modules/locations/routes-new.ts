@@ -22,7 +22,7 @@ import { pool } from '../../db';
 const router = Router();
 
 // Apply JWT authentication to all routes
-router.use(jwtAuth);
+//router.use(jwtAuth);
 
 // Middleware para garantir que sempre retornamos JSON
 router.use((req, res, next) => {
@@ -81,30 +81,6 @@ router.use((req, res, next) => {
 interface LocationsRequest extends AuthenticatedRequest {
   tenantDb?: any;
 }
-
-// Middleware to get tenant database pool (after authentication)
-router.use('*', async (req: LocationsRequest, res: Response, next: NextFunction) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      console.error('No tenant ID found in token:', req.user);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid or expired token',
-        error: 'No tenant ID found'
-      });
-    }
-
-    // Get the database pool directly for SQL queries
-    const { schemaManager } = await import('../../db');
-    req.tenantDb = schemaManager.getPool();
-    next();
-  } catch (error) {
-    console.error('Error getting tenant database:', error);
-    return res.status(500).json({ success: false, message: 'Database connection error' });
-  }
-});
-
 // Initialize controller with proper error handling
 let controller: LocationsNewController;
 try {
@@ -218,7 +194,7 @@ async function ensureSchemaAndTables(schemaName: string): Promise<void> {
 
 
 // Get all locations - specific endpoint for listing all locations
-router.get('/locais/all', async (req: LocationsRequest, res: Response) => {
+router.get('/locais', async (req: LocationsRequest, res: Response) => {
   try {
     console.log('🔍 [GET-ALL-LOCATIONS] Fetching all locations');
 
