@@ -3446,6 +3446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.get('/api/locations-new/holidays', locationsNewController.lookupHolidays.bind(locationsNewController));
     app.post('/api/locations-new/geocode', locationsNewController.geocodeAddress.bind(locationsNewController));
     app.get('/api/locations-new/:recordType', jwtAuth, locationsNewController.getRecordsByType.bind(locationsNewController));
+    app.post('/api/locations-new/:recordType', jwtAuth, locationsNewController.createRecord.bind(locationsNewController));
 
     console.log('✅ [LOCATIONS-NEW] Routes registered successfully at /api/locations-new');
   } catch (error) {

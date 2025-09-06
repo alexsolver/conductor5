@@ -125,7 +125,7 @@ export class LocationsNewController {
       }
 
       const result = await pool.query(`
-        SELECT id, nome, endereco, cidade, estado, cep
+        SELECT *
         FROM "${schemaName}".locais 
         WHERE ativo = true 
         ORDER BY nome ASC
@@ -515,13 +515,7 @@ export class LocationsNewController {
         case 'local':
           selectQuery = `
             SELECT 
-              id, 
-              nome, 
-              descricao, 
-              codigo_integracao,
-              ativo,
-              created_at, 
-              updated_at
+              *
             FROM "${schemaName}"."${tableName}" 
             WHERE tenant_id = $1 AND ativo = true
             ORDER BY nome ASC
@@ -678,17 +672,21 @@ export class LocationsNewController {
 
         case 'local':
           insertQuery = `
-            INSERT INTO "${schemaName}"."${tableName}" 
-            (tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
+            INSERT INTO "${schemaName}".locais
+              (id, tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
+            VALUES
+              ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+            RETURNING
+              id, tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
           `;
+
           queryParams = [
-            req.user.tenantId,
-            data.nome || '',
-            data.descricao || '',
-            data.codigoIntegracao || '',
-            data.ativo !== false
+            uuidv4(),               // $1 → id
+            req.user.tenantId,      // $2 → tenant_id
+            data.nome || "",        // $3 → nome
+            data.descricao || "",   // $4 → descricao
+            data.codigoIntegracao || "", // $5 → codigo_integracao
+            data.ativo !== false    // $6 → ativo (true por padrão)
           ];
           break;
 

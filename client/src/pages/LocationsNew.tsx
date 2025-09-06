@@ -322,6 +322,7 @@ function LocationsNewContent() {
       });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/locations-new/locais'] }); // ✅ força refetch do localQuery
       setIsCreateDialogOpen(false);
       form.reset();
     },
