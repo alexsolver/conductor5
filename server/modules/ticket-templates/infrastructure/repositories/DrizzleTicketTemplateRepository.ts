@@ -28,31 +28,49 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         hasAutomation: !!template.automation
       });
 
-      // ✅ 1QA.MD: Validate required fields before insertion
-      const missingFields = [];
-      if (!template.tenantId || typeof template.tenantId !== 'string') {
-        missingFields.push('tenantId');
-      }
-      if (!template.name || typeof template.name !== 'string') {
-        missingFields.push('name');
-      }
-      if (!template.category || typeof template.category !== 'string') {
-        missingFields.push('category');
-      }
-      if (!template.createdBy || typeof template.createdBy !== 'string') {
-        missingFields.push('createdBy');
-      }
+      // Validate required fields with detailed logging
+    const missingFields: string[] = [];
 
-      if (missingFields.length > 0) {
-        console.error('❌ [TICKET-TEMPLATE-REPO] Missing required fields:', missingFields);
-        console.error('❌ [TICKET-TEMPLATE-REPO] Template data received:', {
-          name: template.name,
-          category: template.category,
-          tenantId: template.tenantId,
-          createdBy: template.createdBy
-        });
-        throw new Error(`Campo obrigatório em branco detectado: ${missingFields.join(', ')}`);
-      }
+    console.log('🔍 [TICKET-TEMPLATE-REPO] Validating template fields:', {
+      tenantId: template.tenantId,
+      name: template.name,
+      category: template.category,
+      createdBy: template.createdBy,
+      priority: template.priority,
+      templateType: template.templateType
+    });
+
+    if (!template.tenantId || typeof template.tenantId !== 'string') {
+      missingFields.push('tenantId');
+    }
+
+    if (!template.name || typeof template.name !== 'string' || template.name.trim().length === 0) {
+      missingFields.push('name');
+    }
+
+    if (!template.category || typeof template.category !== 'string' || template.category.trim().length === 0) {
+      missingFields.push('category');
+    }
+
+    if (!template.createdBy || typeof template.createdBy !== 'string') {
+      missingFields.push('createdBy');
+    }
+
+    // Validate priority field - required
+    if (!template.priority || typeof template.priority !== 'string') {
+      missingFields.push('priority');
+    }
+
+    // Validate templateType field - required
+    if (!template.templateType || typeof template.templateType !== 'string') {
+      missingFields.push('templateType');
+    }
+
+    if (missingFields.length > 0) {
+      console.error('❌ [TICKET-TEMPLATE-REPO] Missing required fields:', missingFields);
+      console.error('❌ [TICKET-TEMPLATE-REPO] Template data received:', JSON.stringify(template, null, 2));
+      throw new Error(`Campos obrigatórios em branco detectados: ${missingFields.join(', ')}`);
+    }
 
       // ✅ 1QA.MD: Prepare template data with safe JSON serialization
       const templateData = {

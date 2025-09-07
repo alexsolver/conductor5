@@ -135,7 +135,7 @@ export class CreateTicketTemplateUseCase {
         };
       }
 
-      // ✅ 1QA.MD: Prepare clean template data
+      // ✅ 1QA.MD: Prepare clean template data with all required fields
       const templateToCreate = {
         ...request.templateData,
         tenantId: request.tenantId,
@@ -148,8 +148,33 @@ export class CreateTicketTemplateUseCase {
         status: request.templateData.status || 'active',
         isActive: request.templateData.isActive !== undefined ? request.templateData.isActive : true,
         fields: request.templateData.fields || [],
-        tags: request.templateData.tags || []
+        tags: request.templateData.tags || [],
+        // Add missing required fields with defaults
+        automation: request.templateData.automation || {
+          enabled: false,
+          autoAssign: { enabled: false, rules: [] },
+          autoTags: { enabled: false, tags: [] },
+          sla: { enabled: false }
+        },
+        workflow: request.templateData.workflow || {
+          enabled: false,
+          stages: []
+        },
+        permissions: request.templateData.permissions || [],
+        usageCount: request.templateData.usageCount || 0
       };
+
+      console.log('🔄 [CREATE-TEMPLATE-USE-CASE] Template data prepared for repository:', {
+        tenantId: templateToCreate.tenantId,
+        name: templateToCreate.name,
+        category: templateToCreate.category,
+        createdBy: templateToCreate.createdBy,
+        priority: templateToCreate.priority,
+        templateType: templateToCreate.templateType,
+        hasAutomation: !!templateToCreate.automation,
+        hasWorkflow: !!templateToCreate.workflow,
+        fieldsCount: templateToCreate.fields?.length || 0
+      });
 
       console.log('🔄 [CREATE-TEMPLATE-USE-CASE] Creating template with data:', {
         name: templateToCreate.name,
