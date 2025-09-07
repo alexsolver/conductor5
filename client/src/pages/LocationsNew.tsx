@@ -454,35 +454,54 @@ function LocationsNewContent() {
   const buscarCEP = useCallback(async (cep: string) => {
     const cleanedCep = cep.replace(/\D/g, '');
     if (cleanedCep.length !== 8) {
-      toast({ title: "Erro", description: "CEP inválido. Por favor, insira um CEP com 8 dígitos.", variant: "destructive" });
+      toast({ 
+        title: "Erro", 
+        description: "CEP inválido. Por favor, insira um CEP com 8 dígitos.", 
+        variant: "destructive" 
+      });
       return;
     }
 
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+      const response = await fetch(`https://cep.awesomeapi.com.br/json/${cleanedCep}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
 
-      if (data.erro) {
-        toast({ title: "Erro", description: "CEP não encontrado. Verifique o número e tente novamente.", variant: "destructive" });
+      if (!data.cep) {
+        toast({ 
+          title: "Erro", 
+          description: "CEP não encontrado. Verifique o número e tente novamente.", 
+          variant: "destructive" 
+        });
         return;
       }
 
-      form.setValue("logradouro", data.logradouro);
-      form.setValue("complemento", data.complemento);
-      form.setValue("bairro", data.bairro);
-      form.setValue("municipio", data.localidade);
-      form.setValue("estado", data.uf);
-      form.setValue("pais", "Brasil"); // Assume Brasil for ViaCEP lookups
+      // Preenche os campos do formulário
+      form.setValue("logradouro", data.address || "");
+      form.setValue("complemento", ""); // AwesomeAPI não retorna complemento
+      form.setValue("bairro", data.district || "");
+      form.setValue("municipio", data.city || "");
+      form.setValue("estado", data.state || "");
+      form.setValue("pais", "Brasil"); // Assume Brasil sempre
+      form.setValue("latitude", data.lat ? parseFloat(data.lat) : null);
+      form.setValue("longitude", data.lng ? parseFloat(data.lng) : null);
 
-      toast({ title: "Sucesso", description: "Endereço encontrado com sucesso!" });
+      toast({ 
+        title: "Sucesso", 
+        description: "Endereço encontrado com sucesso!" 
+      });
     } catch (error) {
       console.error("Erro ao buscar CEP:", error);
-      toast({ title: "Erro", description: "Falha ao buscar informações do CEP. Tente novamente.", variant: "destructive" });
+      toast({ 
+        title: "Erro", 
+        description: "Falha ao buscar informações do CEP. Tente novamente.", 
+        variant: "destructive" 
+      });
     }
   }, [form, toast]);
+
 
   // Handle edit button click
   const handleEditRecord = useCallback((record: any) => {

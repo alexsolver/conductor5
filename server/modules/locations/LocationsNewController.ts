@@ -146,13 +146,16 @@ export class LocationsNewController {
   /**
    * CEP Lookup service - ✅ 1qa.md compliant implementation
    */
+  /**
+   * CEP Lookup service - usando AwesomeAPI
+   */
   async lookupCep(req: Request, res: Response): Promise<void> {
     try {
       const { cep } = req.params;
 
       console.log('🔍 [CEP-LOOKUP] Request received for CEP:', cep);
 
-      // Validate CEP format
+      // Limpa o CEP
       const cleanCep = cep.replace(/\D/g, '');
       if (!cleanCep || cleanCep.length !== 8 || !/^\d{8}$/.test(cleanCep)) {
         console.error('❌ [CEP-LOOKUP] Invalid CEP format:', cep, 'cleaned:', cleanCep);
@@ -166,12 +169,12 @@ export class LocationsNewController {
 
       console.log('🔍 [CEP-LOOKUP] Clean CEP:', cleanCep);
 
-      // ViaCEP API call with timeout
+      // Chamada à AwesomeAPI com timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`, {
+        const response = await fetch(`https://cep.awesomeapi.com.br/json/${cleanCep}`, {
           signal: controller.signal,
           headers: {
             'User-Agent': 'Conductor-Platform/1.0',
@@ -182,45 +185,43 @@ export class LocationsNewController {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          throw new Error(`ViaCEP API returned ${response.status}`);
+          throw new Error(`AwesomeAPI returned ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📡 [CEP-LOOKUP] ViaCEP response:', data);
+        console.log('📡 [CEP-LOOKUP] AwesomeAPI response:', data);
 
-        // Check if CEP was found
-        if (data.erro || !data.cep) {
+        // Se não veio o CEP válido
+        if (!data.cep) {
           console.error('❌ [CEP-LOOKUP] CEP not found:', cleanCep);
           res.status(404).json({ 
             success: false, 
-            message: 'CEP não encontrado na base de dados dos Correios',
+            message: 'CEP não encontrado na AwesomeAPI',
             error: 'CEP_NOT_FOUND'
           });
           return;
         }
 
-        // Return successful result following 1qa.md response pattern
+        // Monta resposta
         const result = {
           success: true,
           message: 'CEP encontrado com sucesso',
           data: {
-            cep: data.cep || cleanCep,
-            logradouro: data.logradouro || '',
-            bairro: data.bairro || '',
-            localidade: data.localidade || '',
-            uf: data.uf || '',
-            complemento: data.complemento || '',
-            ibge: data.ibge || null,
-            gia: data.gia || null,
+            cep: data.cep,
+            logradouro: data.address || '',
+            bairro: data.district || '',
+            localidade: data.city || '',
+            uf: data.state || '',
             ddd: data.ddd || null,
-            siafi: data.siafi || null
+            latitude: data.lat ? parseFloat(data.lat) : null,
+            longitude: data.lng ? parseFloat(data.lng) : null
           }
         };
 
         console.log('✅ [CEP-LOOKUP] Success response:', result);
         res.json(result);
 
-      } catch (fetchError) {
+      } catch (fetchError: any) {
         clearTimeout(timeoutId);
 
         if (fetchError.name === 'AbortError') {
@@ -231,11 +232,11 @@ export class LocationsNewController {
             error: 'REQUEST_TIMEOUT'
           });
         } else {
-          throw fetchError; // Re-throw to be handled by outer catch
+          throw fetchError;
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [CEP-LOOKUP] Unexpected error:', error);
       res.status(500).json({ 
         success: false, 
@@ -835,6 +836,215 @@ export class LocationsNewController {
       });
     }
   }
+ 
+
+  async updateRecord(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { recordType, id } = req.params;
+      const data = req.body;
+
+      if (!req.user?.tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID required' });
+        return;
+      }
+
+      if (!id) {
+        res.status(400).json({ success: false, message: 'Record ID required' });
+        return;
+      }
+
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+
+      // Table mapping following 1qa.md schema structure
+      const tableMap: Record<string, string> = {
+        'local': 'locais',
+        'regiao': 'regioes', 
+        'rota-dinamica': 'rotas_dinamicas',
+        'trecho': 'trechos',
+        'rota-trecho': 'rotas_trecho',
+        'area': 'areas',
+        'agrupamento': 'agrupamentos'
+      };
+
+      const tableName = tableMap[recordType];
+      if (!tableName) {
+        res.status(400).json({ 
+          success: false, 
+          message: `Invalid record type: ${recordType}` 
+        });
+        return;
+      }
+
+      let updateQuery: string;
+      let queryParams: any[];
+
+      // Define table-specific update queries following schema structure
+      switch (recordType) {
+        case 'rota-dinamica':
+          updateQuery = `
+            UPDATE "${schemaName}"."${tableName}"
+            SET
+              nome_rota = $1,
+              id_rota = $2,
+              previsao_dias = $3,
+              ativo = $4,
+              updated_at = NOW()
+            WHERE id = $5 AND tenant_id = $6
+            RETURNING id, nome_rota as nome, id_rota as codigo_integracao, previsao_dias, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            data.nomeRota || data.nome || '',
+            data.idRota || data.codigoIntegracao || '',
+            data.previsaoDias || 1,
+            data.ativo !== false,
+            id,
+            req.user.tenantId
+          ];
+          break;
+
+        case 'local':
+          updateQuery = `
+            UPDATE "${schemaName}".locais
+            SET
+              ativo = $1,
+              nome = $2,
+              descricao = $3,
+              codigo_integracao = $4,
+              tipo_cliente_favorecido = $5,
+              tecnico_principal_id = $6,
+              email = $7,
+              ddd = $8,
+              telefone = $9,
+              cep = $10,
+              pais = $11,
+              estado = $12,
+              municipio = $13,
+              bairro = $14,
+              tipo_logradouro = $15,
+              logradouro = $16,
+              numero = $17,
+              complemento = $18,
+              latitude = $19,
+              longitude = $20,
+              geo_coordenadas = $21,
+              fuso_horario = $22,
+              feriados_incluidos = $23,
+              indisponibilidades = $24,
+              updated_at = NOW()
+            WHERE id = $25 AND tenant_id = $26
+            RETURNING
+              id,
+              tenant_id,
+              ativo,
+              nome,
+              descricao,
+              codigo_integracao,
+              tipo_cliente_favorecido,
+              tecnico_principal_id,
+              email,
+              ddd,
+              telefone,
+              cep,
+              pais,
+              estado,
+              municipio,
+              bairro,
+              tipo_logradouro,
+              logradouro,
+              numero,
+              complemento,
+              latitude,
+              longitude,
+              geo_coordenadas,
+              fuso_horario,
+              feriados_incluidos,
+              indisponibilidades,
+              created_at,
+              updated_at
+          `;
+
+          queryParams = [
+            data.ativo !== false,                // $1
+            data.nome || "",                     // $2
+            data.descricao || "",                // $3
+            data.codigo_integracao || "",        // $4
+            data.tipo_cliente_favorecido || "",  // $5
+            data.tecnico_principal_id || null,   // $6
+            data.email || "",                    // $7
+            data.ddd || "",                      // $8
+            data.telefone || "",                 // $9
+            data.cep || "",                      // $10
+            data.pais || "Brasil",               // $11
+            data.estado || "",                   // $12
+            data.municipio || "",                // $13
+            data.bairro || "",                   // $14
+            data.tipo_logradouro || "",          // $15
+            data.logradouro || "",               // $16
+            data.numero || "",                   // $17
+            data.complemento || "",              // $18
+            data.latitude || null,               // $19
+            data.longitude || null,              // $20
+            data.geo_coordenadas || null,        // $21 (JSONB)
+            data.fuso_horario || "America/Sao_Paulo", // $22
+            data.feriados_incluidos || null,     // $23 (JSONB)
+            data.indisponibilidades || null,     // $24 (JSONB)
+            id,                                  // $25
+            req.user.tenantId                    // $26
+          ];
+          break;
+
+        default:
+          // For tables with standard structure
+          updateQuery = `
+            UPDATE "${schemaName}"."${tableName}"
+            SET
+              nome = $1,
+              descricao = $2,
+              codigo_integracao = $3,
+              ativo = $4,
+              updated_at = NOW()
+            WHERE id = $5 AND tenant_id = $6
+            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            data.nome || '',
+            data.descricao || '',
+            data.codigoIntegracao || '',
+            data.ativo !== false,
+            id,
+            req.user.tenantId
+          ];
+          break;
+      }
+
+      console.log(`🔍 [UPDATE-RECORD] Updating ${recordType} in table ${tableName}`);
+      console.log(`🔍 [UPDATE-RECORD] Data:`, data);
+
+      const result = await pool.query(updateQuery, queryParams);
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ success: false, message: `${recordType} not found` });
+        return;
+      }
+
+      console.log(`✅ [UPDATE-RECORD] Successfully updated ${recordType} with ID: ${id}`);
+
+      res.status(200).json({
+        success: true,
+        data: result.rows[0],
+        message: `${recordType} updated successfully`
+      });
+    } catch (error) {
+      console.error(`❌ [UPDATE-RECORD] Error updating ${req.params?.recordType}:`, error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error updating record',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+
+  
   /**
    * Get locals (locais) - specific endpoint for listing locations
    */

@@ -217,6 +217,32 @@ CREATE TABLE IF NOT EXISTS tickets (
     is_active BOOLEAN DEFAULT true
 );
 
+
+CREATE TABLE IF NOT EXISTS ticket_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL,
+    subcategory TEXT,
+    company_id UUID,
+    department_id UUID,
+    priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+    template_type TEXT NOT NULL CHECK (template_type IN ('standard', 'quick', 'escalation', 'auto_response', 'workflow')),
+    fields JSONB NOT NULL,
+    automation JSONB,
+    workflow JSONB,
+    tags TEXT[],
+    is_default BOOLEAN DEFAULT FALSE,
+    permissions JSONB,
+    created_by UUID NOT NULL,
+    user_role TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
+
 -- ==============================
 -- LOCATIONS & GEOGRAPHY
 -- ==============================
