@@ -28,21 +28,30 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         hasAutomation: !!template.automation
       });
 
-      // ✅ 1QA.MD: Validate required fields
+      // ✅ 1QA.MD: Validate required fields before insertion
+      const missingFields = [];
       if (!template.tenantId || typeof template.tenantId !== 'string') {
-        throw new Error('Tenant ID é obrigatório');
+        missingFields.push('tenantId');
       }
-
       if (!template.name || typeof template.name !== 'string') {
-        throw new Error('Nome do template é obrigatório');
+        missingFields.push('name');
       }
-
       if (!template.category || typeof template.category !== 'string') {
-        throw new Error('Categoria do template é obrigatória');
+        missingFields.push('category');
+      }
+      if (!template.createdBy || typeof template.createdBy !== 'string') {
+        missingFields.push('createdBy');
       }
 
-      if (!template.createdBy || typeof template.createdBy !== 'string') {
-        throw new Error('Created By é obrigatório');
+      if (missingFields.length > 0) {
+        console.error('❌ [TICKET-TEMPLATE-REPO] Missing required fields:', missingFields);
+        console.error('❌ [TICKET-TEMPLATE-REPO] Template data received:', {
+          name: template.name,
+          category: template.category,
+          tenantId: template.tenantId,
+          createdBy: template.createdBy
+        });
+        throw new Error(`Campo obrigatório em branco detectado: ${missingFields.join(', ')}`);
       }
 
       // ✅ 1QA.MD: Prepare template data with safe JSON serialization

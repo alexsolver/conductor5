@@ -141,7 +141,14 @@ export class CreateTicketTemplateUseCase {
         tenantId: request.tenantId,
         createdBy: request.createdBy,
         name: request.templateData.name.trim(),
-        category: request.templateData.category.trim()
+        category: request.templateData.category.trim(),
+        // Ensure required fields have default values if not provided
+        priority: request.templateData.priority || 'medium',
+        templateType: request.templateData.templateType || 'standard',
+        status: request.templateData.status || 'active',
+        isActive: request.templateData.isActive !== undefined ? request.templateData.isActive : true,
+        fields: request.templateData.fields || [],
+        tags: request.templateData.tags || []
       };
 
       console.log('🔄 [CREATE-TEMPLATE-USE-CASE] Creating template with data:', {
