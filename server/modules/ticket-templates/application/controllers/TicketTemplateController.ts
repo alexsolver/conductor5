@@ -247,6 +247,212 @@ export class TicketTemplateController {
   };
 
   /**
+   * Update ticket template
+   * PUT /ticket-templates/:id
+   */
+  updateTemplate = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log('🔄 [TEMPLATE-CONTROLLER] Updating template:', req.params.id);
+      console.log('🔄 [TEMPLATE-CONTROLLER] Request body:', req.body);
+
+      const user = (req as any).user;
+      if (!user || !user.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+          errors: ['User or tenantId missing'],
+          code: 'MISSING_TENANT_ID'
+        });
+      }
+
+      const templateId = req.params.id;
+      if (!templateId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Template ID is required',
+          errors: ['Template ID missing'],
+          code: 'MISSING_TEMPLATE_ID'
+        });
+      }
+
+      // DB & schema
+      const { schemaManager } = await import('../../../../db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(user.tenantId);
+
+      // Extract body
+      const {
+        name,
+        category,
+        priority,
+        templateType,
+        fields,
+        description,
+        subcategory,
+        companyId,
+        departmentId,
+        automation,
+        workflow,
+        tags,
+        isDefault,
+        permissions,
+        userRole
+      } = req.body;
+
+      // Check if template exists
+      const existingTemplate = await pool.query(
+        `SELECT id FROM "${schemaName}".ticket_templates WHERE id = $1 AND tenant_id = $2`,
+        [templateId, user.tenantId]
+      );
+
+      if (existingTemplate.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Template not found',
+          errors: ['Template does not exist'],
+          code: 'TEMPLATE_NOT_FOUND'
+        });
+      }
+
+      // Prepare update fields
+      const updateFields: string[] = [];
+      const updateValues: any[] = [];
+      let paramCounter = 1;
+
+      if (name !== undefined) {
+        updateFields.push(`name = $${paramCounter++}`);
+        updateValues.push(name);
+      }
+      if (description !== undefined) {
+        updateFields.push(`description = $${paramCounter++}`);
+        updateValues.push(description);
+      }
+      if (category !== undefined) {
+        updateFields.push(`category = $${paramCounter++}`);
+        updateValues.push(category);
+      }
+      if (subcategory !== undefined) {
+        updateFields.push(`subcategory = $${paramCounter++}`);
+        updateValues.push(subcategory);
+      }
+      if (companyId !== undefined) {
+        updateFields.push(`company_id = $${paramCounter++}`);
+        updateValues.push(companyId);
+      }
+      if (departmentId !== undefined) {
+        updateFields.push(`department_id = $${paramCounter++}`);
+        updateValues.push(departmentId);
+      }
+      if (priority !== undefined) {
+        updateFields.push(`priority = $${paramCounter++}`);
+        updateValues.push(String(priority));
+      }
+      if (templateType !== undefined) {
+        updateFields.push(`template_type = $${paramCounter++}`);
+        updateValues.push(String(templateType));
+      }
+      if (fields !== undefined) {
+        updateFields.push(`fields = $${paramCounter++}::jsonb`);
+        updateValues.push(typeof fields === 'string' ? fields : JSON.stringify(fields ?? []));
+      }
+      if (automation !== undefined) {
+        updateFields.push(`automation = $${paramCounter++}::jsonb`);
+        updateValues.push(automation == null ? null : (typeof automation === 'string' ? automation : JSON.stringify(automation)));
+      }
+      if (workflow !== undefined) {
+        updateFields.push(`workflow = $${paramCounter++}::jsonb`);
+        updateValues.push(workflow == null ? null : (typeof workflow === 'string' ? workflow : JSON.stringify(workflow)));
+      }
+      if (tags !== undefined) {
+        updateFields.push(`tags = $${paramCounter++}::text[]`);
+        updateValues.push(Array.isArray(tags) ? tags.map((t: any) => String(t)) : null);
+      }
+      if (isDefault !== undefined) {
+        updateFields.push(`is_default = $${paramCounter++}`);
+        updateValues.push(typeof isDefault === 'boolean' ? isDefault : false);
+      }
+      if (permissions !== undefined) {
+        updateFields.push(`permissions = $${paramCounter++}::jsonb`);
+        updateValues.push(permissions == null ? null : (typeof permissions === 'string' ? permissions : JSON.stringify(permissions)));
+      }
+      if (userRole !== undefined) {
+        updateFields.push(`user_role = $${paramCounter++}`);
+        updateValues.push(userRole);
+      }
+
+      // Always update the updated_at timestamp
+      updateFields.push(`updated_at = NOW()`);
+
+      if (updateFields.length === 1) { // Only updated_at
+        return res.status(400).json({
+          success: false,
+          message: 'No fields to update',
+          errors: ['At least one field must be provided for update'],
+          code: 'NO_UPDATE_FIELDS'
+        });
+      }
+
+      // Add WHERE clause parameters
+      updateValues.push(templateId, user.tenantId);
+      const whereClause = `WHERE id = $${paramCounter++} AND tenant_id = $${paramCounter++}`;
+
+      const updateSql = `
+        UPDATE "${schemaName}".ticket_templates 
+        SET ${updateFields.join(', ')}
+        ${whereClause}
+        RETURNING *;
+      `;
+
+      console.log('[UPDATE-TEMPLATE] Updating template in schema:', schemaName);
+      const result = await pool.query(updateSql, updateValues);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Template not found or update failed',
+          errors: ['Template update failed'],
+          code: 'UPDATE_FAILED'
+        });
+      }
+
+      console.log('[UPDATE-TEMPLATE] Template updated successfully:', result.rows[0]);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Template updated successfully',
+        data: result.rows[0]
+      });
+    } catch (error: any) {
+      console.error('❌ [TEMPLATE-CONTROLLER] Update template error:', error);
+
+      if (error.code === '23505') {
+        return res.status(409).json({
+          success: false,
+          message: 'Template name already exists',
+          errors: [error.detail || 'Duplicate key'],
+          code: 'DUPLICATE_KEY'
+        });
+      }
+
+      if (error.code === '42703') {
+        return res.status(500).json({
+          success: false,
+          message: 'Database schema issue - missing columns',
+          errors: [error.message],
+          code: 'SCHEMA_ERROR'
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        errors: [error?.message || 'Unknown error'],
+        code: 'INTERNAL_ERROR'
+      });
+    }
+  };
+
+  /**
    * Get all templates or specific template
    * GET /ticket-templates
    * GET /ticket-templates/:id

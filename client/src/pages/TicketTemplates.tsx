@@ -338,8 +338,104 @@ export default function TicketTemplates() {
     },
   });
 
+  // Mutation para atualizar template
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (data: TemplateFormData & { id: string }) => {
+      console.log('🚀 [UPDATE-TEMPLATE] Updating template:', {
+        id: data.id,
+        name: data.name,
+        category: data.category,
+      });
+
+      const endpoint = `/api/ticket-templates/${data.id}`;
+
+      const payload = {
+        ...data,
+        companyId: selectedCompany === 'all' ? null : selectedCompany,
+        defaultTags: data.defaultTags || '',
+        customFields: null,
+        isActive: true,
+        usageCount: 0,
+        tags: data.defaultTags ? data.defaultTags.split(',').map(t => t.trim()) : [],
+        templateType: 'standard',
+        status: 'active',
+        fields: [],
+        automation: {
+          enabled: false,
+          autoAssign: { enabled: false, rules: [] },
+          autoTags: { enabled: false, tags: [] },
+          sla: { enabled: false }
+        },
+        workflow: {
+          enabled: false,
+          stages: []
+        },
+        permissions: []
+      };
+
+      console.log('📤 [UPDATE-TEMPLATE] Payload:', payload);
+      const response = await apiRequest('PUT', endpoint, payload);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [UPDATE-TEMPLATE] API Error:', response.status, errorText);
+        throw new Error(`Failed to update template: ${response.status} ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ [UPDATE-TEMPLATE] Response:', result);
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-stats', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-categories', selectedCompany] });
+      setIsEditOpen(false);
+      setEditingTemplate(null);
+      form.reset();
+      toast({
+        title: "Template atualizado",
+        description: "O template foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('❌ [UPDATE-TEMPLATE] Error:', error);
+      toast({
+        title: "Erro ao atualizar template",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateTemplate = (data: TemplateFormData) => {
     createTemplateMutation.mutate(data);
+  };
+
+  const handleEditTemplate = (template: TicketTemplate) => {
+    setEditingTemplate(template);
+    form.reset({
+      name: template.name,
+      description: template.description,
+      category: template.category,
+      priority: template.priority as any,
+      urgency: template.urgency as any,
+      impact: template.impact as any,
+      defaultTitle: template.default_title || '',
+      defaultDescription: template.default_description || '',
+      defaultTags: template.default_tags || '',
+      estimatedHours: template.estimated_hours,
+      requiresApproval: template.requires_approval,
+      autoAssign: template.auto_assign,
+      defaultAssigneeRole: template.default_assignee_role || '',
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateTemplate = (data: TemplateFormData) => {
+    if (editingTemplate) {
+      updateTemplateMutation.mutate({ ...data, id: editingTemplate.id });
+    }
   };
 
   const handleDeleteTemplate = (id: string) => {
@@ -575,6 +671,7 @@ export default function TicketTemplates() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEditTemplate(template)}
                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                             >
                               <Edit className="w-4 h-4" />
@@ -677,26 +774,27 @@ export default function TicketTemplates() {
           </TabsContent>
         </Tabs>
 
-        {/* Create Dialog */}
+        {/* Create Template Dialog */}
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Novo Template</DialogTitle>
               <DialogDescription>
-                Configure um novo template para agilizar a criação de tickets com campos pré-definidos.
+                Configure um novo template de ticket para sua organização.
               </DialogDescription>
             </DialogHeader>
+
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome do Template *</FormLabel>
+                        <FormLabel>Nome do Template</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Problema de Hardware" />
+                          <Input placeholder="Ex: Suporte Técnico" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -708,10 +806,25 @@ export default function TicketTemplates() {
                     name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Categoria *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: Suporte Técnico" />
-                        </FormControl>
+                        <FormLabel>Categoria</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma categoria" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories.map((category: string) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="hardware">Hardware</SelectItem>
+                            <SelectItem value="software">Software</SelectItem>
+                            <SelectItem value="rede">Rede</SelectItem>
+                            <SelectItem value="acesso">Acesso</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -723,12 +836,12 @@ export default function TicketTemplates() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descrição *</FormLabel>
+                      <FormLabel>Descrição</FormLabel>
                       <FormControl>
                         <Textarea 
+                          placeholder="Descreva o propósito deste template..."
+                          className="resize-none"
                           {...field}
-                          placeholder="Descreva quando este template deve ser usado..."
-                          rows={3}
                         />
                       </FormControl>
                       <FormMessage />
@@ -736,7 +849,81 @@ export default function TicketTemplates() {
                   )}
                 />
 
-                <div className="flex justify-end gap-2 pt-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prioridade</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                            <SelectItem value="critical">Crítica</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="urgency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Urgência</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                            <SelectItem value="critical">Crítica</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="impact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Impacto</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Baixo</SelectItem>
+                            <SelectItem value="medium">Médio</SelectItem>
+                            <SelectItem value="high">Alto</SelectItem>
+                            <SelectItem value="critical">Crítico</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3">
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -750,6 +937,180 @@ export default function TicketTemplates() {
                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                   >
                     {createTemplateMutation.isPending ? 'Criando...' : 'Criar Template'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Template Dialog */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Template</DialogTitle>
+              <DialogDescription>
+                Modifique as configurações do template selecionado.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleUpdateTemplate)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Template</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Suporte Técnico" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma categoria" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories.map((category: string) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="hardware">Hardware</SelectItem>
+                            <SelectItem value="software">Software</SelectItem>
+                            <SelectItem value="rede">Rede</SelectItem>
+                            <SelectItem value="acesso">Acesso</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Descreva o propósito deste template..."
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prioridade</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                            <SelectItem value="critical">Crítica</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="urgency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Urgência</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                            <SelectItem value="critical">Crítica</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="impact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Impacto</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Baixo</SelectItem>
+                            <SelectItem value="medium">Médio</SelectItem>
+                            <SelectItem value="high">Alto</SelectItem>
+                            <SelectItem value="critical">Crítico</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditOpen(false);
+                      setEditingTemplate(null);
+                      form.reset();
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={updateTemplateMutation.isPending}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  >
+                    {updateTemplateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                   </Button>
                 </div>
               </form>
