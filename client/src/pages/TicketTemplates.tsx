@@ -824,24 +824,9 @@ export default function TicketTemplates() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Categoria</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma categoria" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.map((category: string) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="hardware">Hardware</SelectItem>
-                            <SelectItem value="software">Software</SelectItem>
-                            <SelectItem value="rede">Rede</SelectItem>
-                            <SelectItem value="acesso">Acesso</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input placeholder="Digite a categoria..." {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -994,24 +979,9 @@ export default function TicketTemplates() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Categoria</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma categoria" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.map((category: string) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="hardware">Hardware</SelectItem>
-                            <SelectItem value="software">Software</SelectItem>
-                            <SelectItem value="rede">Rede</SelectItem>
-                            <SelectItem value="acesso">Acesso</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input placeholder="Digite a categoria..." {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
