@@ -567,37 +567,61 @@ export default function TicketTemplates() {
   };
 
   const handleEditTemplate = (template: TicketTemplate) => {
-    console.log('🔧 [EDIT-TEMPLATE] Opening edit modal for template:', template);
+    console.log("🔧 [EDIT-TEMPLATE] Opening edit modal for template:", template);
+
+    // Verificar se o template tem ID válido
+    if (!template.id) {
+      toast({
+        title: "Erro",
+        description: "Template sem ID válido. Não é possível editar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setEditingTemplate(template);
 
+    // Populate form with template data
     form.reset({
-      ...DEFAULT_TEMPLATE_VALUES, // garante que todos os campos tenham valor inicial
-      name: template.name,
-      description: template.description,
-      category: template.category,
-      priority: template.priority as any,
-      urgency: template.urgency as any,
-      impact: template.impact as any,
-      defaultTitle: template.default_title || '',
-      defaultDescription: template.default_description || '',
-      defaultTags: template.default_tags || '',
-      estimatedHours: template.estimated_hours ?? 2,
-      requiresApproval: template.requires_approval ?? false,
-      autoAssign: template.auto_assign ?? false,
-      defaultAssigneeRole: template.default_assignee_role || '',
+      name: template.name || "",
+      description: template.description || "",
+      category: template.category || "",
+      priority: (template.priority as "low" | "medium" | "high" | "urgent") || "medium",
+      urgency: (template.urgency as "low" | "medium" | "high" | "urgent") || "medium",
+      impact: (template.impact as "low" | "medium" | "high" | "urgent") || "medium",
+      defaultTitle: template.default_title || "",
+      defaultDescription: template.default_description || "",
+      defaultTags: template.default_tags || "",
+      estimatedHours: template.estimated_hours || 2,
+      requiresApproval: template.requires_approval || false,
+      autoAssign: template.auto_assign || false,
+      defaultAssigneeRole: template.default_assignee_role || "",
     });
 
     setIsEditOpen(true);
   };
 
-
-  const handleUpdateTemplate = (data: TemplateFormData) => {
-    console.log(data);
-    if (editingTemplate) {
-      console.log("CHEGUEI AQUI: D");
-      updateTemplateMutation.mutate({ ...data, id: editingTemplate.id });
+  const onSubmitEdit = (data: TemplateFormData) => {
+    if (!editingTemplate || !editingTemplate.id) {
+      toast({
+        title: "Erro",
+        description: "Template não selecionado ou sem ID válido.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    console.log("📝 [SUBMIT-EDIT] Submitting template update:", {
+      id: editingTemplate.id,
+      ...data,
+    });
+
+    updateTemplateMutation.mutate({ 
+      ...data, 
+      id: editingTemplate.id 
+    });
   };
+
 
   const handleDeleteTemplate = (id: string) => {
     if (window.confirm("Tem certeza que deseja excluir este template?")) {
@@ -1187,7 +1211,7 @@ export default function TicketTemplates() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   console.log("✅ Submit do form foi disparado!");
-                  form.handleSubmit(handleUpdateTemplate)(e);
+                  form.handleSubmit(onSubmitEdit)(e);
                 }}
                 className="space-y-4"
               >

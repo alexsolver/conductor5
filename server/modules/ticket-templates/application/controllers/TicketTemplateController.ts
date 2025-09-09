@@ -300,16 +300,21 @@ export class TicketTemplateController {
       } = req.body;
 
       // Check if template exists
+      console.log('[UPDATE-TEMPLATE] Checking if template exists:', { templateId, tenantId: user.tenantId, schemaName });
+      
       const existingTemplate = await pool.query(
-        `SELECT id FROM "${schemaName}".ticket_templates WHERE id = $1 AND tenant_id = $2`,
+        `SELECT id, name FROM "${schemaName}".ticket_templates WHERE id = $1 AND tenant_id = $2`,
         [templateId, user.tenantId]
       );
 
+      console.log('[UPDATE-TEMPLATE] Existing template query result:', existingTemplate.rows);
+
       if (existingTemplate.rows.length === 0) {
+        console.error('[UPDATE-TEMPLATE] Template not found:', { templateId, tenantId: user.tenantId });
         return res.status(404).json({
           success: false,
-          message: 'Template not found',
-          errors: ['Template does not exist'],
+          message: 'Update failed',
+          errors: ['Template not found'],
           code: 'TEMPLATE_NOT_FOUND'
         });
       }
