@@ -366,6 +366,15 @@ export default function TicketTemplates() {
         description: data.description,
         category: data.category,
         priority: data.priority,
+        urgency: data.urgency,
+        impact: data.impact,
+        defaultTitle: data.defaultTitle,
+        defaultDescription: data.defaultDescription,
+        defaultTags: data.defaultTags,
+        estimatedHours: data.estimatedHours,
+        requiresApproval: data.requiresApproval,
+        autoAssign: data.autoAssign,
+        defaultAssigneeRole: data.defaultAssigneeRole,
         templateType: 'standard',
         fields: [],
         subcategory: null,
@@ -400,9 +409,16 @@ export default function TicketTemplates() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ticket-templates', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['ticket-templates-stats', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['ticket-templates-categories', selectedCompany] });
+      // Force refetch all related queries
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-templates-categories'] });
+      
+      // Also refetch current queries specifically
+      queryClient.refetchQueries({ queryKey: ['ticket-templates', selectedCompany] });
+      queryClient.refetchQueries({ queryKey: ['ticket-templates-stats', selectedCompany] });
+      queryClient.refetchQueries({ queryKey: ['ticket-templates-categories', selectedCompany] });
+      
       setIsEditOpen(false);
       setEditingTemplate(null);
       form.reset();
