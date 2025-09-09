@@ -24,6 +24,8 @@ import { UserSessions } from "@/components/user-management/UserSessions";
 import { CreateUserDialog } from "@/components/user-management/CreateUserDialog";
 import { InviteUserDialog } from "@/components/user-management/InviteUserDialog";
 import { EditMemberDialog } from "@/components/user-management/EditMemberDialog";
+// Import technical skills component
+import TechnicalSkillsTab from "@/components/team-management/TechnicalSkillsTab";
 import { 
   Users, 
   UserCheck, 
@@ -652,12 +654,15 @@ export default function TeamManagement() {
                 <CardDescription>Módulos integrados do sistema</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-3">
-                <Link href="/technical-skills">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Award className="h-4 w-4 mr-2" />
-                    Habilidades Técnicas
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab("skills")}
+                  data-testid="button-quick-skills"
+                >
+                  <Award className="h-4 w-4 mr-2" />
+                  Habilidades Técnicas
+                </Button>
                 <Link href="/agenda-manager">
                   <Button variant="outline" className="w-full justify-start">
                     <Calendar className="h-4 w-4 mr-2" />
@@ -1019,28 +1024,7 @@ export default function TeamManagement() {
 
         {/* Skills Tab */}
         <TabsContent value="skills">
-          <Card>
-            <CardHeader>
-              <CardTitle>Matriz de Habilidades da Equipe</CardTitle>
-              <CardDescription>
-                Visualização completa das competências técnicas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">
-                  Integração com o módulo de Habilidades Técnicas
-                </p>
-                <Link href="/technical-skills">
-                  <Button>
-                    <Award className="h-4 w-4 mr-2" />
-                    Acessar Habilidades Técnicas
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+          <TechnicalSkillsTab />
         </TabsContent>
 
         {/* Groups Tab */}
