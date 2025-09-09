@@ -1,7 +1,7 @@
 /**
  * Ticket Template Controller
  * Clean Architecture - Application Layer
- * 
+ *
  * @module TicketTemplateController
  * @created 2025-08-12 - Phase 20 Clean Architecture Implementation
  */
@@ -397,7 +397,7 @@ export class TicketTemplateController {
       const whereClause = `WHERE id = $${paramCounter++} AND tenant_id = $${paramCounter++}`;
 
       const updateSql = `
-        UPDATE "${schemaName}".ticket_templates 
+        UPDATE "${schemaName}".ticket_templates
         SET ${updateFields.join(', ')}
         ${whereClause}
         RETURNING *;
@@ -455,7 +455,6 @@ export class TicketTemplateController {
   /**
    * Get all templates or specific template
    * GET /ticket-templates
-   * GET /ticket-templates/:id
    */
   getTemplates = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -729,13 +728,14 @@ export class TicketTemplateController {
    * Get template categories
    * GET /ticket-templates/categories
    */
-  getCategories = async (req: AuthenticatedRequest, res: Response) => {
+  getCategories = async (req: Request, res: Response): Promise<void> => {
     try {
       console.log('🚨 [CATEGORIES-CONTROLLER] === STARTING CATEGORIES EXECUTION ===');
       console.log('🎯 [CATEGORIES-CONTROLLER] User:', req.user);
 
-      const tenantId = req.user?.tenantId;
-      const userRole = req.user?.role;
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
+      const userRole = user?.role;
 
       if (!tenantId || !userRole) {
         return res.status(401).json({
@@ -744,35 +744,44 @@ export class TicketTemplateController {
         });
       }
 
-      const result = await this.getTicketTemplatesUseCase.execute({
-        tenantId,
-        userRole,
-        includeAnalytics: true
+      // DB & schema
+      const { schemaManager } = await import('../../../../db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      // Get unique categories from templates
+      const result = await pool.query(
+        `SELECT DISTINCT category FROM "${schemaName}".ticket_templates WHERE category IS NOT NULL ORDER BY category`,
+        []
+      );
+
+      const categories = result.rows.map(row => row.category);
+
+      // Get unique subcategories grouped by category
+      const subcategoryResult = await pool.query(
+        `SELECT category, subcategory FROM "${schemaName}".ticket_templates WHERE subcategory IS NOT NULL ORDER BY category, subcategory`,
+        []
+      );
+
+      const subcategories: Record<string, string[]> = {};
+      subcategoryResult.rows.forEach(row => {
+        if (!subcategories[row.category]) {
+          subcategories[row.category] = [];
+        }
+        if (!subcategories[row.category].includes(row.subcategory)) {
+          subcategories[row.category].push(row.subcategory);
+        }
       });
 
-      if (!result.success) {
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to get categories',
-          errors: result.errors
-        });
-      }
+      // Fetch analytics data for category stats
+      const analyticsResult = await this.getTicketTemplatesUseCase.execute({
+        tenantId,
+        userRole,
+        includeAnalytics: true,
+      });
 
-      // Extract unique categories from templates
-      const categories = result.data?.templates 
-        ? Array.from(new Set(result.data.templates.map(t => t.category)))
-        : [];
-
-      const subcategories = result.data?.templates
-        ? result.data.templates.reduce((acc, template) => {
-            if (template.subcategory) {
-              if (!acc[template.category]) acc[template.category] = [];
-              if (!acc[template.category].includes(template.subcategory)) {
-                acc[template.category].push(template.subcategory);
-              }
-            }
-            return acc;
-          }, {} as Record<string, string[]>)
+      const categoryStats = analyticsResult.success && analyticsResult.data?.analytics?.templatesByCategory
+        ? analyticsResult.data.analytics.templatesByCategory
         : {};
 
       return res.json({
@@ -781,7 +790,7 @@ export class TicketTemplateController {
         data: {
           categories,
           subcategories,
-          categoryStats: result.data?.analytics?.templatesByCategory || {}
+          categoryStats
         }
       });
 
@@ -789,7 +798,8 @@ export class TicketTemplateController {
       console.error('[TicketTemplateController] getCategories error:', error);
       return res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
+        errors: [error instanceof Error ? error.message : 'Unknown error']
       });
     }
   };
@@ -863,7 +873,7 @@ export class TicketTemplateController {
         tenantId,
         userRole,
         filters: {
-          status: 'active'
+          isDefault: true // Filter for default templates
         }
       });
 
@@ -918,7 +928,8 @@ export class TicketTemplateController {
       });
 
       if (!result.success) {
-        return res.status(404).json({
+        // Handle cases where template is not found or access is denied
+        return res.status(result.data?.status || 404).json({
           success: false,
           message: 'Template not found or access denied',
           errors: result.errors
@@ -964,7 +975,7 @@ export class TicketTemplateController {
       const result = await this.getTicketTemplatesUseCase.execute({
         tenantId,
         userRole,
-        includeUsageStats: true
+        includeUsageStats: true // To get usage data for popularity
       });
 
       if (!result.success) {
@@ -975,6 +986,7 @@ export class TicketTemplateController {
         });
       }
 
+      // Assuming usageStatistics.popularTemplates is an array of templates sorted by usage
       const popularTemplates = result.data?.usageStatistics?.popularTemplates?.slice(0, limit) || [];
 
       return res.json({
@@ -1018,7 +1030,7 @@ export class TicketTemplateController {
       const result = await this.getTicketTemplatesUseCase.execute({
         tenantId,
         userRole,
-        companyId: companyId !== 'all' ? companyId : undefined,
+        companyId: companyId !== 'all' ? companyId : undefined, // If 'all', fetch for all companies
         includeAnalytics: true,
         includeUsageStats: true
       });
@@ -1031,9 +1043,10 @@ export class TicketTemplateController {
         });
       }
 
+      // Consolidate stats from the result
       const stats = {
         total_templates: result.data?.templates?.length || 0,
-        active_templates: result.data?.templates?.filter(t => t.status === 'active').length || 0,
+        active_templates: result.data?.templates?.filter(t => t.status === 'active').length || 0, // Assuming 'status' field exists
         avg_usage: result.data?.analytics?.averageUsage || 0,
         max_usage: result.data?.analytics?.maxUsage || 0,
         templates_by_category: result.data?.analytics?.templatesByCategory || {}
@@ -1042,7 +1055,7 @@ export class TicketTemplateController {
       return res.json({
         success: true,
         message: 'Company template statistics retrieved successfully',
-        data: [stats]
+        data: [stats] // Returning as an array to match potential API structure
       });
 
     } catch (error) {
@@ -1074,7 +1087,7 @@ export class TicketTemplateController {
       const result = await this.getTicketTemplatesUseCase.execute({
         tenantId,
         userRole,
-        companyId: companyId === 'all' ? undefined : companyId,
+        companyId: companyId === 'all' ? undefined : companyId, // If 'all', fetch for all companies
         includeAnalytics: true
       });
 
@@ -1132,8 +1145,8 @@ export class TicketTemplateController {
       const result = await this.getTicketTemplatesUseCase.execute({
         tenantId,
         userRole,
-        companyId: companyId === 'all' ? undefined : companyId,
-        includeAnalytics: false
+        companyId: companyId === 'all' ? undefined : companyId, // If 'all', fetch for all companies
+        includeAnalytics: false // No analytics needed for this endpoint
       });
 
       if (!result.success) {

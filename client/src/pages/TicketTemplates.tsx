@@ -152,6 +152,17 @@ export default function TicketTemplates() {
     },
   });
 
+  // Query para buscar template específico para edição
+  const { data: templateForEdit } = useQuery({
+    queryKey: ['ticket-template', editingTemplate?.id],
+    queryFn: async () => {
+      if (!editingTemplate?.id) return null;
+      const response = await apiRequest('GET', `/api/ticket-templates/${editingTemplate.id}`);
+      return response.json();
+    },
+    enabled: !!editingTemplate?.id,
+  });
+
   const templates = React.useMemo(() => {
     console.log('🔄 [TEMPLATES-PROCESSING] Processing templates response:', {
       hasResponse: !!templatesResponse,
@@ -349,17 +360,17 @@ export default function TicketTemplates() {
 
       const endpoint = `/api/ticket-templates/${data.id}`;
 
+      // Use the same payload structure as create
       const payload = {
-        ...data,
-        companyId: selectedCompany === 'all' ? null : selectedCompany,
-        defaultTags: data.defaultTags || '',
-        customFields: null,
-        isActive: true,
-        usageCount: 0,
-        tags: data.defaultTags ? data.defaultTags.split(',').map(t => t.trim()) : [],
+        name: data.name,
+        description: data.description,
+        category: data.category,
+        priority: data.priority,
         templateType: 'standard',
-        status: 'active',
         fields: [],
+        subcategory: null,
+        companyId: selectedCompany === 'all' ? null : selectedCompany,
+        departmentId: null,
         automation: {
           enabled: false,
           autoAssign: { enabled: false, rules: [] },
@@ -370,6 +381,8 @@ export default function TicketTemplates() {
           enabled: false,
           stages: []
         },
+        tags: data.defaultTags ? data.defaultTags.split(',').map(t => t.trim()) : [],
+        isDefault: false,
         permissions: []
       };
 
@@ -413,13 +426,16 @@ export default function TicketTemplates() {
   };
 
   const handleEditTemplate = (template: TicketTemplate) => {
+    console.log('🔧 [EDIT-TEMPLATE] Opening edit modal for template:', template);
     setEditingTemplate(template);
+    
+    // Reset form with template data
     form.reset({
       name: template.name,
       description: template.description,
       category: template.category,
       priority: template.priority as any,
-      urgency: template.urgency as any,
+      urgency: template.urgency as any,  
       impact: template.impact as any,
       defaultTitle: template.default_title || '',
       defaultDescription: template.default_description || '',
@@ -429,6 +445,7 @@ export default function TicketTemplates() {
       autoAssign: template.auto_assign,
       defaultAssigneeRole: template.default_assignee_role || '',
     });
+    
     setIsEditOpen(true);
   };
 
