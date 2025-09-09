@@ -1425,46 +1425,45 @@ const TicketsTable = React.memo(() => {
 
   // ✅ 1QA.MD: Template state and queries
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined);
+  const [templatesData, setTemplatesData] = useState<any>(null);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
   
-  // ✅ 1QA.MD: Fetch available templates
-  const { data: templatesData, isLoading: templatesLoading } = useQuery({
-    queryKey: ['/api/ticket-templates'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/ticket-templates');
-      if (!response.ok) throw new Error('Failed to fetch templates');
-      const data = await response.json();
-      console.log('🔗 [TEMPLATES-API] Response:', data);
-      return data;
-    },
-    enabled: true
-  }) as { data: any; isLoading: boolean };
+  // ✅ 1QA.MD: Fetch available templates using direct fetch
+  React.useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        console.log('🔗 [TEMPLATES] Starting fetch...');
+        setTemplatesLoading(true);
+        const response = await apiRequest('GET', '/api/ticket-templates');
+        console.log('🔗 [TEMPLATES] Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('🔗 [TEMPLATES] API Error:', errorText);
+          throw new Error(`Failed to fetch templates: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('🔗 [TEMPLATES] Success! Data:', data);
+        setTemplatesData(data);
+      } catch (error) {
+        console.error('🔗 [TEMPLATES] Fetch error:', error);
+        setTemplatesData(null);
+      } finally {
+        setTemplatesLoading(false);
+      }
+    };
 
-  console.log('🔗 [TEMPLATE-INTEGRATION] Templates query result:', {
+    fetchTemplates();
+  }, []);
+
+  console.log('🔗 [TEMPLATE-INTEGRATION] Current state:', {
     templatesData,
     templatesLoading,
     selectedTemplateId,
-    debugInfo: templatesData ? 'Data received' : 'No data received'
+    dataType: typeof templatesData,
+    hasData: !!templatesData
   });
-
-  // Debug: Test API call manually
-  const testTemplatesAPI = async () => {
-    try {
-      console.log('🧪 [DEBUG] Manual API test starting...');
-      const response = await apiRequest('GET', '/api/ticket-templates');
-      console.log('🧪 [DEBUG] API Response status:', response.status);
-      const data = await response.json();
-      console.log('🧪 [DEBUG] API Response data:', data);
-    } catch (error) {
-      console.error('🧪 [DEBUG] API Error:', error);
-    }
-  };
-
-  // Call test function once
-  React.useEffect(() => {
-    if (!templatesData && !templatesLoading) {
-      testTemplatesAPI();
-    }
-  }, [templatesData, templatesLoading]);
 
   // Form setup
   const form = useForm<TicketFormData>({
