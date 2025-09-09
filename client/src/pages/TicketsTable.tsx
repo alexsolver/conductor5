@@ -1463,7 +1463,7 @@ const TicketsTable = React.memo(() => {
       }
     } catch (error) {
       console.error('🔗 [LOAD-TEMPLATES] Exception caught:', error);
-      console.error('🔗 [LOAD-TEMPLATES] Error details:', error.message);
+      console.error('🔗 [LOAD-TEMPLATES] Error details:', error instanceof Error ? error.message : String(error));
       setTemplatesData({ success: false, data: [] });
     } finally {
       console.log('🔗 [LOAD-TEMPLATES] Setting loading to false');
@@ -1949,11 +1949,11 @@ const TicketsTable = React.memo(() => {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
-                      {users.map((user: any) => (
+                      {users && Array.isArray(users) ? users.map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
                           {user.firstName} {user.lastName} ({user.email})
                         </SelectItem>
-                      ))}
+                      )) : null}
                     </SelectContent>
                   </Select>
                   <FormMessage />

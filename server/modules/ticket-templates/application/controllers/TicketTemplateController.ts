@@ -524,16 +524,6 @@ export class TicketTemplateController {
       console.log('🎯 [TEMPLATE-CONTROLLER] Query params:', req.query);
       console.log('🎯 [TEMPLATE-CONTROLLER] Headers:', req.headers.authorization ? 'HAS_AUTH' : 'NO_AUTH');
       
-      // Quick success test
-      res.status(200).json({
-        success: true,
-        message: 'Templates API is working',
-        data: [
-          { id: '1', name: 'Template Test 1', category: 'Test' },
-          { id: '2', name: 'Template Test 2', category: 'Test' }
-        ]
-      });
-      return;
 
       const user = (req as any).user;
       if (!user || !user.tenantId) {
