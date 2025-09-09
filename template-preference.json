@@ -1,36 +1,36 @@
 {
-  "selectedTemplate": "corporate-blue",
-  "appliedAt": "2025-08-26T18:14:16.770Z",
+  "selectedTemplate": "global-teal",
+  "appliedAt": "2025-09-09T13:02:49.182Z",
   "template": {
-    "id": "corporate-blue",
-    "name": "Corporate Professional",
-    "description": "Layout clássico e profissional com tons de azul corporativo",
+    "id": "global-teal",
+    "name": "Global Business",
+    "description": "Layout internacional com verde-azulado e elementos globais",
     "icon": {
       "type": {},
       "key": null,
       "ref": null,
       "props": {
-        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:55:8",
-        "data-component-name": "Building2",
+        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:130:8",
+        "data-component-name": "Globe",
         "className": "w-6 h-6"
       },
       "_owner": null,
       "_store": {}
     },
-    "preview": "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+    "preview": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%)",
     "colors": {
-      "primary": "#1e40af",
-      "secondary": "#64748b",
-      "accent": "#0ea5e9",
-      "background": "#f8fafc"
+      "primary": "#0f766e",
+      "secondary": "#14b8a6",
+      "accent": "#f59e0b",
+      "background": "#f0fdfa"
     },
     "features": [
-      "Sidebar expandível",
-      "Cards com sombras suaves",
-      "Tipografia clara",
-      "Navegação hierárquica"
+      "Cores internacionais",
+      "Layout responsivo",
+      "Ícones globais",
+      "Acessibilidade aprimorada"
     ],
-    "style": "corporate",
+    "style": "classic",
     "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e"
   }
 }
