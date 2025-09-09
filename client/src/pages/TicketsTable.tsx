@@ -1429,6 +1429,13 @@ const TicketsTable = React.memo(() => {
   // ✅ 1QA.MD: Fetch available templates
   const { data: templatesData, isLoading: templatesLoading } = useQuery({
     queryKey: ['/api/ticket-templates'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-templates');
+      if (!response.ok) throw new Error('Failed to fetch templates');
+      const data = await response.json();
+      console.log('🔗 [TEMPLATES-API] Response:', data);
+      return data;
+    },
     enabled: true
   }) as { data: any; isLoading: boolean };
 
