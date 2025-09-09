@@ -561,6 +561,12 @@ export default function Tickets() {
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   
+                  {/* ✅ 1QA.MD: FORCE TEMPLATE FIELD - DEBUG */}
+                  <div className="p-4 bg-red-100 border-2 border-red-500 rounded-lg">
+                    <h3 className="text-red-800 font-bold">🚨 TEMPLATE FIELD - FORCE DEBUG</h3>
+                    <p className="text-red-700">Este campo deveria estar aqui!</p>
+                  </div>
+                  
                   {/* ✅ 1QA.MD: Template Selection - First field */}
                   <div className="space-y-4">
                     <div>
