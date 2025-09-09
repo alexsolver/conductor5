@@ -18,6 +18,7 @@ import {
   bigint,
   serial,
   pgEnum,
+  check,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";

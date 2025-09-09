@@ -1,37 +1,89 @@
 /**
- * Ticket Template Domain Entity
+ * ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATE DOMAIN ENTITY
  * Clean Architecture - Domain Layer
+ * Entidade atualizada para suportar hierarquia de empresa e campos obrigatórios
  * 
  * @module TicketTemplateEntity
- * @created 2025-08-12 - Phase 20 Clean Architecture Implementation
+ * @compliance 1qa.md - Domain Layer - Entities
+ * @updated 2025-09-09 - Revisão completa seguindo 1qa.md
  */
 
+// ✅ 1QA.MD: Entidade principal atualizada com novos requisitos
 export interface TicketTemplate {
   id: string;
-  tenantId: string;
+  tenantId: string; // ✅ 1QA.MD: OBRIGATÓRIO para multitenant
+  
+  // Campos básicos
   name: string;
   description?: string;
-  category: string;
+  
+  // ✅ Hierarquia de empresa - null = global, uuid = empresa específica
+  companyId?: string; // ✅ Hierárquico: permite templates globais
+  
+  // ✅ Tipo do template: 'creation' (criação) ou 'edit' (edição)
+  templateType: 'creation' | 'edit';
+  
+  // ✅ Campos obrigatórios para template de CRIAÇÃO
+  // Empresa, Cliente, Beneficiário, Status e Resumo
+  requiredFields: TicketTemplateRequiredField[];
+  
+  // ✅ Campos customizáveis opcionais
+  customFields: TicketTemplateCustomField[];
+  
+  // Configurações de template
+  category?: string;
   subcategory?: string;
-  companyId?: string;
-  departmentId?: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  templateType: 'standard' | 'quick' | 'escalation' | 'auto_response' | 'workflow';
   status: 'active' | 'inactive' | 'draft';
-  fields: TicketTemplateField[];
+  
+  // Configurações de automação (mantém compatibilidade)
   automation: TicketTemplateAutomation;
   workflow: TicketTemplateWorkflow;
+  
+  // Metadados
   permissions: TicketTemplatePermission[];
-  metadata: TicketTemplateMetadata;
+  tags: string[];
   isDefault: boolean;
   isSystem: boolean;
   usageCount: number;
   lastUsed?: Date;
-  tags: string[];
+  
+  // Auditoria
   createdBy: string;
+  updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
   isActive: boolean;
+}
+
+// ✅ 1QA.MD: Nova interface para campos obrigatórios
+export interface TicketTemplateRequiredField {
+  fieldName: string; // 'company', 'client', 'beneficiary', 'status', 'summary'
+  fieldType: string; // 'select', 'text', etc.
+  label: string; // Label amigável
+  required: boolean; // Sempre true para campos obrigatórios
+  validation?: FieldValidation;
+  order: number;
+}
+
+// ✅ 1QA.MD: Nova interface para campos customizáveis
+export interface TicketTemplateCustomField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'textarea' | 'number' | 'email' | 'phone' | 'date' | 'datetime' | 'select' | 'multiselect' | 'checkbox' | 'radio' | 'file' | 'url';
+  required: boolean;
+  defaultValue?: any;
+  placeholder?: string;
+  helpText?: string;
+  validation?: FieldValidation;
+  options?: SelectOption[]; // Para select/multiselect fields
+  order: number;
+  section?: string;
+  conditional?: ConditionalLogic;
+  readonly: boolean;
+  hidden: boolean;
+  customAttributes?: Record<string, any>;
 }
 
 export interface TicketTemplateField {
