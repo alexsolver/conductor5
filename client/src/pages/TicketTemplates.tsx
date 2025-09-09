@@ -326,8 +326,8 @@ export default function TicketTemplates() {
     }
   };
 
-  // ✅ Filtrar templates
-  const templates = templatesResponse?.data || [];
+  // ✅ 1QA.MD: Filtrar templates com estrutura de resposta correta
+  const templates = templatesResponse?.data?.templates || [];
   const filteredTemplates = templates.filter((template: TicketTemplate) => {
     const matchesSearch = !searchTerm || 
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -336,7 +336,8 @@ export default function TicketTemplates() {
     return matchesSearch;
   });
 
-  const categories = categoriesResponse?.data || [];
+  // ✅ 1QA.MD: Categorias podem vir aninhadas ou diretas
+  const categories = categoriesResponse?.data?.categories || categoriesResponse?.data || [];
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -597,19 +598,19 @@ export default function TicketTemplates() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {templates.filter((t: TicketTemplate) => t.templateType === 'creation').length}
+                    {Array.isArray(templates) ? templates.filter((t: TicketTemplate) => t.templateType === 'creation').length : 0}
                   </div>
                   <div className="text-sm text-gray-600">Templates de Criação</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
-                    {templates.filter((t: TicketTemplate) => t.templateType === 'edit').length}
+                    {Array.isArray(templates) ? templates.filter((t: TicketTemplate) => t.templateType === 'edit').length : 0}
                   </div>
                   <div className="text-sm text-gray-600">Templates de Edição</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-orange-600">
-                    {templates.filter((t: TicketTemplate) => t.status === 'active').length}
+                    {Array.isArray(templates) ? templates.filter((t: TicketTemplate) => t.status === 'active').length : 0}
                   </div>
                   <div className="text-sm text-gray-600">Templates Ativos</div>
                 </div>
