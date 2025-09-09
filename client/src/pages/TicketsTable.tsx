@@ -755,8 +755,8 @@ const TicketsTable = React.memo(() => {
     .filter((col: any) => col.visible)
     .sort((a: any, b: any) => a.order - b.order);
 
-  // Componente de célula otimizado com React.memo e useMemo
-  const TableCellComponent = memo(({ column, ticket }: { column: any, ticket: Ticket }) => {
+  // Componente de célula otimizado com useMemo
+  const TableCellComponent = ({ column, ticket }: { column: any, ticket: Ticket }) => {
     const cellStyle = useMemo(() => ({
       width: getColumnWidth(column.id),
       minWidth: getColumnWidth(column.id),
@@ -1158,7 +1158,7 @@ const TicketsTable = React.memo(() => {
     }, [column.id, ticket, cellStyle, getFieldColorWithFallback, getFieldLabel, mapCategoryValue, mapStatusValue, mapPriorityValue, mapImpactValue, mapUrgencyValue]);
 
     return memoizedCellContent;
-  });
+  };
 
   // Função de renderização otimizada
   const renderCell = useCallback((ticket: any, key: string) => (
@@ -1184,7 +1184,7 @@ const TicketsTable = React.memo(() => {
     return sameColumn && sameTicket && sameUpdatedAt && sameStatus && samePriority && sameSubject;
   };
 
-  const OptimizedTableCell = memo(TableCellComponent, areEqual);
+  const OptimizedTableCell = TableCellComponent;
 
   // Mutations para gerenciar visualizações
   const createViewMutation = useMutation({
