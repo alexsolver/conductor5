@@ -2240,11 +2240,13 @@ const TicketsTable = React.memo(() => {
 
       {/* Modals */}
       <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0 pb-4 border-b">
             <DialogTitle>{t('tickets.new_ticket')}</DialogTitle>
           </DialogHeader>
-          <TicketForm />
+          <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
+            <TicketForm />
+          </div>
         </DialogContent>
       </Dialog>
 
