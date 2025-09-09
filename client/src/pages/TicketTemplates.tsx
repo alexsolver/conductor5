@@ -67,7 +67,7 @@ const templateFormSchema = z.object({
     errorMap: () => ({ message: 'Tipo deve ser "creation" ou "edit"' })
   }),
   companyId: z.string().uuid().optional().nullable(),
-  category: z.string().optional(),
+  category: z.string().min(1, 'Categoria é obrigatória').max(100, 'Categoria muito longa'),
   subcategory: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   status: z.enum(['active', 'inactive', 'draft']).default('draft'),
@@ -190,7 +190,7 @@ export default function TicketTemplates() {
       description: '',
       templateType: 'creation',
       companyId: null,
-      category: '',
+      category: 'Geral',
       subcategory: '',
       priority: 'medium',
       status: 'draft',

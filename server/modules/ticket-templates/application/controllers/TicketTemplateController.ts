@@ -88,14 +88,33 @@ export class TicketTemplateController {
         permissions
       } = req.body;
 
-      // Required validations
-      if (!name || !category || !priority || !templateType) {
-        console.error('[CREATE-TEMPLATE] Missing required fields');
+      // ✅ 1QA.MD: Validação rigorosa de campos obrigatórios
+      const missingFields = [];
+      
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        missingFields.push('name');
+      }
+      
+      if (!category || typeof category !== 'string' || category.trim().length === 0) {
+        missingFields.push('category');
+      }
+      
+      if (!priority || typeof priority !== 'string') {
+        missingFields.push('priority');
+      }
+      
+      if (!templateType || typeof templateType !== 'string') {
+        missingFields.push('templateType');
+      }
+      
+      if (missingFields.length > 0) {
+        console.error('[CREATE-TEMPLATE] Missing or invalid required fields:', missingFields);
         return res.status(400).json({
           success: false,
           message: 'Missing required fields',
-          errors: ['name, category, priority e templateType são obrigatórios'],
-          code: 'MISSING_REQUIRED_FIELDS'
+          errors: [`Campos obrigatórios inválidos ou em branco: ${missingFields.join(', ')}`],
+          code: 'MISSING_REQUIRED_FIELDS',
+          details: { missingFields }
         });
       }
 
@@ -384,10 +403,7 @@ export class TicketTemplateController {
         updateFields.push(`company_id = $${paramCounter++}`);
         updateValues.push(companyId);
       }
-      if (departmentId !== undefined) {
-        updateFields.push(`department_id = $${paramCounter++}`);
-        updateValues.push(departmentId);
-      }
+      // departmentId removido - não existe na tabela
       if (priority !== undefined) {
         updateFields.push(`priority = $${paramCounter++}`);
         updateValues.push(String(priority));
@@ -572,7 +588,7 @@ export class TicketTemplateController {
 
       if (templateId) { params.push(templateId); where.push(`id = $${params.length}`); }
       if (companyId) { params.push(companyId); where.push(`company_id = $${params.length}`); }
-      if (departmentId) { params.push(departmentId); where.push(`department_id = $${params.length}`); }
+      // departmentId removido - não existe na tabela
       if (category) { params.push(category); where.push(`category = $${params.length}`); }
       if (subcategory) { params.push(subcategory); where.push(`subcategory = $${params.length}`); }
       if (templateType) { params.push(templateType); where.push(`template_type = $${params.length}`); }
@@ -605,9 +621,10 @@ export class TicketTemplateController {
       const dataSql = `
         SELECT
           id, tenant_id, name, description, category, subcategory,
-          company_id, department_id, priority, template_type,
-          fields, automation, workflow, tags, is_default,
-          permissions, created_by, user_role, created_at, updated_at
+          company_id, priority, template_type,
+          required_fields, custom_fields, automation, workflow, tags, is_default,
+          permissions, created_by, created_at, updated_at, status,
+          is_system, usage_count, last_used
         FROM "${schemaName}".ticket_templates
         ${whereSql}
         ORDER BY created_at DESC
