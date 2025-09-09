@@ -55,6 +55,7 @@ export default function Tickets() {
   const { formatDate } = useLocalization();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentViewId, setCurrentViewId] = useState<string | undefined>();
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -115,6 +116,15 @@ export default function Tickets() {
   const { data: tickets, isLoading, error } = useQuery<TicketsResponse>({
     queryKey: ["/api/tickets"],
     retry: false
+  });
+
+  // ✅ 1QA.MD: Query para templates de criação
+  const { data: templatesData, isLoading: templatesLoading } = useQuery({
+    queryKey: ["/api/ticket-templates"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/ticket-templates");
+      return response.json();
+    }
   });
 
   // Fetch customers for the dropdown
@@ -522,6 +532,35 @@ export default function Tickets() {
                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  
+                  {/* ✅ 1QA.MD: Template Selection - First field */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {t('tickets.template')} (Opcional)
+                      </label>
+                      <Select 
+                        onValueChange={(value) => {
+                          setSelectedTemplateId(value === '__none__' ? undefined : value);
+                          // TODO: Aplicar campos do template quando selecionado
+                        }} 
+                        value={selectedTemplateId || '__none__'}
+                      >
+                        <SelectTrigger className="h-10 mt-1">
+                          <SelectValue placeholder="Selecione um template (opcional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Sem template</SelectItem>
+                          {templatesData?.data?.filter((template: any) => template.templateType === 'creation').map((template: any) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.name} - {template.category}
+                            </SelectItem>
+                          )) || []}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
                   {/* Company Selection - Must be first */}
                     <FormField
                       control={form.control}

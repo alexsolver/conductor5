@@ -201,6 +201,8 @@ export const createTicketSchema = baseTicketSchema.extend({
 
 // Schema refatorado para o novo modal de criação de tickets
 export const newTicketModalSchema = z.object({
+  // ✅ 1QA.MD: Template field for ticket-template integration  
+  templateId: z.string().optional(),
   // Empresa (obrigatório)
   companyId: z.string().uuid("Empresa é obrigatória").min(1, "Empresa é obrigatória"),
   // Cliente (obrigatório)
