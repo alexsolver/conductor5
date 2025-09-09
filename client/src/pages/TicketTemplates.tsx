@@ -57,7 +57,21 @@ import {
   Search,
   Filter,
   Eye,
+  CheckSquare,
 } from 'lucide-react';
+
+// ✅ 1QA.MD: Campos disponíveis do ticket para seleção em templates
+const AVAILABLE_TICKET_FIELDS = [
+  { name: 'description', label: 'Descrição' },
+  { name: 'location', label: 'Localização' },
+  { name: 'urgency', label: 'Urgência' },
+  { name: 'tags', label: 'Tags' },
+  { name: 'attachment', label: 'Anexos' },
+  { name: 'comments', label: 'Comentários' },
+  { name: 'due_date', label: 'Data de Vencimento' },
+  { name: 'estimated_hours', label: 'Horas Estimadas' },
+  { name: 'materials_services', label: 'Materiais e Serviços' },
+];
 
 // ✅ 1QA.MD: Schema de validação para novos tipos de template
 const templateFormSchema = z.object({
@@ -338,6 +352,17 @@ export default function TicketTemplates() {
 
   // ✅ 1QA.MD: Categorias podem vir aninhadas ou diretas
   const categories = categoriesResponse?.data?.categories || categoriesResponse?.data || [];
+
+  // ✅ 1QA.MD: Buscar campos customizados do módulo /custom-fields-admin
+  const { data: customFieldsResponse } = useQuery({
+    queryKey: ['/api/custom-fields/fields/ticket'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/custom-fields/fields/ticket');
+      return response.json();
+    }
+  });
+
+  const customFields = customFieldsResponse?.data || [];
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -860,92 +885,76 @@ export default function TicketTemplates() {
                   <Card className="border-orange-200 bg-orange-50">
                     <CardContent className="pt-4">
                       <div className="flex items-start space-x-3">
-                        <Plus className="w-5 h-5 text-orange-600 mt-0.5" />
+                        <CheckSquare className="w-5 h-5 text-orange-600 mt-0.5" />
                         <div className="flex-1">
-                          <h4 className="font-medium text-orange-900">Campos Customizados Adicionais</h4>
+                          <h4 className="font-medium text-orange-900">Campos Adicionais do Ticket</h4>
                           <p className="text-sm text-orange-700 mt-1">
-                            Adicione campos extras que serão incluídos neste template:
+                            Selecione quais campos existentes incluir neste template:
                           </p>
                           
-                          <div className="mt-4">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="text-orange-700 border-orange-300"
-                              onClick={() => {
-                                const newField = {
-                                  id: crypto.randomUUID(),
-                                  name: '',
-                                  label: '',
-                                  type: 'text' as const,
-                                  required: false,
-                                  order: form.getValues('customFields').length + 1,
-                                  placeholder: '',
-                                  helpText: '',
-                                };
-                                const currentFields = form.getValues('customFields') || [];
-                                form.setValue('customFields', [...currentFields, newField]);
-                              }}
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Adicionar Campo Customizado
-                            </Button>
-                            
-                            {form.watch('customFields')?.length > 0 && (
-                              <div className="mt-3 space-y-2">
-                                {form.watch('customFields').map((field, index) => (
-                                  <div key={field.id} className="flex items-center space-x-2 p-2 bg-white rounded border">
-                                    <Input
-                                      placeholder="Nome do campo"
-                                      value={field.label}
+                          <div className="mt-4 space-y-3">
+                            <div>
+                              <h5 className="text-sm font-medium text-orange-800 mb-2">Campos Padrão do Sistema</h5>
+                              <div className="grid grid-cols-2 gap-2">
+                                {AVAILABLE_TICKET_FIELDS.map((field) => (
+                                  <label key={field.name} className="flex items-center space-x-2 text-sm">
+                                    <input
+                                      type="checkbox"
+                                      checked={form.watch('requiredFields')?.includes(field.name) || false}
                                       onChange={(e) => {
-                                        const fields = form.getValues('customFields');
-                                        fields[index].label = e.target.value;
-                                        fields[index].name = e.target.value.toLowerCase().replace(/\s+/g, '_');
-                                        form.setValue('customFields', fields);
+                                        const currentFields = form.getValues('requiredFields') || [];
+                                        if (e.target.checked) {
+                                          form.setValue('requiredFields', [...currentFields, field.name]);
+                                        } else {
+                                          form.setValue('requiredFields', currentFields.filter(f => f !== field.name));
+                                        }
                                       }}
-                                      className="flex-1"
+                                      className="rounded border-orange-300"
                                     />
-                                    <Select
-                                      value={field.type}
-                                      onValueChange={(value) => {
-                                        const fields = form.getValues('customFields');
-                                        fields[index].type = value as any;
-                                        form.setValue('customFields', fields);
-                                      }}
-                                    >
-                                      <SelectTrigger className="w-32">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="text">Texto</SelectItem>
-                                        <SelectItem value="textarea">Texto Longo</SelectItem>
-                                        <SelectItem value="number">Número</SelectItem>
-                                        <SelectItem value="email">Email</SelectItem>
-                                        <SelectItem value="phone">Telefone</SelectItem>
-                                        <SelectItem value="date">Data</SelectItem>
-                                        <SelectItem value="select">Lista</SelectItem>
-                                        <SelectItem value="checkbox">Checkbox</SelectItem>
-                                        <SelectItem value="file">Arquivo</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        const fields = form.getValues('customFields');
-                                        fields.splice(index, 1);
-                                        form.setValue('customFields', fields);
-                                      }}
-                                    >
-                                      <Trash2 className="w-4 h-4 text-red-500" />
-                                    </Button>
-                                  </div>
+                                    <span className="text-orange-800">{field.label}</span>
+                                  </label>
                                 ))}
                               </div>
-                            )}
+                            </div>
+
+                            <div>
+                              <h5 className="text-sm font-medium text-orange-800 mb-2">Campos Customizados (gerenciados em /custom-fields-admin)</h5>
+                              {customFields?.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {customFields.map((field: any) => (
+                                    <label key={field.id} className="flex items-center space-x-2 text-sm">
+                                      <input
+                                        type="checkbox"
+                                        checked={form.watch('customFields')?.some((cf: any) => cf.id === field.id) || false}
+                                        onChange={(e) => {
+                                          const currentFields = form.getValues('customFields') || [];
+                                          if (e.target.checked) {
+                                            form.setValue('customFields', [...currentFields, field]);
+                                          } else {
+                                            form.setValue('customFields', currentFields.filter((cf: any) => cf.id !== field.id));
+                                          }
+                                        }}
+                                        className="rounded border-orange-300"
+                                      />
+                                      <span className="text-orange-800">{field.label} ({field.type})</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-orange-600 italic">
+                                  Nenhum campo customizado configurado. 
+                                  <Button
+                                    type="button"
+                                    variant="link"
+                                    size="sm"
+                                    className="text-orange-700 p-0 h-auto"
+                                    onClick={() => window.open('/custom-fields-admin', '_blank')}
+                                  >
+                                    Criar campos customizados
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
