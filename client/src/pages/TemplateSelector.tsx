@@ -425,10 +425,7 @@ export function TemplateSelector() {
         description: `O tema "${template.name}" foi aplicado com sucesso.`,
       });
       
-      // Forçar reload da página para aplicar mudanças CSS
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // CSS é aplicado automaticamente pelo HMR do Vite
     },
     onError: (error: Error) => {
       toast({
@@ -453,10 +450,7 @@ export function TemplateSelector() {
         description: "O tema foi resetado para o padrão.",
       });
       
-      // Forçar reload da página para aplicar mudanças CSS
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // CSS é aplicado automaticamente pelo HMR do Vite
     },
     onError: (error: Error) => {
       toast({
@@ -469,7 +463,7 @@ export function TemplateSelector() {
 
   // Inicializar template selecionado baseado no atual
   useEffect(() => {
-    if (currentTemplate?.selectedTemplate) {
+    if (currentTemplate && 'selectedTemplate' in currentTemplate && currentTemplate.selectedTemplate) {
       setSelectedTemplate(currentTemplate.selectedTemplate);
     }
   }, [currentTemplate]);

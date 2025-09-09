@@ -6,7 +6,7 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 98%);
+  --background: hsl(30, 100%, 97%);
   --foreground: hsl(20, 14.3%, 4.1%);
   --muted: hsl(60, 4.8%, 95.9%);
   --muted-foreground: hsl(25, 5.3%, 44.7%);
@@ -16,11 +16,11 @@
   --card-foreground: hsl(20, 14.3%, 4.1%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(229, 76%, 66%);
+  --primary: hsl(16, 100%, 60%);
   --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(270, 37%, 46%);
+  --secondary: hsl(32, 93%, 54%);
   --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(294, 93%, 78%);
+  --accent: hsl(355, 100%, 64%);
   --accent-foreground: hsl(0, 0%, 98%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
@@ -28,8 +28,8 @@
   --radius: 0.5rem;
 
   /* Custom gradient variables */
-  --gradient-primary: linear-gradient(135deg, hsl(229, 76%, 66%) 0%, hsl(270, 37%, 46%) 50%, hsl(294, 93%, 78%) 100%);
-  --gradient-secondary: linear-gradient(135deg, hsl(294, 93%, 78%) 0%, hsl(229, 76%, 66%) 100%);
+  --gradient-primary: linear-gradient(135deg, hsl(16, 100%, 60%) 0%, hsl(32, 93%, 54%) 70%, hsl(355, 100%, 64%) 100%);
+  --gradient-secondary: radial-gradient(circle, hsl(355, 100%, 64%) 0%, hsl(16, 100%, 60%) 100%);
   --gradient-success: linear-gradient(135deg, hsl(203, 99%, 64%) 0%, hsl(180, 100%, 50%) 100%);
   --gradient-warning: linear-gradient(135deg, hsl(35, 91%, 62%) 0%, hsl(35, 95%, 55%) 100%);
   --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%);

@@ -1,36 +1,36 @@
 {
-  "selectedTemplate": "modern-gradient",
-  "appliedAt": "2025-09-09T13:16:45.211Z",
+  "selectedTemplate": "sunset-warm",
+  "appliedAt": "2025-09-09T13:26:47.624Z",
   "template": {
-    "id": "modern-gradient",
-    "name": "Modern Gradient",
-    "description": "Design moderno com gradientes vibrantes e elementos fluidos",
+    "id": "sunset-warm",
+    "name": "Sunset Warm",
+    "description": "Cores quentes inspiradas no pôr do sol com tons laranja e rosa",
     "icon": {
       "type": {},
       "key": null,
       "ref": null,
       "props": {
-        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:70:8",
-        "data-component-name": "Sparkles",
+        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:145:8",
+        "data-component-name": "Sunset",
         "className": "w-6 h-6"
       },
       "_owner": null,
       "_store": {}
     },
-    "preview": "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+    "preview": "linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffcd3c 100%)",
     "colors": {
-      "primary": "#667eea",
-      "secondary": "#764ba2",
-      "accent": "#f093fb",
-      "background": "#fafafa"
+      "primary": "#ff6b35",
+      "secondary": "#f7931e",
+      "accent": "#ff4757",
+      "background": "#fff8f1"
     },
     "features": [
-      "Gradientes animados",
-      "Micro-interações",
-      "Cards flutuantes",
-      "Efeitos de glassmorphism"
+      "Cores vibrantes",
+      "Atmosfera acolhedora",
+      "Contrastes suaves",
+      "Design energético"
     ],
-    "style": "modern",
+    "style": "sunset",
     "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e"
   }
 }
