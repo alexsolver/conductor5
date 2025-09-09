@@ -166,6 +166,8 @@ const getDefaultRequiredFields = () => [
 ];
 
 const apiRequest = async (method: string, url: string, data?: any) => {
+  console.log(`🌐 [API-REQUEST] ${method} ${url}`, data ? { payload: data } : {});
+  
   const config: RequestInit = {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -176,13 +178,31 @@ const apiRequest = async (method: string, url: string, data?: any) => {
     config.body = JSON.stringify(data);
   }
 
-  const response = await fetch(url, config);
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-    throw new Error(errorData.message || `Erro ${response.status}`);
+  try {
+    const response = await fetch(url, config);
+    console.log(`📋 [API-RESPONSE] ${method} ${url} - Status: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ [API-ERROR] ${method} ${url} - Status: ${response.status}, Text: ${errorText}`);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { message: errorText || `Erro HTTP ${response.status}` };
+      }
+      
+      throw new Error(errorData.message || errorData.error || `Erro ${response.status}: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log(`✅ [API-SUCCESS] ${method} ${url}`, { success: true });
+    return result;
+  } catch (error) {
+    console.error(`💥 [API-CATCH] ${method} ${url}`, error);
+    throw error;
   }
-  
-  return response.json();
 };
 
 export default function TicketTemplates() {
@@ -280,9 +300,25 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       console.error('❌ [CREATE-TEMPLATE] Error:', error);
+      console.error('❌ [CREATE-TEMPLATE] Error type:', typeof error);
+      console.error('❌ [CREATE-TEMPLATE] Error constructor:', error?.constructor?.name);
+      console.error('❌ [CREATE-TEMPLATE] Error keys:', Object.keys(error || {}));
+      console.error('❌ [CREATE-TEMPLATE] Error message:', error?.message);
+      console.error('❌ [CREATE-TEMPLATE] Error stack:', error?.stack);
+
+      // ✅ 1QA.MD: Error handling melhorado
+      let errorMessage = 'Erro ao criar template';
+      if (error?.message && error.message.trim() !== '') {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.trim() !== '') {
+        errorMessage = error;
+      } else if (error?.error && error.error.trim() !== '') {
+        errorMessage = error.error;
+      }
+      
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao criar template',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -309,16 +345,37 @@ export default function TicketTemplates() {
     },
   });
 
-  const handleCreateTemplate = (data: TemplateFormData) => {
-    console.log('🎯 [HANDLE-CREATE] Button clicked, data received:', {
+  const handleCreateTemplate = async (data: TemplateFormData) => {
+    console.log('🎯 [HANDLE-CREATE] Button clicked, form data:', {
       name: data.name,
       templateType: data.templateType,
       category: data.category,
+      companyId: data.companyId,
       requiredFieldsCount: data.requiredFields?.length || 0,
-      customFieldsCount: data.customFields?.length || 0
+      customFieldsCount: data.customFields?.length || 0,
+      fullData: data
     });
+
+    // ✅ 1QA.MD: Validação adicional antes de enviar
+    if (!data.name || data.name.trim().length < 3) {
+      toast({
+        title: 'Erro de Validação',
+        description: 'Nome do template deve ter pelo menos 3 caracteres',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!data.category || data.category.trim().length === 0) {
+      toast({
+        title: 'Erro de Validação',
+        description: 'Categoria é obrigatória',
+        variant: 'destructive',
+      });
+      return;
+    }
     
-    console.log('🎯 [HANDLE-CREATE] Calling mutation...');
+    console.log('🎯 [HANDLE-CREATE] Validations passed, calling mutation...');
     createTemplateMutation.mutate(data);
   };
 
