@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1616,7 +1616,7 @@ const TicketsTable = React.memo(() => {
     return tickets;
   }, [searchTerm, statusFilter, priorityFilter]);
 
-  const TicketForm = () => (
+  const renderTicketForm = () => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
               console.error('❌ Form validation errors:', errors);
@@ -2245,7 +2245,7 @@ const TicketsTable = React.memo(() => {
             <DialogTitle>{t('tickets.new_ticket')}</DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
-            <TicketForm />
+            {renderTicketForm()}
           </div>
         </DialogContent>
       </Dialog>
