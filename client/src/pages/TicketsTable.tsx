@@ -1423,56 +1423,41 @@ const TicketsTable = React.memo(() => {
     hasToken: !!localStorage.getItem('accessToken')
   });
 
-  // ✅ 1QA.MD: Template state and queries
+  // ✅ 1QA.MD: Template state - load when modal opens
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined);
   const [templatesData, setTemplatesData] = useState<any>(null);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   
-  // ✅ 1QA.MD: Fetch available templates using direct fetch
-  React.useEffect(() => {
-    console.log('🔗 [TEMPLATES] useEffect triggered');
+  // ✅ 1QA.MD: Fetch templates when modal opens
+  const loadTemplates = async () => {
+    if (templatesData) return; // Already loaded
     
-    const fetchTemplates = async () => {
-      try {
-        console.log('🔗 [TEMPLATES] Starting fetch...');
-        setTemplatesLoading(true);
-        
-        // Simple test first
-        console.log('🔗 [TEMPLATES] Making API request...');
-        const response = await apiRequest('GET', '/api/ticket-templates');
-        console.log('🔗 [TEMPLATES] Response received, status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('🔗 [TEMPLATES] API Error response:', errorText);
-          throw new Error(`Failed to fetch templates: ${response.status}`);
-        }
-        
+    try {
+      console.log('🔗 [TEMPLATES] Loading templates...');
+      setTemplatesLoading(true);
+      const response = await apiRequest('GET', '/api/ticket-templates');
+      console.log('🔗 [TEMPLATES] Response status:', response.status);
+      
+      if (response.ok) {
         const data = await response.json();
-        console.log('🔗 [TEMPLATES] Parse successful! Data:', data);
+        console.log('🔗 [TEMPLATES] Data loaded:', data);
         setTemplatesData(data);
-      } catch (error) {
-        console.error('🔗 [TEMPLATES] Fetch error:', error);
-        setTemplatesData(null);
-      } finally {
-        console.log('🔗 [TEMPLATES] Fetch complete');
-        setTemplatesLoading(false);
+      } else {
+        console.error('🔗 [TEMPLATES] Error:', response.status);
+        setTemplatesData({ success: false, data: [] });
       }
-    };
+    } catch (error) {
+      console.error('🔗 [TEMPLATES] Exception:', error);
+      setTemplatesData({ success: false, data: [] });
+    } finally {
+      setTemplatesLoading(false);
+    }
+  };
 
-    // Add delay to ensure all other calls complete first
-    setTimeout(() => {
-      console.log('🔗 [TEMPLATES] Starting delayed fetch...');
-      fetchTemplates();
-    }, 1000);
-  }, []);
-
-  console.log('🔗 [TEMPLATE-INTEGRATION] Current state:', {
-    templatesData,
-    templatesLoading,
-    selectedTemplateId,
-    dataType: typeof templatesData,
-    hasData: !!templatesData
+  console.log('🔗 [TEMPLATES] State:', { 
+    hasData: !!templatesData, 
+    loading: templatesLoading,
+    selectedId: selectedTemplateId
   });
 
   // Form setup
@@ -2135,7 +2120,11 @@ const TicketsTable = React.memo(() => {
           </div>
           <div className="flex gap-3">
             <Button
-              onClick={() => setIsNewTicketModalOpen(true)}
+              onClick={() => {
+                console.log('🔗 [TEMPLATES] Button clicked, loading templates...');
+                setIsNewTicketModalOpen(true);
+                loadTemplates();
+              }}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               <Plus className="h-4 w-4 mr-2" />
