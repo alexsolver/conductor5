@@ -1423,6 +1423,21 @@ const TicketsTable = React.memo(() => {
     hasToken: !!localStorage.getItem('accessToken')
   });
 
+  // ✅ 1QA.MD: Template state and queries
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined);
+  
+  // ✅ 1QA.MD: Fetch available templates
+  const { data: templatesData, isLoading: templatesLoading } = useQuery({
+    queryKey: ['/api/ticket-templates'],
+    enabled: true
+  }) as { data: any; isLoading: boolean };
+
+  console.log('🔗 [TEMPLATE-INTEGRATION] Templates query result:', {
+    templatesData,
+    templatesLoading,
+    selectedTemplateId
+  });
+
   // Form setup
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
@@ -1631,6 +1646,77 @@ const TicketsTable = React.memo(() => {
                 variant: "destructive",
               });
             })} className="space-y-6">
+        
+        {/* ✅ 1QA.MD: Template Selection - First field */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Template Selection</h3>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Template (Opcional)
+            </Label>
+            <Select 
+              onValueChange={async (value) => {
+                const templateId = value === '__none__' ? undefined : value;
+                setSelectedTemplateId(templateId);
+                
+                // ✅ 1QA.MD: Aplicar campos do template quando selecionado
+                if (templateId && templatesData?.data) {
+                  const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
+                  if (selectedTemplate?.fields) {
+                    try {
+                      const fields = JSON.parse(selectedTemplate.fields);
+                      console.log('🔄 [TEMPLATE-INTEGRATION] Aplicando campos do template:', fields);
+                      
+                      // Aplicar campos do template ao formulário
+                      if (fields.subject) form.setValue('subject', fields.subject);
+                      if (fields.description) form.setValue('description', fields.description);
+                      if (fields.category) form.setValue('category', fields.category);
+                      if (fields.subcategory) form.setValue('subcategory', fields.subcategory);
+                      if (fields.priority) form.setValue('priority', fields.priority);
+                      if (fields.urgency) form.setValue('urgency', fields.urgency);
+                      if (fields.symptoms) form.setValue('symptoms', fields.symptoms);
+                      if (fields.businessImpact) form.setValue('businessImpact', fields.businessImpact);
+                      if (fields.workaround) form.setValue('workaround', fields.workaround);
+                      if (fields.location) form.setValue('location', fields.location);
+                      if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
+                      
+                      toast({
+                        title: "Template aplicado",
+                        description: `Campos do template "${selectedTemplate.name}" foram preenchidos automaticamente.`,
+                        variant: "default"
+                      });
+                    } catch (e) {
+                      console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', e);
+                      toast({
+                        title: "Erro ao aplicar template",
+                        description: "Ocorreu um erro ao aplicar os campos do template.",
+                        variant: "destructive"
+                      });
+                    }
+                  }
+                }
+              }} 
+              value={selectedTemplateId || '__none__'}
+            >
+              <SelectTrigger className="h-10 mt-1">
+                <SelectValue placeholder="Selecione um template (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem template</SelectItem>
+                {templatesLoading ? (
+                  <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
+                ) : (
+                  templatesData?.data?.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Basic Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Basic Information</h3>
