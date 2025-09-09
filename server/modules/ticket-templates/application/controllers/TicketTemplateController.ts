@@ -54,53 +54,194 @@ export class TicketTemplateController {
         return res.status(401).json({
           success: false,
           message: 'Authentication required',
-          errors: ['User or tenantId missing']
+          errors: ['User or tenantId missing'],
+          code: 'MISSING_TENANT_ID'
         });
       }
 
-      const templateData = {
-        ...req.body,
-        companyId: req.params.companyId || req.body.companyId || null,
-        tenantId: user.tenantId,
-        createdBy: user.id,
-        isActive: req.body.isActive !== false, // Default to true
-        usageCount: 0,
-        fields: req.body.fields || [],
-        createdAt: new Date().toISOString(),
-      };
+      // DB & schema
+      const { schemaManager } = await import('../../../../db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(user.tenantId);
 
-      console.log('📝 [TEMPLATE-CONTROLLER] Template data prepared:', templateData);
+      // Extract body
+      const {
+        name,
+        category,
+        priority,
+        templateType,
+        fields,
+        description,
+        subcategory,
+        companyId,
+        departmentId,
+        automation,
+        workflow,
+        tags,
+        isDefault,
+        permissions,
+        userRole // opcional no body; fallback para role do token
+      } = req.body;
 
-      const result = await this.createTicketTemplateUseCase.execute({
-        tenantId: user.tenantId,
-        createdBy: user.id,
-        userRole: user.role || 'user',
-        templateData: templateData
-      });
-
-      console.log('✅ [TEMPLATE-CONTROLLER] Use case result:', result);
-
-      // ✅ 1QA.MD: Handle both success and error cases from use case
-      if (!result.success) {
+      // Required validations
+      if (!name || !category || !priority || !templateType || fields == null) {
+        console.error('[CREATE-TEMPLATE] Missing required fields');
         return res.status(400).json({
           success: false,
-          message: 'Failed to create template',
-          errors: result.errors || ['Unknown validation error']
+          message: 'Missing required fields',
+          errors: ['name, category, priority, templateType e fields são obrigatórios'],
+          code: 'MISSING_REQUIRED_FIELDS'
         });
       }
 
-      res.status(201).json({
+      const PRIORITIES = new Set(['low', 'medium', 'high', 'urgent']);
+      if (!PRIORITIES.has(String(priority))) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid priority',
+          errors: ['priority deve ser: low | medium | high | urgent'],
+          code: 'INVALID_PRIORITY'
+        });
+      }
+
+      const TEMPLATE_TYPES = new Set(['standard', 'quick', 'escalation', 'auto_response', 'workflow']);
+      if (!TEMPLATE_TYPES.has(String(templateType))) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid templateType',
+          errors: ['templateType deve ser: standard | quick | escalation | auto_response | workflow'],
+          code: 'INVALID_TEMPLATE_TYPE'
+        });
+      }
+
+      // Check table exists
+      const tableCheck = await pool.query(
+        `
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = $1 AND table_name = 'ticket_templates'
+        `,
+        [schemaName]
+      );
+      if (tableCheck.rows.length === 0) {
+        console.error('[CREATE-TEMPLATE] ticket_templates table does not exist in schema:', schemaName);
+        return res.status(500).json({
+          success: false,
+          message: 'ticket_templates table not found in tenant schema',
+          errors: ['TABLE_NOT_FOUND'],
+          code: 'TABLE_NOT_FOUND'
+        });
+      }
+
+      // Normalize optional values
+      const finalTags = Array.isArray(tags) ? tags.map((t: any) => String(t)) : null;
+
+      // Prepare JSONB fields (use ::jsonb no SQL)
+      const jsonFields       = typeof fields === 'string' ? fields : JSON.stringify(fields ?? []);
+      const jsonAutomation   = automation == null ? null : (typeof automation === 'string' ? automation : JSON.stringify(automation));
+      const jsonWorkflow     = workflow   == null ? null : (typeof workflow   === 'string' ? workflow   : JSON.stringify(workflow));
+      const jsonPermissions  = permissions== null ? null : (typeof permissions=== 'string' ? permissions: JSON.stringify(permissions));
+
+      const createdBy = user.id;
+      const finalUserRole = userRole || user.role || 'user';
+      const isDefaultBool = typeof isDefault === 'boolean' ? isDefault : false;
+
+      // Insert (deixa o id ser gerado por DEFAULT gen_random_uuid())
+      console.log('[CREATE-TEMPLATE] Inserting template into schema:', schemaName);
+      const insertSql = `
+        INSERT INTO "${schemaName}".ticket_templates (
+          tenant_id,
+          name,
+          description,
+          category,
+          subcategory,
+          company_id,
+          department_id,
+          priority,
+          template_type,
+          fields,
+          automation,
+          workflow,
+          tags,
+          is_default,
+          permissions,
+          created_by,
+          user_role,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5,
+          $6, $7,
+          $8, $9,
+          $10::jsonb,
+          $11::jsonb,
+          $12::jsonb,
+          $13::text[],
+          $14,
+          $15::jsonb,
+          $16,
+          $17,
+          NOW(),
+          NOW()
+        )
+        RETURNING *;
+      `;
+
+      const result = await pool.query(insertSql, [
+        user.tenantId,
+        name,
+        description ?? null,
+        category,
+        subcategory ?? null,
+        companyId ?? null,
+        departmentId ?? null,
+        String(priority),
+        String(templateType),
+        jsonFields,
+        jsonAutomation,
+        jsonWorkflow,
+        finalTags,
+        isDefaultBool,
+        jsonPermissions,
+        createdBy,
+        finalUserRole
+      ]);
+
+      console.log('[CREATE-TEMPLATE] Template created successfully:', result.rows[0]);
+
+      return res.status(201).json({
         success: true,
         message: 'Template created successfully',
-        data: result.data
+        data: result.rows[0]
       });
-
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [TEMPLATE-CONTROLLER] Create template error:', error);
-      res.status(500).json({
+
+      if (error.code === '23505') {
+        // duplicate key
+        return res.status(409).json({
+          success: false,
+          message: 'Template already exists (duplicate key)',
+          errors: [error.detail || 'Duplicate key'],
+          code: 'DUPLICATE_KEY'
+        });
+      }
+
+      if (error.code === '42703') {
+        // undefined column
+        return res.status(500).json({
+          success: false,
+          message: 'Database schema issue - missing columns',
+          errors: [error.message],
+          code: 'SCHEMA_ERROR'
+        });
+      }
+
+      return res.status(500).json({
         success: false,
         message: 'Internal server error',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error?.message || 'Unknown error'],
+        code: 'INTERNAL_ERROR'
       });
     }
   };
@@ -120,86 +261,213 @@ export class TicketTemplateController {
       const user = (req as any).user;
       if (!user || !user.tenantId) {
         console.log('❌ [CONTROLLER] User or tenantId missing');
-        res.status(401).json({ 
-          success: false, 
-          errors: ['Authentication required'] 
-        });
+        res.status(401).json({ success: false, errors: ['Authentication required'] });
         return;
       }
 
-      // ✅ 1QA.MD: Build comprehensive request
-      const getTemplatesRequest: GetTicketTemplatesRequest = {
-        tenantId: user.tenantId,
-        userRole: user.role || 'user',
-        companyId: req.query.companyId as string,
-        templateId: req.query.templateId as string,
-        filters: {
-          category: req.query.category as string,
-          subcategory: req.query.subcategory as string,
-          templateType: req.query.templateType as string,
-          status: req.query.status as string || 'active',
-          departmentId: req.query.departmentId as string,
-          isDefault: req.query.isDefault ? req.query.isDefault === 'true' : undefined,
-          tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
-        },
-        search: req.query.search as string,
-        includeAnalytics: req.query.includeAnalytics === 'true',
-        includeUsageStats: req.query.includeUsageStats === 'true'
-      };
+      // DB & schema
+      const { schemaManager } = await import('../../../../db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(user.tenantId);
 
-      console.log('📋 [CONTROLLER] Request prepared:', {
-        tenantId: getTemplatesRequest.tenantId,
-        userRole: getTemplatesRequest.userRole,
-        companyId: getTemplatesRequest.companyId,
-        hasFilters: !!getTemplatesRequest.filters
-      });
+      // --------- Query params / filtros ---------
+      const companyId = req.query.companyId as string | undefined;
+      const templateId = req.query.templateId as string | undefined;
+      const category = req.query.category as string | undefined;
+      const subcategory = req.query.subcategory as string | undefined;
+      const templateType = req.query.templateType as string | undefined;
+      const departmentId = req.query.departmentId as string | undefined;
+      const isDefault = typeof req.query.isDefault === 'string'
+        ? req.query.isDefault === 'true'
+        : undefined;
+      const tags = req.query.tags ? String(req.query.tags).split(',').map(s => s.trim()).filter(Boolean) : undefined;
+      const search = (req.query.search as string | undefined)?.trim();
 
-      // Execute use case
-      const result = await this.getTicketTemplatesUseCase.execute(getTemplatesRequest);
+      const includeAnalytics = req.query.includeAnalytics === 'true';
+      const includeUsageStats = req.query.includeUsageStats === 'true';
 
-      console.log('📤 [CONTROLLER] Use case result:', {
-        success: result.success,
-        hasData: !!result.data,
-        templatesCount: result.data?.templates?.length || 0,
-        hasErrors: !!result.errors
-      });
+      // paginação
+      const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
+      const pageSize = Math.min(Math.max(parseInt(String(req.query.pageSize ?? '50'), 10) || 50, 1), 200);
+      const offset = (page - 1) * pageSize;
 
-      if (!result.success) {
-        console.log('❌ [CONTROLLER] Use case failed:', result.errors);
+      // --------- Valida enums básicos ----------
+      const PRIORITIES = new Set(['low', 'medium', 'high', 'urgent']);
+      const TEMPLATE_TYPES = new Set(['standard', 'quick', 'escalation', 'auto_response', 'workflow']);
+      if (templateType && !TEMPLATE_TYPES.has(String(templateType))) {
         res.status(400).json({
           success: false,
-          errors: result.errors || ['Failed to fetch templates']
+          errors: ['templateType inválido: use standard | quick | escalation | auto_response | workflow']
         });
         return;
       }
 
-      // ✅ 1QA.MD: Always ensure templates array exists
+      // --------- Confere existência da tabela ----------
+      const tableCheck = await pool.query(
+        `SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = 'ticket_templates'`,
+        [schemaName]
+      );
+      if (tableCheck.rows.length === 0) {
+        console.error('[GET-TEMPLATES] ticket_templates não existe em:', schemaName);
+        res.status(500).json({
+          success: false,
+          errors: ['ticket_templates table not found in tenant schema']
+        });
+        return;
+      }
+
+      // --------- Monta WHERE dinâmico ----------
+      const where: string[] = [`tenant_id = $1`];
+      const params: any[] = [user.tenantId];
+
+      if (templateId) { params.push(templateId); where.push(`id = $${params.length}`); }
+      if (companyId) { params.push(companyId); where.push(`company_id = $${params.length}`); }
+      if (departmentId) { params.push(departmentId); where.push(`department_id = $${params.length}`); }
+      if (category) { params.push(category); where.push(`category = $${params.length}`); }
+      if (subcategory) { params.push(subcategory); where.push(`subcategory = $${params.length}`); }
+      if (templateType) { params.push(templateType); where.push(`template_type = $${params.length}`); }
+      if (typeof isDefault === 'boolean') { params.push(isDefault); where.push(`is_default = $${params.length}`); }
+
+      if (tags && tags.length > 0) {
+        // Interseção com array de tags do registro
+        params.push(tags);
+        where.push(`tags && $${params.length}::text[]`);
+      }
+
+      if (search) {
+        // Busca textual simples
+        params.push(`%${search}%`);
+        params.push(`%${search}%`);
+        params.push(`%${search}%`);
+        params.push(`%${search}%`);
+        where.push(`(
+          name ILIKE $${params.length - 3}
+          OR description ILIKE $${params.length - 2}
+          OR category ILIKE $${params.length - 1}
+          OR subcategory ILIKE $${params.length}
+        )`);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      // --------- Consulta principal + total ----------
+      const countSql = `SELECT COUNT(*)::int AS total FROM "${schemaName}".ticket_templates ${whereSql};`;
+      const dataSql = `
+        SELECT
+          id, tenant_id, name, description, category, subcategory,
+          company_id, department_id, priority, template_type,
+          fields, automation, workflow, tags, is_default,
+          permissions, created_by, user_role, created_at, updated_at
+        FROM "${schemaName}".ticket_templates
+        ${whereSql}
+        ORDER BY created_at DESC
+        LIMIT $${params.length + 1} OFFSET $${params.length + 2};
+      `;
+
+      const countParams = [...params];
+      const dataParams = [...params, pageSize, offset];
+
+      const [countResult, dataResult] = await Promise.all([
+        pool.query(countSql, countParams),
+        pool.query(dataSql, dataParams),
+      ]);
+
+      const total = countResult.rows[0]?.total ?? 0;
+      const templates = dataResult.rows ?? [];
+
+      // --------- (Opcional) Analytics ----------
+      let analytics: any = undefined;
+      if (includeAnalytics) {
+        const [byCategory, byType] = await Promise.all([
+          pool.query(
+            `
+            SELECT category, COUNT(*)::int AS count
+            FROM "${schemaName}".ticket_templates
+            ${whereSql}
+            GROUP BY category
+            ORDER BY count DESC;
+          `,
+            countParams
+          ),
+          pool.query(
+            `
+            SELECT template_type, COUNT(*)::int AS count
+            FROM "${schemaName}".ticket_templates
+            ${whereSql}
+            GROUP BY template_type
+            ORDER BY count DESC;
+          `,
+            countParams
+          ),
+        ]);
+
+        analytics = {
+          byCategory: byCategory.rows,
+          byTemplateType: byType.rows,
+          total,
+        };
+      }
+
+      // --------- (Opcional) Usage Stats (placeholder útil) ----------
+      let usageStatistics: any = undefined;
+      if (includeUsageStats) {
+        const usage = await pool.query(
+          `
+          SELECT template_type, COUNT(*)::int AS count
+          FROM "${schemaName}".ticket_templates
+          ${whereSql}
+          GROUP BY template_type
+          ORDER BY count DESC;
+        `,
+          countParams
+        );
+        usageStatistics = {
+          byTemplateType: usage.rows,
+          total,
+        };
+      }
+
+      // --------- Resposta ----------
       const responseData = {
-        ...result.data,
-        templates: result.data?.templates || []
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.max(Math.ceil(total / pageSize), 1),
+        },
+        templates: templates || [],
+        ...(analytics ? { analytics } : {}),
+        ...(usageStatistics ? { usageStatistics } : {}),
       };
 
       console.log('🚀 [CONTROLLER] Sending final response:', {
         success: true,
         templatesCount: responseData.templates.length,
-        hasAnalytics: !!responseData.analytics,
-        hasUsageStats: !!responseData.usageStatistics
+        hasAnalytics: !!analytics,
+        hasUsageStats: !!usageStatistics,
+        page,
+        pageSize,
+        total
       });
 
-      // ✅ 1QA.MD: Consistent response structure
-      res.status(200).json({
-        success: true,
-        data: responseData
-      });
-
-    } catch (error) {
+      res.status(200).json({ success: true, data: responseData });
+    } catch (error: any) {
       console.error('❌ [CONTROLLER] Uncaught error:', error);
+
+      if (error.code === '42703') {
+        res.status(500).json({
+          success: false,
+          errors: ['Database schema issue - missing columns', error.message],
+        });
+        return;
+      }
+
       res.status(500).json({
         success: false,
-        errors: [error instanceof Error ? error.message : 'Internal server error']
+        errors: [error?.message || 'Internal server error'],
       });
     }
-  }
+  };
 
   /**
    * Update ticket template
