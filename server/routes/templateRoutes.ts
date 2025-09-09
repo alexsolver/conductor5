@@ -171,7 +171,7 @@ router.post('/apply', async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Erro ao aplicar template',
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error' 
     });
   }
 });

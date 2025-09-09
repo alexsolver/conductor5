@@ -1,36 +1,36 @@
 {
-  "selectedTemplate": "sunset-warm",
-  "appliedAt": "2025-09-09T13:26:47.624Z",
+  "selectedTemplate": "global-teal",
+  "appliedAt": "2025-09-09T13:27:18.835Z",
   "template": {
-    "id": "sunset-warm",
-    "name": "Sunset Warm",
-    "description": "Cores quentes inspiradas no pôr do sol com tons laranja e rosa",
+    "id": "global-teal",
+    "name": "Global Business",
+    "description": "Layout internacional com verde-azulado e elementos globais",
     "icon": {
       "type": {},
       "key": null,
       "ref": null,
       "props": {
-        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:145:8",
-        "data-component-name": "Sunset",
+        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:130:8",
+        "data-component-name": "Globe",
         "className": "w-6 h-6"
       },
       "_owner": null,
       "_store": {}
     },
-    "preview": "linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffcd3c 100%)",
+    "preview": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%)",
     "colors": {
-      "primary": "#ff6b35",
-      "secondary": "#f7931e",
-      "accent": "#ff4757",
-      "background": "#fff8f1"
+      "primary": "#0f766e",
+      "secondary": "#14b8a6",
+      "accent": "#f59e0b",
+      "background": "#f0fdfa"
     },
     "features": [
-      "Cores vibrantes",
-      "Atmosfera acolhedora",
-      "Contrastes suaves",
-      "Design energético"
+      "Cores internacionais",
+      "Layout responsivo",
+      "Ícones globais",
+      "Acessibilidade aprimorada"
     ],
-    "style": "sunset",
+    "style": "classic",
     "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e"
   }
 }

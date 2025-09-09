@@ -463,8 +463,8 @@ export function TemplateSelector() {
 
   // Inicializar template selecionado baseado no atual
   useEffect(() => {
-    if (currentTemplate && 'selectedTemplate' in currentTemplate && currentTemplate.selectedTemplate) {
-      setSelectedTemplate(currentTemplate.selectedTemplate);
+    if (currentTemplate && typeof currentTemplate === 'object' && 'selectedTemplate' in currentTemplate && currentTemplate.selectedTemplate) {
+      setSelectedTemplate(currentTemplate.selectedTemplate as string);
     }
   }, [currentTemplate]);
 
