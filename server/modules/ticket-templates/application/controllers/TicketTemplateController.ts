@@ -80,7 +80,12 @@ export class TicketTemplateController {
         tags,
         isDefault,
         permissions,
-        userRole // opcional no body; fallback para role do token
+        userRole, // opcional no body; fallback para role do token
+        // ✅ 1QA.MD: Novos campos para templates
+        requiredFields,
+        customFields,
+        isSystem,
+        status
       } = req.body;
 
       // Required validations
@@ -104,14 +109,44 @@ export class TicketTemplateController {
         });
       }
 
-      const TEMPLATE_TYPES = new Set(['standard', 'quick', 'escalation', 'auto_response', 'workflow']);
+      // ✅ 1QA.MD: Novos tipos de template - 'creation' e 'edit'
+      const TEMPLATE_TYPES = new Set(['creation', 'edit']);
       if (!TEMPLATE_TYPES.has(String(templateType))) {
         return res.status(400).json({
           success: false,
           message: 'Invalid templateType',
-          errors: ['templateType deve ser: standard | quick | escalation | auto_response | workflow'],
+          errors: ['templateType deve ser: creation | edit'],
           code: 'INVALID_TEMPLATE_TYPE'
         });
+      }
+
+      // ✅ 1QA.MD: Validação de campos obrigatórios para templates de CRIAÇÃO
+      if (templateType === 'creation') {
+        const { requiredFields, customFields } = req.body;
+        
+        // Verificar se os campos obrigatórios estão presentes
+        if (!Array.isArray(requiredFields)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Templates de criação devem ter campos obrigatórios definidos',
+            errors: ['requiredFields é obrigatório para templates de criação'],
+            code: 'MISSING_REQUIRED_FIELDS'
+          });
+        }
+
+        // Validar que os 5 campos obrigatórios estão presentes
+        const mandatoryFields = ['company', 'client', 'beneficiary', 'status', 'summary'];
+        const providedFieldNames = requiredFields.map((f: any) => f.fieldName?.toLowerCase()).filter(Boolean);
+        const missingMandatory = mandatoryFields.filter(field => !providedFieldNames.includes(field));
+        
+        if (missingMandatory.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Templates de criação devem incluir todos os campos obrigatórios',
+            errors: [`Campos obrigatórios em falta: ${missingMandatory.join(', ')}`],
+            code: 'MISSING_MANDATORY_FIELDS'
+          });
+        }
       }
 
       // Check table exists
@@ -137,10 +172,13 @@ export class TicketTemplateController {
       const finalTags = Array.isArray(tags) ? tags.map((t: any) => String(t)) : null;
 
       // Prepare JSONB fields (use ::jsonb no SQL)
-      const jsonFields       = typeof fields === 'string' ? fields : JSON.stringify(fields ?? []);
-      const jsonAutomation   = automation == null ? null : (typeof automation === 'string' ? automation : JSON.stringify(automation));
-      const jsonWorkflow     = workflow   == null ? null : (typeof workflow   === 'string' ? workflow   : JSON.stringify(workflow));
-      const jsonPermissions  = permissions== null ? null : (typeof permissions=== 'string' ? permissions: JSON.stringify(permissions));
+      const jsonFields         = typeof fields === 'string' ? fields : JSON.stringify(fields ?? []);
+      const jsonAutomation     = automation == null ? null : (typeof automation === 'string' ? automation : JSON.stringify(automation));
+      const jsonWorkflow       = workflow   == null ? null : (typeof workflow   === 'string' ? workflow   : JSON.stringify(workflow));
+      const jsonPermissions    = permissions== null ? null : (typeof permissions=== 'string' ? permissions: JSON.stringify(permissions));
+      // ✅ 1QA.MD: Novos campos JSONB
+      const jsonRequiredFields = requiredFields == null ? null : (typeof requiredFields === 'string' ? requiredFields : JSON.stringify(requiredFields));
+      const jsonCustomFields   = customFields == null ? null : (typeof customFields === 'string' ? customFields : JSON.stringify(customFields));
 
       const createdBy = user.id;
       const finalUserRole = userRole || user.role || 'user';
@@ -156,31 +194,32 @@ export class TicketTemplateController {
           category,
           subcategory,
           company_id,
-          department_id,
           priority,
           template_type,
-          fields,
+          required_fields,
+          custom_fields,
           automation,
           workflow,
           tags,
           is_default,
+          is_system,
+          status,
           permissions,
           created_by,
-          user_role,
+          updated_by,
           created_at,
           updated_at
         ) VALUES (
           $1, $2, $3, $4, $5,
-          $6, $7,
-          $8, $9,
+          $6, $7, $8,
+          $9::jsonb,
           $10::jsonb,
           $11::jsonb,
           $12::jsonb,
           $13::text[],
-          $14,
-          $15::jsonb,
-          $16,
-          $17,
+          $14, $15, $16,
+          $17::jsonb,
+          $18, $19,
           NOW(),
           NOW()
         )
@@ -193,18 +232,20 @@ export class TicketTemplateController {
         description ?? null,
         category,
         subcategory ?? null,
-        companyId ?? null,
-        departmentId ?? null,
+        companyId ?? null,  // ✅ Hierarquia de empresa - null = global
         String(priority),
         String(templateType),
-        jsonFields,
+        jsonRequiredFields,  // ✅ Campos obrigatórios
+        jsonCustomFields,    // ✅ Campos customizáveis
         jsonAutomation,
         jsonWorkflow,
         finalTags,
         isDefaultBool,
+        isSystem ?? false,   // ✅ Template do sistema
+        status ?? 'draft',   // ✅ Status do template
         jsonPermissions,
         createdBy,
-        finalUserRole
+        createdBy            // ✅ updated_by inicial = created_by
       ]);
 
       console.log('[CREATE-TEMPLATE] Template created successfully:', result.rows[0]);
