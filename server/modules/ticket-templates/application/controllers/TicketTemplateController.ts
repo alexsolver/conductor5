@@ -75,26 +75,26 @@ export class TicketTemplateController {
         subcategory,
         companyId,
         departmentId,
-        automation,
-        workflow,
         tags,
         isDefault,
-        permissions,
         userRole, // opcional no body; fallback para role do token
         // ✅ 1QA.MD: Novos campos para templates
         requiredFields,
         customFields,
         isSystem,
-        status
+        status,
+        automation,
+        workflow,
+        permissions
       } = req.body;
 
       // Required validations
-      if (!name || !category || !priority || !templateType || fields == null) {
+      if (!name || !category || !priority || !templateType) {
         console.error('[CREATE-TEMPLATE] Missing required fields');
         return res.status(400).json({
           success: false,
           message: 'Missing required fields',
-          errors: ['name, category, priority, templateType e fields são obrigatórios'],
+          errors: ['name, category, priority e templateType são obrigatórios'],
           code: 'MISSING_REQUIRED_FIELDS'
         });
       }
@@ -171,14 +171,13 @@ export class TicketTemplateController {
       // Normalize optional values
       const finalTags = Array.isArray(tags) ? tags.map((t: any) => String(t)) : null;
 
-      // Prepare JSONB fields (use ::jsonb no SQL)
-      const jsonFields         = typeof fields === 'string' ? fields : JSON.stringify(fields ?? []);
-      const jsonAutomation     = automation == null ? null : (typeof automation === 'string' ? automation : JSON.stringify(automation));
-      const jsonWorkflow       = workflow   == null ? null : (typeof workflow   === 'string' ? workflow   : JSON.stringify(workflow));
-      const jsonPermissions    = permissions== null ? null : (typeof permissions=== 'string' ? permissions: JSON.stringify(permissions));
-      // ✅ 1QA.MD: Novos campos JSONB
-      const jsonRequiredFields = requiredFields == null ? null : (typeof requiredFields === 'string' ? requiredFields : JSON.stringify(requiredFields));
-      const jsonCustomFields   = customFields == null ? null : (typeof customFields === 'string' ? customFields : JSON.stringify(customFields));
+      // ✅ 1QA.MD: Prepare JSONB fields para novos campos
+      const jsonAutomation     = automation == null ? '{"enabled": false}' : (typeof automation === 'string' ? automation : JSON.stringify(automation));
+      const jsonWorkflow       = workflow   == null ? '{"enabled": false}' : (typeof workflow   === 'string' ? workflow   : JSON.stringify(workflow));
+      const jsonPermissions    = permissions== null ? '[]' : (typeof permissions=== 'string' ? permissions: JSON.stringify(permissions));
+      // ✅ 1QA.MD: Novos campos JSONB obrigatórios
+      const jsonRequiredFields = requiredFields == null ? '[]' : (typeof requiredFields === 'string' ? requiredFields : JSON.stringify(requiredFields));
+      const jsonCustomFields   = customFields == null ? '[]' : (typeof customFields === 'string' ? customFields : JSON.stringify(customFields));
 
       const createdBy = user.id;
       const finalUserRole = userRole || user.role || 'user';

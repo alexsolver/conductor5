@@ -12,7 +12,7 @@ import { eq, and, desc, like, sql } from 'drizzle-orm';
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
 import { TicketTemplate, UserFeedback } from '../../domain/entities/TicketTemplate';
 import { db } from '../../../../db';
-import { ticketTemplates } from '../../../../../shared/schema';
+import { ticketTemplates } from '../../../../../shared/schema-tenant';
 
 export class DrizzleTicketTemplateRepository implements ITicketTemplateRepository {
 
@@ -372,7 +372,7 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
         .from(ticketTemplates)
         .where(and(
           eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.customerCompanyId, companyId),
+          eq(ticketTemplates.companyId, companyId),
           eq(ticketTemplates.isActive, true)
         ))
         .orderBy(desc(ticketTemplates.usageCount));
