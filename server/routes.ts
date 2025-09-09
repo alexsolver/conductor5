@@ -517,8 +517,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "./modules/ticket-templates/routes"
     );
 
-    // ✅ 1QA.MD: Mount at correct path per specification
-    app.use("/api/ticket-templates", ticketTemplateRoutes.default);
+    // ✅ 1QA.MD: Mount at correct path per specification with auth
+    app.use("/api/ticket-templates", authMiddleware, tenantValidationMiddleware, ticketTemplateRoutes.default);
 
     console.log(
       "✅ [TICKET-TEMPLATES-MODULE] Routes mounted successfully at /api/ticket-templates",
