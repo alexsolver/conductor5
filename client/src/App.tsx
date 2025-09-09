@@ -52,7 +52,6 @@ import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
 import InternalForms from './pages/InternalForms';
 import Companies from "./pages/Companies";
-import TechnicalSkills from "./pages/TechnicalSkills";
 import TicketTemplates from "./pages/TicketTemplates";
 import SlaManagement from "./pages/SlaManagement";
 
@@ -172,7 +171,7 @@ function AppRouter() {
         <Route path="/tenant-admin/solicitantes" component={Customers} />
         <Route path="/tenant-admin/beneficiaries" component={Beneficiaries} />
         <Route path="/companies" component={Companies} />
-        <Route path="/technical-skills" component={TechnicalSkills} />
+        {/* TechnicalSkills migrated to TeamManagement skills tab per 1qa.md */}
         {/* Removed: external-contacts route - functionality eliminated */}
         <Route path="/locations" component={LocationsNew} />
 
