@@ -56,6 +56,32 @@ import { schema } from '../../../shared/schema';
 const tableName = `${tenantId}.table_name`;
 // ✅ Validar constraints existentes
 if (!tenantId) throw new Error('Tenant ID required');
+
+🏢 REGRA MULTITENANT OBRIGATÓRIA
+❗ CRITICAL: Todos os novos campos/tabelas DEVEM seguir estrutura multitenant:
+✅ SEMPRE criar em schema tenant específico (tenant_uuid)
+✅ SEMPRE incluir tenant_id em todas as tabelas
+✅ SEMPRE validar isolamento entre tenants
+✅ SEMPRE usar constraints de tenant_id UUID v4
+❌ NUNCA criar campos no schema público
+❌ NUNCA criar tabelas sem tenant_id
+❌ NUNCA permitir cross-tenant data access
+
+// ✅ Padrão OBRIGATÓRIO para novos campos/tabelas:
+export const newTable = pgTable('new_table', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(), // OBRIGATÓRIO
+  // outros campos...
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+}, (table) => [
+  // CONSTRAINT obrigatório para tenant_id
+  check('tenant_id_uuid_format', 
+    sql`LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'`
+  ),
+  // UNIQUE constraints sempre com tenant_id
+  unique(['tenant_id', 'field_name'])
+]);
 Controllers Pattern
 // ✅ SEMPRE seguir este padrão
 export class ModuleController {
@@ -89,6 +115,9 @@ Antes de qualquer implementação, verificar:
  Padrão: Estrutura de módulos seguida?
  Nomenclatura: Consistente com o sistema?
  Tenant: Multi-tenancy respeitado?
+ 🏢 Multitenant: Novos campos em schema tenant?
+ 🏢 Multitenant: tenant_id obrigatório em tabelas?
+ 🏢 Multitenant: Constraints de isolamento aplicados?
  Tipos: TypeScript strict compliance?
  Testes: Fluxos validados?
 🚨 VIOLAÇÕES CRÍTICAS A EVITAR
@@ -100,6 +129,13 @@ Antes de qualquer implementação, verificar:
 - Misturar responsabilidades entre camadas
 - Ignorar validação de tenant
 - Criar dependências circulares
+🏢 VIOLAÇÕES MULTITENANT CRÍTICAS:
+- ❌ NUNCA criar campos/tabelas no schema público
+- ❌ NUNCA criar tabelas sem tenant_id obrigatório
+- ❌ NUNCA permitir queries cross-tenant
+- ❌ NUNCA usar constraints unique sem tenant_id
+- ❌ NUNCA ignorar validação UUID v4 para tenant_id
+- ❌ NUNCA criar foreign keys sem tenant_id matching
 📝 TEMPLATE DE RESPOSTA
 Ao implementar qualquer solução, sempre iniciar com:
 
