@@ -1430,31 +1430,41 @@ const TicketsTable = React.memo(() => {
   
   // ✅ 1QA.MD: Fetch available templates using direct fetch
   React.useEffect(() => {
+    console.log('🔗 [TEMPLATES] useEffect triggered');
+    
     const fetchTemplates = async () => {
       try {
         console.log('🔗 [TEMPLATES] Starting fetch...');
         setTemplatesLoading(true);
+        
+        // Simple test first
+        console.log('🔗 [TEMPLATES] Making API request...');
         const response = await apiRequest('GET', '/api/ticket-templates');
-        console.log('🔗 [TEMPLATES] Response status:', response.status);
+        console.log('🔗 [TEMPLATES] Response received, status:', response.status);
         
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('🔗 [TEMPLATES] API Error:', errorText);
+          console.error('🔗 [TEMPLATES] API Error response:', errorText);
           throw new Error(`Failed to fetch templates: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('🔗 [TEMPLATES] Success! Data:', data);
+        console.log('🔗 [TEMPLATES] Parse successful! Data:', data);
         setTemplatesData(data);
       } catch (error) {
         console.error('🔗 [TEMPLATES] Fetch error:', error);
         setTemplatesData(null);
       } finally {
+        console.log('🔗 [TEMPLATES] Fetch complete');
         setTemplatesLoading(false);
       }
     };
 
-    fetchTemplates();
+    // Add delay to ensure all other calls complete first
+    setTimeout(() => {
+      console.log('🔗 [TEMPLATES] Starting delayed fetch...');
+      fetchTemplates();
+    }, 1000);
   }, []);
 
   console.log('🔗 [TEMPLATE-INTEGRATION] Current state:', {
