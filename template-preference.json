@@ -1,36 +1,36 @@
 {
-  "selectedTemplate": "global-teal",
-  "appliedAt": "2025-09-09T13:02:49.182Z",
+  "selectedTemplate": "modern-gradient",
+  "appliedAt": "2025-09-09T13:16:45.211Z",
   "template": {
-    "id": "global-teal",
-    "name": "Global Business",
-    "description": "Layout internacional com verde-azulado e elementos globais",
+    "id": "modern-gradient",
+    "name": "Modern Gradient",
+    "description": "Design moderno com gradientes vibrantes e elementos fluidos",
     "icon": {
       "type": {},
       "key": null,
       "ref": null,
       "props": {
-        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:130:8",
-        "data-component-name": "Globe",
+        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:70:8",
+        "data-component-name": "Sparkles",
         "className": "w-6 h-6"
       },
       "_owner": null,
       "_store": {}
     },
-    "preview": "linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%)",
+    "preview": "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
     "colors": {
-      "primary": "#0f766e",
-      "secondary": "#14b8a6",
-      "accent": "#f59e0b",
-      "background": "#f0fdfa"
+      "primary": "#667eea",
+      "secondary": "#764ba2",
+      "accent": "#f093fb",
+      "background": "#fafafa"
     },
     "features": [
-      "Cores internacionais",
-      "Layout responsivo",
-      "Ícones globais",
-      "Acessibilidade aprimorada"
+      "Gradientes animados",
+      "Micro-interações",
+      "Cards flutuantes",
+      "Efeitos de glassmorphism"
     ],
-    "style": "classic",
+    "style": "modern",
     "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e"
   }
 }
