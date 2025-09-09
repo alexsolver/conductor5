@@ -1442,8 +1442,29 @@ const TicketsTable = React.memo(() => {
   console.log('🔗 [TEMPLATE-INTEGRATION] Templates query result:', {
     templatesData,
     templatesLoading,
-    selectedTemplateId
+    selectedTemplateId,
+    debugInfo: templatesData ? 'Data received' : 'No data received'
   });
+
+  // Debug: Test API call manually
+  const testTemplatesAPI = async () => {
+    try {
+      console.log('🧪 [DEBUG] Manual API test starting...');
+      const response = await apiRequest('GET', '/api/ticket-templates');
+      console.log('🧪 [DEBUG] API Response status:', response.status);
+      const data = await response.json();
+      console.log('🧪 [DEBUG] API Response data:', data);
+    } catch (error) {
+      console.error('🧪 [DEBUG] API Error:', error);
+    }
+  };
+
+  // Call test function once
+  React.useEffect(() => {
+    if (!templatesData && !templatesLoading) {
+      testTemplatesAPI();
+    }
+  }, [templatesData, templatesLoading]);
 
   // Form setup
   const form = useForm<TicketFormData>({
