@@ -310,6 +310,15 @@ export default function TicketTemplates() {
   });
 
   const handleCreateTemplate = (data: TemplateFormData) => {
+    console.log('🎯 [HANDLE-CREATE] Button clicked, data received:', {
+      name: data.name,
+      templateType: data.templateType,
+      category: data.category,
+      requiredFieldsCount: data.requiredFields?.length || 0,
+      customFieldsCount: data.customFields?.length || 0
+    });
+    
+    console.log('🎯 [HANDLE-CREATE] Calling mutation...');
     createTemplateMutation.mutate(data);
   };
 
@@ -900,13 +909,20 @@ export default function TicketTemplates() {
                                   <label key={field.name} className="flex items-center space-x-2 text-sm">
                                     <input
                                       type="checkbox"
-                                      checked={form.watch('requiredFields')?.includes(field.name) || false}
+                                      checked={form.watch('requiredFields')?.some((rf: any) => rf.fieldName === field.name) || false}
                                       onChange={(e) => {
                                         const currentFields = form.getValues('requiredFields') || [];
                                         if (e.target.checked) {
-                                          form.setValue('requiredFields', [...currentFields, field.name]);
+                                          const newField = {
+                                            fieldName: field.name,
+                                            fieldType: 'text',
+                                            label: field.label,
+                                            required: true,
+                                            order: currentFields.length + 1
+                                          };
+                                          form.setValue('requiredFields', [...currentFields, newField]);
                                         } else {
-                                          form.setValue('requiredFields', currentFields.filter(f => f !== field.name));
+                                          form.setValue('requiredFields', currentFields.filter((f: any) => f.fieldName !== field.name));
                                         }
                                       }}
                                       className="rounded border-orange-300"
