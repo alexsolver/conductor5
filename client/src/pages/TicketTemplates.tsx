@@ -742,14 +742,14 @@ export default function TicketTemplates() {
                 )}
               />
 
-              {/* Category and Priority */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* ✅ 1QA.MD: Configurações básicas do template */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categoria</FormLabel>
+                      <FormLabel>Categoria do Template</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="Ex: Suporte, Infraestrutura" 
@@ -764,34 +764,10 @@ export default function TicketTemplates() {
 
                 <FormField
                   control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prioridade Padrão</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-priority">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="low">Baixa</SelectItem>
-                          <SelectItem value="medium">Média</SelectItem>
-                          <SelectItem value="high">Alta</SelectItem>
-                          <SelectItem value="urgent">Urgente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>Status do Template</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-status">
@@ -810,29 +786,172 @@ export default function TicketTemplates() {
                 />
               </div>
 
-              {/* Required Fields Info for Creation Templates */}
+              {/* ✅ 1QA.MD: Campos Obrigatórios e Customizáveis */}
               {form.watch('templateType') === 'creation' && (
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start space-x-3">
-                      <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-blue-900">Campos Obrigatórios para Templates de Criação</h4>
-                        <p className="text-sm text-blue-700 mt-1">
-                          Templates de criação devem incluir os campos: Empresa, Cliente, Beneficiário, Status e Resumo.
-                          Estes campos serão automaticamente incluídos no template.
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {getDefaultRequiredFields().map((field, index) => (
-                            <Badge key={index} variant="outline" className="bg-white text-blue-700">
-                              {field.label}
-                            </Badge>
-                          ))}
+                <div className="space-y-4">
+                  <Card className="border-green-200 bg-green-50">
+                    <CardContent className="pt-4">
+                      <div className="flex items-start space-x-3">
+                        <ShieldCheck className="w-5 h-5 text-green-600 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-green-900">Campos Obrigatórios (Fixos)</h4>
+                          <p className="text-sm text-green-700 mt-1">
+                            Todo template de criação deve incluir estes campos obrigatórios:
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {getDefaultRequiredFields().map((field, index) => (
+                              <Badge key={index} variant="outline" className="bg-white text-green-700 border-green-300">
+                                {field.label}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-purple-200 bg-purple-50">
+                    <CardContent className="pt-4">
+                      <div className="flex items-start space-x-3">
+                        <Settings className="w-5 h-5 text-purple-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
+                          <p className="text-sm text-purple-700 mt-1">
+                            Configure valores padrão que serão aplicados ao criar tickets com este template:
+                          </p>
+                          
+                          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-purple-800">Prioridade Padrão</label>
+                              <FormField
+                                control={form.control}
+                                name="priority"
+                                render={({ field }) => (
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="low">Baixa</SelectItem>
+                                      <SelectItem value="medium">Média</SelectItem>
+                                      <SelectItem value="high">Alta</SelectItem>
+                                      <SelectItem value="urgent">Urgente</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="text-sm font-medium text-purple-800">Categoria Padrão</label>
+                              <Input 
+                                placeholder="Ex: Suporte Técnico"
+                                className="mt-1"
+                                value={form.watch('subcategory') || ''}
+                                onChange={(e) => form.setValue('subcategory', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-orange-200 bg-orange-50">
+                    <CardContent className="pt-4">
+                      <div className="flex items-start space-x-3">
+                        <Plus className="w-5 h-5 text-orange-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-orange-900">Campos Customizados Adicionais</h4>
+                          <p className="text-sm text-orange-700 mt-1">
+                            Adicione campos extras que serão incluídos neste template:
+                          </p>
+                          
+                          <div className="mt-4">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="text-orange-700 border-orange-300"
+                              onClick={() => {
+                                const newField = {
+                                  id: crypto.randomUUID(),
+                                  name: '',
+                                  label: '',
+                                  type: 'text' as const,
+                                  required: false,
+                                  order: form.getValues('customFields').length + 1,
+                                  placeholder: '',
+                                  helpText: '',
+                                };
+                                const currentFields = form.getValues('customFields') || [];
+                                form.setValue('customFields', [...currentFields, newField]);
+                              }}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Adicionar Campo Customizado
+                            </Button>
+                            
+                            {form.watch('customFields')?.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                {form.watch('customFields').map((field, index) => (
+                                  <div key={field.id} className="flex items-center space-x-2 p-2 bg-white rounded border">
+                                    <Input
+                                      placeholder="Nome do campo"
+                                      value={field.label}
+                                      onChange={(e) => {
+                                        const fields = form.getValues('customFields');
+                                        fields[index].label = e.target.value;
+                                        fields[index].name = e.target.value.toLowerCase().replace(/\s+/g, '_');
+                                        form.setValue('customFields', fields);
+                                      }}
+                                      className="flex-1"
+                                    />
+                                    <Select
+                                      value={field.type}
+                                      onValueChange={(value) => {
+                                        const fields = form.getValues('customFields');
+                                        fields[index].type = value as any;
+                                        form.setValue('customFields', fields);
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-32">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="text">Texto</SelectItem>
+                                        <SelectItem value="textarea">Texto Longo</SelectItem>
+                                        <SelectItem value="number">Número</SelectItem>
+                                        <SelectItem value="email">Email</SelectItem>
+                                        <SelectItem value="phone">Telefone</SelectItem>
+                                        <SelectItem value="date">Data</SelectItem>
+                                        <SelectItem value="select">Lista</SelectItem>
+                                        <SelectItem value="checkbox">Checkbox</SelectItem>
+                                        <SelectItem value="file">Arquivo</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const fields = form.getValues('customFields');
+                                        fields.splice(index, 1);
+                                        form.setValue('customFields', fields);
+                                      }}
+                                    >
+                                      <Trash2 className="w-4 h-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               )}
 
               {/* Settings */}
