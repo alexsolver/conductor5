@@ -119,15 +119,24 @@ export default function Tickets() {
   });
 
   // ✅ 1QA.MD: Query para templates de criação
-  const { data: templatesData, isLoading: templatesLoading } = useQuery({
+  const { data: templatesData, isLoading: templatesLoading, error: templatesError } = useQuery({
     queryKey: ["/api/ticket-templates"],
     queryFn: async () => {
+      console.log('🔄 [TEMPLATE-QUERY] Iniciando busca de templates...');
       const response = await apiRequest("GET", "/api/ticket-templates");
       const data = await response.json();
+      console.log('🔍 [TEMPLATE-QUERY] Response status:', response.status);
       console.log('🔍 [TEMPLATE-QUERY] Templates loaded:', data);
       return data;
-    }
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   });
+  
+  // ✅ 1QA.MD: Log errors
+  if (templatesError) {
+    console.error('❌ [TEMPLATE-QUERY] Error loading templates:', templatesError);
+  }
 
   // Fetch customers for the dropdown
   const { data: customersData, isLoading: customersLoading, error: customersError } = useQuery({
@@ -223,6 +232,23 @@ export default function Tickets() {
 
   console.log('🔍 Raw companies from API before filtering:', rawCompanies.length);
   console.log('🔍 Filtered companies for dropdown:', companies.length);
+  
+  // ✅ 1QA.MD: Debug template data loading - FORCE ALWAYS LOG
+  console.log('🔍 [TEMPLATE-DEBUG] Template data status:', {
+    isLoading: templatesLoading,
+    hasData: !!templatesData,
+    dataKeys: templatesData ? Object.keys(templatesData) : [],
+    dataLength: templatesData?.data?.length || 0,
+    hasError: !!templatesError,
+    errorMessage: templatesError?.message || 'no error'
+  });
+  
+  // ✅ 1QA.MD: Force debug always for template investigation
+  console.log('🚨 [TEMPLATE-FORCE-DEBUG] Always logging templates state:', {
+    templatesData,
+    templatesLoading,
+    templatesError
+  });
 
   // Additional debug for Default company filtering
   const defaultCompany = rawCompanies.find((c: any) => c.name?.toLowerCase().includes('default'));
@@ -539,7 +565,7 @@ export default function Tickets() {
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t('tickets.template')} (Opcional)
+                        Template (Opcional)
                       </label>
                       <Select 
                         onValueChange={async (value) => {
