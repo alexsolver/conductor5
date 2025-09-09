@@ -23,9 +23,9 @@ const templateFormSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().min(1, 'Descrição é obrigatória'),
   category: z.string().min(1, 'Categoria é obrigatória'),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
-  urgency: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
-  impact: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  urgency: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  impact: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   defaultTitle: z.string(),
   defaultDescription: z.string(),
   defaultTags: z.string(),
@@ -428,7 +428,7 @@ export default function TicketTemplates() {
   const handleEditTemplate = (template: TicketTemplate) => {
     console.log('🔧 [EDIT-TEMPLATE] Opening edit modal for template:', template);
     setEditingTemplate(template);
-    
+
     // Reset form with template data
     form.reset({
       name: template.name,
@@ -445,7 +445,7 @@ export default function TicketTemplates() {
       autoAssign: template.auto_assign,
       defaultAssigneeRole: template.default_assignee_role || '',
     });
-    
+
     setIsEditOpen(true);
   };
 
@@ -474,7 +474,7 @@ export default function TicketTemplates() {
       case 'low': return 'bg-green-100 text-green-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'high': return 'bg-orange-100 text-orange-800';
-      case 'critical': return 'bg-red-100 text-red-800';
+      case 'urgent': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -484,7 +484,7 @@ export default function TicketTemplates() {
       case 'low': return 'Baixa';
       case 'medium': return 'Média';
       case 'high': return 'Alta';
-      case 'critical': return 'Crítica';
+      case 'urgent': return 'Urgente';
       default: return priority;
     }
   };
@@ -883,7 +883,7 @@ export default function TicketTemplates() {
                             <SelectItem value="low">Baixa</SelectItem>
                             <SelectItem value="medium">Média</SelectItem>
                             <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Crítica</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -907,7 +907,7 @@ export default function TicketTemplates() {
                             <SelectItem value="low">Baixa</SelectItem>
                             <SelectItem value="medium">Média</SelectItem>
                             <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Crítica</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -931,7 +931,7 @@ export default function TicketTemplates() {
                             <SelectItem value="low">Baixo</SelectItem>
                             <SelectItem value="medium">Médio</SelectItem>
                             <SelectItem value="high">Alto</SelectItem>
-                            <SelectItem value="critical">Crítico</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1053,7 +1053,7 @@ export default function TicketTemplates() {
                             <SelectItem value="low">Baixa</SelectItem>
                             <SelectItem value="medium">Média</SelectItem>
                             <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Crítica</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1077,7 +1077,7 @@ export default function TicketTemplates() {
                             <SelectItem value="low">Baixa</SelectItem>
                             <SelectItem value="medium">Média</SelectItem>
                             <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Crítica</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1101,7 +1101,7 @@ export default function TicketTemplates() {
                             <SelectItem value="low">Baixo</SelectItem>
                             <SelectItem value="medium">Médio</SelectItem>
                             <SelectItem value="high">Alto</SelectItem>
-                            <SelectItem value="critical">Crítico</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
