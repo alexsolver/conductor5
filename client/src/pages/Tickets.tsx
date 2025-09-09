@@ -123,7 +123,9 @@ export default function Tickets() {
     queryKey: ["/api/ticket-templates"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/ticket-templates");
-      return response.json();
+      const data = await response.json();
+      console.log('🔍 [TEMPLATE-QUERY] Templates loaded:', data);
+      return data;
     }
   });
 
@@ -589,11 +591,22 @@ export default function Tickets() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__">Sem template</SelectItem>
-                          {templatesData?.data?.filter((template: any) => template.templateType === 'creation').map((template: any) => (
-                            <SelectItem key={template.id} value={template.id}>
-                              {template.name} - {template.category}
-                            </SelectItem>
-                          )) || []}
+                          {templatesLoading ? (
+                            <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
+                          ) : templatesData?.data?.length ? (
+                            templatesData.data
+                              .filter((template: any) => template.templateType === 'creation')
+                              .map((template: any) => {
+                                console.log('🔍 [TEMPLATE-RENDER] Template:', template);
+                                return (
+                                  <SelectItem key={template.id} value={template.id}>
+                                    {template.name} - {template.category}
+                                  </SelectItem>
+                                );
+                              })
+                          ) : (
+                            <SelectItem value="no-templates" disabled>Nenhum template encontrado</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
