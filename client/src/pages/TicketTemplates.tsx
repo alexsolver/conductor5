@@ -215,7 +215,7 @@ export default function TicketTemplates() {
     return statsResponse.data || {};
   }, [statsResponse]);
 
-  // ✅ 1QA.MD: Robust data processing - ensure categories is always an array
+  // ✅ 1QA.MD: Robust data processing - ensure categories is always an array with unique values
   const categories = React.useMemo(() => {
     console.log('🔄 [CATEGORIES-PROCESSING] Processing categories response:', {
       hasResponse: !!categoriesResponse,
@@ -229,40 +229,40 @@ export default function TicketTemplates() {
       return [];
     }
 
+    let rawCategories: string[] = [];
+
     // Handle successful response with categories array
     if (categoriesResponse.success && categoriesResponse.data?.categories) {
-      const cats = Array.isArray(categoriesResponse.data.categories) 
+      rawCategories = Array.isArray(categoriesResponse.data.categories) 
         ? categoriesResponse.data.categories 
         : [];
-      console.log('✅ [CATEGORIES-PROCESSING] Found categories:', cats.length);
-      return cats;
+      console.log('✅ [CATEGORIES-PROCESSING] Found categories:', rawCategories.length);
     }
-
     // Handle direct array response
-    if (Array.isArray(categoriesResponse.data)) {
-      console.log('✅ [CATEGORIES-PROCESSING] Direct array response:', categoriesResponse.data.length);
-      return categoriesResponse.data;
+    else if (Array.isArray(categoriesResponse.data)) {
+      rawCategories = categoriesResponse.data;
+      console.log('✅ [CATEGORIES-PROCESSING] Direct array response:', rawCategories.length);
     }
-
     // Handle direct array at root level
-    if (Array.isArray(categoriesResponse)) {
-      console.log('✅ [CATEGORIES-PROCESSING] Root array response:', categoriesResponse.length);
-      return categoriesResponse;
+    else if (Array.isArray(categoriesResponse)) {
+      rawCategories = categoriesResponse;
+      console.log('✅ [CATEGORIES-PROCESSING] Root array response:', rawCategories.length);
     }
-
     // Extract unique categories from templates if available
-    if (templates && Array.isArray(templates) && templates.length > 0) {
-      const extractedCategories = Array.from(new Set(
-        templates
-          .map((template: TicketTemplate) => template.category)
-          .filter(Boolean)
-      ));
-      console.log('✅ [CATEGORIES-PROCESSING] Extracted from templates:', extractedCategories.length);
-      return extractedCategories;
+    else if (templates && Array.isArray(templates) && templates.length > 0) {
+      rawCategories = templates
+        .map((template: TicketTemplate) => template.category)
+        .filter(Boolean);
+      console.log('✅ [CATEGORIES-PROCESSING] Extracted from templates:', rawCategories.length);
+    } else {
+      console.log('❌ [CATEGORIES-PROCESSING] Defaulting to empty array');
     }
 
-    console.log('❌ [CATEGORIES-PROCESSING] Defaulting to empty array');
-    return [];
+    // Remove duplicates and ensure unique values
+    const uniqueCategories = Array.from(new Set(rawCategories.filter(Boolean)));
+    console.log('🔧 [CATEGORIES-PROCESSING] Unique categories after deduplication:', uniqueCategories.length);
+    
+    return uniqueCategories;
   }, [categoriesResponse, templates]);
 
   // Mutation para criar template
@@ -578,8 +578,8 @@ export default function TicketTemplates() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todas as categorias</SelectItem>
-                        {categories.map((category: string) => (
-                          <SelectItem key={category} value={category}>
+                        {categories.map((category: string, index: number) => (
+                          <SelectItem key={`category-${index}-${category}`} value={category}>
                             {category}
                           </SelectItem>
                         ))}
