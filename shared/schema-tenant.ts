@@ -745,7 +745,66 @@ export const itemLinks = pgTable("item_links", { id: uuid("id").primaryKey().def
 export const itemCustomerLinks = pgTable("item_customer_links", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), itemId: uuid("item_id").notNull(), customerId: uuid("customer_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const itemSupplierLinks = pgTable("item_supplier_links", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), itemId: uuid("item_id").notNull(), supplierId: uuid("supplier_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const customerItemMappings = pgTable("customer_item_mappings", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), customerId: uuid("customer_id").notNull(), itemId: uuid("item_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const ticketTemplates = pgTable("ticket_templates", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
+// ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATES SCHEMA - FULL COMPLIANCE
+// Multitenant obrigatório com hierarquia de empresa
+export const ticketTemplates = pgTable("ticket_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(), // ✅ 1QA.MD: OBRIGATÓRIO
+  
+  // Campos básicos
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  
+  // Hierarquia de empresa (null = global, uuid = específico da empresa)
+  companyId: uuid("company_id"), // ✅ Hierárquico: null = global, uuid = empresa específica
+  
+  // Tipo do template: creation (criação) ou edit (edição)
+  templateType: varchar("template_type", { length: 50 }).notNull(), // 'creation' | 'edit'
+  
+  // Campos obrigatórios para template de CRIAÇÃO
+  // Empresa, Cliente, Beneficiário, Status e Resumo
+  requiredFields: jsonb("required_fields").default('[]'), // Array de campos obrigatórios
+  
+  // Campos customizáveis opcionais
+  customFields: jsonb("custom_fields").default('[]'), // Array de campos customizáveis
+  
+  // Configurações de template
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  priority: varchar("priority", { length: 20 }).notNull().default('medium'), // 'low' | 'medium' | 'high' | 'urgent'
+  status: varchar("status", { length: 20 }).notNull().default('draft'), // 'active' | 'inactive' | 'draft'
+  
+  // Configurações de automação
+  automation: jsonb("automation").default('{"enabled": false}'),
+  workflow: jsonb("workflow").default('{"enabled": false}'),
+  
+  // Metadados
+  tags: text("tags").array(),
+  permissions: jsonb("permissions").default('[]'),
+  isDefault: boolean("is_default").default(false),
+  isSystem: boolean("is_system").default(false),
+  usageCount: integer("usage_count").default(0),
+  lastUsed: timestamp("last_used"),
+  
+  // Auditoria
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  
+  // Soft delete
+  isActive: boolean("is_active").default(true)
+}, (table) => [
+  // ✅ 1QA.MD: CONSTRAINT obrigatório para tenant_id
+  check('tenant_id_uuid_format', 
+    sql`LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'`
+  ),
+  // ✅ UNIQUE constraints sempre com tenant_id para isolamento
+  unique(['tenant_id', 'name', 'company_id']), // Nome único por tenant/company
+  // ✅ Index para performance
+  index('idx_ticket_templates_tenant_company').on(table.tenantId, table.companyId),
+  index('idx_ticket_templates_type_status').on(table.templateType, table.status)
+]);
 
 // ========================================
 // ZOD VALIDATION SCHEMAS FOR NEW TABLES
@@ -814,4 +873,34 @@ export const insertItemLinkSchema = createInsertSchema(itemLinks);
 export const insertItemCustomerLinkSchema = createInsertSchema(itemCustomerLinks);
 export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks);
 export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings);
-export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates);
+// ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATE ZOD SCHEMA - VALIDATION
+export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
+  // Validações específicas para os campos obrigatórios
+  templateType: z.enum(['creation', 'edit'], {
+    errorMap: () => ({ message: 'Tipo do template deve ser "creation" ou "edit"' })
+  }),
+  priority: z.enum(['low', 'medium', 'high', 'urgent'], {
+    errorMap: () => ({ message: 'Prioridade deve ser low, medium, high ou urgent' })
+  }),
+  status: z.enum(['active', 'inactive', 'draft'], {
+    errorMap: () => ({ message: 'Status deve ser active, inactive ou draft' })
+  }),
+  // Para templates de criação, validar campos obrigatórios
+  requiredFields: z.array(z.object({
+    fieldName: z.string(),
+    fieldType: z.string(),
+    label: z.string(),
+    required: z.boolean().default(true)
+  })).optional().refine((fields) => {
+    // Para templates de criação, deve ter os campos obrigatórios
+    if (!fields) return true;
+    const requiredFieldNames = ['company', 'client', 'beneficiary', 'status', 'summary'];
+    const providedFieldNames = fields.map(f => f.fieldName.toLowerCase());
+    return requiredFieldNames.every(req => providedFieldNames.includes(req));
+  }, {
+    message: 'Templates de criação devem incluir os campos obrigatórios: Empresa, Cliente, Beneficiário, Status e Resumo'
+  })
+});
+
+export type InsertTicketTemplate = z.infer<typeof insertTicketTemplateSchema>;
+export type SelectTicketTemplate = typeof ticketTemplates.$inferSelect;
