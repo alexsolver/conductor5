@@ -159,7 +159,6 @@ const adminNavigation = [
       { name: "teamManagementPage", href: "/team-management", icon: Users },
       { name: "contractManagement", href: "/contract-management", icon: FileText },
       { name: "expenseManagement", href: "/expense-management", icon: CreditCard },
-      { name: "technicalSkillsPage", href: "/technical-skills", icon: Award },
       { name: "workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "slas", href: "/slas", icon: Target },
       { name: "approvals", href: "/approvals", icon: CheckCircle },
@@ -208,12 +207,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       // Check if it's already a full translation key (contains namespace)
       if (name.includes('.')) {
         translated = t(name);
-        
+
         // If translation still returns the key, try without namespace
         if (translated === name) {
           const shortName = name.split('.').pop() || name;
           translated = t(`navigation.${shortName}`);
-          
+
           // Final fallback to just the short name
           if (translated === `navigation.${shortName}`) {
             translated = t(shortName);
