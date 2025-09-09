@@ -5,22 +5,48 @@
  * 
  * @module TicketTemplateDTO
  * @compliance 1qa.md - Application Layer - DTOs
+ * @updated 2025-09-09 - Atualizado para suportar novos requisitos
  */
 
 import { z } from 'zod';
 
-// ✅ 1QA.MD: DTO para criação de template
+// ✅ 1QA.MD: DTO para criação de template - ATUALIZADO
 export const CreateTicketTemplateDTO = z.object({
   tenantId: z.string().uuid('Tenant ID inválido'),
+  
+  // ✅ Hierarquia de empresa - null = global, uuid = empresa específica
   companyId: z.string().uuid().optional().nullable(),
+  
+  // Campos básicos
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100, 'Nome muito longo'),
   description: z.string().optional(),
-  category: z.string().min(1, 'Categoria é obrigatória'),
-  subcategory: z.string().optional(),
-  templateType: z.enum(['standard', 'quick', 'escalation', 'auto_response', 'workflow']),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
-  status: z.enum(['active', 'inactive', 'draft']).default('draft'),
-  fields: z.array(z.object({
+  
+  // ✅ Tipo do template: 'creation' (criação) ou 'edit' (edição)
+  templateType: z.enum(['creation', 'edit'], {
+    errorMap: () => ({ message: 'Tipo do template deve ser "creation" ou "edit"' })
+  }),
+  
+  // ✅ Campos obrigatórios para template de CRIAÇÃO
+  // Empresa, Cliente, Beneficiário, Status e Resumo
+  requiredFields: z.array(z.object({
+    fieldName: z.string().min(1, 'Nome do campo obrigatório'),
+    fieldType: z.string().min(1, 'Tipo do campo obrigatório'),
+    label: z.string().min(1, 'Label do campo obrigatório'),
+    required: z.boolean().default(true),
+    validation: z.any().optional(),
+    order: z.number().min(0)
+  })).refine((fields) => {
+    // Para templates de criação, validar campos obrigatórios
+    const requiredFieldNames = ['company', 'client', 'beneficiary', 'status', 'summary'];
+    const providedFieldNames = fields.map(f => f.fieldName.toLowerCase());
+    return requiredFieldNames.every(req => providedFieldNames.includes(req));
+  }, {
+    message: 'Templates de criação devem incluir os campos obrigatórios: Empresa, Cliente, Beneficiário, Status e Resumo'
+  }).default([]),
+  
+  // ✅ Campos customizáveis opcionais
+  customFields: z.array(z.object({
+    id: z.string(),
     name: z.string().min(1, 'Nome do campo obrigatório'),
     label: z.string().min(1, 'Label do campo obrigatório'),
     type: z.enum(['text', 'textarea', 'number', 'email', 'phone', 'date', 'datetime', 'select', 'multiselect', 'checkbox', 'radio', 'file', 'url']),
@@ -39,6 +65,14 @@ export const CreateTicketTemplateDTO = z.object({
     readonly: z.boolean().default(false),
     hidden: z.boolean().default(false)
   })).default([]),
+  
+  // Configurações de template
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  status: z.enum(['active', 'inactive', 'draft']).default('draft'),
+  
+  // Configurações de automação (mantém compatibilidade)
   automation: z.object({
     enabled: z.boolean().default(false),
     autoAssign: z.object({
@@ -56,6 +90,7 @@ export const CreateTicketTemplateDTO = z.object({
       resolutionTime: z.number().optional()
     }).optional()
   }).default({ enabled: false }),
+  
   workflow: z.object({
     enabled: z.boolean().default(false),
     stages: z.array(z.object({
@@ -65,30 +100,50 @@ export const CreateTicketTemplateDTO = z.object({
       required: z.boolean()
     })).default([])
   }).default({ enabled: false }),
+  
+  // Metadados
   permissions: z.array(z.object({
     roleId: z.string(),
     roleName: z.string(),
     permissions: z.array(z.enum(['view', 'use', 'edit', 'delete', 'manage'])),
     grantedBy: z.string()
   })).default([]),
-  isDefault: z.boolean().default(false),
-  isPublic: z.boolean().default(true),
   tags: z.array(z.string()).default([]),
-  createdById: z.string().uuid('ID do criador inválido')
+  isDefault: z.boolean().default(false),
+  isSystem: z.boolean().default(false),
+  
+  // Auditoria
+  createdBy: z.string().uuid('ID do criador inválido')
 });
 
-// ✅ 1QA.MD: DTO para atualização de template
+// ✅ 1QA.MD: DTO para atualização de template - ATUALIZADO
 export const UpdateTicketTemplateDTO = z.object({
   tenantId: z.string().uuid(),
   templateId: z.string().uuid(),
+  
+  // Campos básicos
   name: z.string().min(3).max(100).optional(),
   description: z.string().optional(),
-  category: z.string().min(1).optional(),
-  subcategory: z.string().optional(),
-  templateType: z.enum(['standard', 'quick', 'escalation', 'auto_response', 'workflow']).optional(),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-  status: z.enum(['active', 'inactive', 'draft']).optional(),
-  fields: z.array(z.object({
+  
+  // ✅ Hierarquia de empresa
+  companyId: z.string().uuid().optional().nullable(),
+  
+  // ✅ Tipo do template: 'creation' ou 'edit'
+  templateType: z.enum(['creation', 'edit']).optional(),
+  
+  // ✅ Campos obrigatórios para template de CRIAÇÃO
+  requiredFields: z.array(z.object({
+    fieldName: z.string().min(1),
+    fieldType: z.string().min(1),
+    label: z.string().min(1),
+    required: z.boolean().default(true),
+    validation: z.any().optional(),
+    order: z.number().min(0)
+  })).optional(),
+  
+  // ✅ Campos customizáveis opcionais
+  customFields: z.array(z.object({
+    id: z.string(),
     name: z.string().min(1),
     label: z.string().min(1),
     type: z.enum(['text', 'textarea', 'number', 'email', 'phone', 'date', 'datetime', 'select', 'multiselect', 'checkbox', 'radio', 'file', 'url']),
@@ -107,6 +162,14 @@ export const UpdateTicketTemplateDTO = z.object({
     readonly: z.boolean().default(false),
     hidden: z.boolean().default(false)
   })).optional(),
+  
+  // Configurações de template
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  status: z.enum(['active', 'inactive', 'draft']).optional(),
+  
+  // Configurações de automação (mantém compatibilidade)
   automation: z.object({
     enabled: z.boolean(),
     autoAssign: z.object({
@@ -124,6 +187,7 @@ export const UpdateTicketTemplateDTO = z.object({
       resolutionTime: z.number().optional()
     }).optional()
   }).optional(),
+  
   workflow: z.object({
     enabled: z.boolean(),
     stages: z.array(z.object({
@@ -133,16 +197,20 @@ export const UpdateTicketTemplateDTO = z.object({
       required: z.boolean()
     }))
   }).optional(),
+  
+  // Metadados
   permissions: z.array(z.object({
     roleId: z.string(),
     roleName: z.string(),
     permissions: z.array(z.enum(['view', 'use', 'edit', 'delete', 'manage'])),
     grantedBy: z.string()
   })).optional(),
-  isDefault: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
-  updatedById: z.string().uuid()
+  isDefault: z.boolean().optional(),
+  isSystem: z.boolean().optional(),
+  
+  // Auditoria
+  updatedBy: z.string().uuid()
 });
 
 // ✅ 1QA.MD: DTO para consulta de templates
