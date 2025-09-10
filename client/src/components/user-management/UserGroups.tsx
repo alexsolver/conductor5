@@ -81,11 +81,11 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
 
   // Query para buscar grupos
-  const { data: groupsData, isLoading: groupsLoading } = useQuery<{ groups: UserGroup[] }>({
+  const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
     refetchInterval: 30000,
     staleTime: 5000,
-    keepPreviousData: true,
+    placeholderData: { groups: [] },
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user-management/groups");
       if (!res.ok) throw new Error("Erro ao buscar grupos");
@@ -94,6 +94,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         groups: Array.isArray(json.groups)
           ? json.groups.map((group: any) => ({
               ...group,
+              name: group.name || '',
               memberCount: group.memberCount || 0,
               isActive: group.isActive !== false,
             }))
@@ -108,12 +109,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     queryKey: ["/api/user-management/users"],
     enabled: !!editingGroup,
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/user-management/groups");
-      if (!res.ok) throw new Error("Erro ao buscar grupos");
+      const res = await apiRequest("GET", "/api/user-management/users");
+      if (!res.ok) throw new Error("Erro ao buscar usuários");
       const json = await res.json();
-      return {
-        groups: Array.isArray(json.groups) ? json.groups : [],
-      };
+      return Array.isArray(json.users) ? json.users : [];
     },
   });
 
@@ -538,7 +537,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
       {/* Lista de Grupos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {groups.length === 0 ? (
+        {(groupsData?.groups || []).length === 0 ? (
           <div className="col-span-full">
             <Card>
               <CardContent className="text-center py-8">
@@ -557,7 +556,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
             </Card>
           </div>
         ) : (
-          groups.map((group) => (
+          (groupsData?.groups || []).map((group: UserGroup) => (
             <Card key={group.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
