@@ -97,49 +97,31 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const headers: Record<string, string> = {};
 
-    // Add authorization header if token exists
-    let token = localStorage.getItem('accessToken');
-
-    // Check if token exists
-    if (!token ||
-        token === 'null' ||
-        token === 'undefined' ||
-        token === 'false' ||
-        token.trim() === '' ||
-        token.length < 20) {
-      console.log('🚫 [QUERY-CLIENT] No valid token found for query');
-      // Para queries críticas como tickets, retornar null para não causar erro
-      if (unauthorizedBehavior === "returnNull") {
-        return null;
-      }
-      // Don't redirect automatically - let component handle missing token following 1qa.md
-      console.log('🔄 [QUERY-CLIENT] No token available for query');
-      throw new Error('No authentication token available');
-    }
-
-    headers["Authorization"] = `Bearer ${token}`;
-
+    // ✅ Para HTTP-only cookies, não verificamos localStorage
+    // O browser gerencia automaticamente os cookies com credentials: 'include'
+    
     const endpoint = queryKey.join("/");
     let res = await fetch(endpoint, {
       headers,
-      credentials: "include",
+      credentials: "include", // ✅ Sempre incluir cookies para autenticação
     });
 
     // If unauthorized, try to refresh token and retry
-    if (res.status === 401 && token) {
+    if (res.status === 401) {
       console.log('🔄 [QUERY-CLIENT] 401 detected, attempting token refresh...');
       const newToken = await refreshAccessToken();
       if (newToken) {
-        headers["Authorization"] = `Bearer ${newToken}`;
         console.log('✅ [QUERY-CLIENT] Token refreshed, retrying query...');
         res = await fetch(endpoint, {
           headers,
           credentials: "include",
         });
       } else {
-        console.error('❌ [QUERY-CLIENT] Token refresh failed - not redirecting following 1qa.md');
-        // Don't force redirect following 1qa.md - let components handle auth state
-        return null; // Return null if refresh fails and we can't proceed
+        console.error('❌ [QUERY-CLIENT] Token refresh failed');
+        if (unauthorizedBehavior === "returnNull") {
+          return null;
+        }
+        throw new Error('Authentication failed');
       }
     }
 
@@ -149,6 +131,15 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
+    
+    // ✅ Verificar se há conteúdo para parse JSON (evitar erro em DELETE 204)
+    const contentType = res.headers.get('content-type');
+    const contentLength = res.headers.get('content-length');
+    
+    if (res.status === 204 || contentLength === '0' || !contentType?.includes('application/json')) {
+      return {}; // Retornar objeto vazio para respostas sem conteúdo
+    }
+    
     return await res.json();
   };
 
