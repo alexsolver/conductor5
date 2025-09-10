@@ -10,7 +10,9 @@ import {
   json, 
   timestamp, 
   pgEnum,
-  serial 
+  serial,
+  boolean,
+  uuid 
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { createInsertSchema } from 'drizzle-zod';
@@ -86,6 +88,34 @@ export const saasAdminAuditLog = pgTable('saas_admin_audit_log', {
 });
 
 // ===========================================================================================
+// SAAS GROUPS TABLE - Global Groups Managed by SaaS Admin
+// ===========================================================================================
+
+export const saasGroups = pgTable('saas_groups', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdById: uuid('created_by_id') // References users table but no FK constraint for flexibility
+});
+
+// ===========================================================================================
+// SAAS GROUP MEMBERSHIPS TABLE - Global Group Memberships
+// ===========================================================================================
+
+export const saasGroupMemberships = pgTable('saas_group_memberships', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  groupId: uuid('group_id').notNull().references(() => saasGroups.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(), // References users table but no FK constraint for flexibility
+  role: varchar('role', { length: 100 }).notNull().default('member'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  assignedById: uuid('assigned_by_id') // References users table but no FK constraint for flexibility
+});
+
+// ===========================================================================================
 // ZOD VALIDATION SCHEMAS
 // ===========================================================================================
 
@@ -106,6 +136,17 @@ export const insertSaasAdminAuditLogSchema = createInsertSchema(saasAdminAuditLo
   timestamp: true
 });
 
+export const insertSaasGroupSchema = createInsertSchema(saasGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertSaasGroupMembershipSchema = createInsertSchema(saasGroupMemberships).omit({
+  id: true,
+  createdAt: true
+});
+
 // ===========================================================================================
 // TYPESCRIPT TYPES
 // ===========================================================================================
@@ -118,6 +159,12 @@ export type InsertSaasAdminSettings = z.infer<typeof insertSaasAdminSettingsSche
 
 export type SaasAdminAuditLog = typeof saasAdminAuditLog.$inferSelect;
 export type InsertSaasAdminAuditLog = z.infer<typeof insertSaasAdminAuditLogSchema>;
+
+export type SaasGroup = typeof saasGroups.$inferSelect;
+export type InsertSaasGroup = z.infer<typeof insertSaasGroupSchema>;
+
+export type SaasGroupMembership = typeof saasGroupMemberships.$inferSelect;
+export type InsertSaasGroupMembership = z.infer<typeof insertSaasGroupMembershipSchema>;
 
 // ===========================================================================================
 // INTEGRATION CONFIG VALIDATION SCHEMAS
