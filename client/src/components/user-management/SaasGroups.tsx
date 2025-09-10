@@ -72,17 +72,13 @@ export function SaasGroups() {
     isLoading,
     error
   } = useQuery<SaasGroupsResponse>({
-    queryKey: ['/api/saas/groups'],
-    queryFn: () => apiRequest('/api/saas/groups')
+    queryKey: ['/api/saas/groups']
   });
 
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: (data: { name: string; description: string }) =>
-      apiRequest('/api/saas/groups', {
-        method: 'POST',
-        body: data
-      }),
+      apiRequest('POST', '/api/saas/groups', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/groups'] });
       setIsCreateDialogOpen(false);
@@ -104,10 +100,7 @@ export function SaasGroups() {
   // Update group mutation
   const updateGroupMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: { name: string; description: string } }) =>
-      apiRequest(`/api/saas/groups/${id}`, {
-        method: 'PUT',
-        body: data
-      }),
+      apiRequest('PUT', `/api/saas/groups/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/groups'] });
       setIsEditDialogOpen(false);
@@ -130,9 +123,7 @@ export function SaasGroups() {
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: (id: string) =>
-      apiRequest(`/api/saas/groups/${id}`, {
-        method: 'DELETE'
-      }),
+      apiRequest('DELETE', `/api/saas/groups/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/groups'] });
       toast({
@@ -152,10 +143,7 @@ export function SaasGroups() {
   // Add member mutation
   const addMemberMutation = useMutation({
     mutationFn: ({ groupId, data }: { groupId: string; data: { userId: string; role: string } }) =>
-      apiRequest(`/api/saas/groups/${groupId}/members`, {
-        method: 'POST',
-        body: data
-      }),
+      apiRequest('POST', `/api/saas/groups/${groupId}/members`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/groups'] });
       setIsMemberDialogOpen(false);
@@ -177,9 +165,7 @@ export function SaasGroups() {
   // Remove member mutation
   const removeMemberMutation = useMutation({
     mutationFn: ({ groupId, userId }: { groupId: string; userId: string }) =>
-      apiRequest(`/api/saas/groups/${groupId}/members/${userId}`, {
-        method: 'DELETE'
-      }),
+      apiRequest('DELETE', `/api/saas/groups/${groupId}/members/${userId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/groups'] });
       toast({
