@@ -42,6 +42,7 @@ import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
 import tenantAdminTeamRoutes from "./routes/tenantAdminTeamRoutes";
 import teamMembersRoutes from "./routes/teamMembersRoutes";
+import saasGroupRoutes from "./routes/saasGroupRoutes";
 
 import { integrityRouter as integrityRoutes } from "./routes/integrityRoutes";
 import systemScanRoutes from "./routes/systemScanRoutes";
@@ -551,6 +552,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log(
     "✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully",
   );
+
+  // ✅ SaaS Groups routes - Global groups management for SaaS Admin
+  console.log("🏗️ [SAAS-GROUPS] Initializing SaaS Groups routes...");
+  app.use("/api/saas", saasGroupRoutes);
+  console.log("✅ [SAAS-GROUPS] SaaS Groups routes configured successfully");
   console.log(
     "🚨 [DEBUG] Reached after SaaS Admin - about to register TICKET-TEMPLATES...",
   );
