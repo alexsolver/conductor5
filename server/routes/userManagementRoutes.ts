@@ -648,9 +648,9 @@ router.delete('/groups/:groupId',
       // Check if group exists - removendo tenant_id pois não existe na tabela
       const groupQuery = `
         SELECT id FROM "${schemaName}".user_groups 
-        WHERE id = $1 AND is_active = true
+        WHERE id = '${groupId}' AND is_active = true
       `;
-      const groupResult = await db.execute(sql.raw(groupQuery, [groupId]));
+      const groupResult = await db.execute(sql.raw(groupQuery));
 
       if (!groupResult.rows.length) {
         console.log(`Group ${groupId} not found for tenant ${tenantId}`);
@@ -663,21 +663,18 @@ router.delete('/groups/:groupId',
       // First, remove all memberships for this group
       const deleteMembershipsQuery = `
         DELETE FROM "${schemaName}".user_group_memberships 
-        WHERE group_id = $1
+        WHERE group_id = '${groupId}'
       `;
-      await db.execute(sql.raw(deleteMembershipsQuery, [groupId]));
+      await db.execute(sql.raw(deleteMembershipsQuery));
 
       // Then, delete the group (soft delete by setting is_active to false) - removendo tenant_id
       const deleteGroupQuery = `
         UPDATE "${schemaName}".user_groups 
-        SET is_active = false, updated_at = $1
-        WHERE id = $2
+        SET is_active = false, updated_at = '${new Date().toISOString()}'
+        WHERE id = '${groupId}'
       `;
 
-      const result = await db.execute(sql.raw(deleteGroupQuery, [
-        new Date(),
-        groupId
-      ]));
+      const result = await db.execute(sql.raw(deleteGroupQuery));
 
       if (result.rowCount === 0) {
         return res.status(500).json({ 
