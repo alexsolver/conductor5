@@ -28,14 +28,7 @@ const createSkillSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').max(255),
   category: z.string().min(1, 'Categoria é obrigatória'),
   description: z.string().optional(),
-  suggestedCertification: z.string().optional(),
-  certificationValidityMonths: z.number().positive().optional(),
-  observations: z.string().optional(),
-  scaleOptions: z.array(z.object({
-    level: z.number(),
-    label: z.string(),
-    description: z.string()
-  })).optional(),
+  level: z.string().optional(),
 });
 
 /**
@@ -162,7 +155,7 @@ router.post('/skills', async (req: Request, res: Response) => {
       name: validatedData.name,
       category: validatedData.category,
       description: validatedData.description || '',
-      level: 'intermediate', // Default level
+      level: validatedData.level || 'intermediate',
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date()
