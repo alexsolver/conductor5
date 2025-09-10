@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,33 +10,23 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { 
   Plus, 
   Users, 
   Edit, 
   Trash2, 
-  User, 
   UserPlus, 
-  UserMinus, 
-  Save,
-  X,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  Globe
+  Loader2
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { SaasGroups } from "./SaasGroups";
+import { useAuth } from "@/hooks/useAuth";
 
 interface UserGroup {
   id: string;
@@ -46,74 +35,67 @@ interface UserGroup {
   isActive: boolean;
   memberCount?: number;
   createdAt?: string;
+  updatedAt?: string;
   memberships?: Array<{
     id: string;
     userId: string;
-    user?: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      email: string;
-    };
+    role: string;
+    isActive: boolean;
+    createdAt: string;
+    assignedById: string;
   }>;
 }
 
 interface UserForGroup {
   id: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
-  name?: string;
+  name: string;
+  role: string;
+  isActive: boolean;
 }
 
-interface UserGroupsProps {
-  tenantAdmin?: boolean;
+interface GroupsResponse {
+  success: boolean;
+  groups: UserGroup[];
+  count: number;
 }
 
-export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
-  const { t } = useTranslation();
+interface UsersResponse {
+  success: boolean;
+  members: UserForGroup[];
+}
+
+export function UserGroups() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  
-  // Check if user is SaaS Admin
-  const isSaasAdmin = user?.role === 'saas_admin';
-
-  // Estados principais
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
-  const [activeTab, setActiveTab] = useState("info");
-  const [mainTab, setMainTab] = useState("tenant-groups");
-
-  // Estados do formulário
+  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
+  const [selectedGroupForMember, setSelectedGroupForMember] = useState<UserGroup | null>(null);
+  const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
   });
 
-  // Estados para adicionar membro
-  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
-  const [selectedGroupForMember, setSelectedGroupForMember] = useState<UserGroup | null>(null);
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
-  const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
-
-  // Fetch grupos
-  const { 
-    data: groupsData, 
-    isLoading: groupsLoading, 
+  // Fetch grupos do tenant (não grupos SaaS)
+  const {
+    data: groupsData,
+    isLoading: groupsLoading,
     error: groupsError,
-    refetch: refetchGroups 
-  } = useQuery({
+    refetch: refetchGroups,
+  } = useQuery<GroupsResponse>({
     queryKey: ['/api/user-management/groups'],
-    enabled: true,
   });
 
-  // Fetch todos os usuários para adicionar aos grupos
-  const { 
-    data: allUsersData, 
-    isLoading: allUsersLoading 
-  } = useQuery({
+  // Fetch todos os usuários para adicionar como membros
+  const {
+    data: allUsersData,
+    isLoading: allUsersLoading,
+  } = useQuery<UsersResponse>({
     queryKey: ['/api/user-management/members'],
     enabled: showAddMemberDialog,
   });
@@ -146,10 +128,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para criar grupo
   const createGroupMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return apiRequest('/api/user-management/groups', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('POST', '/api/user-management/groups', data);
     },
     onSuccess: () => {
       toast({
@@ -162,7 +141,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       console.error("Error creating group:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao criar grupo';
+      const errorMessage = error?.message || 'Erro ao criar grupo';
       toast({
         title: "Erro",
         description: errorMessage,
@@ -174,10 +153,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para atualizar grupo
   const updateGroupMutation = useMutation({
     mutationFn: async (data: typeof formData & { id: string }) => {
-      return apiRequest(`/api/user-management/groups/${data.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('PUT', `/api/user-management/groups/${data.id}`, data);
     },
     onSuccess: () => {
       toast({
@@ -190,7 +166,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       console.error("Error updating group:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao atualizar grupo';
+      const errorMessage = error?.message || 'Erro ao atualizar grupo';
       toast({
         title: "Erro",
         description: errorMessage,
@@ -202,9 +178,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para deletar grupo
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      return apiRequest(`/api/user-management/groups/${groupId}`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/user-management/groups/${groupId}`);
     },
     onSuccess: () => {
       toast({
@@ -215,7 +189,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       console.error("Error deleting group:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao excluir grupo';
+      const errorMessage = error?.message || 'Erro ao excluir grupo';
       toast({
         title: "Erro",
         description: errorMessage,
@@ -224,10 +198,43 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
   });
 
-  // Função para criar/atualizar grupo
-  const handleCreateGroup = async (e: React.FormEvent) => {
+  // Mutation para adicionar membros
+  const addMemberMutation = useMutation({
+    mutationFn: async ({ groupId, userIds }: { groupId: string; userIds: string[] }) => {
+      return apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userIds });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Membros adicionados com sucesso",
+      });
+      setShowAddMemberDialog(false);
+      setSelectedGroupForMember(null);
+      setSelectedGroupMembers([]);
+      refetchGroups();
+    },
+    onError: (error: any) => {
+      console.error("Error adding members:", error);
+      const errorMessage = error?.message || 'Erro ao adicionar membros';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    
+    if (!formData.name.trim()) {
+      toast({
+        title: "Erro",
+        description: "Nome do grupo é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (editingGroup) {
       updateGroupMutation.mutate({ ...formData, id: editingGroup.id });
@@ -236,283 +243,224 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     }
   };
 
-  // Função para fechar dialog de adicionar membro
-  const handleCloseAddMemberDialog = () => {
-    setShowAddMemberDialog(false);
-    setSelectedGroupForMember(null);
-    setSelectedMembers([]);
-    setSelectedGroupMembers([]);
-  };
-
-  // Função para fechar dialog de edição
-  const handleCloseDialog = () => {
-    setEditingGroup(null);
-    setActiveTab("info");
-  };
-
-  // Função para adicionar/remover membro
-  const handleToggleMember = (userId: string) => {
-    const isCurrentlySelected = selectedGroupMembers.includes(userId);
-    
-    if (isCurrentlySelected) {
-      setSelectedGroupMembers(prev => prev.filter(id => id !== userId));
-    } else {
-      setSelectedGroupMembers(prev => [...prev, userId]);
-    }
-  };
-
-  // Função para atualizar membros do grupo
-  const handleUpdateGroupMemberships = async () => {
-    if (!selectedGroupForMember) return;
-
-    setIsUpdatingMemberships(true);
-
-    try {
-      await apiRequest(`/api/user-management/groups/${selectedGroupForMember.id}/members`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          userIds: selectedGroupMembers
-        }),
-      });
-
-      toast({
-        title: "Sucesso",
-        description: "Membros do grupo atualizados com sucesso",
-      });
-
-      handleCloseAddMemberDialog();
-      refetchGroups();
-    } catch (error: any) {
-      console.error("Error updating group memberships:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao atualizar membros do grupo';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdatingMemberships(false);
-    }
-  };
-
-  // Função para confirmar exclusão
   const handleDeleteGroup = (group: UserGroup) => {
-    if (window.confirm(`Tem certeza que deseja excluir o grupo "${group.name}"?`)) {
+    if (confirm(`Tem certeza que deseja excluir o grupo "${group.name}"?`)) {
       deleteGroupMutation.mutate(group.id);
     }
   };
 
-  const groups = groupsData?.groups || [];
+  const handleCloseAddMemberDialog = () => {
+    setShowAddMemberDialog(false);
+    setSelectedGroupForMember(null);
+    setSelectedGroupMembers([]);
+  };
+
+  const handleAddMembers = () => {
+    if (!selectedGroupForMember) return;
+    
+    const currentMemberIds = selectedGroupForMember.memberships?.map(m => m.userId) || [];
+    const newMemberIds = selectedGroupMembers.filter(id => !currentMemberIds.includes(id));
+    
+    if (newMemberIds.length === 0) {
+      toast({
+        title: "Aviso",
+        description: "Nenhum novo membro foi selecionado",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    addMemberMutation.mutate({
+      groupId: selectedGroupForMember.id,
+      userIds: newMemberIds,
+    });
+  };
+
+  const handleMemberToggle = (userId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedGroupMembers(prev => [...prev, userId]);
+    } else {
+      setSelectedGroupMembers(prev => prev.filter(id => id !== userId));
+    }
+  };
 
   if (groupsLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
         <span className="ml-2">Carregando grupos...</span>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Gestão de Grupos</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Gerencie grupos de usuários do tenant {isSaasAdmin && 'e grupos globais SaaS'}
+  if (groupsError) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Erro ao carregar grupos
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Não foi possível carregar os grupos. Tente novamente.
           </p>
+          <Button onClick={() => refetchGroups()}>
+            Tentar novamente
+          </Button>
         </div>
       </div>
+    );
+  }
 
-      {/* Main Tabs */}
-      <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
-        <TabsList className={`grid w-full ${isSaasAdmin ? 'grid-cols-2' : 'grid-cols-1'}`}>
-          <TabsTrigger value="tenant-groups" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Grupos do Tenant
-          </TabsTrigger>
-          {isSaasAdmin && (
-            <TabsTrigger value="saas-groups" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Grupos SaaS
-            </TabsTrigger>
-          )}
-        </TabsList>
+  const groups = groupsData?.groups || [];
 
-        {/* Tenant Groups Tab */}
-        <TabsContent value="tenant-groups" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-md font-medium">Grupos do Tenant</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Grupos específicos deste tenant
-              </p>
-            </div>
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Grupo
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Criar Novo Grupo</DialogTitle>
-                  <DialogDescription>
-                    Crie um novo grupo de usuários para organizar sua equipe
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleCreateGroup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Grupo</Label>
-                    <Input
-                      id="name"
-                      placeholder="Ex: Suporte Técnico"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Descrição</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Descrição do grupo..."
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setShowCreateDialog(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={createGroupMutation.isPending || !formData.name.trim()}
-                    >
-                      {createGroupMutation.isPending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Criando...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Criar
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Grupos do Tenant</h2>
+          <p className="text-muted-foreground">
+            Gerencie grupos de usuários específicos deste tenant
+          </p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Criar Grupo
+        </Button>
+      </div>
 
-          {/* Lista de Grupos do Tenant */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groups.length === 0 ? (
-              <div className="col-span-full">
-                <Card>
-                  <CardContent className="text-center py-8">
-                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                      Nenhum grupo encontrado
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      Crie seu primeiro grupo para organizar sua equipe
-                    </p>
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Criar Primeiro Grupo
-                    </Button>
-                  </CardContent>
-                </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {groups.map((group) => (
+          <Card key={group.id}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">{group.name}</CardTitle>
+                <Badge variant="secondary">
+                  <Users className="h-3 w-3 mr-1" />
+                  {group.memberCount || 0}
+                </Badge>
               </div>
-            ) : (
-              groups.filter(Boolean).map((group: UserGroup) => (
-                <Card key={group.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base truncate">{group?.name || 'Grupo sem nome'}</CardTitle>
-                        {group?.description && (
-                          <CardDescription className="mt-1 text-sm">
-                            {group.description}
-                          </CardDescription>
-                        )}
-                      </div>
-                      <Badge variant={group?.isActive ? "default" : "secondary"}>
-                        {group?.isActive ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                        <Users className="h-4 w-4 mr-1" />
-                        <span>{group?.memberCount || group?.memberships?.length || 0} membros</span>
-                      </div>
-                      <div className="flex space-x-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedGroupForMember(group);
-                            setShowAddMemberDialog(true);
-                          }}
-                          title="Adicionar membro"
-                        >
-                          <UserPlus className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => group && setEditingGroup(group)}
-                          title="Editar grupo"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => group && handleDeleteGroup(group)}
-                          disabled={deleteGroupMutation.isPending}
-                          title="Excluir grupo"
-                        >
-                          {deleteGroupMutation.isPending ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </TabsContent>
+              {group.description && (
+                <CardDescription>{group.description}</CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedGroupForMember(group);
+                    setShowAddMemberDialog(true);
+                  }}
+                  title="Adicionar membro"
+                >
+                  <UserPlus className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditingGroup(group)}
+                  title="Editar grupo"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDeleteGroup(group)}
+                  disabled={deleteGroupMutation.isPending}
+                  title="Excluir grupo"
+                >
+                  {deleteGroupMutation.isPending ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-        {/* SaaS Groups Tab */}
-        {isSaasAdmin && (
-          <TabsContent value="saas-groups" className="space-y-6">
-            <SaasGroups />
-          </TabsContent>
-        )}
-      </Tabs>
+      {/* Dialog para criar/editar grupo */}
+      <Dialog open={showCreateDialog || !!editingGroup} onOpenChange={(open) => {
+        if (!open) {
+          setShowCreateDialog(false);
+          setEditingGroup(null);
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingGroup ? "Editar Grupo" : "Criar Novo Grupo"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingGroup ? "Atualize as informações do grupo" : "Insira as informações do novo grupo"}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nome do Grupo</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="Digite o nome do grupo"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Digite uma descrição para o grupo"
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowCreateDialog(false);
+                  setEditingGroup(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createGroupMutation.isPending || updateGroupMutation.isPending}
+              >
+                {createGroupMutation.isPending || updateGroupMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {editingGroup ? "Atualizando..." : "Criando..."}
+                  </>
+                ) : (
+                  editingGroup ? "Atualizar" : "Criar"
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-      {/* Dialog de Adicionar Membro */}
+      {/* Dialog para adicionar membros */}
       <Dialog open={showAddMemberDialog} onOpenChange={handleCloseAddMemberDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Adicionar Membro ao Grupo</DialogTitle>
+            <DialogTitle>Adicionar Membros ao Grupo</DialogTitle>
             <DialogDescription>
               Selecione usuários para adicionar ao grupo "{selectedGroupForMember?.name}"
             </DialogDescription>
@@ -527,203 +475,56 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
             ) : (
               <ScrollArea className="max-h-96">
                 <div className="space-y-2">
-                  {(allUsersData?.members || [])
-                    .map((user: UserForGroup) => {
-                      const isInGroup = selectedGroupMembers.includes(user.id);
-                      return (
-                        <div
-                          key={user.id}
-                          className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Checkbox
-                              checked={isInGroup}
-                              onCheckedChange={() => handleToggleMember(user.id)}
-                            />
-                            <div>
-                              <p className="text-sm font-medium">
-                                {user.name || `${user.firstName} ${user.lastName}`}
-                              </p>
-                              <p className="text-xs text-gray-500">{user.email}</p>
-                            </div>
+                  {(allUsersData?.members || []).map((user: UserForGroup) => {
+                    const isInGroup = selectedGroupMembers.includes(user.id);
+                    return (
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            checked={isInGroup}
+                            onCheckedChange={(checked) =>
+                              handleMemberToggle(user.id, checked as boolean)
+                            }
+                          />
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-gray-500">{user.email}</p>
                           </div>
-                          {isInGroup && (
-                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          )}
                         </div>
-                      );
-                    })}
+                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                          {user.role}
+                        </Badge>
+                      </div>
+                    );
+                  })}
                 </div>
               </ScrollArea>
             )}
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleCloseAddMemberDialog}>
-              <X className="h-4 w-4 mr-2" />
               Cancelar
             </Button>
-            <Button 
-              onClick={handleUpdateGroupMemberships}
-              disabled={isUpdatingMemberships}
+            <Button
+              onClick={handleAddMembers}
+              disabled={addMemberMutation.isPending || selectedGroupMembers.length === 0}
             >
-              {isUpdatingMemberships ? (
+              {addMemberMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Salvando...
+                  Adicionando...
                 </>
               ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar
-                </>
+                "Adicionar Membros"
               )}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Dialog de Edição de Grupo */}
-      {editingGroup && (
-        <Dialog open={!!editingGroup} onOpenChange={() => setEditingGroup(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Editar Grupo</DialogTitle>
-              <DialogDescription>
-                Atualize as informações do grupo "{editingGroup.name}"
-              </DialogDescription>
-            </DialogHeader>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="info">Informações</TabsTrigger>
-                <TabsTrigger value="members">Membros</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="info" className="space-y-4">
-                <form onSubmit={handleCreateGroup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-name">Nome do Grupo</Label>
-                    <Input
-                      id="edit-name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-description">Descrição</Label>
-                    <Textarea
-                      id="edit-description"
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={handleCloseDialog}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={updateGroupMutation.isPending || !formData.name.trim()}
-                    >
-                      {updateGroupMutation.isPending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Salvando...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Salvar
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="members" className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Membros do Grupo</h4>
-                  <Badge variant="secondary">
-                    {editingGroup.memberships?.length || 0} membros
-                  </Badge>
-                </div>
-
-                {(editingGroup.memberships?.length || 0) === 0 ? (
-                  <div className="text-center py-8">
-                    <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">
-                      Nenhum membro neste grupo
-                    </p>
-                    <Button 
-                      size="sm" 
-                      className="mt-2"
-                      onClick={() => {
-                        setSelectedGroupForMember(editingGroup);
-                        setShowAddMemberDialog(true);
-                        setEditingGroup(null);
-                      }}
-                    >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Adicionar Membros
-                    </Button>
-                  </div>
-                ) : (
-                  <ScrollArea className="max-h-64">
-                    <div className="space-y-2">
-                      {editingGroup.memberships?.map((membership) => (
-                        <div
-                          key={membership.id}
-                          className="flex items-center justify-between p-2 border rounded"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <User className="h-4 w-4 text-gray-400" />
-                            <div>
-                              <p className="text-sm font-medium">
-                                {membership.user ? 
-                                  `${membership.user.firstName} ${membership.user.lastName}` : 
-                                  'Usuário não encontrado'
-                                }
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {membership.user?.email}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              // Implementar remoção de membro específico
-                              console.log('Remove member:', membership.userId);
-                            }}
-                          >
-                            <UserMinus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                )}
-
-                <div className="flex justify-end">
-                  <Button variant="outline" onClick={handleCloseDialog}>
-                    <X className="h-4 w-4 mr-2" />
-                    Fechar
-                  </Button>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }
