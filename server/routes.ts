@@ -89,6 +89,8 @@ import { knowledgeBaseRoutes } from "./modules/knowledge-base/routes";
 import customFieldRoutes from "./modules/custom-fields/routes";
 // ✅ 1QA.MD COMPLIANCE: Import Company Clean Architecture routes
 import companiesCleanRoutes from "./modules/companies/routes-clean";
+// ✅ 1QA.MD COMPLIANCE: Import Technical Skills Clean Architecture routes
+import technicalSkillsRoutes from "./modules/technical-skills/routes";
 
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
@@ -558,6 +560,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...",
   );
   app.use("/api", notificationRoutes);
+  
+  // ✅ 1QA.MD COMPLIANCE: Technical Skills Clean Architecture Routes
+  app.use("/api/technical-skills", technicalSkillsRoutes);
   console.log(
     "✅ [NOTIFICATIONS-ALERTS] Clean Architecture module registered at /api/notifications",
   );
