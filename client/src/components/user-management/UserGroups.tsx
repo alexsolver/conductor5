@@ -256,12 +256,23 @@ export function UserGroups() {
   };
 
   const handleAddMembers = () => {
-    if (!selectedGroupForMember) return;
+    console.log("🐛 [TENANT-GROUPS] handleAddMembers called");
+    console.log("🐛 [TENANT-GROUPS] selectedGroupForMember:", selectedGroupForMember);
+    console.log("🐛 [TENANT-GROUPS] selectedGroupMembers:", selectedGroupMembers);
+    
+    if (!selectedGroupForMember) {
+      console.log("🐛 [TENANT-GROUPS] No group selected, returning early");
+      return;
+    }
     
     const currentMemberIds = selectedGroupForMember.memberships?.map(m => m.userId) || [];
     const newMemberIds = selectedGroupMembers.filter(id => !currentMemberIds.includes(id));
     
+    console.log("🐛 [TENANT-GROUPS] currentMemberIds:", currentMemberIds);
+    console.log("🐛 [TENANT-GROUPS] newMemberIds:", newMemberIds);
+    
     if (newMemberIds.length === 0) {
+      console.log("🐛 [TENANT-GROUPS] No new members selected");
       toast({
         title: "Aviso",
         description: "Nenhum novo membro foi selecionado",
@@ -269,6 +280,11 @@ export function UserGroups() {
       });
       return;
     }
+    
+    console.log("🐛 [TENANT-GROUPS] Calling mutation with:", {
+      groupId: selectedGroupForMember.id,
+      userIds: newMemberIds,
+    });
     
     addMemberMutation.mutate({
       groupId: selectedGroupForMember.id,
