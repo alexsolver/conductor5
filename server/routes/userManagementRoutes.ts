@@ -817,7 +817,10 @@ router.post('/groups/:groupId/members/bulk',
       const uniqueUserIds = Array.from(new Set(userIds));
 
       // Verificar se o grupo existe
-      const group = await db.select().from(userGroups)
+      const group = await db.select({
+        id: userGroups.id,
+        isActive: userGroups.isActive
+      }).from(userGroups)
         .where(and(
           eq(userGroups.id, groupId),
           eq(userGroups.isActive, true)
