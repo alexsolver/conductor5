@@ -633,6 +633,7 @@ router.delete('/groups/:groupId',
     try {
       const { groupId } = req.params;
       const tenantId = req.user?.tenantId;
+      const userRole = req.user?.role;
 
       if (!tenantId) {
         return res.status(400).json({ 
@@ -641,26 +642,67 @@ router.delete('/groups/:groupId',
         });
       }
 
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log(`🗑️ [USER-GROUPS] Deleting group ${groupId} for user role: ${userRole}, tenant: ${tenantId}`);
 
-      console.log(`🗑️ [USER-GROUPS] Deleting group ${groupId} in schema: ${schemaName}`);
+      let targetSchema = null;
+      let groupFound = false;
 
-      // Define schema-qualified table identifiers
-      const groupsTable = sql.raw(`"${schemaName}".user_groups`);
-      const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
+      // For SaaS Admin - search across all tenant schemas
+      if (userRole === 'saas_admin') {
+        console.log('🗑️ [USER-GROUPS] SaaS Admin - searching group across all tenants');
+        
+        // Get all tenants
+        const tenantsResult = await db.execute(sql`SELECT id FROM tenants WHERE is_active = true`);
+        const tenantIds = tenantsResult.rows.map((row: any) => row.id);
 
-      // Check if group exists
-      const groupResult = await db.execute(
-        sql`SELECT id FROM ${groupsTable} WHERE id = ${groupId} AND is_active = true`
-      );
+        // Search for the group in each tenant schema
+        for (const currentTenantId of tenantIds) {
+          const schemaName = `tenant_${currentTenantId.replace(/-/g, '_')}`;
+          
+          try {
+            const groupsTable = sql.raw(`"${schemaName}".user_groups`);
+            const checkResult = await db.execute(
+              sql`SELECT id FROM ${groupsTable} WHERE id = ${groupId} AND is_active = true`
+            );
 
-      if (!groupResult.rows.length) {
-        console.log(`Group ${groupId} not found for tenant ${tenantId}`);
+            if (checkResult.rows.length > 0) {
+              targetSchema = schemaName;
+              groupFound = true;
+              console.log(`🗑️ [USER-GROUPS] Found group ${groupId} in schema: ${schemaName}`);
+              break;
+            }
+          } catch (error: any) {
+            if (error.code === '42P01') { // Table/schema doesn't exist
+              console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist, skipping...`);
+              continue;
+            }
+            throw error;
+          }
+        }
+      } else {
+        // For Workspace Admin - search only in own tenant
+        console.log('🗑️ [USER-GROUPS] Workspace Admin - searching in own tenant only');
+        targetSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+        
+        const groupsTable = sql.raw(`"${targetSchema}".user_groups`);
+        const groupResult = await db.execute(
+          sql`SELECT id FROM ${groupsTable} WHERE id = ${groupId} AND is_active = true`
+        );
+        
+        groupFound = groupResult.rows.length > 0;
+      }
+
+      if (!groupFound || !targetSchema) {
+        console.log(`🗑️ [USER-GROUPS] Group ${groupId} not found in any accessible tenant`);
         return res.status(404).json({ 
           success: false,
           message: 'Group not found' 
         });
       }
+
+      // Define schema-qualified table identifiers
+      const groupsTable = sql.raw(`"${targetSchema}".user_groups`);
+      const membershipsTable = sql.raw(`"${targetSchema}".user_group_memberships`);
 
       // First, remove all memberships for this group
       await db.execute(
@@ -680,7 +722,7 @@ router.delete('/groups/:groupId',
         });
       }
 
-      console.log(`✅ [USER-GROUPS] Deleted group ${groupId}`);
+      console.log(`✅ [USER-GROUPS] Deleted group ${groupId} from schema: ${targetSchema}`);
 
       res.json({
         success: true,
