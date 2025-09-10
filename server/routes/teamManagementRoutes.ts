@@ -613,8 +613,8 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
         if (updateData.groupIds.length > 0) {
           for (const groupId of updateData.groupIds) {
             await db.execute(sql`
-              INSERT INTO user_group_memberships (user_id, group_id, created_at)
-              VALUES (${id}, ${groupId}, NOW())
+              INSERT INTO user_group_memberships (user_id, group_id, tenant_id, added_at)
+              VALUES (${id}, ${groupId}, ${user.tenantId}, NOW())
               ON CONFLICT (user_id, group_id) DO NOTHING
             `);
           }
