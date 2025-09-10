@@ -1,40 +1,28 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-async function refreshAccessToken(): Promise<string | null> {
+async function refreshAccessToken(): Promise<boolean> {
   try {
-    // Get refresh token from localStorage (if stored) or cookies
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!refreshToken) {
-      console.log('No refresh token available');
-      return null;
-    }
-
+    // ✅ Para HTTP-only cookies, não precisamos de tokens no localStorage
+    // O refresh é feito puramente via cookies HTTP-only
     const response = await fetch('/api/auth/refresh', {
       method: 'POST',
-      credentials: 'include',
+      credentials: 'include', // ✅ Cookies são enviados automaticamente
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ refreshToken }),
+      // ✅ Sem body - refresh baseado em cookies
     });
 
     if (!response.ok) {
-      console.log('Refresh token failed - not redirecting to avoid interrupting user operations');
-      // Don't force redirect following 1qa.md - let components handle auth state
-      return null;
+      console.log('Token refresh failed - HTTP-only cookies expired');
+      return false;
     }
 
-    const data = await response.json();
-    localStorage.setItem('accessToken', data.accessToken);
-    if (data.refreshToken) {
-      localStorage.setItem('refreshToken', data.refreshToken);
-    }
-    return data.accessToken;
+    console.log('✅ Token refreshed successfully via HTTP-only cookies');
+    return true;
   } catch (error) {
     console.error('Token refresh failed:', error);
-    // Don't force redirect following 1qa.md - let components handle auth state
-    return null;
+    return false;
   }
 }
 
@@ -109,8 +97,8 @@ export const getQueryFn: <T>(options: {
     // If unauthorized, try to refresh token and retry
     if (res.status === 401) {
       console.log('🔄 [QUERY-CLIENT] 401 detected, attempting token refresh...');
-      const newToken = await refreshAccessToken();
-      if (newToken) {
+      const refreshSucceeded = await refreshAccessToken();
+      if (refreshSucceeded) {
         console.log('✅ [QUERY-CLIENT] Token refreshed, retrying query...');
         res = await fetch(endpoint, {
           headers,
@@ -137,7 +125,7 @@ export const getQueryFn: <T>(options: {
     const contentLength = res.headers.get('content-length');
     
     if (res.status === 204 || contentLength === '0' || !contentType?.includes('application/json')) {
-      return {}; // Retornar objeto vazio para respostas sem conteúdo
+      return null; // ✅ Retornar null para respostas sem conteúdo (mais seguro que {})
     }
     
     return await res.json();
