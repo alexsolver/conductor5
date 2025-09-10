@@ -1423,59 +1423,31 @@ const TicketsTable = React.memo(() => {
     hasToken: !!localStorage.getItem('accessToken')
   });
 
-  // ✅ 1QA.MD: Template state - load when modal opens
+  // ✅ 1QA.MD: Template management state
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined);
   const [templatesData, setTemplatesData] = useState<any>(null);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   
-  // ✅ 1QA.MD: Fetch templates when modal opens
+  // ✅ 1QA.MD: Load templates following Clean Architecture patterns
   const loadTemplates = async () => {
-    console.log('🔗 [LOAD-TEMPLATES] Function called!');
-    console.log('🔗 [LOAD-TEMPLATES] Current templatesData:', templatesData);
-    
-    if (templatesData) {
-      console.log('🔗 [LOAD-TEMPLATES] Already loaded, returning early');
-      return; // Already loaded
-    }
+    if (templatesData) return; // Already loaded
     
     try {
-      console.log('🔗 [LOAD-TEMPLATES] Starting API call...');
       setTemplatesLoading(true);
-      console.log('🔗 [LOAD-TEMPLATES] Loading state set to true');
-      
-      console.log('🔗 [LOAD-TEMPLATES] Making apiRequest...');
       const response = await apiRequest('GET', '/api/ticket-templates');
-      console.log('🔗 [LOAD-TEMPLATES] Response received:', response);
-      console.log('🔗 [LOAD-TEMPLATES] Response status:', response.status);
-      console.log('🔗 [LOAD-TEMPLATES] Response ok:', response.ok);
       
       if (response.ok) {
-        console.log('🔗 [LOAD-TEMPLATES] Parsing JSON...');
         const data = await response.json();
-        console.log('🔗 [LOAD-TEMPLATES] Data parsed successfully:', data);
         setTemplatesData(data);
-        console.log('🔗 [LOAD-TEMPLATES] State updated with data');
       } else {
-        console.error('🔗 [LOAD-TEMPLATES] Response not ok:', response.status);
-        const errorText = await response.text();
-        console.error('🔗 [LOAD-TEMPLATES] Error text:', errorText);
         setTemplatesData({ success: false, data: [] });
       }
     } catch (error) {
-      console.error('🔗 [LOAD-TEMPLATES] Exception caught:', error);
-      console.error('🔗 [LOAD-TEMPLATES] Error details:', error instanceof Error ? error.message : String(error));
       setTemplatesData({ success: false, data: [] });
     } finally {
-      console.log('🔗 [LOAD-TEMPLATES] Setting loading to false');
       setTemplatesLoading(false);
     }
   };
-
-  console.log('🔗 [TEMPLATES] State:', { 
-    hasData: !!templatesData, 
-    loading: templatesLoading,
-    selectedId: selectedTemplateId
-  });
 
   // Form setup
   const form = useForm<TicketFormData>({
@@ -2138,12 +2110,8 @@ const TicketsTable = React.memo(() => {
           <div className="flex gap-3">
             <Button
               onClick={() => {
-                console.log('🔗 [BUTTON] Button clicked!');
-                console.log('🔗 [BUTTON] Opening modal...');
                 setIsNewTicketModalOpen(true);
-                console.log('🔗 [BUTTON] Modal state set, now calling loadTemplates...');
                 loadTemplates();
-                console.log('🔗 [BUTTON] loadTemplates called');
               }}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
