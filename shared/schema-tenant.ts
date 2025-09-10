@@ -221,7 +221,6 @@ export const userGroups = pgTable("user_groups", {
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  createdBy: uuid("created_by"),
   createdById: uuid("created_by_id"),
   updatedById: uuid("updated_by_id"),
 });
