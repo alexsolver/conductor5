@@ -113,18 +113,38 @@ export default function TechnicalSkillsTab() {
   // Queries
   const { data: skillsResponse, isLoading } = useQuery<SkillsResponse>({
     queryKey: ["/api/technical-skills/skills"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/technical-skills/skills");
+      if (!res.ok) throw new Error("Erro ao buscar habilidades");
+      return res.json();
+    },
   });
 
   const { data: categoriesResponse } = useQuery<CategoriesResponse>({
     queryKey: ["/api/technical-skills/skills/categories"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/technical-skills/skills/categories");
+      if (!res.ok) throw new Error("Erro ao buscar categorias");
+      return res.json();
+    },
   });
 
   const { data: expiredCertsResponse } = useQuery<CertificationsResponse>({
     queryKey: ["/api/technical-skills/certifications/expired"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/technical-skills/certifications/expired");
+      if (!res.ok) throw new Error("Erro ao buscar certificações expiradas");
+      return res.json();
+    },
   });
 
   const { data: expiringCertsResponse } = useQuery<CertificationsResponse>({
     queryKey: ["/api/technical-skills/certifications/expiring"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/technical-skills/certifications/expiring");
+      if (!res.ok) throw new Error("Erro ao buscar certificações expirando");
+      return res.json();
+    },
   });
 
   // Extract data from responses
@@ -153,20 +173,10 @@ export default function TechnicalSkillsTab() {
 
   // Mutations
   const createSkillMutation = useMutation({
-    mutationFn: async (skillData: Omit<Skill, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const response = await fetch('/api/technical-skills/skills', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(skillData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create skill');
-      }
-
-      return response.json();
+    mutationFn: async (skillData: SkillFormData) => {
+      const res = await apiRequest("POST", "/api/technical-skills/skills", skillData);
+      if (!res.ok) throw new Error("Erro ao criar habilidade");
+      return res.json();
     },
     onSuccess: async () => {
       // Invalidate and refetch queries immediately
@@ -225,11 +235,7 @@ export default function TechnicalSkillsTab() {
 
   // Event handlers
   const onCreateSubmit = (data: SkillFormData) => {
-    const submitData = {
-      ...data,
-      scaleOptions: scaleOptions
-    };
-    createSkillMutation.mutate(submitData);
+    createSkillMutation.mutate(data);
   };
 
   const onEditSubmit = (data: SkillFormData) => {
