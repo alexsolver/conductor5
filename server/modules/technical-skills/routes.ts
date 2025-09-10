@@ -11,18 +11,17 @@
  */
 
 import { Router } from 'express';
-import { db } from '../../db';
+import { db } from '../../db.js';
 import { skills, userSkills, insertSkillSchema } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { enhancedTenantValidator } from '../../middleware/tenantValidator';
+import { jwtAuth } from '../../middleware/jwtAuth.js';
 import { z } from 'zod';
+import type { Request, Response } from 'express';
 
 const router = Router();
 
-// ✅ 1QA.MD: Apply authentication and tenant validation
+// ✅ 1QA.MD: Apply authentication
 router.use(jwtAuth);
-router.use(enhancedTenantValidator);
 
 // ✅ 1QA.MD: Schema validation following existing patterns
 const createSkillSchema = z.object({
@@ -43,7 +42,7 @@ const createSkillSchema = z.object({
  * ✅ 1QA.MD: Get all skills with proper tenant isolation
  * GET /api/technical-skills/skills
  */
-router.get('/skills', async (req, res) => {
+router.get('/skills', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const tenantId = user?.tenantId;
@@ -89,7 +88,7 @@ router.get('/skills', async (req, res) => {
  * ✅ 1QA.MD: Get skill categories with proper tenant isolation
  * GET /api/technical-skills/skills/categories
  */
-router.get('/skills/categories', async (req, res) => {
+router.get('/skills/categories', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const tenantId = user?.tenantId;
@@ -140,7 +139,7 @@ router.get('/skills/categories', async (req, res) => {
  * ✅ 1QA.MD: Create new skill with proper validation and tenant isolation
  * POST /api/technical-skills/skills
  */
-router.post('/skills', async (req, res) => {
+router.post('/skills', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const tenantId = user?.tenantId;
@@ -204,7 +203,7 @@ router.post('/skills', async (req, res) => {
  * ✅ 1QA.MD: Update skill with proper validation and tenant isolation
  * PUT /api/technical-skills/skills/:id
  */
-router.put('/skills/:id', async (req, res) => {
+router.put('/skills/:id', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const tenantId = user?.tenantId;
@@ -272,7 +271,7 @@ router.put('/skills/:id', async (req, res) => {
  * ✅ 1QA.MD: Soft delete skill (set isActive = false)
  * DELETE /api/technical-skills/skills/:id
  */
-router.delete('/skills/:id', async (req, res) => {
+router.delete('/skills/:id', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const tenantId = user?.tenantId;
@@ -328,7 +327,7 @@ router.delete('/skills/:id', async (req, res) => {
  * ✅ 1QA.MD: Get expired certifications (empty for now)
  * GET /api/technical-skills/certifications/expired
  */
-router.get('/certifications/expired', async (req, res) => {
+router.get('/certifications/expired', async (req: Request, res: Response) => {
   try {
     // Return empty array for now - certification tracking not fully implemented
     res.json({
@@ -350,7 +349,7 @@ router.get('/certifications/expired', async (req, res) => {
  * ✅ 1QA.MD: Get expiring certifications (empty for now)
  * GET /api/technical-skills/certifications/expiring
  */
-router.get('/certifications/expiring', async (req, res) => {
+router.get('/certifications/expiring', async (req: Request, res: Response) => {
   try {
     // Return empty array for now - certification tracking not fully implemented
     res.json({
