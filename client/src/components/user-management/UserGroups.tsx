@@ -80,26 +80,38 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
 
-  // Query para buscar grupos
-  const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
+  // Query para buscar grupos com tratamento de erro
+  const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups, error: groupsError } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
     refetchInterval: 30000,
     staleTime: 5000,
     placeholderData: { groups: [] },
+    retry: 2,
+    retryDelay: 1000,
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/user-management/groups");
-      if (!res.ok) throw new Error("Erro ao buscar grupos");
-      const json = await res.json();
-      return {
-        groups: Array.isArray(json.groups)
-          ? json.groups.map((group: any) => ({
-              ...group,
-              name: group.name || '',
-              memberCount: group.memberCount || 0,
-              isActive: group.isActive !== false,
-            }))
-          : [],
-      };
+      try {
+        const res = await apiRequest("GET", "/api/user-management/groups");
+        if (!res.ok) {
+          console.warn("API user-management/groups returned error:", res.status);
+          return { groups: [] }; // Retorna array vazio em caso de erro
+        }
+        const json = await res.json();
+        return {
+          groups: Array.isArray(json.groups)
+            ? json.groups.filter(Boolean).map((group: any) => ({
+                ...group,
+                id: group.id || '',
+                name: group.name || 'Grupo sem nome',
+                description: group.description || '',
+                memberCount: group.memberCount || 0,
+                isActive: group.isActive !== false,
+              }))
+            : [],
+        };
+      } catch (error) {
+        console.warn("Error fetching groups:", error);
+        return { groups: [] }; // Retorna array vazio em caso de erro
+      }
     },
   });
 
@@ -561,15 +573,15 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base truncate">{group.name}</CardTitle>
-                    {group.description && (
+                    <CardTitle className="text-base truncate">{group?.name || 'Grupo sem nome'}</CardTitle>
+                    {group?.description && (
                       <CardDescription className="mt-1 text-sm">
                         {group.description}
                       </CardDescription>
                     )}
                   </div>
-                  <Badge variant={group.isActive ? "default" : "secondary"}>
-                    {group.isActive ? t('common.active') : t('common.inactive')}
+                  <Badge variant={group?.isActive ? "default" : "secondary"}>
+                    {group?.isActive ? t('common.active') : t('common.inactive')}
                   </Badge>
                 </div>
               </CardHeader>
@@ -577,20 +589,20 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Users className="h-4 w-4 mr-1" />
-                    <span>{group.memberCount || group.memberships?.length || 0} {t('userGroups.members')}</span>
+                    <span>{group?.memberCount || group?.memberships?.length || 0} {t('userGroups.members')}</span>
                   </div>
                   <div className="flex space-x-1">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setEditingGroup(group)}
+                      onClick={() => group && setEditingGroup(group)}
                     >
                       <Edit className="h-3 w-3" />
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteGroup(group)}
+                      onClick={() => group && handleDeleteGroup(group)}
                       disabled={deleteGroupMutation.isPending}
                     >
                       {deleteGroupMutation.isPending ? (
