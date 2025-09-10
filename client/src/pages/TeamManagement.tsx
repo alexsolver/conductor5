@@ -1029,7 +1029,7 @@ export default function TeamManagement() {
 
         {/* Groups Tab */}
         <TabsContent value="groups" className="space-y-4">
-          <UserGroups tenantAdmin={true} />
+          <UserGroups />
         </TabsContent>
 
         {/* Roles Tab */}

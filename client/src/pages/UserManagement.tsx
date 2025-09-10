@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { UserList } from "@/components/user-management/UserList";
 import { UserGroups } from "@/components/user-management/UserGroups";
+import { SaasGroups } from "@/components/user-management/SaasGroups";
 import CustomRoles from "@/components/user-management/CustomRoles";
 import { UserInvitations } from "@/components/user-management/UserInvitations";
 import { UserActivity } from "@/components/user-management/UserActivity";
@@ -227,7 +228,7 @@ export function UserManagement() {
           </TabsContent>
 
           <TabsContent value="groups" className="space-y-4">
-            <UserGroups />
+            {isSaasAdmin ? <SaasGroups /> : <UserGroups />}
           </TabsContent>
 
           <TabsContent value="roles" className="space-y-4">
