@@ -153,45 +153,125 @@ export default function TechnicalSkills() {
 
   // Mutations
   const createSkillMutation = useMutation({
-    mutationFn: (data: SkillFormData) => 
-      apiRequest("POST", "/api/technical-skills/skills", data),
-    onSuccess: () => {
-      toast({ title: "Habilidade criada com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
+    mutationFn: async (skillData: Omit<Skill, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const response = await fetch('/api/technical-skills/skills', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(skillData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create skill');
+      }
+
+      return response.json();
+    },
+    onSuccess: async () => {
+      // Invalidate and refetch queries immediately
+      await queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
+
+      // Force immediate refetch
+      await queryClient.refetchQueries({ 
+        queryKey: ["/api/technical-skills/skills"],
+        type: 'active'
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Habilidade criada com sucesso",
+      });
       setIsCreateDialogOpen(false);
       createForm.reset();
     },
     onError: () => {
-      toast({ title: "Erro ao criar habilidade", variant: "destructive" });
+      toast({
+        title: "Erro",
+        description: "Falha ao criar habilidade",
+        variant: "destructive",
+      });
     },
   });
 
   const updateSkillMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: SkillFormData }) =>
-      apiRequest("PUT", `/api/technical-skills/skills/${id}`, data),
-    onSuccess: () => {
-      toast({ title: "Habilidade atualizada com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
+    mutationFn: async (skillData: { id: string } & Partial<Skill>) => {
+      const response = await fetch(`/api/technical-skills/skills/${skillData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(skillData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update skill');
+      }
+
+      return response.json();
+    },
+    onSuccess: async () => {
+      // Invalidate and refetch queries immediately
+      await queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
+
+      // Force immediate refetch
+      await queryClient.refetchQueries({ 
+        queryKey: ["/api/technical-skills/skills"],
+        type: 'active'
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Habilidade atualizada com sucesso",
+      });
       setIsEditDialogOpen(false);
       setEditingSkill(null);
     },
     onError: () => {
-      toast({ title: "Erro ao atualizar habilidade", variant: "destructive" });
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar habilidade",
+        variant: "destructive",
+      });
     },
   });
 
   const deleteSkillMutation = useMutation({
-    mutationFn: (id: string) => 
-      apiRequest("DELETE", `/api/technical-skills/skills/${id}`),
-    onSuccess: () => {
-      toast({ title: "Habilidade desativada com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
+    mutationFn: async (skillId: string) => {
+      const response = await fetch(`/api/technical-skills/skills/${skillId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete skill');
+      }
+
+      return response.json();
+    },
+    onSuccess: async () => {
+      // Invalidate and refetch queries immediately
+      await queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
+
+      // Force immediate refetch
+      await queryClient.refetchQueries({ 
+        queryKey: ["/api/technical-skills/skills"],
+        type: 'active'
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Habilidade excluída com sucesso",
+      });
     },
     onError: () => {
-      toast({ title: "Erro ao desativar habilidade", variant: "destructive" });
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir habilidade",
+        variant: "destructive",
+      });
     },
   });
 
