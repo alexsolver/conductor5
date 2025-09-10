@@ -216,17 +216,15 @@ export const locations = pgTable("locations", {
 // User Groups table
 export const userGroups = pgTable("user_groups", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  permissions: jsonb("permissions").default({}),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("user_groups_tenant_id_idx").on(table.tenantId),
-  index("user_groups_tenant_active_idx").on(table.tenantId, table.isActive),
-]);
+  createdBy: uuid("created_by"),
+  createdById: uuid("created_by_id"),
+  updatedById: uuid("updated_by_id"),
+});
 
 // Activity Logs table
 export const activityLogs = pgTable("activity_logs", {
