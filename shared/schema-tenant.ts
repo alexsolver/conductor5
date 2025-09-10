@@ -434,16 +434,9 @@ export const skills = pgTable("skills", {
   name: varchar("name", { length: 255 }).notNull(),
   category: varchar("category", { length: 100 }),
   description: text("description"),
-  certificationSuggested: varchar("certification_suggested"),
-  validityMonths: integer("validity_months"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  isActive: boolean("is_active").default(true),
-  suggestedCertification: varchar("suggested_certification"),
-  certificationValidityMonths: integer("certification_validity_months"),
-  observations: text("observations"),
-  scaleOptions: jsonb("scale_options"),
-  updatedBy: uuid("updated_by"),
 }, (table) => [
   index("skills_tenant_category_idx").on(table.tenantId, table.category),
 ]);
