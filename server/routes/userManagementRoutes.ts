@@ -460,17 +460,12 @@ router.post(
       const descOrNull =
         description && String(description).trim() ? String(description).trim() : null;
 
-      const permissions = Array.isArray(req.body.permissions) ? req.body.permissions : [];
-
-      // ⬇️ CAST explícito para jsonb elimina erro de sintaxe no VALUES
-      const permissionsExpr = sql`${JSON.stringify(permissions)}::jsonb`;
-
       const insertQuery = sql`
         INSERT INTO ${tableIdent}
-          (id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
+          (id, name, description, is_active, created_by_id, created_at, updated_at)
         VALUES
-          (${groupId}, ${name.trim()}, ${descOrNull}, ${permissionsExpr}, true, ${userId}, ${nowIso}::timestamptz, ${nowIso}::timestamptz)
-        RETURNING id, name, description, permissions, is_active, created_at
+          (${groupId}, ${name.trim()}, ${descOrNull}, true, ${userId}, ${nowIso}::timestamptz, ${nowIso}::timestamptz)
+        RETURNING id, name, description, is_active, created_at
       `;
       const result = await db.execute(insertQuery);
 
@@ -492,7 +487,6 @@ router.post(
           id: newGroup.id,
           name: newGroup.name,
           description: newGroup.description,
-          permissions: newGroup.permissions || [],
           isActive: newGroup.is_active,
           createdAt: newGroup.created_at,
           memberCount: 0,
