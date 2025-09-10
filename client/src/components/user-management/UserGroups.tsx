@@ -80,6 +80,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
 
+  // Estados para adicionar membro via card
+  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
+  const [selectedGroupForMember, setSelectedGroupForMember] = useState<UserGroup | null>(null);
+
   // Query para buscar grupos com tratamento de erro
   const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups, error: groupsError } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
@@ -126,6 +130,32 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       const json = await res.json();
       return Array.isArray(json.users) ? json.users : [];
     },
+  });
+
+  // Query para buscar todos os usuários para o diálogo de adicionar membro
+  const { data: allUsersData, isLoading: allUsersLoading } = useQuery<TeamMember[]>({
+    queryKey: ["/api/user-management/users", "all"],
+    enabled: showAddMemberDialog,
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/user-management/users");
+      if (!res.ok) throw new Error("Erro ao buscar usuários");
+      const json = await res.json();
+      return Array.isArray(json.users) ? json.users : [];
+    },
+  });
+
+  // Query para buscar membros do grupo selecionado para adicionar
+  const { data: selectedGroupMembers } = useQuery({
+    queryKey: ["/api/user-management/groups", selectedGroupForMember?.id, "members"],
+    enabled: !!selectedGroupForMember?.id && showAddMemberDialog,
+    refetchOnWindowFocus: false,
+    staleTime: 10000,
+    select: (data: any) => {
+      if (data && Array.isArray(data.members)) {
+        return data.members.map((member: any) => member.userId);
+      }
+      return [];
+    }
   });
 
   // Query para buscar membros do grupo atual
@@ -337,6 +367,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     setEditingGroup(null);
     setFormData({ name: "", description: "" });
     setSelectedUsers([]);
+  };
+
+  // Função para fechar diálogo de adicionar membro
+  const handleCloseAddMemberDialog = () => {
+    setShowAddMemberDialog(false);
+    setSelectedGroupForMember(null);
   };
 
   // Função para criar grupo
@@ -595,7 +631,19 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => {
+                        setSelectedGroupForMember(group);
+                        setShowAddMemberDialog(true);
+                      }}
+                      title="Adicionar membro"
+                    >
+                      <UserPlus className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => group && setEditingGroup(group)}
+                      title="Editar grupo"
                     >
                       <Edit className="h-3 w-3" />
                     </Button>
@@ -604,6 +652,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                       variant="outline"
                       onClick={() => group && handleDeleteGroup(group)}
                       disabled={deleteGroupMutation.isPending}
+                      title="Excluir grupo"
                     >
                       {deleteGroupMutation.isPending ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -618,6 +667,73 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           ))
         )}
       </div>
+
+      {/* Dialog de Adicionar Membro */}
+      <Dialog open={showAddMemberDialog} onOpenChange={handleCloseAddMemberDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Membro ao Grupo</DialogTitle>
+            <DialogDescription>
+              Selecione um usuário para adicionar ao grupo "{selectedGroupForMember?.name}"
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {allUsersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Carregando usuários...</span>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(allUsersData || [])
+                  .filter(user => !selectedGroupMembers?.includes(user.id))
+                  .map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium">{user.firstName} {user.lastName}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{user.email}</div>
+                        {user.role && (
+                          <div className="text-xs text-gray-500">{user.role}</div>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (selectedGroupForMember) {
+                            addUserToGroupMutation.mutate({
+                              groupId: selectedGroupForMember.id,
+                              userId: user.id
+                            });
+                            handleCloseAddMemberDialog();
+                          }
+                        }}
+                        disabled={addUserToGroupMutation.isPending}
+                      >
+                        {addUserToGroupMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <UserPlus className="h-4 w-4 mr-1" />
+                            Adicionar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                {(allUsersData || []).filter(user => !selectedGroupMembers?.includes(user.id)).length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    Todos os usuários já são membros deste grupo
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de Edição */}
       <Dialog open={!!editingGroup} onOpenChange={() => handleCloseDialog()}>
