@@ -518,7 +518,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
     // ✅ 1QA.MD: Mount at correct path per specification with auth
-    app.use("/api/ticket-templates", authMiddleware, tenantValidationMiddleware, ticketTemplateRoutes.default);
+    // TEMPORARILY DISABLED - Using emergency endpoint instead
+    // app.use("/api/ticket-templates", authMiddleware, tenantValidationMiddleware, ticketTemplateRoutes.default);
 
     console.log(
       "✅ [TICKET-TEMPLATES-MODULE] Routes mounted successfully at /api/ticket-templates",
