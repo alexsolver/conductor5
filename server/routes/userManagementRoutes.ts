@@ -793,6 +793,98 @@ router.post('/groups/:groupId/members',
   }
 );
 
+// Add multiple users to group (bulk operation)
+router.post('/groups/:groupId/members/bulk', 
+  jwtAuth, 
+  requirePermission('tenant', 'manage_users'), 
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { groupId } = req.params;
+      const { userIds } = req.body;
+      const tenantId = req.user!.tenantId;
+
+      console.log(`👥 [TENANT-GROUPS] Adding ${userIds?.length || 0} members to tenant group: ${groupId}`);
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'userIds must be a non-empty array'
+        });
+      }
+
+      // Deduplicar userIds
+      const uniqueUserIds = Array.from(new Set(userIds));
+
+      // Verificar se o grupo existe
+      const group = await db.select().from(userGroups)
+        .where(and(
+          eq(userGroups.id, groupId),
+          eq(userGroups.isActive, true)
+        ))
+        .limit(1);
+
+      if (!group.length) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Group not found' 
+        });
+      }
+
+      // Verificar quais usuários já são membros ativos
+      const existingMemberships = await db.select()
+        .from(userGroupMemberships)
+        .where(and(
+          eq(userGroupMemberships.groupId, groupId),
+          eq(userGroupMemberships.isActive, true)
+        ));
+
+      const existingUserIds = new Set(existingMemberships.map(m => m.userId));
+      const newUserIds = uniqueUserIds.filter(userId => !existingUserIds.has(userId));
+
+      if (newUserIds.length === 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'All selected users are already members of this group'
+        });
+      }
+
+      // Preparar dados para inserção múltipla
+      const membershipData = newUserIds.map(userId => ({
+        userId,
+        groupId,
+        role: 'member',
+        addedById: req.user!.id,
+        isActive: true
+      }));
+
+      // Inserir múltiplos membros
+      const newMemberships = await db
+        .insert(userGroupMemberships)
+        .values(membershipData)
+        .onConflictDoNothing({ target: [userGroupMemberships.groupId, userGroupMemberships.userId] })
+        .returning();
+
+      console.log(`✅ [TENANT-GROUPS] Added ${newMemberships.length} members to tenant group: ${groupId}`);
+
+      const skippedUsers = uniqueUserIds.filter(userId => existingUserIds.has(userId));
+
+      res.status(201).json({
+        success: true,
+        memberships: newMemberships,
+        added: newMemberships.length,
+        skipped: skippedUsers.length,
+        skippedUsers
+      });
+    } catch (error) {
+      console.error('Error adding multiple members to group:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to add members to group' 
+      });
+    }
+  }
+);
+
 // Remove user from group
 router.delete('/groups/:groupId/members/:userId', 
   jwtAuth, 

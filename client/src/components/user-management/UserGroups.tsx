@@ -198,10 +198,10 @@ export function UserGroups() {
     },
   });
 
-  // Mutation para adicionar membros
+  // Mutation para adicionar membros - usando rota bulk
   const addMemberMutation = useMutation({
     mutationFn: async ({ groupId, userIds }: { groupId: string; userIds: string[] }) => {
-      return apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userIds });
+      return apiRequest('POST', `/api/user-management/groups/${groupId}/members/bulk`, { userIds });
     },
     onSuccess: () => {
       toast({
