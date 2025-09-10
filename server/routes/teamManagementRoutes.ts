@@ -603,19 +603,21 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
     // Handle group memberships if provided
     if (updateData.groupIds && Array.isArray(updateData.groupIds)) {
       try {
+        const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
+        
         // First, remove existing memberships
         await db.execute(sql`
-          DELETE FROM user_group_memberships 
-          WHERE user_id = ${id}
+          DELETE FROM ${sql.identifier(tenantSchema)}.user_group_memberships 
+          WHERE tenant_id = ${user.tenantId} AND user_id = ${id}
         `);
 
         // Then add new memberships
         if (updateData.groupIds.length > 0) {
           for (const groupId of updateData.groupIds) {
             await db.execute(sql`
-              INSERT INTO user_group_memberships (user_id, group_id, tenant_id, added_at)
-              VALUES (${id}, ${groupId}, ${user.tenantId}, NOW())
-              ON CONFLICT (user_id, group_id) DO NOTHING
+              INSERT INTO ${sql.identifier(tenantSchema)}.user_group_memberships (tenant_id, user_id, group_id, added_at)
+              VALUES (${user.tenantId}, ${id}, ${groupId}, NOW())
+              ON CONFLICT (tenant_id, user_id, group_id) DO NOTHING
             `);
           }
         }
