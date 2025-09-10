@@ -615,12 +615,11 @@ router.get('/groups/:groupId/members',
 
       console.log(`Fetching members for group ${groupId} in tenant ${tenantId}`);
 
-      // Verificar se o grupo existe e pertence ao tenant
+      // Verificar se o grupo existe - removendo tenantId
       const groupExists = await db.select({ id: userGroups.id })
         .from(userGroups)
         .where(and(
           eq(userGroups.id, groupId),
-          eq(userGroups.tenantId, tenantId),
           eq(userGroups.isActive, true)
         ))
         .limit(1);
@@ -646,7 +645,6 @@ router.get('/groups/:groupId/members',
       .from(userGroupMemberships)
       .innerJoin(usersTable, eq(userGroupMemberships.userId, usersTable.id))
       .where(and(
-        eq(userGroupMemberships.tenantId, tenantId),
         eq(userGroupMemberships.groupId, groupId),
         eq(userGroupMemberships.isActive, true),
         eq(usersTable.isActive, true)
@@ -695,11 +693,10 @@ router.post('/groups/:groupId/members',
         return res.status(400).json({ message: 'userId is required' });
       }
 
-      // Verificar se o grupo existe
+      // Verificar se o grupo existe - removendo tenantId pois usa schema per-tenant
       const group = await db.select().from(userGroups)
         .where(and(
           eq(userGroups.id, groupId),
-          eq(userGroups.tenantId, tenantId),
           eq(userGroups.isActive, true)
         ))
         .limit(1);
@@ -721,10 +718,9 @@ router.post('/groups/:groupId/members',
         return res.status(404).json({ message: 'User not found' });
       }
 
-      // Verificar se a associação já existe (ativa ou inativa)
+      // Verificar se a associação já existe (ativa ou inativa) - removendo tenantId
       const existingMembership = await db.select().from(userGroupMemberships)
         .where(and(
-          eq(userGroupMemberships.tenantId, tenantId),
           eq(userGroupMemberships.userId, userId),
           eq(userGroupMemberships.groupId, groupId)
         ))
@@ -739,7 +735,6 @@ router.post('/groups/:groupId/members',
               updatedAt: new Date()
             })
             .where(and(
-              eq(userGroupMemberships.tenantId, tenantId),
               eq(userGroupMemberships.userId, userId),
               eq(userGroupMemberships.groupId, groupId)
             ))
@@ -756,10 +751,9 @@ router.post('/groups/:groupId/members',
         }
       }
 
-      // Criar a associação usuário-grupo
+      // Criar a associação usuário-grupo - removendo tenantId
       const [membership] = await db.insert(userGroupMemberships)
         .values({
-          tenantId,
           userId,
           groupId,
           role: 'member',
@@ -790,11 +784,10 @@ router.delete('/groups/:groupId/members/:userId',
       const { groupId, userId } = req.params;
       const tenantId = req.user!.tenantId;
 
-      // Verificar se o grupo existe
+      // Verificar se o grupo existe - removendo tenantId
       const group = await db.select().from(userGroups)
         .where(and(
           eq(userGroups.id, groupId),
-          eq(userGroups.tenantId, tenantId),
           eq(userGroups.isActive, true)
         ))
         .limit(1);
@@ -803,10 +796,9 @@ router.delete('/groups/:groupId/members/:userId',
         return res.status(404).json({ message: 'Group not found' });
       }
 
-      // Verificar se a associação existe
+      // Verificar se a associação existe - removendo tenantId
       const existingMembership = await db.select().from(userGroupMemberships)
         .where(and(
-          eq(userGroupMemberships.tenantId, tenantId),
           eq(userGroupMemberships.userId, userId),
           eq(userGroupMemberships.groupId, groupId),
           eq(userGroupMemberships.isActive, true)
@@ -823,7 +815,6 @@ router.delete('/groups/:groupId/members/:userId',
           isActive: false
         })
         .where(and(
-          eq(userGroupMemberships.tenantId, tenantId),
           eq(userGroupMemberships.userId, userId),
           eq(userGroupMemberships.groupId, groupId)
         ))
