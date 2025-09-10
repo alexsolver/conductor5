@@ -227,169 +227,84 @@ router.get(
 
       let groupsWithMemberships: any[] = [];
 
-      if (userRole === 'saas_admin') {
-        // SaaS Admin: Buscar grupos de todos os tenants
-        console.log(`🔍 [USER-GROUPS] SaaS Admin - fetching groups from all tenants`);
-        
-        // Buscar todos os tenants ativos (corrigindo o SQL)
-        const tenantResult = await db.select({
-          tenantId: usersTable.tenantId
-        })
-          .from(usersTable)
-          .where(eq(usersTable.isActive, true))
-          .groupBy(usersTable.tenantId);
-
-        const tenantIds = tenantResult.map(t => t.tenantId).filter(Boolean);
-        
-        // Buscar grupos de cada tenant
-        for (const tenantId of tenantIds) {
-          try {
-            const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-            const groupsTable = sql.raw(`"${schemaName}".user_groups`);
-            const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
-
-            // Verificar se o schema existe
-            const schemaExistsQuery = sql`
-              SELECT schema_name 
-              FROM information_schema.schemata 
-              WHERE schema_name = ${schemaName}
-            `;
-            const schemaResult = await db.execute(schemaExistsQuery);
-            
-            if (schemaResult.rows.length === 0) {
-              console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist, skipping...`);
-              continue;
-            }
-
-            const groupsQuery = sql`
-              SELECT 
-                ug.id,
-                ug.name,
-                ug.description,
-                ug.is_active,
-                ug.created_at,
-                COALESCE(COUNT(ugm.id), 0) as member_count,
-                ${tenantId} as tenant_id
-              FROM ${groupsTable} ug
-              LEFT JOIN ${membershipsTable} ugm 
-                ON ug.id = ugm.group_id AND ugm.is_active = true
-              WHERE ug.is_active = true
-              GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
-              ORDER BY ug.name
-            `;
-
-            const groupsResult = await db.execute(groupsQuery);
-
-            for (const group of groupsResult.rows) {
-              const membershipsQuery = sql`
-                SELECT 
-                  ugm.id,
-                  ugm.user_id,
-                  ugm.role
-                FROM ${membershipsTable} ugm
-                WHERE ugm.group_id = ${group.id} AND ugm.is_active = true
-              `;
-
-              const membershipsResult = await db.execute(membershipsQuery);
-
-              groupsWithMemberships.push({
-                id: group.id,
-                name: group.name,
-                description: group.description,
-                isActive: group.is_active,
-                createdAt: group.created_at,
-                memberships: membershipsResult.rows,
-                memberCount: Number(group.member_count),
-                tenantId: tenantId,
-              });
-            }
-          } catch (error) {
-            console.warn(`⚠️ [USER-GROUPS] Error fetching groups from tenant ${tenantId}:`, error);
-          }
-        }
-
-        console.log(`✅ [USER-GROUPS] SaaS Admin - Found ${groupsWithMemberships.length} groups across all tenants`);
-
-      } else {
-        // Workspace Admin: Apenas grupos do próprio tenant
-        console.log(`🔍 [USER-GROUPS] Workspace Admin - fetching groups from tenant: ${currentUserTenantId}`);
-        
-        // Verificar permissões para tenant admin
-        const hasPermission = userRole === 'tenant_admin' || userRole === 'workspace_admin';
-        if (!hasPermission) {
-          return res.status(403).json({
-            success: false,
-            error: 'Insufficient permissions to access user groups',
-          });
-        }
-
-        const schemaName = `tenant_${currentUserTenantId!.replace(/-/g, '_')}`;
-
-        // Verificar se o schema existe
-        const schemaExistsQuery = sql`
-          SELECT schema_name 
-          FROM information_schema.schemata 
-          WHERE schema_name = ${schemaName}
-        `;
-        const schemaResult = await db.execute(schemaExistsQuery);
-        
-        if (schemaResult.rows.length === 0) {
-          console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist for workspace admin`);
-          return res.status(404).json({
-            success: false,
-            error: 'Tenant schema not found',
-          });
-        }
-
-        const groupsTable = sql.raw(`"${schemaName}".user_groups`);
-        const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
-
-        const groupsQuery = sql`
-          SELECT 
-            ug.id,
-            ug.name,
-            ug.description,
-            ug.is_active,
-            ug.created_at,
-            COALESCE(COUNT(ugm.id), 0) as member_count
-          FROM ${groupsTable} ug
-          LEFT JOIN ${membershipsTable} ugm 
-            ON ug.id = ugm.group_id AND ugm.is_active = true
-          WHERE ug.is_active = true
-          GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
-          ORDER BY ug.name
-        `;
-
-        const groupsResult = await db.execute(groupsQuery);
-
-        groupsWithMemberships = await Promise.all(
-          groupsResult.rows.map(async (group: any) => {
-            const membershipsQuery = sql`
-              SELECT 
-                ugm.id,
-                ugm.user_id,
-                ugm.role
-              FROM ${membershipsTable} ugm
-              WHERE ugm.group_id = ${group.id} AND ugm.is_active = true
-            `;
-
-            const membershipsResult = await db.execute(membershipsQuery);
-
-            return {
-              id: group.id,
-              name: group.name,
-              description: group.description,
-              isActive: group.is_active,
-              createdAt: group.created_at,
-              memberships: membershipsResult.rows,
-              memberCount: Number(group.member_count),
-              tenantId: currentUserTenantId,
-            };
-          })
-        );
-
-        console.log(`✅ [USER-GROUPS] Workspace Admin - Found ${groupsWithMemberships.length} groups in tenant schema`);
+      // Ambos SaaS Admin e Workspace Admin veem apenas grupos do próprio tenant
+      console.log(`🔍 [USER-GROUPS] Fetching groups from own tenant: ${currentUserTenantId}`);
+      
+      // Verificar permissões
+      const hasPermission = userRole === 'saas_admin' || userRole === 'tenant_admin' || userRole === 'workspace_admin';
+      if (!hasPermission) {
+        return res.status(403).json({
+          success: false,
+          error: 'Insufficient permissions to access user groups',
+        });
       }
+
+      const schemaName = `tenant_${currentUserTenantId!.replace(/-/g, '_')}`;
+
+      // Verificar se o schema existe
+      const schemaExistsQuery = sql`
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name = ${schemaName}
+      `;
+      const schemaResult = await db.execute(schemaExistsQuery);
+      
+      if (schemaResult.rows.length === 0) {
+        console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist`);
+        return res.status(404).json({
+          success: false,
+          error: 'Tenant schema not found',
+        });
+      }
+
+      const groupsTable = sql.raw(`"${schemaName}".user_groups`);
+      const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
+
+      const groupsQuery = sql`
+        SELECT 
+          ug.id,
+          ug.name,
+          ug.description,
+          ug.is_active,
+          ug.created_at,
+          COALESCE(COUNT(ugm.id), 0) as member_count
+        FROM ${groupsTable} ug
+        LEFT JOIN ${membershipsTable} ugm 
+          ON ug.id = ugm.group_id AND ugm.is_active = true
+        WHERE ug.is_active = true
+        GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
+        ORDER BY ug.name
+      `;
+
+      const groupsResult = await db.execute(groupsQuery);
+
+      groupsWithMemberships = await Promise.all(
+        groupsResult.rows.map(async (group: any) => {
+          const membershipsQuery = sql`
+            SELECT 
+              ugm.id,
+              ugm.user_id,
+              ugm.role
+            FROM ${membershipsTable} ugm
+            WHERE ugm.group_id = ${group.id} AND ugm.is_active = true
+          `;
+
+          const membershipsResult = await db.execute(membershipsQuery);
+
+          return {
+            id: group.id,
+            name: group.name,
+            description: group.description,
+            isActive: group.is_active,
+            createdAt: group.created_at,
+            memberships: membershipsResult.rows,
+            memberCount: Number(group.member_count),
+            tenantId: currentUserTenantId,
+          };
+        })
+      );
+
+      console.log(`✅ [USER-GROUPS] Found ${groupsWithMemberships.length} groups in own tenant`);
 
       res.json({
         success: true,
@@ -642,58 +557,18 @@ router.delete('/groups/:groupId',
         });
       }
 
-      console.log(`🗑️ [USER-GROUPS] Deleting group ${groupId} for user role: ${userRole}, tenant: ${tenantId}`);
+      console.log(`🗑️ [USER-GROUPS] Deleting group ${groupId} from own tenant: ${tenantId}`);
 
-      let targetSchema = null;
-      let groupFound = false;
-
-      // For SaaS Admin - search across all tenant schemas
-      if (userRole === 'saas_admin') {
-        console.log('🗑️ [USER-GROUPS] SaaS Admin - searching group across all tenants');
-        
-        // Get all tenants
-        const tenantsResult = await db.execute(sql`SELECT id FROM tenants WHERE is_active = true`);
-        const tenantIds = tenantsResult.rows.map((row: any) => row.id);
-
-        // Search for the group in each tenant schema
-        for (const currentTenantId of tenantIds) {
-          const schemaName = `tenant_${currentTenantId.replace(/-/g, '_')}`;
-          
-          try {
-            const groupsTable = sql.raw(`"${schemaName}".user_groups`);
-            const checkResult = await db.execute(
-              sql`SELECT id FROM ${groupsTable} WHERE id = ${groupId} AND is_active = true`
-            );
-
-            if (checkResult.rows.length > 0) {
-              targetSchema = schemaName;
-              groupFound = true;
-              console.log(`🗑️ [USER-GROUPS] Found group ${groupId} in schema: ${schemaName}`);
-              break;
-            }
-          } catch (error: any) {
-            if (error.code === '42P01') { // Table/schema doesn't exist
-              console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist, skipping...`);
-              continue;
-            }
-            throw error;
-          }
-        }
-      } else {
-        // For Workspace Admin - search only in own tenant
-        console.log('🗑️ [USER-GROUPS] Workspace Admin - searching in own tenant only');
-        targetSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-        
-        const groupsTable = sql.raw(`"${targetSchema}".user_groups`);
-        const groupResult = await db.execute(
-          sql`SELECT id FROM ${groupsTable} WHERE id = ${groupId} AND is_active = true`
-        );
-        
-        groupFound = groupResult.rows.length > 0;
-      }
-
-      if (!groupFound || !targetSchema) {
-        console.log(`🗑️ [USER-GROUPS] Group ${groupId} not found in any accessible tenant`);
+      // Both SaaS Admin and Workspace Admin can only delete from own tenant
+      const targetSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const groupsTable = sql.raw(`"${targetSchema}".user_groups`);
+      const groupResult = await db.execute(
+        sql`SELECT id FROM ${groupsTable} WHERE id = ${groupId} AND is_active = true`
+      );
+      
+      if (!groupResult.rows.length) {
+        console.log(`🗑️ [USER-GROUPS] Group ${groupId} not found in tenant ${tenantId}`);
         return res.status(404).json({ 
           success: false,
           message: 'Group not found' 
@@ -701,7 +576,6 @@ router.delete('/groups/:groupId',
       }
 
       // Define schema-qualified table identifiers
-      const groupsTable = sql.raw(`"${targetSchema}".user_groups`);
       const membershipsTable = sql.raw(`"${targetSchema}".user_group_memberships`);
 
       // First, remove all memberships for this group
@@ -722,7 +596,7 @@ router.delete('/groups/:groupId',
         });
       }
 
-      console.log(`✅ [USER-GROUPS] Deleted group ${groupId} from schema: ${targetSchema}`);
+      console.log(`✅ [USER-GROUPS] Deleted group ${groupId} from own tenant`);
 
       res.json({
         success: true,
