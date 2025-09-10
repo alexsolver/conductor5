@@ -1440,9 +1440,15 @@ const TicketsTable = React.memo(() => {
         const data = await response.json();
         setTemplatesData(data);
       } else {
+        if (response.status === 401) {
+          // Token expired, redirect to login
+          window.location.href = '/login';
+          return;
+        }
         setTemplatesData({ success: false, data: [] });
       }
     } catch (error) {
+      console.error('Error loading templates:', error);
       setTemplatesData({ success: false, data: [] });
     } finally {
       setTemplatesLoading(false);
