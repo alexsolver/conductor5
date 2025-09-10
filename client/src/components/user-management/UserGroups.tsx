@@ -63,8 +63,7 @@ interface GroupsResponse {
 }
 
 interface UsersResponse {
-  success: boolean;
-  members: UserForGroup[];
+  users: UserForGroup[];
 }
 
 export function UserGroups() {
@@ -96,7 +95,7 @@ export function UserGroups() {
     data: allUsersData,
     isLoading: allUsersLoading,
   } = useQuery<UsersResponse>({
-    queryKey: ['/api/user-management/members'],
+    queryKey: ['/api/user-management/users'],
     enabled: showAddMemberDialog,
   });
 
@@ -256,23 +255,12 @@ export function UserGroups() {
   };
 
   const handleAddMembers = () => {
-    console.log("🐛 [TENANT-GROUPS] handleAddMembers called");
-    console.log("🐛 [TENANT-GROUPS] selectedGroupForMember:", selectedGroupForMember);
-    console.log("🐛 [TENANT-GROUPS] selectedGroupMembers:", selectedGroupMembers);
-    
-    if (!selectedGroupForMember) {
-      console.log("🐛 [TENANT-GROUPS] No group selected, returning early");
-      return;
-    }
+    if (!selectedGroupForMember) return;
     
     const currentMemberIds = selectedGroupForMember.memberships?.map(m => m.userId) || [];
     const newMemberIds = selectedGroupMembers.filter(id => !currentMemberIds.includes(id));
     
-    console.log("🐛 [TENANT-GROUPS] currentMemberIds:", currentMemberIds);
-    console.log("🐛 [TENANT-GROUPS] newMemberIds:", newMemberIds);
-    
     if (newMemberIds.length === 0) {
-      console.log("🐛 [TENANT-GROUPS] No new members selected");
       toast({
         title: "Aviso",
         description: "Nenhum novo membro foi selecionado",
@@ -280,11 +268,6 @@ export function UserGroups() {
       });
       return;
     }
-    
-    console.log("🐛 [TENANT-GROUPS] Calling mutation with:", {
-      groupId: selectedGroupForMember.id,
-      userIds: newMemberIds,
-    });
     
     addMemberMutation.mutate({
       groupId: selectedGroupForMember.id,
@@ -491,7 +474,7 @@ export function UserGroups() {
             ) : (
               <ScrollArea className="max-h-96">
                 <div className="space-y-2">
-                  {(allUsersData?.members || []).map((user: UserForGroup) => {
+                  {(allUsersData?.users || []).map((user: UserForGroup) => {
                     const isInGroup = selectedGroupMembers.includes(user.id);
                     return (
                       <div
