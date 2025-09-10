@@ -214,68 +214,182 @@ router.get('/users/:userId',
 
 // ============= USER GROUPS ROUTES =============
 
-// Get tenant-specific user groups
+// Get user groups with role-based access control
 router.get(
   '/groups',
   jwtAuth,
-  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
-      const tenantId = req.user!.tenantId;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const userRole = req.user!.role;
+      const currentUserTenantId = req.user!.tenantId;
 
-      console.log(`🔍 [USER-GROUPS] Fetching groups from schema: ${schemaName}`);
+      console.log(`🔍 [USER-GROUPS] Fetching groups for user role: ${userRole}, tenant: ${currentUserTenantId}`);
 
-      // Identificadores de tabela com sql.raw
-      const groupsTable = sql.raw(`"${schemaName}".user_groups`);
-      const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
+      let groupsWithMemberships: any[] = [];
 
-      // Query principal com parâmetros
-      const groupsQuery = sql`
-        SELECT 
-          ug.id,
-          ug.name,
-          ug.description,
-          ug.is_active,
-          ug.created_at,
-          COALESCE(COUNT(ugm.id), 0) as member_count
-        FROM ${groupsTable} ug
-        LEFT JOIN ${membershipsTable} ugm 
-          ON ug.id = ugm.group_id AND ugm.is_active = true
-        WHERE ug.is_active = true
-        GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
-        ORDER BY ug.name
-      `;
-
-      const groupsResult = await db.execute(groupsQuery);
-
-      // Buscar memberships detalhados
-      const groupsWithMemberships = await Promise.all(
-        groupsResult.rows.map(async (group: any) => {
-          const membershipsQuery = sql`
-            SELECT 
-              ugm.id,
-              ugm.user_id,
-              ugm.role
-            FROM ${membershipsTable} ugm
-            WHERE ugm.group_id = ${group.id} AND ugm.is_active = true
-          `;
-
-          const membershipsResult = await db.execute(membershipsQuery);
-
-          return {
-            id: group.id,
-            name: group.name,
-            description: group.description,
-            isActive: group.is_active,
-            createdAt: group.created_at,
-            memberships: membershipsResult.rows,
-            memberCount: Number(group.member_count),
-          };
+      if (userRole === 'saas_admin') {
+        // SaaS Admin: Buscar grupos de todos os tenants
+        console.log(`🔍 [USER-GROUPS] SaaS Admin - fetching groups from all tenants`);
+        
+        // Buscar todos os tenants ativos (corrigindo o SQL)
+        const tenantResult = await db.select({
+          tenantId: usersTable.tenantId
         })
-      );
+          .from(usersTable)
+          .where(eq(usersTable.isActive, true))
+          .groupBy(usersTable.tenantId);
 
-      console.log(`✅ [USER-GROUPS] Found ${groupsWithMemberships.length} groups in tenant schema`);
+        const tenantIds = tenantResult.map(t => t.tenantId).filter(Boolean);
+        
+        // Buscar grupos de cada tenant
+        for (const tenantId of tenantIds) {
+          try {
+            const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+            const groupsTable = sql.raw(`"${schemaName}".user_groups`);
+            const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
+
+            // Verificar se o schema existe
+            const schemaExistsQuery = sql`
+              SELECT schema_name 
+              FROM information_schema.schemata 
+              WHERE schema_name = ${schemaName}
+            `;
+            const schemaResult = await db.execute(schemaExistsQuery);
+            
+            if (schemaResult.rows.length === 0) {
+              console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist, skipping...`);
+              continue;
+            }
+
+            const groupsQuery = sql`
+              SELECT 
+                ug.id,
+                ug.name,
+                ug.description,
+                ug.is_active,
+                ug.created_at,
+                COALESCE(COUNT(ugm.id), 0) as member_count,
+                ${tenantId} as tenant_id
+              FROM ${groupsTable} ug
+              LEFT JOIN ${membershipsTable} ugm 
+                ON ug.id = ugm.group_id AND ugm.is_active = true
+              WHERE ug.is_active = true
+              GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
+              ORDER BY ug.name
+            `;
+
+            const groupsResult = await db.execute(groupsQuery);
+
+            for (const group of groupsResult.rows) {
+              const membershipsQuery = sql`
+                SELECT 
+                  ugm.id,
+                  ugm.user_id,
+                  ugm.role
+                FROM ${membershipsTable} ugm
+                WHERE ugm.group_id = ${group.id} AND ugm.is_active = true
+              `;
+
+              const membershipsResult = await db.execute(membershipsQuery);
+
+              groupsWithMemberships.push({
+                id: group.id,
+                name: group.name,
+                description: group.description,
+                isActive: group.is_active,
+                createdAt: group.created_at,
+                memberships: membershipsResult.rows,
+                memberCount: Number(group.member_count),
+                tenantId: tenantId,
+              });
+            }
+          } catch (error) {
+            console.warn(`⚠️ [USER-GROUPS] Error fetching groups from tenant ${tenantId}:`, error);
+          }
+        }
+
+        console.log(`✅ [USER-GROUPS] SaaS Admin - Found ${groupsWithMemberships.length} groups across all tenants`);
+
+      } else {
+        // Workspace Admin: Apenas grupos do próprio tenant
+        console.log(`🔍 [USER-GROUPS] Workspace Admin - fetching groups from tenant: ${currentUserTenantId}`);
+        
+        // Verificar permissões para tenant admin
+        const hasPermission = userRole === 'tenant_admin' || userRole === 'workspace_admin';
+        if (!hasPermission) {
+          return res.status(403).json({
+            success: false,
+            error: 'Insufficient permissions to access user groups',
+          });
+        }
+
+        const schemaName = `tenant_${currentUserTenantId!.replace(/-/g, '_')}`;
+
+        // Verificar se o schema existe
+        const schemaExistsQuery = sql`
+          SELECT schema_name 
+          FROM information_schema.schemata 
+          WHERE schema_name = ${schemaName}
+        `;
+        const schemaResult = await db.execute(schemaExistsQuery);
+        
+        if (schemaResult.rows.length === 0) {
+          console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist for workspace admin`);
+          return res.status(404).json({
+            success: false,
+            error: 'Tenant schema not found',
+          });
+        }
+
+        const groupsTable = sql.raw(`"${schemaName}".user_groups`);
+        const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
+
+        const groupsQuery = sql`
+          SELECT 
+            ug.id,
+            ug.name,
+            ug.description,
+            ug.is_active,
+            ug.created_at,
+            COALESCE(COUNT(ugm.id), 0) as member_count
+          FROM ${groupsTable} ug
+          LEFT JOIN ${membershipsTable} ugm 
+            ON ug.id = ugm.group_id AND ugm.is_active = true
+          WHERE ug.is_active = true
+          GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
+          ORDER BY ug.name
+        `;
+
+        const groupsResult = await db.execute(groupsQuery);
+
+        groupsWithMemberships = await Promise.all(
+          groupsResult.rows.map(async (group: any) => {
+            const membershipsQuery = sql`
+              SELECT 
+                ugm.id,
+                ugm.user_id,
+                ugm.role
+              FROM ${membershipsTable} ugm
+              WHERE ugm.group_id = ${group.id} AND ugm.is_active = true
+            `;
+
+            const membershipsResult = await db.execute(membershipsQuery);
+
+            return {
+              id: group.id,
+              name: group.name,
+              description: group.description,
+              isActive: group.is_active,
+              createdAt: group.created_at,
+              memberships: membershipsResult.rows,
+              memberCount: Number(group.member_count),
+              tenantId: currentUserTenantId,
+            };
+          })
+        );
+
+        console.log(`✅ [USER-GROUPS] Workspace Admin - Found ${groupsWithMemberships.length} groups in tenant schema`);
+      }
 
       res.json({
         success: true,
