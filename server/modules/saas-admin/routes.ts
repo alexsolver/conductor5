@@ -1138,11 +1138,21 @@ router.get('/users/stats', async (req: AuthorizedRequest, res) => {
  */
 router.get('/users', async (req: AuthorizedRequest, res) => {
   try {
-    // Global user list from public schema
-    const globalUsers = [];
+    console.log('🔍 [SAAS-ADMIN-USERS] Fetching all users from public schema');
+    
+    // Usar o user repository para buscar todos os usuários
+    const container = DependencyContainer.getInstance();
+    const userRepository = container.userRepository;
 
-    // TODO: Implement actual global user queries against public schema
-    res.json({ success: true, users: globalUsers });
+    // Buscar todos os usuários ativos
+    const globalUsers = await userRepository.findAll();
+
+    console.log(`✅ [SAAS-ADMIN-USERS] Found ${globalUsers.length} users`);
+    res.json({ 
+      success: true, 
+      users: globalUsers,
+      pagination: { page: 1, limit: globalUsers.length, total: globalUsers.length }
+    });
   } catch (error) {
     console.error('Error fetching global users:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch global users' });
