@@ -568,7 +568,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
             </Card>
           </div>
         ) : (
-          (groupsData?.groups || []).map((group: UserGroup) => (
+          (groupsData?.groups || []).filter(Boolean).map((group: UserGroup) => (
             <Card key={group.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
