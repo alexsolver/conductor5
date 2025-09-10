@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Edit, Trash2, UserPlus, UserMinus } from 'lucide-react';
+import { Plus, Users, Edit, Trash2, UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -51,20 +53,34 @@ interface SaasGroupsResponse {
   count: number;
 }
 
+interface UserForGroup {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  name: string;
+  role: string;
+  isActive: boolean;
+}
+
+interface UsersResponse {
+  success: boolean;
+  users?: UserForGroup[];
+  members?: UserForGroup[];
+}
+
 export function SaasGroups() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<SaasGroup | null>(null);
+  const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: ''
   });
-  const [memberData, setMemberData] = useState({
-    userId: '',
-    role: 'member'
-  });
+  const [memberRole, setMemberRole] = useState('member');
 
   // Fetch SaaS groups
   const {
@@ -74,6 +90,23 @@ export function SaasGroups() {
   } = useQuery<SaasGroupsResponse>({
     queryKey: ['/api/saas/groups']
   });
+
+  // Fetch todos os usuários para adicionar como membros (usando endpoint de SaaS Admin)
+  const {
+    data: allUsersData,
+    isLoading: allUsersLoading,
+  } = useQuery<UsersResponse>({
+    queryKey: ['/api/saas-admin/users'],
+    enabled: isMemberDialogOpen,
+  });
+
+  // Update selected group members when group changes
+  useEffect(() => {
+    if (selectedGroup) {
+      const memberIds = selectedGroup.memberships?.map(m => m.userId) || [];
+      setSelectedGroupMembers(memberIds);
+    }
+  }, [selectedGroup]);
 
   // Create group mutation
   const createGroupMutation = useMutation({
@@ -140,23 +173,24 @@ export function SaasGroups() {
     }
   });
 
-  // Add member mutation
+  // Add member mutation - agora suporta múltiplos membros
   const addMemberMutation = useMutation({
-    mutationFn: ({ groupId, data }: { groupId: string; data: { userId: string; role: string } }) =>
-      apiRequest('POST', `/api/saas/groups/${groupId}/members`, data),
+    mutationFn: ({ groupId, userIds, role }: { groupId: string; userIds: string[]; role: string }) =>
+      apiRequest('POST', `/api/saas/groups/${groupId}/members/bulk`, { userIds, role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/groups'] });
       setIsMemberDialogOpen(false);
-      setMemberData({ userId: '', role: 'member' });
+      setSelectedGroupMembers([]);
+      setMemberRole('member');
       toast({
         title: 'Sucesso',
-        description: 'Membro adicionado ao grupo SaaS'
+        description: 'Membros adicionados ao grupo SaaS com sucesso'
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao adicionar membro ao grupo SaaS',
+        description: error.message || 'Erro ao adicionar membros ao grupo SaaS',
         variant: 'destructive'
       });
     }
@@ -210,13 +244,41 @@ export function SaasGroups() {
     setIsMemberDialogOpen(true);
   };
 
-  const handleAddMemberSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCloseMemberDialog = () => {
+    setIsMemberDialogOpen(false);
+    setSelectedGroup(null);
+    setSelectedGroupMembers([]);
+    setMemberRole('member');
+  };
+
+  const handleAddMembers = () => {
     if (!selectedGroup) return;
+    
+    const currentMemberIds = selectedGroup.memberships?.map(m => m.userId) || [];
+    const newMemberIds = selectedGroupMembers.filter(id => !currentMemberIds.includes(id));
+    
+    if (newMemberIds.length === 0) {
+      toast({
+        title: "Aviso",
+        description: "Nenhum novo membro foi selecionado",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     addMemberMutation.mutate({
       groupId: selectedGroup.id,
-      data: memberData
+      userIds: newMemberIds,
+      role: memberRole,
     });
+  };
+
+  const handleMemberToggle = (userId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedGroupMembers(prev => [...prev, userId]);
+    } else {
+      setSelectedGroupMembers(prev => prev.filter(id => id !== userId));
+    }
   };
 
   const handleRemoveMember = (groupId: string, userId: string) => {
@@ -460,62 +522,91 @@ export function SaasGroups() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Member Dialog */}
-      <Dialog open={isMemberDialogOpen} onOpenChange={setIsMemberDialogOpen}>
-        <DialogContent>
+      {/* Add Members Dialog - Múltipla Seleção */}
+      <Dialog open={isMemberDialogOpen} onOpenChange={handleCloseMemberDialog}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Adicionar Membro ao Grupo SaaS</DialogTitle>
+            <DialogTitle>Adicionar Membros ao Grupo SaaS</DialogTitle>
             <DialogDescription>
-              Adicione um usuário ao grupo {selectedGroup?.name}
+              Selecione usuários para adicionar ao grupo "{selectedGroup?.name}"
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddMemberSubmit}>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="userId">ID do Usuário</Label>
-                <Input
-                  id="userId"
-                  data-testid="input-member-userId"
-                  value={memberData.userId}
-                  onChange={(e) => setMemberData({ ...memberData, userId: e.target.value })}
-                  placeholder="UUID do usuário"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="role">Função</Label>
-                <Select 
-                  value={memberData.role} 
-                  onValueChange={(value) => setMemberData({ ...memberData, role: value })}
-                >
-                  <SelectTrigger data-testid="select-member-role">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">Membro</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="moderator">Moderador</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
+          <div className="space-y-4">
+            {/* Seletor de função para todos os membros */}
+            <div>
+              <Label htmlFor="memberRole">Função para os membros selecionados</Label>
+              <Select value={memberRole} onValueChange={setMemberRole}>
+                <SelectTrigger data-testid="select-member-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Membro</SelectItem>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="moderator">Moderador</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <DialogFooter className="mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsMemberDialogOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={addMemberMutation.isPending}
-                data-testid="button-submit-add-member"
-              >
-                {addMemberMutation.isPending ? 'Adicionando...' : 'Adicionar Membro'}
-              </Button>
-            </DialogFooter>
-          </form>
+
+            {allUsersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Carregando usuários...</span>
+              </div>
+            ) : (
+              <ScrollArea className="max-h-96">
+                <div className="space-y-2">
+                  {(allUsersData?.users || allUsersData?.members || []).map((user: UserForGroup) => {
+                    const isInGroup = selectedGroupMembers.includes(user.id);
+                    return (
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            checked={isInGroup}
+                            onCheckedChange={(checked) =>
+                              handleMemberToggle(user.id, checked as boolean)
+                            }
+                          />
+                          <div>
+                            <p className="font-medium">{user.name}</p>
+                            <p className="text-sm text-gray-500">{user.email}</p>
+                          </div>
+                        </div>
+                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                          {user.role}
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={handleCloseMemberDialog}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAddMembers}
+              disabled={addMemberMutation.isPending || selectedGroupMembers.length === 0}
+              data-testid="button-submit-add-members"
+            >
+              {addMemberMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adicionando...
+                </>
+              ) : (
+                `Adicionar ${selectedGroupMembers.filter(id => 
+                  !(selectedGroup?.memberships?.map(m => m.userId) || []).includes(id)
+                ).length} Membros`
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

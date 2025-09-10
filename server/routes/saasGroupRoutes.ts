@@ -6,14 +6,14 @@ import express from 'express';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { sql, eq, and, desc } from 'drizzle-orm';
-import { jwtAuth } from '../middleware/jwtAuth';
+import { z } from 'zod';
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { 
   saasGroups, 
   saasGroupMemberships,
   insertSaasGroupSchema,
   insertSaasGroupMembershipSchema 
 } from '@shared/schema';
-import { AuthenticatedRequest } from '../middleware/jwtAuth';
 
 const router = express.Router();
 
@@ -341,6 +341,110 @@ router.post(
       res.status(500).json({
         success: false,
         error: 'Failed to add member to SaaS group'
+      });
+    }
+  }
+);
+
+// ===========================================================================================
+// POST /api/saas/groups/:id/members/bulk - Add multiple members to SaaS group
+// ===========================================================================================
+router.post(
+  '/groups/:id/members/bulk',
+  jwtAuth,
+  requireSaasAdmin,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id: groupId } = req.params;
+      
+      // ✅ Validação Zod para segurança
+      const bulkMemberSchema = z.object({
+        userIds: z.array(z.string().uuid()).min(1, 'At least one user ID is required'),
+        role: z.enum(['member', 'admin', 'moderator']).default('member')
+      });
+
+      const validatedData = bulkMemberSchema.parse(req.body);
+      
+      // ✅ Deduplicar userIds para evitar erros de duplicata
+      const uniqueUserIds = Array.from(new Set(validatedData.userIds));
+      
+      console.log(`👥 [SAAS-GROUPS] Adding ${uniqueUserIds.length} unique members to SaaS group: ${groupId}`);
+
+      if (uniqueUserIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'No valid user IDs provided'
+        });
+      }
+
+      // Check if group exists
+      const existingGroup = await db
+        .select()
+        .from(saasGroups)
+        .where(and(eq(saasGroups.id, groupId), eq(saasGroups.isActive, true)))
+        .limit(1);
+
+      if (!existingGroup.length) {
+        return res.status(404).json({
+          success: false,
+          error: 'SaaS group not found'
+        });
+      }
+
+      // Check for existing memberships
+      const existingMemberships = await db
+        .select({ userId: saasGroupMemberships.userId })
+        .from(saasGroupMemberships)
+        .where(
+          and(
+            eq(saasGroupMemberships.groupId, groupId),
+            eq(saasGroupMemberships.isActive, true)
+          )
+        );
+
+      const existingUserIds = new Set(existingMemberships.map(m => m.userId));
+      const newUserIds = uniqueUserIds.filter(userId => !existingUserIds.has(userId));
+
+      if (newUserIds.length === 0) {
+        return res.status(409).json({
+          success: false,
+          error: 'All selected users are already members of this group'
+        });
+      }
+
+      // Prepare membership data
+      const membershipData = newUserIds.map(userId => ({
+        groupId,
+        userId,
+        role: validatedData.role,
+        assignedById: req.user!.id,
+        isActive: true
+      }));
+
+      // ✅ Insert multiple memberships com ON CONFLICT para evitar erros de duplicata
+      const newMemberships = await db
+        .insert(saasGroupMemberships)
+        .values(membershipData)
+        .onConflictDoNothing({ target: [saasGroupMemberships.groupId, saasGroupMemberships.userId] })
+        .returning();
+
+      console.log(`✅ [SAAS-GROUPS] Added ${newMemberships.length} members to SaaS group: ${groupId}`);
+
+      const skippedUsers = uniqueUserIds.filter(userId => existingUserIds.has(userId));
+
+      res.status(201).json({
+        success: true,
+        memberships: newMemberships,
+        added: newMemberships.length,
+        skipped: skippedUsers.length,
+        skippedUsers,
+        message: `Successfully added ${newMemberships.length} members to SaaS group`
+      });
+    } catch (error) {
+      console.error('❌ [SAAS-GROUPS] Error adding bulk members to SaaS group:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to add members to SaaS group'
       });
     }
   }
