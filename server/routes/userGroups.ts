@@ -330,4 +330,73 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Get group members by group name
+userGroupsRouter.get('/by-name/:groupName/members', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { groupName } = req.params;
+    const tenantId = req.user!.tenantId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log(`🔍 [USER-GROUPS] Fetching members for group "${groupName}" from schema: ${schemaName}`);
+
+    // Find the group by name
+    const groupQuery = `
+      SELECT id, name FROM "${schemaName}".user_groups 
+      WHERE tenant_id = $1 AND name ILIKE $2 AND is_active = true
+    `;
+    const groupResult = await db.execute(sql.raw(groupQuery, [tenantId, groupName]));
+
+    if (!groupResult.rows.length) {
+      return res.status(404).json({ 
+        success: false,
+        message: `Group "${groupName}" not found` 
+      });
+    }
+
+    const group = groupResult.rows[0];
+
+    // Get group members with user details
+    const membersQuery = `
+      SELECT 
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.role,
+        u.is_active,
+        u.created_at,
+        ugm.role as group_role,
+        ugm.added_at
+      FROM public.users u
+      INNER JOIN "${schemaName}".user_group_memberships ugm 
+        ON u.id = ugm.user_id
+      WHERE ugm.group_id = $1 
+        AND ugm.is_active = true 
+        AND u.is_active = true
+        AND u.tenant_id = $2
+      ORDER BY u.first_name, u.last_name
+    `;
+
+    const membersResult = await db.execute(sql.raw(membersQuery, [group.id, tenantId]));
+
+    console.log(`✅ [USER-GROUPS] Found ${membersResult.rows.length} members in group "${groupName}"`);
+
+    res.json({
+      success: true,
+      group: {
+        id: group.id,
+        name: group.name
+      },
+      members: membersResult.rows,
+      count: membersResult.rows.length
+    });
+  } catch (error) {
+    console.error('❌ [USER-GROUPS] Error fetching group members by name:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch group members' 
+    });
+  }
+});
+
 export { userGroupsRouter };
