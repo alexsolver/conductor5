@@ -457,23 +457,23 @@ export function UserGroups() {
 
       {/* Dialog para adicionar membros */}
       <Dialog open={showAddMemberDialog} onOpenChange={handleCloseAddMemberDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg w-[90vw] max-w-[700px] max-h-[85vh] overflow-hidden p-0 flex flex-col">
+          <DialogHeader className="p-6 pb-2">
             <DialogTitle>Adicionar Membros ao Grupo</DialogTitle>
             <DialogDescription>
               Selecione usuários para adicionar ao grupo "{selectedGroupForMember?.name}"
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="px-6 pb-6 flex-1 min-h-0 flex flex-col">
             {allUsersLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
                 <span className="ml-2">Carregando usuários...</span>
               </div>
             ) : (
-              <ScrollArea className="max-h-96">
-                <div className="space-y-2">
+              <ScrollArea className="flex-1 min-h-0">
+                <div className="space-y-2 pr-4">
                   {(allUsersData?.users || []).map((user: UserForGroup) => {
                     const isInGroup = selectedGroupMembers.includes(user.id);
                     return (
@@ -502,25 +502,25 @@ export function UserGroups() {
                 </div>
               </ScrollArea>
             )}
-          </div>
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleCloseAddMemberDialog}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleAddMembers}
-              disabled={addMemberMutation.isPending || selectedGroupMembers.length === 0}
-            >
-              {addMemberMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Adicionando...
-                </>
-              ) : (
-                "Adicionar Membros"
-              )}
-            </Button>
+            <div className="mt-4 flex justify-end gap-2 sticky bottom-0 bg-background pt-3">
+              <Button variant="outline" onClick={handleCloseAddMemberDialog}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleAddMembers}
+                disabled={addMemberMutation.isPending || selectedGroupMembers.length === 0}
+              >
+                {addMemberMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Adicionando...
+                  </>
+                ) : (
+                  "Adicionar Membros"
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
