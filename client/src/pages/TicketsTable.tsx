@@ -1629,73 +1629,50 @@ const TicketsTable = React.memo(() => {
 
   const renderTicketForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-              console.error('❌ Form validation errors:', errors);
-
-              // Extract specific error messages with better detail
-              const errorMessages = [];
-              if (errors.subject) {
-                errorMessages.push(errors.subject.message || 'Título do ticket é obrigatório');
-              }
-              if (errors.description) {
-                errorMessages.push(errors.description.message || 'Descrição é obrigatória');
-              }
-              if (errors.companyId) {
-                errorMessages.push(errors.companyId.message || 'Empresa é obrigatória');
-              }
-              if (errors.callerId) {
-                errorMessages.push(errors.callerId.message || 'Cliente é obrigatório');
-              }
-
-              const errorText = errorMessages.length > 0
-                ? errorMessages.join('. ')
-                : 'Por favor, preencha todos os campos obrigatórios';
-
-              toast({
-                title: "Erro de Validação",
-                description: errorText,
-                variant: "destructive",
-              });
-            })} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         
-        {/* ✅ 1QA.MD: Template Selection - First field */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Template Selection</h3>
-          <div>
+        {/* ✅ 1QA.MD: Template Selection - Clean implementation */}
+        <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Template Selection</h3>
+          <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Template (Opcional)
+              Choose Template (Optional)
             </Label>
-            <Select 
-              onValueChange={async (value) => {
-                const templateId = value === '__none__' ? undefined : value;
-                setSelectedTemplateId(templateId);
-                
-                // ✅ 1QA.MD: Aplicar campos do template quando selecionado
-                if (templateId && templatesData?.data) {
-                  const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
-                  if (selectedTemplate?.fields) {
-                    try {
-                      const fields = JSON.parse(selectedTemplate.fields);
-                      console.log('🔄 [TEMPLATE-INTEGRATION] Aplicando campos do template:', fields);
-                      
-                      // Aplicar campos do template ao formulário
-                      if (fields.subject) form.setValue('subject', fields.subject);
-                      if (fields.description) form.setValue('description', fields.description);
-                      if (fields.category) form.setValue('category', fields.category);
-                      if (fields.subcategory) form.setValue('subcategory', fields.subcategory);
-                      if (fields.priority) form.setValue('priority', fields.priority);
-                      if (fields.urgency) form.setValue('urgency', fields.urgency);
-                      if (fields.symptoms) form.setValue('symptoms', fields.symptoms);
-                      if (fields.businessImpact) form.setValue('businessImpact', fields.businessImpact);
-                      if (fields.workaround) form.setValue('workaround', fields.workaround);
-                      if (fields.location) form.setValue('location', fields.location);
-                      if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
-                      
-                      toast({
-                        title: "Template aplicado",
-                        description: `Campos do template "${selectedTemplate.name}" foram preenchidos automaticamente.`,
-                        variant: "default"
-                      });
+            {templatesLoading ? (
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span>Loading templates...</span>
+              </div>
+            ) : (
+              <Select 
+                onValueChange={async (value) => {
+                  const templateId = value === '__none__' ? undefined : value;
+                  setSelectedTemplateId(templateId);
+                  
+                  // ✅ 1QA.MD: Apply template fields when selected
+                  if (templateId && templatesData?.data) {
+                    const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
+                    if (selectedTemplate?.fields) {
+                      try {
+                        const fields = JSON.parse(selectedTemplate.fields);
+                        
+                        // Apply template fields to form
+                        if (fields.subject) form.setValue('subject', fields.subject);
+                        if (fields.description) form.setValue('description', fields.description);
+                        if (fields.category) form.setValue('category', fields.category);
+                        if (fields.subcategory) form.setValue('subcategory', fields.subcategory);
+                        if (fields.priority) form.setValue('priority', fields.priority);
+                        if (fields.urgency) form.setValue('urgency', fields.urgency);
+                        if (fields.symptoms) form.setValue('symptoms', fields.symptoms);
+                        if (fields.businessImpact) form.setValue('businessImpact', fields.businessImpact);
+                        if (fields.workaround) form.setValue('workaround', fields.workaround);
+                        if (fields.location) form.setValue('location', fields.location);
+                        if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
+                        
+                        toast({
+                          title: "Template Applied",
+                          description: `Template "${selectedTemplate.name}" fields have been populated.`,
+                        });
                     } catch (e) {
                       console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', e);
                       toast({
@@ -1725,6 +1702,7 @@ const TicketsTable = React.memo(() => {
                 )}
               </SelectContent>
             </Select>
+            )}
           </div>
         </div>
 
