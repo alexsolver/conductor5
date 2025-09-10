@@ -187,7 +187,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                 <Label>{t("userManagement.groups", "Grupos")} (opcional)</Label>
                 <ScrollArea className="h-32 border rounded-md p-3">
                   <div className="space-y-2">
-                    {groupsData.groups.map((group) => (
+                    {(groupsData?.groups || []).filter(Boolean).map((group) => (
                       <div key={group.id} className="flex items-center space-x-2">
                         <Checkbox
                           id={`group-${group.id}`}
@@ -210,7 +210,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                     <p className="text-sm text-muted-foreground mb-1">Grupos selecionados:</p>
                     <div className="flex flex-wrap gap-1">
                       {formData.groupIds.map((groupId) => {
-                        const group = groupsData.groups?.find(g => g.id === groupId);
+                        const group = (groupsData?.groups || []).find(g => g?.id === groupId);
                         return group ? (
                           <Badge key={groupId} variant="secondary" className="text-xs">
                             {group.name}

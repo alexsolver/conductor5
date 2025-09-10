@@ -804,7 +804,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     <ScrollArea className="h-32 border rounded-md p-3">
                       {groupsData?.groups?.length ? (
                         <div className="space-y-2">
-                          {groupsData.groups.map((group) => (
+                          {(groupsData?.groups || []).filter(Boolean).map((group) => (
                             <div key={group.id} className="flex items-center space-x-2">
                               <Checkbox
                                 id={`group-${group.id}`}
@@ -832,7 +832,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         <p className="text-sm text-muted-foreground mb-2">Grupos selecionados:</p>
                         <div className="flex flex-wrap gap-1">
                           {formData.groupIds.map((groupId) => {
-                            const group = groupsData?.groups?.find(g => g.id === groupId);
+                            const group = (groupsData?.groups || []).find(g => g?.id === groupId);
                             return group ? (
                               <Badge key={groupId} variant="secondary" className="text-xs">
                                 {group.name}

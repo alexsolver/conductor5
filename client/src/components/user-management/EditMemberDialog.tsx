@@ -603,7 +603,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               <CardContent>
                 <Label>Grupos Associados</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
-                  {groupsData.groups.map((group: any) => {
+                  {(groupsData?.groups || []).filter(Boolean).map((group: any) => {
                     const isSelected = form.watch('groupIds')?.includes(group.id);
                     return (
                       <div
