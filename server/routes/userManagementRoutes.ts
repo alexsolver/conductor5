@@ -242,7 +242,7 @@ router.get(
         FROM ${groupsTable} ug
         LEFT JOIN ${membershipsTable} ugm 
           ON ug.id = ugm.group_id AND ugm.is_active = true
-        WHERE ug.tenant_id = ${tenantId} AND ug.is_active = true
+        WHERE ug.is_active = true
         GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
         ORDER BY ug.name
       `;
@@ -323,12 +323,11 @@ router.post(
 
       console.log(`🆕 [USER-GROUPS] Creating group "${name}" in schema: ${schemaName}`);
 
-      // Checagem de existência (parametrizada)
+      // Checagem de existência (parametrizada) - removendo tenant_id pois não existe na tabela
       const existingGroupQuery = sql`
         SELECT id
         FROM ${tableIdent}
-        WHERE tenant_id = ${tenantId}
-          AND name = ${name.trim()}
+        WHERE name = ${name.trim()}
           AND is_active = true
       `;
       const existingResult = await db.execute(existingGroupQuery);
@@ -354,9 +353,9 @@ router.post(
 
       const insertQuery = sql`
         INSERT INTO ${tableIdent}
-          (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
+          (id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
         VALUES
-          (${groupId}, ${tenantId}, ${name.trim()}, ${descOrNull}, ${permissionsExpr}, true, ${userId}, ${nowIso}::timestamptz, ${nowIso}::timestamptz)
+          (${groupId}, ${name.trim()}, ${descOrNull}, ${permissionsExpr}, true, ${userId}, ${nowIso}::timestamptz, ${nowIso}::timestamptz)
         RETURNING id, name, description, permissions, is_active, created_at
       `;
       const result = await db.execute(insertQuery);
@@ -430,11 +429,11 @@ router.put(
 
       console.log(`✏️ [USER-GROUPS] Updating group ${groupId} in schema: ${schemaName}`);
 
-      // 🔎 Check if group exists
+      // 🔎 Check if group exists - removendo tenant_id pois não existe na tabela
       const groupQuery = sql`
         SELECT id
         FROM ${groupsTable}
-        WHERE id = ${groupId} AND tenant_id = ${tenantId} AND is_active = true
+        WHERE id = ${groupId} AND is_active = true
       `;
       const groupResult = await db.execute(groupQuery);
 
@@ -446,12 +445,11 @@ router.put(
         });
       }
 
-      // 🔎 Check for name conflict
+      // 🔎 Check for name conflict - removendo tenant_id pois não existe na tabela
       const conflictQuery = sql`
         SELECT id
         FROM ${groupsTable}
-        WHERE tenant_id = ${tenantId}
-          AND name = ${name.trim()}
+        WHERE name = ${name.trim()}
           AND id != ${groupId}
           AND is_active = true
       `;
@@ -478,7 +476,7 @@ router.put(
           description = ${descOrNull},
           permissions = ${permissionsExpr},
           updated_at = ${nowIso}::timestamptz
-        WHERE id = ${groupId} AND tenant_id = ${tenantId}
+        WHERE id = ${groupId}
         RETURNING id, name, description, permissions, is_active, created_at, updated_at
       `;
       const result = await db.execute(updateQuery);
@@ -539,12 +537,12 @@ router.delete('/groups/:groupId',
 
       console.log(`🗑️ [USER-GROUPS] Deleting group ${groupId} in schema: ${schemaName}`);
 
-      // Check if group exists and belongs to tenant
+      // Check if group exists - removendo tenant_id pois não existe na tabela
       const groupQuery = `
         SELECT id FROM "${schemaName}".user_groups 
-        WHERE id = $1 AND tenant_id = $2 AND is_active = true
+        WHERE id = $1 AND is_active = true
       `;
-      const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
+      const groupResult = await db.execute(sql.raw(groupQuery, [groupId]));
 
       if (!groupResult.rows.length) {
         console.log(`Group ${groupId} not found for tenant ${tenantId}`);
@@ -561,17 +559,16 @@ router.delete('/groups/:groupId',
       `;
       await db.execute(sql.raw(deleteMembershipsQuery, [groupId]));
 
-      // Then, delete the group (soft delete by setting is_active to false)
+      // Then, delete the group (soft delete by setting is_active to false) - removendo tenant_id
       const deleteGroupQuery = `
         UPDATE "${schemaName}".user_groups 
         SET is_active = false, updated_at = $1
-        WHERE id = $2 AND tenant_id = $3
+        WHERE id = $2
       `;
 
       const result = await db.execute(sql.raw(deleteGroupQuery, [
         new Date(),
-        groupId,
-        tenantId
+        groupId
       ]));
 
       if (result.rowCount === 0) {
