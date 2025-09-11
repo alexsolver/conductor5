@@ -290,7 +290,7 @@ export default function TechnicalSkills() {
         ...data,
         scaleOptions: scaleOptions
       };
-      updateSkillMutation.mutate({ id: editingSkill.id, data: submitData });
+      updateSkillMutation.mutate({ id: editingSkill.id, ...submitData });
     }
   };
 
@@ -512,6 +512,174 @@ export default function TechnicalSkills() {
                   </Button>
                   <Button type="submit" disabled={createSkillMutation.isPending}>
                     {createSkillMutation.isPending ? "Criando..." : "Criar"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Habilidade</DialogTitle>
+              <DialogDescription>
+                Modifique os dados da habilidade técnica.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Instalação de fibra óptica" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {DEFAULT_CATEGORIES.map((category: string) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                          {categories?.filter((category: string) => 
+                            !DEFAULT_CATEGORIES.includes(category)
+                          ).map((category: string) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Editor de Opções da Escala */}
+                <div className="space-y-4">
+                  <FormLabel>Opções da Escala</FormLabel>
+                  {scaleOptions.map((option, index) => (
+                    <div key={option.level} className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-1">
+                        <span className="text-sm font-medium">{option.level}</span>
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          placeholder="Nome da escala"
+                          value={option.label}
+                          onChange={(e) => {
+                            const newOptions = [...scaleOptions];
+                            newOptions[index].label = e.target.value;
+                            setScaleOptions(newOptions);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-8">
+                        <Input
+                          placeholder="Descrição da escala"
+                          value={option.description}
+                          onChange={(e) => {
+                            const newOptions = [...scaleOptions];
+                            newOptions[index].description = e.target.value;
+                            setScaleOptions(newOptions);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <FormField
+                  control={editForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Descreva a habilidade..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="suggestedCertification"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Certificação Sugerida (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: CCNA, ITIL Foundation..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="certificationValidityMonths"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Validade da Certificação (meses)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Ex: 24, 36..." 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="observations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observações (Opcional)</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Observações adicionais sobre a habilidade..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={updateSkillMutation.isPending}>
+                    {updateSkillMutation.isPending ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
               </form>
