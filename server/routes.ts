@@ -6306,6 +6306,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const pool = require('./db').pool;
+
+      // Apply the default company template structure
+      await TenantTemplateService.copyHierarchicalStructure(
+        pool,
+        schemaName,
+        tenantId,
+        sourceCompanyId,
+        targetCompanyId
+      );
+
+      res.json({
+        success: true,
+        message: 'Estrutura hierárquica copiada com sucesso',
+        summary: 'Categorias, subcategorias e ações copiadas da empresa Default'
+      });
+
+    } catch (error) {
+      console.error('❌ Error copying hierarchy:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao copiar estrutura hierárquica',
+        error: error.message
+      });
+    }
+  });tus(400).json({
+          success: false,
+          message: 'Target company ID required'
+        });
+      }
+
       console.log('🔄 [COPY-HIERARCHY-ALT] Starting copy:', {
         tenantId,
         sourceCompanyId,

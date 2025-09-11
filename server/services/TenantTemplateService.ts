@@ -437,6 +437,105 @@ export class TenantTemplateService {
   }
 
   /**
+   * Copia estrutura hierárquica de uma empresa para outra
+   */
+  static async copyHierarchicalStructure(
+    pool: any,
+    schemaName: string,
+    tenantId: string,
+    sourceCompanyId: string,
+    targetCompanyId: string
+  ): Promise<void> {
+    console.log(`[TENANT-TEMPLATE] Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId}`);
+
+    try {
+      // 1. Copy categories
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_categories (
+          id, tenant_id, company_id, customer_id, name, description, color, icon,
+          active, sort_order, created_at, updated_at
+        )
+        SELECT 
+          gen_random_uuid(),
+          $1,
+          $2,
+          $2,
+          name, description, color, icon,
+          active, sort_order, NOW(), NOW()
+        FROM "${schemaName}".ticket_categories
+        WHERE tenant_id = $1 AND company_id = $3
+      `, [tenantId, targetCompanyId, sourceCompanyId]);
+
+      // 2. Copy subcategories with proper category mapping
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_subcategories (
+          id, tenant_id, company_id, customer_id, category_id, name, description, color, icon,
+          active, sort_order, created_at, updated_at
+        )
+        SELECT 
+          gen_random_uuid(),
+          $1,
+          $2,
+          $2,
+          target_cat.id,
+          source_sub.name, source_sub.description, source_sub.color, source_sub.icon,
+          source_sub.active, source_sub.sort_order, NOW(), NOW()
+        FROM "${schemaName}".ticket_subcategories source_sub
+        JOIN "${schemaName}".ticket_categories source_cat ON source_sub.category_id = source_cat.id
+        JOIN "${schemaName}".ticket_categories target_cat ON target_cat.name = source_cat.name AND target_cat.company_id = $2
+        WHERE source_sub.tenant_id = $1 AND source_sub.company_id = $3
+      `, [tenantId, targetCompanyId, sourceCompanyId]);
+
+      // 3. Copy actions with proper subcategory mapping
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_actions (
+          id, tenant_id, company_id, customer_id, subcategory_id, name, description,
+          estimated_time_minutes, color, icon, active, sort_order, action_type,
+          created_at, updated_at
+        )
+        SELECT 
+          gen_random_uuid(),
+          $1,
+          $2,
+          $2,
+          target_sub.id,
+          source_act.name, source_act.description,
+          source_act.estimated_time_minutes, source_act.color, source_act.icon,
+          source_act.active, source_act.sort_order, source_act.action_type,
+          NOW(), NOW()
+        FROM "${schemaName}".ticket_actions source_act
+        JOIN "${schemaName}".ticket_subcategories source_sub ON source_act.subcategory_id = source_sub.id
+        JOIN "${schemaName}".ticket_categories source_cat ON source_sub.category_id = source_cat.id
+        JOIN "${schemaName}".ticket_categories target_cat ON target_cat.name = source_cat.name AND target_cat.company_id = $2
+        JOIN "${schemaName}".ticket_subcategories target_sub ON target_sub.category_id = target_cat.id AND target_sub.name = source_sub.name
+        WHERE source_act.tenant_id = $1 AND source_act.company_id = $3
+      `, [tenantId, targetCompanyId, sourceCompanyId]);
+
+      // 4. Copy field options
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_field_options (
+          id, tenant_id, customer_id, field_name, value, label, color,
+          sort_order, is_active, is_default, status_type, created_at, updated_at
+        )
+        SELECT 
+          gen_random_uuid(),
+          $1,
+          $2,
+          field_name, value, label, color,
+          sort_order, is_active, is_default, status_type, NOW(), NOW()
+        FROM "${schemaName}".ticket_field_options
+        WHERE tenant_id = $1 AND customer_id = $3
+        ON CONFLICT DO NOTHING
+      `, [tenantId, targetCompanyId, sourceCompanyId]);
+
+      console.log(`[TENANT-TEMPLATE] Successfully copied hierarchy from ${sourceCompanyId} to ${targetCompanyId}`);
+    } catch (error) {
+      console.error(`[TENANT-TEMPLATE] Error copying hierarchy:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Verifica se o template já foi aplicado para um tenant
    */
   static async isTemplateApplied(pool: any, schemaName: string, tenantId: string): Promise<boolean> {
