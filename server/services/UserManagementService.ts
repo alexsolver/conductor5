@@ -125,6 +125,40 @@ export class UserManagementService {
   async getTenantUsers(tenantId: string, options: UserManagementOptions = {}): Promise<EnhancedUser[]> {
     return this.getUsers(tenantId, options);
   }
+
+  async updateUser(userId: string, tenantId: string, updateData: Partial<User>): Promise<User> {
+    try {
+      console.log(`[USER-UPDATE] Updating user ${userId} in tenant ${tenantId}`);
+      console.log(`[USER-UPDATE] Update data keys:`, Object.keys(updateData));
+
+      // Add updatedAt timestamp
+      const dataWithTimestamp = {
+        ...updateData,
+        updatedAt: new Date(),
+      };
+
+      console.log(`[USER-UPDATE] Final update fields:`, Object.keys(dataWithTimestamp));
+
+      const [updatedUser] = await db
+        .update(users)
+        .set(dataWithTimestamp)
+        .where(and(
+          eq(users.id, userId),
+          eq(users.tenantId, tenantId)
+        ))
+        .returning();
+
+      if (!updatedUser) {
+        throw new Error(`User ${userId} not found in tenant ${tenantId}`);
+      }
+
+      console.log(`[USER-UPDATE] User ${userId} updated successfully for tenant ${tenantId}`);
+      return updatedUser;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
 }
 
 export const userManagementService = new UserManagementService();

@@ -141,10 +141,22 @@ export const insertTenantSchema = createInsertSchema(tenants);
 export const insertUserSchema = createInsertSchema(users);
 export const insertUserSessionSchema = createInsertSchema(userSessions);
 
+// Update schema - Only allow updating specific fields, exclude system fields
+export const updateUserSchema = createInsertSchema(users).omit({
+  id: true,
+  passwordHash: true,
+  tenantId: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLoginAt: true,
+  lastActiveAt: true,
+}).partial();
+
 // Types
 export type Tenant = typeof tenants.$inferSelect;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
