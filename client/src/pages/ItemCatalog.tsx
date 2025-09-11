@@ -220,8 +220,23 @@ export default function ItemCatalog() {
 
       // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
       const token = localStorage.getItem('accessToken');
-      if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
+      if (!token || token === 'null' || token === 'undefined' || token.trim() === '' || token.length < 10) {
         console.error('❌ [ItemCatalog] No valid authentication token found');
+        
+        // Try to get a fresh token from cookies as fallback
+        const cookieToken = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('accessToken='))
+          ?.split('=')[1];
+          
+        if (cookieToken && cookieToken.length > 10) {
+          console.log('🔄 [ItemCatalog] Found valid token in cookies, updating localStorage');
+          localStorage.setItem('accessToken', cookieToken);
+          // Retry the fetch with the new token
+          setTimeout(() => fetchItems(), 100);
+          return;
+        }
+        
         toast({
           title: "Sessão expirada",
           description: "Por favor, faça login novamente.",
@@ -270,6 +285,7 @@ export default function ItemCatalog() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ refreshToken }),
+            credentials: 'include'
           });
 
           if (refreshResponse.ok) {
@@ -287,8 +303,11 @@ export default function ItemCatalog() {
               const retryResponse = await fetch(url, {
                 headers: {
                   'Authorization': `Bearer ${accessToken}`,
-                  'Content-Type': 'application/json'
-                }
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include'
               });
 
               if (retryResponse.ok) {
