@@ -98,19 +98,37 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
   const form = useForm<CreateContractFormData>({
     resolver: zodResolver(createContractSchema),
     defaultValues: {
+      contractNumber: '',
+      title: '',
       contractType: 'service',
       priority: 'medium',
+      customerCompanyId: '',
+      managerId: '',
+      technicalManagerId: '',
+      locationId: '',
+      startDate: '',
+      endDate: '',
+      totalValue: 0,
+      monthlyValue: 0,
       currency: 'BRL',
+      paymentTerms: undefined,
+      description: '',
+      termsConditions: '',
       autoRenewal: false,
+      renewalPeriodMonths: undefined,
     },
   });
 
   // ✅ 1QA.MD COMPLIANCE: MUTATION WITH PROPER ERROR HANDLING
   const createContractMutation = useMutation({
     mutationFn: async (data: CreateContractFormData) => {
+      console.log('Creating contract with data:', data);
       const response = await apiRequest('/api/contracts', {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       return response;
     },
@@ -171,7 +189,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
               {/* Informações Básicas */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-muted-foreground">Informações Básicas</h3>
-                
+
                 <FormField
                   control={form.control}
                   name="contractNumber"
@@ -353,7 +371,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
               {/* Informações Comerciais e Datas */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-muted-foreground">Dados Comerciais</h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
