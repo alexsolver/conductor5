@@ -27,12 +27,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Shield, 
-  Users, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Shield,
+  Users,
   User,
   UserPlus,
   UserMinus,
@@ -42,7 +42,8 @@ import {
   Unlock,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Trash
 } from "lucide-react";
 
 interface Role {
@@ -103,7 +104,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [formData, setFormData] = useState({ name: "", description: "" });
@@ -116,13 +117,13 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
     queryKey: ["/api/user-management/roles"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user-management/roles");
-      if (!res.ok) throw new Error("Erro ao buscar roles");
+      if (!res.ok) throw new Error("Erro ao buscar permissões");
       const json = await res.json();
       return {
-        roles: Array.isArray(json.roles) ? json.roles : [],
+        permissions: Array.isArray(json.permissions) ? json.permissions : [],
       };
     },
-    select: (data) => data.roles,
+    select: (data) => data.permissions,
   });
 
   // Permissions
@@ -163,20 +164,20 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       setSelectedPermissions([]);
       toast({
         title: "Sucesso",
-        description: "Papel criado com sucesso",
+        description: "Permissão criada com sucesso",
       });
     },
     onError: () => {
       toast({
         title: "Erro",
-        description: "Erro ao criar papel",
+        description: "Erro ao criar permissão",
         variant: "destructive",
       });
     },
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
       apiRequest('PUT', `/api/user-management/roles/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
@@ -185,13 +186,13 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       setSelectedPermissions([]);
       toast({
         title: "Sucesso",
-        description: "Papel atualizado com sucesso",
+        description: "Permissão atualizada com sucesso",
       });
     },
     onError: () => {
       toast({
         title: "Erro",
-        description: "Erro ao atualizar papel",
+        description: "Erro ao atualizar permissão",
         variant: "destructive",
       });
     },
@@ -203,13 +204,13 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
         title: "Sucesso",
-        description: "Papel excluído com sucesso",
+        description: "Permissão excluída com sucesso",
       });
     },
     onError: () => {
       toast({
         title: "Erro",
-        description: "Erro ao excluir papel",
+        description: "Erro ao excluir permissão",
         variant: "destructive",
       });
     },
@@ -222,13 +223,13 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
         title: "Sucesso",
-        description: "Usuário atribuído ao papel com sucesso",
+        description: "Usuário atribuído à permissão com sucesso",
       });
     },
     onError: () => {
       toast({
         title: "Erro",
-        description: "Erro ao atribuir usuário ao papel",
+        description: "Erro ao atribuir usuário à permissão",
         variant: "destructive",
       });
     },
@@ -241,13 +242,13 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
         title: "Sucesso",
-        description: "Usuário removido do papel com sucesso",
+        description: "Usuário removido da permissão com sucesso",
       });
     },
     onError: () => {
       toast({
         title: "Erro",
-        description: "Erro ao remover usuário do papel",
+        description: "Erro ao remover usuário da permissão",
         variant: "destructive",
       });
     },
@@ -266,8 +267,8 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !editingRole) return;
-    updateRoleMutation.mutate({ 
-      id: editingRole.id, 
+    updateRoleMutation.mutate({
+      id: editingRole.id,
       data: {
         ...formData,
         permissions: selectedPermissions
@@ -285,7 +286,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   };
 
   const handleDeleteClick = (role: Role) => {
-    if (window.confirm(`Tem certeza que deseja excluir o papel "${role.name}"?`)) {
+    if (window.confirm(`Tem certeza que deseja excluir a permissão "${role.name}"?`)) {
       deleteRoleMutation.mutate(role.id);
     }
   };
@@ -330,43 +331,43 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Papéis e Permissões</h3>
+          <h3 className="text-lg font-medium">Permissões Customizadas</h3>
           <p className="text-sm text-muted-foreground">
-            Gerencie papéis customizados e permissões granulares para o workspace
+            Gerencie permissões customizadas e permissões granulares para o workspace
           </p>
         </div>
-        
+
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Criar Papel
+              Criar Permissão
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <form onSubmit={handleCreateSubmit}>
               <DialogHeader>
-                <DialogTitle>Criar Novo Papel</DialogTitle>
+                <DialogTitle>Criar Nova Permissão</DialogTitle>
                 <DialogDescription>
-                  Defina um novo papel com permissões específicas
+                  Defina uma nova permissão com funcionalidades específicas
                 </DialogDescription>
               </DialogHeader>
-              
+
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
-                  <TabsTrigger value="permissions">Permissões</TabsTrigger>
+                  <TabsTrigger value="permissions">Funcionalidades</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="basic" className="space-y-4">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Nome do Papel</Label>
+                      <Label htmlFor="name">Nome da Permissão</Label>
                       <Input
                         id="name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Ex: Administrador de Tickets"
+                        placeholder="Ex: Administração de Tickets"
                         required
                       />
                     </div>
@@ -376,13 +377,13 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         id="description"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Descrição do papel e suas responsabilidades"
+                        placeholder="Descrição da permissão e suas responsabilidades"
                         rows={3}
                       />
                     </div>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="permissions" className="space-y-4">
                   <ScrollArea className="h-96">
                     <div className="space-y-6">
@@ -420,13 +421,13 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                   </ScrollArea>
                 </TabsContent>
               </Tabs>
-              
+
               <DialogFooter className="mt-6">
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createRoleMutation.isPending || !formData.name.trim()}>
-                  {createRoleMutation.isPending ? "Criando..." : "Criar Papel"}
+                  {createRoleMutation.isPending ? "Criando..." : "Criar Permissão"}
                 </Button>
               </DialogFooter>
             </form>
@@ -437,12 +438,12 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
         <Dialog open={!!editingRole} onOpenChange={() => setEditingRole(null)}>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Editar Papel</DialogTitle>
+              <DialogTitle>Editar Permissão</DialogTitle>
               <DialogDescription>
-                Gerencie informações do papel, permissões e usuários associados
+                Gerencie informações da permissão, funcionalidades e usuários associados
               </DialogDescription>
             </DialogHeader>
-            
+
             <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-4">
                 <TabsTrigger value="info" className="flex items-center space-x-2">
@@ -451,7 +452,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                 </TabsTrigger>
                 <TabsTrigger value="permissions" className="flex items-center space-x-2">
                   <Shield className="h-4 w-4" />
-                  <span>Permissões</span>
+                  <span>Funcionalidades</span>
                 </TabsTrigger>
                 <TabsTrigger value="users" className="flex items-center space-x-2">
                   <Users className="h-4 w-4" />
@@ -464,12 +465,12 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                 <form onSubmit={handleEditSubmit}>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit-name">Nome do Papel</Label>
+                      <Label htmlFor="edit-name">Nome da Permissão</Label>
                       <Input
                         id="edit-name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Ex: Administrador de Tickets"
+                        placeholder="Ex: Administração de Tickets"
                         required
                       />
                     </div>
@@ -479,12 +480,12 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         id="edit-description"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Descrição do papel e suas responsabilidades"
+                        placeholder="Descrição da permissão e suas responsabilidades"
                         rows={3}
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end space-x-2 mt-6">
                     <Button type="button" variant="outline" onClick={handleCloseDialog}>
                       Cancelar
@@ -499,12 +500,12 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
               {/* Aba Permissões */}
               <TabsContent value="permissions" className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-medium">Permissões do Papel</h4>
+                  <h4 className="text-sm font-medium">Funcionalidades da Permissão</h4>
                   <Badge variant="outline">
-                    {selectedPermissions.length} permissões selecionadas
+                    {selectedPermissions.length} funcionalidades selecionadas
                   </Badge>
                 </div>
-                
+
                 <ScrollArea className="h-96 border rounded-lg p-4">
                   <div className="space-y-6">
                     {Object.entries(groupedPermissions).map(([category, permissions]) => (
@@ -541,18 +542,18 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                 </ScrollArea>
 
                 <div className="flex justify-end">
-                  <Button 
+                  <Button
                     onClick={() => {
                       if (editingRole) {
-                        updateRoleMutation.mutate({ 
-                          id: editingRole.id, 
+                        updateRoleMutation.mutate({
+                          id: editingRole.id,
                           data: { permissions: selectedPermissions }
                         });
                       }
                     }}
                     disabled={updateRoleMutation.isPending}
                   >
-                    {updateRoleMutation.isPending ? "Atualizando..." : "Salvar Permissões"}
+                    {updateRoleMutation.isPending ? "Atualizando..." : "Salvar Funcionalidades"}
                   </Button>
                 </div>
               </TabsContent>
@@ -561,7 +562,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
               <TabsContent value="users" className="space-y-4">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Atribuir Usuários ao Papel</h4>
+                    <h4 className="text-sm font-medium">Atribuir Usuários à Permissão</h4>
                     <Badge variant="outline">
                       {editingRole?.userCount || 0} usuários atribuídos
                     </Badge>
@@ -573,8 +574,8 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                         usersData.map((user: any) => {
                           const hasRole = false; // TODO: Check if user has this role
                           return (
-                            <div 
-                              key={user.id} 
+                            <div
+                              key={user.id}
                               className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
                               <div className="flex items-center space-x-3">
@@ -638,8 +639,21 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
 
       {rolesLoading ? (
         <div className="text-center py-8">
-          Carregando papéis...
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Carregando permissões...</p>
         </div>
+      ) : rolesData?.length === 0 ? (
+        <Card className="p-8 text-center">
+          <Shield className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium mb-2">Nenhuma permissão encontrada</h3>
+          <p className="text-gray-600 mb-4">
+            Comece criando sua primeira permissão customizada
+          </p>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Criar Permissão
+          </Button>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.isArray(rolesData) && rolesData.map((role: Role) => (
@@ -651,7 +665,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                     <span>{role.name}</span>
                   </CardTitle>
                   <Badge variant={role.isActive ? "default" : "secondary"}>
-                    {role.isActive ? "Ativo" : "Inativo"}
+                    {role.isActive ? "Ativa" : "Inativa"}
                   </Badge>
                 </div>
                 {role.description && (
@@ -662,7 +676,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Permissões:</span>
+                  <span className="text-muted-foreground">Funcionalidades:</span>
                   <Badge variant="outline">
                     {role.permissions?.length || 0}
                   </Badge>
@@ -673,14 +687,14 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                     {role.userCount || 0}
                   </Badge>
                 </div>
-                
+
                 {role.isSystem && (
                   <Badge variant="secondary" className="text-xs">
                     <Lock className="h-3 w-3 mr-1" />
-                    Papel do Sistema
+                    Permissão do Sistema
                   </Badge>
                 )}
-                
+
                 <div className="flex space-x-2 pt-2">
                   <Button
                     size="sm"

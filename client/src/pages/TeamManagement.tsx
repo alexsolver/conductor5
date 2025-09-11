@@ -500,7 +500,7 @@ export default function TeamManagement() {
           </TabsTrigger>
           <TabsTrigger value="roles" className="flex items-center space-x-1">
             <Shield className="h-3 w-3" />
-            <span className="text-xs">Papéis</span>
+            <span className="text-xs">Permissões</span>
           </TabsTrigger>
           <TabsTrigger value="invitations" className="flex items-center space-x-1">
             <Mail className="h-3 w-3" />
