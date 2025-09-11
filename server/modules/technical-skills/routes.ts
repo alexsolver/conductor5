@@ -17,6 +17,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { jwtAuth } from '../../middleware/jwtAuth.js';
 import { z } from 'zod';
 import type { Request, Response } from 'express';
+import crypto from 'crypto'; // Import crypto for UUID generation
 
 const router = Router();
 
@@ -354,6 +355,112 @@ router.get('/certifications/expiring', async (req: Request, res: Response) => {
       success: false,
       message: 'Erro ao buscar certificações expirando',
       error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Assign members to skill
+router.post('/skills/:skillId/assign-members', async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const tenantId = user?.tenantId;
+    const { skillId } = req.params;
+    const { memberIds, defaultProficiencyLevel = 'intermediate' } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+        message: 'Tenant ID not found'
+      });
+    }
+
+    if (!skillId || !memberIds || !Array.isArray(memberIds)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        message: 'Skill ID and member IDs array are required'
+      });
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+    const results = [];
+
+    // Process each member
+    for (const memberId of memberIds) {
+      try {
+        // Check if assignment already exists
+        const existingAssignment = await db.select()
+          .from(userSkills)
+          .where(
+            and(
+              eq(userSkills.tenantId, tenantId),
+              eq(userSkills.userId, memberId),
+              eq(userSkills.skillId, skillId)
+            )
+          )
+          .limit(1);
+
+        if (existingAssignment.length > 0) {
+          results.push({
+            memberId,
+            status: 'skipped',
+            message: 'Already assigned'
+          });
+          continue;
+        }
+
+        // Create new assignment
+        const newAssignment = {
+          id: crypto.randomUUID(),
+          tenantId,
+          userId: memberId,
+          skillId,
+          proficiencyLevel: defaultProficiencyLevel,
+          yearsOfExperience: 0,
+          certifications: [],
+          notes: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        await db.insert(userSkills).values(newAssignment);
+        successCount++;
+        results.push({
+          memberId,
+          status: 'success',
+          message: 'Successfully assigned'
+        });
+
+      } catch (memberError) {
+        console.error('Error assigning skill to member:', memberId, memberError);
+        errorCount++;
+        results.push({
+          memberId,
+          status: 'error',
+          message: 'Assignment failed'
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Assignment completed: ${successCount} successful, ${errorCount} failed`,
+      data: {
+        skillId,
+        successCount,
+        errorCount,
+        results
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in assign members endpoint:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to assign members to skill'
     });
   }
 });

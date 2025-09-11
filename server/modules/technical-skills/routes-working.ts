@@ -494,7 +494,7 @@ router.post('/working/user-skills', async (req, res) => {
         message: 'Skill not found or does not belong to this tenant'
       });
     }
-    
+
     // Check if user already has this skill assigned
     const [existingUserSkill] = await db.select().from(userSkills).where(
       and(eq(userSkills.userId, userSkillData.userId), eq(userSkills.skillId, userSkillData.skillId), eq(userSkills.tenantId, tenantId))
@@ -521,7 +521,7 @@ router.post('/working/user-skills', async (req, res) => {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     // Insert into database
     await db.insert(userSkills).values(newUserSkill);
 
@@ -656,7 +656,7 @@ router.get('/working/user-skills', async (req, res) => {
     } else {
       orderBy.push(sortOrder === 'asc' ? asc(userSkills.createdAt) : desc(userSkills.createdAt));
     }
-    
+
     query = query.orderBy(...orderBy);
 
     // Apply pagination
@@ -951,115 +951,129 @@ router.get('/working/certifications/expiring', async (req, res) => {
   }
 });
 
-// Batch assign members to skill
-router.post('/skills/:skillId/assign-members', jwtAuth, async (req: AuthenticatedRequest, res) => {
+/**
+ * Assign members to skill - Working implementation
+ * POST /working/skills/:skillId/assign-members
+ */
+router.post('/working/skills/:skillId/assign-members', async (req, res) => {
   try {
-    const { user } = req;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
-
+    const tenantId = req.user?.tenantId;
     const { skillId } = req.params;
-    const { memberIds, defaultProficiencyLevel = 'beginner' } = req.body;
+    const { memberIds, defaultProficiencyLevel = 'intermediate' } = req.body;
 
-    // ✅ 1QA.MD: Validate required fields following security patterns
-    if (!skillId || !Array.isArray(memberIds) || memberIds.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Missing required fields: skillId and memberIds array' 
-      });
-    }
+    console.log('[TECHNICAL-SKILLS-WORKING] Assign members request:', { 
+      skillId, 
+      memberIds, 
+      defaultProficiencyLevel,
+      tenantId 
+    });
 
-    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
-    const tenantId = user.tenantId;
-    console.log(`[TECHNICAL-SKILLS-WORKING] Batch assigning members to skill ${skillId} for tenant: ${tenantId}`);
-
-    const assignments = [];
-    const errors = [];
-
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { userSkills, skills } = await import('../../../shared/schema');
-    const { eq, and } = await import('drizzle-orm');
-
-    // Check if the skill exists and belongs to the tenant
-    const [skill] = await db.select().from(skills).where(
-      and(eq(skills.id, skillId), eq(skills.tenantId, tenantId))
-    );
-
-    if (!skill) {
-      return res.status(404).json({
+    if (!tenantId) {
+      console.log('[TECHNICAL-SKILLS-WORKING] Missing tenant ID');
+      return res.status(401).json({
         success: false,
-        error: 'Not found',
-        message: 'Skill not found or does not belong to this tenant'
+        error: 'Authentication required',
+        message: 'Tenant ID not found'
       });
     }
 
-    for (const userId of memberIds) {
-      try {
-        // Check if user already has this skill assigned
-        const [existingUserSkill] = await db.select().from(userSkills).where(
-          and(eq(userSkills.userId, userId), eq(userSkills.skillId, skillId), eq(userSkills.tenantId, tenantId))
-        );
+    if (!skillId || !memberIds || !Array.isArray(memberIds)) {
+      console.log('[TECHNICAL-SKILLS-WORKING] Validation failed:', { skillId, memberIds });
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        message: 'Skill ID and member IDs array are required'
+      });
+    }
 
-        if (existingUserSkill) {
-          errors.push({ userId, error: 'User already has this skill assigned' });
-          continue; // Skip to next user if already assigned
+    // Import database and schema dynamically
+    const { db } = await import('../../../db');
+    const { userSkills } = await import('../../../shared/schema');
+    const { v4: uuidv4 } = await import('uuid');
+
+    let successCount = 0;
+    let errorCount = 0;
+    const results = [];
+
+    // Process each member
+    for (const memberId of memberIds) {
+      try {
+        // Check if assignment already exists
+        const existingAssignment = await db.select()
+          .from(userSkills)
+          .where(
+            db.and(
+              db.eq(userSkills.tenantId, tenantId),
+              db.eq(userSkills.userId, memberId),
+              db.eq(userSkills.skillId, skillId)
+            )
+          )
+          .limit(1);
+
+        if (existingAssignment.length > 0) {
+          console.log('[TECHNICAL-SKILLS-WORKING] Assignment already exists for:', memberId);
+          results.push({
+            memberId,
+            status: 'skipped',
+            message: 'Already assigned'
+          });
+          continue;
         }
 
-        const userSkillId = `user_skill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-        const assignment = {
-          id: userSkillId,
+        // Create new assignment
+        const newAssignment = {
+          id: uuidv4(),
           tenantId,
-          userId,
+          userId: memberId,
           skillId,
           proficiencyLevel: defaultProficiencyLevel,
           yearsOfExperience: 0,
           certifications: [],
-          notes: 'Atribuído automaticamente via atribuição em lote',
+          notes: null,
           createdAt: new Date(),
           updatedAt: new Date()
         };
 
-        assignments.push(assignment);
-        console.log(`[TECHNICAL-SKILLS-WORKING] Created assignment: ${userSkillId} for user: ${userId}`);
-      } catch (error) {
-        console.error(`[TECHNICAL-SKILLS-WORKING] Error assigning user ${userId}:`, error);
-        errors.push({ userId, error: error.message });
+        await db.insert(userSkills).values(newAssignment);
+
+        successCount++;
+        results.push({
+          memberId,
+          status: 'success',
+          message: 'Successfully assigned'
+        });
+
+        console.log('[TECHNICAL-SKILLS-WORKING] Successfully assigned skill to member:', memberId);
+
+      } catch (memberError) {
+        console.error('[TECHNICAL-SKILLS-WORKING] Error assigning skill to member:', memberId, memberError);
+        errorCount++;
+        results.push({
+          memberId,
+          status: 'error',
+          message: 'Assignment failed'
+        });
       }
     }
 
-    // Bulk insert assignments if there are any to add
-    if (assignments.length > 0) {
-      await db.insert(userSkills).values(assignments);
-    }
+    console.log('[TECHNICAL-SKILLS-WORKING] Assignment completed:', { successCount, errorCount });
 
-    const response = {
+    res.status(200).json({
       success: true,
+      message: `Assignment completed: ${successCount} successful, ${errorCount} failed`,
       data: {
-        assignments: assignments.map(a => ({ // Return only successful assignments
-          id: a.id,
-          userId: a.userId,
-          skillId: a.skillId,
-          proficiencyLevel: a.proficiencyLevel,
-          notes: a.notes
-        })),
-        successCount: assignments.length,
-        errorCount: errors.length,
-        errors
-      },
-      message: `Successfully assigned ${assignments.length} member(s) to skill. ${errors.length} error(s).`
-    };
-
-    console.log(`[TECHNICAL-SKILLS-WORKING] Batch assignment completed: ${assignments.length} success, ${errors.length} errors`);
-
-    res.status(201).json(response);
+        skillId,
+        successCount,
+        errorCount,
+        results
+      }
+    });
 
   } catch (error) {
-    console.error('[TECHNICAL-SKILLS-WORKING] Error in batch assignment:', error);
+    console.error('[TECHNICAL-SKILLS-WORKING] Error in assign members endpoint:', error);
     res.status(500).json({
       success: false,
+      error: 'Internal server error',
       message: 'Failed to assign members to skill'
     });
   }
