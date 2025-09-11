@@ -165,30 +165,9 @@ class TenantAutoProvisioningService {
           );
         }
 
-        // Apply default company template with custom company name
+        // Note: Default company template will be applied after user creation
         console.log(
-          `🏭 [TENANT-PROVISIONING] Applying default company template for tenant: ${savedTenant.id}`,
-        );
-        
-        const { TenantTemplateService } = await import("./TenantTemplateService");
-        const schemaName = `tenant_${savedTenant.id.replace(/-/g, "_")}`;
-        
-        // Use the company name from request, fallback to tenant name
-        const companyName = request.companyName || request.name;
-        
-        await TenantTemplateService.applyCustomizedDefaultTemplate(
-          savedTenant.id,
-          "system", // Default system user for provisioning
-          schemaManager.pool,
-          schemaName,
-          {
-            companyName: companyName,
-            // You can add more customizations here if needed
-          }
-        );
-        
-        console.log(
-          `✅ [TENANT-PROVISIONING] Default company '${companyName}' created for tenant: ${savedTenant.id}`,
+          `✅ [TENANT-PROVISIONING] Tenant schema ready for template application: ${savedTenant.id}`,
         );
 
       } catch (schemaError) {

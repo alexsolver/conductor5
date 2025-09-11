@@ -293,6 +293,30 @@ authRouter.post(
       const registerUseCase = container.registerUseCase;
       const result = await registerUseCase.execute(userData);
 
+      // If tenant was created, apply default company template after user creation
+      if (userData.companyName && userData.workspaceName && userData.tenantId) {
+        try {
+          const { TenantTemplateService } = await import("../../services/TenantTemplateService");
+          const { schemaManager } = await import("../../db");
+          const schemaName = `tenant_${userData.tenantId.replace(/-/g, "_")}`;
+          
+          await TenantTemplateService.applyCustomizedDefaultTemplate(
+            userData.tenantId,
+            result.user.id, // Use the actual created user ID
+            schemaManager.pool,
+            schemaName,
+            {
+              companyName: userData.companyName,
+            }
+          );
+          
+          console.log(`✅ [REGISTER] Default company '${userData.companyName}' created for tenant: ${userData.tenantId}`);
+        } catch (templateError) {
+          console.error("❌ [REGISTER] Failed to apply default template:", templateError);
+          // Don't fail registration if template application fails
+        }
+      }
+
       // Set refresh token as httpOnly cookie
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
