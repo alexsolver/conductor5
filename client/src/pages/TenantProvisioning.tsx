@@ -60,6 +60,20 @@ const configSchema = z.object({
 type ProvisionTenantFormData = z.infer<typeof provisionTenantSchema>;
 type ConfigFormData = z.infer<typeof configSchema>;
 
+// Interface for the config API response
+interface ProvisioningConfig {
+  enabled: boolean;
+  allowSelfProvisioning: boolean;
+  autoCreateOnFirstUser: boolean;
+  subdomainGeneration: 'random' | 'company-based' | 'user-based';
+  defaultTenantSettings: {
+    maxUsers: number;
+    maxTickets: number;
+    features: string[];
+    theme: string;
+  };
+}
+
 export default function TenantProvisioning() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -88,7 +102,7 @@ export default function TenantProvisioning() {
   }
 
   // Query para configuração de auto-provisioning
-  const { data: config, isLoading: isLoadingConfig } = useQuery({
+  const { data: config, isLoading: isLoadingConfig } = useQuery<ProvisioningConfig>({
     queryKey: isSaasAdmin ? ['/api/saas-admin/tenant-provisioning/config'] : ['/api/tenant-provisioning/config'],
     staleTime: 5 * 60 * 1000,
   });

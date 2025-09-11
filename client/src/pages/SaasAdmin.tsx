@@ -16,6 +16,36 @@ import { Plus, Users, Building, Settings, BarChart3, Shield } from "lucide-react
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Type definitions for API responses
+interface TenantsData {
+  total: number;
+  tenants: Array<{
+    id: string;
+    name: string;
+    subdomain: string;
+    createdAt: string;
+    status: string;
+  }>;
+}
+
+interface AnalyticsData {
+  totalUsers: number;
+  totalTickets: number;
+  activeUsers: number;
+}
+
+interface UsersData {
+  users: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    lastLoginAt?: string;
+  }>;
+}
+
 const createTenantSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   subdomain: z.string().min(1, "Subdomínio é obrigatório").regex(/^[a-z0-9-]+$/, "Subdomínio deve conter apenas letras minúsculas, números e hífens"),
@@ -43,19 +73,19 @@ export default function SaasAdmin() {
   }
 
   // Query para listar tenants
-  const { data: tenantsData, isLoading: isLoadingTenants } = useQuery({
+  const { data: tenantsData, isLoading: isLoadingTenants } = useQuery<TenantsData>({
     queryKey: ['/api/saas-admin/tenants'],
     staleTime: 5 * 60 * 1000,
   });
 
   // Query para analytics da plataforma
-  const { data: analyticsData } = useQuery({
+  const { data: analyticsData } = useQuery<AnalyticsData>({
     queryKey: ['/api/saas-admin/analytics'],
     staleTime: 2 * 60 * 1000,
   });
 
   // Query para lista de usuários
-  const { data: usersData } = useQuery({
+  const { data: usersData } = useQuery<UsersData>({
     queryKey: ['/api/saas-admin/users'],
     staleTime: 5 * 60 * 1000,
   });

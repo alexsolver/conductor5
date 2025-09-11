@@ -132,8 +132,8 @@ import React from 'react'; // Ensure React is imported
 // import AppRoutes from "./AppRoutes"; // Assuming AppRoutes is a component that handles routing
 
 // Mock Router and AppRoutes for demonstration if not provided
-const Router = ({ children }) => <Switch>{children}</Switch>;
-const AppRoutes = ({ children }) => <>{children}</>; // Placeholder, replace with actual routing component
+const Router = ({ children }: { children: React.ReactNode }) => <Switch>{children}</Switch>;
+const AppRoutes = ({ children }: { children: React.ReactNode }) => <>{children}</>; // Placeholder, replace with actual routing component
 
 
 function AppRouter() {

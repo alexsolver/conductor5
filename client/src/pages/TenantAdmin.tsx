@@ -17,6 +17,35 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TenantTemplateApplicator } from '../components/TenantTemplateApplicator';
 
+// Type definitions for API responses
+interface TenantSettings {
+  name: string;
+  subdomain: string;
+  settings: {
+    allowRegistration?: boolean;
+    maxUsers?: number;
+    features?: string[];
+  };
+}
+
+interface TenantAnalyticsData {
+  activeTickets: number;
+  satisfactionScore: number;
+  onlineAgents: number;
+}
+
+interface TenantUsersData {
+  users: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    lastLoginAt?: string;
+  }>;
+}
+
 const createUserSchema = z.object({
   email: z.string().email("Email inválido"),
   firstName: z.string().min(1, "Nome é obrigatório"),
@@ -55,19 +84,19 @@ export default function TenantAdmin() {
   }
 
   // Query para configurações do tenant
-  const { data: tenantSettings, isLoading: isLoadingSettings } = useQuery({
+  const { data: tenantSettings, isLoading: isLoadingSettings } = useQuery<TenantSettings>({
     queryKey: ['/api/tenant-admin/settings'],
     staleTime: 5 * 60 * 1000,
   });
 
   // Query para usuários do tenant
-  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery<TenantUsersData>({
     queryKey: ['/api/tenant-admin/users'],
     staleTime: 5 * 60 * 1000,
   });
 
   // Query para analytics do tenant
-  const { data: analyticsData } = useQuery({
+  const { data: analyticsData } = useQuery<TenantAnalyticsData>({
     queryKey: ['/api/tenant-admin/analytics'],
     staleTime: 2 * 60 * 1000,
   });
