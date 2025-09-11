@@ -815,8 +815,10 @@ router.post('/groups/:groupId/members/bulk',
 
       // Deduplicar userIds
       const uniqueUserIds = Array.from(new Set(userIds));
+      console.log(`🔍 [BULK-DEBUG] Step 1: Deduplicated userIds:`, uniqueUserIds);
 
       // Verificar se o grupo existe
+      console.log(`🔍 [BULK-DEBUG] Step 2: Checking if group exists:`, groupId);
       const group = await db.select({
         id: userGroups.id,
         isActive: userGroups.isActive
@@ -826,6 +828,7 @@ router.post('/groups/:groupId/members/bulk',
           eq(userGroups.isActive, true)
         ))
         .limit(1);
+      console.log(`🔍 [BULK-DEBUG] Step 2 complete: Group found:`, group.length > 0);
 
       if (!group.length) {
         return res.status(404).json({ 
@@ -835,15 +838,18 @@ router.post('/groups/:groupId/members/bulk',
       }
 
       // Verificar quais usuários já são membros ativos
+      console.log(`🔍 [BULK-DEBUG] Step 3: Checking existing memberships for group:`, groupId);
       const existingMemberships = await db.select()
         .from(userGroupMemberships)
         .where(and(
           eq(userGroupMemberships.groupId, groupId),
           eq(userGroupMemberships.isActive, true)
         ));
+      console.log(`🔍 [BULK-DEBUG] Step 3 complete: Found ${existingMemberships.length} existing memberships`);
 
       const existingUserIds = new Set(existingMemberships.map(m => m.userId));
       const newUserIds = uniqueUserIds.filter(userId => !existingUserIds.has(userId));
+      console.log(`🔍 [BULK-DEBUG] Step 4: New users to add:`, newUserIds.length);
 
       if (newUserIds.length === 0) {
         return res.status(409).json({
@@ -853,6 +859,7 @@ router.post('/groups/:groupId/members/bulk',
       }
 
       // Preparar dados para inserção múltipla
+      console.log(`🔍 [BULK-DEBUG] Step 5: Preparing insert data for ${newUserIds.length} users`);
       const membershipData = newUserIds.map(userId => ({
         userId,
         groupId,
@@ -860,18 +867,28 @@ router.post('/groups/:groupId/members/bulk',
         addedById: req.user!.id,
         isActive: true
       }));
+      console.log(`🔍 [BULK-DEBUG] Step 5 complete: Data prepared`);
 
       // Inserir múltiplos membros
-      const newMemberships = await db
-        .insert(userGroupMemberships)
-        .values(membershipData)
-        .onConflictDoNothing({ target: [userGroupMemberships.groupId, userGroupMemberships.userId] })
-        .returning();
+      console.log(`🔍 [BULK-DEBUG] Step 6: Starting bulk insert...`);
+      let newMemberships;
+      try {
+        newMemberships = await db
+          .insert(userGroupMemberships)
+          .values(membershipData)
+          .onConflictDoNothing({ target: [userGroupMemberships.groupId, userGroupMemberships.userId] })
+          .returning();
+        console.log(`🔍 [BULK-DEBUG] Step 6 complete: Insert successful, ${newMemberships.length} rows affected`);
+      } catch (insertError) {
+        console.error(`❌ [BULK-DEBUG] Step 6 FAILED: Insert error:`, insertError);
+        throw insertError;
+      }
 
       console.log(`✅ [TENANT-GROUPS] Added ${newMemberships.length} members to tenant group: ${groupId}`);
 
       const skippedUsers = uniqueUserIds.filter(userId => existingUserIds.has(userId));
 
+      console.log(`🔍 [BULK-DEBUG] Step 7: Sending response...`);
       res.status(201).json({
         success: true,
         memberships: newMemberships,
@@ -879,6 +896,7 @@ router.post('/groups/:groupId/members/bulk',
         skipped: skippedUsers.length,
         skippedUsers
       });
+      console.log(`🔍 [BULK-DEBUG] Step 7 complete: Response sent`);
     } catch (error) {
       console.error('Error adding multiple members to group:', error);
       res.status(500).json({ 
