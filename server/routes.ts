@@ -93,6 +93,9 @@ import companiesCleanRoutes from "./modules/companies/routes-clean";
 // ✅ 1QA.MD COMPLIANCE: Import Technical Skills Clean Architecture routes
 import technicalSkillsRoutes from "./modules/technical-skills/routes";
 
+// TenantTemplateService - required for copy hierarchy functionality
+import { TenantTemplateService } from "./services/TenantTemplateService";
+
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
 );
@@ -3656,7 +3659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const tenantId = req.user?.tenantId;
         if (!tenantId) {
-          return res.status(400).json({ message: "Tenant ID required for integrations" });
+          return res.status(401).json({ message: "Tenant ID required for integrations" });
         }
 
         console.log(
@@ -5983,7 +5986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Test OpenAI API
             const baseUrl = config.baseUrl || "https://api.openai.com/v1";
             console.log(
-              `🧪 [SAAS-ADMIN-TEST] Testing OpenAI with baseUrl: ${baseUrl}`,
+              `🧪 [SAAS-ADMIN-TEST] OpenAI with baseUrl: ${baseUrl}`,
             );
             console.log(
               `🧪 [SAAS-ADMIN-TEST] API key length: ${config.apiKey?.length || 0}`,
@@ -6282,6 +6285,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
     console.error("❌ [EMERGENCY-FINAL] Stack:", emergencyError.stack);
   }
+
+  // Copy ticket hierarchy structure (alternative endpoint)
+  app.post('/api/ticket-config/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { sourceCompanyId = '00000000-0000-0000-0000-000000000001', targetCompanyId } = req.body;
+
+      if (!tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant ID required'
+        });
+      }
+
+      if (!targetCompanyId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Target company ID required'
+        });
+      }
+
+      console.log('🔄 [COPY-HIERARCHY-ALT] Starting copy:', {
+        tenantId,
+        sourceCompanyId,
+        targetCompanyId
+      });
+
+      const result = await tenantTemplateService.copyHierarchy(sourceCompanyId, targetCompanyId, tenantId);
+
+      res.json({
+        success: true,
+        message: 'Hierarchy copied successfully',
+        data: result,
+        summary: result.summary
+      });
+
+    } catch (error) {
+      console.error('❌ [COPY-HIERARCHY-ALT] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to copy hierarchy',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
