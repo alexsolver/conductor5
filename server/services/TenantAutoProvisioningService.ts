@@ -164,6 +164,33 @@ class TenantAutoProvisioningService {
             `Schema validation failed for tenant ${savedTenant.id}`,
           );
         }
+
+        // Apply default company template with custom company name
+        console.log(
+          `🏭 [TENANT-PROVISIONING] Applying default company template for tenant: ${savedTenant.id}`,
+        );
+        
+        const { TenantTemplateService } = await import("./TenantTemplateService");
+        const schemaName = `tenant_${savedTenant.id.replace(/-/g, "_")}`;
+        
+        // Use the company name from request, fallback to tenant name
+        const companyName = request.companyName || request.name;
+        
+        await TenantTemplateService.applyCustomizedDefaultTemplate(
+          savedTenant.id,
+          "system", // Default system user for provisioning
+          schemaManager.pool,
+          schemaName,
+          {
+            companyName: companyName,
+            // You can add more customizations here if needed
+          }
+        );
+        
+        console.log(
+          `✅ [TENANT-PROVISIONING] Default company '${companyName}' created for tenant: ${savedTenant.id}`,
+        );
+
       } catch (schemaError) {
         console.error(
           `❌ [TENANT-PROVISIONING] Schema initialization failed for tenant ${savedTenant.id}:`,

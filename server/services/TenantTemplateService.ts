@@ -77,6 +77,51 @@ export class TenantTemplateService {
   }
 
   /**
+   * Cria empresa personalizada baseada no template Default
+   */
+  private static async createCustomizedDefaultCompany(
+    pool: any,
+    schemaName: string,
+    tenantId: string,
+    userId: string,
+    defaultCompanyId: string,
+    customizations: {
+      companyName: string;
+      companyEmail?: string;
+      industry?: string;
+    }
+  ): Promise<void> {
+    const company = DEFAULT_COMPANY_TEMPLATE.company;
+
+    const query = `
+      INSERT INTO "${schemaName}".customer_companies (
+        id, tenant_id, name, display_name, description, industry, size,
+        email, phone, website, subscription_tier, status, 
+        created_by, created_at, updated_at, is_active, country
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW(), true, 'Brazil')
+      ON CONFLICT (id) DO NOTHING
+    `;
+
+    await pool.query(query, [
+      defaultCompanyId,
+      tenantId,
+      customizations.companyName, // Nome personalizado
+      customizations.companyName, // Display name igual ao nome
+      `Empresa ${customizations.companyName} - Configurações padrão do sistema`, // Descrição personalizada
+      customizations.industry || company.industry, // Indústria personalizada ou padrão
+      company.size,
+      customizations.companyEmail || company.email, // Email personalizado ou padrão
+      company.phone,
+      company.website,
+      company.subscriptionTier,
+      company.status,
+      userId
+    ]);
+
+    console.log(`[TENANT-TEMPLATE] Customized default company '${customizations.companyName}' created with ID: ${defaultCompanyId}`);
+  }
+
+  /**
    * Cria as opções de campos de tickets (priority, status, category, etc.)
    */
   private static async createTicketFieldOptions(
@@ -252,6 +297,48 @@ export class TenantTemplateService {
     // Aplicar customizações se fornecidas
     if (customizations) {
       await this.applyCustomizations(pool, schemaName, tenantId, customizations);
+    }
+  }
+
+  /**
+   * Aplica template default com nome de empresa personalizado
+   */
+  static async applyCustomizedDefaultTemplate(
+    tenantId: string,
+    userId: string,
+    pool: any,
+    schemaName: string,
+    customizations: {
+      companyName: string;
+      companyEmail?: string;
+      industry?: string;
+    }
+  ): Promise<void> {
+    console.log(`[TENANT-TEMPLATE] Applying customized default template for tenant ${tenantId} with company name: ${customizations.companyName}`);
+
+    const defaultCompanyId = `default-${tenantId}`;
+
+    try {
+      // 1. Criar empresa personalizada baseada no template Default
+      await this.createCustomizedDefaultCompany(
+        pool,
+        schemaName,
+        tenantId,
+        userId,
+        defaultCompanyId,
+        customizations
+      );
+
+      // 2. Criar opções de campos de tickets (mantém o padrão)
+      await this.createTicketFieldOptions(pool, schemaName, tenantId, defaultCompanyId);
+
+      // 3. Criar estrutura hierárquica de categorias, subcategorias e ações (mantém o padrão)
+      await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
+
+      console.log(`[TENANT-TEMPLATE] Customized default template applied successfully for tenant ${tenantId}`);
+    } catch (error) {
+      console.error(`[TENANT-TEMPLATE] Error applying customized default template for tenant ${tenantId}:`, error);
+      throw error;
     }
   }
 
