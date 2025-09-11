@@ -228,9 +228,12 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       return response;
     },
     onSuccess: () => {
+      // Invalidate all user/member related queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/team/members'] });
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/members'] });
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
 
       toast({
         title: "Membro atualizado",
